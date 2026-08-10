@@ -20,6 +20,41 @@
     }
 @endphp
 
+<style>
+    @media (hover: hover) {
+        #app-sidebar .sidebar-nav-item:not(.sidebar-nav-item-active):hover,
+        #app-sidebar .sidebar-action:hover {
+            background: rgba(255, 255, 255, 0.12) !important;
+            color: #fff !important;
+            transform: translateX(3px);
+        }
+
+        #app-sidebar .sidebar-nav-item:hover svg,
+        #app-sidebar .sidebar-action:hover svg {
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.35));
+        }
+
+        #app-sidebar .sidebar-nav-item-active:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24) !important;
+            transform: translateX(2px);
+        }
+    }
+
+    #app-sidebar .sidebar-nav-item:focus-visible,
+    #app-sidebar .sidebar-action:focus-visible {
+        outline: 2px solid rgba(255, 255, 255, 0.9);
+        outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #app-sidebar .sidebar-nav-item,
+        #app-sidebar .sidebar-action,
+        #app-sidebar .sidebar-action svg {
+            transition: none !important;
+        }
+    }
+</style>
+
 <!--
     PENTING soal flash saat reload:
     Karena tiap klik menu = full page reload (bukan SPA), sidebar ini butuh tahu
@@ -61,6 +96,7 @@
                 $isActive = $currentRoute === $item['route'];
             @endphp
             <a href="{{ route($item['route']) }}"
+               class="sidebar-nav-item{{ $isActive ? ' sidebar-nav-item-active' : '' }}"
                style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; text-decoration:none; font-size:13.5px; font-weight:{{ $isActive ? '700' : '500' }}; {{ $isActive ? 'background:white; color:#AF1424; box-shadow:0 6px 16px rgba(0,0,0,0.18);' : 'color:rgba(255,255,255,0.72);' }} transition:all 0.15s ease;">
                 @switch($item['key'])
                     @case('dashboard')
@@ -103,14 +139,14 @@
     <div style="padding:12px; border-top:1px solid rgba(255,255,255,0.12); flex-shrink:0;">
         <form action="{{ route('logout') }}" method="POST" style="width:100%;">
             @csrf
-            <button type="submit" style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; width:100%; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.72); font-size:13.5px; transition:all 0.15s ease;">
+            <button type="submit" class="sidebar-action" style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; width:100%; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.72); font-size:13.5px; transition:all 0.15s ease;">
                 <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                 </svg>
                 <span x-show="!collapsed">Keluar</span>
             </button>
         </form>
-        <button @click="toggle()" style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; width:100%; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.42); font-size:12px; margin-top:2px; transition:all 0.15s ease;">
+        <button @click="toggle()" class="sidebar-action" style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; width:100%; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.42); font-size:12px; margin-top:2px; transition:all 0.15s ease;">
             <svg style="width:15px; height:15px; flex-shrink:0; transition:transform 0.2s;" :style="{ transform: collapsed ? 'rotate(180deg)' : 'none' }" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
