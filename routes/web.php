@@ -2,6 +2,8 @@
 // routes/web.php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
@@ -67,6 +69,7 @@ Route::middleware(['auth'])->group(function () {
     // Schedules
     Route::prefix('schedules')->group(function () {
         Route::get('/', [ScheduleController::class, 'index'])->name('schedules.index');
+        Route::get('/export', [ScheduleController::class, 'exportExcel'])->name('schedules.export');
         Route::post('/', [ScheduleController::class, 'store'])->name('schedules.store')
             ->middleware('role:Lead Engineer');
         Route::put('/{schedule}', [ScheduleController::class, 'update'])->name('schedules.update')
@@ -105,6 +108,38 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [ProfileController::class, 'show'])->name('profile.show');
         Route::post('/certification', [ProfileController::class, 'uploadCertification'])->name('profile.certification');
     });
+
+    // Stream Sertifikasi (Aman dari kendala symlink cPanel)
+    Route::get('/certification-file/{user}', function (App\Models\User $user) {
+        if (!$user->certification_file) {
+            abort(404);
+        }
+
+        $filename = $user->certification_file;
+        $basename = basename($filename);
+
+        $candidates = [
+            storage_path('app/public/' . $filename),
+            public_path('storage/' . $filename),
+            base_path('storage/app/public/' . $filename),
+            base_path('public/storage/' . $filename),
+            base_path('../public_html/storage/' . $filename),
+            base_path('../storage/app/public/' . $filename),
+            storage_path('app/public/certifications/' . $basename),
+            public_path('storage/certifications/' . $basename),
+            base_path('storage/app/public/certifications/' . $basename),
+            base_path('../public_html/storage/certifications/' . $basename),
+            base_path('../storage/app/public/certifications/' . $basename),
+        ];
+
+        foreach ($candidates as $filePath) {
+            if (file_exists($filePath) && is_file($filePath)) {
+                return response()->file($filePath);
+            }
+        }
+
+        abort(404);
+    })->name('users.certification-file');
 });
 
 // Home redirect
@@ -117,4 +152,72 @@ Route::get('/', function () {
         return redirect()->route('dashboard.engineer');
     }
     return redirect()->route('login');
+});
+
+// Fallback storage route untuk cPanel jika symlink public/storage belum ada
+Route::get('/storage/{path}', function ($path) {
+    $candidates = [
+        public_path('storage/' . $path),
+        storage_path('app/public/' . $path),
+        base_path('public/storage/' . $path),
+        base_path('storage/app/public/' . $path),
+        base_path('../public_html/storage/' . $path),
+    ];
+
+    foreach ($candidates as $filePath) {
+        if (file_exists($filePath) && is_file($filePath)) {
+            return response()->file($filePath);
+        }
+    }
+
+    abort(404);
+})->where('path', '.*');
+
+// Perbaikan otomatis folder storage & symlink untuk cPanel
+Route::get('/fix-storage', function () {
+    $outputs = [];
+
+    // 1. Jalankan storage:link
+    try {
+        Artisan::call('storage:link');
+        $outputs[] = "Artisan storage:link output: " . Artisan::output();
+    } catch (\Exception $e) {
+        $outputs[] = "Artisan storage:link error: " . $e->getMessage();
+    }
+
+    // 2. Buat folder direktori jika belum ada
+    $source = storage_path('app/public/certifications');
+    $dest1 = public_path('storage/certifications');
+    $dest2 = base_path('../public_html/storage/certifications');
+
+    foreach ([$dest1, $dest2] as $destDir) {
+        if (!File::exists($destDir)) {
+            File::makeDirectory($destDir, 0755, true, true);
+            $outputs[] = "Membuat direktori: {$destDir}";
+        }
+    }
+
+    // 3. Salin file yang sudah di-upload sebelumnya ke direktori publik
+    if (File::exists($source)) {
+        $files = File::files($source);
+        foreach ($files as $file) {
+            $filename = $file->getFilename();
+
+            if (!File::exists($dest1 . '/' . $filename)) {
+                File::copy($file->getPathname(), $dest1 . '/' . $filename);
+                $outputs[] = "Menyalin {$filename} ke public/storage/certifications";
+            }
+
+            if (File::isDirectory(base_path('../public_html')) && !File::exists($dest2 . '/' . $filename)) {
+                File::copy($file->getPathname(), $dest2 . '/' . $filename);
+                $outputs[] = "Menyalin {$filename} ke public_html/storage/certifications";
+            }
+        }
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Perbaikan & sinkronisasi folder storage cPanel berhasil!',
+        'details' => $outputs,
+    ]);
 });

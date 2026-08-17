@@ -48,10 +48,30 @@ class UserController extends Controller
         $data['password'] = Hash::make($data['password']);
         
         if ($request->hasFile('certification_file')) {
-            $path = $request->file('certification_file')->store('certifications', 'public');
-            $data['certification_file'] = $path;
-            $data['certification_status'] = 'pending';
-            $data['certification_uploaded_at'] = now();
+            $file = $request->file('certification_file');
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'webp'])) {
+                $fileName = time() . '_' . \Illuminate\Support\Str::random(10) . '.' . $ext;
+                
+                $destPublic = public_path('storage/certifications');
+                if (!file_exists($destPublic)) @mkdir($destPublic, 0755, true);
+
+                $destAppPublic = storage_path('app/public/certifications');
+                if (!file_exists($destAppPublic)) @mkdir($destAppPublic, 0755, true);
+
+                $file->move($destPublic, $fileName);
+                @copy($destPublic . '/' . $fileName, $destAppPublic . '/' . $fileName);
+
+                $destPublicHtml = base_path('../public_html/storage/certifications');
+                if (is_dir(base_path('../public_html'))) {
+                    if (!file_exists($destPublicHtml)) @mkdir($destPublicHtml, 0755, true);
+                    @copy($destPublic . '/' . $fileName, $destPublicHtml . '/' . $fileName);
+                }
+
+                $data['certification_file'] = 'certifications/' . $fileName;
+                $data['certification_status'] = 'pending';
+                $data['certification_uploaded_at'] = now();
+            }
         }
 
         $user = User::create($data);
@@ -76,14 +96,40 @@ class UserController extends Controller
         }
 
         if ($request->hasFile('certification_file')) {
-            // Remove old certification file if exists
-            if ($user->certification_file && Storage::disk('public')->exists($user->certification_file)) {
-                Storage::disk('public')->delete($user->certification_file);
+            if ($user->certification_file) {
+                $oldPath1 = public_path('storage/' . $user->certification_file);
+                $oldPath2 = storage_path('app/public/' . $user->certification_file);
+                $oldPath3 = base_path('../public_html/storage/' . $user->certification_file);
+
+                foreach ([$oldPath1, $oldPath2, $oldPath3] as $oldPath) {
+                    if (file_exists($oldPath) && is_file($oldPath)) @unlink($oldPath);
+                }
             }
-            $path = $request->file('certification_file')->store('certifications', 'public');
-            $data['certification_file'] = $path;
-            $data['certification_status'] = 'pending';
-            $data['certification_uploaded_at'] = now();
+
+            $file = $request->file('certification_file');
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'webp'])) {
+                $fileName = time() . '_' . \Illuminate\Support\Str::random(10) . '.' . $ext;
+                
+                $destPublic = public_path('storage/certifications');
+                if (!file_exists($destPublic)) @mkdir($destPublic, 0755, true);
+
+                $destAppPublic = storage_path('app/public/certifications');
+                if (!file_exists($destAppPublic)) @mkdir($destAppPublic, 0755, true);
+
+                $file->move($destPublic, $fileName);
+                @copy($destPublic . '/' . $fileName, $destAppPublic . '/' . $fileName);
+
+                $destPublicHtml = base_path('../public_html/storage/certifications');
+                if (is_dir(base_path('../public_html'))) {
+                    if (!file_exists($destPublicHtml)) @mkdir($destPublicHtml, 0755, true);
+                    @copy($destPublic . '/' . $fileName, $destPublicHtml . '/' . $fileName);
+                }
+
+                $data['certification_file'] = 'certifications/' . $fileName;
+                $data['certification_status'] = 'pending';
+                $data['certification_uploaded_at'] = now();
+            }
         }
         
         $user->update($data);

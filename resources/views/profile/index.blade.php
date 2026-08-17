@@ -3,10 +3,10 @@
 @section('title', 'Profil Saya')
 
 @section('content')
-<div class="flex min-h-screen">
+<div class="flex h-screen overflow-hidden">
     @include('components.sidebar')
 
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Profil Saya'])
 
         <div class="p-4 sm:p-[26px] animate-fade-in" x-data="profileManager()">
@@ -174,15 +174,15 @@
 
                         {{-- Preview gambar --}}
                         @if(preg_match('/\.(jpg|jpeg|png|webp)$/i', $user->certification_file))
-                        <div style="margin-bottom:10px; border-radius:10px; overflow:hidden; border:1px solid #E7E5E3; background:#F8F7F6; padding:10px; text-align:center;">
-                            <img src="{{ Storage::url($user->certification_file) }}" style="max-width:100%; max-height:220px; object-fit:contain; border-radius:6px; box-shadow:0 4px 12px rgba(14,13,18,0.08);" alt="Pratinjau Sertifikat">
+                        <div style="margin-bottom:12px; border-radius:12px; overflow:hidden; border:1px solid #E7E5E3; background:#F8F7F6; padding:12px; text-align:center;">
+                            <img src="{{ route('users.certification-file', $user->id) }}" style="width:100%; max-height:500px; object-fit:contain; border-radius:8px; box-shadow:0 4px 12px rgba(14,13,18,0.08); display:block; margin:0 auto;" alt="Pratinjau Sertifikat">
                         </div>
                         @endif
 
                         <div style="display:flex; align-items:center; gap:10px; padding:11px 14px; background:#F8F7F6; border:1px solid #E7E5E3; border-radius:10px;">
                             <div style="width:34px; height:34px; border-radius:8px; background:#E4F3EA; color:#1B7A46; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                 <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
                             </div>
                             <div style="flex:1; overflow:hidden;">
@@ -191,7 +191,7 @@
                                     Upload: {{ $user->certification_uploaded_at ? $user->certification_uploaded_at->format('d M Y, H:i') : '-' }}
                                 </div>
                             </div>
-                            <a href="{{ Storage::url($user->certification_file) }}" target="_blank" download
+                            <a href="{{ route('users.certification-file', $user->id) }}" target="_blank" download
                                style="display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; color:#C81E2C; background:white; padding:6px 12px; border-radius:8px; border:1px solid #E7E5E3; text-decoration:none; flex-shrink:0; transition:all 0.15s ease;"
                                onmouseover="this.style.background='#FDF1F2'; this.style.borderColor='#F8C8CC';"
                                onmouseout="this.style.background='white'; this.style.borderColor='#E7E5E3';">
@@ -244,13 +244,15 @@
                         {{-- Tombol AKTIF: muncul saat file sudah dipilih --}}
                         <button type="submit"
                                 x-show="selectedFileName" x-cloak
-                                style="width:100%; margin-top:12px; padding:11px 18px; border-radius:10px; border:none; background:#C81E2C; color:white; font-weight:600; font-size:14px; box-shadow:0 6px 18px rgba(200,30,44,0.28); display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; transition:filter 0.15s ease; box-sizing:border-box;"
-                                onmouseover="this.style.filter='brightness(1.08)'"
-                                onmouseout="this.style.filter='none'">
-                            <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                            </svg>
-                            Upload &amp; Ajukan Verifikasi
+                                style="width:100%; margin-top:14px; padding:12px 20px; border-radius:10px; border:none; background:linear-gradient(135deg, #C81E2C, #AF1424); color:white; font-weight:600; font-size:14px; box-shadow:0 6px 18px rgba(200,30,44,0.28); cursor:pointer; transition:all 0.15s ease; box-sizing:border-box;"
+                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 8px 22px rgba(200,30,44,0.35)';"
+                                onmouseout="this.style.transform='none'; this.style.boxShadow='0 6px 18px rgba(200,30,44,0.28)';">
+                            <div style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%;">
+                                <svg style="width:17px; height:17px; flex-shrink:0; display:inline-block;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                                <span style="line-height:1.2;">Upload &amp; Ajukan Verifikasi</span>
+                            </div>
                         </button>
 
                     </form>

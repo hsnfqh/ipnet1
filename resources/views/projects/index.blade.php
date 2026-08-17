@@ -3,10 +3,10 @@
 @section('title', 'Manajemen Project')
 
 @section('content')
-<div class="flex min-h-screen">
+<div class="flex h-screen overflow-hidden">
     @include('components.sidebar')
     
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Manajemen Project'])
         
         <div class="p-4 sm:p-5 lg:p-[26px] animate-fade-in" x-data="projectsManager()">

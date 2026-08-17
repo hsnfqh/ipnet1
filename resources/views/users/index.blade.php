@@ -3,10 +3,10 @@
 @section('title', 'Manajemen Pengguna')
 
 @section('content')
-<div class="flex min-h-screen">
+<div class="flex h-screen overflow-hidden">
     @include('components.sidebar')
     
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Manajemen Pengguna'])
         
         <div class="p-[26px] animate-fade-in" x-data="usersManager()" x-init="init()">
@@ -285,13 +285,24 @@
                             <p style="margin:0 0 8px; font-size:11.5px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">File Preview</p>
                             <div style="border:1px solid #E7E5E3; border-radius:12px; padding:16px; background:#F8F7F6; text-align:center; min-height:200px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
                                 <template x-if="viewingUser.certification_file && viewingUser.certification_file.toLowerCase().endsWith('.pdf')">
-                                    <iframe :src="'/storage/' + viewingUser.certification_file"
-                                            style="width:100%; height:380px; border:none; border-radius:8px; background:white;"></iframe>
+                                    <iframe :src="getCertUrl(viewingUser)"
+                                            style="width:100%; height:450px; border:none; border-radius:8px; background:white;"></iframe>
                                 </template>
                                 <template x-if="viewingUser.certification_file && !viewingUser.certification_file.toLowerCase().endsWith('.pdf')">
-                                    <img :src="'/storage/' + viewingUser.certification_file"
-                                         alt="Pratinjau Sertifikasi"
-                                         style="max-width:100%; max-height:360px; object-fit:contain; border-radius:8px; box-shadow:0 4px 16px rgba(14,13,18,0.08); display:block; margin:0 auto;">
+                                    <div style="width:100%;">
+                                        <img :src="getCertUrl(viewingUser)"
+                                             alt="Pratinjau Sertifikasi"
+                                             x-on:error="certImageError = true"
+                                             x-show="!certImageError"
+                                             style="width:100%; max-height:500px; object-fit:contain; border-radius:8px; box-shadow:0 4px 16px rgba(14,13,18,0.08); display:block; margin:0 auto;">
+                                        <div x-show="certImageError" style="color:#75727C; font-size:13px; text-align:center; padding:24px 16px;">
+                                            <svg style="width:36px; height:36px; color:#C81E2C; margin:0 auto 10px; opacity:0.7;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                            </svg>
+                                            <strong style="display:block; font-size:14px; color:#17151C; margin-bottom:4px;">File Gambar Tidak Ditemukan</strong>
+                                            <span>File sertifikasi fisik belum di-upload atau tidak ditemukan di server. Pengguna perlu mengunggah ulang sertifikat.</span>
+                                        </div>
+                                    </div>
                                 </template>
                                 <template x-if="!viewingUser.certification_file">
                                     <p style="color:#948F99; font-size:13px; margin:0;">Tidak ada file sertifikasi yang dapat ditampilkan.</p>
@@ -325,7 +336,7 @@
                             </template>
                             
                             <div style="display:flex; gap:10px; flex:1; min-width:240px;">
-                                <a :href="'/storage/' + viewingUser.certification_file"
+                                <a :href="getCertUrl(viewingUser)"
                                    download
                                    style="flex:1; text-align:center; background:#17151C; color:white; padding:10px 16px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13.5px; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.15s ease;"
                                    onmouseover="this.style.background='#2D2A35'"
@@ -374,6 +385,7 @@
                 modalOpen: false,
                 viewCertModal: false,
                 editing: false,
+                certImageError: false,
                 viewingUser: {},
                 form: {
                     id: null,
@@ -391,6 +403,11 @@
                 init() {
                     console.log(' Users Manager initialized!');
                     console.log('Users:', this.users);
+                },
+
+                getCertUrl(user) {
+                    if (!user || !user.id || !user.has_certification) return '#';
+                    return '/certification-file/' + user.id;
                 },
 
                 get filteredUsers() {
@@ -589,6 +606,7 @@
 
                 viewCertification(user) {
                     this.viewingUser = user;
+                    this.certImageError = false;
                     this.viewCertModal = true;
                 },
 

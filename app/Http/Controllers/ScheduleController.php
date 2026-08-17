@@ -8,6 +8,9 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Http\Requests\ScheduleRequest;
+use App\Services\ScheduleExportService;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ScheduleController extends Controller
@@ -307,6 +310,52 @@ class ScheduleController extends Controller
             return response()->json([
                 'message' => 'Gagal mengambil data mingguan: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Export schedules to Excel with Daily, Weekly, and Monthly sheets.
+     */
+    public function exportExcel(Request $request, ScheduleExportService $exportService)
+    {
+        try {
+            $user = auth()->user();
+            $engineerId = $request->get('engineer_id');
+
+            $schedules = Schedule::with(['project', 'engineer', 'creator'])
+                ->when(!$user->hasRole('Lead Engineer'), function ($query) use ($user) {
+                    return $query->where('engineer_id', $user->id);
+                })
+                ->when($user->hasRole('Lead Engineer') && $engineerId, function ($query) use ($engineerId) {
+                    return $query->where('engineer_id', $engineerId);
+                })
+                ->get();
+
+            $engineerFilterName = null;
+            if ($engineerId) {
+                $engUser = User::find($engineerId);
+                if ($engUser) {
+                    $engineerFilterName = $engUser->name;
+                }
+            }
+
+            $spreadsheet = $exportService->generate($schedules, $engineerFilterName);
+
+            $filename = 'Jadwal_Kerja_' . date('Y-m-d_H-i-s') . '.xlsx';
+
+            $response = new StreamedResponse(function () use ($spreadsheet) {
+                $writer = new Xlsx($spreadsheet);
+                $writer->save('php://output');
+            });
+
+            $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            $response->headers->set('Content-Disposition', 'attachment;filename="' . $filename . '"');
+            $response->headers->set('Cache-Control', 'max-age=0');
+
+            return $response;
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengeksport data jadwal: ' . $e->getMessage());
         }
     }
 }

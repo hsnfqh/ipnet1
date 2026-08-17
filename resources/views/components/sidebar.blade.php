@@ -21,6 +21,10 @@
 @endphp
 
 <style>
+    #app-sidebar.is-ready {
+        transition: width 0.2s ease;
+    }
+
     @media (hover: hover) {
         #app-sidebar .sidebar-nav-item:not(.sidebar-nav-item-active):hover,
         #app-sidebar .sidebar-action:hover {
@@ -31,13 +35,20 @@
 
         #app-sidebar .sidebar-nav-item:hover svg,
         #app-sidebar .sidebar-action:hover svg {
-            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.35));
+            opacity: 1;
+            transform: scale(1.05);
         }
 
         #app-sidebar .sidebar-nav-item-active:hover {
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24) !important;
             transform: translateX(2px);
         }
+    }
+
+    #app-sidebar .sidebar-nav-item:active,
+    #app-sidebar .sidebar-action:active {
+        opacity: 0.85;
+        transform: scale(0.98);
     }
 
     #app-sidebar .sidebar-nav-item:focus-visible,
@@ -47,6 +58,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
+        #app-sidebar,
         #app-sidebar .sidebar-nav-item,
         #app-sidebar .sidebar-action,
         #app-sidebar .sidebar-action svg {
@@ -55,13 +67,6 @@
     }
 </style>
 
-<!--
-    PENTING soal flash saat reload:
-    Karena tiap klik menu = full page reload (bukan SPA), sidebar ini butuh tahu
-    status "collapsed" SEBELUM Alpine sempat render, supaya tidak kelihatan kedip
-    dari lebar penuh -> menciut. Makanya ada <script> kecil di bawah yang jalan
-    langsung (bukan nunggu Alpine) untuk pasang class awal dari localStorage.
--->
 <div
     id="app-sidebar"
     x-data="{
@@ -72,7 +77,7 @@
         }
     }"
     :class="collapsed ? 'w-[76px]' : 'w-[246px]'"
-    style="min-height:100vh; flex-shrink:0; position:sticky; top:0; transition:width 0.2s ease; background:linear-gradient(165deg, #83101D 0%, #6E0C16 55%, #5C0A13 100%); border-right:1px solid rgba(255,255,255,0.12); display:flex; flex-direction:column;">
+    style="flex-shrink:0; position:sticky; top:0; height:100vh; background:linear-gradient(165deg, #83101D 0%, #6E0C16 55%, #5C0A13 100%); border-right:1px solid rgba(255,255,255,0.12); display:flex; flex-direction:column;">
 
     <!-- LOGO -->
     <div style="display:flex; align-items:center; gap:11px; padding:22px 18px 19px; border-bottom:1px solid rgba(255,255,255,0.12); flex-shrink:0;">
@@ -81,7 +86,7 @@
                  alt="IPNET Logo"
                  style="width:100%; height:100%; object-fit:contain;">
         </div>
-        <div x-show="!collapsed" style="transition:opacity 0.2s;">
+        <div x-show="!collapsed" x-cloak style="transition:opacity 0.2s;">
             <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; color:white; line-height:1.1;">IP Network Solusindo</div>
             <div style="font-size:10px; color:rgba(255,255,255,0.65); letter-spacing:1px; font-weight:700; margin-top:2px;">WORKFORCE SYSTEM</div>
         </div>
@@ -89,7 +94,7 @@
 
     <!-- NAVIGATION -->
     <div style="flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:2px; overflow-y:auto;">
-        <div x-show="!collapsed" style="font-size:10.5px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.42); padding:0 10px 8px;">MENU UTAMA</div>
+        <div x-show="!collapsed" x-cloak style="font-size:10.5px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.42); padding:0 10px 8px;">MENU UTAMA</div>
 
         @foreach($navItems as $item)
             @php
@@ -130,7 +135,7 @@
                     </svg>
                     @break
                 @endswitch
-                <span x-show="!collapsed" x-text="'{{ $item['label'] }}'"></span>
+                <span x-show="!collapsed" x-cloak>{{ $item['label'] }}</span>
             </a>
         @endforeach
     </div>
@@ -143,28 +148,27 @@
                 <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                 </svg>
-                <span x-show="!collapsed">Keluar</span>
+                <span x-show="!collapsed" x-cloak>Keluar</span>
             </button>
         </form>
         <button @click="toggle()" class="sidebar-action" style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; width:100%; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.42); font-size:12px; margin-top:2px; transition:all 0.15s ease;">
             <svg style="width:15px; height:15px; flex-shrink:0; transition:transform 0.2s;" :style="{ transform: collapsed ? 'rotate(180deg)' : 'none' }" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
-            <span x-show="!collapsed">Sembunyikan</span>
+            <span x-show="!collapsed" x-cloak>Sembunyikan</span>
         </button>
     </div>
 </div>
 
 <script>
-    // Pasang lebar sidebar dari localStorage SEBELUM Alpine selesai init,
-    // supaya tidak ada "kedipan" dari full width ke collapsed saat reload.
     (function() {
         var isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
         var sidebar = document.getElementById('app-sidebar');
-        if (sidebar && isCollapsed) {
-            sidebar.classList.add('w-[76px]');
-        } else if (sidebar) {
-            sidebar.classList.add('w-[246px]');
+        if (sidebar) {
+            sidebar.classList.add(isCollapsed ? 'w-[76px]' : 'w-[246px]');
+            requestAnimationFrame(function() {
+                sidebar.classList.add('is-ready');
+            });
         }
     })();
 </script>

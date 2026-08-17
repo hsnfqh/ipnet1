@@ -3,10 +3,10 @@
 @section('title', 'Task Management')
 
 @section('content')
-<div class="flex min-h-screen">
+<div class="flex h-screen overflow-hidden">
     @include('components.sidebar')
 
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Task Management'])
 
         <div class="p-4 sm:p-[26px] animate-fade-in"
@@ -144,28 +144,16 @@
                                         </button>
                                     </div>
                                     @else
-                                    {{-- Task milik user ini: bisa ubah status & progress --}}
+                                    {{-- Task milik user ini: bisa update progress & upload bukti --}}
                                     <template x-if="task.engineer_id == currentUserId">
                                         <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
-                                            <template x-if="task.status === 'Assigned'">
-                                                <button @click="startTask(task)" style="flex:1; padding:6px 0; border-radius:6px; border:none; background:#C81E2C; color:white; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.15s ease;" onmouseover="this.style.filter='brightness(1.05)'" onmouseout="this.style.filter='brightness(1)'">
-                                                    Mulai Dikerjakan
-                                                </button>
-                                            </template>
-                                            
-                                            <template x-if="task.status === 'In Progress'">
+                                            <template x-if="task.status !== 'Completed'">
                                                 <button @click="openProgressModal(task)" style="flex:1; padding:6px 0; border-radius:6px; border:1px solid #C81E2C; background:white; color:#C81E2C; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.15s ease; display:flex; justify-content:center; align-items:center; gap:4px;" onmouseover="this.style.background='#FDF1F2'" onmouseout="this.style.background='white'">
                                                     <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                                     </svg>
                                                     Update Progress
                                                 </button>
-                                            </template>
-
-                                            <template x-if="task.status === 'Waiting Review'">
-                                                <div style="flex:1; padding:6px 10px; border-radius:6px; background:#F8F7F6; border:1px solid #EFEDEB; font-size:11px; color:#9A6206; text-align:center; font-weight:600;">
-                                                    Menunggu Review
-                                                </div>
                                             </template>
 
                                             <template x-if="task.status === 'Completed'">
@@ -281,20 +269,12 @@
                                 <div x-show="editing" class="modal-grid-2">
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Status</label>
-                                        {{-- Badge readonly: Assigned, In Progress, Completed --}}
-                                        <template x-if="form.original_status !== 'Waiting Review'">
-                                            <div style="padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:13px; color:#75727C; background:#F8F7F6; display:flex; align-items:center; gap:6px;">
-                                                <span style="width:8px; height:8px; border-radius:50%; background:#C81E2C; flex-shrink:0;"></span>
-                                                <span x-text="form.original_status"></span>
-                                            </div>
-                                        </template>
-                                        {{-- Dropdown hanya untuk Waiting Review → bisa pilih Completed --}}
-                                        <template x-if="form.original_status === 'Waiting Review'">
-                                            <select x-model="form.status" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;">
-                                                <option value="Waiting Review">Waiting Review</option>
-                                                <option value="Completed">Completed</option>
-                                            </select>
-                                        </template>
+                                        <select x-model="form.status" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;">
+                                            <option value="Assigned">Assigned</option>
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Waiting Review">Waiting Review</option>
+                                            <option value="Completed">Completed</option>
+                                        </select>
                                     </div>
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Progress (<span x-text="form.progress"></span>%)</label>
@@ -372,17 +352,17 @@
                         </div>
                         
                         <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
-                            <button @click="saveProgress(false)"
-                                    style="flex:1 1 140px; justify-content:center; background:white; color:#3D3A44; border:1px solid #E7E5E3; padding:10px 17px; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.15s ease;"
-                                    onmouseover="this.style.background='#F8F7F6'"
-                                    onmouseout="this.style.background='white'">
-                                Simpan Draft Progress
-                            </button>
-                            <button @click="saveProgress(true)"
+                            <button @click="saveProgress()"
                                     style="flex:1 1 140px; justify-content:center; background:#C81E2C; color:white; box-shadow:0 8px 20px rgba(200,30,44,0.24); padding:10px 17px; border-radius:8px; border:none; font-weight:600; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.15s ease;"
                                     onmouseover="this.style.filter='brightness(1.05)'"
                                     onmouseout="this.style.filter='brightness(1)'">
-                                Selesai & Kirim Review
+                                Simpan Progress
+                            </button>
+                            <button type="button" @click="progressModalOpen = false"
+                                    style="flex:1 1 140px; justify-content:center; background:white; color:#3D3A44; border:1px solid #E7E5E3; padding:10px 17px; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.15s ease;"
+                                    onmouseover="this.style.background='#F8F7F6'"
+                                    onmouseout="this.style.background='white'">
+                                Batal
                             </button>
                         </div>
                     </div>
@@ -891,18 +871,12 @@
                     }
                 },
 
-                saveProgress: async function(isFinished = false) {
+                saveProgress: async function() {
                     try {
                         var formData = new FormData();
                         formData.append('progress', this.progressForm.progress);
                         if (this.progressForm.description) {
                             formData.append('description', this.progressForm.description);
-                        }
-                        if (isFinished) {
-                            formData.append('status', 'Waiting Review');
-                            if (this.progressForm.progress < 100) {
-                                formData.append('progress', 100); // auto 100% when finished
-                            }
                         }
                         formData.append('_method', 'PUT'); // method spoofing
                         if (this.progressForm.docFile) {

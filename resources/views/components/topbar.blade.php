@@ -23,6 +23,20 @@
     </div>
 
     <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+        {{-- Tombol Info Changelog --}}
+        <button
+            @click="$store.changelog.show()"
+            class="wms-iconbtn p-2 text-wms-ink-700 relative inline-flex focus:outline-none"
+            title="Apa yang baru?"
+            style="color:#75727C; transition:color 0.15s;"
+            onmouseover="this.style.color='#C81E2C'"
+            onmouseout="this.style.color='#75727C'">
+            <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-4m0-4h.01"/>
+            </svg>
+        </button>
+
         <!-- Notifications Dropdown -->
         <div class="relative" x-data="notificationDropdown()" x-init="init()">
             <button @click="toggleDropdown()" class="wms-iconbtn p-2 text-wms-ink-700 relative inline-flex focus:outline-none" title="Pemberitahuan">

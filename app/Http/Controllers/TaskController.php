@@ -62,8 +62,8 @@ class TaskController extends Controller
     {
         $user = auth()->user();
 
-        // Lead Engineer bisa mengubah seluruh field task (edit penuh).
-        // Engineer hanya boleh mengubah status & progress miliknya sendiri.
+        // Lead Engineer bisa mengubah seluruh field task (edit penuh termasuk status).
+        // Engineer hanya boleh mengubah progress, description, & doc_file miliknya sendiri (tidak boleh mengubah status).
         if ($user->hasRole('Lead Engineer')) {
             $validated = $request->validate([
                 'title'       => 'sometimes|required|string|max:255',
@@ -76,25 +76,8 @@ class TaskController extends Controller
                 'progress'    => 'sometimes|nullable|integer|min:0|max:100',
                 'doc_file'    => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
             ]);
-
-            // Lead Engineer restrictions on status changes
-            if (isset($validated['status'])) {
-                // Cannot change In Progress to anything else
-                if ($task->status === 'In Progress') {
-                    abort(403, 'Lead Engineer tidak dapat mengubah status task yang sedang In Progress.');
-                }
-                // Cannot change Completed to anything
-                if ($task->status === 'Completed') {
-                    abort(403, 'Status Completed tidak dapat diubah kembali.');
-                }
-                // Cannot go from Assigned to In Progress (hanya engineer yg bisa)
-                if ($task->status === 'Assigned' && $validated['status'] === 'In Progress') {
-                    abort(403, 'Lead Engineer tidak dapat mengubah status dari Assigned ke In Progress.');
-                }
-            }
         } else {
             $validated = $request->validate([
-                'status'      => 'nullable|in:Assigned,In Progress,Waiting Review,Completed',
                 'progress'    => 'nullable|integer|min:0|max:100',
                 'description' => 'sometimes|nullable|string',
                 'doc_file'    => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
@@ -103,22 +86,9 @@ class TaskController extends Controller
             // Engineer hanya boleh update task miliknya sendiri
             abort_unless($task->engineer_id === $user->id, 403);
             
-            // Engineer restriction: Cannot change Completed tasks
-            if ($task->status === 'Completed') {
-                abort(403, 'Status Completed tidak dapat diubah kembali.');
-            }
-
-            // Engineer restriction: state machine
-            if (isset($validated['status'])) {
-                if ($task->status === 'Assigned' && !in_array($validated['status'], ['Assigned', 'In Progress'])) {
-                    abort(403, 'Invalid status transition.');
-                }
-                if ($task->status === 'In Progress' && !in_array($validated['status'], ['In Progress', 'Waiting Review'])) {
-                    abort(403, 'Invalid status transition.');
-                }
-                if ($task->status === 'Waiting Review' && $validated['status'] !== 'Waiting Review') {
-                    abort(403, 'Engineer tidak dapat mengubah status dari Waiting Review.');
-                }
+            // Rejection if Engineer tries to change status
+            if ($request->has('status') && $request->input('status') !== $task->status) {
+                abort(403, 'Hanya Lead Engineer yang berhak mengubah status task.');
             }
         }
 
@@ -166,12 +136,10 @@ class TaskController extends Controller
             ]);
         }
 
-        // Kirim notifikasi ke Lead jika diupdate oleh engineer biasa dan ada progres/status selesai
+        // Kirim notifikasi ke Lead jika diupdate oleh engineer biasa
         $user = auth()->user();
         if ($user && !$user->hasRole('Lead Engineer')) {
-            if (($statusChanged && in_array($task->status, ['Waiting Review', 'Completed'])) || 
-                ($progressChanged && $task->progress == 100)) {
-                
+            if ($progressChanged || $request->hasFile('doc_file')) {
                 $leads = \App\Models\User::leadEngineer()->get();
                 $notificationRecipients = $leads->pluck('id')->push($task->created_by)->unique();
                 
@@ -179,8 +147,8 @@ class TaskController extends Controller
                     if ($recipientId != $user->id) {
                         \App\Models\Notification::create([
                             'user_id' => $recipientId,
-                            'title' => 'Pekerjaan Diperbarui oleh Engineer',
-                            'message' => 'Engineer ' . $user->name . ' telah mengubah status "' . $task->title . '" menjadi ' . $task->status . ' (Progress: ' . $task->progress . '%).',
+                            'title' => 'Progress Pekerjaan Diperbarui',
+                            'message' => 'Engineer ' . $user->name . ' telah memperbarui progress "' . $task->title . '" (Progress: ' . $task->progress . '%).',
                             'url' => route('tasks.index'),
                             'is_read' => false,
                         ]);
@@ -189,13 +157,13 @@ class TaskController extends Controller
             }
         }
 
-        // Kirim notifikasi ke Engineer jika Lead Engineer mengubah status menjadi Completed
-        if ($user && $user->hasRole('Lead Engineer') && $statusChanged && $task->status === 'Completed') {
+        // Kirim notifikasi ke Engineer jika Lead Engineer mengubah status task
+        if ($user && $user->hasRole('Lead Engineer') && $statusChanged) {
             if ($task->engineer_id) {
                 \App\Models\Notification::create([
                     'user_id' => $task->engineer_id,
-                    'title' => 'Tugas Selesai Direview',
-                    'message' => 'Tugas "' . $task->title . '" telah direview dan dinyatakan Completed oleh Lead Engineer ' . $user->name . '.',
+                    'title' => 'Status Tugas Diperbarui',
+                    'message' => 'Status tugas "' . $task->title . '" telah diubah menjadi ' . $task->status . ' oleh Lead Engineer ' . $user->name . '.',
                     'url' => route('tasks.index'),
                     'is_read' => false,
                 ]);
