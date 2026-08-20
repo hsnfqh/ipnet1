@@ -370,131 +370,136 @@
             </div>
 
             {{-- ── 4. MODAL KONFIRMASI LUAR JANGKAUAN ────────────────────────────── --}}
-            <div x-show="outOfRangeModal"
-                 x-cloak
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-                 @click.self="outOfRangeModal = false"
-                 style="display: none;">
+            <template x-teleport="body">
+                <div x-show="outOfRangeModal"
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-[#0E0D12]/65 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+                     @click.self="outOfRangeModal = false"
+                     style="display: none;">
 
-                <div class="bg-white rounded-2xl w-[480px] max-w-full overflow-hidden shadow-[0_24px_64px_rgba(14,13,18,0.25)] border border-[#E7E5E3] text-left animate-fade-in-up">
-                    
-                    {{-- Modal Header --}}
-                    <div class="px-6 py-4 border-b border-[#EFEDEB] flex items-center justify-between bg-[#FBFBFA]">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
+                    <div class="bg-white rounded-2xl w-[480px] max-w-full overflow-hidden shadow-[0_24px_64px_rgba(14,13,18,0.35)] border border-[#E7E5E3] text-left animate-fade-in-up">
+                        
+                        {{-- Modal Header --}}
+                        <div class="px-6 py-4 border-b border-[#EFEDEB] flex items-center justify-between bg-[#FBFBFA]">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-display text-[15.5px] font-bold text-[#17151C]">Presensi di Luar Radius Kantor</h3>
                             </div>
-                            <h3 class="font-display text-[15.5px] font-bold text-[#17151C]">Presensi di Luar Radius Kantor</h3>
-                        </div>
-                        <button type="button" @click="outOfRangeModal = false" class="text-[#75727C] hover:text-[#17151C] p-1 rounded-lg hover:bg-[#F1F0EE] transition cursor-pointer">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
-
-                    {{-- Modal Body --}}
-                    <div class="p-6 space-y-4">
-                        <div class="flex items-center justify-between p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl text-[13px] text-amber-900 font-semibold">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                </svg>
-                                <span>Jarak Anda saat ini:</span>
-                            </div>
-                            <div class="font-mono text-[14px] text-amber-950 font-bold" x-text="currentDistance + ' meter'"></div>
+                            <button type="button" @click="outOfRangeModal = false" class="text-[#75727C] hover:text-[#17151C] p-1 rounded-lg hover:bg-[#F1F0EE] transition cursor-pointer">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
                         </div>
 
-                        <p class="text-[13px] text-[#3D3A44] leading-relaxed">
-                            Posisi GPS Anda terdeteksi melebihi batas radius kantor (<strong>100 meter</strong>). Absensi tetap dapat disimpan dan otomatis diberi catatan status <strong class="text-amber-800">Luar Jangkauan</strong>.
-                        </p>
-                    </div>
+                        {{-- Modal Body --}}
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-center justify-between p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl text-[13px] text-amber-900 font-semibold">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <span>Jarak Anda saat ini:</span>
+                                </div>
+                                <div class="font-mono text-[14px] text-amber-950 font-bold" x-text="currentDistance + ' meter'"></div>
+                            </div>
 
-                    {{-- Modal Footer --}}
-                    <div class="px-6 py-4 border-t border-[#EFEDEB] bg-[#FAF9F8] flex items-center justify-end gap-3">
-                        <button type="button" 
-                                @click="outOfRangeModal = false"
-                                :disabled="loading"
-                                class="px-4 py-2 rounded-xl bg-white border border-[#E7E5E3] text-[#3D3A44] font-semibold text-[13px] hover:bg-[#F8F7F6] transition cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="button" 
-                                @click="confirmProceed()"
-                                :disabled="loading"
-                                class="px-5 py-2 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white font-semibold text-[13px] transition shadow-[0_4px_12px_rgba(200,30,44,0.25)] flex items-center gap-2 cursor-pointer">
-                            <span x-text="loading ? 'Memproses...' : 'Ya, Tetap Absen'"></span>
-                        </button>
+                            <p class="text-[13px] text-[#3D3A44] leading-relaxed">
+                                Posisi GPS Anda terdeteksi melebihi batas radius kantor (<strong>100 meter</strong>). Absensi tetap dapat disimpan dan otomatis diberi catatan status <strong class="text-amber-800">Luar Jangkauan</strong>.
+                            </p>
+                        </div>
+
+                        {{-- Modal Footer --}}
+                        <div class="px-6 py-4 border-t border-[#EFEDEB] bg-[#FAF9F8] flex items-center justify-end gap-3">
+                            <button type="button" 
+                                    @click="outOfRangeModal = false"
+                                    :disabled="loading"
+                                    class="px-4 py-2 rounded-xl bg-white border border-[#E7E5E3] text-[#3D3A44] font-semibold text-[13px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                                Batal
+                            </button>
+                            <button type="button" 
+                                    @click="confirmProceed()"
+                                    :disabled="loading"
+                                    class="px-5 py-2 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white font-semibold text-[13px] transition shadow-[0_4px_12px_rgba(200,30,44,0.25)] flex items-center gap-2 cursor-pointer">
+                                <span x-text="loading ? 'Memproses...' : 'Ya, Tetap Absen'"></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </template>
 
             {{-- ── 5. MODAL PERINGATAN PULANG LEBIH AWAL (< 17:30) ────────────────── --}}
-            <div x-show="earlyClockOutModal"
-                 x-cloak
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-                 @click.self="earlyClockOutModal = false"
-                 style="display: none;">
+            <template x-teleport="body">
+                <div x-show="earlyClockOutModal"
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-[#0E0D12]/65 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+                     @click.self="earlyClockOutModal = false"
+                     style="display: none;">
 
-                <div class="bg-white rounded-2xl w-[480px] max-w-full overflow-hidden shadow-[0_24px_64px_rgba(14,13,18,0.25)] border border-[#E7E5E3] text-left animate-fade-in-up">
-                    
-                    {{-- Modal Header --}}
-                    <div class="px-6 py-4 border-b border-[#EFEDEB] flex items-center justify-between bg-[#FBFBFA]">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
+                    <div class="bg-white rounded-2xl w-[480px] max-w-full overflow-hidden shadow-[0_24px_64px_rgba(14,13,18,0.35)] border border-[#E7E5E3] text-left animate-fade-in-up">
+                        
+                        {{-- Modal Header --}}
+                        <div class="px-6 py-4 border-b border-[#EFEDEB] flex items-center justify-between bg-[#FBFBFA]">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-display text-[15.5px] font-bold text-[#17151C]">Konfirmasi Clock Out Lebih Awal</h3>
                             </div>
-                            <h3 class="font-display text-[15.5px] font-bold text-[#17151C]">Konfirmasi Clock Out Lebih Awal</h3>
-                        </div>
-                        <button type="button" @click="earlyClockOutModal = false" class="text-[#75727C] hover:text-[#17151C] p-1 rounded-lg hover:bg-[#F1F0EE] transition cursor-pointer">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
-
-                    {{-- Modal Body --}}
-                    <div class="p-6 space-y-4">
-                        <div class="flex items-center justify-between p-3.5 bg-blue-50/80 border border-blue-200 rounded-xl text-[13px] text-blue-900 font-semibold">
-                            <span>Waktu Sekarang: <strong class="font-mono text-blue-950 ml-1 text-[14px]" x-text="currentTimeStr"></strong></span>
-                            <span class="text-blue-300">|</span>
-                            <span>Jam Pulang Normal: <strong class="font-mono text-blue-950 ml-1 text-[14px]">17:30</strong></span>
+                            <button type="button" @click="earlyClockOutModal = false" class="text-[#75727C] hover:text-[#17151C] p-1 rounded-lg hover:bg-[#F1F0EE] transition cursor-pointer">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
                         </div>
 
-                        <p class="text-[13px] text-[#3D3A44] leading-relaxed">
-                            Jam kerja operasional resmi selesai pada pukul <strong>17:30</strong>. Apakah Anda yakin ingin mengakhiri presensi kerja dan melakukan Clock Out saat ini?
-                        </p>
-                    </div>
+                        {{-- Modal Body --}}
+                        <div class="p-6 space-y-4">
+                            <div class="flex items-center justify-between p-3.5 bg-blue-50/80 border border-blue-200 rounded-xl text-[13px] text-blue-900 font-semibold">
+                                <span>Waktu Sekarang: <strong class="font-mono text-blue-950 ml-1 text-[14px]" x-text="currentTimeStr"></strong></span>
+                                <span class="text-blue-300">|</span>
+                                <span>Jam Pulang Normal: <strong class="font-mono text-blue-950 ml-1 text-[14px]">17:30</strong></span>
+                            </div>
 
-                    {{-- Modal Footer --}}
-                    <div class="px-6 py-4 border-t border-[#EFEDEB] bg-[#FAF9F8] flex items-center justify-end gap-3">
-                        <button type="button" 
-                                @click="earlyClockOutModal = false"
-                                :disabled="loading"
-                                class="px-4 py-2 rounded-xl bg-white border border-[#E7E5E3] text-[#3D3A44] font-semibold text-[13px] hover:bg-[#F8F7F6] transition cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="button" 
-                                @click="confirmEarlyClockOut()"
-                                :disabled="loading"
-                                class="px-5 py-2 rounded-xl bg-[#17151C] hover:bg-[#2E2C34] text-white font-semibold text-[13px] transition shadow-md flex items-center gap-2 cursor-pointer">
-                            <span x-text="loading ? 'Memproses...' : 'Ya, Clock Out Sekarang'"></span>
-                        </button>
+                            <p class="text-[13px] text-[#3D3A44] leading-relaxed">
+                                Jam kerja operasional resmi selesai pada pukul <strong>17:30</strong>. Apakah Anda yakin ingin mengakhiri presensi kerja dan melakukan Clock Out saat ini?
+                            </p>
+                        </div>
+
+                        {{-- Modal Footer --}}
+                        <div class="px-6 py-4 border-t border-[#EFEDEB] bg-[#FAF9F8] flex items-center justify-end gap-3">
+                            <button type="button" 
+                                    @click="earlyClockOutModal = false"
+                                    :disabled="loading"
+                                    class="px-4 py-2 rounded-xl bg-white border border-[#E7E5E3] text-[#3D3A44] font-semibold text-[13px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                                Batal
+                            </button>
+                            <button type="button" 
+                                    @click="confirmEarlyClockOut()"
+                                    :disabled="loading"
+                                    class="px-5 py-2 rounded-xl bg-[#17151C] hover:bg-[#2E2C34] text-white font-semibold text-[13px] transition shadow-md flex items-center gap-2 cursor-pointer">
+                                <span x-text="loading ? 'Memproses...' : 'Ya, Clock Out Sekarang'"></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </template>
+
 
 
         </div>
