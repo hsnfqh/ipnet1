@@ -254,3 +254,32 @@ Route::get('/fix-storage', function () {
         'details' => $outputs,
     ]);
 });
+
+// Utility route untuk migrate database & clear cache dari browser di cPanel
+Route::get('/run-migration', function () {
+    $outputs = [];
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+        $outputs[] = "Artisan migrate output:\n" . trim(Artisan::output());
+
+        Artisan::call('view:clear');
+        $outputs[] = "Artisan view:clear: OK";
+
+        Artisan::call('config:clear');
+        $outputs[] = "Artisan config:clear: OK";
+
+        Artisan::call('cache:clear');
+        $outputs[] = "Artisan cache:clear: OK";
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Database migration & cache clear berhasil dijalankan di cPanel!',
+            'details' => $outputs,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Gagal menjalankan migration: ' . $e->getMessage(),
+        ], 500);
+    }
+});
