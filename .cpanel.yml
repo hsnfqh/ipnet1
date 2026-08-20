@@ -1,6 +1,6 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/ipnetsol/public_html
+    - export DEPLOYPATH=/home/ipnetsol/web-ipnet
     - /bin/cp -R * $DEPLOYPATH/
     - /bin/cp -f .htaccess $DEPLOYPATH/
