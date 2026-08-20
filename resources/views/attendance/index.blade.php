@@ -413,7 +413,7 @@
                                 <div class="font-mono text-[14px] text-amber-950 font-bold" x-text="currentDistance + ' meter'"></div>
                             </div>
 
-                            <p class="text-[13px] text-[#3D3A44] leading-relaxed">
+                            <p class="text-[13.5px] text-[#3D3A44] leading-relaxed text-center">
                                 Posisi GPS Anda terdeteksi melebihi batas radius kantor (<strong>100 meter</strong>). Absensi tetap dapat disimpan dan otomatis diberi catatan status <strong class="text-amber-800">Luar Jangkauan</strong>.
                             </p>
                         </div>
@@ -476,7 +476,7 @@
                                 <span>Jam Pulang Normal: <strong class="font-mono text-blue-950 ml-1 text-[14px]">17:30</strong></span>
                             </div>
 
-                            <p class="text-[13px] text-[#3D3A44] leading-relaxed">
+                            <p class="text-[13.5px] text-[#3D3A44] leading-relaxed text-center">
                                 Jam kerja operasional resmi selesai pada pukul <strong>17:30</strong>. Apakah Anda yakin ingin mengakhiri presensi kerja dan melakukan Clock Out saat ini?
                             </p>
                         </div>
