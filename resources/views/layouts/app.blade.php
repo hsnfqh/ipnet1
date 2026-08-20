@@ -20,10 +20,19 @@
     
     <style>
         [x-cloak] { display: none !important; }
-        * { box-sizing: border-box; }
-        body { background: #F7F6F5; font-family: 'Inter', sans-serif; }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            height: 100%; 
+            width: 100%; 
+            background: #F7F6F5; 
+            font-family: 'Inter', sans-serif; 
+            -webkit-font-smoothing: antialiased;
+        }
         
         .wms-card { background: white; border: 1px solid #E7E5E3; border-radius: 12px; box-shadow: 0 1px 2px rgba(14,13,18,0.05); }
+
         .wms-input { width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid #E7E5E3; font-size: 14px; color: #17151C; outline: none; background: white; }
         .wms-input:focus { border-color: #C81E2C !important; box-shadow: 0 0 0 3px #FDF1F2 !important; }
         .wms-btn { transition: all 0.12s ease; cursor: pointer; }
