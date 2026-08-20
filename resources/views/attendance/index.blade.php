@@ -311,7 +311,7 @@
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                             @if($ci)
                                                 <span class="inline-flex items-center font-mono font-medium text-[12.5px] text-[#17151C] bg-[#F1F0EE] px-2.5 py-1 rounded-lg">
-                                                    {{ \Carbon\Carbon::parse($ci->created_at)->format('H:i') }}
+                                                    {{ \Carbon\Carbon::parse($ci->created_at)->setTimezone('Asia/Jakarta')->format('H:i') }}
                                                 </span>
                                             @else
                                                 <span class="text-[#948F99] font-mono text-[12px]">—</span>
@@ -322,12 +322,13 @@
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                             @if($co)
                                                 <span class="inline-flex items-center font-mono font-medium text-[12.5px] text-[#17151C] bg-[#F1F0EE] px-2.5 py-1 rounded-lg">
-                                                    {{ \Carbon\Carbon::parse($co->created_at)->format('H:i') }}
+                                                    {{ \Carbon\Carbon::parse($co->created_at)->setTimezone('Asia/Jakarta')->format('H:i') }}
                                                 </span>
                                             @else
                                                 <span class="text-[#948F99] font-mono text-[12px]">—</span>
                                             @endif
                                         </td>
+
 
                                         {{-- Durasi --}}
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
@@ -519,8 +520,8 @@ document.addEventListener('alpine:init', () => {
         gpsError:        null,
 
         // State presensi
-        clockIn:   @json($clockIn ? ['time' => \Carbon\Carbon::parse($clockIn->created_at)->format('H:i'), 'is_within_range' => $clockIn->is_within_range, 'distance' => $clockIn->distance_meters ?? $clockIn->distance] : null),
-        clockOut:  @json($clockOut ? ['time' => \Carbon\Carbon::parse($clockOut->created_at)->format('H:i')] : null),
+        clockIn:   @json($clockIn ? ['time' => \Carbon\Carbon::parse($clockIn->created_at)->setTimezone('Asia/Jakarta')->format('H:i'), 'is_within_range' => $clockIn->is_within_range, 'distance' => $clockIn->distance_meters ?? $clockIn->distance] : null),
+        clockOut:  @json($clockOut ? ['time' => \Carbon\Carbon::parse($clockOut->created_at)->setTimezone('Asia/Jakarta')->format('H:i')] : null),
         duration:  @json($clockIn && $clockOut ? (function() use ($clockIn, $clockOut) { $m = \Carbon\Carbon::parse($clockIn->created_at)->diffInMinutes(\Carbon\Carbon::parse($clockOut->created_at)); return intdiv($m,60).'j '.($m%60).'m'; })() : null),
 
         // UI state
