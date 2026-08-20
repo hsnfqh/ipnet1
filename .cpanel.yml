@@ -3,4 +3,3 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/ipnetsol/web-ipnet
     - /bin/cp -R * $DEPLOYPATH/
-    - /bin/cp -f .htaccess $DEPLOYPATH/
