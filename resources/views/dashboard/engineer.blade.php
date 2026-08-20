@@ -47,7 +47,7 @@
                             <x-progress-bar value="{{ $task->progress }}" />
                             <div class="flex flex-wrap justify-between items-center gap-2 mt-1.5">
                                 <span class="text-[10.5px] text-wms-ink-400">{{ $task->status }}</span>
-                                <span class="text-[10.5px] text-wms-ink-400">{{ $task->deadline->format('d M Y') }}</span>
+                                <span class="text-[10.5px] text-wms-ink-400">{{ $task->deadline ? $task->deadline->format('d M Y') : '-' }}</span>
                             </div>
                         </div>
                         @empty

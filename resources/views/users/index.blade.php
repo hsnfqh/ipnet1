@@ -246,20 +246,23 @@
             </div>
 
             <!-- ============================================================ -->
-            <!-- MODAL - LIHAT SERTIFIKASI (UNTUK LEAD) -->
+            <!-- MODAL LIHAT MULTI-SERTIFIKASI                                -->
             <!-- ============================================================ -->
             <div x-show="viewCertModal" 
                  x-cloak
                  style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(2px);"
                  @click.self="viewCertModal = false">
                 
-                <div style="background:white; border-radius:16px; width:640px; max-width:100%; max-height:90vh; display:flex; flex-direction:column; animation:fadeInUp 0.18s ease; box-shadow:0 16px 40px rgba(14,13,18,0.12); margin:auto; position:relative; overflow:hidden;">
+                <div style="background:white; border-radius:16px; width:720px; max-width:100%; max-height:90vh; display:flex; flex-direction:column; animation:fadeInUp 0.18s ease; box-shadow:0 16px 40px rgba(14,13,18,0.12); margin:auto; position:relative; overflow:hidden;">
                     
                     <!-- Modal Header -->
                     <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 22px; background:white; border-bottom:1px solid #E7E5E3; flex-shrink:0;">
-                        <h3 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:600; color:#17151C;">
-                            Sertifikasi <span x-text="viewingUser.name" style="color:#C81E2C;"></span>
-                        </h3>
+                        <div>
+                            <h3 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:600; color:#17151C;">
+                                Sertifikasi <span x-text="viewingUser.name" style="color:#C81E2C;"></span>
+                            </h3>
+                            <p style="margin:2px 0 0; font-size:12px; color:#75727C;" x-text="(viewingUser.certifications ? viewingUser.certifications.length : 0) + ' dokumen sertifikat terdaftar'"></p>
+                        </div>
                         <button @click="viewCertModal = false" style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:8px;">
                             <svg style="width:20px; height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -269,91 +272,147 @@
                     
                     <!-- Modal Body -->
                     <div style="padding:22px; overflow-y:auto; flex:1;">
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-                            <div>
-                                <p style="margin:0 0 4px; font-size:11.5px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Status Sertifikasi</p>
-                                <div x-html="getCertificationStatusBadge(viewingUser.certification_status)"></div>
+                        
+                        <!-- TAB PILIHAN SERTIFIKAT -->
+                        <div style="margin-bottom:20px; padding:12px 14px; background:#F8F7F6; border:1px solid #E7E5E3; border-radius:12px;" x-show="viewingUser.certifications && viewingUser.certifications.length > 0">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                                <p style="margin:0; font-size:11.5px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.4px;">
+                                    Pilih Sertifikat untuk Dilihat
+                                </p>
+                                <span style="font-size:11px; font-weight:600; color:#948F99;">
+                                    Klik tombol untuk berpindah dokumen
+                                </span>
                             </div>
-
-                            <div>
-                                <p style="margin:0 0 4px; font-size:11.5px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Tanggal Upload</p>
-                                <p style="margin:0; color:#17151C; font-size:13.5px; font-weight:500;" x-text="viewingUser.certification_uploaded_at || '-'"></p>
+                            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                                <template x-for="cert in (viewingUser.certifications || [])" :key="cert.id">
+                                    <button type="button"
+                                            @click="selectCert(cert)"
+                                            class="cert-tab-pill"
+                                            :class="selectedCert && selectedCert.id === cert.id ? 'active' : ''">
+                                        <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                        <span x-text="cert.name"></span>
+                                        <span class="cert-status-dot"
+                                              :style="'background:' + (cert.status === 'approved' ? '#1B7A46' : (cert.status === 'rejected' ? '#C81E2C' : '#E67E22'))"></span>
+                                    </button>
+                                </template>
                             </div>
                         </div>
 
-                        <div style="margin-bottom:16px;">
-                            <p style="margin:0 0 8px; font-size:11.5px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">File Preview</p>
-                            <div style="border:1px solid #E7E5E3; border-radius:12px; padding:16px; background:#F8F7F6; text-align:center; min-height:200px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                                <template x-if="viewingUser.certification_file && viewingUser.certification_file.toLowerCase().endsWith('.pdf')">
-                                    <iframe :src="getCertUrl(viewingUser)"
-                                            style="width:100%; height:450px; border:none; border-radius:8px; background:white;"></iframe>
-                                </template>
-                                <template x-if="viewingUser.certification_file && !viewingUser.certification_file.toLowerCase().endsWith('.pdf')">
-                                    <div style="width:100%;">
-                                        <img :src="getCertUrl(viewingUser)"
-                                             alt="Pratinjau Sertifikasi"
-                                             x-on:error="certImageError = true"
-                                             x-show="!certImageError"
-                                             style="width:100%; max-height:500px; object-fit:contain; border-radius:8px; box-shadow:0 4px 16px rgba(14,13,18,0.08); display:block; margin:0 auto;">
-                                        <div x-show="certImageError" style="color:#75727C; font-size:13px; text-align:center; padding:24px 16px;">
-                                            <svg style="width:36px; height:36px; color:#C81E2C; margin:0 auto 10px; opacity:0.7;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                            </svg>
-                                            <strong style="display:block; font-size:14px; color:#17151C; margin-bottom:4px;">File Gambar Tidak Ditemukan</strong>
-                                            <span>File sertifikasi fisik belum di-upload atau tidak ditemukan di server. Pengguna perlu mengunggah ulang sertifikat.</span>
-                                        </div>
+
+                        <!-- DETAIL SERTIFIKAT YANG TERPILIH -->
+                        <template x-if="selectedCert">
+                            <div>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; padding:14px; background:#F8F7F6; border:1px solid #E7E5E3; border-radius:10px;">
+                                    <div>
+                                        <p style="margin:0 0 3px; font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Nama Sertifikasi</p>
+                                        <p style="margin:0; color:#17151C; font-size:14px; font-weight:700;" x-text="selectedCert.name"></p>
                                     </div>
-                                </template>
-                                <template x-if="!viewingUser.certification_file">
-                                    <p style="color:#948F99; font-size:13px; margin:0;">Tidak ada file sertifikasi yang dapat ditampilkan.</p>
-                                </template>
-                            </div>
-                        </div>
-
-                        <!-- Modal Footer Actions -->
-                        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid #EFEDEB;">
-                            <template x-if="viewingUser.certification_status === 'pending'">
-                                <div style="display:flex; gap:10px; flex:1; min-width:240px;">
-                                    <button @click="approveCertification(viewingUser)" 
-                                            style="flex:1; justify-content:center; background:#1B7A46; color:white; padding:10px 16px; border-radius:8px; border:none; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background 0.15s ease;"
-                                            onmouseover="this.style.background='#145E36'"
-                                            onmouseout="this.style.background='#1B7A46'">
-                                        <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                        Setujui
-                                    </button>
-                                    <button @click="rejectCertification(viewingUser)" 
-                                            style="flex:1; justify-content:center; background:#C81E2C; color:white; padding:10px 16px; border-radius:8px; border:none; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background 0.15s ease;"
-                                            onmouseover="this.style.background='#A31622'"
-                                            onmouseout="this.style.background='#C81E2C'">
-                                        <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                        </svg>
-                                        Tolak
-                                    </button>
+                                    <div>
+                                        <p style="margin:0 0 3px; font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Status Verifikasi</p>
+                                        <div x-html="getCertificationStatusBadge(selectedCert.status)"></div>
+                                    </div>
+                                    <div style="grid-column: span 2;">
+                                        <p style="margin:0 0 2px; font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Waktu Upload</p>
+                                        <p style="margin:0; color:#3D3A44; font-size:12.5px;" x-text="selectedCert.uploaded_at || '-'"></p>
+                                    </div>
                                 </div>
-                            </template>
-                            
-                            <div style="display:flex; gap:10px; flex:1; min-width:240px;">
-                                <a :href="getCertUrl(viewingUser)"
-                                   download
-                                   style="flex:1; text-align:center; background:#17151C; color:white; padding:10px 16px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13.5px; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.15s ease;"
-                                   onmouseover="this.style.background='#2D2A35'"
-                                   onmouseout="this.style.background='#17151C'">
-                                    <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                                    </svg>
-                                    Download
-                                </a>
-                                <button @click="viewCertModal = false" 
-                                        style="flex:1; background:white; color:#3D3A44; border:1px solid #E7E5E3; padding:10px 16px; border-radius:8px; font-weight:600; font-size:13.5px; cursor:pointer; transition:background 0.15s ease;"
-                                        onmouseover="this.style.background='#F8F7F6'"
-                                        onmouseout="this.style.background='white'">
+
+                                <div style="margin-bottom:16px;">
+                                    <p style="margin:0 0 8px; font-size:11.5px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Preview Dokumen</p>
+                                    <div style="border:1px solid #E7E5E3; border-radius:12px; padding:14px; background:#F8F7F6; text-align:center; min-height:220px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                        <template x-if="selectedCert.is_pdf">
+                                            <iframe :src="'/certification-file/' + selectedCert.id"
+                                                    style="width:100%; height:450px; border:none; border-radius:8px; background:white;"></iframe>
+                                        </template>
+                                        <template x-if="!selectedCert.is_pdf">
+                                            <div style="width:100%;">
+                                                <img :src="'/certification-file/' + selectedCert.id"
+                                                     alt="Pratinjau Sertifikasi"
+                                                     x-on:error="certImageError = true"
+                                                     x-show="!certImageError"
+                                                     style="width:100%; max-height:480px; object-fit:contain; border-radius:8px; box-shadow:0 4px 16px rgba(14,13,18,0.08); display:block; margin:0 auto;">
+                                                <div x-show="certImageError" style="color:#75727C; font-size:13px; text-align:center; padding:24px 16px;">
+                                                    <svg style="width:36px; height:36px; color:#C81E2C; margin:0 auto 10px; opacity:0.7;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                                    </svg>
+                                                    <strong style="display:block; font-size:14px; color:#17151C; margin-bottom:4px;">File Tidak Ditemukan</strong>
+                                                    <span>File sertifikasi fisik belum di-upload atau tidak ditemukan di server.</span>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons per Selected Certificate -->
+                                <div style="margin-top:20px; padding-top:16px; border-top:1px solid #EFEDEB;">
+                                    
+                                    {{-- JIKA STATUS MENUNGGU (PENDING) --}}
+                                    <template x-if="selectedCert.status === 'pending'">
+                                        <div style="display:flex; flex-wrap:wrap; gap:10px; width:100%;">
+                                            <button @click="approveCertification(selectedCert)" 
+                                                    style="flex:1; min-width:180px; justify-content:center; background:#1B7A46; color:white; padding:11px 16px; border-radius:8px; border:none; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background 0.15s ease;"
+                                                    onmouseover="this.style.background='#145E36'"
+                                                    onmouseout="this.style.background='#1B7A46'">
+                                                <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                                Setujui Sertifikat Ini
+                                            </button>
+                                            <button @click="rejectCertification(selectedCert)" 
+                                                    style="flex:1; min-width:180px; justify-content:center; background:#C81E2C; color:white; padding:11px 16px; border-radius:8px; border:none; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background 0.15s ease;"
+                                                    onmouseover="this.style.background='#A31622'"
+                                                    onmouseout="this.style.background='#C81E2C'">
+                                                <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                                Tolak & Hapus
+                                            </button>
+                                        </div>
+                                    </template>
+
+
+                                    {{-- JIKA STATUS SUDAH DISETUJUI (APPROVED) --}}
+                                    <template x-if="selectedCert.status === 'approved'">
+                                        <div style="display:flex; flex-wrap:wrap; gap:10px; width:100%;">
+                                            <a :href="'/certification-file/' + selectedCert.id"
+                                               download
+                                               target="_blank"
+                                               style="flex:1; min-width:180px; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#17151C; color:white; padding:11px 18px; border-radius:8px; font-weight:600; font-size:13.5px; text-decoration:none; transition:all 0.15s ease;"
+                                               onmouseover="this.style.background='#2C2933';"
+                                               onmouseout="this.style.background='#17151C';">
+                                                <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                </svg>
+                                                Download Dokumen
+                                            </a>
+                                            <button @click="deleteCertification(selectedCert)" 
+                                                    style="flex:1; min-width:180px; justify-content:center; background:#FFF0F0; color:#C81E2C; border:1px solid #F8C8CC; padding:11px 18px; border-radius:8px; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.15s ease;"
+                                                    onmouseover="this.style.background='#C81E2C'; this.style.color='white'; this.style.borderColor='#C81E2C';"
+                                                    onmouseout="this.style.background='#FFF0F0'; this.style.color='#C81E2C'; this.style.borderColor='#F8C8CC';">
+                                                <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                                Hapus Sertifikat Ini
+                                            </button>
+                                        </div>
+                                    </template>
+
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="!selectedCert">
+                            <div style="padding:40px 16px; text-align:center; color:#75727C;">
+                                <p style="margin:0 0 16px; font-size:13px;">Pengguna ini belum memiliki sertifikat yang diunggah.</p>
+                                <button type="button" @click="viewCertModal = false"
+                                        style="padding:8px 16px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13px; font-weight:600; cursor:pointer;">
                                     Tutup
                                 </button>
                             </div>
-                        </div>
+                        </template>
+
                     </div>
                 </div>
             </div>
@@ -369,7 +428,45 @@
         from { opacity: 0; transform: translateY(20px) scale(0.95); }
         to { opacity: 1; transform: translateY(0) scale(1); }
     }
+
+    .cert-tab-pill {
+        padding: 9px 14px;
+        border-radius: 10px;
+        border: 1.5px solid #E7E5E3;
+        background: #ffffff;
+        color: #3D3A44;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.15s ease;
+        box-shadow: 0 1px 3px rgba(14, 13, 18, 0.04);
+    }
+
+    .cert-tab-pill:hover:not(.active) {
+        background: #F1F0EE;
+        border-color: #D3D0CB;
+        color: #17151C;
+        transform: translateY(-1px);
+    }
+
+    .cert-tab-pill.active {
+        background: #17151C;
+        border-color: #17151C;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(23, 21, 28, 0.2);
+    }
+
+    .cert-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
 </style>
+
 
 @push('scripts')
 <script>
@@ -387,6 +484,7 @@
                 editing: false,
                 certImageError: false,
                 viewingUser: {},
+                selectedCert: null,
                 form: {
                     id: null,
                     name: '',
@@ -402,12 +500,6 @@
 
                 init() {
                     console.log(' Users Manager initialized!');
-                    console.log('Users:', this.users);
-                },
-
-                getCertUrl(user) {
-                    if (!user || !user.id || !user.has_certification) return '#';
-                    return '/certification-file/' + user.id;
                 },
 
                 get filteredUsers() {
@@ -441,7 +533,6 @@
                 },
 
                 openModal(user = null) {
-                    console.log(' Opening modal...');
                     if (user) {
                         this.editing = true;
                         this.form = {
@@ -453,7 +544,7 @@
                             status: user.status,
                             position: user.position || '',
                             password: '',
-                            certification_file_name: user.certification_file ? user.certification_file.split('/').pop() : '',
+                            certification_file_name: '',
                             certification_file: null,
                         };
                     } else {
@@ -486,26 +577,10 @@
                     }
                 },
 
-                handleFileDrop(event) {
-                    const files = event.dataTransfer.files;
-                    if (files.length > 0) {
-                        const file = files[0];
-                        if (['application/pdf', 'image/jpeg', 'image/png'].includes(file.type) && file.size <= 5 * 1024 * 1024) {
-                            this.form.certification_file = file;
-                            this.form.certification_file_name = file.name;
-                        } else {
-                            this.showToast(' Format file tidak sesuai atau ukuran terlalu besar');
-                        }
-                    }
-                },
-
                 async saveUser() {
-                    console.log('💾 SAVE USER CALLED!');
-                    
                     try {
                         const url = this.editing ? `/users/${this.form.id}` : '/users';
                         
-                        // Gunakan FormData untuk menangani file upload
                         const formData = new FormData();
                         formData.append('name', this.form.name || '');
                         formData.append('email', this.form.email || '');
@@ -521,10 +596,6 @@
                         if (this.form.password) {
                             formData.append('password', this.form.password);
                         }
-                        
-                        if (this.form.certification_file) {
-                            formData.append('certification_file', this.form.certification_file);
-                        }
 
                         const response = await fetch(url, {
                             method: 'POST',
@@ -537,7 +608,6 @@
 
                         if (response.ok) {
                             const data = await response.json();
-                            console.log(' User saved:', data);
                             
                             if (this.editing) {
                                 const index = this.users.findIndex(u => u.id === this.form.id);
@@ -606,53 +676,152 @@
 
                 viewCertification(user) {
                     this.viewingUser = user;
+                    this.selectedCert = (user.certifications && user.certifications.length > 0) ? user.certifications[0] : null;
                     this.certImageError = false;
                     this.viewCertModal = true;
                 },
 
-                async approveCertification(user) {
+                selectCert(cert) {
+                    this.selectedCert = cert;
+                    this.certImageError = false;
+                },
+
+                async approveCertification(cert) {
+                    if (!cert || !cert.id) {
+                        this.showToast('Pilih sertifikat terlebih dahulu.');
+                        return;
+                    }
                     try {
-                        const response = await fetch(`/users/${user.id}/approve-certification`, {
+                        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                        const response = await fetch(`/certifications/${cert.id}/approve`, {
                             method: 'POST',
                             headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token
                             }
                         });
 
+                        const data = await response.json();
+
                         if (response.ok) {
-                            const data = await response.json();
-                            const index = this.users.findIndex(u => u.id === user.id);
-                            this.users[index].certification_status = 'approved';
-                            this.viewingUser.certification_status = 'approved';
-                            this.showToast(' Sertifikasi berhasil disetujui!');
+                            cert.status = 'approved';
+                            if (this.selectedCert && this.selectedCert.id === cert.id) {
+                                this.selectedCert.status = 'approved';
+                            }
+                            
+                            // Update data user di list dengan trigger reactivity
+                            if (data.user) {
+                                const index = this.users.findIndex(u => u.id === data.user.id);
+                                if (index !== -1) {
+                                    this.users[index] = data.user;
+                                    this.users = JSON.parse(JSON.stringify(this.users));
+                                    this.viewingUser = data.user;
+                                }
+                            }
+                            
+                            this.viewCertModal = false;
+                            this.showToast(`Sertifikasi "${cert.name}" berhasil disetujui!`);
+                        } else {
+                            this.showToast('Gagal: ' + (data.message || 'Terjadi kesalahan'));
                         }
                     } catch (error) {
-                        console.error(' Error approving certification:', error);
-                        this.showToast(' Terjadi kesalahan saat menyetujui sertifikasi.');
+                        console.error('Error approving certification:', error);
+                        this.showToast('Terjadi kesalahan saat menyetujui sertifikasi.');
                     }
                 },
 
-                async rejectCertification(user) {
+                async rejectCertification(cert) {
+                    if (!cert || !cert.id) {
+                        this.showToast('Pilih sertifikat terlebih dahulu.');
+                        return;
+                    }
                     try {
-                        const response = await fetch(`/users/${user.id}/reject-certification`, {
+                        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                        const response = await fetch(`/certifications/${cert.id}/reject`, {
                             method: 'POST',
                             headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token
                             }
                         });
 
+                        const data = await response.json();
+
                         if (response.ok) {
-                            const data = await response.json();
-                            const index = this.users.findIndex(u => u.id === user.id);
-                            this.users[index].certification_status = 'rejected';
-                            this.viewingUser.certification_status = 'rejected';
-                            this.showToast(' Sertifikasi berhasil ditolak!');
+                            cert.status = 'rejected';
+                            if (this.selectedCert && this.selectedCert.id === cert.id) {
+                                this.selectedCert.status = 'rejected';
+                            }
+                            
+                            // Update data user di list dengan trigger reactivity
+                            if (data.user) {
+                                const index = this.users.findIndex(u => u.id === data.user.id);
+                                if (index !== -1) {
+                                    this.users[index] = data.user;
+                                    this.users = JSON.parse(JSON.stringify(this.users));
+                                    this.viewingUser = data.user;
+                                }
+                            }
+                            
+                            this.viewCertModal = false;
+                            this.showToast(`Sertifikasi "${cert.name}" berhasil ditolak dan dihapus!`);
+                        } else {
+                            this.showToast('Gagal: ' + (data.message || 'Terjadi kesalahan'));
                         }
                     } catch (error) {
-                        console.error(' Error rejecting certification:', error);
-                        this.showToast(' Terjadi kesalahan saat menolak sertifikasi.');
+                        console.error('Error rejecting certification:', error);
+                        this.showToast('Terjadi kesalahan saat menolak sertifikasi.');
                     }
                 },
+
+                async deleteCertification(cert) {
+                    if (!cert || !cert.id) {
+                        this.showToast('Pilih sertifikat terlebih dahulu.');
+                        return;
+                    }
+                    if (!confirm(`Apakah Anda yakin ingin menghapus sertifikat "${cert.name}"? Dokumen ini juga akan otomatis terhapus dari akun engineer.`)) {
+                        return;
+                    }
+                    try {
+                        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                        const response = await fetch(`/certifications/${cert.id}/reject`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            if (data.user) {
+                                const index = this.users.findIndex(u => u.id === data.user.id);
+                                if (index !== -1) {
+                                    this.users[index] = data.user;
+                                    this.users = JSON.parse(JSON.stringify(this.users));
+                                    this.viewingUser = data.user;
+                                    this.selectedCert = (data.user.certifications && data.user.certifications.length > 0) ? data.user.certifications[0] : null;
+                                }
+                            }
+                            
+                            this.viewCertModal = false;
+                            this.showToast(`Sertifikasi "${cert.name}" berhasil dihapus!`);
+                        } else {
+                            this.showToast('Gagal: ' + (data.message || 'Terjadi kesalahan'));
+                        }
+                    } catch (error) {
+                        console.error('Error deleting certification:', error);
+                        this.showToast('Terjadi kesalahan saat menghapus sertifikasi.');
+                    }
+                },
+
+
+
+
 
                 getStatusBadge(status) {
                     const styles = {

@@ -45,12 +45,12 @@
                     </h3>
                     <div class="flex gap-2">
                         <button onclick="setEngineerPeriod('week')" 
-                                class="text-[11px] font-semibold px-3 py-1.5 sm:py-1 rounded border border-wms-line bg-white hover:bg-wms-paper transition text-wms-ink-600" 
+                                class="text-[11px] font-semibold px-3 py-1.5 sm:py-1 rounded border border-wms-line bg-white text-wms-ink-600 hover:bg-wms-paper transition cursor-pointer" 
                                 id="engPeriodWeek">
                             Minggu Ini
                         </button>
                         <button onclick="setEngineerPeriod('month')" 
-                                class="text-[11px] font-semibold px-3 py-1.5 sm:py-1 rounded border border-wms-line bg-white hover:bg-wms-paper transition text-wms-ink-600" 
+                                class="text-[11px] font-semibold px-3 py-1.5 sm:py-1 rounded border border-[#C81E2C] bg-[#C81E2C] text-white transition cursor-pointer" 
                                 id="engPeriodMonth">
                             Bulan Ini
                         </button>
@@ -157,25 +157,28 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    const engineerMonthData = @json($engineerLoadMonthData);
+    const engineerWeekData  = @json($engineerLoadWeekData);
+    let engineerChart = null;
+
     document.addEventListener('DOMContentLoaded', function() {
-      
-        const engineerData = @json($engineerLoadData);
+        // Chart Load Pekerjaan Engineer
         const ctx3 = document.getElementById('engineerLoadChart').getContext('2d');
         
-        let engineerChart = new Chart(ctx3, {
+        engineerChart = new Chart(ctx3, {
             type: 'bar',
             data: {
-                labels: engineerData.map(d => d.name),
+                labels: engineerMonthData.map(d => d.name),
                 datasets: [
                     {
                         label: 'Aktif',
-                        data: engineerData.map(d => d.active),
+                        data: engineerMonthData.map(d => d.active),
                         backgroundColor: '#C81E2C',
                         borderRadius: 4,
                     },
                     {
                         label: 'Selesai',
-                        data: engineerData.map(d => d.completed),
+                        data: engineerMonthData.map(d => d.completed),
                         backgroundColor: '#10B981',
                         borderRadius: 4,
                     }
@@ -356,17 +359,35 @@
         });
     });
 
-  
     // FILTER PERIODE CHART LOAD ENGINEER (Minggu/Bulan)
     function setEngineerPeriod(period) {
-        // Highlight aktif
-        document.getElementById('engPeriodWeek').style.background = period === 'week' ? '#C81E2C' : 'white';
-        document.getElementById('engPeriodWeek').style.color = period === 'week' ? 'white' : '#3D3A44';
-        document.getElementById('engPeriodMonth').style.background = period === 'month' ? '#C81E2C' : 'white';
-        document.getElementById('engPeriodMonth').style.color = period === 'month' ? 'white' : '#3D3A44';
+        const isWeek = period === 'week';
+        const weekBtn = document.getElementById('engPeriodWeek');
+        const monthBtn = document.getElementById('engPeriodMonth');
+
+        if (isWeek) {
+            weekBtn.style.background = '#C81E2C';
+            weekBtn.style.color = '#FFFFFF';
+            weekBtn.style.borderColor = '#C81E2C';
+            monthBtn.style.background = '#FFFFFF';
+            monthBtn.style.color = '#3D3A44';
+            monthBtn.style.borderColor = '#E7E5E3';
+        } else {
+            monthBtn.style.background = '#C81E2C';
+            monthBtn.style.color = '#FFFFFF';
+            monthBtn.style.borderColor = '#C81E2C';
+            weekBtn.style.background = '#FFFFFF';
+            weekBtn.style.color = '#3D3A44';
+            weekBtn.style.borderColor = '#E7E5E3';
+        }
         
-        // TODO: Fetch data via AJAX berdasarkan period
-        console.log('Period selected:', period);
+        if (engineerChart) {
+            const dataToUse = isWeek ? engineerWeekData : engineerMonthData;
+            engineerChart.data.labels = dataToUse.map(d => d.name);
+            engineerChart.data.datasets[0].data = dataToUse.map(d => d.active);
+            engineerChart.data.datasets[1].data = dataToUse.map(d => d.completed);
+            engineerChart.update();
+        }
     }
 </script>
 @endpush

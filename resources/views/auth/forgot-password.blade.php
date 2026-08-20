@@ -21,7 +21,7 @@
                             IP Network Solusindo
                         </h1>
                         <p class="text-white/50 text-[10px] sm:text-[11px] font-medium tracking-[2px] uppercase text-center">
-                            Workforce Management System
+                            Field System Management 
                         </p>
                     </div>
                 </div>

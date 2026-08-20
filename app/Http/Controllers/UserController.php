@@ -13,6 +13,32 @@ class UserController extends Controller
 {
     private function formatUserResponse(User $user): array
     {
+        $certs = $user->certifications->map(function($c) {
+            return [
+                'id'          => $c->id,
+                'name'        => $c->name,
+                'file_path'   => $c->file_path,
+                'status'      => $c->status,
+                'uploaded_at' => $c->uploaded_at ? $c->uploaded_at->format('d M Y H:i') : ($c->created_at ? $c->created_at->format('d M Y H:i') : '-'),
+                'is_pdf'      => str_ends_with(strtolower($c->file_path), '.pdf'),
+            ];
+        })->values()->toArray();
+
+        $totalCerts = count($certs);
+        $pendingCount = collect($certs)->where('status', 'pending')->count();
+        $approvedCount = collect($certs)->where('status', 'approved')->count();
+
+        $overallStatus = 'none';
+        if ($totalCerts > 0) {
+            if ($pendingCount > 0) {
+                $overallStatus = 'pending';
+            } elseif ($approvedCount > 0) {
+                $overallStatus = 'approved';
+            } else {
+                $overallStatus = 'rejected';
+            }
+        }
+
         return [
             'id'                        => $user->id,
             'name'                      => $user->name,
@@ -22,18 +48,20 @@ class UserController extends Controller
             'status'                    => $user->status,
             'role_name'                 => $user->getRoleNames()->first() ?? 'Tidak Ada Role',
             'roles'                     => $user->getRoleNames()->toArray(),
-            'certification'             => $user->certification,
-            'certification_file'        => $user->certification_file,
-            'certification_status'      => $user->certification_status ?? 'pending',
-            'certification_uploaded_at' => $user->certification_uploaded_at ? $user->certification_uploaded_at->format('d M Y H:i') : null,
-            'has_certification'         => !empty($user->certification_file),
+            'certifications'            => $certs,
+            'certifications_count'      => $totalCerts,
+            'pending_certs_count'       => $pendingCount,
+            'approved_certs_count'      => $approvedCount,
+            'certification_status'      => $overallStatus,
+            'has_certification'         => $totalCerts > 0,
         ];
     }
 
+
     public function index()
     {
-        // Load users dengan roles menggunakan Spatie
-        $users = User::with('roles')->get()->map(function($user) {
+        // Load users dengan roles dan certifications
+        $users = User::with(['roles', 'certifications'])->get()->map(function($user) {
             return $this->formatUserResponse($user);
         });
         
@@ -41,6 +69,7 @@ class UserController extends Controller
         
         return view('users.index', compact('users', 'roles'));
     }
+
 
     public function store(UserRequest $request)
     {
@@ -179,19 +208,108 @@ class UserController extends Controller
         return response()->json($this->formatUserResponse($user));
     }
 
-    public function approveCertification(User $user)
+    public function approveCertification(Request $request, $id)
     {
-        $user->certification_status = 'approved';
-        $user->save();
+        $certification = \App\Models\Certification::find($id);
+        if (!$certification) {
+            // Fallback: cek jika $id adalah User ID
+            $user = User::find($id);
+            if ($user) {
+                $user->certification_status = 'approved';
+                $user->save();
+                \App\Models\Certification::where('user_id', $user->id)->update(['status' => 'approved']);
+                $user->load(['roles', 'certifications']);
 
-        return response()->json($this->formatUserResponse($user));
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Sertifikasi berhasil disetujui.',
+                    'user'    => $this->formatUserResponse($user),
+                ]);
+            }
+            return response()->json(['error' => 'Data sertifikasi tidak ditemukan.'], 404);
+        }
+
+        $certification->status = 'approved';
+        $certification->save();
+
+        $user = $certification->user;
+        if ($user) {
+            $user->certification_status = 'approved';
+            $user->save();
+            $user->load(['roles', 'certifications']);
+        }
+
+        return response()->json([
+            'success'       => true,
+            'message'       => 'Sertifikasi "' . $certification->name . '" berhasil disetujui.',
+            'certification' => [
+                'id'     => $certification->id,
+                'status' => $certification->status,
+            ],
+            'user'          => $this->formatUserResponse($user),
+        ]);
     }
 
-    public function rejectCertification(User $user)
+    public function rejectCertification(Request $request, $id)
     {
-        $user->certification_status = 'rejected';
-        $user->save();
+        $certification = \App\Models\Certification::find($id);
+        if (!$certification) {
+            // Fallback: cek jika $id adalah User ID
+            $user = User::find($id);
+            if ($user) {
+                // Hapus semua sertifikat pending milik user
+                $certs = \App\Models\Certification::where('user_id', $user->id)->get();
+                foreach ($certs as $c) {
+                    if ($c->file_path && Storage::disk('public')->exists($c->file_path)) {
+                        Storage::disk('public')->delete($c->file_path);
+                    }
+                    $c->delete();
+                }
 
-        return response()->json($this->formatUserResponse($user));
+                $user->certification_status = null;
+                $user->certification_file = null;
+                $user->save();
+                $user->load(['roles', 'certifications']);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Sertifikasi berhasil ditolak dan dihapus.',
+                    'user'    => $this->formatUserResponse($user),
+                ]);
+            }
+            return response()->json(['error' => 'Data sertifikasi tidak ditemukan.'], 404);
+        }
+
+        $user = $certification->user;
+        $certName = $certification->name;
+
+        // Hapus file fisik jika ada
+        if ($certification->file_path && Storage::disk('public')->exists($certification->file_path)) {
+            Storage::disk('public')->delete($certification->file_path);
+        }
+
+        // Hapus record sertifikasi dari database
+        $certification->delete();
+
+        if ($user) {
+            $remainingCerts = $user->certifications()->get();
+            if ($remainingCerts->isEmpty()) {
+                $user->certification_status = null;
+                $user->certification_file = null;
+            } else {
+                $pendingCount = $remainingCerts->where('status', 'pending')->count();
+                $approvedCount = $remainingCerts->where('status', 'approved')->count();
+                $user->certification_status = $pendingCount > 0 ? 'pending' : ($approvedCount > 0 ? 'approved' : 'rejected');
+            }
+            $user->save();
+            $user->load(['roles', 'certifications']);
+        }
+
+        return response()->json([
+            'success'       => true,
+            'message'       => 'Sertifikasi "' . $certName . '" berhasil ditolak dan dihapus.',
+            'user'          => $this->formatUserResponse($user),
+        ]);
     }
 }
+

@@ -23,8 +23,8 @@ class Project extends Model
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'deadline' => 'date',
+        'start_date' => 'date:Y-m-d',
+        'deadline'   => 'date:Y-m-d',
     ];
 
     // Relationships
@@ -62,21 +62,22 @@ class Project extends Model
     // Accessors
     public function getProgressAttribute()
     {
-        $totalTasks = $this->tasks()->count();
+        $tasks = $this->tasks;  // gunakan relasi yang sudah di-eager load (tidak ada extra query)
+        $totalTasks = $tasks->count();
         if ($totalTasks === 0) return 0;
-        
-        $completedTasks = $this->tasks()->where('status', 'Completed')->count();
+
+        $completedTasks = $tasks->where('status', 'Completed')->count();
         return round(($completedTasks / $totalTasks) * 100);
     }
 
     public function getTaskCountAttribute()
     {
-        return $this->tasks()->count();
+        return $this->tasks->count();  // gunakan eager-loaded relation
     }
 
     public function getCompletedTaskCountAttribute()
     {
-        return $this->tasks()->where('status', 'Completed')->count();
+        return $this->tasks->where('status', 'Completed')->count();  // gunakan eager-loaded relation
     }
 
     // Helpers

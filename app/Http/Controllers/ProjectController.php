@@ -92,13 +92,13 @@ class ProjectController extends Controller
 
     public function getData()
     {
-        $projects = Project::with(['tasks'])->get()->map(function($project) {
+        $projects = Project::with(['tasks:id,project_id,progress,status'])->get()->map(function($project) {
             return [
                 'id'       => $project->id,
                 'name'     => $project->name,
                 'client'   => $project->client,
                 'location' => $project->location,
-                'deadline' => $project->deadline->format('Y-m-d'),
+                'deadline' => $project->deadline ? $project->deadline->format('Y-m-d') : null,
                 'status'   => $project->status,
                 'progress' => $project->progress,
             ];

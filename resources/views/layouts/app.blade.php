@@ -49,7 +49,7 @@
             x-data="whatsNewModal()"
             x-show="$store.changelog.open"
             x-cloak
-            style="position:fixed; inset:0; z-index:999999; background:rgba(14,13,18,0.55); backdrop-filter:blur(4px);"
+            style="position:fixed; inset:0; z-index:999999; background:rgba(14,13,18,0.55);"
             @click.self="$store.changelog.hide()">
 
             <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:560px; max-width:calc(100vw - 32px); max-height:90vh; border-radius:20px; box-shadow:0 28px 70px rgba(14,13,18,0.28); background:white; display:flex; flex-direction:column; overflow:hidden;"
@@ -148,14 +148,8 @@
             });
         }
 
-        // Auto prompt notification permission on user interaction
-        if ('Notification' in window && Notification.permission === 'default') {
-            const promptPermission = () => {
-                Notification.requestPermission();
-                window.removeEventListener('click', promptPermission);
-            };
-            window.addEventListener('click', promptPermission, { once: true });
-        }
+        // Notification permission diminta saat user interaksi dengan tombol notifikasi
+        // (tidak auto-prompt saat klik pertama agar tidak memblokir UI)
 
         document.addEventListener('alpine:init', () => {
             // Global store untuk changelog modal

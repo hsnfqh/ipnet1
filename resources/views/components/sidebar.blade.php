@@ -1,21 +1,25 @@
 @php
     $user = auth()->user();
-    $currentRoute = request()->route()->getName();
+    $currentRoute = request()->route() ? request()->route()->getName() : '';
 
     $navItems = [];
     if ($user->hasRole('Lead Engineer')) {
         $navItems = [
-            ['key' => 'dashboard', 'label' => 'Dashboard', 'route' => 'dashboard.lead'],
-            ['key' => 'projects', 'label' => 'Project', 'route' => 'projects.index'],
-            ['key' => 'tasks', 'label' => 'Task', 'route' => 'tasks.index'],
-            ['key' => 'schedules', 'label' => 'Jadwal', 'route' => 'schedules.index'],
-            ['key' => 'users', 'label' => 'Pengguna', 'route' => 'users.index'],
+            ['key' => 'dashboard',   'label' => 'Dashboard',  'route' => 'dashboard.lead'],
+            ['key' => 'projects',    'label' => 'Project',    'route' => 'projects.index'],
+            ['key' => 'tasks',       'label' => 'Task',       'route' => 'tasks.index'],
+            ['key' => 'schedules',   'label' => 'Jadwal',     'route' => 'schedules.index'],
+            ['key' => 'timesheets',  'label' => 'Timesheet',  'route' => 'timesheets.index'],
+            ['key' => 'attendance',  'label' => 'Presensi',   'route' => 'attendance.recap'],
+            ['key' => 'users',       'label' => 'Pengguna',   'route' => 'users.index'],
         ];
     } else {
         $navItems = [
-            ['key' => 'dashboard', 'label' => 'Dashboard', 'route' => 'dashboard.engineer'],
-            ['key' => 'tasks', 'label' => 'Task Saya', 'route' => 'tasks.index'],
-            ['key' => 'schedules', 'label' => 'Jadwal', 'route' => 'schedules.index'],
+            ['key' => 'dashboard',  'label' => 'Dashboard',  'route' => 'dashboard.engineer'],
+            ['key' => 'tasks',      'label' => 'Task Saya',  'route' => 'tasks.index'],
+            ['key' => 'schedules',  'label' => 'Jadwal',     'route' => 'schedules.index'],
+            ['key' => 'timesheets', 'label' => 'Timesheet',  'route' => 'timesheets.index'],
+            ['key' => 'attendance', 'label' => 'Presensi',   'route' => 'attendance.index'],
         ];
     }
 @endphp
@@ -88,7 +92,7 @@
         </div>
         <div x-show="!collapsed" x-cloak style="transition:opacity 0.2s;">
             <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; color:white; line-height:1.1;">IP Network Solusindo</div>
-            <div style="font-size:10px; color:rgba(255,255,255,0.65); letter-spacing:1px; font-weight:700; margin-top:2px;">WORKFORCE SYSTEM</div>
+            <div style="font-size:9px; color:rgba(255,255,255,0.65); letter-spacing:1px; font-weight:700; margin-top:2px;">FIELD SYSTEM MANAGEMENT</div>
         </div>
     </div>
 
@@ -122,6 +126,16 @@
                     @case('schedules')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    @break
+                    @case('timesheets')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    @break
+                    @case('attendance')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     @break
                     @case('users')

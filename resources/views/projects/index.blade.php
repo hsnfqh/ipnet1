@@ -150,7 +150,7 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 sm:p-5 backdrop-blur-sm"
+                 class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 sm:p-5"
                  @click.self="confirmOpen = false">
                 
                 <div class="bg-white rounded-2xl w-[420px] max-w-full overflow-y-auto animate-fade-in-up shadow-[0_20px_60px_rgba(14,13,18,0.2)]">
@@ -193,13 +193,14 @@
 
             <!-- Project Modal -->
             <div x-show="modalOpen" 
+             x-cloak
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-3 sm:p-5 backdrop-blur-sm"
+                 class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-3 sm:p-5"
                  @click.self="modalOpen = false">
                 <div class="bg-white rounded-2xl w-[640px] max-w-full max-h-[90vh] sm:max-h-[88vh] overflow-y-auto animate-fade-in-up shadow-[0_16px_40px_rgba(14,13,18,0.12)]">
                     <div class="flex items-center justify-between p-[18px] 22px sticky top-0 bg-white border-b border-[#E7E5E3]">
@@ -256,13 +257,14 @@
 
             <!-- Detail Modal -->
             <div x-show="detailOpen" 
+             x-cloak
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-3 sm:p-5 backdrop-blur-sm"
+                 class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-3 sm:p-5"
                  @click.self="detailOpen = false">
                 <div class="bg-white rounded-2xl w-[460px] max-w-full max-h-[90vh] sm:max-h-[88vh] overflow-y-auto animate-fade-in-up shadow-[0_16px_40px_rgba(14,13,18,0.12)]">
                     <div class="flex items-center justify-between p-[18px] 22px sticky top-0 bg-white border-b border-[#E7E5E3]">

@@ -14,6 +14,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\TimesheetController;
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
@@ -80,6 +82,29 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Users - Only Lead Engineer
+    // ─── PRESENSI ─────────────────────────────────────────────────────────
+    Route::prefix('attendance')->group(function () {
+        // Engineer: halaman clock in/out + riwayat
+        Route::get('/',           [AttendanceController::class, 'index'])->name('attendance.index');
+        Route::post('/clock-in',  [AttendanceController::class, 'clockIn'])->name('attendance.clock-in');
+        Route::post('/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clock-out');
+
+        // Lead Engineer: rekap presensi
+        Route::get('/recap',       [AttendanceController::class, 'recap'])->name('attendance.recap')->middleware('role:Lead Engineer');
+        Route::get('/daily-data',  [AttendanceController::class, 'dailyData'])->name('attendance.daily-data')->middleware('role:Lead Engineer');
+    });
+
+    // ─── TIMESHEET ────────────────────────────────────────────────────────
+    Route::prefix('timesheets')->group(function () {
+        Route::get('/',             [TimesheetController::class, 'index'])->name('timesheets.index');
+        Route::post('/',            [TimesheetController::class, 'store'])->name('timesheets.store');
+        Route::put('/{timesheet}',  [TimesheetController::class, 'update'])->name('timesheets.update');
+        Route::delete('/{timesheet}', [TimesheetController::class, 'destroy'])->name('timesheets.destroy');
+        Route::get('/export/excel', [TimesheetController::class, 'exportExcel'])->name('timesheets.export.excel');
+        Route::get('/export/pdf',   [TimesheetController::class, 'exportPdf'])->name('timesheets.export.pdf');
+    });
+
+    // ─── PENGGUNA ─────────────────────────────────────────────────────────
     Route::prefix('users')->middleware('role:Lead Engineer')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('users.index');
         Route::post('/', [UserController::class, 'store'])->name('users.store');
@@ -89,6 +114,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{user}/approve-certification', [UserController::class, 'approveCertification'])->name('users.approve-certification');
         Route::post('/{user}/reject-certification', [UserController::class, 'rejectCertification'])->name('users.reject-certification');
     });
+
+    // Certifications Approval & Deletion (Lead Engineer)
+    Route::post('/certifications/{certification}/approve', [UserController::class, 'approveCertification'])->name('certifications.approve')->middleware('role:Lead Engineer');
+    Route::post('/certifications/{certification}/reject', [UserController::class, 'rejectCertification'])->name('certifications.reject')->middleware('role:Lead Engineer');
+    Route::delete('/certifications/{certification}', [UserController::class, 'rejectCertification'])->name('certifications.destroy')->middleware('role:Lead Engineer');
+
 
     // Search 
     Route::get('/search', [SearchController::class, 'index'])->name('search');
@@ -107,15 +138,16 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'show'])->name('profile.show');
         Route::post('/certification', [ProfileController::class, 'uploadCertification'])->name('profile.certification');
+        Route::delete('/certification/{certification}', [ProfileController::class, 'deleteCertification'])->name('profile.certification.delete');
     });
 
     // Stream Sertifikasi (Aman dari kendala symlink cPanel)
-    Route::get('/certification-file/{user}', function (App\Models\User $user) {
-        if (!$user->certification_file) {
+    Route::get('/certification-file/{certification}', function (\App\Models\Certification $certification) {
+        if (!$certification->file_path) {
             abort(404);
         }
 
-        $filename = $user->certification_file;
+        $filename = $certification->file_path;
         $basename = basename($filename);
 
         $candidates = [
@@ -139,7 +171,8 @@ Route::middleware(['auth'])->group(function () {
         }
 
         abort(404);
-    })->name('users.certification-file');
+    })->name('certifications.file');
+
 });
 
 // Home redirect

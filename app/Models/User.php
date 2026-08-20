@@ -67,6 +67,11 @@ class User extends Authenticatable
         return $this->hasMany(Schedule::class, 'created_by');
     }
 
+    public function certifications()
+    {
+        return $this->hasMany(Certification::class)->orderBy('created_at', 'desc');
+    }
+
     // Scopes
     public function scopeActive($query)
     {

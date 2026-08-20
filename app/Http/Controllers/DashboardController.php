@@ -37,33 +37,85 @@ class DashboardController extends Controller
         ];
 
         // ============================================================
-        // DATA CHART LOAD PEKERJAAN ENGINEER
+        // DATA CHART LOAD PEKERJAAN ENGINEER (Bulan Ini & Minggu Ini)
         // ============================================================
         $engineers = User::engineers()->active()->get();
-        $engineerLoadData = $engineers->map(function($engineer) use ($tasks) {
-            $engineerTasks = $tasks->where('engineer_id', $engineer->id);
-            $active = $engineerTasks->where('status', '!=', 'Completed')->count();
-            $completed = $engineerTasks->where('status', 'Completed')->count();
-            return [
-                'name' => $engineer->name,
-                'active' => $active,
-                'completed' => $completed,
-                'total' => $active + $completed,
-            ];
-        })->sortByDesc('total')->values();
+        $startOfWeek  = now()->startOfWeek();
+        $endOfWeek    = now()->endOfWeek();
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth   = now()->endOfMonth();
+
+        $buildEngineerLoad = function($taskList) use ($engineers) {
+            return $engineers->map(function($engineer) use ($taskList) {
+                $engineerTasks = $taskList->where('engineer_id', $engineer->id);
+                $active = $engineerTasks->where('status', '!=', 'Completed')->count();
+                $completed = $engineerTasks->where('status', 'Completed')->count();
+                return [
+                    'name' => $engineer->name,
+                    'active' => $active,
+                    'completed' => $completed,
+                    'total' => $active + $completed,
+                ];
+            })->sortByDesc('total')->values();
+        };
+
+        // Data Bulan Ini (default)
+        $engineerLoadMonthData = $buildEngineerLoad(
+            $tasks->filter(function($t) use ($startOfMonth, $endOfMonth) {
+                $createdAt = $t->created_at;
+                $deadline = $t->deadline;
+                return ($createdAt && $createdAt >= $startOfMonth && $createdAt <= $endOfMonth)
+                    || ($deadline && $deadline >= $startOfMonth && $deadline <= $endOfMonth)
+                    || ($t->status !== 'Completed');
+            })
+        );
+
+        // Data Minggu Ini
+        $engineerLoadWeekData = $buildEngineerLoad(
+            $tasks->filter(function($t) use ($startOfWeek, $endOfWeek) {
+                $createdAt = $t->created_at;
+                $deadline = $t->deadline;
+                return ($createdAt && $createdAt >= $startOfWeek && $createdAt <= $endOfWeek)
+                    || ($deadline && $deadline >= $startOfWeek && $deadline <= $endOfWeek)
+                    || ($t->status !== 'Completed');
+            })
+        );
+
+        // Filter task yang belum selesai dan memiliki deadline
+        $incompleteTasksWithDeadline = $tasks->where('status', '!=', 'Completed')
+            ->whereNotNull('deadline');
+
+        // Deadline terdekat: cari yang hari ini atau di masa depan (>= today)
+        $upcomingDeadline = $incompleteTasksWithDeadline
+            ->filter(fn($t) => $t->deadline->startOfDay() >= now()->startOfDay())
+            ->sortBy('deadline')
+            ->first();
+
+        // Hitung total task overdue (belum selesai dan tanggal sudah terlewat)
+        $overdueTasksCount = $incompleteTasksWithDeadline
+            ->filter(fn($t) => $t->deadline->startOfDay() < now()->startOfDay())
+            ->count();
+
+        // Jika tidak ada deadline mendatang, ambil task aktif dengan tanggal paling mutakhir
+        if (!$upcomingDeadline) {
+            $upcomingDeadline = $incompleteTasksWithDeadline->sortByDesc('deadline')->first();
+        }
 
         $data = [
-            'projectsCount' => $projects->count(),
-            'tasksCount' => $tasks->count(),
-            'tasksAssigned' => $tasks->where('status', 'Assigned')->count(),
-            'tasksInProgress' => $tasks->where('status', 'In Progress')->count(),
-            'tasksCompleted' => $tasks->where('status', 'Completed')->count(),
-            'upcomingDeadline' => $tasks->where('status', '!=', 'Completed')->sortBy('deadline')->first(),
-            'recentProjects' => $projects->take(4),
-            'recentTasks' => $tasks->take(4),
-            'projectProgressData' => $projectProgressData,
-            'statusData' => $statusData,
-            'engineerLoadData' => $engineerLoadData, // <-- TAMBAHKAN INI
+            'projectsCount'          => $projects->count(),
+            'tasksCount'             => $tasks->count(),
+            'tasksAssigned'          => $tasks->where('status', 'Assigned')->count(),
+            'tasksInProgress'        => $tasks->where('status', 'In Progress')->count(),
+            'tasksCompleted'         => $tasks->where('status', 'Completed')->count(),
+            'upcomingDeadline'       => $upcomingDeadline,
+            'overdueTasksCount'      => $overdueTasksCount,
+            'recentProjects'         => $projects->sortByDesc('created_at')->take(4)->values(),
+            'recentTasks'            => $tasks->sortByDesc('created_at')->take(4)->values(),
+            'projectProgressData'    => $projectProgressData,
+            'statusData'             => $statusData,
+            'engineerLoadData'       => $engineerLoadMonthData,
+            'engineerLoadMonthData'  => $engineerLoadMonthData,
+            'engineerLoadWeekData'   => $engineerLoadWeekData,
         ];
 
         return view('dashboard.lead', $data);
@@ -78,13 +130,30 @@ class DashboardController extends Controller
             ->where('date', now()->toDateString())
             ->get();
 
+        $incompleteMyTasks = $myTasks->where('status', '!=', 'Completed')
+            ->whereNotNull('deadline');
+
+        $nearestDeadline = $incompleteMyTasks
+            ->filter(fn($t) => $t->deadline->startOfDay() >= now()->startOfDay())
+            ->sortBy('deadline')
+            ->first();
+
+        $overdueMyCount = $incompleteMyTasks
+            ->filter(fn($t) => $t->deadline->startOfDay() < now()->startOfDay())
+            ->count();
+
+        if (!$nearestDeadline) {
+            $nearestDeadline = $incompleteMyTasks->sortByDesc('deadline')->first();
+        }
+
         $data = [
             'myTasksCount'        => $myTasks->count(),
             'todaySchedulesCount' => $todaySchedules->count(),
-            'myTasks'             => $myTasks,
+            'myTasks'             => $myTasks->sortByDesc('created_at')->values(),
             'todaySchedules'      => $todaySchedules,
             'avgProgress'         => $myTasks->count() ? round($myTasks->avg('progress')) : 0,
-            'nearestDeadline'     => $myTasks->where('status', '!=', 'Completed')->sortBy('deadline')->first(),
+            'nearestDeadline'     => $nearestDeadline,
+            'overdueCount'        => $overdueMyCount,
         ];
 
         return view('dashboard.engineer', $data);
