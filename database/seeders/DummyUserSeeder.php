@@ -17,8 +17,8 @@ class DummyUserSeeder extends Seeder
 {
     public function run(): void
     {
-        // 0. Bersihkan akun dummy lama (Rangga, Fajar, Dimas, Sinta, Bayu)
-        User::whereIn('name', ['Rangga Saputra', 'Fajar Nugroho', 'Dimas Prakoso', 'Sinta Wulandari', 'Bayu Kusuma'])
+        // 0. Bersihkan akun dummy lama (Rangga, Fajar, Dimas, Sinta, Bayu, Rani)
+        User::whereIn('name', ['Rangga Saputra', 'Fajar Nugroho', 'Dimas Prakoso', 'Sinta Wulandari', 'Bayu Kusuma', 'Rani Oktaviani'])
             ->orWhere('email', 'like', '%@ipnetwork.co.id')
             ->delete();
 
