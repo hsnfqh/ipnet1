@@ -10,6 +10,7 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ScheduleExportService
 {
@@ -75,7 +76,7 @@ class ScheduleExportService
         $sheet->setCellValue('A1', 'LAPORAN JADWAL KERJA HARIAN');
         $sheet->getStyle('A1')->applyFromArray([
             'font'      => ['bold' => true, 'size' => 14, 'color' => ['argb' => 'FFFFFFFF']],
-            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'C81E2C']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFC81E2C']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
         ]);
         $sheet->getRowDimension(1)->setRowHeight(36);
@@ -102,7 +103,7 @@ class ScheduleExportService
 
         $headerStyle = [
             'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF'], 'size' => 10.5],
-            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => '1E293B']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF1E293B']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
             'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FF94A3B8']]],
         ];
@@ -175,7 +176,7 @@ class ScheduleExportService
         $sheet->setCellValue('A1', 'LAPORAN JADWAL KERJA MINGGUAN');
         $sheet->getStyle('A1')->applyFromArray([
             'font'      => ['bold' => true, 'size' => 14, 'color' => ['argb' => 'FFFFFFFF']],
-            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'C81E2C']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFC81E2C']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
         ]);
         $sheet->getRowDimension(1)->setRowHeight(36);
@@ -294,7 +295,7 @@ class ScheduleExportService
         $sheet->setCellValue('A1', 'LAPORAN JADWAL KERJA BULANAN');
         $sheet->getStyle('A1')->applyFromArray([
             'font'      => ['bold' => true, 'size' => 14, 'color' => ['argb' => 'FFFFFFFF']],
-            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'C81E2C']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFC81E2C']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
         ]);
         $sheet->getRowDimension(1)->setRowHeight(36);
@@ -473,5 +474,42 @@ class ScheduleExportService
                 $sheet->getColumnDimension($col)->setWidth($minW);
             }
         }
+    }
+
+    /**
+     * Generate PDF Document for Schedules
+     */
+    public function generatePdf(Collection $schedules, ?string $engineerFilterName = null)
+    {
+        $sortedSchedules = $schedules->sortBy([
+            ['date', 'asc'],
+            ['start_time', 'asc']
+        ]);
+
+        $totalSchedules  = $schedules->count();
+        $uniqueProjects  = $schedules->pluck('project_id')->filter()->unique()->count();
+        $uniqueEngineers = $schedules->pluck('engineer_id')->filter()->unique()->count();
+        $uniqueDays      = $schedules->pluck('date')->map(function($d) {
+            return $d instanceof Carbon ? $d->format('Y-m-d') : (string) $d;
+        })->unique()->count();
+
+        $data = [
+            'schedules'          => $sortedSchedules,
+            'engineerFilterName' => $engineerFilterName ?: 'Semua Engineer',
+            'totalSchedules'     => $totalSchedules,
+            'uniqueProjects'     => $uniqueProjects,
+            'uniqueEngineers'    => $uniqueEngineers,
+            'uniqueDays'         => $uniqueDays,
+            'daysIndo'           => $this->daysIndo,
+            'generatedAt'        => Carbon::now()->isoFormat('D MMMM Y, HH:mm') . ' WIB',
+            'printedBy'          => auth()->user()?->name ?? 'Lead Engineer / Administrator',
+        ];
+
+        $pdf = Pdf::loadView('schedules.pdf', $data);
+        $pdf->setPaper('a4', 'landscape');
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
+
+        return $pdf;
     }
 }

@@ -27,7 +27,7 @@ class AuthController extends Controller
 
         if ($user && $user->status === 'Inactive') {
             return back()->withErrors([
-                'email' => 'Akun Anda telah dinonaktifkan. Silakan hubungi Lead Engineer.',
+                'email' => 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator sistem.',
             ])->onlyInput('email');
         }
 
@@ -55,11 +55,13 @@ class AuthController extends Controller
     protected function redirectTo()
     {
         $user = Auth::user();
-        
-        if ($user->hasRole('Lead Engineer')) {
+
+        // Level manajerial (Direktur, HD, Group Leader, Lead Divisi, Team Leader, Lead Engineer) -> dashboard manajerial
+        if (\App\Helpers\ScopeHelper::isManagerial($user)) {
             return route('dashboard.lead');
         }
-        
+
+        // Engineer (semua level) -> dashboard engineer
         return route('dashboard.engineer');
     }
 
@@ -80,6 +82,6 @@ class AuthController extends Controller
         Auth::login($user);
 
         return redirect($this->redirectTo())
-            ->with('success', 'Akun berhasil dibuat! Selamat datang di WMS.');
+            ->with('success', 'Akun berhasil dibuat! Selamat datang di Field System Management.');
     }
 }

@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Http\Requests\ScheduleRequest;
 use App\Services\ScheduleExportService;
+use App\Helpers\ScopeHelper;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -20,46 +21,51 @@ class ScheduleController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
-        
+        $user     = auth()->user();
+        $scopeIds = ScopeHelper::getScopeUserIds($user);
+
         $schedules = Schedule::with(['project', 'engineer', 'creator'])
-            ->when(!$user->hasRole('Lead Engineer'), function($query) use ($user) {
-                return $query->where('engineer_id', $user->id);
+            ->when($scopeIds !== null, function($query) use ($scopeIds) {
+                return count($scopeIds) === 1
+                    ? $query->where('engineer_id', $scopeIds[0])
+                    : $query->whereIn('engineer_id', $scopeIds);
             })
             ->get()
             ->map(function($schedule) {
                 return [
-                    'id' => $schedule->id,
-                    'title' => $schedule->title,
-                    'project_id' => $schedule->project_id,
+                    'id'          => $schedule->id,
+                    'title'       => $schedule->title,
+                    'project_id'  => $schedule->project_id,
                     'engineer_id' => $schedule->engineer_id,
-                    'date' => $schedule->date ? $schedule->date->format('Y-m-d') : '',
-                    'start_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) : '',
-                    'end_time' => $schedule->end_time ? substr($schedule->end_time, 0, 5) : '',
-                    'location' => $schedule->location,
+                    'date'        => $schedule->date ? $schedule->date->format('Y-m-d') : '',
+                    'start_time'  => $schedule->start_time ? substr($schedule->start_time, 0, 5) : '',
+                    'end_time'    => $schedule->end_time ? substr($schedule->end_time, 0, 5) : '',
+                    'location'    => $schedule->location,
                     'description' => $schedule->description,
-                    'project' => $schedule->project ? [
-                        'id' => $schedule->project->id,
+                    'project'     => $schedule->project ? [
+                        'id'   => $schedule->project->id,
                         'name' => $schedule->project->name,
                     ] : null,
-                    'engineer' => $schedule->engineer ? [
-                        'id' => $schedule->engineer->id,
+                    'engineer'    => $schedule->engineer ? [
+                        'id'   => $schedule->engineer->id,
                         'name' => $schedule->engineer->name,
                     ] : null,
-                    'creator' => $schedule->creator ? [
-                        'id' => $schedule->creator->id,
+                    'creator'     => $schedule->creator ? [
+                        'id'   => $schedule->creator->id,
                         'name' => $schedule->creator->name,
                     ] : null,
                 ];
             });
-            
-        $projects = Project::all();
-        $engineers = User::engineers()->get();
+
+        $projects  = Project::all();
+        $engineers = ScopeHelper::getAssignableEngineers($user);
 
         // Tasks dengan deadline untuk ditampilkan di kalender
         $tasks = Task::with(['project', 'engineer'])
-            ->when(!$user->hasRole('Lead Engineer'), function($query) use ($user) {
-                return $query->where('engineer_id', $user->id);
+            ->when($scopeIds !== null, function($query) use ($scopeIds) {
+                return count($scopeIds) === 1
+                    ? $query->where('engineer_id', $scopeIds[0])
+                    : $query->whereIn('engineer_id', $scopeIds);
             })
             ->whereNotNull('deadline')
             ->whereNot('status', 'Completed')
@@ -80,9 +86,9 @@ class ScheduleController extends Controller
 
         // Projects dengan deadline untuk ditampilkan di kalender
         $calendarProjects = Project::with('creator')
-            ->when(!$user->hasRole('Lead Engineer'), function($query) use ($user) {
-                // Engineer hanya lihat project yang ada task miliknya
-                $projectIds = Task::where('engineer_id', $user->id)->pluck('project_id')->unique();
+            ->when($scopeIds !== null, function($query) use ($scopeIds) {
+                // Non-global hanya lihat project yang ada task untuk timnya
+                $projectIds = Task::whereIn('engineer_id', $scopeIds)->pluck('project_id')->unique();
                 return $query->whereIn('id', $projectIds);
             })
             ->whereNotNull('deadline')
@@ -98,7 +104,8 @@ class ScheduleController extends Controller
                 ];
             });
         
-        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'tasks', 'calendarProjects'));
+        $isLead = ScopeHelper::isManagerial($user);
+        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'tasks', 'calendarProjects', 'isLead'));
     }
 
     /**
@@ -238,9 +245,13 @@ class ScheduleController extends Controller
             $start = $request->get('start', now()->startOfWeek()->toDateString());
             $end = $request->get('end', now()->endOfWeek()->toDateString());
             
+            $scopeIds = ScopeHelper::getScopeUserIds($user);
+            
             $schedules = Schedule::with(['project', 'engineer'])
-                ->when(!$user->hasRole('Lead Engineer'), function($query) use ($user) {
-                    return $query->where('engineer_id', $user->id);
+                ->when($scopeIds !== null, function($query) use ($scopeIds) {
+                    return count($scopeIds) === 1
+                        ? $query->where('engineer_id', $scopeIds[0])
+                        : $query->whereIn('engineer_id', $scopeIds);
                 })
                 ->whereBetween('date', [$start, $end])
                 ->get()
@@ -276,10 +287,13 @@ class ScheduleController extends Controller
             $user = auth()->user();
             $weekStart = $request->get('week_start', now()->startOfWeek()->toDateString());
             $weekEnd = date('Y-m-d', strtotime($weekStart . ' +6 days'));
+            $scopeIds = ScopeHelper::getScopeUserIds($user);
             
             $schedules = Schedule::with(['project', 'engineer'])
-                ->when(!$user->hasRole('Lead Engineer'), function($query) use ($user) {
-                    return $query->where('engineer_id', $user->id);
+                ->when($scopeIds !== null, function($query) use ($scopeIds) {
+                    return count($scopeIds) === 1
+                        ? $query->where('engineer_id', $scopeIds[0])
+                        : $query->whereIn('engineer_id', $scopeIds);
                 })
                 ->whereBetween('date', [$weekStart, $weekEnd])
                 ->get()
@@ -320,13 +334,17 @@ class ScheduleController extends Controller
     {
         try {
             $user = auth()->user();
+            $isLead = ScopeHelper::isManagerial($user);
+            $scopeIds = ScopeHelper::getScopeUserIds($user);
             $engineerId = $request->get('engineer_id');
 
             $schedules = Schedule::with(['project', 'engineer', 'creator'])
-                ->when(!$user->hasRole('Lead Engineer'), function ($query) use ($user) {
-                    return $query->where('engineer_id', $user->id);
+                ->when($scopeIds !== null, function ($query) use ($scopeIds) {
+                    return count($scopeIds) === 1
+                        ? $query->where('engineer_id', $scopeIds[0])
+                        : $query->whereIn('engineer_id', $scopeIds);
                 })
-                ->when($user->hasRole('Lead Engineer') && $engineerId, function ($query) use ($engineerId) {
+                ->when($isLead && $engineerId, function ($query) use ($engineerId) {
                     return $query->where('engineer_id', $engineerId);
                 })
                 ->get();
@@ -356,6 +374,46 @@ class ScheduleController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal mengeksport data jadwal: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Export schedules to PDF Document.
+     */
+    public function exportPdf(Request $request, ScheduleExportService $exportService)
+    {
+        try {
+            $user = auth()->user();
+            $isLead = ScopeHelper::isManagerial($user);
+            $scopeIds = ScopeHelper::getScopeUserIds($user);
+            $engineerId = $request->get('engineer_id');
+
+            $schedules = Schedule::with(['project', 'engineer', 'creator'])
+                ->when($scopeIds !== null, function ($query) use ($scopeIds) {
+                    return count($scopeIds) === 1
+                        ? $query->where('engineer_id', $scopeIds[0])
+                        : $query->whereIn('engineer_id', $scopeIds);
+                })
+                ->when($isLead && $engineerId, function ($query) use ($engineerId) {
+                    return $query->where('engineer_id', $engineerId);
+                })
+                ->get();
+
+            $engineerFilterName = null;
+            if ($engineerId) {
+                $engUser = User::find($engineerId);
+                if ($engUser) {
+                    $engineerFilterName = $engUser->name;
+                }
+            }
+
+            $pdf = $exportService->generatePdf($schedules, $engineerFilterName);
+            $filename = 'Laporan_Jadwal_Kerja_' . date('Y-m-d_H-i-s') . '.pdf';
+
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengeksport PDF jadwal: ' . $e->getMessage());
         }
     }
 }

@@ -11,9 +11,9 @@ use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
-    // Koordinat kantor PT IP Network Solusindo
-    const OFFICE_LAT = -6.1664;
-    const OFFICE_LON = 106.8148;
+    // Koordinat kantor PT IP Network Solusindo (Jl. Majapahit No.26P)
+    const OFFICE_LAT = -6.1716;
+    const OFFICE_LON = 106.8169;
     const RADIUS_METER = 100;
 
     // ─── Engineer: halaman Clock In / Out ───────────────────────────────────
@@ -95,6 +95,8 @@ class AttendanceController extends Controller
             'attendance'   => $attendance,
             'within_range' => $withinRange,
             'distance'     => $distance,
+            'time'         => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('H:i'),
+            'date'         => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('d M Y'),
         ]);
     }
 
@@ -160,35 +162,50 @@ class AttendanceController extends Controller
         $minutes = $duration % 60;
 
         return response()->json([
-            'message'    => 'Clock Out berhasil!',
-            'attendance' => $attendance,
-            'duration'   => "{$hours} jam {$minutes} menit",
+            'message'        => 'Clock Out berhasil!',
+            'attendance'     => $attendance,
+            'duration'       => "{$hours} jam {$minutes} menit",
+            'duration_short' => "{$hours}j {$minutes}m",
+            'time'           => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('H:i'),
+            'date'           => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('d M Y'),
         ]);
     }
 
-    // ─── Lead Engineer: Rekap Presensi ───────────────────────────────────────
+    // ─── Lead / Managerial: Rekap Presensi ───────────────────────────────────
     public function recap(Request $request)
     {
-        $engineers = User::role(['Engineer L1', 'Engineer L2'])->orderBy('name')->get();
+        $user      = auth()->user();
+        $scopeIds  = \App\Helpers\ScopeHelper::getScopeUserIds($user);
+        $engineers = \App\Helpers\ScopeHelper::getAssignableEngineers($user);
 
         // Default: hari ini
-        $date = $request->get('date', Carbon::today()->toDateString());
+        $date  = $request->get('date', Carbon::today()->toDateString());
         $month = $request->get('month', Carbon::today()->format('Y-m'));
 
         // Rekap harian
-        $dailyAttendances = Attendance::with('user')
-            ->where('attendance_date', $date)
-            ->orderBy('created_at')
+        $dailyAttendancesQuery = Attendance::with('user')
+            ->where('attendance_date', $date);
+        
+        if ($scopeIds !== null) {
+            $dailyAttendancesQuery->whereIn('user_id', $scopeIds);
+        }
+
+        $dailyAttendances = $dailyAttendancesQuery->orderBy('created_at')
             ->get()
             ->groupBy('user_id');
 
         // Rekap bulanan
         [$year, $mon] = explode('-', $month);
-        $monthlyAttendances = Attendance::with('user')
+        $monthlyAttendancesQuery = Attendance::with('user')
             ->whereYear('attendance_date', $year)
             ->whereMonth('attendance_date', $mon)
-            ->where('type', 'clock_in')
-            ->orderBy('attendance_date')
+            ->where('type', 'clock_in');
+
+        if ($scopeIds !== null) {
+            $monthlyAttendancesQuery->whereIn('user_id', $scopeIds);
+        }
+
+        $monthlyAttendances = $monthlyAttendancesQuery->orderBy('attendance_date')
             ->get()
             ->groupBy('user_id');
 
@@ -204,11 +221,18 @@ class AttendanceController extends Controller
     // ─── API: data rekap harian (filter AJAX) ───────────────────────────────
     public function dailyData(Request $request)
     {
-        $date = $request->get('date', Carbon::today()->toDateString());
+        $user     = auth()->user();
+        $scopeIds = \App\Helpers\ScopeHelper::getScopeUserIds($user);
+        $date     = $request->get('date', Carbon::today()->toDateString());
 
-        $rows = Attendance::with('user')
-            ->where('attendance_date', $date)
-            ->orderBy('user_id')
+        $query = Attendance::with('user')
+            ->where('attendance_date', $date);
+
+        if ($scopeIds !== null) {
+            $query->whereIn('user_id', $scopeIds);
+        }
+
+        $rows = $query->orderBy('user_id')
             ->orderBy('created_at')
             ->get()
             ->map(fn($a) => [
@@ -224,6 +248,28 @@ class AttendanceController extends Controller
             ]);
 
         return response()->json($rows);
+    }
+
+    // ─── Export PDF Rekap Presensi ──────────────────────────────────────────
+    public function exportPdf(Request $request, \App\Services\AttendanceExportService $exportService)
+    {
+        try {
+            $user  = auth()->user();
+            $tab   = $request->get('tab', 'daily');
+            $date  = $request->get('date', Carbon::today()->toDateString());
+            $month = $request->get('month', Carbon::today()->format('Y-m'));
+
+            $pdf = $exportService->generatePdf($tab, $date, $month, $user);
+
+            $filename = $tab === 'monthly'
+                ? 'Laporan_Presensi_Bulanan_' . str_replace('-', '_', $month) . '_' . date('Ymd_His') . '.pdf'
+                : 'Laporan_Presensi_Harian_' . str_replace('-', '_', $date) . '_' . date('Ymd_His') . '.pdf';
+
+            return $pdf->download($filename);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengeksport PDF Presensi: ' . $e->getMessage());
+        }
     }
 
     // ─── Helper: simpan foto base64 ──────────────────────────────────────────

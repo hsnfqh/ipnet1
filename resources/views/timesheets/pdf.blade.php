@@ -147,7 +147,7 @@
         <tr>
             <td style="width: 60%;">
                 <div class="company-title">PT IP NETWORK SOLUSINDO</div>
-                <div class="company-subtitle">FIELD SYSTEM MANAGEMENT (WMS) - LEMBAR KERJA / TIMESHEET</div>
+                <div class="company-subtitle">FIELD SYSTEM MANAGEMENT - LEMBAR KERJA / TIMESHEET</div>
             </td>
             <td style="width: 40%; text-align: right;">
                 <span class="report-badge">DOKUMEN RESMI REKAP KERJA</span>
@@ -265,25 +265,39 @@
     </table>
 
     <!-- Signature Block -->
-    <table class="signature-table">
+    <table class="signature-table" style="width: 100%; margin-top: 25px; border-collapse: collapse;">
         <tr>
-            <td style="width: 70%;">
-                <div style="font-size: 8.5px; color: #75727C;">
-                    * Dokumen rekapitulasi jam kerja ini digenerate secara otomatis melalui sistem Field Management WMS IP-Net.<br>
+            <td style="width: {{ $showMaker ? '45%' : '65%' }}; vertical-align: top;">
+                <div style="font-size: 8.5px; color: #75727C; line-height: 1.4;">
+                    * Dokumen rekapitulasi jam kerja ini digenerate secara otomatis melalui sistem Field System Management IP-Net.<br>
                     * Informasi ini digunakan sebagai acuan monitoring produktivitas dan pertanggungjawaban pengerjaan proyek.
                 </div>
             </td>
-            <td style="width: 30%; text-align: center;">
-                <div class="signature-box" style="margin-left: auto;">
-                    <div style="font-size: 9px; color: #75727C; margin-bottom: 45px;">
-                        Jakarta, {{ now()->isoFormat('D MMMM Y') }}<br>
-                        <strong>Mengetahui & Memverifikasi,</strong>
-                    </div>
-                    <div style="font-weight: bold; border-bottom: 1px solid #17151C; padding-bottom: 2px; color: #17151C;">
-                        {{ $printedBy }}
-                    </div>
-                    <div style="font-size: 8.5px; color: #75727C; margin-top: 2px;">Lead Engineer / Supervisor</div>
+            @if($showMaker)
+            <td style="width: 27%; text-align: center; vertical-align: top;">
+                <div style="font-size: 9px; color: #75727C; margin-bottom: 45px;">
+                    Jakarta, {{ now()->isoFormat('D MMMM Y') }}<br>
+                    <strong>Dibuat Oleh,</strong>
                 </div>
+                <div style="font-weight: bold; border-bottom: 1px solid #17151C; padding-bottom: 2px; color: #17151C;">
+                    {{ $makerName }}
+                </div>
+                <div style="font-size: 8.5px; color: #75727C; margin-top: 2px;">{{ $makerPosition }}</div>
+            </td>
+            @endif
+            <td style="width: {{ $showMaker ? '28%' : '35%' }}; text-align: center; vertical-align: top;">
+                <div style="font-size: 9px; color: #75727C; margin-bottom: 45px;">
+                    @if(!$showMaker)
+                    Jakarta, {{ now()->isoFormat('D MMMM Y') }}<br>
+                    @else
+                    <br>
+                    @endif
+                    <strong>Mengetahui & Menyetujui,</strong>
+                </div>
+                <div style="font-weight: bold; border-bottom: 1px solid #17151C; padding-bottom: 2px; color: #17151C;">
+                    {{ $verifierName }}
+                </div>
+                <div style="font-size: 8.5px; color: #75727C; margin-top: 2px;">{{ $verifierPosition }}</div>
             </td>
         </tr>
     </table>

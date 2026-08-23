@@ -1,4 +1,4 @@
-// Service Worker for WMS IP-Net Desktop Notifications
+// Service Worker for Field System Management IP-Net Desktop Notifications
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();

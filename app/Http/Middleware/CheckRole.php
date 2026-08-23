@@ -16,10 +16,20 @@ class CheckRole
 
         $user = auth()->user();
         
-        foreach ($roles as $role) {
-            if ($user->hasRole($role)) {
-                return $next($request);
+        // Extract all roles (support both comma and pipe separators, trim spaces)
+        $parsedRoles = [];
+        foreach ($roles as $roleGroup) {
+            $splitRoles = explode('|', $roleGroup);
+            foreach ($splitRoles as $r) {
+                $r = trim($r);
+                if ($r !== '') {
+                    $parsedRoles[] = $r;
+                }
             }
+        }
+
+        if (empty($parsedRoles) || $user->hasAnyRole($parsedRoles)) {
+            return $next($request);
         }
 
         abort(403, 'Anda tidak memiliki akses ke halaman ini.');

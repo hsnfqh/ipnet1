@@ -9,23 +9,32 @@ use App\Models\Task;
 use App\Models\Project;
 use App\Models\User;
 use App\Http\Requests\TaskRequest;
+use App\Helpers\ScopeHelper;
 
 class TaskController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-        $isLead = $user->hasRole('Lead Engineer');
+        $user         = auth()->user();
+        $isLead       = ScopeHelper::isManagerial($user);
+        $isDirektur   = $user->hasAnyRole(['Direktur', 'HD / Direktur']);
+        $isSupervisor = ScopeHelper::isGlobal($user);
+        $canManage    = ScopeHelper::canManageProjectsAndTasks($user);
+        $scopeIds     = ScopeHelper::getScopeUserIds($user);
+
         $tasks = Task::with(['project', 'engineer', 'creator'])
-            ->when(!$isLead, function($query) use ($user) {
-                return $query->where('engineer_id', $user->id);
+            ->when($scopeIds !== null, function($query) use ($scopeIds) {
+                return count($scopeIds) === 1
+                    ? $query->where('engineer_id', $scopeIds[0])
+                    : $query->whereIn('engineer_id', $scopeIds);
             })
             ->get();
-        $projects = Project::all();
-        $engineers = $isLead ? User::engineers()->get() : collect([$user]);
+
+        $projects  = $isLead ? Project::all() : Project::whereIn('id', $tasks->pluck('project_id')->unique())->get();
+        $engineers = ScopeHelper::getAssignableEngineers($user);
         $currentUserId = $user->id;
 
-        return view('tasks.index', compact('tasks', 'projects', 'engineers', 'currentUserId', 'isLead'));
+        return view('tasks.index', compact('tasks', 'projects', 'engineers', 'currentUserId', 'isLead', 'canManage', 'isDirektur', 'isSupervisor'));
     }
 
     public function store(TaskRequest $request)
@@ -62,35 +71,20 @@ class TaskController extends Controller
     {
         $user = auth()->user();
 
-        // Lead Engineer bisa mengubah seluruh field task (edit penuh termasuk status).
-        // Engineer hanya boleh mengubah progress, description, & doc_file miliknya sendiri (tidak boleh mengubah status).
-        if ($user->hasRole('Lead Engineer')) {
-            $validated = $request->validate([
-                'title'       => 'sometimes|required|string|max:255',
-                'project_id'  => 'sometimes|required|exists:projects,id',
-                'engineer_id' => 'sometimes|required|exists:users,id',
-                'priority'    => 'sometimes|required|in:High,Medium,Low',
-                'deadline'    => 'sometimes|required|date',
-                'description' => 'sometimes|nullable|string',
-                'status'      => 'sometimes|required|in:Assigned,In Progress,Waiting Review,Completed',
-                'progress'    => 'sometimes|nullable|integer|min:0|max:100',
-                'doc_file'    => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
-            ]);
-        } else {
-            $validated = $request->validate([
-                'progress'    => 'nullable|integer|min:0|max:100',
-                'description' => 'sometimes|nullable|string',
-                'doc_file'    => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
-            ]);
+        // Opsi A: Hanya Team Leader (Nugraha, Ignatius, dll) yang memiliki wewenang untuk mengubah atau memperbarui task
+        abort_unless(ScopeHelper::canManageProjectsAndTasks($user), 403, 'Hanya Team Leader yang berhak mengubah atau memperbarui task.');
 
-            // Engineer hanya boleh update task miliknya sendiri
-            abort_unless($task->engineer_id === $user->id, 403);
-            
-            // Rejection if Engineer tries to change status
-            if ($request->has('status') && $request->input('status') !== $task->status) {
-                abort(403, 'Hanya Lead Engineer yang berhak mengubah status task.');
-            }
-        }
+        $validated = $request->validate([
+            'title'       => 'sometimes|required|string|max:255',
+            'project_id'  => 'sometimes|required|exists:projects,id',
+            'engineer_id' => 'sometimes|required|exists:users,id',
+            'priority'    => 'sometimes|required|in:High,Medium,Low',
+            'deadline'    => 'sometimes|required|date',
+            'description' => 'sometimes|nullable|string',
+            'status'      => 'sometimes|required|in:Assigned,In Progress,Waiting Review,Completed',
+            'progress'    => 'sometimes|nullable|integer|min:0|max:100',
+            'doc_file'    => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
+        ]);
 
         // Handle file upload dokumentasi
         if ($request->hasFile('doc_file')) {
@@ -136,20 +130,20 @@ class TaskController extends Controller
             ]);
         }
 
-        // Kirim notifikasi ke Lead jika diupdate oleh engineer biasa
+        // Kirim notifikasi ke manajer jika diupdate oleh engineer biasa
         $user = auth()->user();
-        if ($user && !$user->hasRole('Lead Engineer')) {
+        if ($user && !ScopeHelper::isManagerial($user)) {
             if ($progressChanged || $request->hasFile('doc_file')) {
-                $leads = \App\Models\User::leadEngineer()->get();
+                $leads = \App\Models\User::role(['Direktur', 'Lead Engineer', 'Lead Divisi', 'Team Leader'])->get();
                 $notificationRecipients = $leads->pluck('id')->push($task->created_by)->unique();
                 
                 foreach ($notificationRecipients as $recipientId) {
                     if ($recipientId != $user->id) {
                         \App\Models\Notification::create([
                             'user_id' => $recipientId,
-                            'title' => 'Progress Pekerjaan Diperbarui',
+                            'title'   => 'Progress Pekerjaan Diperbarui',
                             'message' => 'Engineer ' . $user->name . ' telah memperbarui progress "' . $task->title . '" (Progress: ' . $task->progress . '%).',
-                            'url' => route('tasks.index'),
+                            'url'     => route('tasks.index'),
                             'is_read' => false,
                         ]);
                     }
@@ -157,14 +151,14 @@ class TaskController extends Controller
             }
         }
 
-        // Kirim notifikasi ke Engineer jika Lead Engineer mengubah status task
-        if ($user && $user->hasRole('Lead Engineer') && $statusChanged) {
+        // Kirim notifikasi ke Engineer jika manajerial mengubah status task
+        if ($user && ScopeHelper::isManagerial($user) && $statusChanged) {
             if ($task->engineer_id) {
                 \App\Models\Notification::create([
                     'user_id' => $task->engineer_id,
-                    'title' => 'Status Tugas Diperbarui',
-                    'message' => 'Status tugas "' . $task->title . '" telah diubah menjadi ' . $task->status . ' oleh Lead Engineer ' . $user->name . '.',
-                    'url' => route('tasks.index'),
+                    'title'   => 'Status Tugas Diperbarui',
+                    'message' => 'Status tugas "' . $task->title . '" telah diubah menjadi ' . $task->status . ' oleh ' . $user->name . '.',
+                    'url'     => route('tasks.index'),
                     'is_read' => false,
                 ]);
             }
@@ -180,6 +174,8 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
+        abort_unless(ScopeHelper::canManageProjectsAndTasks(auth()->user()), 403, 'Hanya Team Leader yang berhak menghapus task.');
+
         $task->delete();
 
         if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
@@ -192,16 +188,19 @@ class TaskController extends Controller
 
     public function getKanbanData()
     {
-        $user = auth()->user();
-        
+        $user     = auth()->user();
+        $scopeIds = ScopeHelper::getScopeUserIds($user);
+
         $tasks = Task::with(['project', 'engineer'])
-            ->when(!$user->hasRole('Lead Engineer'), function($query) use ($user) {
-                return $query->where('engineer_id', $user->id);
+            ->when($scopeIds !== null, function($query) use ($scopeIds) {
+                return count($scopeIds) === 1
+                    ? $query->where('engineer_id', $scopeIds[0])
+                    : $query->whereIn('engineer_id', $scopeIds);
             })
             ->get();
 
         $columns = ['Assigned', 'In Progress', 'Waiting Review', 'Completed'];
-        $data = [];
+        $data    = [];
 
         foreach ($columns as $column) {
             $data[$column] = $tasks->where('status', $column)->values();

@@ -6,14 +6,14 @@
 <div class="flex h-screen overflow-hidden">
     @include('components.sidebar')
 
-    <div class="flex-1 min-w-0 overflow-y-auto">
+    <div class="flex-1 min-w-0 overflow-y-auto bg-[#FAFAF9]">
         @include('components.topbar', ['title' => 'Profil Saya'])
 
         <div class="p-4 sm:p-[26px] animate-fade-in" x-data="profileManager()">
 
             {{-- FLASH MESSAGES --}}
             @if(session('success'))
-            <div style="margin-bottom:20px; padding:13px 16px; background:#E4F3EA; border:1px solid #B8E3CA; border-radius:10px; color:#1B7A46; font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:10px;">
+            <div style="margin-bottom:20px; padding:13px 16px; background:#E4F3EA; border:1px solid #B8E3CA; border-radius:12px; color:#1B7A46; font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:10px;">
                 <svg style="width:18px; height:18px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
@@ -22,7 +22,7 @@
             @endif
 
             @if(session('error'))
-            <div style="margin-bottom:20px; padding:13px 16px; background:#FDF1F2; border:1px solid #F8C8CC; border-radius:10px; color:#C81E2C; font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:10px;">
+            <div style="margin-bottom:20px; padding:13px 16px; background:#FDF1F2; border:1px solid #F8C8CC; border-radius:12px; color:#C81E2C; font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:10px;">
                 <svg style="width:18px; height:18px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
@@ -30,80 +30,197 @@
             </div>
             @endif
 
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:24px; align-items:start;">
+            @if($errors->any())
+            <div style="margin-bottom:20px; padding:13px 16px; background:#FDF1F2; border:1px solid #F8C8CC; border-radius:12px; color:#C81E2C; font-size:13.5px; font-weight:600;">
+                <ul style="margin:0; padding-left:20px;">
+                    @foreach($errors->all() as $err)
+                    <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
 
-                {{-- KARTU 1: INFORMASI AKUN --}}
-                <div style="background:white; border:1px solid #E7E5E3; border-radius:16px; padding:24px; box-shadow:0 1px 3px rgba(14,13,18,0.04);">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(360px, 1fr)); gap:24px; align-items:stretch;">
 
-                    <div style="display:flex; align-items:center; gap:16px; padding-bottom:20px; margin-bottom:20px; border-bottom:1px solid #EFEDEB;">
-                        <div style="width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, #AF1424, #D62E3C); color:white; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; flex-shrink:0; box-shadow:0 6px 16px rgba(200,30,44,0.25);">
-                            {{ $user->initials }}
-                        </div>
-                        <div style="min-width:0;">
-                            <h2 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:#17151C; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $user->name }}</h2>
-                            <p style="margin:2px 0 6px; font-size:13px; color:#75727C;">{{ $user->position ?? 'Staff / Engineer' }}</p>
-                            <span style="font-size:11px; font-weight:700; background:#F1F0EE; color:#3D3A44; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.4px; display:inline-block;">
-                                {{ $user->role_label }}
-                            </span>
-                        </div>
-                    </div>
+                {{-- ── KARTU 1: INFORMASI AKUN & EDIT PROFIL ────────────────────────────── --}}
+                <div style="background:white; border:1px solid #E7E5E3; border-radius:16px; padding:24px; box-shadow:0 1px 3px rgba(14,13,18,0.04); display:flex; flex-direction:column; justify-content:between;">
 
-                    <div style="display:flex; flex-direction:column; gap:14px;">
-                        <div>
-                            <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Nama Lengkap</label>
-                            <input type="text" value="{{ $user->name }}" readonly style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:#F8F7F6; font-size:13.5px; color:#17151C; cursor:not-allowed; outline:none; box-sizing:border-box;">
-                        </div>
-
-                        <div>
-                            <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Alamat Email</label>
-                            <input type="email" value="{{ $user->email }}" readonly style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:#F8F7F6; font-size:13.5px; color:#17151C; cursor:not-allowed; outline:none; box-sizing:border-box;">
-                        </div>
-
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                            <div>
-                                <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Nomor Telepon</label>
-                                <input type="text" value="{{ $user->phone ?? '-' }}" readonly style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:#F8F7F6; font-size:13.5px; color:#17151C; cursor:not-allowed; outline:none; box-sizing:border-box;">
+                    <div>
+                        {{-- Avatar & Identity Header --}}
+                        <div style="display:flex; align-items:center; gap:16px; padding-bottom:20px; margin-bottom:20px; border-bottom:1px solid #EFEDEB;">
+                            <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg, #AF1424, #D62E3C); color:white; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; flex-shrink:0; box-shadow:0 6px 16px rgba(200,30,44,0.25);">
+                                {{ $user->initials }}
                             </div>
-                            <div>
-                                <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Status Akun</label>
-                                <div style="padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:#F8F7F6; font-size:13.5px; color:#1B7A46; font-weight:600; display:flex; align-items:center; gap:6px;">
-                                    <span style="width:8px; height:8px; border-radius:50%; background:#1B7A46; flex-shrink:0;"></span>
-                                    {{ $user->status }}
+                            <div style="min-width:0; flex:1;">
+                                <h2 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:#17151C; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $user->name }}</h2>
+                                <p style="margin:2px 0 6px; font-size:13px; color:#75727C;">{{ $user->position ?? $user->role_label }}</p>
+                                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                    <span style="font-size:11px; font-weight:700; background:#F1F0EE; color:#3D3A44; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.4px; display:inline-block;">
+                                        {{ $user->role_label }}
+                                    </span>
+                                    @if($user->division)
+                                    <span style="font-size:11px; font-weight:600; background:#EFF6FF; color:#1D4ED8; padding:3px 10px; border-radius:20px;">
+                                        {{ $user->division->name }}
+                                    </span>
+                                    @endif
+                                    <span style="font-size:11px; font-weight:600; background:#E4F3EA; color:#1B7A46; padding:3px 10px; border-radius:20px; display:inline-flex; align-items:center; gap:4px;">
+                                        <span style="width:6px; height:6px; border-radius:50%; background:#1B7A46;"></span>
+                                        {{ $user->status }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                            <div>
-                                <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Jabatan / Posisi</label>
-                                <input type="text" value="{{ $user->position ?? '-' }}" readonly style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:#F8F7F6; font-size:13.5px; color:#17151C; cursor:not-allowed; outline:none; box-sizing:border-box;">
+                        {{-- Form Edit Data Pribadi --}}
+                        <form id="profileForm" action="{{ route('profile.update') }}" method="POST">
+                            @csrf
+                            @method('PUT')
+
+                            <div style="display:flex; flex-direction:column; gap:16px;">
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                                        Nama Lengkap <span style="color:#C81E2C;">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           name="name" 
+                                           value="{{ old('name', $user->name) }}" 
+                                           required
+                                           style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13.5px; color:#17151C; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;"
+                                           onfocus="this.style.borderColor='#C81E2C';"
+                                           onblur="this.style.borderColor='#E7E5E3';">
+                                </div>
+
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                                        Alamat Email
+                                    </label>
+                                    <input type="email" 
+                                           value="{{ $user->email }}" 
+                                           readonly 
+                                           style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:#F8F7F6; font-size:13.5px; color:#75727C; cursor:not-allowed; outline:none; box-sizing:border-box;"
+                                           title="Alamat email akun resmi perusahaan">
+                                </div>
+
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                                        Nomor Handphone / WhatsApp
+                                    </label>
+                                    <input type="text" 
+                                           name="phone" 
+                                           value="{{ old('phone', $user->phone) }}" 
+                                           placeholder="Contoh: 081234567890"
+                                           style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13.5px; color:#17151C; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;"
+                                           onfocus="this.style.borderColor='#C81E2C';"
+                                           onblur="this.style.borderColor='#E7E5E3';">
+                                </div>
                             </div>
-                            <div>
-                                <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Role Hak Akses</label>
-                                <input type="text" value="{{ $user->role_label }}" readonly style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:#F8F7F6; font-size:13.5px; color:#17151C; cursor:not-allowed; outline:none; box-sizing:border-box;">
-                            </div>
-                        </div>
+                        </form>
                     </div>
 
-                    <div style="margin-top:20px; padding:12px 14px; background:#F8F7F6; border-radius:10px; border:1px solid #EFEDEB; display:flex; align-items:flex-start; gap:10px;">
-                        <svg style="width:16px; height:16px; color:#75727C; flex-shrink:0; margin-top:2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <p style="margin:0; font-size:12px; color:#75727C; line-height:1.5;">
-                            Informasi akun (Nama, Email, Jabatan, Role) dikelola langsung oleh Lead Engineer.
-                        </p>
+                    <div style="margin-top:24px; padding-top:16px; border-top:1px solid #EFEDEB; display:flex; justify-content:flex-end;">
+                        <button type="submit" 
+                                form="profileForm"
+                                style="background:#C81E2C; color:white; padding:10px 20px; border-radius:10px; border:none; font-weight:600; font-size:13.5px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(200,30,44,0.22); transition:all 0.15s ease;"
+                                onmouseover="this.style.background='#A31622';"
+                                onmouseout="this.style.background='#C81E2C';">
+                            <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Simpan Perubahan
+                        </button>
                     </div>
 
                 </div>
 
-                {{-- KARTU 2: SERTIFIKASI MULTI-UPLOAD --}}
+                {{-- ── KARTU 2: DIREKTUR & GROUP LEADER -> PANEL UBAH PASSWORD MANDIRI ──────── --}}
+                @if($user->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'Lead Divisi']))
+                <div style="background:white; border:1px solid #E7E5E3; border-radius:16px; padding:24px; box-shadow:0 1px 3px rgba(14,13,18,0.04); display:flex; flex-direction:column; justify-content:between;">
+                    
+                    <div>
+                        {{-- Header Kartu --}}
+                        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding-bottom:16px; margin-bottom:20px; border-bottom:1px solid #EFEDEB;">
+                            <div>
+                                <h3 style="margin:0 0 3px; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:700; color:#17151C;">Keamanan & Ubah Password</h3>
+                                <p style="margin:0; font-size:12.5px; color:#75727C;">Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan data.</p>
+                            </div>
+                            <div style="width:36px; height:36px; border-radius:50%; background:#F1F0EE; color:#17151C; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <form id="passwordForm" action="{{ route('profile.password') }}" method="POST">
+                            @csrf
+                            @method('PUT')
+
+                            <div style="display:flex; flex-direction:column; gap:14px;">
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                                        Password Saat Ini <span style="color:#C81E2C;">*</span>
+                                    </label>
+                                    <input type="password" 
+                                           name="current_password" 
+                                           required
+                                           placeholder="Masukkan password saat ini"
+                                           style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13.5px; color:#17151C; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;"
+                                           onfocus="this.style.borderColor='#C81E2C';"
+                                           onblur="this.style.borderColor='#E7E5E3';">
+                                </div>
+
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                                        Password Baru <span style="color:#C81E2C;">*</span>
+                                    </label>
+                                    <input type="password" 
+                                           name="password" 
+                                           required
+                                           placeholder="Minimal 8 karakter"
+                                           style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13.5px; color:#17151C; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;"
+                                           onfocus="this.style.borderColor='#C81E2C';"
+                                           onblur="this.style.borderColor='#E7E5E3';">
+                                </div>
+
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                                        Konfirmasi Password Baru <span style="color:#C81E2C;">*</span>
+                                    </label>
+                                    <input type="password" 
+                                           name="password_confirmation" 
+                                           required
+                                           placeholder="Ulangi password baru"
+                                           style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13.5px; color:#17151C; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;"
+                                           onfocus="this.style.borderColor='#C81E2C';"
+                                           onblur="this.style.borderColor='#E7E5E3';">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div style="margin-top:24px; padding-top:16px; border-top:1px solid #EFEDEB; display:flex; justify-content:flex-end;">
+                        <button type="submit" 
+                                form="passwordForm"
+                                style="background:#17151C; color:white; padding:10px 20px; border-radius:10px; border:none; font-weight:600; font-size:13.5px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.15s ease;"
+                                onmouseover="this.style.background='#2C2933';"
+                                onmouseout="this.style.background='#17151C';">
+                            <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                            Perbarui Password
+                        </button>
+                    </div>
+
+                </div>
+
+                {{-- ── KARTU 2: ENGINEER & TEAM LEADER -> SERTIFIKASI MULTI-UPLOAD ────────── --}}
+                @else
                 <div style="background:white; border:1px solid #E7E5E3; border-radius:16px; padding:24px; box-shadow:0 1px 3px rgba(14,13,18,0.04);">
 
                     {{-- Header Kartu --}}
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding-bottom:16px; margin-bottom:20px; border-bottom:1px solid #EFEDEB;">
                         <div>
                             <h3 style="margin:0 0 3px; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:700; color:#17151C;">Sertifikasi Keahlian</h3>
-                            <p style="margin:0; font-size:12.5px; color:#75727C;">Upload dokumen sertifikat keahlian Anda untuk diverifikasi oleh Lead Engineer</p>
+                            <p style="margin:0; font-size:12.5px; color:#75727C;">Upload dokumen sertifikat keahlian Anda untuk diverifikasi oleh Team Leader divisi Anda</p>
                         </div>
                         <span style="background:#FDF1F2; color:#C81E2C; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; flex-shrink:0;">
                             {{ $user->certifications->count() }} Sertifikat
@@ -113,7 +230,7 @@
                     {{-- DAFTAR SERTIFIKAT YANG SUDAH DIUPLOAD --}}
                     <div style="margin-bottom:24px;">
                         <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.4px;">
-                            Daftar Sertifikat Terdaftar
+                            Daftar Sertifikat Saya
                         </label>
 
                         @if($user->certifications->isEmpty())
@@ -144,11 +261,11 @@
                                             <span>Upload: {{ $cert->uploaded_at ? $cert->uploaded_at->format('d M Y, H:i') : $cert->created_at->format('d M Y') }}</span>
                                             <span>•</span>
                                             @if($cert->status === 'approved')
-                                            <span style="color:#1B7A46; font-weight:700;">✓ Disetujui</span>
+                                            <span style="color:#1B7A46; font-weight:700;">Disetujui</span>
                                             @elseif($cert->status === 'rejected')
-                                            <span style="color:#C81E2C; font-weight:700;">✕ Ditolak</span>
+                                            <span style="color:#C81E2C; font-weight:700;">Ditolak</span>
                                             @else
-                                            <span style="color:#E67E22; font-weight:700;">⏳ Menunggu Verifikasi</span>
+                                            <span style="color:#E67E22; font-weight:700;">Menunggu Verifikasi</span>
                                             @endif
                                         </div>
                                     </div>
@@ -167,7 +284,7 @@
                                         Lihat
                                     </a>
 
-                                    {{-- Tombol Hapus (jika belum disetujui / jika ditolak) --}}
+                                    {{-- Tombol Hapus --}}
                                     <button type="button"
                                             @click="confirmDeleteCert({{ $cert->id }}, '{{ addslashes($cert->name) }}')"
                                             style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; border:1px solid #E7E5E3; background:white; color:#75727C; cursor:pointer; transition:all 0.15s ease;"
@@ -255,7 +372,46 @@
                         </button>
                     </form>
 
+                    {{-- Form Ganti Password untuk Engineer --}}
+                    <div style="margin-top:28px; padding-top:20px; border-top:1px solid #EFEDEB;" x-data="{ showPwForm: false }">
+                        <div style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" @click="showPwForm = !showPwForm">
+                            <h4 style="margin:0; font-size:14px; font-weight:700; color:#17151C; display:flex; align-items:center; gap:8px;">
+                                <svg style="width:16px; height:16px; color:#75727C;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                Ubah Password Akun
+                            </h4>
+                            <span style="font-size:12px; color:#2563EB; font-weight:600;" x-text="showPwForm ? 'Tutup Form' : 'Buka Form'"></span>
+                        </div>
+
+                        <div x-show="showPwForm" x-cloak style="margin-top:16px;">
+                            <form action="{{ route('profile.password') }}" method="POST">
+                                @csrf
+                                @method('PUT')
+
+                                <div style="display:flex; flex-direction:column; gap:12px;">
+                                    <div>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase;">Password Saat Ini</label>
+                                        <input type="password" name="current_password" required style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:13px; color:#17151C; outline:none; box-sizing:border-box;">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase;">Password Baru</label>
+                                        <input type="password" name="password" required placeholder="Min. 8 karakter" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:13px; color:#17151C; outline:none; box-sizing:border-box;">
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase;">Ulangi Password Baru</label>
+                                        <input type="password" name="password_confirmation" required style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:13px; color:#17151C; outline:none; box-sizing:border-box;">
+                                    </div>
+                                    <button type="submit" style="background:#17151C; color:white; padding:9px 16px; border-radius:8px; border:none; font-weight:600; font-size:13px; cursor:pointer; align-self:flex-end;">
+                                        Perbarui Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                 </div>
+                @endif
 
             </div>
 
@@ -376,5 +532,3 @@
 </script>
 @endpush
 @endsection
-
-

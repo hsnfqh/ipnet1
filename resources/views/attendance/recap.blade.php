@@ -14,24 +14,24 @@
             {{-- ── 1. HEADER & CONTROL TOOLBAR ────────────────────────────────────── --}}
             <div class="wms-card p-4 sm:p-5 bg-white flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5 shadow-sm border border-[#E7E5E3]">
                 
-                {{-- Segmented View Tabs (Harian / Bulanan) --}}
+                {{-- Segmented View Tabs (Daily / Monthly) --}}
                 <div class="flex items-center p-1 bg-[#F1F0EE] rounded-xl self-start">
                     <button type="button" 
                             class="px-5 py-2 rounded-lg text-[13px] font-bold transition-all duration-200 cursor-pointer"
                             :class="tab === 'daily' ? 'bg-white text-[#17151C] shadow-sm' : 'text-[#75727C] hover:text-[#17151C]'"
                             @click="tab = 'daily'">
-                        Presensi Harian
+                        Daily <span class="font-normal opacity-75">(Harian)</span>
                     </button>
                     <button type="button" 
                             class="px-5 py-2 rounded-lg text-[13px] font-bold transition-all duration-200 cursor-pointer"
                             :class="tab === 'monthly' ? 'bg-white text-[#17151C] shadow-sm' : 'text-[#75727C] hover:text-[#17151C]'"
                             @click="tab = 'monthly'">
-                        Rekap Bulanan
+                        Monthly <span class="font-normal opacity-75">(Bulanan)</span>
                     </button>
                 </div>
 
-                {{-- Date / Month Picker --}}
-                <div class="flex items-center gap-2.5">
+                {{-- Date / Month Picker & Export Actions --}}
+                <div class="flex flex-wrap items-center gap-2.5">
                     <template x-if="tab === 'daily'">
                         <div class="flex items-center gap-2 bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl px-3.5 py-1.5 shadow-sm">
                             <svg class="w-4 h-4 text-[#75727C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,6 +57,29 @@
                                    class="bg-transparent border-none text-[13px] font-semibold text-[#17151C] focus:outline-none cursor-pointer">
                         </div>
                     </template>
+
+                    {{-- Tombol Presensi Saya (Clock In/Out) Khusus Team Leader / Lead Tim --}}
+                    @if(\App\Helpers\ScopeHelper::canManageProjectsAndTasks(auth()->user()))
+                    <a href="{{ route('attendance.index') }}" 
+                       class="px-4 py-2 rounded-xl bg-[#C81E2C] hover:brightness-105 text-white text-[12.5px] font-bold transition-all flex items-center gap-2 shadow-[0_4px_12px_rgba(200,30,44,0.25)] cursor-pointer"
+                       title="Buka Form Clock In/Out Selfie & GPS Saya">
+                        <svg class="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Presensi Saya
+                    </a>
+                    @endif
+
+                    {{-- Tombol Export PDF --}}
+                    <a :href="'{{ route('attendance.export.pdf') }}?tab=' + tab + '&date=' + selectedDate + '&month=' + selectedMonth" 
+                       target="_blank"
+                       class="px-4 py-2 rounded-xl bg-white border border-[#E7E5E3] hover:border-[#C81E2C] hover:bg-[#FDF1F2] text-[#17151C] hover:text-[#C81E2C] text-[12.5px] font-bold transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+                       title="Download Laporan PDF Resmi">
+                        <svg class="w-4 h-4 text-[#C81E2C] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-6h2v6z"/>
+                        </svg>
+                        Export PDF
+                    </a>
                 </div>
 
             </div>

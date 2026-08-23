@@ -41,7 +41,7 @@
                     <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#C81E2C] to-[#991B1B]"></div>
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">
-                            {{ $isLead ? 'Jam Tim (Minggu Ini)' : 'Jam Saya (Minggu Ini)' }}
+                            {{ $isLead ? 'Jam Kerja Tim (Minggu Ini)' : 'Jam Kerja (Minggu Ini)' }}
                         </span>
                         <div class="w-8 h-8 rounded-lg bg-[#FDF1F2] flex items-center justify-center text-[#C81E2C]">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -59,7 +59,7 @@
                 <div class="wms-card p-4 sm:p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">
-                            {{ $isLead ? 'Jam Tim (Bulan Ini)' : 'Jam Saya (Bulan Ini)' }}
+                            {{ $isLead ? 'Jam Kerja Tim (Bulan Ini)' : 'Jam Kerja (Bulan Ini)' }}
                         </span>
                         <div class="w-8 h-8 rounded-lg bg-[#F1F0EE] flex items-center justify-center text-[#3D3A44]">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -73,10 +73,10 @@
                     </div>
                 </div>
 
-                {{-- Card 3: Total Entri Log --}}
+                {{-- Card 3: Total Log Aktivitas --}}
                 <div class="wms-card p-4 sm:p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between">
-                        <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">Total Entri Log</span>
+                        <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">Total Log Aktivitas</span>
                         <div class="w-8 h-8 rounded-lg bg-[#F1F0EE] flex items-center justify-center text-[#3D3A44]">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -130,7 +130,8 @@
                         {{-- Action Buttons (Export & Tambah) --}}
                         <div class="flex items-center gap-2.5 justify-end">
                             
-                            {{-- Dropdown Export --}}
+                            {{-- Dropdown Export (Khusus Team Leader & Manajemen) --}}
+                            @if(\App\Helpers\ScopeHelper::isManagerial(auth()->user()))
                             <div class="relative" x-data="{ exportOpen: false }">
                                 <button type="button" 
                                         @click="exportOpen = !exportOpen"
@@ -169,8 +170,10 @@
                                     </a>
                                 </div>
                             </div>
+                            @endif
 
-                            {{-- Tombol Tambah Log --}}
+                            {{-- Tombol Tambah Log (Disembunyikan untuk Direktur & Group Leader) --}}
+                            @if(!auth()->user()->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'Lead Divisi']))
                             <button type="button" 
                                     @click="openAddModal()"
                                     class="px-4 py-2.5 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white text-[13px] font-semibold transition flex items-center gap-2 shadow-[0_4px_14px_rgba(200,30,44,0.25)] cursor-pointer">
@@ -179,6 +182,7 @@
                                 </svg>
                                 Catat Log Kerja
                             </button>
+                            @endif
                         </div>
 
                     </div>
@@ -363,20 +367,35 @@
                                     </td>
                                     <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                         <div class="flex items-center justify-center gap-1">
-                                            <button @click="openEditModal({{ json_encode($ts) }})" 
+                                            {{-- Tombol Lihat Detail (Untuk Semua Role Termasuk Direktur) --}}
+                                            <button type="button" 
+                                                    @click="openDetailModal({{ json_encode($ts) }})" 
                                                     class="p-1.5 rounded-lg hover:bg-[#F1F0EE] text-[#75727C] hover:text-[#17151C] transition cursor-pointer"
-                                                    title="Edit Log">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                    title="Lihat Detail Log">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                 </svg>
                                             </button>
-                                            <button @click="promptDelete({{ $ts->id }}, '{{ addslashes($ts->activity) }}')" 
-                                                    class="p-1.5 rounded-lg hover:bg-red-50 text-[#75727C] hover:text-[#C81E2C] transition cursor-pointer"
-                                                    title="Hapus Log">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                </svg>
-                                            </button>
+
+                                            @if(!auth()->user()->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'Lead Divisi']))
+                                                <button type="button"
+                                                        @click="openEditModal({{ json_encode($ts) }})" 
+                                                        class="p-1.5 rounded-lg hover:bg-[#F1F0EE] text-[#75727C] hover:text-[#17151C] transition cursor-pointer"
+                                                        title="Edit Log">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button"
+                                                        @click="promptDelete({{ $ts->id }}, '{{ addslashes($ts->activity) }}')" 
+                                                        class="p-1.5 rounded-lg hover:bg-red-50 text-[#75727C] hover:text-[#C81E2C] transition cursor-pointer"
+                                                        title="Hapus Log">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                    </svg>
+                                                </button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -398,180 +417,311 @@
                 </div>
 
                 {{-- Pagination --}}
-                @if($timesheets->hasPages())
-                    <div class="p-4 border-t border-[#EFEDEB] bg-[#FAF9F8]">
-                        {{ $timesheets->links() }}
+                @if($timesheets->hasPages() || $timesheets->total() > 0)
+                    <div class="p-3.5 sm:px-5 sm:py-3.5 border-t border-[#EFEDEB] flex flex-col sm:flex-row items-center justify-between gap-3 text-[12.5px] text-[#75727C] bg-white">
+                        <div class="text-center sm:text-left">
+                            Menampilkan <span class="font-medium text-[#17151C]">{{ $timesheets->firstItem() ?? 0 }}</span> &ndash; <span class="font-medium text-[#17151C]">{{ $timesheets->lastItem() ?? 0 }}</span> dari <span class="font-medium text-[#17151C]">{{ $timesheets->total() }}</span> log
+                        </div>
+                        @if($timesheets->hasPages())
+                            <div class="flex items-center gap-1">
+                                {{-- Previous Page Link --}}
+                                @if ($timesheets->onFirstPage())
+                                    <button disabled class="w-7 h-7 rounded-md border border-[#E7E5E3] text-[#3D3A44] opacity-30 cursor-not-allowed flex items-center justify-center">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                                        </svg>
+                                    </button>
+                                @else
+                                    <a href="{{ $timesheets->previousPageUrl() }}" class="w-7 h-7 rounded-md border border-[#E7E5E3] hover:bg-[#F1F0EE] text-[#3D3A44] flex items-center justify-center transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                                        </svg>
+                                    </a>
+                                @endif
+
+                                {{-- Pagination Elements --}}
+                                @foreach ($timesheets->getUrlRange(1, $timesheets->lastPage()) as $page => $url)
+                                    @if ($page == $timesheets->currentPage())
+                                        <span class="w-7 h-7 rounded-md bg-[#AF1424] text-white border border-[#AF1424] text-[12px] font-bold flex items-center justify-center">
+                                            {{ $page }}
+                                        </span>
+                                    @else
+                                        <a href="{{ $url }}" class="w-7 h-7 rounded-md border border-[#E7E5E3] hover:bg-[#F1F0EE] text-[#17151C] text-[12px] font-medium flex items-center justify-center transition">
+                                            {{ $page }}
+                                        </a>
+                                    @endif
+                                @endforeach
+
+                                {{-- Next Page Link --}}
+                                @if ($timesheets->hasMorePages())
+                                    <a href="{{ $timesheets->nextPageUrl() }}" class="w-7 h-7 rounded-md border border-[#E7E5E3] hover:bg-[#F1F0EE] text-[#3D3A44] flex items-center justify-center transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </a>
+                                @else
+                                    <button disabled class="w-7 h-7 rounded-md border border-[#E7E5E3] text-[#3D3A44] opacity-30 cursor-not-allowed flex items-center justify-center">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </button>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 @endif
             </div>
 
         </div>
     </div>
+
+    <!-- MODAL DETAIL TIMESHEET -->
+    <template x-teleport="body">
+        <div x-show="detailModalOpen" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+             @click.self="detailModalOpen = false">
+            
+            <div class="bg-white rounded-2xl w-[560px] max-w-full overflow-hidden shadow-[0_20px_60px_rgba(14,13,18,0.2)] text-left animate-fade-in-up">
+                
+                {{-- Modal Header --}}
+                <div class="px-6 py-4 border-b border-[#EFEDEB] flex items-center justify-between bg-[#FBFBFA]">
+                    <div>
+                        <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Detail Log Aktivitas</span>
+                        <h3 class="font-display text-[16px] font-bold text-[#17151C]" x-text="detailData?.project?.name || 'Non-Project / Aktivitas Rutin'"></h3>
+                    </div>
+                    <button type="button" @click="detailModalOpen = false" class="text-[#75727C] hover:text-[#17151C] p-1.5 rounded-lg hover:bg-[#F1F0EE] transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Modal Body --}}
+                <div class="p-6 space-y-4 text-[13.5px]">
+                    
+                    {{-- Grid Metadata --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div class="p-3.5 rounded-xl bg-[#F8F7F6] border border-[#EFEDEB]">
+                            <div class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider mb-1">Engineer Pelaksana</div>
+                            <div class="font-bold text-[#17151C]" x-text="detailData?.user?.name || '-'"></div>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-[#F8F7F6] border border-[#EFEDEB]">
+                            <div class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider mb-1">Kategori Pekerjaan</div>
+                            <span class="inline-block px-2.5 py-0.5 text-[11.5px] font-semibold rounded-md bg-white border border-[#E7E5E3] text-[#17151C]" x-text="detailData?.category || '-'"></span>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-[#F8F7F6] border border-[#EFEDEB]">
+                            <div class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider mb-1">Tanggal Kerja</div>
+                            <div class="font-semibold text-[#17151C]" x-text="detailData?.date ? detailData.date.substring(0, 10) : '-'"></div>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-[#F8F7F6] border border-[#EFEDEB]">
+                            <div class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider mb-1">Waktu & Durasi</div>
+                            <div class="font-semibold text-[#17151C]">
+                                <span x-text="(detailData?.start_time ? detailData.start_time.substring(0,5) : '') + ' - ' + (detailData?.end_time ? detailData.end_time.substring(0,5) : '')"></span>
+                                <span class="text-[#AF1424] font-bold ml-1" x-text="detailData?.formatted_duration ? '(' + detailData.formatted_duration + ')' : (detailData?.duration_minutes ? '(' + Math.floor(detailData.duration_minutes/60) + 'j ' + (detailData.duration_minutes%60) + 'm)' : '')"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Task Spesifik --}}
+                    <div class="p-3.5 rounded-xl bg-[#F8F7F6] border border-[#EFEDEB]" x-show="detailData?.task">
+                        <div class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider mb-1">Task Terkait</div>
+                        <div class="font-semibold text-[#17151C]" x-text="detailData?.task?.title || '-'"></div>
+                    </div>
+
+                    {{-- Uraian Aktivitas --}}
+                    <div class="p-4 rounded-xl bg-white border border-[#E7E5E3]">
+                        <div class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Uraian Aktivitas Pekerjaan</div>
+                        <p class="text-[#17151C] leading-relaxed whitespace-pre-line text-[13px]" x-text="detailData?.activity || '-'"></p>
+                    </div>
+
+                    {{-- Catatan Tambahan --}}
+                    <div class="p-4 rounded-xl bg-white border border-[#E7E5E3]" x-show="detailData?.notes">
+                        <div class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Catatan Tambahan / Kendala</div>
+                        <p class="text-[#75727C] leading-relaxed italic text-[12.5px]" x-text="detailData?.notes || '-'"></p>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </template>
 
     <!-- MODAL TAMBAH / EDIT TIMESHEET -->
-    <div x-show="formModalOpen" 
-         x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-         @click.self="formModalOpen = false"
-         style="display: none;">
-        
-        <div class="bg-white rounded-2xl w-[560px] max-w-full overflow-hidden shadow-[0_20px_60px_rgba(14,13,18,0.2)] text-left animate-fade-in-up">
+    <template x-teleport="body">
+        <div x-show="formModalOpen" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+             @click.self="formModalOpen = false">
             
-            {{-- Modal Header --}}
-            <div class="px-6 py-4 border-b border-[#EFEDEB] flex items-center justify-between bg-[#FBFBFA]">
-                <h3 class="font-display text-[16px] font-bold text-[#17151C]" x-text="isEditing ? 'Edit Log Aktivitas Kerja' : 'Catat Log Aktivitas Kerja Baru'"></h3>
-                <button type="button" @click="formModalOpen = false" class="text-[#75727C] hover:text-[#17151C] p-1 rounded-lg hover:bg-[#F1F0EE] transition cursor-pointer">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
+            <div class="bg-white rounded-2xl w-[560px] max-w-full overflow-hidden shadow-[0_20px_60px_rgba(14,13,18,0.2)] text-left animate-fade-in-up">
+                
+                {{-- Modal Header --}}
+                <div class="px-6 py-4 border-b border-[#EFEDEB] flex items-center justify-between bg-[#FBFBFA]">
+                    <h3 class="font-display text-[16px] font-bold text-[#17151C]" x-text="isEditing ? 'Edit Log Aktivitas Kerja' : 'Catat Log Aktivitas Kerja Baru'"></h3>
+                    <button type="button" @click="formModalOpen = false" class="text-[#75727C] hover:text-[#17151C] p-1 rounded-lg hover:bg-[#F1F0EE] transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Form Body --}}
+                <form :action="isEditing ? `/timesheets/${formData.id}` : '{{ route('timesheets.store') }}'" method="POST" class="p-6 space-y-4">
+                    @csrf
+                    <template x-if="isEditing">
+                        <input type="hidden" name="_method" value="PUT">
+                    </template>
+
+                    {{-- Engineer Selector (Lead Only) --}}
+                    @if($isLead)
+                        <div>
+                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Engineer Pelaksana</label>
+                            <select name="engineer_id" x-model="formData.engineer_id" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                                @foreach($engineers as $eng)
+                                    <option value="{{ $eng->id }}">{{ $eng->name }} ({{ $eng->role_label }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {{-- Project --}}
+                        <div>
+                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Project Terkait</label>
+                            <select name="project_id" x-model="formData.project_id" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                                <option value="">-- Tanpa Project / Rutin --</option>
+                                @foreach($projects as $p)
+                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Task --}}
+                        <div>
+                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Task Spesifik (Opsional)</label>
+                            <select name="task_id" x-model="formData.task_id" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                                <option value="">-- Pilih Task (Bila ada) --</option>
+                                @foreach($myTasks as $task)
+                                    <option value="{{ $task->id }}">{{ $task->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Tanggal, Jam Mulai & Jam Selesai --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Tanggal</label>
+                            <input type="date" name="date" x-model="formData.date" required class="w-full py-2.5 px-3 text-[13px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                        </div>
+                        <div>
+                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Jam Mulai</label>
+                            <input type="time" name="start_time" x-model="formData.start_time" required class="w-full py-2.5 px-3 text-[13px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                        </div>
+                        <div>
+                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Jam Selesai</label>
+                            <input type="time" name="end_time" x-model="formData.end_time" required class="w-full py-2.5 px-3 text-[13px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                        </div>
+                    </div>
+
+                    {{-- Kategori Pekerjaan --}}
+                    <div>
+                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Kategori Pekerjaan</label>
+                        <select name="category" x-model="formData.category" required class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                            <option value="On-Site">On-Site / Lapangan</option>
+                            <option value="Remote">Remote / Konfigurasi</option>
+                            <option value="Overtime">Lembur / Overtime</option>
+                            <option value="Maintenance">Standby / Maintenance</option>
+                        </select>
+                    </div>
+
+                    {{-- Uraian Aktivitas --}}
+                    <div>
+                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Uraian Aktivitas Pekerjaan *</label>
+                        <textarea name="activity" 
+                                  x-model="formData.activity" 
+                                  rows="3" 
+                                  required 
+                                  placeholder="Jelaskan secara ringkas pekerjaan yang Anda kerjakan..."
+                                  class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]"></textarea>
+                    </div>
+
+                    {{-- Catatan / Kendala --}}
+                    <div>
+                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Catatan Tambahan / Kendala (Opsional)</label>
+                        <input type="text" 
+                               name="notes" 
+                               x-model="formData.notes" 
+                               placeholder="Contoh: Menunggu material fiber optik tambahan, konfigurasi switch selesai..."
+                               class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                    </div>
+
+                    {{-- Actions --}}
+                    <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#EFEDEB]">
+                        <button type="button" @click="formModalOpen = false" class="py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="py-2.5 px-5 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white font-semibold text-[13.5px] transition shadow-sm cursor-pointer">
+                            Simpan Log
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            {{-- Form Body --}}
-            <form :action="isEditing ? `/timesheets/${formData.id}` : '{{ route('timesheets.store') }}'" method="POST" class="p-6 space-y-4">
-                @csrf
-                <template x-if="isEditing">
-                    <input type="hidden" name="_method" value="PUT">
-                </template>
-
-                {{-- Engineer Selector (Lead Only) --}}
-                @if($isLead)
-                    <div>
-                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Engineer Pelaksana</label>
-                        <select name="engineer_id" x-model="formData.engineer_id" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
-                            @foreach($engineers as $eng)
-                                <option value="{{ $eng->id }}">{{ $eng->name }} ({{ $eng->role_label }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {{-- Project --}}
-                    <div>
-                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Project Terkait</label>
-                        <select name="project_id" x-model="formData.project_id" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
-                            <option value="">-- Tanpa Project / Rutin --</option>
-                            @foreach($projects as $p)
-                                <option value="{{ $p->id }}">{{ $p->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    {{-- Task --}}
-                    <div>
-                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Task Spesifik (Opsional)</label>
-                        <select name="task_id" x-model="formData.task_id" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
-                            <option value="">-- Pilih Task (Bila ada) --</option>
-                            @foreach($myTasks as $task)
-                                <option value="{{ $task->id }}">{{ $task->title }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                {{-- Tanggal, Jam Mulai & Jam Selesai --}}
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Tanggal</label>
-                        <input type="date" name="date" x-model="formData.date" required class="w-full py-2.5 px-3 text-[13px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
-                    </div>
-                    <div>
-                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Jam Mulai</label>
-                        <input type="time" name="start_time" x-model="formData.start_time" required class="w-full py-2.5 px-3 text-[13px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
-                    </div>
-                    <div>
-                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Jam Selesai</label>
-                        <input type="time" name="end_time" x-model="formData.end_time" required class="w-full py-2.5 px-3 text-[13px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
-                    </div>
-                </div>
-
-                {{-- Kategori Pekerjaan --}}
-                <div>
-                    <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Kategori Pekerjaan</label>
-                    <select name="category" x-model="formData.category" required class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
-                        <option value="On-Site">On-Site / Lapangan</option>
-                        <option value="Remote">Remote / Konfigurasi</option>
-                        <option value="Overtime">Lembur / Overtime</option>
-                        <option value="Maintenance">Standby / Maintenance</option>
-                    </select>
-                </div>
-
-                {{-- Uraian Aktivitas --}}
-                <div>
-                    <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Uraian Aktivitas Pekerjaan *</label>
-                    <textarea name="activity" 
-                              x-model="formData.activity" 
-                              rows="3" 
-                              required 
-                              placeholder="Jelaskan secara ringkas pekerjaan yang Anda kerjakan..."
-                              class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]"></textarea>
-                </div>
-
-                {{-- Catatan / Kendala --}}
-                <div>
-                    <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Catatan Tambahan / Kendala (Opsional)</label>
-                    <input type="text" 
-                           name="notes" 
-                           x-model="formData.notes" 
-                           placeholder="Contoh: Menunggu material fiber optik tambahan, konfigurasi switch selesai..."
-                           class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
-                </div>
-
-                {{-- Actions --}}
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#EFEDEB]">
-                    <button type="button" @click="formModalOpen = false" class="py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
-                        Batal
-                    </button>
-                    <button type="submit" class="py-2.5 px-5 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white font-semibold text-[13.5px] transition shadow-sm cursor-pointer">
-                        Simpan Log
-                    </button>
-                </div>
-            </form>
         </div>
-    </div>
+    </template>
 
     <!-- MODAL KONFIRMASI HAPUS -->
-    <div x-show="deleteModalOpen" 
-         x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-         @click.self="deleteModalOpen = false"
-         style="display: none;">
-        
-        <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(14,13,18,0.2)] animate-fade-in-up">
-            <div class="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#C81E2C]">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-            </div>
+    <template x-teleport="body">
+        <div x-show="deleteModalOpen" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+             @click.self="deleteModalOpen = false">
             
-            <h3 class="text-center font-display text-[17px] font-bold text-[#17151C] mb-2">Hapus Catatan Timesheet?</h3>
-            <p class="text-center text-[13.5px] text-[#75727C] mb-6 break-words" x-text="'Log aktivitas: &quot;' + deleteTitle + '&quot; akan dihapus.'"></p>
+            <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(14,13,18,0.2)] animate-fade-in-up">
+                <div class="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#C81E2C]">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+                
+                <h3 class="text-center font-display text-[17px] font-bold text-[#17151C] mb-2">Hapus Catatan Timesheet?</h3>
+                <p class="text-center text-[13.5px] text-[#75727C] mb-6 break-words" x-text="'Log aktivitas: &quot;' + deleteTitle + '&quot; akan dihapus.'"></p>
 
-            <form :action="`/timesheets/${deleteId}`" method="POST" class="flex gap-3">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-[#C81E2C] text-white font-semibold text-[13.5px] hover:bg-[#A31622] transition cursor-pointer">
-                    Hapus
-                </button>
-                <button type="button" @click="deleteModalOpen = false" class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
-                    Batal
-                </button>
-            </form>
+                <form :action="`/timesheets/${deleteId}`" method="POST" class="flex gap-3">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-[#C81E2C] text-white font-semibold text-[13.5px] hover:bg-[#A31622] transition cursor-pointer">
+                        Hapus
+                    </button>
+                    <button type="button" @click="deleteModalOpen = false" class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                        Batal
+                    </button>
+                </form>
+            </div>
         </div>
-    </div>
+    </template>
 
 </div>
 
@@ -580,6 +730,8 @@
         Alpine.data('timesheetApp', () => ({
             formModalOpen: false,
             deleteModalOpen: false,
+            detailModalOpen: false,
+            detailData: null,
             isEditing: false,
             deleteId: null,
             deleteTitle: '',
@@ -599,6 +751,11 @@
 
             init() {
                 this.recalcDuration();
+            },
+
+            openDetailModal(item) {
+                this.detailData = item;
+                this.detailModalOpen = true;
             },
 
             openAddModal() {

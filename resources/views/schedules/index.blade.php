@@ -15,18 +15,23 @@
             {{-- HEADER --}}
             <div class="jkw-header">
                 <div class="jkw-tabs" role="tablist">
-                    <template x-for="mode in [{key:'day',label:'Hari'},{key:'week',label:'Minggu'},{key:'month',label:'Bulan'},{key:'table',label:'Rekap'}]" :key="mode.key">
+                    <template x-for="mode in [
+                        {key:'day', label:'Daily', sub:'Harian'},
+                        {key:'week', label:'Weekly', sub:'Mingguan'},
+                        {key:'month', label:'Monthly', sub:'Bulanan'}
+                    ]" :key="mode.key">
                         <button type="button"
                                 class="jkw-tab"
                                 :class="{ 'is-active': viewMode === mode.key }"
-                                @click="viewMode = mode.key"
-                                x-text="mode.label">
+                                @click="viewMode = mode.key">
+                            <span class="jkw-tab-main" x-text="mode.label"></span>
+                            <span class="jkw-tab-sub" x-text="'(' + mode.sub + ')'"></span>
                         </button>
                     </template>
                 </div>
 
                 <div class="jkw-actions">
-                    @if(auth()->user()->hasRole('Lead Engineer'))
+                    @if($isLead)
                     <div class="jkw-select-wrap">
                         <svg class="jkw-select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4"/>
@@ -41,18 +46,29 @@
                     @endif
 
                     <a :href="'{{ route('schedules.export') }}' + (engineerFilter ? '?engineer_id=' + engineerFilter : '')"
-                       class="jkw-btn jkw-btn--ghost"
+                       class="jkw-btn jkw-btn--ghost jkw-btn--excel"
                        title="Export Excel Data Jadwal">
-                        <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="jkw-icon jkw-icon--excel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                         <span>Export Excel</span>
                     </a>
+
+                    <a :href="'{{ route('schedules.export.pdf') }}' + (engineerFilter ? '?engineer_id=' + engineerFilter : '')"
+                       target="_blank"
+                       class="jkw-btn jkw-btn--ghost jkw-btn--pdf"
+                       title="Export PDF Laporan Resmi Jadwal Kerja">
+                        <svg class="jkw-icon jkw-icon--pdf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 9h1m-1 4h6m-6 4h4"/>
+                        </svg>
+                        <span>Export PDF</span>
+                    </a>
                 </div>
             </div>
 
-            {{-- PANEL KETERSEDIAAN ENGINEER — Hanya Lead Engineer --}}
-            @if(auth()->user()->hasRole('Lead Engineer'))
+            {{-- PANEL KETERSEDIAAN ENGINEER — Hanya Managerial/Lead --}}
+            @if($isLead)
             <div class="jkw-card jkw-avail"
                  x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-avail-head">
@@ -118,7 +134,7 @@
                     </div>
 
                     <div class="jkw-day-list">
-                        <template x-for="schedule in daySchedules" :key="schedule._uid">
+                        <template x-for="schedule in paginatedDaySchedules" :key="schedule._uid">
                             <div class="jkw-day-item" :style="'border-left: 4px solid ' + schedule._color + '; padding-left: 14px;'">
                                 <div class="jkw-time" x-text="schedule._type === 'schedule' ? (schedule.start_time + ' – ' + schedule.end_time) : schedule._timeLabel"></div>
                                 <div class="jkw-day-main">
@@ -143,6 +159,46 @@
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
                             <p>Tidak ada jadwal atau deadline pada hari ini.</p>
+                        </div>
+                    </div>
+
+                    <!-- Pagination Day View -->
+                    <div x-show="daySchedules.length > perPage"
+                         style="padding: 12px 18px; border-top: 1px solid #EFEDEB; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 12.5px; color: #75727C;">
+                        <div>
+                            Menampilkan <span style="font-weight: 600; color: #17151C;" x-text="(dayPage - 1) * perPage + 1"></span> &ndash; <span style="font-weight: 600; color: #17151C;" x-text="Math.min(dayPage * perPage, daySchedules.length)"></span> dari <span style="font-weight: 600; color: #17151C;" x-text="daySchedules.length"></span> jadwal
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <button type="button"
+                                    @click="prevDayPage()"
+                                    :disabled="dayPage === 1"
+                                    title="Sebelumnya"
+                                    style="width: 28px; height: 28px; border-radius: 6px; border: 1px solid #E7E5E3; background: #FFFFFF; color: #3D3A44; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;"
+                                    :style="dayPage === 1 ? 'opacity: 0.35; cursor: not-allowed;' : ''">
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+
+                            <template x-for="p in totalDayPages" :key="p">
+                                <button type="button"
+                                        @click="goToDayPage(p)"
+                                        style="width: 28px; height: 28px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;"
+                                        :style="dayPage === p ? 'background: #AF1424; color: #FFFFFF; border: 1px solid #AF1424; font-weight: 700;' : 'background: #FFFFFF; color: #17151C; border: 1px solid #E7E5E3; font-weight: 600;'"
+                                        x-text="p">
+                                </button>
+                            </template>
+
+                            <button type="button"
+                                    @click="nextDayPage()"
+                                    :disabled="dayPage === totalDayPages"
+                                    title="Berikutnya"
+                                    style="width: 28px; height: 28px; border-radius: 6px; border: 1px solid #E7E5E3; background: #FFFFFF; color: #3D3A44; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;"
+                                    :style="dayPage === totalDayPages ? 'opacity: 0.35; cursor: not-allowed;' : ''">
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -244,7 +300,7 @@
                                     <th>Tanggal</th>
                                     <th>Waktu</th>
                                     <th>Lokasi</th>
-                                    @if(auth()->user()->hasRole('Lead Engineer'))
+                                    @if($isLead)
                                     <th class="jkw-th-right">Aksi</th>
                                     @endif
                                 </tr>
@@ -263,7 +319,7 @@
                                         <td class="jkw-mono" x-text="schedule.date.split('T')[0]"></td>
                                         <td class="jkw-mono" x-text="schedule.start_time + ' – ' + schedule.end_time"></td>
                                         <td class="jkw-td-wrap" x-text="schedule.location"></td>
-                                        @if(auth()->user()->hasRole('Lead Engineer'))
+                                        @if($isLead)
                                         <td>
                                             <div style="display:flex; justify-content:flex-end; gap:4px;">
                                                 <button type="button"
@@ -303,148 +359,152 @@
             </div>
 
             {{-- CONFIRM DELETE MODAL --}}
-            <div x-show="confirmOpen"
-                 x-cloak
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
-                 @click.self="confirmOpen = false">
+            <template x-teleport="body">
+                <div x-show="confirmOpen"
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
+                     @click.self="confirmOpen = false">
 
-                <div style="background:white; border-radius:16px; width:420px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(14,13,18,0.2); margin:auto; position:relative; animation:jkwFadeUp 0.18s ease;">
+                    <div style="background:white; border-radius:16px; width:420px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(14,13,18,0.2); margin:auto; position:relative; animation:jkwFadeUp 0.18s ease;">
 
-                    <div style="padding:20px 24px;">
-                        <div style="display:flex; justify-content:center; margin-bottom:16px;">
-                            <div style="width:56px; height:56px; border-radius:50%; background:#FEF2F2; display:flex; align-items:center; justify-content:center;">
-                                <svg style="width:28px; height:28px; color:#C81E2C;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                            </div>
-                        </div>
-
-                        <h3 style="text-align:center; font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:#17151C; margin-bottom:8px;">
-                            Yakin hapus data?
-                        </h3>
-
-                        <p style="text-align:center; font-size:14px; color:#75727C; margin-bottom:24px; word-break:break-word;">
-                            Jadwal "<span x-text="confirmData?.title" style="font-weight:600; color:#17151C;"></span>" akan dihapus permanen.
-                            <br>Apakah Anda yakin?
-                        </p>
-
-                        <div style="display:flex; gap:12px;">
-                            <button @click="confirmDeleteAction()"
-                                    style="flex:1; padding:10px 16px; border-radius:8px; background:#C81E2C; color:white; border:none; font-weight:600; font-size:14px; cursor:pointer; transition:all 0.15s ease;"
-                                    onmouseover="this.style.filter='brightness(1.05)'"
-                                    onmouseout="this.style.filter='brightness(1)'">
-                                Yakin
-                            </button>
-                            <button @click="confirmOpen = false"
-                                    style="flex:1; padding:10px 16px; border-radius:8px; background:white; color:#3D3A44; border:1px solid #E7E5E3; font-weight:600; font-size:14px; cursor:pointer; transition:all 0.15s ease;"
-                                    onmouseover="this.style.background='#F8F7F6'"
-                                    onmouseout="this.style.background='white'">
-                                Batal
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- MODAL FORM --}}
-            <div x-show="modalOpen"
-                 x-cloak
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
-                 @click.self="modalOpen = false">
-
-                <div style="background:white; border-radius:16px; width:640px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 16px 40px rgba(14,13,18,0.16); margin:auto; position:relative; animation:jkwFadeUp 0.18s ease;">
-
-                    <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px; position:sticky; top:0; background:white; border-bottom:1px solid #E7E5E3; z-index:1; border-radius:16px 16px 0 0; gap:12px;">
-                        <h3 style="margin:0; font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:700; color:#17151C; word-break:break-word;" x-text="modalTitle"></h3>
-                        <button type="button"
-                                @click="modalOpen = false"
-                                style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:7px; transition:all 0.15s ease; flex-shrink:0;"
-                                onmouseover="this.style.background='#F1F0EE'"
-                                onmouseout="this.style.background='transparent'">
-                            <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div style="padding:18px;">
-                        <form @submit.prevent="saveSchedule">
-                            <div style="display:flex; flex-direction:column; gap:14px;">
-                                <div>
-                                    <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Judul Jadwal</label>
-                                    <input type="text" x-model="form.title" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
-                                </div>
-                                <div>
-                                    <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Project</label>
-                                    <select x-model="form.project_id" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
-                                        <option value="">Pilih Project</option>
-                                        <template x-for="project in projects" :key="project.id">
-                                            <option :value="project.id" x-text="project.name"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Engineer</label>
-                                    <select x-model="form.engineer_id" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
-                                        <option value="">Pilih Engineer</option>
-                                        <template x-for="engineer in engineers" :key="engineer.id">
-                                            <option :value="engineer.id" x-text="engineer.name + (isEngineerBusyOnDate(engineer.id, form.date) ? ' (sudah ada jadwal)' : '')"></option>
-                                        </template>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Tanggal</label>
-                                    <input type="date" x-model="form.date" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
-                                </div>
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                                    <div>
-                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Jam Mulai</label>
-                                        <input type="time" x-model="form.start_time" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Jam Selesai</label>
-                                        <input type="time" x-model="form.end_time" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Lokasi</label>
-                                    <input type="text" x-model="form.location" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
-                                </div>
-                                <div>
-                                    <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Deskripsi</label>
-                                    <textarea x-model="form.description" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; min-height:80px; transition:border 0.15s ease;" rows="3"></textarea>
+                        <div style="padding:20px 24px;">
+                            <div style="display:flex; justify-content:center mb-4;">
+                                <div style="width:56px; height:56px; border-radius:50%; background:#FEF2F2; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                                    <svg style="width:28px; height:28px; color:#C81E2C;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:10px; margin-top:18px; padding-top:16px; border-top:1px solid #EFEDEB;">
-                                <button type="submit" style="flex:1; justify-content:center; background:#C81E2C; color:white; box-shadow:0 8px 20px rgba(200,30,44,0.24); padding:10px 17px; border-radius:8px; border:none; font-weight:600; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.15s ease;"
+
+                            <h3 style="text-align:center; font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:#17151C; margin-bottom:8px;">
+                                Yakin hapus data?
+                            </h3>
+
+                            <p style="text-align:center; font-size:14px; color:#75727C; margin-bottom:24px; word-break:break-word;">
+                                Jadwal "<span x-text="confirmData?.title" style="font-weight:600; color:#17151C;"></span>" akan dihapus permanen.
+                                <br>Apakah Anda yakin?
+                            </p>
+
+                            <div style="display:flex; gap:12px;">
+                                <button @click="confirmDeleteAction()"
+                                        style="flex:1; padding:10px 16px; border-radius:8px; background:#C81E2C; color:white; border:none; font-weight:600; font-size:14px; cursor:pointer; transition:all 0.15s ease;"
                                         onmouseover="this.style.filter='brightness(1.05)'"
                                         onmouseout="this.style.filter='brightness(1)'">
-                                    Simpan Jadwal
+                                    Yakin
                                 </button>
-                                <button type="button"
-                                        @click="modalOpen = false"
-                                        style="flex:1; justify-content:center; background:white; color:#3D3A44; border:1px solid #E7E5E3; padding:10px 17px; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.15s ease;"
+                                <button @click="confirmOpen = false"
+                                        style="flex:1; padding:10px 16px; border-radius:8px; background:white; color:#3D3A44; border:1px solid #E7E5E3; font-weight:600; font-size:14px; cursor:pointer; transition:all 0.15s ease;"
                                         onmouseover="this.style.background='#F8F7F6'"
                                         onmouseout="this.style.background='white'">
                                     Batal
                                 </button>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </template>
+
+            {{-- MODAL FORM --}}
+            <template x-teleport="body">
+                <div x-show="modalOpen"
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
+                     @click.self="modalOpen = false">
+
+                    <div style="background:white; border-radius:16px; width:640px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 16px 40px rgba(14,13,18,0.16); margin:auto; position:relative; animation:jkwFadeUp 0.18s ease;">
+
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px; position:sticky; top:0; background:white; border-bottom:1px solid #E7E5E3; z-index:1; border-radius:16px 16px 0 0; gap:12px;">
+                            <h3 style="margin:0; font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:700; color:#17151C; word-break:break-word;" x-text="modalTitle"></h3>
+                            <button type="button"
+                                    @click="modalOpen = false"
+                                    style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:7px; transition:all 0.15s ease; flex-shrink:0;"
+                                    onmouseover="this.style.background='#F1F0EE'"
+                                    onmouseout="this.style.background='transparent'">
+                                <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div style="padding:18px;">
+                            <form @submit.prevent="saveSchedule">
+                                <div style="display:flex; flex-direction:column; gap:14px;">
+                                    <div>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Judul Jadwal</label>
+                                        <input type="text" x-model="form.title" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Project</label>
+                                        <select x-model="form.project_id" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
+                                            <option value="">Pilih Project</option>
+                                            <template x-for="project in projects" :key="project.id">
+                                                <option :value="project.id" x-text="project.name"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Engineer</label>
+                                        <select x-model="form.engineer_id" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
+                                            <option value="">Pilih Engineer</option>
+                                            <template x-for="engineer in engineers" :key="engineer.id">
+                                                <option :value="engineer.id" x-text="engineer.name + (isEngineerBusyOnDate(engineer.id, form.date) ? ' (sudah ada jadwal)' : '')"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Tanggal</label>
+                                        <input type="date" x-model="form.date" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
+                                    </div>
+                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                                        <div>
+                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Jam Mulai</label>
+                                            <input type="time" x-model="form.start_time" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
+                                        </div>
+                                        <div>
+                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Jam Selesai</label>
+                                            <input type="time" x-model="form.end_time" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Lokasi</label>
+                                        <input type="text" x-model="form.location" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
+                                    </div>
+                                    <div>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Deskripsi</label>
+                                        <textarea x-model="form.description" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; min-height:80px; transition:border 0.15s ease;" rows="3"></textarea>
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:10px; margin-top:18px; padding-top:16px; border-top:1px solid #EFEDEB;">
+                                    <button type="submit" style="flex:1; justify-content:center; background:#C81E2C; color:white; box-shadow:0 8px 20px rgba(200,30,44,0.24); padding:10px 17px; border-radius:8px; border:none; font-weight:600; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.15s ease;"
+                                            onmouseover="this.style.filter='brightness(1.05)'"
+                                            onmouseout="this.style.filter='brightness(1)'">
+                                        Simpan Jadwal
+                                    </button>
+                                    <button type="button"
+                                            @click="modalOpen = false"
+                                            style="flex:1; justify-content:center; background:white; color:#3D3A44; border:1px solid #E7E5E3; padding:10px 17px; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.15s ease;"
+                                            onmouseover="this.style.background='#F8F7F6'"
+                                            onmouseout="this.style.background='white'">
+                                        Batal
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </template>
 
         </div>
     </div>
@@ -486,46 +546,133 @@
 .jkw-fade-end { opacity:1 !important; }
 
 /* ---------- header ---------- */
-.jkw-header { display:flex !important; flex-wrap:nowrap !important; align-items:center !important; justify-content:space-between !important; gap:12px !important; margin-bottom:16px !important; }
+.jkw-header {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+}
 
-.jkw-tabs { display:flex !important; gap:4px !important; background:#F1F0EE !important; padding:4px !important; border-radius:10px !important; flex-shrink:0 !important; }
+.jkw-tabs {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    background: #F1F0EE !important;
+    padding: 3px !important;
+    border-radius: 10px !important;
+    border: 1px solid #E7E5E3 !important;
+    height: 38px !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+}
 .jkw-tab {
     all: unset !important;
-    flex:1 1 0 !important;
-    padding:8px 6px !important; border-radius:7px !important; cursor:pointer !important;
-    font-size:12px !important; font-weight:600 !important; color:var(--jkw-muted) !important;
-    transition: all .15s ease !important; text-align:center !important; white-space:nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    height: 30px !important;
+    padding: 0 12px !important;
+    border-radius: 7px !important;
+    cursor: pointer !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: var(--jkw-muted) !important;
+    transition: all .15s ease !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    border: 1px solid transparent !important;
+    box-sizing: border-box !important;
 }
-.jkw-tab.is-active { background:var(--jkw-surface) !important; color:var(--jkw-ink) !important; box-shadow:0 1px 3px rgba(14,13,18,.1) !important; }
-.jkw-tab:hover:not(.is-active) { color:var(--jkw-ink-2) !important; }
+.jkw-tab.is-active {
+    background: #FFFFFF !important;
+    color: #17151C !important;
+    border-color: #E7E5E3 !important;
+    box-shadow: 0 1px 3px rgba(14,13,18,0.08) !important;
+}
+.jkw-tab-main { font-weight: 700 !important; }
+.jkw-tab-sub { font-size: 11px !important; font-weight: 500 !important; opacity: 0.75 !important; }
+.jkw-tab:hover:not(.is-active) { color: #17151C !important; background: rgba(255,255,255,0.6) !important; }
 
-.jkw-actions { display:flex !important; align-items:center !important; gap:10px !important; flex-shrink:0 !important; justify-content:flex-end !important; }
+.jkw-actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+}
 
-.jkw-select-wrap { position:relative !important; display:inline-flex !important; align-items:center !important; flex:1 1 180px !important; max-width:220px !important; }
-.jkw-select-icon { width:14px !important; height:14px !important; position:absolute !important; left:11px !important; color:var(--jkw-muted) !important; pointer-events:none !important; }
+.jkw-select-wrap {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    height: 38px !important;
+    width: 175px !important;
+    flex: 0 0 175px !important;
+    box-sizing: border-box !important;
+}
+.jkw-select-icon {
+    width: 14px !important;
+    height: 14px !important;
+    position: absolute !important;
+    left: 11px !important;
+    color: var(--jkw-muted) !important;
+    pointer-events: none !important;
+}
 .jkw-select {
     all: unset !important;
-    display:block !important; width:100% !important;
-    background:var(--jkw-surface) !important; border:1px solid var(--jkw-line) !important;
-    border-radius:8px !important; padding:9px 12px 9px 32px !important; font-size:12.5px !important;
-    font-weight:600 !important; color:var(--jkw-ink-2) !important; cursor:pointer !important;
-    text-overflow:ellipsis !important; overflow:hidden !important; white-space:nowrap !important;
+    display: block !important;
+    width: 100% !important;
+    height: 38px !important;
+    line-height: 38px !important;
+    background: var(--jkw-surface) !important;
+    border: 1px solid var(--jkw-line) !important;
+    border-radius: 8px !important;
+    padding: 0 10px 0 32px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: var(--jkw-ink-2) !important;
+    cursor: pointer !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 1px 2px rgba(14,13,18,0.04) !important;
 }
-.jkw-select:focus { border-color:var(--jkw-primary) !important; }
+.jkw-select:focus { border-color: var(--jkw-primary) !important; }
 
 .jkw-btn {
     all: unset !important;
-    display:inline-flex !important; align-items:center !important; justify-content:center !important; gap:7px !important;
-    padding:9px 16px !important; border-radius:8px !important; font-size:12.5px !important; font-weight:600 !important;
-    cursor:pointer !important; white-space:nowrap !important; line-height:1 !important; transition:all .15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    height: 38px !important;
+    padding: 0 14px !important;
+    border-radius: 8px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    line-height: 1 !important;
+    transition: all .15s ease !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 1px 2px rgba(14,13,18,0.04) !important;
 }
-.jkw-btn--ghost { background:var(--jkw-surface) !important; color:var(--jkw-ink-2) !important; border:1px solid var(--jkw-line) !important; }
-.jkw-btn--ghost:hover { background:var(--jkw-bg-soft) !important; }
-.jkw-btn--ghost.is-on { background:var(--jkw-ink) !important; color:#fff !important; border-color:var(--jkw-ink) !important; }
-.jkw-btn--primary { background:var(--jkw-primary) !important; color:#fff !important; box-shadow:0 8px 20px rgba(200,30,44,.24) !important; font-size:13.5px !important; padding:10px 18px !important; }
-.jkw-btn--primary:hover { background:var(--jkw-primary-dark) !important; }
-.jkw-btn--block { flex:1 !important; }
-.jkw-icon { width:14px !important; height:14px !important; flex-shrink:0 !important; }
+.jkw-btn--ghost { background: var(--jkw-surface) !important; color: var(--jkw-ink-2) !important; border: 1px solid var(--jkw-line) !important; }
+.jkw-btn--ghost:hover { background: var(--jkw-bg-soft) !important; }
+.jkw-btn--ghost.is-on { background: var(--jkw-ink) !important; color: #fff !important; border-color: var(--jkw-ink) !important; }
+.jkw-btn--excel:hover { border-color: #10B981 !important; background: #ECFDF5 !important; color: #065F46 !important; }
+.jkw-icon--excel { color: #10B981 !important; }
+.jkw-btn--pdf:hover { border-color: #C81E2C !important; background: #FDF1F2 !important; color: #991B1B !important; }
+.jkw-icon--pdf { color: #C81E2C !important; }
+.jkw-btn--primary { background: var(--jkw-primary) !important; color: #fff !important; box-shadow: 0 8px 20px rgba(200,30,44,.24) !important; font-size: 13.5px !important; height: 38px !important; padding: 0 18px !important; }
+.jkw-btn--primary:hover { background: var(--jkw-primary-dark) !important; }
+.jkw-btn--block { flex: 1 !important; }
+.jkw-icon { width: 14px !important; height: 14px !important; flex-shrink: 0 !important; }
 
 /* ---------- card shell ---------- */
 .jkw-card { background:var(--jkw-surface) !important; border:1px solid var(--jkw-line) !important; border-radius:14px !important; box-shadow:0 1px 2px rgba(14,13,18,.05) !important; overflow:hidden !important; margin-bottom:16px !important; width:100% !important; }
@@ -652,17 +799,28 @@
 /* ===================== RESPONSIVE BREAKPOINTS ===================== */
 
 /* Tablet and below */
-@media (max-width: 900px) {
-    .jkw-tabs { max-width:100% !important; }
-    .jkw-select-wrap { max-width:none !important; }
+@media (max-width: 960px) {
+    .jkw-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+    .jkw-actions {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+    }
+    .jkw-select-wrap {
+        flex: 1 1 180px !important;
+        width: auto !important;
+    }
+    .jkw-btn {
+        flex: 1 1 auto !important;
+    }
 }
 
 /* Small tablet / large phone */
 @media (max-width: 720px) {
-    .jkw-header { flex-direction:column !important; align-items:stretch !important; gap:10px !important; }
-    .jkw-actions { justify-content:stretch !important; }
-    .jkw-select-wrap { flex:1 1 100% !important; }
-    .jkw-btn:not(.jkw-btn--block) { flex:1 1 auto !important; }
     .jkw-nav { flex-wrap:nowrap !important; padding:10px 10px !important; }
     .jkw-field-row { grid-template-columns:1fr !important; }
     .jkw-eng-chip { flex:1 1 100% !important; max-width:100% !important; }
@@ -779,15 +937,45 @@
                 get dayLabel() {
                     return this.currentDate.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
                 },
+                dayPage: 1,
+                perPage: 10,
+
                 get daySchedules() {
                     return this.getAllEventsForDay(this.currentDateStr).sort(function(a, b) {
                         return (a._timeLabel || '').localeCompare(b._timeLabel || '');
                     });
                 },
+                get totalDayPages() {
+                    return Math.ceil(this.daySchedules.length / this.perPage) || 1;
+                },
+                get paginatedDaySchedules() {
+                    var start = (this.dayPage - 1) * this.perPage;
+                    return this.daySchedules.slice(start, start + this.perPage);
+                },
+                goToDayPage: function(p) {
+                    if (p >= 1 && p <= this.totalDayPages) {
+                        this.dayPage = p;
+                    }
+                },
+                prevDayPage: function() {
+                    if (this.dayPage > 1) {
+                        this.dayPage--;
+                    }
+                },
+                nextDayPage: function() {
+                    if (this.dayPage < this.totalDayPages) {
+                        this.dayPage++;
+                    }
+                },
                 changeDay: function(delta) {
                     var d = new Date(this.currentDate);
                     d.setDate(d.getDate() + delta);
                     this.currentDate = d;
+                    this.dayPage = 1;
+                },
+                goToday: function() {
+                    this.currentDate = new Date();
+                    this.dayPage = 1;
                 },
 
                 get weekDays() {

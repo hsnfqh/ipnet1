@@ -8,7 +8,7 @@ class ScheduleRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->hasRole('Lead Engineer');
+        return auth()->check() && \App\Helpers\ScopeHelper::isManagerial(auth()->user());
     }
 
     public function rules(): array

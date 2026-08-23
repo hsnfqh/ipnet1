@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Reset Password - WMS')
+@section('title', 'Reset Password - Field System Management')
 
 @section('content')
 <div class="min-h-screen bg-[#F7F6F5] flex items-center justify-center p-4 sm:p-5">

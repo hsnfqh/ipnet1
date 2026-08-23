@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Division;
+use App\Models\Team;
 use App\Http\Requests\UserRequest;
+use App\Helpers\ScopeHelper;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -46,6 +49,11 @@ class UserController extends Controller
             'phone'                     => $user->phone,
             'position'                  => $user->position,
             'status'                    => $user->status,
+            'level'                     => $user->level,
+            'division_id'               => $user->division_id,
+            'division_name'             => $user->division?->name ?? '-',
+            'team_id'                   => $user->team_id,
+            'team_name'                 => $user->team?->name ?? '-',
             'role_name'                 => $user->getRoleNames()->first() ?? 'Tidak Ada Role',
             'roles'                     => $user->getRoleNames()->toArray(),
             'certifications'            => $certs,
@@ -60,14 +68,26 @@ class UserController extends Controller
 
     public function index()
     {
-        // Load users dengan roles dan certifications
-        $users = User::with(['roles', 'certifications'])->get()->map(function($user) {
+        $authUser  = auth()->user();
+        $scopeIds  = ScopeHelper::getScopeUserIds($authUser);
+
+        // Load users sesuai scope role yang login
+        $query = User::with(['roles', 'certifications', 'division', 'team']);
+
+        if ($scopeIds !== null) {
+            // Non-global: filter user berdasarkan divisi/tim/diri sendiri
+            $query->whereIn('id', $scopeIds);
+        }
+
+        $users = $query->get()->map(function($user) {
             return $this->formatUserResponse($user);
         });
-        
-        $roles = Role::all();
-        
-        return view('users.index', compact('users', 'roles'));
+
+        $roles     = Role::all();
+        $divisions = Division::orderBy('name')->get();
+        $teams     = Team::with('division')->orderBy('name')->get();
+
+        return view('users.index', compact('users', 'roles', 'divisions', 'teams'));
     }
 
 
@@ -116,6 +136,14 @@ class UserController extends Controller
 
     public function update(UserRequest $request, User $user)
     {
+        $authUser = auth()->user();
+        if (!$authUser->hasAnyRole(['Direktur', 'HD / Direktur']) && $user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
+            if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
+                return response()->json(['message' => 'Hanya Direktur yang dapat mengubah data akun Direktur.'], 403);
+            }
+            return redirect()->route('users.index')->with('error', 'Hanya Direktur yang dapat mengubah data akun Direktur.');
+        }
+
         $data = $request->validated();
         
         if (isset($data['password']) && !empty($data['password'])) {
@@ -176,6 +204,14 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        $authUser = auth()->user();
+        if (!$authUser->hasAnyRole(['Direktur', 'HD / Direktur']) && $user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
+            if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
+                return response()->json(['error' => 'Hanya Direktur yang dapat menghapus akun Direktur.'], 403);
+            }
+            return redirect()->route('users.index')->with('error', 'Hanya Direktur yang dapat menghapus akun Direktur.');
+        }
+
         if ($user->id === auth()->id()) {
             if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
                 return response()->json(['error' => 'Anda tidak dapat menghapus akun sendiri!'], 403);
@@ -196,6 +232,11 @@ class UserController extends Controller
 
     public function toggleStatus(User $user)
     {
+        $authUser = auth()->user();
+        if (!$authUser->hasAnyRole(['Direktur', 'HD / Direktur']) && $user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
+            return response()->json(['error' => 'Hanya Direktur yang dapat mengubah status akun Direktur.'], 403);
+        }
+
         if ($user->id === auth()->id()) {
             return response()->json([
                 'error' => 'Anda tidak dapat mengubah status akun sendiri!'
@@ -205,11 +246,23 @@ class UserController extends Controller
         $user->status = $user->status === 'Active' ? 'Inactive' : 'Active';
         $user->save();
 
-        return response()->json($this->formatUserResponse($user));
+        return response()->json([
+            'success' => true,
+            'status'  => $user->status,
+            'message' => 'Status user berhasil diubah menjadi ' . $user->status,
+            'user'    => $this->formatUserResponse($user)
+        ]);
     }
 
     public function approveCertification(Request $request, $id)
     {
+        $authUser = auth()->user();
+        if (!$authUser->hasAnyRole(['Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Engineer', 'Direktur', 'HD / Direktur'])) {
+            return response()->json([
+                'error' => 'Anda tidak memiliki wewenang untuk memverifikasi sertifikasi.'
+            ], 403);
+        }
+
         $certification = \App\Models\Certification::find($id);
         if (!$certification) {
             // Fallback: cek jika $id adalah User ID
@@ -237,6 +290,14 @@ class UserController extends Controller
             $user->certification_status = 'approved';
             $user->save();
             $user->load(['roles', 'certifications']);
+
+            \App\Models\Notification::create([
+                'user_id' => $user->id,
+                'title'   => 'Sertifikasi Disetujui',
+                'message' => 'Selamat! Sertifikasi "' . $certification->name . '" telah diverifikasi dan disetujui oleh ' . $authUser->name . '.',
+                'url'     => route('profile.show'),
+                'is_read' => false,
+            ]);
         }
 
         return response()->json([
@@ -252,6 +313,13 @@ class UserController extends Controller
 
     public function rejectCertification(Request $request, $id)
     {
+        $authUser = auth()->user();
+        if (!$authUser->hasAnyRole(['Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Engineer', 'Direktur', 'HD / Direktur'])) {
+            return response()->json([
+                'error' => 'Anda tidak memiliki wewenang untuk memverifikasi sertifikasi.'
+            ], 403);
+        }
+
         $certification = \App\Models\Certification::find($id);
         if (!$certification) {
             // Fallback: cek jika $id adalah User ID
@@ -270,6 +338,14 @@ class UserController extends Controller
                 $user->certification_file = null;
                 $user->save();
                 $user->load(['roles', 'certifications']);
+
+                \App\Models\Notification::create([
+                    'user_id' => $user->id,
+                    'title'   => 'Sertifikasi Ditolak',
+                    'message' => 'Pengajuan sertifikasi Anda tidak disetujui / ditolak oleh ' . $authUser->name . '.',
+                    'url'     => route('profile.show'),
+                    'is_read' => false,
+                ]);
 
                 return response()->json([
                     'success' => true,
@@ -292,24 +368,25 @@ class UserController extends Controller
         $certification->delete();
 
         if ($user) {
-            $remainingCerts = $user->certifications()->get();
-            if ($remainingCerts->isEmpty()) {
-                $user->certification_status = null;
-                $user->certification_file = null;
-            } else {
-                $pendingCount = $remainingCerts->where('status', 'pending')->count();
-                $approvedCount = $remainingCerts->where('status', 'approved')->count();
-                $user->certification_status = $pendingCount > 0 ? 'pending' : ($approvedCount > 0 ? 'approved' : 'rejected');
-            }
+            $hasOtherApproved = \App\Models\Certification::where('user_id', $user->id)->where('status', 'approved')->exists();
+            $hasOtherPending = \App\Models\Certification::where('user_id', $user->id)->where('status', 'pending')->exists();
+            $user->certification_status = $hasOtherApproved ? 'approved' : ($hasOtherPending ? 'pending' : null);
             $user->save();
             $user->load(['roles', 'certifications']);
+
+            \App\Models\Notification::create([
+                'user_id' => $user->id,
+                'title'   => 'Sertifikasi Ditolak',
+                'message' => 'Pengajuan sertifikasi "' . $certName . '" tidak disetujui / ditolak oleh ' . $authUser->name . '.',
+                'url'     => route('profile.show'),
+                'is_read' => false,
+            ]);
         }
 
         return response()->json([
-            'success'       => true,
-            'message'       => 'Sertifikasi "' . $certName . '" berhasil ditolak dan dihapus.',
-            'user'          => $this->formatUserResponse($user),
+            'success' => true,
+            'message' => 'Sertifikasi "' . $certName . '" ditolak dan dihapus.',
+            'user'    => $this->formatUserResponse($user),
         ]);
     }
 }
-

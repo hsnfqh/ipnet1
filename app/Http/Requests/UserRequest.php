@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UserRequest extends FormRequest
@@ -18,7 +17,7 @@ class UserRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -31,6 +30,9 @@ class UserRequest extends FormRequest
             'position'           => 'nullable|string|max:100',
             'role'               => 'required|string',
             'status'             => 'required|in:Active,Inactive',
+            'division_id'        => 'nullable|exists:divisions,id',
+            'team_id'            => 'nullable|exists:teams,id',
+            'level'              => 'nullable|string|max:50',
             'password'           => $userId ? 'nullable|string|min:6' : 'required|string|min:6',
             'certification_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ];

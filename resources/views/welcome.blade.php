@@ -6,6 +6,11 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- Favicon IP Network Solusindo -->
+        <link rel="icon" type="image/png" href="{{ asset('images/ipnet1.png') }}">
+        <link rel="shortcut icon" type="image/png" href="{{ asset('images/ipnet1.png') }}">
+        <link rel="apple-touch-icon" href="{{ asset('images/ipnet1.png') }}">
+
         @fonts
 
         <!-- Styles / Scripts -->

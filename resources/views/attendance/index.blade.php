@@ -3,13 +3,155 @@
 @section('title', 'Presensi')
 
 @section('content')
+<style>
+  .pg-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    padding: 0 10px;
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #9CA3AF; /* Light grey for Prev */
+    cursor: pointer;
+    white-space: nowrap;
+    line-height: 1;
+    transition: color 0.15s;
+    font-family: inherit;
+  }
+  .pg-btn:hover:not(:disabled) { color: #4B5563; }
+  .pg-btn.next { color: #2563EB; font-weight: 500; }
+  .pg-btn.next:hover:not(:disabled) { color: #1D4ED8; }
+  .pg-btn:disabled { opacity: 0.5; pointer-events: none; }
+  .pg-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #E5E7EB;
+    background: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .pg-pill.active {
+    background: #C81E2C;
+    color: #ffffff;
+    border-color: #C81E2C;
+    box-shadow: 0 2px 4px rgba(200,30,44,0.2);
+  }
+  .pg-pill:hover:not(.active) { background: #F9FAFB; }
+</style>
+@php
+    $daysMap = [
+        'Sunday'    => 'Minggu',
+        'Monday'    => 'Senin',
+        'Tuesday'   => 'Selasa',
+        'Wednesday' => 'Rabu',
+        'Thursday'  => 'Kamis',
+        'Friday'    => 'Jumat',
+        'Saturday'  => 'Sabtu',
+    ];
+
+    $historyRows = [];
+    if (isset($history) && $history->isNotEmpty()) {
+        foreach ($history as $date => $records) {
+            $ci = $records->firstWhere('type', 'clock_in');
+            $co = $records->firstWhere('type', 'clock_out');
+            $parsedDate = \Carbon\Carbon::parse($date);
+            $dayIndo = $daysMap[$parsedDate->format('l')] ?? $parsedDate->format('l');
+
+            $durationStr = '—';
+            if ($ci && $co) {
+                $mins = \Carbon\Carbon::parse($ci->created_at)->diffInMinutes(\Carbon\Carbon::parse($co->created_at));
+                $h = intdiv($mins, 60);
+                $m = $mins % 60;
+                $durationStr = "{$h}j {$m}m";
+            }
+
+            $statusType = 'absent';
+            $statusLabel = 'Tidak Hadir';
+            if ($ci) {
+                if ($ci->is_within_range) {
+                    $statusType  = 'present';
+                    $statusLabel = 'Hadir (Sesuai Radius)';
+                } else {
+                    $statusType  = 'late';
+                    $dist = $ci->distance_meters ?? $ci->distance ?? 0;
+                    $statusLabel = "Luar Jangkauan ({$dist}m)";
+                }
+            }
+
+            $historyRows[] = [
+                'date'        => $parsedDate->format('d M Y'),
+                'day'         => $dayIndo,
+                'isToday'     => $date === $today,
+                'clockIn'     => $ci ? \Carbon\Carbon::parse($ci->created_at)->setTimezone('Asia/Jakarta')->format('H:i') : null,
+                'clockOut'    => $co ? \Carbon\Carbon::parse($co->created_at)->setTimezone('Asia/Jakarta')->format('H:i') : null,
+                'duration'    => $durationStr,
+                'statusType'  => $statusType,
+                'statusLabel' => $statusLabel,
+                'notes'       => ($ci && $ci->notes) ? $ci->notes : (($co && $co->notes) ? $co->notes : '—'),
+            ];
+        }
+    }
+@endphp
+
 <div class="flex h-screen overflow-hidden">
     @include('components.sidebar')
 
     <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Presensi Harian'])
 
-        <div class="p-4 sm:p-5 lg:p-[26px] animate-fade-in space-y-4" x-data="attendanceManager()" x-init="init()">
+        <div class="p-4 sm:p-5 lg:p-[26px] animate-fade-in space-y-4" x-data="attendanceManager({{ Js::from($historyRows) }})" x-init="init()">
+
+            {{-- ── 0. INFO BAR: LOKASI RESMI & WAKTU REAL-TIME (WIB) ──────────────── --}}
+            <div class="p-3.5 sm:p-4 rounded-2xl bg-[#FAF9F8] border border-[#E7E5E3] flex flex-col md:flex-row md:items-center justify-between gap-3 text-[13px]">
+                <div class="flex items-start sm:items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-[#C81E2C]/10 text-[#C81E2C] flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="font-bold text-[#17151C] flex items-center gap-1.5 flex-wrap">
+                            <span>PT IP Network Solusindo</span>
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#F1F0EE] text-[#75727C]">Radius 100m</span>
+                        </div>
+                        <p class="text-[12px] text-[#75727C] leading-snug">Jl. Majapahit No.26P, Petojo Sel., Kecamatan Gambir, Kota Jakarta Pusat, DKI Jakarta 10160</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
+                    @if(\App\Helpers\ScopeHelper::isManagerial(auth()->user()))
+                    <a href="{{ route('attendance.recap') }}" 
+                       class="px-3.5 py-2 rounded-xl bg-white border border-[#E7E5E3] hover:border-[#C81E2C] hover:bg-[#FDF1F2] text-[#17151C] hover:text-[#C81E2C] text-[12px] font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                       title="Buka Rekap Presensi Tim">
+                        <svg class="w-3.5 h-3.5 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Rekap Tim
+                    </a>
+                    @endif
+
+                    <div class="flex items-center gap-3 bg-white px-3.5 py-2 rounded-xl border border-[#E7E5E3] shadow-sm">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></div>
+                        <div>
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-[#75727C]" x-text="liveDateWib">Memuat tanggal...</div>
+                            <div class="font-mono font-bold text-[14px] text-[#17151C]" x-text="liveTimeWib">--:--:-- WIB</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {{-- ── 1. STATUS CARDS (Clean, Professional White Cards) ────────────────── --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
@@ -197,27 +339,114 @@
                 <div x-show="cameraOpen" x-cloak class="pt-4 border-t border-[#EFEDEB] space-y-3.5 animate-fade-in">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {{-- Video / Photo Box --}}
-                        <div class="bg-[#17151C] rounded-2xl p-2.5 overflow-hidden flex flex-col items-center justify-center max-w-sm">
-                            <video id="att-video" autoplay playsinline class="w-full rounded-xl aspect-[4/3] object-cover bg-black" x-ref="video" x-show="!capturedPhoto"></video>
-                            <canvas id="att-canvas" x-ref="canvas" class="hidden"></canvas>
-                            <img :src="capturedPhoto" x-show="capturedPhoto" class="w-full rounded-xl aspect-[4/3] object-cover border-2 border-emerald-500" alt="Selfie preview">
+                        <div class="bg-[#17151C] rounded-2xl p-3 overflow-hidden flex flex-col items-center justify-center max-w-sm border border-black/10">
                             
-                            <div class="flex items-center gap-2.5 mt-2.5 w-full justify-center">
+                            {{-- Camera Active / Live --}}
+                            <div class="relative w-full aspect-[4/3] bg-black rounded-xl overflow-hidden flex items-center justify-center" x-show="!capturedPhoto">
+                                <video id="att-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                                <canvas id="att-canvas" class="hidden"></canvas>
+                                
+                                {{-- Loading Camera Spinner --}}
+                                <div x-show="cameraLoading" class="absolute inset-0 bg-black/75 flex flex-col items-center justify-center gap-2 text-white text-[12px]">
+                                    <svg class="w-6 h-6 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                    </svg>
+                                    <span>Menghubungkan kamera...</span>
+                                </div>
+
+                                {{-- Camera Error Message --}}
+                                <div x-show="cameraError" x-cloak class="absolute inset-0 bg-black/92 p-4 flex flex-col items-center justify-center text-center gap-2 text-white">
+                                    <div class="w-8 h-8 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                        </svg>
+                                    </div>
+                                    <p class="text-[11px] text-gray-200 leading-snug" x-text="cameraError"></p>
+                                    <p class="text-[10px] text-amber-300 leading-tight">
+                                        💡 Klik ikon gembok/pengaturan di samping URL browser &rarr; ubah Kamera ke <strong>Izinkan (Allow)</strong>
+                                    </p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <button type="button" 
+                                                @click="startCamera()" 
+                                                class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-[11px] font-semibold rounded-lg transition flex items-center gap-1 cursor-pointer">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                            </svg>
+                                            Coba Lagi
+                                        </button>
+                                        <button type="button" 
+                                                @click="$refs.fileInput.click()" 
+                                                class="px-3 py-1.5 bg-[#C81E2C] hover:bg-[#A31622] text-white text-[11px] font-semibold rounded-lg transition flex items-center gap-1 cursor-pointer">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                            Pilih File
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Captured Photo Preview --}}
+                            <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden" x-show="capturedPhoto">
+                                <img :src="capturedPhoto" class="w-full h-full object-cover border-2 border-emerald-500 rounded-xl" alt="Selfie preview">
+                                <span class="absolute top-2 right-2 px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-bold shadow">
+                                    Foto Siap ✓
+                                </span>
+                            </div>
+                            
+                            {{-- Action Controls --}}
+                            <div class="mt-3 w-full space-y-2">
+                                {{-- Tombol Utama: Ambil Foto --}}
                                 <button type="button" 
                                         @click="capturePhoto()" 
-                                        x-show="!capturedPhoto"
-                                        class="px-4 py-1.5 rounded-lg bg-[#C81E2C] text-white text-[12px] font-semibold hover:bg-[#A31622] transition flex items-center gap-1.5 cursor-pointer">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        x-show="!capturedPhoto && !cameraError"
+                                        :disabled="cameraLoading"
+                                        class="w-full py-2.5 px-4 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white text-[13px] font-semibold transition flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(200,30,44,0.35)] cursor-pointer disabled:opacity-50">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <circle cx="12" cy="12" r="3"></circle>
                                     </svg>
-                                    Ambil Foto
+                                    <span>Ambil Foto Sekarang</span>
                                 </button>
+
+                                {{-- Opsi Tambahan: 2 Kolom Sejajar Rapi --}}
+                                <div class="grid grid-cols-2 gap-2 w-full" x-show="!capturedPhoto && !cameraError">
+                                    <button type="button" 
+                                            @click="switchCamera()" 
+                                            class="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 text-[12px] font-medium transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                        </svg>
+                                        <span>Putar Kamera</span>
+                                    </button>
+
+                                    <button type="button" 
+                                            @click="$refs.fileInput.click()" 
+                                            class="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 text-[12px] font-medium transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span>Unggah File</span>
+                                    </button>
+                                </div>
+
+                                <input type="file" 
+                                       x-ref="fileInput" 
+                                       @change="handleFileUpload($event)" 
+                                       accept="image/*" 
+                                       capture="user" 
+                                       class="hidden">
+
+                                {{-- Saat Foto Berhasil Diambil: Tombol Ambil Ulang --}}
                                 <button type="button" 
                                         @click="retakePhoto()" 
                                         x-show="capturedPhoto"
-                                        class="px-4 py-1.5 rounded-lg bg-white/20 text-white text-[12px] font-semibold hover:bg-white/30 transition cursor-pointer">
-                                    Ulangi Foto
+                                        class="w-full py-2.5 px-4 rounded-xl bg-white/20 text-white text-[12.5px] font-semibold hover:bg-white/30 transition flex items-center justify-center gap-2 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    </svg>
+                                    <span>Ambil Ulang Foto</span>
                                 </button>
                             </div>
                         </div>
@@ -226,7 +455,7 @@
                         <div class="space-y-1.5">
                             <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider">Catatan Lokasi / Pekerjaan (Opsional)</label>
                             <textarea x-model="note" 
-                                      rows="4" 
+                                      rows="5" 
                                       placeholder="Contoh: Kunjungan on-site maintenance router di gedung klien..."
                                       class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]"></textarea>
                         </div>
@@ -235,28 +464,30 @@
 
             </div>
 
-            {{-- ── 3. RIWAYAT PRESENSI 7 HARI TERAKHIR ────────────────────────────── --}}
+            {{-- ── 3. RIWAYAT PRESENSI ────────────────────────────── --}}
             <div class="wms-card overflow-hidden bg-white shadow-sm border border-[#E7E5E3]">
                 <div class="px-5 py-3.5 border-b border-[#EFEDEB] bg-[#F8F7F6] flex items-center justify-between">
                     <span class="text-[11.5px] font-bold text-[#75727C] uppercase tracking-wider">Riwayat Presensi (7 Hari Terakhir)</span>
-                    <span class="text-[12px] font-medium text-[#948F99]">Otomatis tersimpan</span>
+                    <span class="text-[12px] font-medium text-[#948F99]">Otomatis tersimpan realtime</span>
                 </div>
 
-                @if($history->isEmpty())
-                    <div class="py-12 text-center text-[#75727C]">
-                        <div class="w-10 h-10 rounded-xl bg-[#F1F0EE] flex items-center justify-center mx-auto mb-2.5 text-[#75727C]">
-                            <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <p class="text-[13.5px] font-semibold text-[#17151C]">Belum ada riwayat presensi</p>
+                {{-- Empty State --}}
+                <div class="py-12 text-center text-[#75727C]" x-show="historyRows.length === 0">
+                    <div class="w-10 h-10 rounded-xl bg-[#F1F0EE] flex items-center justify-center mx-auto mb-2.5 text-[#75727C]">
+                        <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
                     </div>
-                @else
+                    <p class="text-[13.5px] font-semibold text-[#17151C]">Belum ada riwayat presensi</p>
+                </div>
+
+                {{-- Data Table --}}
+                <div x-show="historyRows.length > 0">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-[13px]">
                             <thead>
                                 <tr class="border-b border-[#EFEDEB] bg-[#FAF9F8] text-[11px] font-bold text-[#75727C] uppercase tracking-wider">
-                                    <th class="py-3 px-4 w-40">Tanggal & Hari</th>
+                                    <th class="py-3 px-4 w-40">Tanggal &amp; Hari</th>
                                     <th class="py-3 px-4 text-center w-36">Clock In</th>
                                     <th class="py-3 px-4 text-center w-36">Clock Out</th>
                                     <th class="py-3 px-4 text-center w-28">Durasi</th>
@@ -265,109 +496,117 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#EFEDEB]">
-                                @php
-                                    $daysMap = [
-                                        'Sunday'    => 'Minggu',
-                                        'Monday'    => 'Senin',
-                                        'Tuesday'   => 'Selasa',
-                                        'Wednesday' => 'Rabu',
-                                        'Thursday'  => 'Kamis',
-                                        'Friday'    => 'Jumat',
-                                        'Saturday'  => 'Sabtu',
-                                    ];
-                                @endphp
-
-                                @foreach($history as $date => $records)
-                                    @php
-                                        $ci = $records->firstWhere('type', 'clock_in');
-                                        $co = $records->firstWhere('type', 'clock_out');
-                                        $isToday = $date === $today;
-                                        $parsedDate = \Carbon\Carbon::parse($date);
-                                        $dayIndo = $daysMap[$parsedDate->format('l')] ?? $parsedDate->format('l');
-
-                                        $durationStr = '—';
-                                        if ($ci && $co) {
-                                            $mins = \Carbon\Carbon::parse($ci->created_at)->diffInMinutes(\Carbon\Carbon::parse($co->created_at));
-                                            $h = intdiv($mins, 60);
-                                            $m = $mins % 60;
-                                            $durationStr = "{$h}j {$m}m";
-                                        }
-                                    @endphp
-                                    <tr class="hover:bg-[#FBFBFA] transition-colors {{ $isToday ? 'bg-red-50/20' : '' }}">
+                                <template x-for="row in paginatedHistory" :key="row.date">
+                                    <tr :class="row.isToday ? 'bg-red-50/20' : ''" class="hover:bg-[#FBFBFA] transition-colors">
                                         {{-- Tanggal & Hari --}}
                                         <td class="py-3.5 px-4 whitespace-nowrap">
                                             <div class="flex items-center gap-2">
                                                 <div>
-                                                    <div class="font-semibold text-[#17151C] text-[13.5px]">{{ $parsedDate->format('d M Y') }}</div>
-                                                    <div class="text-[11.5px] font-medium text-[#75727C]">{{ $dayIndo }}</div>
+                                                    <div class="font-semibold text-[#17151C] text-[13.5px]" x-text="row.date"></div>
+                                                    <div class="text-[11.5px] font-medium text-[#75727C]" x-text="row.day"></div>
                                                 </div>
-                                                @if($isToday)
+                                                <template x-if="row.isToday">
                                                     <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-[#C81E2C] text-white">Hari Ini</span>
-                                                @endif
+                                                </template>
                                             </div>
                                         </td>
-
                                         {{-- Clock In --}}
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                            @if($ci)
-                                                <span class="inline-flex items-center font-mono font-medium text-[12.5px] text-[#17151C] bg-[#F1F0EE] px-2.5 py-1 rounded-lg">
-                                                    {{ \Carbon\Carbon::parse($ci->created_at)->setTimezone('Asia/Jakarta')->format('H:i') }}
-                                                </span>
-                                            @else
+                                            <template x-if="row.clockIn">
+                                                <span class="inline-flex items-center font-mono font-medium text-[12.5px] text-[#17151C] bg-[#F1F0EE] px-2.5 py-1 rounded-lg" x-text="row.clockIn"></span>
+                                            </template>
+                                            <template x-if="!row.clockIn">
                                                 <span class="text-[#948F99] font-mono text-[12px]">—</span>
-                                            @endif
+                                            </template>
                                         </td>
-
                                         {{-- Clock Out --}}
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                            @if($co)
-                                                <span class="inline-flex items-center font-mono font-medium text-[12.5px] text-[#17151C] bg-[#F1F0EE] px-2.5 py-1 rounded-lg">
-                                                    {{ \Carbon\Carbon::parse($co->created_at)->setTimezone('Asia/Jakarta')->format('H:i') }}
-                                                </span>
-                                            @else
+                                            <template x-if="row.clockOut">
+                                                <span class="inline-flex items-center font-mono font-medium text-[12.5px] text-[#17151C] bg-[#F1F0EE] px-2.5 py-1 rounded-lg" x-text="row.clockOut"></span>
+                                            </template>
+                                            <template x-if="!row.clockOut">
                                                 <span class="text-[#948F99] font-mono text-[12px]">—</span>
-                                            @endif
+                                            </template>
                                         </td>
-
-
                                         {{-- Durasi --}}
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                            <span class="font-bold text-[#17151C] text-[13px]">{{ $durationStr }}</span>
+                                            <span class="font-bold text-[#17151C] text-[13px]" x-text="row.duration"></span>
                                         </td>
-
-                                        {{-- Status Presensi --}}
+                                        {{-- Status --}}
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                            @if($ci)
-                                                @if($ci->is_within_range)
-                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                        Hadir (Sesuai Radius)
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                                        Luar Jangkauan ({{ $ci->distance_meters ?? $ci->distance }}m)
-                                                    </span>
-                                                @endif
-                                            @else
-                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-lg bg-[#F1F0EE] text-[#75727C]">
-                                                    Tidak Hadir
+                                            <template x-if="row.statusType === 'present'">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                    <span x-text="row.statusLabel"></span>
                                                 </span>
-                                            @endif
+                                            </template>
+                                            <template x-if="row.statusType === 'late'">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                    <span x-text="row.statusLabel"></span>
+                                                </span>
+                                            </template>
+                                            <template x-if="row.statusType === 'absent'">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-lg bg-[#F1F0EE] text-[#75727C]" x-text="row.statusLabel"></span>
+                                            </template>
                                         </td>
-
                                         {{-- Catatan --}}
                                         <td class="py-3.5 px-4">
-                                            <span class="text-[#3D3A44] text-[12.5px] leading-snug">
-                                                {{ ($ci && $ci->notes) ? $ci->notes : (($co && $co->notes) ? $co->notes : '—') }}
-                                            </span>
+                                            <span class="text-[#3D3A44] text-[12.5px] leading-snug" x-text="row.notes"></span>
                                         </td>
                                     </tr>
-                                @endforeach
+                                </template>
                             </tbody>
                         </table>
                     </div>
-                @endif
+
+                    {{-- Pagination Footer --}}
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-top:1px solid #EFEDEB;background:#FFFFFF;flex-wrap:wrap;gap:10px;">
+                        <span style="font-size:12.5px;color:#75727C;">
+                            Menampilkan
+                            <span style="font-weight:600;color:#17151C;" x-text="historyRows.length ? (startIdx + 1) : 0"></span> &ndash; <span style="font-weight:600;color:#17151C;" x-text="Math.min(endIdx, historyRows.length)"></span>
+                            dari <span style="font-weight:600;color:#17151C;" x-text="historyRows.length"></span> riwayat
+                        </span>
+
+                        <div style="display:flex;align-items:center;gap:4px;" x-show="totalHistoryPg > 1">
+                            {{-- Previous Page Button --}}
+                            <button type="button"
+                                @click="if(historyPg > 1) historyPg--"
+                                :disabled="historyPg <= 1"
+                                title="Sebelumnya"
+                                style="width: 28px; height: 28px; border-radius: 6px; border: 1px solid #E7E5E3; background: #FFFFFF; color: #3D3A44; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;"
+                                :style="historyPg <= 1 ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+                            >
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+
+                            {{-- Numbered Page Buttons --}}
+                            <template x-for="p in historyPageNums" :key="p">
+                                <button type="button"
+                                    @click="historyPg = p"
+                                    x-text="p"
+                                    style="width: 28px; height: 28px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;"
+                                    :style="historyPg === p ? 'background: #AF1424; color: #FFFFFF; border: 1px solid #AF1424; font-weight: 700;' : 'background: #FFFFFF; color: #17151C; border: 1px solid #E7E5E3; font-weight: 600;'"
+                                ></button>
+                            </template>
+
+                            {{-- Next Page Button --}}
+                            <button type="button"
+                                @click="if(historyPg < totalHistoryPg) historyPg++"
+                                :disabled="historyPg >= totalHistoryPg"
+                                title="Berikutnya"
+                                style="width: 28px; height: 28px; border-radius: 6px; border: 1px solid #E7E5E3; background: #FFFFFF; color: #3D3A44; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;"
+                                :style="historyPg >= totalHistoryPg ? 'opacity: 0.35; cursor: not-allowed;' : ''"
+                            >
+                                <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- ── 4. MODAL KONFIRMASI LUAR JANGKAUAN ────────────────────────────── --}}
@@ -510,7 +749,7 @@
 @push('scripts')
 <script>
 document.addEventListener('alpine:init', () => {
-    Alpine.data('attendanceManager', () => ({
+    Alpine.data('attendanceManager', (initialHistory = []) => ({
         // State GPS
         currentLat:      null,
         currentLon:      null,
@@ -524,20 +763,47 @@ document.addEventListener('alpine:init', () => {
         clockOut:  @json($clockOut ? ['time' => \Carbon\Carbon::parse($clockOut->created_at)->setTimezone('Asia/Jakarta')->format('H:i')] : null),
         duration:  @json($clockIn && $clockOut ? (function() use ($clockIn, $clockOut) { $m = \Carbon\Carbon::parse($clockIn->created_at)->diffInMinutes(\Carbon\Carbon::parse($clockOut->created_at)); return intdiv($m,60).'j '.($m%60).'m'; })() : null),
 
-        // UI state
+        // Riwayat & Paging
+        historyRows:    initialHistory || [],
+        historyPg:      1,
+        historyPerPage: 10,
+        get totalHistoryPg()  { return Math.max(1, Math.ceil(this.historyRows.length / this.historyPerPage)); },
+        get startIdx()        { return (this.historyPg - 1) * this.historyPerPage; },
+        get endIdx()          { return this.startIdx + this.historyPerPage; },
+        get paginatedHistory(){ return this.historyRows.slice(this.startIdx, this.endIdx); },
+        get historyPageNums() { return Array.from({ length: this.totalHistoryPg }, (_, i) => i + 1); },
+
+        // Live WIB Clock
+        liveTimeWib:        '',
+        liveDateWib:        '',
+
+        // Camera state
         cameraOpen:         false,
+        cameraLoading:      false,
+        cameraError:        null,
+        currentFacingMode:  'user',
         capturedPhoto:      null,
+        videoStream:        null,
+
+        // Form state
         note:               '',
         loading:            false,
         actionType:         null,
-        videoStream:        null,
         outOfRangeModal:    false,
         earlyClockOutModal: false,
         currentTimeStr:     '',
         pendingAction:      null,
 
         init() {
+            this.updateLiveTime();
+            setInterval(() => this.updateLiveTime(), 1000);
             this.getLocation();
+        },
+
+        updateLiveTime() {
+            const now = new Date();
+            this.liveTimeWib = now.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+            this.liveDateWib = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         },
 
         isBefore1730() {
@@ -557,7 +823,7 @@ document.addEventListener('alpine:init', () => {
                     this.currentLat = pos.coords.latitude;
                     this.currentLon = pos.coords.longitude;
                     this.currentDistance = this.haversine(
-                        -6.1664, 106.8148,
+                        -6.1716, 106.8169,
                         this.currentLat, this.currentLon
                     );
                     this.withinRange = this.currentDistance <= 100;
@@ -576,8 +842,8 @@ document.addEventListener('alpine:init', () => {
             const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2)**2 +
-                      Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+            const a = Math.pow(Math.sin(dLat/2), 2) +
+                      Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.pow(Math.sin(dLon/2), 2);
             return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
         },
 
@@ -592,15 +858,66 @@ document.addEventListener('alpine:init', () => {
         },
 
         async startCamera() {
-            try {
-                this.videoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user' }
-                });
-                const video = document.getElementById('att-video');
-                if (video) video.srcObject = this.videoStream;
-            } catch (e) {
-                console.warn('Kamera tidak dapat diakses:', e);
+            this.cameraLoading = true;
+            this.cameraError   = null;
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                this.cameraLoading = false;
+                this.cameraError   = 'Kamera langsung membutuhkan HTTPS / koneksi lokal. Silakan gunakan tombol "Unggah File" untuk mengambil atau memilih foto.';
+                return;
             }
+
+            this.stopCamera();
+
+            const constraintsList = [
+                { video: { facingMode: { ideal: this.currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } } },
+                { video: { facingMode: this.currentFacingMode } },
+                { video: true }
+            ];
+
+            let stream = null;
+            let lastErr = null;
+
+            for (const constraints of constraintsList) {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    if (stream) break;
+                } catch (err) {
+                    lastErr = err;
+                }
+            }
+
+            this.cameraLoading = false;
+
+            if (!stream) {
+                console.warn('Gagal akses kamera:', lastErr);
+                if (lastErr && (lastErr.name === 'NotAllowedError' || lastErr.name === 'PermissionDeniedError')) {
+                    this.cameraError = 'Izin kamera ditolak pada browser. Buka izin akses kamera atau gunakan opsi Unggah File.';
+                } else if (lastErr && (lastErr.name === 'NotFoundError' || lastErr.name === 'DevicesNotFoundError')) {
+                    this.cameraError = 'Kamera tidak ditemukan pada perangkat Anda. Silakan gunakan opsi Unggah File.';
+                } else {
+                    this.cameraError = 'Kamera tidak dapat diakses saat ini. Silakan gunakan opsi Unggah File.';
+                }
+                return;
+            }
+
+            this.videoStream = stream;
+            const video = document.getElementById('att-video');
+            if (video) {
+                video.srcObject   = stream;
+                video.muted       = true;
+                video.playsInline = true;
+                try {
+                    await video.play();
+                } catch (e) {
+                    console.warn('Video play error:', e);
+                }
+            }
+        },
+
+        async switchCamera() {
+            this.currentFacingMode = this.currentFacingMode === 'user' ? 'environment' : 'user';
+            await this.startCamera();
         },
 
         stopCamera() {
@@ -614,16 +931,61 @@ document.addEventListener('alpine:init', () => {
             const video  = document.getElementById('att-video');
             const canvas = document.getElementById('att-canvas');
             if (!video || !canvas) return;
-            canvas.width  = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            this.capturedPhoto = canvas.toDataURL('image/jpeg', 0.8);
+
+            const width  = video.videoWidth || 640;
+            const height = video.videoHeight || 480;
+
+            canvas.width  = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, width, height);
+
+            this.capturedPhoto = canvas.toDataURL('image/jpeg', 0.85);
             this.stopCamera();
         },
 
         retakePhoto() {
             this.capturedPhoto = null;
             this.startCamera();
+        },
+
+        handleFileUpload(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const maxDim = 1280;
+                    let width  = img.width;
+                    let height = img.height;
+
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width  = maxDim;
+                        } else {
+                            width  = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width  = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    this.capturedPhoto = canvas.toDataURL('image/jpeg', 0.85);
+                    this.stopCamera();
+                    this.cameraError = null;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
         },
 
         async handleAction(type) {
@@ -688,18 +1050,51 @@ document.addEventListener('alpine:init', () => {
                 const data = await resp.json();
 
                 if (resp.ok) {
+                    const submittedNote = this.note;
+
                     if (type === 'clock_in') {
                         this.clockIn = {
-                            time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                            time: data.time || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }),
                             is_within_range: data.within_range,
                             distance: data.distance,
                         };
+
+                        const todayDateStr = data.date || new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
+                        const todayDayStr  = new Date().toLocaleDateString('id-ID', { weekday: 'long', timeZone: 'Asia/Jakarta' });
+
+                        let existingRow = this.historyRows.find(r => r.isToday);
+                        if (existingRow) {
+                            existingRow.clockIn     = this.clockIn.time;
+                            existingRow.statusType  = data.within_range ? 'present' : 'late';
+                            existingRow.statusLabel = data.within_range ? 'Hadir (Sesuai Radius)' : `Luar Jangkauan (${data.distance}m)`;
+                            if (submittedNote) existingRow.notes = submittedNote;
+                        } else {
+                            this.historyRows.unshift({
+                                date:        todayDateStr,
+                                day:         todayDayStr,
+                                isToday:     true,
+                                clockIn:     this.clockIn.time,
+                                clockOut:    null,
+                                duration:    '—',
+                                statusType:  data.within_range ? 'present' : 'late',
+                                statusLabel: data.within_range ? 'Hadir (Sesuai Radius)' : `Luar Jangkauan (${data.distance}m)`,
+                                notes:       submittedNote || '—'
+                            });
+                        }
                     } else {
                         this.clockOut = {
-                            time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                            time: data.time || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }),
                         };
-                        this.duration = data.duration || '';
+                        this.duration = data.duration_short || data.duration || '';
+
+                        let existingRow = this.historyRows.find(r => r.isToday);
+                        if (existingRow) {
+                            existingRow.clockOut = this.clockOut.time;
+                            existingRow.duration = data.duration_short || this.duration;
+                            if (submittedNote) existingRow.notes = submittedNote;
+                        }
                     }
+
                     this.cameraOpen    = false;
                     this.capturedPhoto = null;
                     this.note          = '';

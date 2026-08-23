@@ -9,7 +9,9 @@ class UserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->hasRole('Lead Engineer');
+        if (!auth()->check()) return false;
+        $user = auth()->user();
+        return $user->hasAnyRole(['Lead Engineer', 'Team Leader', 'Lead Divisi', 'Direktur']);
     }
 
     public function rules(): array
@@ -17,12 +19,15 @@ class UserRequest extends FormRequest
         $userId = $this->route('user')?->id;
         
         $rules = [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $userId,
-            'phone' => 'nullable|string|max:20',
-            'position' => 'required|string|max:100',
-            'status' => 'required|in:Active,Inactive',
-            'role' => 'required|string|exists:roles,name',
+            'name'        => 'required|string|max:255',
+            'email'       => 'required|string|email|max:255|unique:users,email,' . $userId,
+            'phone'       => 'nullable|string|max:20',
+            'position'    => 'required|string|max:100',
+            'status'      => 'required|in:Active,Inactive',
+            'role'        => 'required|string|exists:roles,name',
+            'division_id' => 'nullable|exists:divisions,id',
+            'team_id'     => 'nullable|exists:teams,id',
+            'level'       => 'nullable|string|max:50',
         ];
 
         if ($this->isMethod('post')) {

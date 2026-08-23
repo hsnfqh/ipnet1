@@ -12,7 +12,8 @@ class SearchController extends Controller
     {
         $q = trim($request->query('q', ''));
         $user = auth()->user();
-        $isLead = $user->hasRole('Lead Engineer');
+        $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
+        $scopeIds = \App\Helpers\ScopeHelper::getScopeUserIds($user);
 
         $projects = collect();
         $tasks = collect();
@@ -27,9 +28,8 @@ class SearchController extends Controller
             $taskQuery = Task::with(['project', 'engineer'])
                 ->where('title', 'like', "%{$q}%");
 
-            // Engineer cuma boleh lihat task miliknya sendiri
-            if (! $isLead) {
-                $taskQuery->where('engineer_id', $user->id);
+            if ($scopeIds !== null) {
+                $taskQuery->whereIn('engineer_id', $scopeIds);
             }
 
             $projects = $isLead ? $projectQuery->get() : collect();

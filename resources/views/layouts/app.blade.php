@@ -4,7 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'WMS - IPN Field Workforce')</title>
+    <title>@yield('title', 'Field System Management - IPN')</title>
+    
+    <!-- Favicon IP Network Solusindo -->
+    <link rel="icon" type="image/png" href="{{ asset('images/ipnet1.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('images/ipnet1.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/ipnet1.png') }}">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -39,7 +44,7 @@
         .wms-btn:hover { filter: brightness(1.06); }
         .wms-btn:active { transform: translateY(1px); }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.2s ease; }
         .animate-fade-in-up { animation: fadeInUp 0.18s ease; }
@@ -75,7 +80,7 @@
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px;">
                         <div>
                             <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.55); letter-spacing:1.4px; text-transform:uppercase; margin-bottom:4px;">Riwayat Update</div>
-                            <h2 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:white;">Yang Baru di WMS</h2>
+                            <h2 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:white;">Yang Baru di Field System Management</h2>
                         </div>
                         <button @click="$store.changelog.hide()" style="width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.15); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background 0.15s; margin-top:2px;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                             <svg style="width:14px; height:14px; color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -192,7 +197,7 @@
                         label: 'v1.0',
                         date: '1–5 Agustus 2026',
                         fixes: [
-                            { title: 'Rilis awal WMS', desc: 'Sistem manajemen workforce pertama kali diluncurkan dengan fitur dasar manajemen project dan task.' },
+                            { title: 'Rilis awal Field System Management', desc: 'Sistem manajemen lapangan pertama kali diluncurkan dengan fitur dasar manajemen project dan task.' },
                             { title: 'Autentikasi pengguna', desc: 'Sistem login, register, dan manajemen role (Admin, Lead Engineer, Engineer) tersedia.' },
                             { title: 'Dashboard utama', desc: 'Halaman dashboard dengan ringkasan data project, task, dan jadwal kerja.' },
                             { title: 'Manajemen project & task', desc: 'Fitur CRUD project dan task beserta assignment ke engineer.' },

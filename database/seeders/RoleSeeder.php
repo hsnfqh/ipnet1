@@ -5,7 +5,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 
 class RoleSeeder extends Seeder
 {
@@ -14,15 +13,21 @@ class RoleSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Create roles
+        // Standard 4-Tier Roles + Legacy Roles for backward compatibility
         $roles = [
+            'Direktur',
+            'HD / Direktur',
+            'Group Leader',
+            'Lead Divisi',
+            'Team Leader',
+            'Engineer',
             'Lead Engineer',
             'Engineer L1',
             'Engineer L2',
         ];
 
         foreach ($roles as $role) {
-            Role::create(['name' => $role]);
+            Role::firstOrCreate(['name' => $role]);
         }
     }
 }

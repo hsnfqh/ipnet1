@@ -12,7 +12,7 @@ class TaskRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return auth()->check() && \App\Helpers\ScopeHelper::canManageProjectsAndTasks(auth()->user());
     }
 
     /**

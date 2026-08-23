@@ -11,23 +11,30 @@ class ProjectController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-        $isLead = $user->hasRole('Lead Engineer');
+        $user         = auth()->user();
+        $isLead       = \App\Helpers\ScopeHelper::isManagerial($user);
+        $isDirektur   = $user->hasAnyRole(['Direktur', 'HD / Direktur']);
+        $isSupervisor = \App\Helpers\ScopeHelper::isGlobal($user);
+        $canManage    = \App\Helpers\ScopeHelper::canManageProjectsAndTasks($user);
+        $scopeIds     = \App\Helpers\ScopeHelper::getScopeUserIds($user);
 
-        if ($isLead) {
-            // Hanya load field tasks yang dibutuhkan Alpine.js (progress & status)
-            $projects = Project::with(['tasks:id,project_id,progress,status'])->get();
+        if ($scopeIds === null) {
+            // Global (Direktur / Group Leader): Semua project
+            $projects = Project::with(['tasks.engineer:id,name', 'creator:id,name'])->get();
         } else {
-            // Engineer hanya bisa lihat project yang dia punya task di dalamnya
-            $projectIds = \App\Models\Task::where('engineer_id', $user->id)
+            // Team Leader / Engineer: Project yang memiliki task di dalam scope-nya atau dibuat oleh dirinya sendiri
+            $projectIds = \App\Models\Task::whereIn('engineer_id', $scopeIds)
                 ->pluck('project_id')
                 ->unique();
-            $projects = Project::with(['tasks:id,project_id,progress,status'])
-                ->whereIn('id', $projectIds)
+            $projects = Project::with(['tasks.engineer:id,name', 'creator:id,name'])
+                ->where(function($q) use ($projectIds, $user) {
+                    $q->whereIn('id', $projectIds)
+                      ->orWhere('created_by', $user->id);
+                })
                 ->get();
         }
 
-        return view('projects.index', compact('projects', 'isLead'));
+        return view('projects.index', compact('projects', 'isLead', 'canManage', 'isDirektur', 'isSupervisor'));
     }
 
     public function store(ProjectRequest $request)
@@ -67,6 +74,8 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
+        abort_unless(\App\Helpers\ScopeHelper::canManageProjectsAndTasks(auth()->user()), 403, 'Hanya Team Leader yang berhak menghapus project.');
+
         try {
             $project->delete();
 

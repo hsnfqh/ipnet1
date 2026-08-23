@@ -237,7 +237,7 @@
                     return;
                 }
 
-                const title = notif.title || 'Pemberitahuan WMS IP-Net';
+                const title = notif.title || 'Pemberitahuan Field System Management IP-Net';
                 const options = {
                     body: notif.message || '',
                     icon: '{{ asset('images/ipnet1.png') }}',

@@ -19,8 +19,9 @@ class TimesheetController extends Controller
      */
     public function index(Request $request)
     {
-        $user = auth()->user();
-        $isLead = $user->hasRole('Lead Engineer');
+        $user     = auth()->user();
+        $isLead   = \App\Helpers\ScopeHelper::isManagerial($user);
+        $scopeIds = \App\Helpers\ScopeHelper::getScopeUserIds($user);
 
         // Filter Inputs
         $engineerId = $request->get('engineer_id');
@@ -32,8 +33,8 @@ class TimesheetController extends Controller
 
         // Base Query
         $query = Timesheet::with(['user', 'project', 'task'])
-            ->when(!$isLead, function ($q) use ($user) {
-                return $q->where('user_id', $user->id);
+            ->when($scopeIds !== null, function ($q) use ($scopeIds) {
+                return $q->whereIn('user_id', $scopeIds);
             })
             ->when($isLead && $engineerId, function ($q) use ($engineerId) {
                 return $q->where('user_id', $engineerId);
@@ -60,11 +61,11 @@ class TimesheetController extends Controller
                 });
             });
 
-        $timesheets = $query->orderBy('date', 'desc')->orderBy('start_time', 'desc')->paginate(15)->withQueryString();
+        $timesheets = $query->orderBy('date', 'desc')->orderBy('start_time', 'desc')->paginate(10)->withQueryString();
 
         // Summary Calculations (Based on current user context)
         $statQuery = Timesheet::query()
-            ->when(!$isLead, fn($q) => $q->where('user_id', $user->id));
+            ->when($scopeIds !== null, fn($q) => $q->whereIn('user_id', $scopeIds));
 
         $startOfWeek  = now()->startOfWeek();
         $endOfWeek    = now()->endOfWeek();
@@ -83,7 +84,7 @@ class TimesheetController extends Controller
 
         // Active projects and available engineers
         $projects = Project::orderBy('name')->get();
-        $engineers = $isLead ? User::engineers()->active()->orderBy('name')->get() : collect();
+        $engineers = $isLead ? \App\Helpers\ScopeHelper::getAssignableEngineers($user) : collect();
         $myTasks = Task::when(!$isLead, fn($q) => $q->where('engineer_id', $user->id))->orderBy('title')->get();
 
         return view('timesheets.index', compact(
@@ -111,7 +112,7 @@ class TimesheetController extends Controller
     public function store(Request $request)
     {
         $user = auth()->user();
-        $isLead = $user->hasRole('Lead Engineer');
+        $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
 
         $validated = $request->validate([
             'engineer_id' => $isLead ? 'nullable|exists:users,id' : 'nullable',
@@ -166,7 +167,7 @@ class TimesheetController extends Controller
     public function update(Request $request, Timesheet $timesheet)
     {
         $user = auth()->user();
-        $isLead = $user->hasRole('Lead Engineer');
+        $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
 
         if (!$isLead && $timesheet->user_id !== $user->id) {
             abort(403, 'Anda tidak memiliki akses untuk mengubah data ini.');
@@ -227,7 +228,7 @@ class TimesheetController extends Controller
     public function destroy(Request $request, Timesheet $timesheet)
     {
         $user = auth()->user();
-        $isLead = $user->hasRole('Lead Engineer');
+        $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
 
         if (!$isLead && $timesheet->user_id !== $user->id) {
             abort(403, 'Anda tidak memiliki akses untuk menghapus data ini.');
@@ -250,9 +251,11 @@ class TimesheetController extends Controller
      */
     public function exportExcel(Request $request, TimesheetExportService $exportService)
     {
+        abort_unless(\App\Helpers\ScopeHelper::isManagerial(auth()->user()), 403, 'Hanya Team Leader dan Manajemen yang berhak mengekspor laporan timesheet.');
+
         try {
             $user = auth()->user();
-            $isLead = $user->hasRole('Lead Engineer');
+            $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
 
             $engineerId = $request->get('engineer_id');
             $projectId  = $request->get('project_id');
@@ -260,9 +263,11 @@ class TimesheetController extends Controller
             $dateStart  = $request->get('date_start');
             $dateEnd    = $request->get('date_end');
 
+            $scopeIds = \App\Helpers\ScopeHelper::getScopeUserIds($user);
+
             $timesheets = Timesheet::with(['user', 'project', 'task'])
-                ->when(!$isLead, function ($q) use ($user) {
-                    return $q->where('user_id', $user->id);
+                ->when($scopeIds !== null, function ($q) use ($scopeIds) {
+                    return $q->whereIn('user_id', $scopeIds);
                 })
                 ->when($isLead && $engineerId, function ($q) use ($engineerId) {
                     return $q->where('user_id', $engineerId);
@@ -309,9 +314,11 @@ class TimesheetController extends Controller
      */
     public function exportPdf(Request $request, TimesheetExportService $exportService)
     {
+        abort_unless(\App\Helpers\ScopeHelper::isManagerial(auth()->user()), 403, 'Hanya Team Leader dan Manajemen yang berhak mengekspor laporan timesheet.');
+
         try {
             $user = auth()->user();
-            $isLead = $user->hasRole('Lead Engineer');
+            $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
 
             $engineerId = $request->get('engineer_id');
             $projectId  = $request->get('project_id');
@@ -319,9 +326,11 @@ class TimesheetController extends Controller
             $dateStart  = $request->get('date_start');
             $dateEnd    = $request->get('date_end');
 
+            $scopeIds = \App\Helpers\ScopeHelper::getScopeUserIds($user);
+
             $timesheets = Timesheet::with(['user', 'project', 'task'])
-                ->when(!$isLead, function ($q) use ($user) {
-                    return $q->where('user_id', $user->id);
+                ->when($scopeIds !== null, function ($q) use ($scopeIds) {
+                    return $q->whereIn('user_id', $scopeIds);
                 })
                 ->when($isLead && $engineerId, function ($q) use ($engineerId) {
                     return $q->where('user_id', $engineerId);

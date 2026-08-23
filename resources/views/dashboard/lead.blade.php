@@ -64,11 +64,7 @@
                 <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mt-3 text-[11px] text-wms-ink-500">
                     <span class="flex items-center gap-1.5">
                         <span style="width:10px; height:10px; border-radius:3px; background:#C81E2C;"></span>
-                        Aktif
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <span style="width:10px; height:10px; border-radius:3px; background:#10B981;"></span>
-                        Selesai
+                        Task Aktif
                     </span>
                 </div>
             </div>
@@ -171,15 +167,9 @@
                 labels: engineerMonthData.map(d => d.name),
                 datasets: [
                     {
-                        label: 'Aktif',
+                        label: 'Task Aktif',
                         data: engineerMonthData.map(d => d.active),
                         backgroundColor: '#C81E2C',
-                        borderRadius: 4,
-                    },
-                    {
-                        label: 'Selesai',
-                        data: engineerMonthData.map(d => d.completed),
-                        backgroundColor: '#10B981',
                         borderRadius: 4,
                     }
                 ]
@@ -202,7 +192,7 @@
                 },
                 scales: {
                     x: {
-                        stacked: true,
+                        stacked: false,
                         ticks: {
                             stepSize: 1,
                             font: { size: 10 }
@@ -213,7 +203,7 @@
                         }
                     },
                     y: {
-                        stacked: true,
+                        stacked: false,
                         grid: {
                             display: false
                         },
@@ -265,6 +255,7 @@
                         min: 0,
                         max: 100,
                         ticks: {
+                            stepSize: 20,
                             callback: function(value) {
                                 return value + '%';
                             }
@@ -385,7 +376,6 @@
             const dataToUse = isWeek ? engineerWeekData : engineerMonthData;
             engineerChart.data.labels = dataToUse.map(d => d.name);
             engineerChart.data.datasets[0].data = dataToUse.map(d => d.active);
-            engineerChart.data.datasets[1].data = dataToUse.map(d => d.completed);
             engineerChart.update();
         }
     }

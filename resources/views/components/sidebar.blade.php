@@ -3,7 +3,7 @@
     $currentRoute = request()->route() ? request()->route()->getName() : '';
 
     $navItems = [];
-    if ($user->hasRole('Lead Engineer')) {
+    if (\App\Helpers\ScopeHelper::isManagerial($user)) {
         $navItems = [
             ['key' => 'dashboard',   'label' => 'Dashboard',  'route' => 'dashboard.lead'],
             ['key' => 'projects',    'label' => 'Project',    'route' => 'projects.index'],

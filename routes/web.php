@@ -41,14 +41,14 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard/lead', [DashboardController::class, 'lead'])
         ->name('dashboard.lead')
-        ->middleware('role:Lead Engineer');
+        ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
     
     Route::get('/dashboard/engineer', [DashboardController::class, 'engineer'])
         ->name('dashboard.engineer')
-        ->middleware('role:Engineer L1,Engineer L2');
+        ->middleware('role:Engineer L1|Engineer L2|Engineer');
 
-    // Projects - Only Lead Engineer
-    Route::prefix('projects')->middleware('role:Lead Engineer')->group(function () {
+    // Projects - Managerial Roles
+    Route::prefix('projects')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader')->group(function () {
         Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
         Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
         Route::put('/{project}', [ProjectController::class, 'update'])->name('projects.update');
@@ -61,10 +61,10 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('tasks')->group(function () {
         Route::get('/', [TaskController::class, 'index'])->name('tasks.index');
         Route::post('/', [TaskController::class, 'store'])->name('tasks.store')
-            ->middleware('role:Lead Engineer');
+            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
         Route::put('/{task}', [TaskController::class, 'update'])->name('tasks.update');
         Route::delete('/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy')
-            ->middleware('role:Lead Engineer');
+            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
         Route::get('/kanban-data', [TaskController::class, 'getKanbanData'])->name('tasks.kanban');
     });
 
@@ -72,16 +72,16 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('schedules')->group(function () {
         Route::get('/', [ScheduleController::class, 'index'])->name('schedules.index');
         Route::get('/export', [ScheduleController::class, 'exportExcel'])->name('schedules.export');
+        Route::get('/export/pdf', [ScheduleController::class, 'exportPdf'])->name('schedules.export.pdf');
         Route::post('/', [ScheduleController::class, 'store'])->name('schedules.store')
-            ->middleware('role:Lead Engineer');
+            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
         Route::put('/{schedule}', [ScheduleController::class, 'update'])->name('schedules.update')
-            ->middleware('role:Lead Engineer');
+            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
         Route::delete('/{schedule}', [ScheduleController::class, 'destroy'])->name('schedules.destroy')
-            ->middleware('role:Lead Engineer');
+            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
         Route::get('/calendar-data', [ScheduleController::class, 'getCalendarData'])->name('schedules.calendar');
     });
 
-    // Users - Only Lead Engineer
     // ─── PRESENSI ─────────────────────────────────────────────────────────
     Route::prefix('attendance')->group(function () {
         // Engineer: halaman clock in/out + riwayat
@@ -89,9 +89,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/clock-in',  [AttendanceController::class, 'clockIn'])->name('attendance.clock-in');
         Route::post('/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clock-out');
 
-        // Lead Engineer: rekap presensi
-        Route::get('/recap',       [AttendanceController::class, 'recap'])->name('attendance.recap')->middleware('role:Lead Engineer');
-        Route::get('/daily-data',  [AttendanceController::class, 'dailyData'])->name('attendance.daily-data')->middleware('role:Lead Engineer');
+        // Managerial: rekap presensi & export
+        Route::get('/recap',       [AttendanceController::class, 'recap'])->name('attendance.recap')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+        Route::get('/daily-data',  [AttendanceController::class, 'dailyData'])->name('attendance.daily-data')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+        Route::get('/export/pdf',  [AttendanceController::class, 'exportPdf'])->name('attendance.export.pdf')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
     });
 
     // ─── TIMESHEET ────────────────────────────────────────────────────────
@@ -105,7 +106,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ─── PENGGUNA ─────────────────────────────────────────────────────────
-    Route::prefix('users')->middleware('role:Lead Engineer')->group(function () {
+    Route::prefix('users')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('users.index');
         Route::post('/', [UserController::class, 'store'])->name('users.store');
         Route::put('/{user}', [UserController::class, 'update'])->name('users.update');
@@ -115,10 +116,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{user}/reject-certification', [UserController::class, 'rejectCertification'])->name('users.reject-certification');
     });
 
-    // Certifications Approval & Deletion (Lead Engineer)
-    Route::post('/certifications/{certification}/approve', [UserController::class, 'approveCertification'])->name('certifications.approve')->middleware('role:Lead Engineer');
-    Route::post('/certifications/{certification}/reject', [UserController::class, 'rejectCertification'])->name('certifications.reject')->middleware('role:Lead Engineer');
-    Route::delete('/certifications/{certification}', [UserController::class, 'rejectCertification'])->name('certifications.destroy')->middleware('role:Lead Engineer');
+    // Certifications Approval & Deletion (Managerial Roles)
+    Route::post('/certifications/{certification}/approve', [UserController::class, 'approveCertification'])->name('certifications.approve')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+    Route::post('/certifications/{certification}/reject', [UserController::class, 'rejectCertification'])->name('certifications.reject')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+    Route::delete('/certifications/{certification}', [UserController::class, 'rejectCertification'])->name('certifications.destroy')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+
 
 
     // Search 
@@ -137,14 +139,36 @@ Route::middleware(['auth'])->group(function () {
     // Profile
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'show'])->name('profile.show');
+        Route::put('/update', [ProfileController::class, 'updateProfile'])->name('profile.update');
+        Route::put('/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
         Route::post('/certification', [ProfileController::class, 'uploadCertification'])->name('profile.certification');
         Route::delete('/certification/{certification}', [ProfileController::class, 'deleteCertification'])->name('profile.certification.delete');
     });
 
-    // Stream Sertifikasi (Aman dari kendala symlink cPanel)
+    // Stream Sertifikasi (Aman dari kendala symlink cPanel & Terproteksi Hak Akses)
     Route::get('/certification-file/{certification}', function (\App\Models\Certification $certification) {
         if (!$certification->file_path) {
             abort(404);
+        }
+
+        $authUser = auth()->user();
+        $targetUser = $certification->user;
+
+        // Kontrol Hak Akses:
+        // 1. Pemilik file selalu boleh lihat
+        // 2. Direktur & Group Leader boleh lihat semua
+        // 3. Team Leader (Lead Network / Lead Security) boleh lihat anggota divisinya
+        // 4. Engineer biasa TIDAK BISA melihat file milik engineer lain
+        if ($authUser->id !== $certification->user_id) {
+            $isTopMgmt = $authUser->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'Lead Divisi']);
+            $isLeader = $authUser->hasAnyRole(['Team Leader', 'Lead Engineer']) && (
+                $authUser->division_id === null || 
+                ($targetUser && $authUser->division_id === $targetUser->division_id)
+            );
+
+            if (!$isTopMgmt && !$isLeader) {
+                abort(403, 'Akses ditolak. Anda tidak memiliki izin untuk melihat sertifikat pengguna lain.');
+            }
         }
 
         $filename = $certification->file_path;
@@ -179,7 +203,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/', function () {
     if (auth()->check()) {
         $user = auth()->user();
-        if ($user->hasRole('Lead Engineer')) {
+        if (\App\Helpers\ScopeHelper::isManagerial($user)) {
             return redirect()->route('dashboard.lead');
         }
         return redirect()->route('dashboard.engineer');

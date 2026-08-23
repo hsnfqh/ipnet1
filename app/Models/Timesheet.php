@@ -29,6 +29,11 @@ class Timesheet extends Model
         'duration_minutes' => 'integer',
     ];
 
+    protected $appends = [
+        'duration_hours',
+        'formatted_duration',
+    ];
+
     // Relationships
     public function user()
     {

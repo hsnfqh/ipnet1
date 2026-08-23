@@ -287,14 +287,46 @@ class TimesheetExportService
         $uniqueDays   = $timesheets->pluck('date')->unique()->count();
         $engineerCount = $timesheets->pluck('user_id')->unique()->count();
 
+        $currentUser = auth()->user();
+        $isDirektur    = $currentUser && $currentUser->hasAnyRole(['Direktur', 'HD / Direktur']);
+        $isGroupLeader = $currentUser && \App\Helpers\ScopeHelper::isGroupLeader($currentUser);
+
+        // Tentukan pembuat (Dibuat Oleh) & verifikator (Mengetahui & Menyetujui)
+        if ($isDirektur) {
+            // Jika Direktur yang export: Langsung 1 tanda tangan Direktur Utama (tanpa Dibuat Oleh)
+            $showMaker        = false;
+            $makerName        = null;
+            $makerPosition    = null;
+            $verifierName     = $currentUser->name ?? 'Hariyadi';
+            $verifierPosition = 'Direktur Utama';
+        } elseif ($isGroupLeader) {
+            // Jika Susanto (Group Leader) yang export: Dibuat Susanto, Diketahui Hariyadi
+            $showMaker        = true;
+            $makerName        = $currentUser->name ?? 'Susanto Djaya';
+            $makerPosition    = 'Group Leader';
+            $verifierName     = 'Hariyadi';
+            $verifierPosition = 'Direktur Utama';
+        } else {
+            // Jika Team Leader (Nugraha / Ignatius) yang export: Dibuat TL, Diketahui Susanto
+            $showMaker        = true;
+            $makerName        = $currentUser->name ?? 'Team Leader';
+            $makerPosition    = $currentUser->position ?? ($currentUser->hasRole('Team Leader') ? 'Team Leader' : 'Lead Engineer');
+            $verifierName     = 'Susanto Djaya';
+            $verifierPosition = 'Group Leader';
+        }
+
         $data = [
-            'timesheets'     => $timesheets->sortBy([['date', 'asc'], ['start_time', 'asc']]),
-            'filters'        => $filters,
-            'totalHours'     => $totalHours,
-            'uniqueDays'     => $uniqueDays,
-            'engineerCount'  => $engineerCount,
-            'generatedAt'    => Carbon::now()->isoFormat('D MMMM Y, HH:mm'),
-            'printedBy'      => auth()->user()?->name ?? 'Lead Engineer',
+            'timesheets'       => $timesheets->sortBy([['date', 'asc'], ['start_time', 'asc']]),
+            'filters'          => $filters,
+            'totalHours'       => $totalHours,
+            'uniqueDays'       => $uniqueDays,
+            'engineerCount'    => $engineerCount,
+            'generatedAt'      => Carbon::now()->isoFormat('D MMMM Y, HH:mm'),
+            'showMaker'        => $showMaker,
+            'makerName'        => $makerName,
+            'makerPosition'    => $makerPosition,
+            'verifierName'     => $verifierName,
+            'verifierPosition' => $verifierPosition,
         ];
 
         $pdf = Pdf::loadView('timesheets.pdf', $data);

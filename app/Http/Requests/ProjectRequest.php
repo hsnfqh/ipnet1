@@ -12,8 +12,8 @@ class ProjectRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Cek apakah user login dan memiliki role Lead Engineer
-        return auth()->check() && auth()->user()->hasRole('Lead Engineer');
+        // Hanya Team Leader / Lead Engineer yang berhak membuat/mengubah project
+        return auth()->check() && \App\Helpers\ScopeHelper::canManageProjectsAndTasks(auth()->user());
     }
 
     /**

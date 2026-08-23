@@ -12,10 +12,37 @@ class DashboardController extends Controller
 {
     public function lead()
     {
-        $projects = Project::with(['tasks', 'creator'])->get();
-        $tasks = Task::with(['project', 'engineer'])->get();
-        $schedules = Schedule::with(['project', 'engineer'])->get();
-        $users = User::with('roles')->get();
+        $user      = auth()->user();
+        $scopeIds  = \App\Helpers\ScopeHelper::getScopeUserIds($user);
+        $engineers = \App\Helpers\ScopeHelper::getAssignableEngineers($user);
+
+        // Filter tasks sesuai scope role yang login
+        $tasksQuery = Task::with(['project', 'engineer']);
+        if ($scopeIds !== null) {
+            $tasksQuery->where(function($q) use ($scopeIds) {
+                count($scopeIds) === 1
+                    ? $q->where('engineer_id', $scopeIds[0])
+                    : $q->whereIn('engineer_id', $scopeIds);
+            });
+        }
+        $tasks = $tasksQuery->get();
+
+        // Filter projects sesuai scope role yang login
+        $projectsQuery = Project::with(['tasks', 'creator']);
+        if ($scopeIds !== null) {
+            $projectIds = $tasks->pluck('project_id')->unique();
+            $projectsQuery->where(function($q) use ($projectIds, $user) {
+                $q->whereIn('id', $projectIds)
+                  ->orWhere('created_by', $user->id);
+            });
+        }
+        $projects = $projectsQuery->get();
+
+        $schedulesQuery = Schedule::with(['project', 'engineer']);
+        if ($scopeIds !== null) {
+            $schedulesQuery->whereIn('engineer_id', $scopeIds);
+        }
+        $schedules = $schedulesQuery->get();
 
         // Hanya tampilkan max 5 project yang sedang On Progress untuk bar chart
         $projectProgressData = $projects
@@ -38,8 +65,8 @@ class DashboardController extends Controller
 
         // ============================================================
         // DATA CHART LOAD PEKERJAAN ENGINEER (Bulan Ini & Minggu Ini)
+        // Disesuaikan sesuai scope tim masing-masing Team Leader
         // ============================================================
-        $engineers = User::engineers()->active()->get();
         $startOfWeek  = now()->startOfWeek();
         $endOfWeek    = now()->endOfWeek();
         $startOfMonth = now()->startOfMonth();
@@ -54,30 +81,37 @@ class DashboardController extends Controller
                     'name' => $engineer->name,
                     'active' => $active,
                     'completed' => $completed,
-                    'total' => $active + $completed,
+                    'total' => $active,
                 ];
-            })->sortByDesc('total')->values();
+            })->sortByDesc('active')->values();
         };
 
-        // Data Bulan Ini (default)
+        // Data Bulan Ini (default): Seluruh task aktif pada bulan berjalan ini
         $engineerLoadMonthData = $buildEngineerLoad(
             $tasks->filter(function($t) use ($startOfMonth, $endOfMonth) {
-                $createdAt = $t->created_at;
-                $deadline = $t->deadline;
-                return ($createdAt && $createdAt >= $startOfMonth && $createdAt <= $endOfMonth)
-                    || ($deadline && $deadline >= $startOfMonth && $deadline <= $endOfMonth)
-                    || ($t->status !== 'Completed');
+                if ($t->status === 'Completed') {
+                    return false;
+                }
+                if ($t->deadline) {
+                    return $t->deadline <= $endOfMonth->copy()->endOfDay();
+                }
+                return true;
             })
         );
 
-        // Data Minggu Ini
+        // Data Minggu Ini: Hanya task aktif yang deadlinenya jatuh pada pekan ini
         $engineerLoadWeekData = $buildEngineerLoad(
             $tasks->filter(function($t) use ($startOfWeek, $endOfWeek) {
-                $createdAt = $t->created_at;
-                $deadline = $t->deadline;
-                return ($createdAt && $createdAt >= $startOfWeek && $createdAt <= $endOfWeek)
-                    || ($deadline && $deadline >= $startOfWeek && $deadline <= $endOfWeek)
-                    || ($t->status !== 'Completed');
+                if ($t->status === 'Completed') {
+                    return false;
+                }
+                if ($t->deadline) {
+                    return $t->deadline >= $startOfWeek->copy()->startOfDay() 
+                        && $t->deadline <= $endOfWeek->copy()->endOfDay();
+                }
+                // Jika tidak ada deadline, cek apakah dibuat minggu ini
+                return $t->created_at >= $startOfWeek->copy()->startOfDay() 
+                    && $t->created_at <= $endOfWeek->copy()->endOfDay();
             })
         );
 

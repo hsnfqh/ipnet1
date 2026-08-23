@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\Certification;
+use App\Models\User;
+use App\Models\Notification;
 
 class ProfileController extends Controller
 {
@@ -90,6 +92,44 @@ class ProfileController extends Controller
             'uploaded_at' => now(),
         ]);
 
+        // Kirim notifikasi ke Team Leader divisi terkait (Ignatius / Nugraha) & Group Leader
+        $recipients = collect();
+        if ($user->division_id) {
+            $recipients = $recipients->concat(
+                User::role(['Team Leader', 'Lead Engineer'])
+                    ->where('division_id', $user->division_id)
+                    ->pluck('id')
+            );
+        }
+        if ($user->team_id) {
+            $recipients = $recipients->concat(
+                User::role(['Team Leader', 'Lead Engineer'])
+                    ->where('team_id', $user->team_id)
+                    ->pluck('id')
+            );
+        }
+        if ($recipients->isEmpty()) {
+            $recipients = $recipients->concat(
+                User::role(['Team Leader', 'Lead Engineer', 'Group Leader', 'Lead Divisi'])->pluck('id')
+            );
+        } else {
+            $recipients = $recipients->concat(
+                User::role(['Group Leader', 'Lead Divisi'])->pluck('id')
+            );
+        }
+
+        $recipients = $recipients->filter(fn($id) => $id != $user->id)->unique();
+
+        foreach ($recipients as $recipientId) {
+            Notification::create([
+                'user_id' => $recipientId,
+                'title'   => 'Pengajuan Sertifikasi Baru',
+                'message' => 'Engineer ' . $user->name . ' telah mengunggah sertifikasi baru: "' . $cert->name . '". Silakan periksa dan verifikasi.',
+                'url'     => route('users.index'),
+                'is_read' => false,
+            ]);
+        }
+
         if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
             return response()->json([
                 'success'       => true,
@@ -106,6 +146,45 @@ class ProfileController extends Controller
 
         return redirect()->route('profile.show')
             ->with('success', 'Sertifikasi "' . $cert->name . '" berhasil diupload! Menunggu verifikasi Lead Engineer.');
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'name'  => 'required|string|max:255',
+            'phone' => 'nullable|string|max:30',
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+        ]);
+
+        $user->name  = trim($request->name);
+        $user->phone = $request->phone ? trim($request->phone) : null;
+        $user->save();
+
+        return redirect()->route('profile.show')->with('success', 'Informasi profil Anda berhasil diperbarui.');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'current_password' => 'required|current_password:web',
+            'password'         => 'required|string|min:8|confirmed',
+        ], [
+            'current_password.required'         => 'Silakan masukkan password saat ini.',
+            'current_password.current_password' => 'Password saat ini tidak sesuai.',
+            'password.required'                 => 'Silakan masukkan password baru.',
+            'password.min'                      => 'Password baru minimal harus 8 karakter.',
+            'password.confirmed'                => 'Konfirmasi password baru tidak cocok.',
+        ]);
+
+        $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+        $user->save();
+
+        return redirect()->route('profile.show')->with('success', 'Password akun Anda berhasil diperbarui!');
     }
 
     public function deleteCertification(Certification $certification)

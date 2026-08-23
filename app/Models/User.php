@@ -27,6 +27,9 @@ class User extends Authenticatable
         'certification_file',
         'certification_status',
         'certification_uploaded_at',
+        'division_id',
+        'team_id',
+        'level',
     ];
 
     protected $hidden = [
@@ -42,6 +45,21 @@ class User extends Authenticatable
     ];
 
     // Relationships
+    public function division()
+    {
+        return $this->belongsTo(Division::class);
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    public function ledTeams()
+    {
+        return $this->hasMany(Team::class, 'leader_id');
+    }
+
     public function projects()
     {
         return $this->hasMany(Project::class, 'created_by');
@@ -81,14 +99,20 @@ class User extends Authenticatable
     public function scopeEngineers($query)
     {
         return $query->whereHas('roles', function($q) {
-            $q->whereIn('name', ['Engineer L1', 'Engineer L2']);
+            $q->whereIn('name', [
+                'Team Leader',
+                'Lead Engineer',
+                'Engineer',
+                'Engineer L1',
+                'Engineer L2',
+            ]);
         });
     }
 
     public function scopeLeadEngineer($query)
     {
         return $query->whereHas('roles', function($q) {
-            $q->where('name', 'Lead Engineer');
+            $q->whereIn('name', ['Lead Engineer', 'Direktur', 'Lead Divisi', 'Team Leader']);
         });
     }
 
