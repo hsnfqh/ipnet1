@@ -4,6 +4,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
@@ -286,22 +287,33 @@ Route::get('/run-migration', function () {
         Artisan::call('migrate', ['--force' => true]);
         $outputs[] = "Artisan migrate output:\n" . trim(Artisan::output());
 
-        // 0. Bersihkan SEMUA akun dummy lama (Rangga, Fajar, Dimas, Sinta, Bayu, Rani, atau domain lama @ipnetwork.co.id)
-        \App\Models\User::whereIn('name', ['Rangga Saputra', 'Fajar Nugroho', 'Dimas Prakoso', 'Sinta Wulandari', 'Bayu Kusuma', 'Rani Oktaviani'])
-            ->orWhere('email', 'like', '%@ipnetwork.co.id')
-            ->delete();
-        $outputs[] = "Pembersihan akun dummy lama (Rangga, Fajar, Dimas, Sinta, Bayu, Rani): OK";
+        // 0. Reset bersih tabel database agar sinkron 100% dengan tim resmi
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        \App\Models\Notification::truncate();
+        \App\Models\Attendance::truncate();
+        \App\Models\Timesheet::truncate();
+        \App\Models\Schedule::truncate();
+        \App\Models\Task::truncate();
+        \App\Models\Project::truncate();
+        \App\Models\Certification::truncate();
+        \App\Models\Team::truncate();
+        \App\Models\Division::truncate();
+        \App\Models\User::truncate();
+        DB::table('model_has_roles')->truncate();
+        DB::table('model_has_permissions')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        $outputs[] = "Pembersihan total seluruh data dummy lama: OK";
 
         // 1. Reset cache permission Spatie & Seeder Role Resmi
         if (class_exists(\Spatie\Permission\PermissionRegistrar::class)) {
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         }
         Artisan::call('db:seed', ['--class' => 'RoleSeeder', '--force' => true]);
-        $outputs[] = "Artisan db:seed RoleSeeder: OK (Semua role: Direktur, Group Leader, Team Leader, Engineer, dll dibuat)";
+        $outputs[] = "Artisan db:seed RoleSeeder: OK (Semua role dibuat)";
 
         // 2. Jalankan seeder resmi agar semua akun (Pak Hariyadi, Susanto, Nugraha, Ignatius, Eka, Rorik, dll) aktif
         Artisan::call('db:seed', ['--class' => 'DummyUserSeeder', '--force' => true]);
-        $outputs[] = "Artisan db:seed DummyUserSeeder: OK (Semua akun resmi dibuat dengan password: password123)";
+        $outputs[] = "Artisan db:seed DummyUserSeeder: OK (Semua proyek, task, dan tim resmi diisi)";
 
         Artisan::call('view:clear');
         $outputs[] = "Artisan view:clear: OK";
@@ -314,21 +326,24 @@ Route::get('/run-migration', function () {
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Database migration, seeding akun resmi & cache clear berhasil dijalankan di cPanel!',
-            'credentials_info' => [
+            'message' => 'Database hosting berhasil dibersihkan total & diisi data tim resmi!',
+            'team_members' => [
                 'Direktur'              => 'hariyadi@ipnetsolusindo.com (password: password123)',
                 'Group Leader'          => 'susanto@ipnetsolusindo.com (password: password123)',
                 'Team Leader Network'   => 'nugraha@ipnetsolusindo.com (password: password123)',
                 'Team Leader Security'  => 'ignatius@ipnetsolusindo.com (password: password123)',
-                'Engineer Network'      => 'rorik@ipnetsolusindo.com (password: password123)',
-                'Engineer Security'     => 'eka@ipnetsolusindo.com (password: password123)',
+                'Engineer Network (L1)' => 'rorik@ipnetsolusindo.com (password: password123)',
+                'Engineer Network (L1)' => 'shiamsyah@ipnetsolusindo.com (password: password123)',
+                'Engineer Network (L2)' => 'dedy@ipnetsolusindo.com (password: password123)',
+                'Engineer Network (L2)' => 'syaiful@ipnetsolusindo.com (password: password123)',
+                'Engineer Security (L1)'=> 'eka@ipnetsolusindo.com (password: password123)',
             ],
             'details' => $outputs,
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Gagal menjalankan migration / seeder: ' . $e->getMessage(),
+            'message' => 'Gagal: ' . $e->getMessage(),
         ], 500);
     }
 });
