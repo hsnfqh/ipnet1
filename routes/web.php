@@ -279,12 +279,16 @@ Route::get('/fix-storage', function () {
     ]);
 });
 
-// Utility route untuk migrate database & clear cache dari browser di cPanel
+// Utility route untuk migrate database & seed user resmi & clear cache dari browser di cPanel
 Route::get('/run-migration', function () {
     $outputs = [];
     try {
         Artisan::call('migrate', ['--force' => true]);
         $outputs[] = "Artisan migrate output:\n" . trim(Artisan::output());
+
+        // Jalankan seeder resmi agar semua akun (Pak Hariyadi, Susanto, Nugraha, Ignatius, Eka, Rorik, dll) aktif
+        Artisan::call('db:seed', ['--class' => 'DummyUserSeeder', '--force' => true]);
+        $outputs[] = "Artisan db:seed DummyUserSeeder: OK (Semua akun resmi dibuat dengan password: password123)";
 
         Artisan::call('view:clear');
         $outputs[] = "Artisan view:clear: OK";
@@ -297,13 +301,21 @@ Route::get('/run-migration', function () {
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Database migration & cache clear berhasil dijalankan di cPanel!',
+            'message' => 'Database migration, seeding akun resmi & cache clear berhasil dijalankan di cPanel!',
+            'credentials_info' => [
+                'Direktur'              => 'hariyadi@ipnetsolusindo.com (password: password123)',
+                'Group Leader'          => 'susanto@ipnetsolusindo.com (password: password123)',
+                'Team Leader Network'   => 'nugraha@ipnetsolusindo.com (password: password123)',
+                'Team Leader Security'  => 'ignatius@ipnetsolusindo.com (password: password123)',
+                'Engineer Network'      => 'rorik@ipnetsolusindo.com (password: password123)',
+                'Engineer Security'     => 'eka@ipnetsolusindo.com (password: password123)',
+            ],
             'details' => $outputs,
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Gagal menjalankan migration: ' . $e->getMessage(),
+            'message' => 'Gagal menjalankan migration / seeder: ' . $e->getMessage(),
         ], 500);
     }
 });
