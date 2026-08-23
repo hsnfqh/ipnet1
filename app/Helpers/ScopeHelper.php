@@ -158,13 +158,17 @@ class ScopeHelper
 
         // 1. Direktur & Group Leader (GL) -> Bisa assign ke SEMUA personel teknis (TL, GL, Engineer) di seluruh divisi
         if (self::isGlobal($user)) {
-            return \App\Models\User::role($operationalRoles)->active()->get();
+            return \App\Models\User::whereHas('roles', function($q) use ($operationalRoles) {
+                $q->whereIn('name', $operationalRoles);
+            })->active()->get();
         }
 
         // 2. Leader Divisi (Network Leader / Security Leader) -> Assign ke personel di divisinya + dirinya sendiri
         if (self::isTeamLeader($user)) {
             if ($user->division_id) {
-                return \App\Models\User::role($operationalRoles)
+                return \App\Models\User::whereHas('roles', function($q) use ($operationalRoles) {
+                    $q->whereIn('name', $operationalRoles);
+                })
                     ->active()
                     ->where(function($q) use ($user) {
                         $q->where('division_id', $user->division_id)
@@ -173,7 +177,9 @@ class ScopeHelper
                     ->get();
             }
             if ($user->team_id) {
-                return \App\Models\User::role($operationalRoles)
+                return \App\Models\User::whereHas('roles', function($q) use ($operationalRoles) {
+                    $q->whereIn('name', $operationalRoles);
+                })
                     ->active()
                     ->where(function($q) use ($user) {
                         $q->where('team_id', $user->team_id)

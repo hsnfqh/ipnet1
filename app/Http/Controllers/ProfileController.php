@@ -96,25 +96,25 @@ class ProfileController extends Controller
         $recipients = collect();
         if ($user->division_id) {
             $recipients = $recipients->concat(
-                User::role(['Team Leader', 'Lead Engineer'])
+                User::whereHas('roles', fn($q) => $q->whereIn('name', ['Team Leader', 'Lead Engineer']))
                     ->where('division_id', $user->division_id)
                     ->pluck('id')
             );
         }
         if ($user->team_id) {
             $recipients = $recipients->concat(
-                User::role(['Team Leader', 'Lead Engineer'])
+                User::whereHas('roles', fn($q) => $q->whereIn('name', ['Team Leader', 'Lead Engineer']))
                     ->where('team_id', $user->team_id)
                     ->pluck('id')
             );
         }
         if ($recipients->isEmpty()) {
             $recipients = $recipients->concat(
-                User::role(['Team Leader', 'Lead Engineer', 'Group Leader', 'Lead Divisi'])->pluck('id')
+                User::whereHas('roles', fn($q) => $q->whereIn('name', ['Team Leader', 'Lead Engineer', 'Group Leader', 'Lead Divisi']))->pluck('id')
             );
         } else {
             $recipients = $recipients->concat(
-                User::role(['Group Leader', 'Lead Divisi'])->pluck('id')
+                User::whereHas('roles', fn($q) => $q->whereIn('name', ['Group Leader', 'Lead Divisi']))->pluck('id')
             );
         }
 

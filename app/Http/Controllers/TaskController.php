@@ -134,7 +134,7 @@ class TaskController extends Controller
         $user = auth()->user();
         if ($user && !ScopeHelper::isManagerial($user)) {
             if ($progressChanged || $request->hasFile('doc_file')) {
-                $leads = \App\Models\User::role(['Direktur', 'Lead Engineer', 'Lead Divisi', 'Team Leader'])->get();
+                $leads = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Direktur', 'Lead Engineer', 'Lead Divisi', 'Team Leader', 'Group Leader']))->get();
                 $notificationRecipients = $leads->pluck('id')->push($task->created_by)->unique();
                 
                 foreach ($notificationRecipients as $recipientId) {

@@ -286,7 +286,14 @@ Route::get('/run-migration', function () {
         Artisan::call('migrate', ['--force' => true]);
         $outputs[] = "Artisan migrate output:\n" . trim(Artisan::output());
 
-        // Jalankan seeder resmi agar semua akun (Pak Hariyadi, Susanto, Nugraha, Ignatius, Eka, Rorik, dll) aktif
+        // 1. Reset cache permission Spatie & Seeder Role Resmi
+        if (class_exists(\Spatie\Permission\PermissionRegistrar::class)) {
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        }
+        Artisan::call('db:seed', ['--class' => 'RoleSeeder', '--force' => true]);
+        $outputs[] = "Artisan db:seed RoleSeeder: OK (Semua role: Direktur, Group Leader, Team Leader, Engineer, dll dibuat)";
+
+        // 2. Jalankan seeder resmi agar semua akun (Pak Hariyadi, Susanto, Nugraha, Ignatius, Eka, Rorik, dll) aktif
         Artisan::call('db:seed', ['--class' => 'DummyUserSeeder', '--force' => true]);
         $outputs[] = "Artisan db:seed DummyUserSeeder: OK (Semua akun resmi dibuat dengan password: password123)";
 
