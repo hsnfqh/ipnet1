@@ -9,15 +9,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('certifications', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('name');
-            $table->string('file_path');
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->timestamp('uploaded_at')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('certifications')) {
+            Schema::create('certifications', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('name');
+                $table->string('file_path');
+                $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+                $table->timestamp('uploaded_at')->nullable();
+                $table->timestamps();
+            });
+        }
 
         // Migrasi data lama dari tabel users jika ada
         if (Schema::hasColumn('users', 'certification_file')) {
