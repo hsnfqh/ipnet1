@@ -286,6 +286,12 @@ Route::get('/run-migration', function () {
         Artisan::call('migrate', ['--force' => true]);
         $outputs[] = "Artisan migrate output:\n" . trim(Artisan::output());
 
+        // 0. Bersihkan akun dummy lama (Rangga Saputra, Fajar, Dimas, Sinta, Bayu)
+        \App\Models\User::whereIn('name', ['Rangga Saputra', 'Fajar Nugroho', 'Dimas Prakoso', 'Sinta Wulandari', 'Bayu Kusuma'])
+            ->orWhere('email', 'like', '%@ipnetwork.co.id')
+            ->delete();
+        $outputs[] = "Pembersihan akun dummy lama (Rangga, Fajar, dll): OK";
+
         // 1. Reset cache permission Spatie & Seeder Role Resmi
         if (class_exists(\Spatie\Permission\PermissionRegistrar::class)) {
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();

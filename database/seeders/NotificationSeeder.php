@@ -46,7 +46,7 @@ class NotificationSeeder extends Seeder
                 $samples = [
                     [
                         'title' => 'Tugas Baru Ditugaskan',
-                        'message' => 'Anda mendapatkan tugas baru dari Lead Engineer Rangga Saputra.',
+                        'message' => 'Anda mendapatkan tugas baru dari Team Leader.',
                         'url' => route('tasks.index'),
                         'is_read' => false,
                     ],
