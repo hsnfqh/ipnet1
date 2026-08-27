@@ -74,7 +74,9 @@
                         <option value="Direktur">Direktur</option>
                         <option value="Group Leader">Group Leader</option>
                         <option value="Team Leader">Team Leader</option>
+                        <option value="Lead Maintenance">Lead Maintenance</option>
                         <option value="Engineer">Engineer</option>
+                        <option value="Maintenance">Maintenance</option>
                         <option value="Lead Engineer">Lead Engineer</option>
                     </select>
                     <select x-model="divisionFilter" style="width:170px; padding:9px 11px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white;">
@@ -309,7 +311,9 @@
                                             <option value="Direktur">Direktur</option>
                                             <option value="Group Leader">Group Leader</option>
                                             <option value="Team Leader">Team Leader (Leader Divisi)</option>
+                                            <option value="Lead Maintenance">Lead Maintenance</option>
                                             <option value="Engineer">Engineer</option>
+                                            <option value="Maintenance">Maintenance</option>
                                         </select>
                                     </div>
                                     <div>
@@ -638,7 +642,7 @@
             return {
                 users: @json($users),
                 allTeams: @json($teams),
-                canVerify: {{ auth()->user()->hasAnyRole(['Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Engineer']) ? 'true' : 'false' }},
+                canVerify: {{ auth()->user()->hasAnyRole(['Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Maintenance', 'Lead Engineer']) ? 'true' : 'false' }},
                 currentUserRole: '{{ auth()->user()->getRoleNames()->first() ?? '' }}',
                 currentUserId: {{ auth()->id() }},
                 search: '',
@@ -773,9 +777,12 @@
                         }
                         return true;
                     }
-                    // Team Leader can only edit Engineers
-                    if (this.currentUserRole === 'Team Leader' || this.currentUserRole === 'Lead Engineer') {
-                        return target.role_name === 'Engineer';
+                    // Team Leader & Lead Maintenance can edit themselves and their technical staff (Engineer, Maintenance)
+                    if (this.currentUserRole === 'Team Leader' || this.currentUserRole === 'Lead Maintenance' || this.currentUserRole === 'Lead Engineer') {
+                        if (target.id === this.currentUserId) {
+                            return true;
+                        }
+                        return ['Engineer', 'Maintenance', 'Engineer L1', 'Engineer L2'].includes(target.role_name);
                     }
                     return false;
                 },
@@ -1044,15 +1051,17 @@
 
                 getRoleBadge(role) {
                     const styles = {
-                        'Direktur':      { bg: '#FDF1F2', fg: '#C81E2C', border: '#FADADF', dot: '#C81E2C' },
-                        'HD / Direktur': { bg: '#FDF1F2', fg: '#C81E2C', border: '#FADADF', dot: '#C81E2C' },
-                        'Lead Engineer': { bg: '#FDF1F2', fg: '#C81E2C', border: '#FADADF', dot: '#C81E2C' },
-                        'Group Leader':  { bg: '#EEF2FF', fg: '#4338CA', border: '#C7D2FE', dot: '#4F46E5' },
-                        'Lead Divisi':   { bg: '#EEF2FF', fg: '#4338CA', border: '#C7D2FE', dot: '#4F46E5' },
-                        'Team Leader':   { bg: '#FFFBEB', fg: '#B45309', border: '#FDE68A', dot: '#D97706' },
-                        'Engineer':      { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
-                        'Engineer L1':   { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
-                        'Engineer L2':   { bg: '#ECFDF5', fg: '#047857', border: '#A7F3D0', dot: '#059669' },
+                        'Direktur':         { bg: '#FDF1F2', fg: '#C81E2C', border: '#FADADF', dot: '#C81E2C' },
+                        'HD / Direktur':    { bg: '#FDF1F2', fg: '#C81E2C', border: '#FADADF', dot: '#C81E2C' },
+                        'Lead Engineer':    { bg: '#FDF1F2', fg: '#C81E2C', border: '#FADADF', dot: '#C81E2C' },
+                        'Group Leader':     { bg: '#EEF2FF', fg: '#4338CA', border: '#C7D2FE', dot: '#4F46E5' },
+                        'Lead Divisi':      { bg: '#EEF2FF', fg: '#4338CA', border: '#C7D2FE', dot: '#4F46E5' },
+                        'Team Leader':      { bg: '#FFFBEB', fg: '#B45309', border: '#FDE68A', dot: '#D97706' },
+                        'Lead Maintenance': { bg: '#FFFBEB', fg: '#B45309', border: '#FDE68A', dot: '#D97706' },
+                        'Engineer':         { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
+                        'Maintenance':      { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
+                        'Engineer L1':      { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
+                        'Engineer L2':      { bg: '#ECFDF5', fg: '#047857', border: '#A7F3D0', dot: '#059669' },
                     };
                     const s = styles[role] || { bg: '#F1F0EE', fg: '#3D3A44', border: '#E7E5E3', dot: '#75727C' };
                     return `<span style="background: ${s.bg}; color: ${s.fg}; border: 1px solid ${s.border}; font-size: 11.5px; font-weight: 700; padding: 3.5px 10px 3.5px 8px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.1px;">

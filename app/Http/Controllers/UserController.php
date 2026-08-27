@@ -257,7 +257,7 @@ class UserController extends Controller
     public function approveCertification(Request $request, $id)
     {
         $authUser = auth()->user();
-        if (!$authUser->hasAnyRole(['Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Engineer', 'Direktur', 'HD / Direktur'])) {
+        if (!$authUser->hasAnyRole(['Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Maintenance', 'Lead Engineer', 'Direktur', 'HD / Direktur'])) {
             return response()->json([
                 'error' => 'Anda tidak memiliki wewenang untuk memverifikasi sertifikasi.'
             ], 403);
@@ -314,7 +314,7 @@ class UserController extends Controller
     public function rejectCertification(Request $request, $id)
     {
         $authUser = auth()->user();
-        if (!$authUser->hasAnyRole(['Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Engineer', 'Direktur', 'HD / Direktur'])) {
+        if (!$authUser->hasAnyRole(['Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Maintenance', 'Lead Engineer', 'Direktur', 'HD / Direktur'])) {
             return response()->json([
                 'error' => 'Anda tidak memiliki wewenang untuk memverifikasi sertifikasi.'
             ], 403);

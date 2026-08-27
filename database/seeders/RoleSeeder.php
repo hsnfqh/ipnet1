@@ -20,8 +20,10 @@ class RoleSeeder extends Seeder
             'Group Leader',
             'Lead Divisi',
             'Team Leader',
-            'Engineer',
+            'Lead Maintenance',
             'Lead Engineer',
+            'Engineer',
+            'Maintenance',
             'Engineer L1',
             'Engineer L2',
         ];

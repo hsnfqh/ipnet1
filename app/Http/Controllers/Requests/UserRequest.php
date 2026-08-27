@@ -11,7 +11,7 @@ class UserRequest extends FormRequest
     {
         if (!auth()->check()) return false;
         $user = auth()->user();
-        return $user->hasAnyRole(['Lead Engineer', 'Team Leader', 'Lead Divisi', 'Direktur']);
+        return $user->hasAnyRole(['Lead Engineer', 'Team Leader', 'Lead Maintenance', 'Lead Divisi', 'Group Leader', 'Direktur', 'HD / Direktur']);
     }
 
     public function rules(): array

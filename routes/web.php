@@ -42,14 +42,14 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard/lead', [DashboardController::class, 'lead'])
         ->name('dashboard.lead')
-        ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+        ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
     
     Route::get('/dashboard/engineer', [DashboardController::class, 'engineer'])
         ->name('dashboard.engineer')
-        ->middleware('role:Engineer L1|Engineer L2|Engineer');
+        ->middleware('role:Engineer L1|Engineer L2|Engineer|Maintenance');
 
     // Projects - Managerial Roles
-    Route::prefix('projects')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader')->group(function () {
+    Route::prefix('projects')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance')->group(function () {
         Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
         Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
         Route::put('/{project}', [ProjectController::class, 'update'])->name('projects.update');
@@ -62,10 +62,10 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('tasks')->group(function () {
         Route::get('/', [TaskController::class, 'index'])->name('tasks.index');
         Route::post('/', [TaskController::class, 'store'])->name('tasks.store')
-            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
         Route::put('/{task}', [TaskController::class, 'update'])->name('tasks.update');
         Route::delete('/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy')
-            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
         Route::get('/kanban-data', [TaskController::class, 'getKanbanData'])->name('tasks.kanban');
     });
 
@@ -75,25 +75,25 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/export', [ScheduleController::class, 'exportExcel'])->name('schedules.export');
         Route::get('/export/pdf', [ScheduleController::class, 'exportPdf'])->name('schedules.export.pdf');
         Route::post('/', [ScheduleController::class, 'store'])->name('schedules.store')
-            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
         Route::put('/{schedule}', [ScheduleController::class, 'update'])->name('schedules.update')
-            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
         Route::delete('/{schedule}', [ScheduleController::class, 'destroy'])->name('schedules.destroy')
-            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
         Route::get('/calendar-data', [ScheduleController::class, 'getCalendarData'])->name('schedules.calendar');
     });
 
     // ─── PRESENSI ─────────────────────────────────────────────────────────
     Route::prefix('attendance')->group(function () {
-        // Engineer: halaman clock in/out + riwayat
+        // Engineer / Maintenance: halaman clock in/out + riwayat
         Route::get('/',           [AttendanceController::class, 'index'])->name('attendance.index');
         Route::post('/clock-in',  [AttendanceController::class, 'clockIn'])->name('attendance.clock-in');
         Route::post('/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clock-out');
 
         // Managerial: rekap presensi & export
-        Route::get('/recap',       [AttendanceController::class, 'recap'])->name('attendance.recap')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
-        Route::get('/daily-data',  [AttendanceController::class, 'dailyData'])->name('attendance.daily-data')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
-        Route::get('/export/pdf',  [AttendanceController::class, 'exportPdf'])->name('attendance.export.pdf')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+        Route::get('/recap',       [AttendanceController::class, 'recap'])->name('attendance.recap')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
+        Route::get('/daily-data',  [AttendanceController::class, 'dailyData'])->name('attendance.daily-data')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
+        Route::get('/export/pdf',  [AttendanceController::class, 'exportPdf'])->name('attendance.export.pdf')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
     });
 
     // ─── TIMESHEET ────────────────────────────────────────────────────────
@@ -107,7 +107,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ─── PENGGUNA ─────────────────────────────────────────────────────────
-    Route::prefix('users')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader')->group(function () {
+    Route::prefix('users')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('users.index');
         Route::post('/', [UserController::class, 'store'])->name('users.store');
         Route::put('/{user}', [UserController::class, 'update'])->name('users.update');
@@ -118,9 +118,9 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Certifications Approval & Deletion (Managerial Roles)
-    Route::post('/certifications/{certification}/approve', [UserController::class, 'approveCertification'])->name('certifications.approve')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
-    Route::post('/certifications/{certification}/reject', [UserController::class, 'rejectCertification'])->name('certifications.reject')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
-    Route::delete('/certifications/{certification}', [UserController::class, 'rejectCertification'])->name('certifications.destroy')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader');
+    Route::post('/certifications/{certification}/approve', [UserController::class, 'approveCertification'])->name('certifications.approve')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
+    Route::post('/certifications/{certification}/reject', [UserController::class, 'rejectCertification'])->name('certifications.reject')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
+    Route::delete('/certifications/{certification}', [UserController::class, 'rejectCertification'])->name('certifications.destroy')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
 
 
 
@@ -328,15 +328,18 @@ Route::get('/run-migration', function () {
             'status' => 'success',
             'message' => 'Database hosting berhasil dibersihkan total & diisi data tim resmi!',
             'team_members' => [
-                'Direktur'              => 'hariyadi@ipnetsolusindo.com (password: password123)',
-                'Group Leader'          => 'susanto@ipnetsolusindo.com (password: password123)',
-                'Team Leader Network'   => 'nugraha@ipnetsolusindo.com (password: password123)',
-                'Team Leader Security'  => 'ignatius@ipnetsolusindo.com (password: password123)',
-                'Engineer Network (L1)' => 'rorik@ipnetsolusindo.com (password: password123)',
-                'Engineer Network (L1)' => 'shiamsyah@ipnetsolusindo.com (password: password123)',
-                'Engineer Network (L2)' => 'dedy@ipnetsolusindo.com (password: password123)',
-                'Engineer Network (L2)' => 'syaiful@ipnetsolusindo.com (password: password123)',
-                'Engineer Security (L1)'=> 'eka@ipnetsolusindo.com (password: password123)',
+                'Direktur'                  => 'hariyadi@ipnetsolusindo.com (password: password123)',
+                'Group Leader'              => 'susanto@ipnetsolusindo.com (password: password123)',
+                'Team Leader Network'       => 'nugraha@ipnetsolusindo.com (password: password123)',
+                'Team Leader Security'      => 'ignatius@ipnetsolusindo.com (password: password123)',
+                'Lead Maintenance'          => 'doris@ipnetsolusindo.com (password: password123)',
+                'Engineer Network (L1)'     => 'rorik@ipnetsolusindo.com (password: password123)',
+                'Engineer Network (L1)'     => 'shiamsyah@ipnetsolusindo.com (password: password123)',
+                'Engineer Network (L2)'     => 'dedy@ipnetsolusindo.com (password: password123)',
+                'Engineer Network (L2)'     => 'syaiful@ipnetsolusindo.com (password: password123)',
+                'Engineer Security (L1)'    => 'eka@ipnetsolusindo.com (password: password123)',
+                'Staff Maintenance'         => 'mario@ipnetsolusindo.com (password: password123)',
+                'Staff Maintenance '        => 'eris@ipnetsolusindo.com (password: password123)',
             ],
             'details' => $outputs,
         ]);

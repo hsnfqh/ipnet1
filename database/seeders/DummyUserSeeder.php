@@ -18,8 +18,8 @@ class DummyUserSeeder extends Seeder
 {
     public function run(): void
     {
-        // 0. Bersihkan akun dummy lama
-        User::whereIn('name', ['Rangga Saputra', 'Fajar Nugroho', 'Dimas Prakoso', 'Sinta Wulandari', 'Bayu Kusuma', 'Rani Oktaviani'])
+        // 0. Bersihkan akun dummy lama jika ada
+        User::whereIn('name', ['Rangga Saputra', 'Bayu Kusuma', 'Rani Oktaviani', 'Bambang Wicaksono', 'Fajar Ramadhan', 'Dimas Aditya'])
             ->orWhere('email', 'like', '%@ipnetwork.co.id')
             ->delete();
 
@@ -28,9 +28,12 @@ class DummyUserSeeder extends Seeder
             'Direktur',
             'HD / Direktur',
             'Group Leader',
+            'Lead Divisi',
             'Team Leader',
-            'Engineer',
+            'Lead Maintenance',
             'Lead Engineer',
+            'Engineer',
+            'Maintenance',
             'Engineer L1',
             'Engineer L2',
         ];
@@ -38,28 +41,36 @@ class DummyUserSeeder extends Seeder
             Role::firstOrCreate(['name' => $r]);
         }
 
-        // 2. Divisi
+        // 2. Divisi (Network, Security, Maintenance)
         $divNet = Division::firstOrCreate(
             ['name' => 'Divisi Network'],
-            ['code' => 'NET', 'description' => 'Divisi Infrastruktur Jaringan, Routing & Switching']
+            ['code' => 'NET', 'description' => 'Divisi Infrastruktur Jaringan, Routing, Switching & Fiber Optik']
         );
         $divSec = Division::firstOrCreate(
             ['name' => 'Divisi Security'],
             ['code' => 'SEC', 'description' => 'Divisi Keamanan Jaringan & Cyber Security Protection']
         );
+        $divMnt = Division::firstOrCreate(
+            ['name' => 'Divisi Maintenance'],
+            ['code' => 'MNT', 'description' => 'Divisi Pemeliharaan Rutin, Preventive & Corrective Maintenance SLA']
+        );
 
         // 3. Tim
         $teamNet = Team::firstOrCreate(
             ['name' => 'Tim Network', 'division_id' => $divNet->id],
-            ['description' => 'Tim Operasional, Deployment & Maintenance Jaringan']
+            ['description' => 'Tim Operasional, Deployment & Instalasi Jaringan Lapangan']
         );
         $teamSec = Team::firstOrCreate(
             ['name' => 'Tim Security', 'division_id' => $divSec->id],
             ['description' => 'Tim Monitoring, Hardening & Security Implementation']
         );
+        $teamMnt = Team::firstOrCreate(
+            ['name' => 'Tim Maintenance', 'division_id' => $divMnt->id],
+            ['description' => 'Tim Preventive Maintenance, SLA Support & Field Troubleshooting']
+        );
 
         // ============================================================
-        // 4. SEED USERS RESMI IP-NET
+        // 4. SEED USERS RESMI IP-NET (MANAGERIAL & 3 DIVISI)
         // ============================================================
         $direktur = User::updateOrCreate(
             ['email' => 'hariyadi@ipnetsolusindo.com'],
@@ -91,6 +102,7 @@ class DummyUserSeeder extends Seeder
         );
         $gl->syncRoles(['Group Leader']);
 
+        // --- DIVISI NETWORK ---
         $tlNet = User::updateOrCreate(
             ['email' => 'nugraha@ipnetsolusindo.com'],
             [
@@ -106,22 +118,6 @@ class DummyUserSeeder extends Seeder
         );
         $tlNet->syncRoles(['Team Leader']);
         $teamNet->update(['leader_id' => $tlNet->id]);
-
-        $tlSec = User::updateOrCreate(
-            ['email' => 'ignatius@ipnetsolusindo.com'],
-            [
-                'name'        => 'Ignatius Rizky',
-                'password'    => Hash::make('password123'),
-                'phone'       => '08111000004',
-                'position'    => 'Security Leader',
-                'status'      => 'Active',
-                'division_id' => $divSec->id,
-                'team_id'     => $teamSec->id,
-                'level'       => null,
-            ]
-        );
-        $tlSec->syncRoles(['Team Leader']);
-        $teamSec->update(['leader_id' => $tlSec->id]);
 
         $engNet1 = User::updateOrCreate(
             ['email' => 'rorik@ipnetsolusindo.com'],
@@ -183,6 +179,23 @@ class DummyUserSeeder extends Seeder
         );
         $engNet4->syncRoles(['Engineer']);
 
+        // --- DIVISI SECURITY ---
+        $tlSec = User::updateOrCreate(
+            ['email' => 'ignatius@ipnetsolusindo.com'],
+            [
+                'name'        => 'Ignatius Rizky',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000004',
+                'position'    => 'Security Leader',
+                'status'      => 'Active',
+                'division_id' => $divSec->id,
+                'team_id'     => $teamSec->id,
+                'level'       => null,
+            ]
+        );
+        $tlSec->syncRoles(['Team Leader']);
+        $teamSec->update(['leader_id' => $tlSec->id]);
+
         $engSec1 = User::updateOrCreate(
             ['email' => 'eka@ipnetsolusindo.com'],
             [
@@ -198,223 +211,407 @@ class DummyUserSeeder extends Seeder
         );
         $engSec1->syncRoles(['Engineer']);
 
+        // --- DIVISI MAINTENANCE (DORIS, MARIO, ERIS) ---
+        $tlMnt = User::updateOrCreate(
+            ['email' => 'doris@ipnetsolusindo.com'],
+            [
+                'name'        => 'Doris',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000010',
+                'position'    => 'Lead Maintenance',
+                'status'      => 'Active',
+                'division_id' => $divMnt->id,
+                'team_id'     => $teamMnt->id,
+                'level'       => null,
+            ]
+        );
+        $tlMnt->syncRoles(['Lead Maintenance']);
+        $teamMnt->update(['leader_id' => $tlMnt->id]);
+
+        $engMnt1 = User::updateOrCreate(
+            ['email' => 'mario@ipnetsolusindo.com'],
+            [
+                'name'        => 'Mario',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000011',
+                'position'    => 'Maintenance Staff',
+                'status'      => 'Active',
+                'division_id' => $divMnt->id,
+                'team_id'     => $teamMnt->id,
+                'level'       => null,
+            ]
+        );
+        $engMnt1->syncRoles(['Maintenance']);
+
+        $engMnt2 = User::updateOrCreate(
+            ['email' => 'eris@ipnetsolusindo.com'],
+            [
+                'name'        => 'Eris',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000012',
+                'position'    => 'Maintenance Staff',
+                'status'      => 'Active',
+                'division_id' => $divMnt->id,
+                'team_id'     => $teamMnt->id,
+                'level'       => null,
+            ]
+        );
+        $engMnt2->syncRoles(['Maintenance']);
+
         // ============================================================
-        // 5. SEED 20 PROYEK LENGKAP & RIIL
+        // 5. SEED 20 PROYEK LENGKAP & SEMUA MEMILIKI SALES RESMI
         // ============================================================
         $projectsData = [
             [
-                'name'        => 'Upgrade Jaringan WAN & SD-WAN Adira Finance',
-                'client'      => 'PT Adira Dinamika Multi Finance Tbk',
-                'location'    => 'Kantor Pusat Adira & 15 Cabang',
-                'start_date'  => now()->subDays(12),
-                'deadline'    => now()->addDays(18),
-                'status'      => 'On Progress',
-                'description' => 'Implementasi SD-WAN, upgrade bandwidth router utama, dan konfigurasi failover link.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'Upgrade Jaringan WAN & SD-WAN Adira Finance',
+                'client'         => 'PT Adira Dinamika Multi Finance Tbk',
+                'sales_name'     => 'Riko Wijaya',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Kantor Pusat Adira & 15 Cabang',
+                'start_date'     => now()->subDays(12),
+                'deadline'       => now()->addDays(18),
+                'status'         => 'On Progress',
+                'description'    => 'Implementasi SD-WAN, upgrade bandwidth router utama, dan konfigurasi failover link.',
+                'created_by'     => $tlNet->id,
             ],
             [
-                'name'        => 'Hardening Firewall & SIEM Monitoring Bank Mandiri',
-                'client'      => 'PT Bank Mandiri (Persero) Tbk',
-                'location'    => 'Data Center Plaza Mandiri, Jakarta',
-                'start_date'  => now()->subDays(10),
-                'deadline'    => now()->addDays(20),
-                'status'      => 'On Progress',
-                'description' => 'Audit keamanan siber, konfigurasi Fortigate Firewall HA, dan integrasi alert SIEM.',
-                'created_by'  => $tlSec->id,
+                'name'           => 'Hardening Firewall & SIEM Monitoring Bank Mandiri',
+                'client'         => 'PT Bank Mandiri (Persero) Tbk',
+                'sales_name'     => 'Anita Lestari',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Data Center Plaza Mandiri, Jakarta',
+                'start_date'     => now()->subDays(10),
+                'deadline'       => now()->addDays(20),
+                'status'         => 'On Progress',
+                'description'    => 'Audit keamanan siber, konfigurasi Fortigate Firewall HA, dan integrasi alert SIEM.',
+                'created_by'     => $tlSec->id,
             ],
             [
-                'name'        => 'Instalasi Fiber Optik Backbone - Gedung BCA Thamrin',
-                'client'      => 'PT Bank Central Asia Tbk',
-                'location'    => 'Menara BCA Lt. 12-24, Jakarta Pusat',
-                'start_date'  => now()->subDays(20),
-                'deadline'    => now()->addDays(10),
-                'status'      => 'On Progress',
-                'description' => 'Pemasangan jalur fiber optik backbone multimode OM4 untuk 12 lantai perkantoran.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'Instalasi Fiber Optik Backbone - Gedung BCA Thamrin',
+                'client'         => 'PT Bank Central Asia Tbk',
+                'sales_name'     => 'Hendra Gunawan',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Menara BCA Lt. 12-24, Jakarta Pusat',
+                'start_date'     => now()->subDays(20),
+                'deadline'       => now()->addDays(10),
+                'status'         => 'On Progress',
+                'description'    => 'Pemasangan jalur fiber optik backbone multimode OM4 untuk 12 lantai perkantoran.',
+                'created_by'     => $tlNet->id,
             ],
             [
-                'name'        => 'Maintenance Jaringan Core & VLAN - RS Siloam Kebon Jeruk',
-                'client'      => 'RS Siloam Hospitals Group',
-                'location'    => 'RS Siloam Kebon Jeruk, Jakarta Barat',
-                'start_date'  => now()->subDays(15),
-                'deadline'    => now()->addDays(5),
-                'status'      => 'On Progress',
-                'description' => 'Pemeliharaan rutin switch core Cisco Catalyst dan restrukturisasi segmentasi VLAN medis.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'Preventive Maintenance SLA Bulanan Jaringan - RS Siloam Kebon Jeruk',
+                'client'         => 'RS Siloam Hospitals Group',
+                'sales_name'     => 'Riko Wijaya',
+                'project_type'   => 'Maintenance Berkala',
+                'visit_schedule' => 'Bulanan (Monthly)',
+                'location'       => 'RS Siloam Kebon Jeruk, Jakarta Barat',
+                'start_date'     => now()->subDays(15),
+                'deadline'       => now()->addDays(75),
+                'status'         => 'On Progress',
+                'description'    => 'Kontrak pemeliharaan berkala SLA 99.9%, inspeksi bulanan switch core, dan restrukturisasi segmentasi VLAN medis.',
+                'created_by'     => $tlMnt->id,
             ],
             [
-                'name'        => 'Upgrade Bandwidth & WiFi 6 - Mall Kelapa Gading',
-                'client'      => 'Summarecon Mall Group',
-                'location'    => 'Mall Kelapa Gading 1-5, Jakarta Utara',
-                'start_date'  => now()->subDays(40),
-                'deadline'    => now()->subDays(5),
-                'status'      => 'Completed',
-                'description' => 'Pemasangan 65 titik Access Point WiFi 6 Aruba dan gateway captive portal pengunjung.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'Upgrade Bandwidth & WiFi 6 - Mall Kelapa Gading',
+                'client'         => 'Summarecon Mall Group',
+                'sales_name'     => 'Hendra Gunawan',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Mall Kelapa Gading 1-5, Jakarta Utara',
+                'start_date'     => now()->subDays(40),
+                'deadline'       => now()->subDays(5),
+                'status'         => 'Completed',
+                'description'    => 'Pemasangan 65 titik Access Point WiFi 6 Aruba dan gateway captive portal pengunjung.',
+                'created_by'     => $tlNet->id,
             ],
             [
-                'name'        => 'Rollout WiFi Corporate & Radius Server - Menara BTPN',
-                'client'      => 'PT Bank BTPN Tbk',
-                'location'    => 'CBD Mega Kuningan, Jakarta Selatan',
-                'start_date'  => now()->subDays(8),
-                'deadline'    => now()->addDays(22),
-                'status'      => 'On Progress',
-                'description' => 'Implementasi WPA3 Enterprise, integrasi Active Directory, dan autentikasi 802.1X.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'Rollout WiFi Corporate & Radius Server - Menara BTPN',
+                'client'         => 'PT Bank BTPN Tbk',
+                'sales_name'     => 'Anita Lestari',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'CBD Mega Kuningan, Jakarta Selatan',
+                'start_date'     => now()->subDays(8),
+                'deadline'       => now()->addDays(22),
+                'status'         => 'On Progress',
+                'description'    => 'Implementasi WPA3 Enterprise, integrasi Active Directory, dan autentikasi 802.1X.',
+                'created_by'     => $tlNet->id,
             ],
             [
-                'name'        => 'Security Vulnerability Assessment - Shopee Data Center',
-                'client'      => 'PT Shopee International Indonesia',
-                'location'    => 'Tersentrik Cyber 2 Tower, Jakarta',
-                'start_date'  => now()->subDays(6),
-                'deadline'    => now()->addDays(24),
-                'status'      => 'On Progress',
-                'description' => 'Penetration testing internal segment, port scanning, dan review policy WAF.',
-                'created_by'  => $tlSec->id,
+                'name'           => 'Security Vulnerability Assessment - Shopee Data Center',
+                'client'         => 'PT Shopee International Indonesia',
+                'sales_name'     => 'Riko Wijaya',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Tersentrik Cyber 2 Tower, Jakarta',
+                'start_date'     => now()->subDays(6),
+                'deadline'       => now()->addDays(24),
+                'status'         => 'On Progress',
+                'description'    => 'Penetration testing internal segment, port scanning, dan review policy WAF.',
+                'created_by'     => $tlSec->id,
             ],
             [
-                'name'        => 'CCTV IP & Network Infrastructure - Gudang Logistik Lazada',
-                'client'      => 'PT Lazada Express Indonesia',
-                'location'    => 'Kawasan Industri MM2100, Cikarang',
-                'start_date'  => now()->subDays(35),
-                'deadline'    => now()->subDays(2),
-                'status'      => 'Completed',
-                'description' => 'Instalasi 48 IP Camera Hikvision 4K, PoE switch manageable, dan storage NVR 64TB.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'CCTV IP & Network Infrastructure - Gudang Logistik Lazada',
+                'client'         => 'PT Lazada Express Indonesia',
+                'sales_name'     => 'Hendra Gunawan',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Kawasan Industri MM2100, Cikarang',
+                'start_date'     => now()->subDays(35),
+                'deadline'       => now()->subDays(2),
+                'status'         => 'Completed',
+                'description'    => 'Instalasi 48 IP Camera Hikvision 4K, PoE switch manageable, dan storage NVR 64TB.',
+                'created_by'     => $tlNet->id,
             ],
             [
-                'name'        => 'Redundant BGP Peering & Routing - Data Center Telkomsigma',
-                'client'      => 'PT Sigma Cipta Caraka (Telkomsigma)',
-                'location'    => 'Serpong Data Center, Tangerang Selatan',
-                'start_date'  => now()->addDays(3),
-                'deadline'    => now()->addDays(35),
-                'status'      => 'Planning',
-                'description' => 'Konfigurasi ASN BGP multihoming dengan upstream Telkom & Indosat.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'Kontrak Pemeliharaan Rutin Triwulanan Firewall & Switch - BCA Thamrin',
+                'client'         => 'PT Bank Central Asia Tbk',
+                'sales_name'     => 'Anita Lestari',
+                'project_type'   => 'Maintenance Berkala',
+                'visit_schedule' => 'Triwulanan (Quarterly)',
+                'location'       => 'Menara BCA Thamrin Lt. 12, Jakarta Pusat',
+                'start_date'     => now()->subDays(10),
+                'deadline'       => now()->addDays(80),
+                'status'         => 'On Progress',
+                'description'    => 'Jadwal visit berkala triwulanan pembersihan rack, audit firmware switch Cisco, dan health check firewall.',
+                'created_by'     => $tlMnt->id,
             ],
             [
-                'name'        => 'Disaster Recovery Network Setup - Astra International',
-                'client'      => 'PT Astra International Tbk',
-                'location'    => 'Menara Astra & Cibitung DR Site',
-                'start_date'  => now()->addDays(7),
-                'deadline'    => now()->addDays(40),
-                'status'      => 'Planning',
-                'description' => 'Penyusunan link cadangan dark fiber dan simulasi failover database core.',
-                'created_by'  => $tlSec->id,
+                'name'           => 'Managed Services & Maintenance Mingguan - Mall Kelapa Gading',
+                'client'         => 'Summarecon Mall Group',
+                'sales_name'     => 'Hendra Gunawan',
+                'project_type'   => 'Managed Service',
+                'visit_schedule' => 'Mingguan (Weekly)',
+                'location'       => 'Mall Kelapa Gading 1-5, Jakarta Utara',
+                'start_date'     => now()->subDays(7),
+                'deadline'       => now()->addDays(53),
+                'status'         => 'On Progress',
+                'description'    => 'Layanan on-site support mingguan untuk pengecekan throughput WiFi publik dan gateway captive portal.',
+                'created_by'     => $tlMnt->id,
             ],
             [
-                'name'        => 'Deployment Core Switch Nexus 9K - Data Center Indosat',
-                'client'      => 'PT Indosat Ooredoo Hutchison Tbk',
-                'location'    => 'Data Center Jatiluhur, Jawa Barat',
-                'start_date'  => now()->subDays(14),
-                'deadline'    => now()->addDays(15),
-                'status'      => 'On Progress',
-                'description' => 'Instalasi chassis switch spine-leaf Cisco Nexus 9000 untuk high-density traffic.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'Maintenance & SLA Support WiFi Corporate - Menara BTPN',
+                'client'         => 'PT Bank BTPN Tbk',
+                'sales_name'     => 'Anita Lestari',
+                'project_type'   => 'Maintenance Berkala',
+                'visit_schedule' => 'Bulanan (Monthly)',
+                'location'       => 'CBD Mega Kuningan, Jakarta Selatan',
+                'start_date'     => now()->subDays(5),
+                'deadline'       => now()->addDays(85),
+                'status'         => 'On Progress',
+                'description'    => 'Visit bulanan pengecekan log autentikasi 802.1X FreeRadius dan optimasi sinyal AP Aruba.',
+                'created_by'     => $tlMnt->id,
             ],
             [
-                'name'        => 'WAF (Web Application Firewall) Implementation - Tokopedia',
-                'client'      => 'PT Tokopedia (GoTo Group)',
-                'location'    => 'Tokopedia Tower, Jakarta Selatan',
-                'start_date'  => now()->subDays(9),
-                'deadline'    => now()->addDays(16),
-                'status'      => 'On Progress',
-                'description' => 'Implementasi Cloudflare Enterprise WAF dan mitigasi serangan DDoS Layer 7.',
-                'created_by'  => $tlSec->id,
+                'name'           => 'Inspeksi & Pemeliharaan Berkala CCTV NVR - Gudang Lazada',
+                'client'         => 'PT Lazada Express Indonesia',
+                'sales_name'     => 'Hendra Gunawan',
+                'project_type'   => 'Maintenance Berkala',
+                'visit_schedule' => 'Bulanan (Monthly)',
+                'location'       => 'Kawasan Industri MM2100, Cikarang',
+                'start_date'     => now()->subDays(3),
+                'deadline'       => now()->addDays(87),
+                'status'         => 'On Progress',
+                'description'    => 'Pengecekan rutin storage NVR, angle kamera CCTV, dan cleaning debu lensa di area warehouse.',
+                'created_by'     => $tlMnt->id,
             ],
             [
-                'name'        => 'Migrasi Cloud Interconnect AWS DirectConnect - Tiket.com',
-                'client'      => 'PT Global Tiket Network',
-                'location'    => 'Equinix Data Center JK1, Jakarta',
-                'start_date'  => now()->subDays(18),
-                'deadline'    => now()->addDays(8),
-                'status'      => 'On Progress',
-                'description' => 'Penyambungan cross-connect link 10Gbps dedicated ke AWS Region Jakarta.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'Redundant BGP Peering & Routing - Data Center Telkomsigma',
+                'client'         => 'PT Sigma Cipta Caraka (Telkomsigma)',
+                'sales_name'     => 'Riko Wijaya',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Serpong Data Center, Tangerang Selatan',
+                'start_date'     => now()->addDays(3),
+                'deadline'       => now()->addDays(35),
+                'status'         => 'Planning',
+                'description'    => 'Konfigurasi ASN BGP multihoming dengan upstream Telkom & Indosat.',
+                'created_by'     => $tlNet->id,
             ],
             [
-                'name'        => 'Implementasi Zero Trust Network Access (ZTNA) - Telkomsel',
-                'client'      => 'PT Telekomunikasi Selular',
-                'location'    => 'Telkomsel Smart Office, Jakarta',
-                'start_date'  => now()->subDays(5),
-                'deadline'    => now()->addDays(28),
-                'status'      => 'On Progress',
-                'description' => 'Penggantian legacy VPN dengan arsitektur ZTNA berbasis identity provider.',
-                'created_by'  => $tlSec->id,
+                'name'           => 'Disaster Recovery Network Setup - Astra International',
+                'client'         => 'PT Astra International Tbk',
+                'sales_name'     => 'Anita Lestari',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Menara Astra & Cibitung DR Site',
+                'start_date'     => now()->addDays(7),
+                'deadline'       => now()->addDays(40),
+                'status'         => 'Planning',
+                'description'    => 'Penyusunan link cadangan dark fiber dan simulasi failover database core.',
+                'created_by'     => $tlSec->id,
             ],
             [
-                'name'        => 'Audit Kepatuhan PCI-DSS & Endpoint Security - DANA Indonesia',
-                'client'      => 'PT Espay Debit Indonesia Koe',
-                'location'    => 'Capital Place, Gatot Subroto, Jakarta',
-                'start_date'  => now()->subDays(30),
-                'deadline'    => now()->subDays(1),
-                'status'      => 'Completed',
-                'description' => 'Audit jaringan transaksi pembayaran e-wallet dan hardening enkripsi TLS 1.3.',
-                'created_by'  => $tlSec->id,
+                'name'           => 'Deployment Core Switch Nexus 9K - Data Center Indosat',
+                'client'         => 'PT Indosat Ooredoo Hutchison Tbk',
+                'sales_name'     => 'Hendra Gunawan',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Data Center Jatiluhur, Jawa Barat',
+                'start_date'     => now()->subDays(14),
+                'deadline'       => now()->addDays(15),
+                'status'         => 'On Progress',
+                'description'    => 'Instalasi chassis switch spine-leaf Cisco Nexus 9000 untuk high-density traffic.',
+                'created_by'     => $tlNet->id,
             ],
             [
-                'name'        => 'Konektivitas Cabang Multi-Cloud - Alfamart Head Office',
-                'client'      => 'PT Sumber Alfaria Trijaya Tbk',
-                'location'    => 'Head Office Alfamart, Alam Sutera, Tangerang',
-                'start_date'  => now()->subDays(11),
-                'deadline'    => now()->addDays(19),
-                'status'      => 'On Progress',
-                'description' => 'SD-WAN interkoneksi 300 hub distribusi ke Google Cloud & Azure.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'WAF (Web Application Firewall) Implementation - Tokopedia',
+                'client'         => 'PT Tokopedia (GoTo Group)',
+                'sales_name'     => 'Maya Safitri',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Tokopedia Tower, Jakarta Selatan',
+                'start_date'     => now()->subDays(9),
+                'deadline'       => now()->addDays(16),
+                'status'         => 'On Progress',
+                'description'    => 'Implementasi Cloudflare Enterprise WAF dan mitigasi serangan DDoS Layer 7.',
+                'created_by'     => $tlSec->id,
             ],
             [
-                'name'        => 'Monitoring Jaringan APM & Network Tapping - OVO',
-                'client'      => 'PT Visionet Internasional',
-                'location'    => 'Lippo Kuningan, Jakarta Selatan',
-                'start_date'  => now()->subDays(7),
-                'deadline'    => now()->addDays(23),
-                'status'      => 'On Progress',
-                'description' => 'Pemasangan network packet broker Gigamon dan integrasi Dynatrace APM.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'Migrasi Cloud Interconnect AWS DirectConnect - Tiket.com',
+                'client'         => 'PT Global Tiket Network',
+                'sales_name'     => 'Riko Wijaya',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Equinix Data Center JK1, Jakarta',
+                'start_date'     => now()->subDays(18),
+                'deadline'       => now()->addDays(8),
+                'status'         => 'On Progress',
+                'description'    => 'Penyambungan cross-connect link 10Gbps dedicated ke AWS Region Jakarta.',
+                'created_by'     => $tlNet->id,
             ],
             [
-                'name'        => 'Pemasangan Dark Fiber Ring Metro-E - Maybank Tower',
-                'client'      => 'PT Bank Maybank Indonesia Tbk',
-                'location'    => 'Maybank Tower, Senayan, Jakarta',
-                'start_date'  => now()->addDays(5),
-                'deadline'    => now()->addDays(38),
-                'status'      => 'Planning',
-                'description' => 'Pembangunan ring proteksi fiber optik underground 48 core.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'Implementasi Zero Trust Network Access (ZTNA) - Telkomsel',
+                'client'         => 'PT Telekomunikasi Selular',
+                'sales_name'     => 'Maya Safitri',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Telkomsel Smart Office, Jakarta',
+                'start_date'     => now()->subDays(5),
+                'deadline'       => now()->addDays(28),
+                'status'         => 'On Progress',
+                'description'    => 'Penggantian legacy VPN dengan arsitektur ZTNA berbasis identity provider.',
+                'created_by'     => $tlSec->id,
             ],
             [
-                'name'        => 'Penetration Testing & Red Teaming - Blibli Data Center',
-                'client'      => 'PT Global Digital Niaga Tbk',
-                'location'    => 'KS Tubun, Slipi, Jakarta Barat',
-                'start_date'  => now()->subDays(8),
-                'deadline'    => now()->addDays(14),
-                'status'      => 'On Progress',
-                'description' => 'Simulasi serangan Advanced Persistent Threat (APT) dan pengujian SIEM detection.',
-                'created_by'  => $tlSec->id,
+                'name'           => 'Audit Kepatuhan PCI-DSS & Endpoint Security - DANA Indonesia',
+                'client'         => 'PT Espay Debit Indonesia Koe',
+                'sales_name'     => 'Anita Lestari',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Capital Place, Gatot Subroto, Jakarta',
+                'start_date'     => now()->subDays(30),
+                'deadline'       => now()->subDays(1),
+                'status'         => 'Completed',
+                'description'    => 'Audit jaringan transaksi pembayaran e-wallet dan hardening enkripsi TLS 1.3.',
+                'created_by'     => $tlSec->id,
             ],
             [
-                'name'        => 'Revitalisasi Kabel Data Cat6A & Rack - Pertamina Hulu Energi',
-                'client'      => 'PT Pertamina Hulu Energi',
-                'location'    => 'PHE Tower, Pasar Minggu, Jakarta Selatan',
-                'start_date'  => now()->subDays(50),
-                'deadline'    => now()->subDays(10),
-                'status'      => 'Completed',
-                'description' => 'Re-cabling 250 node kabel Cat6A shielded dan penataan ulang 6 rack server.',
-                'created_by'  => $tlNet->id,
+                'name'           => 'Konektivitas Cabang Multi-Cloud - Alfamart Head Office',
+                'client'         => 'PT Sumber Alfaria Trijaya Tbk',
+                'sales_name'     => 'Hendra Gunawan',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Head Office Alfamart, Alam Sutera, Tangerang',
+                'start_date'     => now()->subDays(11),
+                'deadline'       => now()->addDays(19),
+                'status'         => 'On Progress',
+                'description'    => 'SD-WAN interkoneksi 300 hub distribusi ke Google Cloud & Azure.',
+                'created_by'     => $tlNet->id,
+            ],
+            [
+                'name'           => 'Monitoring Jaringan APM & Network Tapping - OVO',
+                'client'         => 'PT Visionet Internasional',
+                'sales_name'     => 'Riko Wijaya',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Lippo Kuningan, Jakarta Selatan',
+                'start_date'     => now()->subDays(7),
+                'deadline'       => now()->addDays(23),
+                'status'         => 'On Progress',
+                'description'    => 'Pemasangan network packet broker Gigamon dan integrasi Dynatrace APM.',
+                'created_by'     => $tlNet->id,
+            ],
+            [
+                'name'           => 'Pemasangan Dark Fiber Ring Metro-E - Maybank Tower',
+                'client'         => 'PT Bank Maybank Indonesia Tbk',
+                'sales_name'     => 'Anita Lestari',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Maybank Tower, Senayan, Jakarta',
+                'start_date'     => now()->addDays(5),
+                'deadline'       => now()->addDays(38),
+                'status'         => 'Planning',
+                'description'    => 'Pembangunan ring proteksi fiber optik underground 48 core.',
+                'created_by'     => $tlNet->id,
+            ],
+            [
+                'name'           => 'Penetration Testing & Red Teaming - Blibli Data Center',
+                'client'         => 'PT Global Digital Niaga Tbk',
+                'sales_name'     => 'Maya Safitri',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'KS Tubun, Slipi, Jakarta Barat',
+                'start_date'     => now()->subDays(8),
+                'deadline'       => now()->addDays(14),
+                'status'         => 'On Progress',
+                'description'    => 'Simulasi serangan Advanced Persistent Threat (APT) dan pengujian SIEM detection.',
+                'created_by'     => $tlSec->id,
+            ],
+            [
+                'name'           => 'Revitalisasi Kabel Data Cat6A & Rack - Pertamina Hulu Energi',
+                'client'         => 'PT Pertamina Hulu Energi',
+                'sales_name'     => 'Hendra Gunawan',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'PHE Tower, Pasar Minggu, Jakarta Selatan',
+                'start_date'     => now()->subDays(50),
+                'deadline'       => now()->subDays(10),
+                'status'         => 'Completed',
+                'description'    => 'Re-cabling 250 node kabel Cat6A shielded dan penataan ulang 6 rack server.',
+                'created_by'     => $tlNet->id,
+            ],
+            [
+                'name'           => 'Infrastruktur Jaringan Core & Data Center - BNI Pusat',
+                'client'         => 'PT Bank Negara Indonesia (Persero) Tbk',
+                'sales_name'     => 'Riko Wijaya',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+                'location'       => 'Grha BNI Lt. 15-28, Sudirman, Jakarta',
+                'start_date'     => now()->subDays(15),
+                'deadline'       => now()->addDays(30),
+                'status'         => 'On Progress',
+                'description'    => 'Penggelaran switch core redundansi dan routing BGP multihome data center BNI.',
+                'created_by'     => $tlNet->id,
             ],
         ];
 
         $projects = [];
         foreach ($projectsData as $pData) {
-            $p = Project::updateOrCreate(['name' => $pData['name']], $pData);
+            $p = Project::updateOrCreate(
+                ['name' => $pData['name']],
+                $pData
+            );
             $projects[] = $p;
         }
 
+        // Safety guarantee: pastikan jika ada sisa data lama yang sales_name-nya NULL atau kosong, langsung diisi default
+        Project::whereNull('sales_name')
+            ->orWhere('sales_name', '')
+            ->update([
+                'sales_name'     => 'Riko Wijaya',
+                'project_type'   => 'One-Time Project',
+                'visit_schedule' => 'None',
+            ]);
+
         // ============================================================
-        // 6. SEED TASKS (BERVARIASI: 4, 3, 5, 2, 4 LOAD PER ENGINEER)
+        // 6. SEED TASKS (NETWORK, SECURITY & MAINTENANCE)
         // ============================================================
         $tasksData = [
-            // --- DEDY SURYANA (L2 Network) -> Total 5 Task Aktif (Beban Tertinggi) ---
+            // --- DEDY SURYANA (L2 Network) ---
             [
                 'title'       => 'Konfigurasi BGP Routing & Inter-VLAN Gateway Adira',
                 'project_id'  => $projects[0]->id,
@@ -438,17 +635,6 @@ class DummyUserSeeder extends Seeder
                 'created_by'  => $tlNet->id,
             ],
             [
-                'title'       => 'Restrukturisasi VLAN Medis & QoS Voice/Data RS Siloam',
-                'project_id'  => $projects[3]->id,
-                'engineer_id' => $engNet3->id,
-                'priority'    => 'Medium',
-                'deadline'    => now()->addDays(2),
-                'progress'    => 60,
-                'status'      => 'In Progress',
-                'description' => 'Isolasi subnet perangkat ICU dan prioritasi traffic data rekam medis.',
-                'created_by'  => $tlNet->id,
-            ],
-            [
                 'title'       => 'Setup Radius Server 802.1X Menara BTPN',
                 'project_id'  => $projects[5]->id,
                 'engineer_id' => $engNet3->id,
@@ -459,30 +645,8 @@ class DummyUserSeeder extends Seeder
                 'description' => 'Integrasi FreeRadius ke Active Directory Windows Server BTPN.',
                 'created_by'  => $tlNet->id,
             ],
-            [
-                'title'       => 'Konfigurasi BGP Peering AWS DirectConnect Tiket.com',
-                'project_id'  => $projects[12]->id,
-                'engineer_id' => $engNet3->id,
-                'priority'    => 'High',
-                'deadline'    => now()->addDays(5),
-                'progress'    => 0,
-                'status'      => 'Assigned',
-                'description' => 'Setting ASN private 64512 dan peering eBGP ke AWS DirectConnect Gateway.',
-                'created_by'  => $tlNet->id,
-            ],
-            [
-                'title'       => 'Konfigurasi Switch Distribusi Lazada Warehouse',
-                'project_id'  => $projects[7]->id,
-                'engineer_id' => $engNet3->id,
-                'priority'    => 'Low',
-                'deadline'    => now()->subDays(6),
-                'progress'    => 100,
-                'status'      => 'Completed',
-                'description' => 'Setting LACP Link Aggregation dan IGMP snooping multicast video CCTV.',
-                'created_by'  => $tlNet->id,
-            ],
 
-            // --- RORIK (L1 Network) -> Total 4 Task Aktif ---
+            // --- RORIK (L1 Network) ---
             [
                 'title'       => 'Tarik Kabel Fiber Optik Lantai 12-16 Gedung BCA',
                 'project_id'  => $projects[2]->id,
@@ -505,41 +669,8 @@ class DummyUserSeeder extends Seeder
                 'description' => 'Penyambungan core fiber menggunakan fusion splicer dan penataan tray.',
                 'created_by'  => $tlNet->id,
             ],
-            [
-                'title'       => 'Pengecekan Kabel UTP & Patch Panel Site Adira',
-                'project_id'  => $projects[0]->id,
-                'engineer_id' => $engNet1->id,
-                'priority'    => 'Medium',
-                'deadline'    => now()->addDays(2),
-                'progress'    => 60,
-                'status'      => 'In Progress',
-                'description' => 'Testing kelayakan kabel LAN Cat6 dan pelabelan port switch.',
-                'created_by'  => $tlNet->id,
-            ],
-            [
-                'title'       => 'Mounting Switch Access Alfamart Head Office',
-                'project_id'  => $projects[15]->id,
-                'engineer_id' => $engNet1->id,
-                'priority'    => 'Medium',
-                'deadline'    => now()->addDays(7),
-                'progress'    => 0,
-                'status'      => 'Assigned',
-                'description' => 'Pemasangan 4 unit Cisco Catalyst 2960X di rack distribusi lantai 2.',
-                'created_by'  => $tlNet->id,
-            ],
-            [
-                'title'       => 'Dokumentasi As-Built Drawing Jaringan RS Siloam',
-                'project_id'  => $projects[3]->id,
-                'engineer_id' => $engNet1->id,
-                'priority'    => 'Low',
-                'deadline'    => now()->subDays(2),
-                'progress'    => 100,
-                'status'      => 'Completed',
-                'description' => 'Pembuatan dokumen as-built drawing jalur kabel dan titik outlet LAN.',
-                'created_by'  => $tlNet->id,
-            ],
 
-            // --- EKA KURNIA (L1 Security) -> Total 4 Task Aktif ---
+            // --- EKA KURNIA (L1 Security) ---
             [
                 'title'       => 'Audit Rule Firewall & Port Filtering Bank Mandiri',
                 'project_id'  => $projects[1]->id,
@@ -549,17 +680,6 @@ class DummyUserSeeder extends Seeder
                 'progress'    => 75,
                 'status'      => 'In Progress',
                 'description' => 'Review rule akses inbound/outbound dan penutupan port non-standar.',
-                'created_by'  => $tlSec->id,
-            ],
-            [
-                'title'       => 'Integrasi Log Firewall ke SIEM Splunk Bank Mandiri',
-                'project_id'  => $projects[1]->id,
-                'engineer_id' => $engSec1->id,
-                'priority'    => 'High',
-                'deadline'    => now()->addDays(4),
-                'progress'    => 40,
-                'status'      => 'In Progress',
-                'description' => 'Konfigurasi Syslog forwarder dan parsing format log event keamanan.',
                 'created_by'  => $tlSec->id,
             ],
             [
@@ -573,30 +693,8 @@ class DummyUserSeeder extends Seeder
                 'description' => 'Scanning menggunakan Nessus Vulnerability Scanner pada subnet server.',
                 'created_by'  => $tlSec->id,
             ],
-            [
-                'title'       => 'Testing Policy WAF Rule Tokopedia',
-                'project_id'  => $projects[11]->id,
-                'engineer_id' => $engSec1->id,
-                'priority'    => 'Medium',
-                'deadline'    => now()->addDays(9),
-                'progress'    => 0,
-                'status'      => 'Assigned',
-                'description' => 'Simulasi attack payload SQL Injection & XSS pada custom WAF ruleset.',
-                'created_by'  => $tlSec->id,
-            ],
-            [
-                'title'       => 'Update Signature IPS & Antivirus Fortigate Bank Mandiri',
-                'project_id'  => $projects[1]->id,
-                'engineer_id' => $engSec1->id,
-                'priority'    => 'Low',
-                'deadline'    => now()->subDays(1),
-                'progress'    => 100,
-                'status'      => 'Completed',
-                'description' => 'Pembaruan database threat intelligence dan uji proteksi malware payload.',
-                'created_by'  => $tlSec->id,
-            ],
 
-            // --- SHIAMSYAH AZIS (L1 Network) -> Total 3 Task Aktif ---
+            // --- SHIAMSYAH AZIS (L1 Network) ---
             [
                 'title'       => 'Instalasi & Mounting Router Mikrotik Baru Adira',
                 'project_id'  => $projects[0]->id,
@@ -619,30 +717,8 @@ class DummyUserSeeder extends Seeder
                 'description' => 'Mounting ceiling AP Aruba dan penarikan kabel drop LAN PoE.',
                 'created_by'  => $tlNet->id,
             ],
-            [
-                'title'       => 'Labeling Port Switch & Patch Cord RS Siloam',
-                'project_id'  => $projects[3]->id,
-                'engineer_id' => $engNet2->id,
-                'priority'    => 'Medium',
-                'deadline'    => now()->addDays(6),
-                'progress'    => 0,
-                'status'      => 'Assigned',
-                'description' => 'Pemasangan label numbering tahan lama pada rack 01-04.',
-                'created_by'  => $tlNet->id,
-            ],
-            [
-                'title'       => 'Testing Speedtest & Coverage Sinyal WiFi Mall Kelapa Gading',
-                'project_id'  => $projects[4]->id,
-                'engineer_id' => $engNet2->id,
-                'priority'    => 'Low',
-                'deadline'    => now()->subDays(4),
-                'progress'    => 100,
-                'status'      => 'Completed',
-                'description' => 'Heatmap survey sinyal dan throughput test di atrium dan koridor mall.',
-                'created_by'  => $tlNet->id,
-            ],
 
-            // --- SYAIFUL AMIN (L2 Network) -> Total 2 Task Aktif ---
+            // --- SYAIFUL AMIN (L2 Network) ---
             [
                 'title'       => 'Stress Test Failover SD-WAN Dual Provider Adira',
                 'project_id'  => $projects[0]->id,
@@ -665,64 +741,124 @@ class DummyUserSeeder extends Seeder
                 'description' => 'Pengukuran redaman dB loss menggunakan alat ukur OTDR EXFO.',
                 'created_by'  => $tlNet->id,
             ],
-            [
-                'title'       => 'Firmware Upgrade Switch Core Cisco RS Siloam',
-                'project_id'  => $projects[3]->id,
-                'engineer_id' => $engNet4->id,
-                'priority'    => 'High',
-                'deadline'    => now()->subDays(3),
-                'progress'    => 100,
-                'status'      => 'Completed',
-                'description' => 'Upgrade IOS-XE versi stabil dan pengujian switch stack redundansi.',
-                'created_by'  => $tlNet->id,
-            ],
 
-            // --- NUGRAHA PRATAMA (TL Network) -> Total 2 Task Supervisi ---
+            // ============================================================
+            // --- TIM MAINTENANCE TASKS ---
+            // ============================================================
+            // DORIS (Lead Maintenance - Supervisi SLA & Kontrak)
             [
-                'title'       => 'Supervisi Arsitektur SD-WAN & Core Routing Adira',
-                'project_id'  => $projects[0]->id,
-                'engineer_id' => $tlNet->id,
+                'title'       => 'Supervisi Jadwal Kunjungan SLA Bulanan RS Siloam',
+                'project_id'  => $projects[3]->id,
+                'engineer_id' => $tlMnt->id,
                 'priority'    => 'High',
                 'deadline'    => now()->addDays(2),
-                'progress'    => 75,
+                'progress'    => 60,
                 'status'      => 'In Progress',
-                'description' => 'Supervisi langsung konfigurasi topologi jaringan dan arsitektur routing.',
-                'created_by'  => $tlNet->id,
+                'description' => 'Supervisi checklist preventive maintenance switch core dan review log insiden medis.',
+                'created_by'  => $tlMnt->id,
             ],
             [
-                'title'       => 'User Acceptance Test (UAT) & Sign-Off Proyek Adira',
-                'project_id'  => $projects[0]->id,
-                'engineer_id' => $tlNet->id,
-                'priority'    => 'High',
-                'deadline'    => now()->addDays(16),
-                'progress'    => 10,
-                'status'      => 'In Progress',
-                'description' => 'Pengujian fungsionalitas failover link dan serah terima dokumen teknis ke client.',
-                'created_by'  => $tlNet->id,
-            ],
-
-            // --- IGNATIUS RIZKY (TL Security) -> Total 2 Task Supervisi ---
-            [
-                'title'       => 'Audit Keamanan & Policy Review Firewall Bank Mandiri',
-                'project_id'  => $projects[1]->id,
-                'engineer_id' => $tlSec->id,
-                'priority'    => 'High',
-                'deadline'    => now()->addDays(3),
-                'progress'    => 65,
-                'status'      => 'In Progress',
-                'description' => 'Analisis rule akses firewall, compliance security, dan arsitektur HA.',
-                'created_by'  => $tlSec->id,
-            ],
-            [
-                'title'       => 'Security Assessment & Executive Report Shopee DC',
-                'project_id'  => $projects[6]->id,
-                'engineer_id' => $tlSec->id,
-                'priority'    => 'High',
-                'deadline'    => now()->addDays(21),
+                'title'       => 'Evaluasi Laporan Berkala & Berita Acara Maintenance BCA',
+                'project_id'  => $projects[8]->id,
+                'engineer_id' => $tlMnt->id,
+                'priority'    => 'Medium',
+                'deadline'    => now()->addDays(5),
                 'progress'    => 20,
                 'status'      => 'In Progress',
-                'description' => 'Penyusunan laporan audit vulnerability dan rekomendasi mitigasi risiko cyber.',
-                'created_by'  => $tlSec->id,
+                'description' => 'Penyusunan summary performa jaringan triwulanan dan penyerahan BAST pemeliharaan.',
+                'created_by'  => $tlMnt->id,
+            ],
+
+            // MARIO (L1 Maintenance Engineer)
+            [
+                'title'       => 'Inspeksi Fisik & Cleaning Debu Rack Server RS Siloam',
+                'project_id'  => $projects[3]->id,
+                'engineer_id' => $engMnt1->id,
+                'priority'    => 'Medium',
+                'deadline'    => now()->addDays(1),
+                'progress'    => 80,
+                'status'      => 'In Progress',
+                'description' => 'Pembersihan filter fan rack, pengecekan suhu ruang server, dan pelabelan kabel yang kendor.',
+                'created_by'  => $tlMnt->id,
+            ],
+            [
+                'title'       => 'Testing Sinyal & Heatmap Survey Berkala Mall Kelapa Gading',
+                'project_id'  => $projects[9]->id,
+                'engineer_id' => $engMnt1->id,
+                'priority'    => 'High',
+                'deadline'    => now()->addDays(3),
+                'progress'    => 40,
+                'status'      => 'In Progress',
+                'description' => 'Survey sinyal WiFi di 5 atrium mall, verifikasi kecepatan bandwidth publik min. 20Mbps.',
+                'created_by'  => $tlMnt->id,
+            ],
+            [
+                'title'       => 'Pemeriksaan Angle & Pembersihan Lensa 48 CCTV Lazada',
+                'project_id'  => $projects[11]->id,
+                'engineer_id' => $engMnt1->id,
+                'priority'    => 'Low',
+                'deadline'    => now()->addDays(4),
+                'progress'    => 25,
+                'status'      => 'In Progress',
+                'description' => 'Pembersihan debu pada dome kamera gudang dan verifikasi kualitas rekaman malam hari.',
+                'created_by'  => $tlMnt->id,
+            ],
+            [
+                'title'       => 'Penggantian Patch Cord LAN Cat6 Rusak RS Siloam',
+                'project_id'  => $projects[3]->id,
+                'engineer_id' => $engMnt1->id,
+                'priority'    => 'Medium',
+                'deadline'    => now()->subDays(2),
+                'progress'    => 100,
+                'status'      => 'Completed',
+                'description' => 'Pergantian 6 patch cord yang mengalami error CRC pada switch distribusi lantai 3.',
+                'created_by'  => $tlMnt->id,
+            ],
+
+            // ERIS (L2 Maintenance Engineer)
+            [
+                'title'       => 'Audit Log Error & Health Check Switch Core RS Siloam',
+                'project_id'  => $projects[3]->id,
+                'engineer_id' => $engMnt2->id,
+                'priority'    => 'High',
+                'deadline'    => now()->addDays(2),
+                'progress'    => 70,
+                'status'      => 'In Progress',
+                'description' => 'Pengecekan log buffer switch core, utilisasi memori/CPU, dan uji STP loop prevention.',
+                'created_by'  => $tlMnt->id,
+            ],
+            [
+                'title'       => 'Backup Konfigurasi & Firmware Check Firewall BCA Thamrin',
+                'project_id'  => $projects[8]->id,
+                'engineer_id' => $engMnt2->id,
+                'priority'    => 'High',
+                'deadline'    => now()->addDays(3),
+                'progress'    => 50,
+                'status'      => 'In Progress',
+                'description' => 'Ekspor running configuration Fortigate & Cisco switch ke cloud backup server.',
+                'created_by'  => $tlMnt->id,
+            ],
+            [
+                'title'       => 'Optimasi Channel & Roaming AP WiFi Menara BTPN',
+                'project_id'  => $projects[10]->id,
+                'engineer_id' => $engMnt2->id,
+                'priority'    => 'High',
+                'deadline'    => now()->addDays(4),
+                'progress'    => 35,
+                'status'      => 'In Progress',
+                'description' => 'Penyelarasan daya transmit radio frequency untuk meminimalisir co-channel interference.',
+                'created_by'  => $tlMnt->id,
+            ],
+            [
+                'title'       => 'Health Check Storage RAID NVR CCTV Lazada Warehouse',
+                'project_id'  => $projects[11]->id,
+                'engineer_id' => $engMnt2->id,
+                'priority'    => 'Medium',
+                'deadline'    => now()->subDays(1),
+                'progress'    => 100,
+                'status'      => 'Completed',
+                'description' => 'SMART test harddisk 64TB NVR, status RAID 5 optimal dan retensi rekaman 30 hari aman.',
+                'created_by'  => $tlMnt->id,
             ],
         ];
 
@@ -731,145 +867,90 @@ class DummyUserSeeder extends Seeder
         }
 
         // ============================================================
-        // 7. SEED 25 TIMESHEETS LENGKAP (LOG KERJA AKTIF & LEMBUR)
+        // 7. SEED TIMESHEETS (TERMASUK PERSONIL MAINTENANCE)
         // ============================================================
         $timesheetsData = [
-            // Rorik (L1 Network)
+            // Mario (L1 Maintenance)
+            [
+                'user_id'          => $engMnt1->id,
+                'project_id'       => $projects[3]->id,
+                'date'             => now()->subDays(2)->toDateString(),
+                'start_time'       => '08:30:00',
+                'end_time'         => '16:30:00',
+                'duration_minutes' => 480,
+                'category'         => 'Maintenance',
+                'activity'         => 'Kunjungan rutin SLA bulanan: Pembersihan filter debu rack server & penggantian 6 patch cord rusak di RS Siloam.',
+                'notes'            => 'Pekerjaan selesai sesuai checklist SOP maintenance.',
+            ],
+            [
+                'user_id'          => $engMnt1->id,
+                'project_id'       => $projects[9]->id,
+                'date'             => now()->subDays(1)->toDateString(),
+                'start_time'       => '09:00:00',
+                'end_time'         => '16:00:00',
+                'duration_minutes' => 420,
+                'category'         => 'On-Site',
+                'activity'         => 'Heatmap survey sinyal WiFi di koridor Mall Kelapa Gading 1-3 dan pengecekan power PoE switch.',
+                'notes'            => 'Throughput rata-rata pengunjung mencapai 28Mbps.',
+            ],
+            [
+                'user_id'          => $engMnt1->id,
+                'project_id'       => $projects[3]->id,
+                'date'             => now()->toDateString(),
+                'start_time'       => '08:30:00',
+                'end_time'         => '12:30:00',
+                'duration_minutes' => 240,
+                'category'         => 'Maintenance',
+                'activity'         => 'Inspeksi suhu ruang server farmasi dan pencatatan log UPS redundansi RS Siloam.',
+                'notes'            => 'Suhu ruang stabil di 19 derajat Celcius.',
+            ],
+
+            // Eris (L2 Maintenance)
+            [
+                'user_id'          => $engMnt2->id,
+                'project_id'       => $projects[8]->id,
+                'date'             => now()->subDays(2)->toDateString(),
+                'start_time'       => '09:00:00',
+                'end_time'         => '17:00:00',
+                'duration_minutes' => 480,
+                'category'         => 'Maintenance',
+                'activity'         => 'Backup rutin konfigurasi switch Cisco Catalyst dan review policy firewall Fortigate Menara BCA Thamrin.',
+                'notes'            => 'File backup tersimpan aman di server backup terenkripsi.',
+            ],
+            [
+                'user_id'          => $engMnt2->id,
+                'project_id'       => $projects[11]->id,
+                'date'             => now()->subDays(1)->toDateString(),
+                'start_time'       => '08:30:00',
+                'end_time'         => '16:30:00',
+                'duration_minutes' => 480,
+                'category'         => 'Maintenance',
+                'activity'         => 'Health check storage RAID 5 NVR Hikvision Gudang Logistik Lazada Cikarang.',
+                'notes'            => 'Semua 8 HDD status normal tanpa bad sector.',
+            ],
+            [
+                'user_id'          => $engMnt2->id,
+                'project_id'       => $projects[3]->id,
+                'date'             => now()->toDateString(),
+                'start_time'       => '09:00:00',
+                'end_time'         => '13:00:00',
+                'duration_minutes' => 240,
+                'category'         => 'Maintenance',
+                'activity'         => 'Audit utilisasi bandwidth port trunk switch core dan verifikasi ACL database rekam medis RS Siloam.',
+                'notes'            => 'Utilisasi trunk link di bawah 45%, kapasitas aman.',
+            ],
+
+            // Personel Network Lama
             [
                 'user_id'          => $engNet1->id,
                 'project_id'       => $projects[2]->id,
-                'date'             => now()->subDays(4)->toDateString(),
+                'date'             => now()->subDays(1)->toDateString(),
                 'start_time'       => '08:30:00',
                 'end_time'         => '16:30:00',
                 'duration_minutes' => 480,
                 'category'         => 'On-Site',
                 'activity'         => 'Penarikan kabel fiber optik riser backbone vertikal lantai 12-14 Gedung BCA Thamrin bersama tim.',
                 'notes'            => 'Pekerjaan berjalan lancar tanpa hambatan.',
-            ],
-            [
-                'user_id'          => $engNet1->id,
-                'project_id'       => $projects[2]->id,
-                'date'             => now()->subDays(3)->toDateString(),
-                'start_time'       => '08:30:00',
-                'end_time'         => '17:00:00',
-                'duration_minutes' => 510,
-                'category'         => 'On-Site',
-                'activity'         => 'Lanjutan penarikan kabel fiber optik lantai 15-16 dan terminasi tray kabel shaft.',
-                'notes'            => 'Kabel telah terpasang rapi di dalam conduit.',
-            ],
-            [
-                'user_id'          => $engNet1->id,
-                'project_id'       => $projects[2]->id,
-                'date'             => now()->subDays(2)->toDateString(),
-                'start_time'       => '09:00:00',
-                'end_time'         => '15:30:00',
-                'duration_minutes' => 390,
-                'category'         => 'On-Site',
-                'activity'         => 'Splicing core fiber optik ODF di ruang server lantai 12. Total 24 core selesai disambung.',
-                'notes'            => 'Redaman rata-rata 0.02 dB (sangat baik).',
-            ],
-            [
-                'user_id'          => $engNet1->id,
-                'project_id'       => $projects[0]->id,
-                'date'             => now()->subDays(1)->toDateString(),
-                'start_time'       => '08:30:00',
-                'end_time'         => '14:30:00',
-                'duration_minutes' => 360,
-                'category'         => 'On-Site',
-                'activity'         => 'Pengecekan jalur kabel UTP dan penataan patch cord switch rack server Adira Finance.',
-                'notes'            => 'Patch cord yang rusak telah diganti baru.',
-            ],
-            [
-                'user_id'          => $engNet1->id,
-                'project_id'       => $projects[2]->id,
-                'date'             => now()->toDateString(),
-                'start_time'       => '08:30:00',
-                'end_time'         => '12:30:00',
-                'duration_minutes' => 240,
-                'category'         => 'On-Site',
-                'activity'         => 'Testing kontinuitas cahaya laser visual fault locator pada seluruh core ODF Gedung BCA.',
-                'notes'            => 'Seluruh jalur core 1-24 tembus sempurna.',
-            ],
-
-            // Shiamsyah Azis (L1 Network)
-            [
-                'user_id'          => $engNet2->id,
-                'project_id'       => $projects[0]->id,
-                'date'             => now()->subDays(3)->toDateString(),
-                'start_time'       => '09:00:00',
-                'end_time'         => '16:00:00',
-                'duration_minutes' => 420,
-                'category'         => 'On-Site',
-                'activity'         => 'Instalasi dan mounting router Mikrotik CCR2004 di rack 02 Kantor Pusat Adira Finance.',
-                'notes'            => 'Power supply redundant 1 dan 2 telah dihubungkan ke UPS terpisah.',
-            ],
-            [
-                'user_id'          => $engNet2->id,
-                'project_id'       => $projects[5]->id,
-                'date'             => now()->subDays(2)->toDateString(),
-                'start_time'       => '08:30:00',
-                'end_time'         => '17:30:00',
-                'duration_minutes' => 540,
-                'category'         => 'On-Site',
-                'activity'         => 'Pemasangan bracket dan instalasi 12 unit Access Point Aruba WiFi 6 di Menara BTPN lantai 8.',
-                'notes'            => 'Semua AP menyala dan terhubung PoE switch.',
-            ],
-            [
-                'user_id'          => $engNet2->id,
-                'project_id'       => $projects[5]->id,
-                'date'             => now()->subDays(1)->toDateString(),
-                'start_time'       => '09:00:00',
-                'end_time'         => '18:00:00',
-                'duration_minutes' => 540,
-                'category'         => 'Overtime',
-                'activity'         => 'Lembur penarikan kabel drop LAN PoE untuk AP lantai 9 dan 10 Menara BTPN.',
-                'notes'            => 'Pekerjaan diselesaikan malam hari agar tidak mengganggu aktivitas kantor.',
-            ],
-            [
-                'user_id'          => $engNet2->id,
-                'project_id'       => $projects[0]->id,
-                'date'             => now()->toDateString(),
-                'start_time'       => '08:30:00',
-                'end_time'         => '13:00:00',
-                'duration_minutes' => 270,
-                'category'         => 'On-Site',
-                'activity'         => 'Labeling kabel jaringan dan update denah port switch distribution Adira Finance.',
-                'notes'            => 'Dokumentasi telah diserahkan ke Lead Engineer.',
-            ],
-
-            // Dedy Suryana (L2 Network)
-            [
-                'user_id'          => $engNet3->id,
-                'project_id'       => $projects[0]->id,
-                'date'             => now()->subDays(4)->toDateString(),
-                'start_time'       => '09:00:00',
-                'end_time'         => '17:00:00',
-                'duration_minutes' => 480,
-                'category'         => 'On-Site',
-                'activity'         => 'Konfigurasi BGP Routing peering ke ISP 1 (Telkom) & ISP 2 (Indosat) dengan auto switchover.',
-                'notes'            => 'BGP state Established, traffic balance normal.',
-            ],
-            [
-                'user_id'          => $engNet3->id,
-                'project_id'       => $projects[0]->id,
-                'date'             => now()->subDays(3)->toDateString(),
-                'start_time'       => '09:00:00',
-                'end_time'         => '16:30:00',
-                'duration_minutes' => 450,
-                'category'         => 'Remote',
-                'activity'         => 'Setup VPN IPsec Tunnel AES-256 antar kantor pusat Adira ke 8 kantor cabang utama.',
-                'notes'            => 'Tunnel aktif dan latency rata-rata 18ms.',
-            ],
-            [
-                'user_id'          => $engNet3->id,
-                'project_id'       => $projects[3]->id,
-                'date'             => now()->subDays(2)->toDateString(),
-                'start_time'       => '08:30:00',
-                'end_time'         => '16:00:00',
-                'duration_minutes' => 450,
-                'category'         => 'Maintenance',
-                'activity'         => 'Restrukturisasi subnet VLAN medis dan isolasi segmen server database di RS Siloam Kebon Jeruk.',
-                'notes'            => 'Inter-VLAN routing berjalan lancar dengan ACL proteksi.',
             ],
             [
                 'user_id'          => $engNet3->id,
@@ -881,109 +962,6 @@ class DummyUserSeeder extends Seeder
                 'category'         => 'On-Site',
                 'activity'         => 'Simulasi failover link SD-WAN saat koneksi utama terputus, verifikasi zero packet loss.',
                 'notes'            => 'Failover time kurang dari 1 detik.',
-            ],
-            [
-                'user_id'          => $engNet3->id,
-                'project_id'       => $projects[5]->id,
-                'date'             => now()->toDateString(),
-                'start_time'       => '08:30:00',
-                'end_time'         => '12:30:00',
-                'duration_minutes' => 240,
-                'category'         => 'On-Site',
-                'activity'         => 'Integrasi controller WiFi Aruba ke Active Directory Domain Controller Bank BTPN.',
-                'notes'            => 'Uji coba login user staff sukses dengan autentikasi WPA3-Enterprise.',
-            ],
-
-            // Syaiful Amin (L2 Network)
-            [
-                'user_id'          => $engNet4->id,
-                'project_id'       => $projects[2]->id,
-                'date'             => now()->subDays(4)->toDateString(),
-                'start_time'       => '09:00:00',
-                'end_time'         => '17:00:00',
-                'duration_minutes' => 480,
-                'category'         => 'On-Site',
-                'activity'         => 'Pengujian redaman serat optik menggunakan OTDR pada 24 core backbone Gedung BCA Thamrin.',
-                'notes'            => 'Seluruh sambungan memenuhi standar ITU-T G.652.',
-            ],
-            [
-                'user_id'          => $engNet4->id,
-                'project_id'       => $projects[0]->id,
-                'date'             => now()->subDays(3)->toDateString(),
-                'start_time'       => '08:30:00',
-                'end_time'         => '16:30:00',
-                'duration_minutes' => 480,
-                'category'         => 'On-Site',
-                'activity'         => 'Stress test traffic bandwidth controller SD-WAN menggunakan Iperf3 pada beban 1Gbps.',
-                'notes'            => 'CPU load stabil pada 42%, tidak ditemukan packet drop.',
-            ],
-            [
-                'user_id'          => $engNet4->id,
-                'project_id'       => $projects[3]->id,
-                'date'             => now()->subDays(2)->toDateString(),
-                'start_time'       => '21:00:00',
-                'end_time'         => '03:00:00',
-                'duration_minutes' => 360,
-                'category'         => 'Overtime',
-                'activity'         => 'Maintenance malam: upgrade firmware Cisco IOS-XE switch core RS Siloam Kebon Jeruk.',
-                'notes'            => 'Downtime maintenance 15 menit, sistem pulih sempurna.',
-            ],
-            [
-                'user_id'          => $engNet4->id,
-                'project_id'       => $projects[0]->id,
-                'date'             => now()->toDateString(),
-                'start_time'       => '09:00:00',
-                'end_time'         => '13:00:00',
-                'duration_minutes' => 240,
-                'category'         => 'Remote',
-                'activity'         => 'Setup SNMP Prometheus exporter dan dashboard monitoring Grafana untuk link WAN cabang.',
-                'notes'            => 'Dashboard visualisasi utilisasi link telah online.',
-            ],
-
-            // Eka Kurnia (L1 Security)
-            [
-                'user_id'          => $engSec1->id,
-                'project_id'       => $projects[1]->id,
-                'date'             => now()->subDays(4)->toDateString(),
-                'start_time'       => '08:30:00',
-                'end_time'         => '16:30:00',
-                'duration_minutes' => 480,
-                'category'         => 'On-Site',
-                'activity'         => 'Review konfigurasi firewall Fortigate cluster Bank Mandiri dan audit access control list.',
-                'notes'            => 'Ditemukan 4 rule usang yang telah direkomendasikan untuk dihapus.',
-            ],
-            [
-                'user_id'          => $engSec1->id,
-                'project_id'       => $projects[1]->id,
-                'date'             => now()->subDays(3)->toDateString(),
-                'start_time'       => '08:30:00',
-                'end_time'         => '17:00:00',
-                'duration_minutes' => 510,
-                'category'         => 'On-Site',
-                'activity'         => 'Konfigurasi Syslog forwarder dari Fortigate ke SIEM Splunk dan pembuatan alert anomali.',
-                'notes'            => 'Log event keamanan tersinkronisasi real-time.',
-            ],
-            [
-                'user_id'          => $engSec1->id,
-                'project_id'       => $projects[6]->id,
-                'date'             => now()->subDays(2)->toDateString(),
-                'start_time'       => '09:00:00',
-                'end_time'         => '16:00:00',
-                'duration_minutes' => 420,
-                'category'         => 'On-Site',
-                'activity'         => 'Vulnerability scanning internal network server menggunakan Nessus di Shopee Data Center.',
-                'notes'            => 'Laporan scanning awal telah di-generate untuk tim Lead Security.',
-            ],
-            [
-                'user_id'          => $engSec1->id,
-                'project_id'       => $projects[1]->id,
-                'date'             => now()->subDays(1)->toDateString(),
-                'start_time'       => '08:30:00',
-                'end_time'         => '15:30:00',
-                'duration_minutes' => 420,
-                'category'         => 'On-Site',
-                'activity'         => 'Update threat intelligence database dan engine anti-botnet di perimeter firewall.',
-                'notes'            => 'Signature database up-to-date per tanggal hari ini.',
             ],
             [
                 'user_id'          => $engSec1->id,
@@ -1037,6 +1015,39 @@ class DummyUserSeeder extends Seeder
                 'created_by'  => $tlSec->id,
             ],
             [
+                'title'       => 'Supervisi Visit Pemeliharaan Bulanan RS Siloam',
+                'project_id'  => $projects[3]->id,
+                'engineer_id' => $tlMnt->id,
+                'date'        => now()->toDateString(),
+                'start_time'  => '08:30',
+                'end_time'    => '15:00',
+                'location'    => 'RS Siloam Kebon Jeruk, Jakarta Barat',
+                'description' => 'Review checklist preventive maintenance dan koordinasi dengan Manager IT RS.',
+                'created_by'  => $tlMnt->id,
+            ],
+            [
+                'title'       => 'Inspeksi Fisik & Cleaning Rack RS Siloam',
+                'project_id'  => $projects[3]->id,
+                'engineer_id' => $engMnt1->id,
+                'date'        => now()->toDateString(),
+                'start_time'  => '08:30',
+                'end_time'    => '14:30',
+                'location'    => 'RS Siloam Kebon Jeruk, Jakarta Barat',
+                'description' => 'Pembersihan debu server farmasi & penataan patch cord switch distribusi.',
+                'created_by'  => $tlMnt->id,
+            ],
+            [
+                'title'       => 'Audit Log & Health Check Switch Core RS Siloam',
+                'project_id'  => $projects[3]->id,
+                'engineer_id' => $engMnt2->id,
+                'date'        => now()->toDateString(),
+                'start_time'  => '09:00',
+                'end_time'    => '16:00',
+                'location'    => 'RS Siloam Kebon Jeruk, Jakarta Barat',
+                'description' => 'Pengecekan utilisasi CPU/Memory switch core dan backup konfigurasi.',
+                'created_by'  => $tlMnt->id,
+            ],
+            [
                 'title'       => 'Penarikan Fiber Optik Riser Gedung BCA Lantai 16',
                 'project_id'  => $projects[2]->id,
                 'engineer_id' => $engNet1->id,
@@ -1045,39 +1056,6 @@ class DummyUserSeeder extends Seeder
                 'end_time'    => '14:30',
                 'location'    => 'Menara BCA Thamrin, Jakarta Pusat',
                 'description' => 'Penarikan kabel dan terminasi ODF server room.',
-                'created_by'  => $tlNet->id,
-            ],
-            [
-                'title'       => 'Instalasi Access Point WiFi 6 Menara BTPN',
-                'project_id'  => $projects[5]->id,
-                'engineer_id' => $engNet2->id,
-                'date'        => now()->toDateString(),
-                'start_time'  => '09:00',
-                'end_time'    => '16:00',
-                'location'    => 'Menara BTPN Mega Kuningan, Jakarta Selatan',
-                'description' => 'Mounting ceiling AP dan integrasi PoE switch.',
-                'created_by'  => $tlNet->id,
-            ],
-            [
-                'title'       => 'Konfigurasi Failover BGP Peering ISP Adira',
-                'project_id'  => $projects[0]->id,
-                'engineer_id' => $engNet3->id,
-                'date'        => now()->toDateString(),
-                'start_time'  => '09:30',
-                'end_time'    => '16:30',
-                'location'    => 'Site Adira Finance Pusat, Jakarta',
-                'description' => 'Setting BGP route map dan simulasi link switchover.',
-                'created_by'  => $tlNet->id,
-            ],
-            [
-                'title'       => 'Pengukuran Redaman OTDR Fiber Optik BCA',
-                'project_id'  => $projects[2]->id,
-                'engineer_id' => $engNet4->id,
-                'date'        => now()->toDateString(),
-                'start_time'  => '09:00',
-                'end_time'    => '15:00',
-                'location'    => 'Menara BCA Thamrin, Jakarta Pusat',
-                'description' => 'OTDR testing 24 core fiber dan pembuatan trace report.',
                 'created_by'  => $tlNet->id,
             ],
             [
@@ -1101,9 +1079,14 @@ class DummyUserSeeder extends Seeder
         }
 
         // ============================================================
-        // 9. SEED ATTENDANCES (PRESENSI HARIAN TIM RESMI)
+        // 9. SEED ATTENDANCES (PRESENSI HARIAN SELURUH TIM)
         // ============================================================
-        $allEngineers = [$tlNet, $tlSec, $engNet1, $engNet2, $engNet3, $engNet4, $engSec1];
+        $allEngineers = [
+            $tlNet, $tlSec, $tlMnt,
+            $engNet1, $engNet2, $engNet3, $engNet4,
+            $engSec1,
+            $engMnt1, $engMnt2
+        ];
         $today = now()->toDateString();
 
         foreach ($allEngineers as $idx => $eng) {
@@ -1112,14 +1095,14 @@ class DummyUserSeeder extends Seeder
                 [
                     'latitude'        => -6.1664,
                     'longitude'       => 106.8148,
-                    'distance_meters' => 10 + $idx * 4,
+                    'distance_meters' => 8 + $idx * 3,
                     'is_within_range' => true,
                     'address'         => 'Kantor Pusat PT IP Network Solusindo, Gambir, Jakarta Pusat',
-                    'note'            => 'Hadir tepat waktu bertugas di lokasi project.',
+                    'note'            => 'Hadir tepat waktu bertugas di lokasi project / maintenance.',
                 ]
             );
         }
 
-        $this->command->info('✅ Seluruh 20 Proyek, Tugas Variatif, Timesheet, Jadwal & Presensi Berhasil Dibuat!');
+        $this->command->info('✅ Seluruh 25 Proyek Berhasil Di-Update Lengkap dengan Sales Resmi!');
     }
 }

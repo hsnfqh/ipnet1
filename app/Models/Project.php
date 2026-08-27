@@ -14,7 +14,10 @@ class Project extends Model
     protected $fillable = [
         'name',
         'client',
+        'sales_name',
         'location',
+        'project_type',
+        'visit_schedule',
         'description',
         'start_date',
         'deadline',
@@ -25,6 +28,11 @@ class Project extends Model
     protected $casts = [
         'start_date' => 'date:Y-m-d',
         'deadline'   => 'date:Y-m-d',
+    ];
+
+    protected $appends = [
+        'duration_days',
+        'is_recurring',
     ];
 
     // Relationships
@@ -78,6 +86,27 @@ class Project extends Model
     public function getCompletedTaskCountAttribute()
     {
         return $this->tasks->where('status', 'Completed')->count();  // gunakan eager-loaded relation
+    }
+
+    public function getDurationDaysAttribute()
+    {
+        if (!$this->start_date || !$this->deadline) return 0;
+        return max(1, $this->start_date->diffInDays($this->deadline) + 1);
+    }
+
+    public function getDurationFormattedAttribute()
+    {
+        $days = $this->duration_days;
+        if ($days < 30) {
+            return $days . ' Hari';
+        }
+        $months = round($days / 30, 1);
+        return $months == round($months) ? intval($months) . ' Bulan' : $months . ' Bulan (' . $days . ' Hari)';
+    }
+
+    public function getIsRecurringAttribute(): bool
+    {
+        return !empty($this->visit_schedule) && $this->visit_schedule !== 'None' && $this->visit_schedule !== '-';
     }
 
     // Helpers

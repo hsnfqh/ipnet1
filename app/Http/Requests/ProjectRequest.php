@@ -24,12 +24,15 @@ class ProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => 'required|string|max:255',
-            'client'      => 'required|string|max:255',
-            'location'    => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'start_date'  => 'required|date',
-            'deadline'    => 'required|date|after_or_equal:start_date',
+            'name'           => 'required|string|max:255',
+            'client'         => 'required|string|max:255',
+            'sales_name'     => 'required|string|max:255',
+            'location'       => 'required|string|max:255',
+            'project_type'   => 'required|string|max:100',
+            'visit_schedule' => 'nullable|string|max:100',
+            'description'    => 'nullable|string',
+            'start_date'     => 'required|date',
+            'deadline'       => 'required|date|after_or_equal:start_date',
         ];
     }
 }

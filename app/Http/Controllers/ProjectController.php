@@ -103,13 +103,19 @@ class ProjectController extends Controller
     {
         $projects = Project::with(['tasks:id,project_id,progress,status'])->get()->map(function($project) {
             return [
-                'id'       => $project->id,
-                'name'     => $project->name,
-                'client'   => $project->client,
-                'location' => $project->location,
-                'deadline' => $project->deadline ? $project->deadline->format('Y-m-d') : null,
-                'status'   => $project->status,
-                'progress' => $project->progress,
+                'id'                 => $project->id,
+                'name'               => $project->name,
+                'client'             => $project->client,
+                'sales_name'         => $project->sales_name,
+                'location'           => $project->location,
+                'project_type'       => $project->project_type,
+                'visit_schedule'     => $project->visit_schedule,
+                'start_date'         => $project->start_date ? $project->start_date->format('Y-m-d') : null,
+                'deadline'           => $project->deadline ? $project->deadline->format('Y-m-d') : null,
+                'duration_days'      => $project->duration_days,
+                'duration_formatted' => $project->duration_formatted,
+                'status'             => $project->status,
+                'progress'           => $project->progress,
             ];
         });
 

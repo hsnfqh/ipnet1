@@ -21,7 +21,7 @@
                         <input type="text" 
                                x-model="search"
                                @input="currentPage = 1"
-                               placeholder="Cari project atau client..." 
+                               placeholder="Cari project, client, sales..." 
                                class="w-full sm:w-60 px-[11px] py-[9px] pl-8 rounded-lg border border-[#E7E5E3] text-[14px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all">
                     </div>
                     <select x-model="statusFilter" @change="currentPage = 1" class="w-full sm:w-40 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[14px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all">
@@ -29,6 +29,12 @@
                         <option value="Planning">Planning</option>
                         <option value="On Progress">On Progress</option>
                         <option value="Completed">Completed</option>
+                    </select>
+                    <select x-model="typeFilter" @change="currentPage = 1" class="w-full sm:w-44 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[14px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all">
+                        <option value="Semua">Semua Tipe Proyek</option>
+                        <option value="One-Time Project">One-Time Project</option>
+                        <option value="Maintenance Berkala">Maintenance Berkala</option>
+                        <option value="Managed Service">Managed Service</option>
                     </select>
                 </div>
                 
@@ -45,13 +51,13 @@
             <!-- Projects Table -->
             <div class="bg-white rounded-xl border border-[#E7E5E3] shadow-[0_1px_2px_rgba(14,13,18,0.05)] overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[760px] border-collapse text-[13.5px]">
+                    <table class="w-full min-w-[900px] border-collapse text-[13.5px]">
                         <thead>
                             <tr class="bg-[#F1F0EE]">
-                                <th class="text-left py-3 px-4 text-[11.5px] font-semibold text-[#75727C] uppercase tracking-[0.3px]">Nama Project</th>
-                                <th class="text-left py-3 px-4 text-[11.5px] font-semibold text-[#75727C] uppercase tracking-[0.3px]">Client</th>
+                                <th class="text-left py-3 px-4 text-[11.5px] font-semibold text-[#75727C] uppercase tracking-[0.3px]">Nama Project & Tipe</th>
+                                <th class="text-left py-3 px-4 text-[11.5px] font-semibold text-[#75727C] uppercase tracking-[0.3px]">Client & Sales</th>
                                 <th class="text-left py-3 px-4 text-[11.5px] font-semibold text-[#75727C] uppercase tracking-[0.3px]">Lokasi</th>
-                                <th class="text-left py-3 px-4 text-[11.5px] font-semibold text-[#75727C] uppercase tracking-[0.3px]">Deadline</th>
+                                <th class="text-left py-3 px-4 text-[11.5px] font-semibold text-[#75727C] uppercase tracking-[0.3px]">Durasi & Deadline</th>
                                 <th class="text-left py-3 px-4 text-[11.5px] font-semibold text-[#75727C] uppercase tracking-[0.3px]">Progress</th>
                                 <th class="text-left py-3 px-4 text-[11.5px] font-semibold text-[#75727C] uppercase tracking-[0.3px]">Status</th>
                                 <th class="text-right py-3 px-4 text-[11.5px] font-semibold text-[#75727C] uppercase tracking-[0.3px]">Aksi</th>
@@ -60,10 +66,35 @@
                         <tbody>
                             <template x-for="project in paginatedProjects" :key="project.id">
                                 <tr class="border-t border-[#EFEDEB] hover:bg-[#F1F0EE] transition-colors duration-150">
-                                    <td class="py-3 px-4 font-medium text-[#17151C]" x-text="project.name"></td>
-                                    <td class="py-3 px-4 text-[#3D3A44]" x-text="project.client"></td>
+                                    <td class="py-3 px-4">
+                                        <div class="font-semibold text-[#17151C]" x-text="project.name"></div>
+                                        <div class="flex items-center gap-1.5 mt-1">
+                                            <template x-if="project.visit_schedule && project.visit_schedule !== 'None' && project.visit_schedule !== '-'">
+                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-semibold bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]" title="Proyek dengan jadwal visit berkala">
+                                                    <svg class="w-3 h-3 text-[#4F46E5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                    <span x-text="'Visit: ' + project.visit_schedule"></span>
+                                                </span>
+                                            </template>
+                                            <template x-if="!project.visit_schedule || project.visit_schedule === 'None' || project.visit_schedule === '-'">
+                                                <span class="inline-block text-[11px] text-[#75727C]" x-text="project.project_type || 'One-Time Project'"></span>
+                                            </template>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="font-semibold text-[#17151C]" x-text="project.client"></div>
+                                        <div class="text-[11.5px] text-[#75727C] flex items-center gap-1.5 mt-0.5">
+                                            <span class="text-[#948F99] font-medium">Sales:</span>
+                                            <span class="font-semibold text-[#3D3A44]" x-text="project.sales_name || '-'"></span>
+                                        </div>
+                                    </td>
                                     <td class="py-3 px-4 text-[#3D3A44]" x-text="project.location"></td>
-                                    <td class="py-3 px-4 text-[#3D3A44] font-mono text-[12.5px]" x-text="formatDeadline(project.deadline)"></td>
+                                    <td class="py-3 px-4">
+                                        <div class="font-mono text-[12px] font-semibold text-[#17151C]" x-text="formatDeadline(project.deadline)"></div>
+                                        <div class="text-[11px] text-[#75727C] mt-0.5 flex items-center gap-1">
+                                            <span>Durasi:</span>
+                                            <span class="font-medium text-[#AF1424]" x-text="getDurationText(project)"></span>
+                                        </div>
+                                    </td>
                                     <td class="py-3 px-4">
                                         <div class="w-24">
                                             <div style="width: 100%; background: #EFEDEB; border-radius: 20px; height: 6px; overflow: hidden;">
@@ -85,7 +116,7 @@
                                             </button>
                                             
                                             @if($canManage)
-                                            <button @click="editProject(project)" title="Edit Project" class="rounded-lg p-1.5 text-[#75727C] hover:text-[#17151C] hover:bg-[#F1F0EE] transition-colors duration-200">
+                                             <button @click="editProject(project)" title="Edit Project" class="rounded-lg p-1.5 text-[#75727C] hover:text-[#17151C] hover:bg-[#F1F0EE] transition-colors duration-200">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                 </svg>
@@ -153,9 +184,12 @@
                      x-transition:leave-end="opacity-0"
                      class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-3 sm:p-5"
                      @click.self="modalOpen = false">
-                    <div class="bg-white rounded-2xl w-[520px] max-w-full max-h-[90vh] overflow-y-auto animate-fade-in-up shadow-[0_16px_40px_rgba(14,13,18,0.12)]">
+                    <div class="bg-white rounded-2xl w-[580px] max-w-full max-h-[90vh] overflow-y-auto animate-fade-in-up shadow-[0_16px_40px_rgba(14,13,18,0.12)]">
                         <div class="flex items-center justify-between p-4 sm:p-[22px] border-b border-[#E7E5E3]">
-                            <h3 class="font-display text-[18px] font-semibold text-[#17151C]" x-text="modalTitle"></h3>
+                            <div>
+                                <h3 class="font-display text-[18px] font-semibold text-[#17151C]" x-text="modalTitle"></h3>
+                                <p class="text-[12.5px] text-[#75727C] mt-0.5">Kelola informasi proyek, tim sales, dan jadwal pemeliharaan berkala.</p>
+                            </div>
                             <button @click="modalOpen = false" class="rounded-lg p-1.5 text-[#75727C] hover:text-[#17151C] hover:bg-[#F1F0EE] transition-colors duration-200">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -167,18 +201,45 @@
                             <form @submit.prevent="saveProject()" class="space-y-4">
                                 <div>
                                     <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Nama Project <span class="text-[#C81E2C]">*</span></label>
-                                    <input type="text" x-model="form.name" required class="wms-input" placeholder="Masukkan nama project">
+                                    <input type="text" x-model="form.name" required class="wms-input" placeholder="Masukkan nama project lengkap">
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                     <div>
-                                        <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Client <span class="text-[#C81E2C]">*</span></label>
-                                        <input type="text" x-model="form.client" required class="wms-input" placeholder="Nama client">
+                                        <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Klien / Pemilik Proyek <span class="text-[#C81E2C]">*</span></label>
+                                        <input type="text" x-model="form.client" required class="wms-input" placeholder="Contoh: PT Bank Central Asia Tbk">
                                     </div>
                                     <div>
-                                        <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Lokasi <span class="text-[#C81E2C]">*</span></label>
-                                        <input type="text" x-model="form.location" required class="wms-input" placeholder="Lokasi project">
+                                        <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Nama Sales / PIC Sales <span class="text-[#C81E2C]">*</span></label>
+                                        <input type="text" x-model="form.sales_name" required class="wms-input" placeholder="Contoh: Riko Wijaya">
                                     </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                    <div>
+                                        <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Tipe Proyek <span class="text-[#C81E2C]">*</span></label>
+                                        <select x-model="form.project_type" class="wms-input">
+                                            <option value="One-Time Project">One-Time Project / Deployment</option>
+                                            <option value="Maintenance Berkala">Maintenance Berkala / SLA</option>
+                                            <option value="Managed Service">Managed Service & Support</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Jadwal Visit Berkala</label>
+                                        <select x-model="form.visit_schedule" class="wms-input">
+                                            <option value="None">None (Tidak Ada Jadwal Visit Rutin)</option>
+                                            <option value="Mingguan (Weekly)">Mingguan (Weekly Visit)</option>
+                                            <option value="Bulanan (Monthly)">Bulanan (Monthly SLA Visit)</option>
+                                            <option value="Triwulanan (Quarterly)">Triwulanan (Quarterly Check)</option>
+                                            <option value="Semesteran (Semi-Annual)">Semesteran (6 Bulanan)</option>
+                                            <option value="On-Call (Incidental)">On-Call (Sesuai Permintaan)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Lokasi <span class="text-[#C81E2C]">*</span></label>
+                                    <input type="text" x-model="form.location" required class="wms-input" placeholder="Gedung / Data Center / Alamat Project">
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -187,14 +248,21 @@
                                         <input type="date" x-model="form.start_date" required class="wms-input">
                                     </div>
                                     <div>
-                                        <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Deadline <span class="text-[#C81E2C]">*</span></label>
+                                        <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Deadline / Akhir Kontrak <span class="text-[#C81E2C]">*</span></label>
                                         <input type="date" x-model="form.deadline" required class="wms-input">
                                     </div>
                                 </div>
 
+                                <template x-if="form.start_date && form.deadline">
+                                    <div class="p-2.5 rounded-lg bg-[#F8F7F6] border border-[#E7E5E3] text-[12.5px] text-[#3D3A44] flex items-center justify-between">
+                                        <span>Estimasi Durasi Proyek:</span>
+                                        <span class="font-bold text-[#AF1424]" x-text="calculateFormDuration()"></span>
+                                    </div>
+                                </template>
+
                                 <div>
-                                    <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Deskripsi</label>
-                                    <textarea x-model="form.description" rows="3" class="wms-input resize-none" placeholder="Deskripsi atau catatan project..."></textarea>
+                                    <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Deskripsi & Catatan SLA</label>
+                                    <textarea x-model="form.description" rows="3" class="wms-input resize-none" placeholder="Deskripsi teknis, ruang lingkup SLA, atau catatan project..."></textarea>
                                 </div>
 
                                 <div class="flex items-center gap-3 pt-3">
@@ -223,14 +291,19 @@
                      x-transition:leave-end="opacity-0"
                      class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-3 sm:p-5"
                      @click.self="detailOpen = false">
-                    <div class="bg-white rounded-2xl w-[560px] max-w-full max-h-[90vh] flex flex-col animate-fade-in-up shadow-[0_20px_50px_rgba(14,13,18,0.2)] overflow-hidden">
+                    <div class="bg-white rounded-2xl w-[600px] max-w-full max-h-[90vh] flex flex-col animate-fade-in-up shadow-[0_20px_50px_rgba(14,13,18,0.2)] overflow-hidden">
                         
                         {{-- Modal Header --}}
                         <div class="flex items-start justify-between p-5 sm:p-6 bg-[#FAF9F8] border-b border-[#E7E5E3] flex-shrink-0">
-                            <div>
-                                <div class="flex items-center gap-2 mb-1.5">
+                            <div class="min-w-0 flex-1 pr-3">
+                                <div class="flex flex-wrap items-center gap-2 mb-1.5">
                                     <span class="text-[11px] font-bold uppercase tracking-wider text-[#AF1424] bg-[#AF1424]/10 px-2 py-0.5 rounded">Detail Informasi Project</span>
                                     <span x-html="detailProject ? getStatusBadge(detailProject.status) : ''"></span>
+                                    <template x-if="detailProject?.visit_schedule && detailProject?.visit_schedule !== 'None' && detailProject?.visit_schedule !== '-'">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]">
+                                            🔄 Visit: <span x-text="detailProject.visit_schedule"></span>
+                                        </span>
+                                    </template>
                                 </div>
                                 <h3 class="font-display text-[18px] sm:text-[20px] font-bold text-[#17151C] leading-snug" x-text="detailProject?.name"></h3>
                                 <p class="text-[13px] text-[#75727C] font-medium mt-0.5" x-text="detailProject?.client"></p>
@@ -243,7 +316,7 @@
                         </div>
 
                         {{-- Modal Body --}}
-                        <div class="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1 text-[13.5px]">
+                        <div class="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1 text-[13.5px]">
                             
                             {{-- Overall Progress Card --}}
                             <div class="bg-[#F7F6F5] border border-[#E7E5E3] rounded-xl p-4">
@@ -258,38 +331,61 @@
                             </div>
 
                             {{-- Metadata Grid --}}
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                <div class="border border-[#E7E5E3] rounded-xl p-3.5 bg-white">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="border border-[#E7E5E3] rounded-xl p-3 bg-white">
                                     <div class="text-[11px] font-semibold text-[#75727C] uppercase tracking-wider mb-1 flex items-center gap-1.5">
                                         <svg class="w-3.5 h-3.5 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                         Lokasi Project
                                     </div>
                                     <div class="font-semibold text-[#17151C]" x-text="detailProject?.location || '-'"></div>
                                 </div>
-                                <div class="border border-[#E7E5E3] rounded-xl p-3.5 bg-white">
+
+                                <div class="border border-[#E7E5E3] rounded-xl p-3 bg-white">
+                                    <div class="text-[11px] font-semibold text-[#75727C] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                        Sales / Account Exec
+                                    </div>
+                                    <div class="font-semibold text-[#17151C]" x-text="detailProject?.sales_name || 'Tidak Ditentukan'"></div>
+                                </div>
+
+                                <div class="border border-[#E7E5E3] rounded-xl p-3 bg-white">
+                                    <div class="text-[11px] font-semibold text-[#75727C] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                        Tipe & Jadwal Visit
+                                    </div>
+                                    <div class="font-semibold text-[#17151C]">
+                                        <span x-text="detailProject?.project_type || 'One-Time Project'"></span>
+                                        <template x-if="detailProject?.visit_schedule && detailProject.visit_schedule !== 'None'">
+                                            <span class="text-[#4F46E5] block text-[12px]" x-text="'• Visit: ' + detailProject.visit_schedule"></span>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="border border-[#E7E5E3] rounded-xl p-3 bg-white">
                                     <div class="text-[11px] font-semibold text-[#75727C] uppercase tracking-wider mb-1 flex items-center gap-1.5">
                                         <svg class="w-3.5 h-3.5 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        Periode & Deadline
+                                        Periode & Total Durasi
                                     </div>
-                                    <div class="text-[#17151C] font-mono text-[12.5px]">
+                                    <div class="text-[#17151C] font-mono text-[12px]">
                                         <span x-text="formatDeadline(detailProject?.start_date)"></span> &ndash; <span class="font-bold text-[#C81E2C]" x-text="formatDeadline(detailProject?.deadline)"></span>
+                                        <div class="text-[11.5px] font-sans font-bold text-[#AF1424] mt-0.5" x-text="'Total: ' + (detailProject ? getDurationText(detailProject) : '-')"></div>
                                     </div>
                                 </div>
                             </div>
 
                             {{-- Deskripsi --}}
-                            <div class="border border-[#E7E5E3] rounded-xl p-4 bg-white">
-                                <div class="text-[11px] font-semibold text-[#75727C] uppercase tracking-wider mb-1.5">Deskripsi Proyek</div>
+                            <div class="border border-[#E7E5E3] rounded-xl p-3.5 bg-white">
+                                <div class="text-[11px] font-semibold text-[#75727C] uppercase tracking-wider mb-1.5">Deskripsi Proyek & SLA</div>
                                 <p class="text-[#3D3A44] leading-relaxed break-words text-[13px] whitespace-pre-line" x-text="detailProject?.description || 'Tidak ada deskripsi tambahan.'"></p>
                             </div>
 
                             {{-- Personel & Tim Lapangan Terlibat --}}
-                            <div class="border border-[#E7E5E3] rounded-xl p-4 bg-white" x-show="detailProject?.tasks && detailProject.tasks.length > 0">
+                            <div class="border border-[#E7E5E3] rounded-xl p-3.5 bg-white" x-show="detailProject?.tasks && detailProject.tasks.length > 0">
                                 <div class="text-[11px] font-semibold text-[#75727C] uppercase tracking-wider mb-2.5 flex items-center justify-between">
-                                    <span>Personel & Tim Lapangan Terlibat</span>
+                                    <span>Personel & Tugas Terkait</span>
                                     <span class="text-[11px] font-medium text-[#C81E2C]" x-text="(detailProject?.tasks?.length || 0) + ' Tugas Terkait'"></span>
                                 </div>
-                                <div class="space-y-2">
+                                <div class="space-y-2 max-h-48 overflow-y-auto">
                                     <template x-for="task in detailProject?.tasks" :key="task.id">
                                         <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#F8F7F6] border border-[#EFEDEB] text-[12.5px]">
                                             <div class="min-w-0 flex-1 pr-2">
@@ -310,7 +406,7 @@
                 </div>
             </template>
 
-            <!-- CONFIRM DELETE MODAL - POP UP MODERN -->
+            <!-- CONFIRM DELETE MODAL -->
             <template x-teleport="body">
                 <div x-show="confirmOpen" 
                      x-cloak
@@ -324,7 +420,6 @@
                      @click.self="confirmOpen = false">
                     
                     <div class="bg-white rounded-2xl w-[420px] max-w-full overflow-y-auto animate-fade-in-up shadow-[0_20px_60px_rgba(14,13,18,0.2)]">
-                        
                         <div class="p-5 sm:p-6">
                             <!-- Icon -->
                             <div class="flex justify-center mb-4">
@@ -371,6 +466,7 @@
             projects: @json($projects),
             search: '',
             statusFilter: 'Semua',
+            typeFilter: 'Semua',
             currentPage: 1,
             perPage: 10,
             modalOpen: false,
@@ -382,6 +478,9 @@
                 id: null,
                 name: '',
                 client: '',
+                sales_name: '',
+                project_type: 'One-Time Project',
+                visit_schedule: 'None',
                 location: '',
                 description: '',
                 start_date: '',
@@ -391,10 +490,14 @@
 
             get filteredProjects() {
                 return this.projects.filter(p => {
-                    const matchSearch = p.name.toLowerCase().includes(this.search.toLowerCase()) ||
-                                       p.client.toLowerCase().includes(this.search.toLowerCase());
+                    const s = this.search.toLowerCase();
+                    const matchSearch = (p.name || '').toLowerCase().includes(s) ||
+                                       (p.client || '').toLowerCase().includes(s) ||
+                                       (p.sales_name || '').toLowerCase().includes(s) ||
+                                       (p.location || '').toLowerCase().includes(s);
                     const matchStatus = this.statusFilter === 'Semua' || p.status === this.statusFilter;
-                    return matchSearch && matchStatus;
+                    const matchType = this.typeFilter === 'Semua' || (p.project_type || 'One-Time Project') === this.typeFilter;
+                    return matchSearch && matchStatus && matchType;
                 });
             },
 
@@ -415,16 +518,55 @@
                 return this.editing ? 'Edit Project' : 'Tambah Project';
             },
 
+            calculateFormDuration() {
+                if (!this.form.start_date || !this.form.deadline) return '-';
+                const s = new Date(this.form.start_date);
+                const d = new Date(this.form.deadline);
+                const diffTime = d - s;
+                if (diffTime < 0) return 'Deadline harus setelah tanggal mulai';
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                if (diffDays < 30) return diffDays + ' Hari';
+                const months = Math.round((diffDays / 30) * 10) / 10;
+                return months + ' Bulan (' + diffDays + ' Hari)';
+            },
+
+            getDurationText(project) {
+                if (project.duration_formatted) return project.duration_formatted;
+                if (!project.start_date || !project.deadline) return '-';
+                const s = new Date(project.start_date);
+                const d = new Date(project.deadline);
+                const diffTime = d - s;
+                if (diffTime < 0) return '-';
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                if (diffDays < 30) return diffDays + ' Hari';
+                const months = Math.round((diffDays / 30) * 10) / 10;
+                return months + ' Bulan';
+            },
+
             openModal(project = null) {
                 if (project) {
                     this.editing = true;
-                    this.form = { ...project };
+                    this.form = { 
+                        id: project.id,
+                        name: project.name || '',
+                        client: project.client || '',
+                        sales_name: project.sales_name || '',
+                        project_type: project.project_type || 'One-Time Project',
+                        visit_schedule: project.visit_schedule || 'None',
+                        location: project.location || '',
+                        description: project.description || '',
+                        start_date: project.start_date ? String(project.start_date).substring(0, 10) : '',
+                        deadline: project.deadline ? String(project.deadline).substring(0, 10) : ''
+                    };
                 } else {
                     this.editing = false;
                     this.form = {
                         id: null,
                         name: '',
                         client: '',
+                        sales_name: '',
+                        project_type: 'One-Time Project',
+                        visit_schedule: 'None',
                         location: '',
                         description: '',
                         start_date: '',
@@ -464,6 +606,7 @@
                         method: method,
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
                         body: JSON.stringify(this.form)
@@ -473,9 +616,11 @@
                         const data = await response.json();
                         if (this.editing) {
                             const index = this.projects.findIndex(p => p.id === this.form.id);
-                            this.projects[index] = data;
+                            if (index !== -1) {
+                                this.projects[index] = { ...this.projects[index], ...data };
+                            }
                         } else {
-                            this.projects.push(data);
+                            this.projects.unshift(data);
                         }
                         this.modalOpen = false;
                         this.showToast('Project berhasil ' + (this.editing ? 'diperbarui' : 'ditambahkan') + '!');
@@ -536,11 +681,8 @@
             },
 
             getProjectProgress(project) {
-                // Kalau status Completed, otomatis 100%
                 if (project.status === 'Completed') return 100;
-                // Kalau Planning dan belum ada tasks, 0%
                 if (!project.tasks || project.tasks.length === 0) return 0;
-                // Hitung rata-rata progress dari semua tasks
                 const total = project.tasks.reduce((sum, t) => sum + (parseInt(t.progress) || 0), 0);
                 return Math.round(total / project.tasks.length);
             },

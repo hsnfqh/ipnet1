@@ -45,17 +45,17 @@ class ScopeHelper
     }
 
     /**
-     * Apakah user adalah Team Leader (TL)?
+     * Apakah user adalah Team Leader (TL) / Lead Divisi / Lead Maintenance?
      */
     public static function isTeamLeader($user): bool
     {
         if (!$user) return false;
-        return $user->hasRole('Team Leader');
+        return $user->hasAnyRole(['Team Leader', 'Lead Maintenance']);
     }
 
     /**
      * Apakah user adalah level manajerial (bisa mengatur/melihat data bawahan)?
-     * Mencakup: Direktur, Group Leader, Team Leader, Lead Engineer
+     * Mencakup: Direktur, Group Leader, Team Leader, Lead Maintenance, Lead Engineer
      */
     public static function isManagerial($user): bool
     {
@@ -66,19 +66,20 @@ class ScopeHelper
             'Group Leader',
             'Lead Divisi',
             'Team Leader',
+            'Lead Maintenance',
             'Lead Engineer',
         ]);
     }
 
     /**
      * Apakah user memiliki wewenang operasional untuk menambah/mengedit project dan membuat/assign task?
-     * Hanya Team Leader (Lead Network, Lead Security, dll) dan Lead Engineer.
+     * Hanya Team Leader (Lead Network, Lead Security, Lead Maintenance, dll) dan Lead Engineer.
      * Direktur & Group Leader difokuskan untuk monitoring/supervisi.
      */
     public static function canManageProjectsAndTasks($user): bool
     {
         if (!$user) return false;
-        return $user->hasAnyRole(['Team Leader', 'Lead Engineer']);
+        return $user->hasAnyRole(['Team Leader', 'Lead Maintenance', 'Lead Engineer']);
     }
 
     /**
@@ -96,7 +97,7 @@ class ScopeHelper
             return null;
         }
 
-        // 2. Leader Divisi (Network Leader / Security Leader) -> Akses SEMUA engineer di divisinya
+        // 2. Leader Divisi (Network Leader / Security Leader / Maintenance Leader) -> Akses SEMUA engineer di divisinya
         if (self::isTeamLeader($user)) {
             if ($user->division_id) {
                 return \App\Models\User::where('division_id', $user->division_id)
@@ -111,7 +112,7 @@ class ScopeHelper
             return [$user->id];
         }
 
-        // 3. Engineer -> Hanya dirinya sendiri
+        // 3. Engineer / Maintenance Staff -> Hanya dirinya sendiri
         return [$user->id];
     }
 
@@ -141,7 +142,7 @@ class ScopeHelper
 
     /**
      * Ambil daftar engineer/personel teknis lapangan yang bisa dipilih/di-assign task & jadwal.
-     * Mencakup Team Leader (TL) dan seluruh Engineer lapangan.
+     * Mencakup Team Leader (TL), Lead Maintenance, seluruh Engineer & Maintenance lapangan.
      * Tidak mencakup Direktur dan Kepala Divisi / Group Leader (Susanto Djaya).
      *
      * @return \Illuminate\Database\Eloquent\Collection
@@ -150,8 +151,10 @@ class ScopeHelper
     {
         $operationalRoles = [
             'Team Leader',
+            'Lead Maintenance',
             'Lead Engineer',
             'Engineer',
+            'Maintenance',
             'Engineer L1',
             'Engineer L2',
         ];
