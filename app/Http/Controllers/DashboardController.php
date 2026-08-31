@@ -186,6 +186,18 @@ class DashboardController extends Controller
             $upcomingDeadline = $incompleteTasksWithDeadline->sortByDesc('deadline')->first();
         }
 
+        // Data Presensi Personil Hari Ini (Live Monitoring Lead & Direktur)
+        $today = now()->toDateString();
+        $todayAttendancesQuery = \App\Models\Attendance::with('user')
+            ->where('attendance_date', $today);
+        if ($scopeIds !== null) {
+            $todayAttendancesQuery->whereIn('user_id', $scopeIds);
+        }
+        $allTodayAttendances = $todayAttendancesQuery->orderByDesc('created_at')->get();
+        $todayAttendances = $allTodayAttendances->unique('user_id')->values();
+        $clockInCount = $todayAttendances->where('type', 'clock_in')->count();
+        $outOfRangeCount = $todayAttendances->where('is_within_range', false)->count();
+
         $data = [
             'projectsCount'          => $projects->count(),
             'tasksCount'             => $tasks->count(),
@@ -203,6 +215,9 @@ class DashboardController extends Controller
             'engineerLoadWeekData'   => $engineerLoadWeekData,
             'canFilterTeams'         => $canFilterTeams,
             'defaultTeamFilter'      => $defaultTeamFilter,
+            'todayAttendances'       => $todayAttendances->take(5),
+            'clockInCount'           => $clockInCount,
+            'outOfRangeCount'        => $outOfRangeCount,
         ];
 
         return view('dashboard.lead', $data);

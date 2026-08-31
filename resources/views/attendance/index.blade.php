@@ -758,7 +758,7 @@
                         </div>
 
                         {{-- Modal Body --}}
-                        <div class="p-6 space-y-4">
+                        <div class="p-5 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto">
                             <div class="flex items-center justify-between p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl text-[13px] text-amber-900 font-semibold">
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -782,9 +782,64 @@
                                 <div class="text-[13px] font-semibold text-[#17151C] leading-snug" x-text="currentAddress || (currentLat ? ('Koordinat: ' + currentLat.toFixed(5) + ', ' + currentLon.toFixed(5)) : 'Mendeteksi alamat...')"></div>
                             </div>
 
-                            <p class="text-[13.5px] text-[#3D3A44] leading-relaxed text-center">
-                                Posisi GPS Anda terdeteksi melebihi batas radius kantor (<strong>500 meter</strong>). Absensi tetap dapat disimpan dan otomatis diberi catatan status <strong class="text-amber-800">Luar Jangkauan</strong> beserta lokasi terdeteksi.
-                            </p>
+                            {{-- Input Keterangan / Alasan --}}
+                            <div>
+                                <label class="block text-[11.5px] font-bold uppercase tracking-wider text-[#75727C] mb-1.5">
+                                    Keterangan / Alasan di Luar Kantor <span class="font-normal normal-case text-[#948F99]">(Opsional)</span>:
+                                </label>
+                                <input type="text" 
+                                       x-model="note" 
+                                       placeholder="Contoh: Langsung ke lokasi klien RS Siloam, macet di jalan, dinas luar..."
+                                       class="w-full px-3.5 py-2.5 rounded-xl border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none focus:border-[#C81E2C] transition bg-white placeholder-[#948F99]">
+                            </div>
+
+                            {{-- Input Foto Bukti Lapangan --}}
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-[11.5px] font-bold uppercase tracking-wider text-[#75727C]">
+                                        Foto Bukti Lapangan / Selfie <span class="font-normal normal-case text-[#948F99]">(Opsional)</span>:
+                                    </label>
+                                    <span class="text-[10.5px] text-[#948F99]">Bebas kirim/tidak</span>
+                                </div>
+
+                                {{-- Preview Foto Terambil --}}
+                                <div x-show="capturedPhoto" class="relative rounded-xl overflow-hidden border border-[#E7E5E3] bg-[#17151C] max-h-44 flex items-center justify-center">
+                                    <img :src="capturedPhoto" class="max-h-44 w-full object-contain">
+                                    <button type="button" 
+                                            @click="capturedPhoto = null" 
+                                            class="absolute top-2 right-2 px-2.5 py-1 bg-red-600/90 hover:bg-red-700 text-white rounded-lg text-[11px] font-semibold transition flex items-center gap-1 shadow cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <span>Ganti / Hapus</span>
+                                    </button>
+                                </div>
+
+                                {{-- Pilihan Tombol Kamera & Upload --}}
+                                <div x-show="!capturedPhoto" class="space-y-1.5">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        {{-- Tombol Buka Kamera Langsung (Kamera HP) --}}
+                                        <label class="px-3 py-2.5 rounded-xl border border-[#E7E5E3] bg-white hover:bg-[#F8F7F6] text-[#17151C] text-[12px] font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-sm">
+                                            <svg class="w-4 h-4 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            </svg>
+                                            <span>Ambil Foto Kamera</span>
+                                            <input type="file" accept="image/*" capture="environment" class="hidden" @change="handleFileUpload($event)">
+                                        </label>
+
+                                        {{-- Tombol Pilih Galeri / File --}}
+                                        <label class="px-3 py-2.5 rounded-xl border border-[#E7E5E3] bg-white hover:bg-[#F8F7F6] text-[#17151C] text-[12px] font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-sm">
+                                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                            <span>Pilih dari Galeri</span>
+                                            <input type="file" accept="image/*" class="hidden" @change="handleFileUpload($event)">
+                                        </label>
+                                    </div>
+                                    <p class="text-[11px] text-[#75727C] leading-normal">
+                                        💡 Foto dan alasan bersifat opsional. Jika tidak ingin melampirkan foto, Anda tetap bisa langsung klik tombol simpan di bawah.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Modal Footer --}}

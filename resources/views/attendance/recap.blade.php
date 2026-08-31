@@ -246,10 +246,15 @@
                                                     </span>
                                                 </template>
                                                 <template x-if="row.status === 'Luar Jangkauan'">
-                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11.5px] font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                                        Luar Jangkauan
-                                                    </span>
+                                                    <div>
+                                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11.5px] font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+                                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                            Luar Jangkauan
+                                                        </span>
+                                                        <template x-if="row.note">
+                                                            <div class="text-[11px] text-amber-800 font-medium mt-1 max-w-[200px] mx-auto truncate" :title="row.note" x-text="'Alasan: ' + row.note"></div>
+                                                        </template>
+                                                    </div>
                                                 </template>
                                                 <template x-if="row.status === 'Tidak Hadir'">
                                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11.5px] font-semibold rounded-lg bg-red-50 text-[#C81E2C] border border-[#FADADF]">
@@ -262,13 +267,13 @@
                                             {{-- Foto Bukti --}}
                                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                                 <template x-if="row.photo_url">
-                                                    <button @click="viewPhoto(row.photo_url, row.name)"
+                                                    <button @click="viewPhoto(row.photo_url, row.name, row.note)"
                                                             class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#FDF1F2] hover:bg-[#F9E0E2] text-[#C81E2C] text-[12px] font-semibold transition cursor-pointer">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                         </svg>
-                                                        Lihat
+                                                        Lihat Foto
                                                     </button>
                                                 </template>
                                                 <template x-if="!row.photo_url">
@@ -360,25 +365,29 @@
 </div>
 
 {{-- ── MODAL PREVIEW FOTO ────────────────────────────────────────────────── --}}
-<div x-data="{ photoOpen: false, photoUrl: '', photoName: '' }"
+<div x-data="{ photoOpen: false, photoUrl: '', photoName: '', photoNote: '' }"
      x-show="photoOpen" 
      x-cloak
-     @att-view-photo.window="photoOpen = true; photoUrl = $event.detail.url; photoName = $event.detail.name"
+     @att-view-photo.window="photoOpen = true; photoUrl = $event.detail.url; photoName = $event.detail.name; photoNote = $event.detail.note || ''"
      class="fixed inset-0 bg-[#0E0D12]/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
      @click.self="photoOpen = false"
      style="display: none;">
     
-    <div class="bg-white rounded-2xl overflow-hidden max-w-md w-full shadow-[0_20px_60px_rgba(14,13,18,0.25)] animate-fade-in-up">
+    <div class="bg-white rounded-2xl overflow-hidden max-w-md w-full shadow-[0_20px_60px_rgba(14,13,18,0.25)] border border-[#E7E5E3] animate-fade-in-up">
         <div class="flex items-center justify-between px-5 py-3.5 border-b border-[#EFEDEB] bg-[#FBFBFA]">
-            <h3 class="text-[14px] font-bold text-[#17151C]" x-text="'Foto Clock In — ' + photoName"></h3>
+            <h3 class="text-[14px] font-bold text-[#17151C]" x-text="'Foto Presensi — ' + photoName"></h3>
             <button @click="photoOpen = false" class="text-[#75727C] hover:text-[#17151C] p-1 rounded-lg hover:bg-[#F1F0EE] transition cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
-        <div class="p-4 bg-[#F8F7F6]">
-            <img :src="photoUrl" class="w-full rounded-xl object-cover shadow-sm" alt="Foto Selfie Presensi">
+        <div class="p-4 bg-[#F8F7F6] space-y-3">
+            <img :src="photoUrl" class="w-full rounded-xl object-contain max-h-[380px] bg-black/5 shadow-sm" alt="Foto Selfie Presensi">
+            <div x-show="photoNote" class="p-3 bg-white border border-[#E7E5E3] rounded-xl text-left">
+                <span class="text-[10.5px] font-bold text-[#75727C] uppercase tracking-wider block mb-0.5">Alasan / Catatan Presensi:</span>
+                <p class="text-[13px] text-[#17151C] font-semibold" x-text="photoNote"></p>
+            </div>
         </div>
     </div>
 </div>
@@ -434,7 +443,8 @@ document.addEventListener('alpine:init', () => {
                         clock_out_time: co ? co.time : null,
                         distance:       ci ? ci.distance : null,
                         address:        ci ? (ci.address || null) : (co ? co.address : null),
-                        photo_url:      ci ? ci.photo_url : null,
+                        photo_url:      ci ? (ci.photo_url || (co ? co.photo_url : null)) : (co ? co.photo_url : null),
+                        note:           ci ? (ci.note || (co ? co.note : null)) : (co ? co.note : null),
                         duration,
                         status: ci
                             ? (ci.is_within_range ? 'Hadir' : 'Luar Jangkauan')
@@ -448,8 +458,8 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-        viewPhoto(url, name) {
-            window.dispatchEvent(new CustomEvent('att-view-photo', { detail: { url, name } }));
+        viewPhoto(url, name, note) {
+            window.dispatchEvent(new CustomEvent('att-view-photo', { detail: { url, name, note: note || '' } }));
         },
 
         initials(name) {

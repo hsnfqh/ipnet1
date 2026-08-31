@@ -3,7 +3,7 @@
 @section('title', 'Dashboard - Lead Engineer')
 
 @section('content')
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-screen overflow-hidden" x-data="{ leadPhotoModal: false, leadPhotoUrl: '', leadPhotoName: '', leadPhotoNote: '', previewPhoto(url, name, note) { this.leadPhotoUrl = url; this.leadPhotoName = name; this.leadPhotoNote = note || ''; this.leadPhotoModal = true; } }">
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
@@ -164,6 +164,137 @@
                         </div>
                         @endforelse
                     </div>
+                </div>
+            </div>
+
+            <!-- Presensi Personil Hari Ini (Live Feed & Foto) -->
+            <div class="wms-card overflow-hidden mt-4 sm:mt-5">
+                <div class="flex flex-wrap justify-between items-center gap-2 p-4 border-b border-wms-line2 bg-[#FAF9F8]">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-red-50 text-[#C81E2C] border border-red-100 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-display text-[15px] font-bold text-wms-ink-900">Presensi Personil Hari Ini</h3>
+                            <p class="text-[11px] text-wms-ink-500">Live monitoring kehadiran, verifikasi GPS, dan foto bukti personil lapangan</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            {{ $clockInCount }} Hadir
+                        </span>
+                        @if($outOfRangeCount > 0)
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            {{ $outOfRangeCount }} Luar Kantor
+                        </span>
+                        @endif
+                        <a href="{{ route('attendance.recap') }}" class="text-wms-red-600 text-[12.5px] font-semibold hover:underline ml-1">
+                            Buka Rekap &amp; Foto &rarr;
+                        </a>
+                    </div>
+                </div>
+
+                <div class="divide-y divide-wms-line2">
+                    @forelse($todayAttendances as $att)
+                    <div class="p-3.5 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FBFBFA] transition">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-[#F1F0EE] border border-[#E7E5E3] flex items-center justify-center font-bold text-[12.5px] text-[#17151C] flex-shrink-0">
+                                {{ strtoupper(substr($att->user?->name ?? '?', 0, 2)) }}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-[13.5px] font-semibold text-[#17151C]">{{ $att->user?->name ?? 'Personil' }}</span>
+                                    <span class="text-[11px] font-medium text-[#75727C]">({{ $att->user?->division?->name ?? $att->user?->role ?? '-' }})</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[11.5px] text-[#75727C] mt-0.5 flex-wrap">
+                                    <span>Clock In: <strong class="font-mono text-[#17151C]">{{ $att->created_at->format('H:i') }} WIB</strong></span>
+                                    <span>&bull;</span>
+                                    <span>Jarak: <strong class="font-mono text-[#17151C]">{{ $att->distance_meters }} m</strong></span>
+                                    @if($att->address)
+                                    <span>&bull;</span>
+                                    <span class="max-w-[260px] truncate" title="{{ $att->address }}">{{ $att->address }}</span>
+                                    @endif
+                                </div>
+                                @if($att->note)
+                                <div class="mt-1 text-[11.5px] text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                                    <span>📝 Alasan: <strong>{{ $att->note }}</strong></span>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+                            @if($att->is_within_range)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                Hadir (Kantor)
+                            </span>
+                            @else
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                Luar Jangkauan
+                            </span>
+                            @endif
+
+                            @if($att->photo_url)
+                            <button type="button" 
+                                    @click="previewPhoto('{{ $att->photo_url }}', '{{ addslashes($att->user?->name ?? 'Personil') }}', '{{ addslashes($att->note ?? '') }}')"
+                                    class="px-2.5 py-1 rounded-lg bg-[#FDF1F2] hover:bg-[#F9E0E2] text-[#C81E2C] text-[11.5px] font-semibold transition flex items-center gap-1.5 border border-[#FADADF] cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                <span>Lihat Foto</span>
+                            </button>
+                            @else
+                            <span class="text-[11px] text-[#948F99] italic px-1">Tanpa Foto</span>
+                            @endif
+                        </div>
+                    </div>
+                    @empty
+                    <div class="py-10 text-center text-[#75727C]">
+                        <div class="w-10 h-10 rounded-xl bg-[#F1F0EE] flex items-center justify-center mx-auto mb-2 text-[#75727C]">
+                            <svg class="w-5 h-5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <p class="text-[13px] font-semibold text-[#17151C]">Belum ada personil yang presensi hari ini</p>
+                        <p class="text-[11.5px] text-[#75727C] mt-0.5">Presensi personil akan otomatis muncul realtime di sini</p>
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Preview Foto Presensi di Dashboard --}}
+    <div x-show="leadPhotoModal" 
+         x-cloak
+         class="fixed inset-0 bg-[#0E0D12]/75 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm"
+         @click.self="leadPhotoModal = false"
+         style="display: none;">
+        
+        <div class="bg-white rounded-2xl overflow-hidden max-w-md w-full shadow-[0_24px_64px_rgba(14,13,18,0.3)] border border-[#E7E5E3] text-left animate-fade-in-up">
+            <div class="flex items-center justify-between px-5 py-3.5 border-b border-[#EFEDEB] bg-[#FBFBFA]">
+                <div>
+                    <h3 class="text-[14px] font-bold text-[#17151C]" x-text="'Foto Presensi — ' + leadPhotoName"></h3>
+                    <span class="text-[11px] text-[#75727C]">Verifikasi foto bukti personil lapangan</span>
+                </div>
+                <button type="button" @click="leadPhotoModal = false" class="text-[#75727C] hover:text-[#17151C] p-1 rounded-lg hover:bg-[#F1F0EE] transition cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-4 bg-[#F8F7F6] space-y-3">
+                <img :src="leadPhotoUrl" class="w-full rounded-xl object-contain max-h-[380px] bg-black/5 shadow-sm" alt="Foto Selfie Presensi">
+                <div x-show="leadPhotoNote" class="p-3 bg-white border border-[#E7E5E3] rounded-xl text-left">
+                    <span class="text-[10.5px] font-bold text-[#75727C] uppercase tracking-wider block mb-0.5">Alasan / Catatan Presensi:</span>
+                    <p class="text-[13px] text-[#17151C] font-semibold" x-text="leadPhotoNote"></p>
                 </div>
             </div>
         </div>

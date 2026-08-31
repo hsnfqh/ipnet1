@@ -36,6 +36,11 @@ class Attendance extends Model
         return $this->belongsTo(User::class);
     }
 
+    protected $appends = [
+        'status_label',
+        'photo_url',
+    ];
+
     // Accessor: label status tampilan
     public function getStatusLabelAttribute(): string
     {
@@ -43,6 +48,12 @@ class Attendance extends Model
             return $this->is_within_range ? 'Hadir' : 'Luar Jangkauan';
         }
         return 'Clock Out';
+    }
+
+    // Accessor: URL foto
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo_path ? \Illuminate\Support\Facades\Storage::url($this->photo_path) : null;
     }
 
     // Hitung jarak Haversine (meter) dari dua koordinat

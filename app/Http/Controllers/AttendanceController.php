@@ -114,6 +114,8 @@ class AttendanceController extends Controller
             'within_range' => $withinRange,
             'distance'     => $distance,
             'address'      => $attendance->address,
+            'photo_url'    => $attendance->photo_url,
+            'note'         => $attendance->note,
             'time'         => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('H:i'),
             'date'         => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('d M Y'),
         ]);
@@ -194,6 +196,8 @@ class AttendanceController extends Controller
             'duration'       => "{$hours} jam {$minutes} menit",
             'duration_short' => "{$hours}j {$minutes}m",
             'address'        => $attendance->address,
+            'photo_url'      => $attendance->photo_url,
+            'note'           => $attendance->note,
             'time'           => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('H:i'),
             'date'           => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('d M Y'),
         ]);
