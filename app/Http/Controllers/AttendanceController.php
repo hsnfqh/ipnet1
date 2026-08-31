@@ -24,7 +24,7 @@ class AttendanceController extends Controller
 
         // Data presensi hari ini milik user
         $todayAttendances = Attendance::where('user_id', $user->id)
-            ->where('attendance_date', $today)
+            ->whereDate('attendance_date', $today)
             ->orderBy('created_at')
             ->get();
 
@@ -69,7 +69,7 @@ class AttendanceController extends Controller
         // Cek apakah sudah clock in hari ini
         $existing = Attendance::where('user_id', $user->id)
             ->where('type', 'clock_in')
-            ->where('attendance_date', $today)
+            ->whereDate('attendance_date', $today)
             ->first();
 
         if ($existing) {
@@ -138,7 +138,7 @@ class AttendanceController extends Controller
         // Harus sudah clock in dulu
         $clockIn = Attendance::where('user_id', $user->id)
             ->where('type', 'clock_in')
-            ->where('attendance_date', $today)
+            ->whereDate('attendance_date', $today)
             ->first();
 
         if (!$clockIn) {
@@ -148,7 +148,7 @@ class AttendanceController extends Controller
         // Cek sudah clock out
         $existing = Attendance::where('user_id', $user->id)
             ->where('type', 'clock_out')
-            ->where('attendance_date', $today)
+            ->whereDate('attendance_date', $today)
             ->first();
 
         if ($existing) {
@@ -216,7 +216,7 @@ class AttendanceController extends Controller
 
         // Rekap harian
         $dailyAttendancesQuery = Attendance::with('user')
-            ->where('attendance_date', $date);
+            ->whereDate('attendance_date', $date);
         
         if ($scopeIds !== null) {
             $dailyAttendancesQuery->whereIn('user_id', $scopeIds);
