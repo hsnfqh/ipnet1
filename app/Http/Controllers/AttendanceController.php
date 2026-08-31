@@ -312,8 +312,16 @@ class AttendanceController extends Controller
         $imageData = preg_replace('/^data:image\/\w+;base64,/', '', $base64);
         $imageData = base64_decode($imageData);
 
-        $filename  = "attendance/{$userId}_{$type}_" . now()->format('Ymd_His') . '.jpg';
-        Storage::disk('public')->put($filename, $imageData);
+        $filename = "attendance/{$userId}_{$type}_" . now()->format('Ymd_His') . '.jpg';
+        $fullPath = storage_path('app/public/' . $filename);
+        $dir      = dirname($fullPath);
+
+        if (!file_exists($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
+        // Tulis file langsung tanpa bergantung pada ekstensi PHP fileinfo / finfo
+        file_put_contents($fullPath, $imageData);
 
         return $filename;
     }
