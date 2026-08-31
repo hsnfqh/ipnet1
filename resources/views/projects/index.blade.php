@@ -182,9 +182,9 @@
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0"
-                     class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-3 sm:p-5"
+                     class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-4 sm:p-6"
                      @click.self="modalOpen = false">
-                    <div class="bg-white rounded-2xl w-[580px] max-w-full max-h-[90vh] flex flex-col overflow-hidden animate-fade-in-up shadow-[0_16px_40px_rgba(14,13,18,0.12)]">
+                    <div class="bg-white rounded-2xl w-[580px] max-w-full max-h-[85vh] flex flex-col overflow-hidden animate-fade-in-up shadow-[0_20px_60px_rgba(14,13,18,0.2)]">
                         {{-- Modal Header (Fixed / Tidak Ikut Tescroll) --}}
                         <div class="flex items-center justify-between p-4 sm:p-[22px] border-b border-[#E7E5E3] flex-shrink-0 bg-white">
                             <div>
@@ -270,11 +270,15 @@
                         </div>
 
                         {{-- Modal Footer (Fixed / Selalu Tampak) --}}
-                        <div class="flex items-center gap-3 p-4 sm:px-[22px] sm:py-3.5 border-t border-[#E7E5E3] bg-[#FAF9F8] flex-shrink-0">
-                            <button type="submit" form="projectForm" class="wms-btn flex-1 justify-center bg-[#C81E2C] text-white shadow-[0_8px_20px_rgba(200,30,44,0.24)] py-[10px] px-[17px] rounded-lg font-semibold text-[14px] hover:brightness-105 active:translate-y-[1px] transition-all cursor-pointer">
-                                <span x-text="isEditing ? 'Simpan Perubahan' : 'Simpan Project'"></span>
+                        <div class="flex items-center gap-3 p-4 sm:px-6 sm:py-4 border-t border-[#E7E5E3] bg-[#FAF9F8] flex-shrink-0">
+                            <button type="submit" 
+                                    form="projectForm" 
+                                    class="flex-1 flex items-center justify-center min-h-[42px] bg-[#C81E2C] hover:bg-[#AF1424] text-white shadow-[0_4px_14px_rgba(200,30,44,0.25)] px-4 py-2.5 rounded-xl font-semibold text-[14px] active:translate-y-[1px] transition-all cursor-pointer">
+                                <span x-text="editing ? 'Simpan Perubahan' : 'Simpan Project'">Simpan Project</span>
                             </button>
-                            <button type="button" @click="modalOpen = false" class="wms-btn flex-1 justify-center bg-white text-[#3D3A44] border border-[#E7E5E3] shadow-[0_1px_2px_rgba(14,13,18,0.05)] py-[10px] px-[17px] rounded-lg font-semibold text-[14px] hover:bg-[#F8F7F6] active:translate-y-[1px] transition-all cursor-pointer">
+                            <button type="button" 
+                                    @click="modalOpen = false" 
+                                    class="flex-1 flex items-center justify-center min-h-[42px] bg-white hover:bg-[#F8F7F6] text-[#3D3A44] border border-[#E7E5E3] shadow-[0_1px_2px_rgba(14,13,18,0.05)] px-4 py-2.5 rounded-xl font-semibold text-[14px] active:translate-y-[1px] transition-all cursor-pointer">
                                 Batal
                             </button>
                         </div>
