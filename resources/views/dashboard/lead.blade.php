@@ -53,10 +53,10 @@
                         <div class="relative">
                             <select id="engTeamFilter" onchange="filterEngineerTeam(this.value)" 
                                     class="text-[11.5px] font-semibold px-3 py-1.5 rounded-lg border border-wms-line bg-white text-wms-ink-700 outline-none hover:border-[#C81E2C] transition cursor-pointer shadow-sm">
-                                <option value="Maintenance" {{ $defaultTeamFilter === 'Maintenance' ? 'selected' : '' }}>🛠️ Tim Maintenance & Helpdesk</option>
-                                <option value="All" {{ $defaultTeamFilter === 'All' ? 'selected' : '' }}>👥 Semua Tim (Lintas Divisi)</option>
-                                <option value="Network" {{ $defaultTeamFilter === 'Network' ? 'selected' : '' }}>🌐 Divisi Network</option>
-                                <option value="Security" {{ $defaultTeamFilter === 'Security' ? 'selected' : '' }}>🔒 Divisi Security</option>
+                                <option value="Maintenance" {{ $defaultTeamFilter === 'Maintenance' ? 'selected' : '' }}>Tim Maintenance & Helpdesk</option>
+                                <option value="All" {{ $defaultTeamFilter === 'All' ? 'selected' : '' }}>Semua Tim (Lintas Divisi)</option>
+                                <option value="Network" {{ $defaultTeamFilter === 'Network' ? 'selected' : '' }}>Divisi Network</option>
+                                <option value="Security" {{ $defaultTeamFilter === 'Security' ? 'selected' : '' }}>Divisi Security</option>
                             </select>
                         </div>
                         @endif
