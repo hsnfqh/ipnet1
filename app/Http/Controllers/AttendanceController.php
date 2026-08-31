@@ -275,7 +275,7 @@ class AttendanceController extends Controller
                 'time'           => Carbon::parse($a->created_at)->setTimezone('Asia/Jakarta')->format('H:i'),
                 'distance'       => $a->distance_meters,
                 'is_within_range'=> $a->is_within_range,
-                'photo_url'      => $a->photo_path ? Storage::url($a->photo_path) : null,
+                'photo_url'      => $a->photo_url,
                 'address'        => $a->address,
                 'note'           => $a->note,
             ]);

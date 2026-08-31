@@ -224,7 +224,21 @@ Route::get('/storage/{path}', function ($path) {
 
     foreach ($candidates as $filePath) {
         if (file_exists($filePath) && is_file($filePath)) {
-            return response()->file($filePath);
+            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+            $mimes = [
+                'jpg'  => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'png'  => 'image/png',
+                'gif'  => 'image/gif',
+                'webp' => 'image/webp',
+                'svg'  => 'image/svg+xml',
+                'pdf'  => 'application/pdf',
+            ];
+            $mime = $mimes[$ext] ?? 'application/octet-stream';
+            return response(file_get_contents($filePath), 200, [
+                'Content-Type'  => $mime,
+                'Cache-Control' => 'public, max-age=86400',
+            ]);
         }
     }
 
