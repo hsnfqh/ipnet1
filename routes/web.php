@@ -257,39 +257,43 @@ Route::get('/fix-storage', function () {
         $outputs[] = "Artisan storage:link error: " . $e->getMessage();
     }
 
-    // 2. Buat folder direktori jika belum ada
-    $source = storage_path('app/public/certifications');
-    $dest1 = public_path('storage/certifications');
-    $dest2 = base_path('../public_html/storage/certifications');
+    // 2. Daftar folder yang disinkronkan (attendance, certifications, avatars, tasks)
+    $subdirs = ['attendance', 'certifications', 'avatars', 'tasks'];
+    
+    foreach ($subdirs as $sub) {
+        $source = storage_path("app/public/{$sub}");
+        $destCandidates = array_unique(array_filter([
+            public_path("storage/{$sub}"),
+            base_path("public/storage/{$sub}"),
+            base_path("../public_html/storage/{$sub}"),
+        ]));
 
-    foreach ([$dest1, $dest2] as $destDir) {
-        if (!File::exists($destDir)) {
-            File::makeDirectory($destDir, 0755, true, true);
-            $outputs[] = "Membuat direktori: {$destDir}";
-        }
-    }
-
-    // 3. Salin file yang sudah di-upload sebelumnya ke direktori publik
-    if (File::exists($source)) {
-        $files = File::files($source);
-        foreach ($files as $file) {
-            $filename = $file->getFilename();
-
-            if (!File::exists($dest1 . '/' . $filename)) {
-                File::copy($file->getPathname(), $dest1 . '/' . $filename);
-                $outputs[] = "Menyalin {$filename} ke public/storage/certifications";
+        foreach ($destCandidates as $destDir) {
+            if (!File::exists($destDir)) {
+                File::makeDirectory($destDir, 0755, true, true);
+                $outputs[] = "Membuat direktori: {$destDir}";
             }
+        }
 
-            if (File::isDirectory(base_path('../public_html')) && !File::exists($dest2 . '/' . $filename)) {
-                File::copy($file->getPathname(), $dest2 . '/' . $filename);
-                $outputs[] = "Menyalin {$filename} ke public_html/storage/certifications";
+        // Salin seluruh file dari storage/app/public ke folder public
+        if (File::exists($source)) {
+            $files = File::files($source);
+            foreach ($files as $file) {
+                $filename = $file->getFilename();
+                foreach ($destCandidates as $destDir) {
+                    $targetPath = $destDir . '/' . $filename;
+                    if (!File::exists($targetPath)) {
+                        File::copy($file->getPathname(), $targetPath);
+                        $outputs[] = "Menyalin {$sub}/{$filename} ke {$targetPath}";
+                    }
+                }
             }
         }
     }
 
     return response()->json([
         'status' => 'success',
-        'message' => 'Perbaikan & sinkronisasi folder storage cPanel berhasil!',
+        'message' => 'Perbaikan & sinkronisasi folder storage cPanel (termasuk foto presensi) berhasil!',
         'details' => $outputs,
     ]);
 });
