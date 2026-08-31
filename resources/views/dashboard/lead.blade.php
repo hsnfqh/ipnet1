@@ -189,10 +189,7 @@
     }
 
     function formatEngineerLabel(d) {
-        if (currentTeam === 'All') {
-            return d.name + ' (' + d.division + ')';
-        }
-        return d.name + (d.position ? ' — ' + d.position : '');
+        return d.name;
     }
 
     function updateEngineerChart() {
@@ -238,6 +235,11 @@
                         callbacks: {
                             label: function(context) {
                                 return context.dataset.label + ': ' + context.parsed.x + ' task';
+                            },
+                            afterLabel: function(context) {
+                                const dataToUse = getFilteredEngineerData();
+                                const item = dataToUse[context.dataIndex];
+                                return item && item.position ? item.position : '';
                             }
                         }
                     }
