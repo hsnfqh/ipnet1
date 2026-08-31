@@ -37,23 +37,43 @@
                 </x-metric-card>
             </div>
 
-            <!-- Load Pekerjaan Engineer -->
+            <!-- Load Pekerjaan Engineer / Personil Lapangan -->
             <div class="wms-card p-4 sm:p-5 mb-4 sm:mb-5">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                    <h3 class="font-display text-[15px] font-semibold text-wms-ink-900">
-                        Load Pekerjaan Engineer
-                    </h3>
-                    <div class="flex gap-2">
-                        <button onclick="setEngineerPeriod('week')" 
-                                class="text-[11px] font-semibold px-3 py-1.5 sm:py-1 rounded border border-wms-line bg-white text-wms-ink-600 hover:bg-wms-paper transition cursor-pointer" 
-                                id="engPeriodWeek">
-                            Minggu Ini
-                        </button>
-                        <button onclick="setEngineerPeriod('month')" 
-                                class="text-[11px] font-semibold px-3 py-1.5 sm:py-1 rounded border border-[#C81E2C] bg-[#C81E2C] text-white transition cursor-pointer" 
-                                id="engPeriodMonth">
-                            Bulan Ini
-                        </button>
+                    <div>
+                        <h3 class="font-display text-[15px] font-semibold text-wms-ink-900">
+                            Load Pekerjaan Personil
+                        </h3>
+                        <p class="text-[11px] text-wms-ink-500 mt-0.5">
+                            Pantau kapasitas & task aktif personil untuk kemudahan delegasi tugas
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if($canFilterTeams)
+                        <div class="relative">
+                            <select id="engTeamFilter" onchange="filterEngineerTeam(this.value)" 
+                                    class="text-[11.5px] font-semibold px-3 py-1.5 rounded-lg border border-wms-line bg-white text-wms-ink-700 outline-none hover:border-[#C81E2C] transition cursor-pointer shadow-sm">
+                                <option value="Maintenance" {{ $defaultTeamFilter === 'Maintenance' ? 'selected' : '' }}>🛠️ Tim Maintenance & Helpdesk</option>
+                                <option value="All" {{ $defaultTeamFilter === 'All' ? 'selected' : '' }}>👥 Semua Tim (Lintas Divisi)</option>
+                                <option value="Network" {{ $defaultTeamFilter === 'Network' ? 'selected' : '' }}>🌐 Divisi Network</option>
+                                <option value="Security" {{ $defaultTeamFilter === 'Security' ? 'selected' : '' }}>🔒 Divisi Security</option>
+                            </select>
+                        </div>
+                        @endif
+                        <div class="flex gap-1 bg-wms-paper p-0.5 rounded-lg border border-wms-line">
+                            <button onclick="setEngineerPeriod('week')" 
+                                    class="text-[11px] font-semibold px-2.5 py-1 rounded-md transition cursor-pointer" 
+                                    id="engPeriodWeek"
+                                    style="background:transparent; color:#75727C;">
+                                Minggu Ini
+                            </button>
+                            <button onclick="setEngineerPeriod('month')" 
+                                    class="text-[11px] font-semibold px-2.5 py-1 rounded-md transition cursor-pointer" 
+                                    id="engPeriodMonth"
+                                    style="background:#C81E2C; color:#FFFFFF;">
+                                Bulan Ini
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="w-full overflow-x-auto">
@@ -155,20 +175,52 @@
 <script>
     const engineerMonthData = @json($engineerLoadMonthData);
     const engineerWeekData  = @json($engineerLoadWeekData);
-    let engineerChart = null;
+    const defaultTeam       = @json($defaultTeamFilter);
+    let currentPeriod       = 'month';
+    let currentTeam         = defaultTeam || 'All';
+    let engineerChart       = null;
+
+    function getFilteredEngineerData() {
+        const rawData = (currentPeriod === 'week') ? engineerWeekData : engineerMonthData;
+        if (currentTeam === 'All') {
+            return rawData.slice().sort((a, b) => b.active - a.active);
+        }
+        return rawData.filter(d => d.division === currentTeam).sort((a, b) => b.active - a.active);
+    }
+
+    function formatEngineerLabel(d) {
+        if (currentTeam === 'All') {
+            return d.name + ' (' + d.division + ')';
+        }
+        return d.name + (d.position ? ' — ' + d.position : '');
+    }
+
+    function updateEngineerChart() {
+        if (!engineerChart) return;
+        const dataToUse = getFilteredEngineerData();
+        engineerChart.data.labels = dataToUse.map(formatEngineerLabel);
+        engineerChart.data.datasets[0].data = dataToUse.map(d => d.active);
+        engineerChart.update();
+    }
+
+    function filterEngineerTeam(team) {
+        currentTeam = team;
+        updateEngineerChart();
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
         // Chart Load Pekerjaan Engineer
         const ctx3 = document.getElementById('engineerLoadChart').getContext('2d');
+        const initialData = getFilteredEngineerData();
         
         engineerChart = new Chart(ctx3, {
             type: 'bar',
             data: {
-                labels: engineerMonthData.map(d => d.name),
+                labels: initialData.map(formatEngineerLabel),
                 datasets: [
                     {
                         label: 'Task Aktif',
-                        data: engineerMonthData.map(d => d.active),
+                        data: initialData.map(d => d.active),
                         backgroundColor: '#C81E2C',
                         borderRadius: 4,
                     }
@@ -352,6 +404,7 @@
 
     // FILTER PERIODE CHART LOAD ENGINEER (Minggu/Bulan)
     function setEngineerPeriod(period) {
+        currentPeriod = period;
         const isWeek = period === 'week';
         const weekBtn = document.getElementById('engPeriodWeek');
         const monthBtn = document.getElementById('engPeriodMonth');
@@ -359,25 +412,16 @@
         if (isWeek) {
             weekBtn.style.background = '#C81E2C';
             weekBtn.style.color = '#FFFFFF';
-            weekBtn.style.borderColor = '#C81E2C';
-            monthBtn.style.background = '#FFFFFF';
-            monthBtn.style.color = '#3D3A44';
-            monthBtn.style.borderColor = '#E7E5E3';
+            monthBtn.style.background = 'transparent';
+            monthBtn.style.color = '#75727C';
         } else {
             monthBtn.style.background = '#C81E2C';
             monthBtn.style.color = '#FFFFFF';
-            monthBtn.style.borderColor = '#C81E2C';
-            weekBtn.style.background = '#FFFFFF';
-            weekBtn.style.color = '#3D3A44';
-            weekBtn.style.borderColor = '#E7E5E3';
+            weekBtn.style.background = 'transparent';
+            weekBtn.style.color = '#75727C';
         }
         
-        if (engineerChart) {
-            const dataToUse = isWeek ? engineerWeekData : engineerMonthData;
-            engineerChart.data.labels = dataToUse.map(d => d.name);
-            engineerChart.data.datasets[0].data = dataToUse.map(d => d.active);
-            engineerChart.update();
-        }
+        updateEngineerChart();
     }
 </script>
 @endpush

@@ -15,14 +15,27 @@ class DashboardController extends Controller
         $user      = auth()->user();
         $scopeIds  = \App\Helpers\ScopeHelper::getScopeUserIds($user);
         $engineers = \App\Helpers\ScopeHelper::getAssignableEngineers($user);
+        $hasTaskUser = \Illuminate\Support\Facades\Schema::hasTable('task_user');
 
         // Filter tasks sesuai scope role yang login
-        $tasksQuery = Task::with(['project', 'engineer']);
+        $withRelations = ['project', 'engineer'];
+        if ($hasTaskUser) {
+            $withRelations[] = 'engineers';
+        }
+        $tasksQuery = Task::with($withRelations);
         if ($scopeIds !== null) {
-            $tasksQuery->where(function($q) use ($scopeIds) {
-                count($scopeIds) === 1
-                    ? $q->where('engineer_id', $scopeIds[0])
-                    : $q->whereIn('engineer_id', $scopeIds);
+            $tasksQuery->where(function($q) use ($scopeIds, $hasTaskUser) {
+                if (count($scopeIds) === 1) {
+                    $q->where('engineer_id', $scopeIds[0]);
+                    if ($hasTaskUser) {
+                        $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+                    }
+                } else {
+                    $q->whereIn('engineer_id', $scopeIds);
+                    if ($hasTaskUser) {
+                        $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                    }
+                }
             });
         }
         $tasks = $tasksQuery->get();
@@ -65,28 +78,47 @@ class DashboardController extends Controller
 
         // ============================================================
         // DATA CHART LOAD PEKERJAAN ENGINEER (Bulan Ini & Minggu Ini)
-        // Disesuaikan sesuai scope tim masing-masing Team Leader
+        // Mendukung Filter Tim Lintas Divisi (Opsi 3: Default Maintenance untuk Doris)
         // ============================================================
         $startOfWeek  = now()->startOfWeek();
         $endOfWeek    = now()->endOfWeek();
         $startOfMonth = now()->startOfMonth();
         $endOfMonth   = now()->endOfMonth();
 
-        $buildEngineerLoad = function($taskList) use ($engineers) {
-            return $engineers->map(function($engineer) use ($taskList) {
-                $engineerTasks = $taskList->where('engineer_id', $engineer->id);
+        $buildEngineerLoad = function($taskList) use ($engineers, $hasTaskUser) {
+            return $engineers->map(function($engineer) use ($taskList, $hasTaskUser) {
+                $engineerTasks = $taskList->filter(function($t) use ($engineer, $hasTaskUser) {
+                    if ($t->engineer_id == $engineer->id) return true;
+                    if ($hasTaskUser && $t->relationLoaded('engineers') && $t->engineers->contains('id', $engineer->id)) {
+                        return true;
+                    }
+                    return false;
+                });
                 $active = $engineerTasks->where('status', '!=', 'Completed')->count();
                 $completed = $engineerTasks->where('status', 'Completed')->count();
+
+                $divName = 'Lainnya';
+                if ($engineer->hasRole(['Lead Maintenance', 'Maintenance']) || ($engineer->division && str_contains(strtolower($engineer->division->name), 'maintenance'))) {
+                    $divName = 'Maintenance';
+                } elseif ($engineer->division && str_contains(strtolower($engineer->division->name), 'network')) {
+                    $divName = 'Network';
+                } elseif ($engineer->division && str_contains(strtolower($engineer->division->name), 'security')) {
+                    $divName = 'Security';
+                }
+
                 return [
-                    'name' => $engineer->name,
-                    'active' => $active,
+                    'id'        => $engineer->id,
+                    'name'      => $engineer->name,
+                    'division'  => $divName,
+                    'position'  => $engineer->position ?? $engineer->role,
+                    'active'    => $active,
                     'completed' => $completed,
-                    'total' => $active,
+                    'total'     => $active,
                 ];
-            })->sortByDesc('active')->values();
+            })->values();
         };
 
-        // Data Bulan Ini (default): Seluruh task aktif pada bulan berjalan ini
+        // Data Bulan Ini: Seluruh task aktif pada bulan berjalan ini
         $engineerLoadMonthData = $buildEngineerLoad(
             $tasks->filter(function($t) use ($startOfMonth, $endOfMonth) {
                 if ($t->status === 'Completed') {
@@ -109,11 +141,23 @@ class DashboardController extends Controller
                     return $t->deadline >= $startOfWeek->copy()->startOfDay() 
                         && $t->deadline <= $endOfWeek->copy()->endOfDay();
                 }
-                // Jika tidak ada deadline, cek apakah dibuat minggu ini
                 return $t->created_at >= $startOfWeek->copy()->startOfDay() 
                     && $t->created_at <= $endOfWeek->copy()->endOfDay();
             })
         );
+
+        // Penentuan Filter Tim Default (Doris -> Maintenance, Leader lain -> divisinya, Global -> Semua)
+        $canFilterTeams = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasRole('Lead Maintenance');
+        $defaultTeamFilter = 'All';
+        if ($user->hasRole('Lead Maintenance')) {
+            $defaultTeamFilter = 'Maintenance';
+        } elseif ($user->hasRole('Team Leader')) {
+            if ($user->division && str_contains(strtolower($user->division->name), 'network')) {
+                $defaultTeamFilter = 'Network';
+            } elseif ($user->division && str_contains(strtolower($user->division->name), 'security')) {
+                $defaultTeamFilter = 'Security';
+            }
+        }
 
         // Filter task yang belum selesai dan memiliki deadline
         $incompleteTasksWithDeadline = $tasks->where('status', '!=', 'Completed')
@@ -150,6 +194,8 @@ class DashboardController extends Controller
             'engineerLoadData'       => $engineerLoadMonthData,
             'engineerLoadMonthData'  => $engineerLoadMonthData,
             'engineerLoadWeekData'   => $engineerLoadWeekData,
+            'canFilterTeams'         => $canFilterTeams,
+            'defaultTeamFilter'      => $defaultTeamFilter,
         ];
 
         return view('dashboard.lead', $data);
