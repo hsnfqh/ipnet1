@@ -280,6 +280,25 @@ Route::get('/fix-storage', function () {
     ]);
 });
 
+// Utility route AMAN untuk menjalankan migrasi database saja di hosting tanpa menghapus data
+Route::get('/migrate-db', function () {
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+        Artisan::call('config:clear');
+        Artisan::call('cache:clear');
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Migrasi tabel database berhasil dijalankan di hosting!',
+            'output'  => trim(Artisan::output()) ?: 'Database sudah up-to-date.',
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'Gagal menjalankan migrasi: ' . $e->getMessage(),
+        ], 500);
+    }
+});
+
 // Utility route untuk migrate database & seed user resmi & clear cache dari browser di cPanel
 Route::get('/run-migration', function () {
     $outputs = [];

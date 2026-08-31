@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Task;
 use App\Models\Project;
 use App\Models\User;
@@ -21,16 +22,26 @@ class TaskController extends Controller
         $isSupervisor = ScopeHelper::isGlobal($user);
         $canManage    = ScopeHelper::canManageTasks($user);
         $scopeIds     = ScopeHelper::getScopeUserIds($user);
+        $hasTaskUser  = Schema::hasTable('task_user');
 
-        $tasks = Task::with(['project', 'engineer', 'engineers', 'creator'])
-            ->when($scopeIds !== null, function($query) use ($scopeIds, $user) {
-                return $query->where(function($q) use ($scopeIds, $user) {
+        $withRelations = ['project', 'engineer', 'creator'];
+        if ($hasTaskUser) {
+            $withRelations[] = 'engineers';
+        }
+
+        $tasks = Task::with($withRelations)
+            ->when($scopeIds !== null, function($query) use ($scopeIds, $user, $hasTaskUser) {
+                return $query->where(function($q) use ($scopeIds, $user, $hasTaskUser) {
                     if (count($scopeIds) === 1) {
-                        $q->where('engineer_id', $scopeIds[0])
-                          ->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+                        $q->where('engineer_id', $scopeIds[0]);
+                        if ($hasTaskUser) {
+                            $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+                        }
                     } else {
-                        $q->whereIn('engineer_id', $scopeIds)
-                          ->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                        $q->whereIn('engineer_id', $scopeIds);
+                        if ($hasTaskUser) {
+                            $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                        }
                     }
                     $q->orWhere('created_by', $user->id);
                 });
@@ -63,10 +74,14 @@ class TaskController extends Controller
         unset($data['engineer_ids']);
         
         $task = Task::create($data);
-        if (!empty($engineerIds)) {
+        if ($hasTaskUser && !empty($engineerIds)) {
             $task->engineers()->sync($engineerIds);
         }
-        $task = $task->load(['project', 'engineer', 'engineers', 'creator']);
+        $withLoad = ['project', 'engineer', 'creator'];
+        if ($hasTaskUser) {
+            $withLoad[] = 'engineers';
+        }
+        $task = $task->load($withLoad);
 
         // Kirim notifikasi ke seluruh engineer/tim yang ditugaskan
         foreach ($engineerIds as $engId) {
@@ -116,7 +131,9 @@ class TaskController extends Controller
             }
             if (!empty($engineerIds)) {
                 $task->engineer_id = $engineerIds[0];
-                $task->engineers()->sync($engineerIds);
+                if (Schema::hasTable('task_user')) {
+                    $task->engineers()->sync($engineerIds);
+                }
             }
         }
         unset($validated['engineer_ids']);

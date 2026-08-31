@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Schedule;
 use App\Models\Project;
 use App\Models\Task;
@@ -23,28 +24,45 @@ class ScheduleController extends Controller
     {
         $user     = auth()->user();
         $scopeIds = ScopeHelper::getScopeUserIds($user);
+        $hasScheduleUser = Schema::hasTable('schedule_user');
 
-        $schedules = Schedule::with(['project', 'engineer', 'engineers', 'creator'])
-            ->when($scopeIds !== null, function($query) use ($scopeIds, $user) {
-                return $query->where(function($q) use ($scopeIds, $user) {
+        $withRelations = ['project', 'engineer', 'creator'];
+        if ($hasScheduleUser) {
+            $withRelations[] = 'engineers';
+        }
+
+        $schedules = Schedule::with($withRelations)
+            ->when($scopeIds !== null, function($query) use ($scopeIds, $user, $hasScheduleUser) {
+                return $query->where(function($q) use ($scopeIds, $user, $hasScheduleUser) {
                     if (count($scopeIds) === 1) {
-                        $q->where('engineer_id', $scopeIds[0])
-                          ->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+                        $q->where('engineer_id', $scopeIds[0]);
+                        if ($hasScheduleUser) {
+                            $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+                        }
                     } else {
-                        $q->whereIn('engineer_id', $scopeIds)
-                          ->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                        $q->whereIn('engineer_id', $scopeIds);
+                        if ($hasScheduleUser) {
+                            $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                        }
                     }
                     $q->orWhere('created_by', $user->id);
                 });
             })
             ->get()
-            ->map(function($schedule) {
+            ->map(function($schedule) use ($hasScheduleUser) {
+                $engineerIds = $hasScheduleUser && $schedule->relationLoaded('engineers')
+                    ? $schedule->engineers->pluck('id')->toArray()
+                    : ($schedule->engineer_id ? [$schedule->engineer_id] : []);
+                $engineersList = $hasScheduleUser && $schedule->relationLoaded('engineers')
+                    ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
+                    : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
+
                 return [
                     'id'          => $schedule->id,
                     'title'       => $schedule->title,
                     'project_id'  => $schedule->project_id,
                     'engineer_id' => $schedule->engineer_id,
-                    'engineer_ids'=> $schedule->engineers->pluck('id')->toArray(),
+                    'engineer_ids'=> $engineerIds,
                     'date'        => $schedule->date ? $schedule->date->format('Y-m-d') : '',
                     'start_time'  => $schedule->start_time ? substr($schedule->start_time, 0, 5) : '',
                     'end_time'    => $schedule->end_time ? substr($schedule->end_time, 0, 5) : '',
@@ -58,7 +76,7 @@ class ScheduleController extends Controller
                         'id'   => $schedule->engineer->id,
                         'name' => $schedule->engineer->name,
                     ] : null,
-                    'engineers'   => $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray(),
+                    'engineers'   => $engineersList,
                     'creator'     => $schedule->creator ? [
                         'id'   => $schedule->creator->id,
                         'name' => $schedule->creator->name,
@@ -136,17 +154,28 @@ class ScheduleController extends Controller
             unset($data['engineer_ids']);
             
             $schedule = Schedule::create($data);
-            if (!empty($engineerIds)) {
+            if ($hasScheduleUser && !empty($engineerIds)) {
                 $schedule->engineers()->sync($engineerIds);
             }
-            $schedule->load(['project', 'engineer', 'engineers', 'creator']);
+            $withRelations = ['project', 'engineer', 'creator'];
+            if ($hasScheduleUser) {
+                $withRelations[] = 'engineers';
+            }
+            $schedule->load($withRelations);
+
+            $engineerIdsList = $hasScheduleUser && $schedule->relationLoaded('engineers')
+                ? $schedule->engineers->pluck('id')->toArray()
+                : ($schedule->engineer_id ? [$schedule->engineer_id] : []);
+            $engineersList = $hasScheduleUser && $schedule->relationLoaded('engineers')
+                ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
+                : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
 
             $response = [
                 'id' => $schedule->id,
                 'title' => $schedule->title,
                 'project_id' => $schedule->project_id,
                 'engineer_id' => $schedule->engineer_id,
-                'engineer_ids' => $schedule->engineers->pluck('id')->toArray(),
+                'engineer_ids' => $engineerIdsList,
                 'date' => $schedule->date ? $schedule->date->format('Y-m-d') : '',
                 'start_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) : '',
                 'end_time' => $schedule->end_time ? substr($schedule->end_time, 0, 5) : '',
@@ -160,7 +189,7 @@ class ScheduleController extends Controller
                     'id' => $schedule->engineer->id,
                     'name' => $schedule->engineer->name,
                 ] : null,
-                'engineers' => $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray(),
+                'engineers' => $engineersList,
             ];
 
             if ($request->wantsJson() || $request->ajax()) {
@@ -188,18 +217,25 @@ class ScheduleController extends Controller
     {
         try {
             $data = $request->validated();
+            $hasScheduleUser = Schema::hasTable('schedule_user');
             $engineerIds = $request->input('engineer_ids', []);
             if (empty($engineerIds) && !empty($data['engineer_id'])) {
                 $engineerIds = [(int) $data['engineer_id']];
             }
             if (!empty($engineerIds)) {
                 $data['engineer_id'] = $engineerIds[0];
-                $schedule->engineers()->sync($engineerIds);
+                if ($hasScheduleUser) {
+                    $schedule->engineers()->sync($engineerIds);
+                }
             }
             unset($data['engineer_ids']);
 
             $schedule->update($data);
-            $schedule->load(['project', 'engineer', 'engineers', 'creator']);
+            $withRelations = ['project', 'engineer', 'creator'];
+            if ($hasScheduleUser) {
+                $withRelations[] = 'engineers';
+            }
+            $schedule->load($withRelations);
 
             $response = [
                 'id' => $schedule->id,
