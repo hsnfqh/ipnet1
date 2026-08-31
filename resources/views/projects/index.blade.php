@@ -184,21 +184,23 @@
                      x-transition:leave-end="opacity-0"
                      class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-3 sm:p-5"
                      @click.self="modalOpen = false">
-                    <div class="bg-white rounded-2xl w-[580px] max-w-full max-h-[90vh] overflow-y-auto animate-fade-in-up shadow-[0_16px_40px_rgba(14,13,18,0.12)]">
-                        <div class="flex items-center justify-between p-4 sm:p-[22px] border-b border-[#E7E5E3]">
+                    <div class="bg-white rounded-2xl w-[580px] max-w-full max-h-[90vh] flex flex-col overflow-hidden animate-fade-in-up shadow-[0_16px_40px_rgba(14,13,18,0.12)]">
+                        {{-- Modal Header (Fixed / Tidak Ikut Tescroll) --}}
+                        <div class="flex items-center justify-between p-4 sm:p-[22px] border-b border-[#E7E5E3] flex-shrink-0 bg-white">
                             <div>
                                 <h3 class="font-display text-[18px] font-semibold text-[#17151C]" x-text="modalTitle"></h3>
                                 <p class="text-[12.5px] text-[#75727C] mt-0.5">Kelola informasi proyek, tim sales, dan jadwal pemeliharaan berkala.</p>
                             </div>
-                            <button @click="modalOpen = false" class="rounded-lg p-1.5 text-[#75727C] hover:text-[#17151C] hover:bg-[#F1F0EE] transition-colors duration-200">
+                            <button @click="modalOpen = false" class="rounded-lg p-1.5 text-[#75727C] hover:text-[#17151C] hover:bg-[#F1F0EE] transition-colors duration-200 cursor-pointer">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
 
-                        <div class="p-4 sm:p-[22px]">
-                            <form @submit.prevent="saveProject()" class="space-y-4">
+                        {{-- Modal Body (Hanya bagian ini yang di-scroll) --}}
+                        <div class="p-4 sm:p-[22px] overflow-y-auto flex-1">
+                            <form id="projectForm" @submit.prevent="saveProject()" class="space-y-4">
                                 <div>
                                     <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Nama Project <span class="text-[#C81E2C]">*</span></label>
                                     <input type="text" x-model="form.name" required class="wms-input" placeholder="Masukkan nama project lengkap">
@@ -264,16 +266,17 @@
                                     <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Deskripsi & Catatan SLA</label>
                                     <textarea x-model="form.description" rows="3" class="wms-input resize-none" placeholder="Deskripsi teknis, ruang lingkup SLA, atau catatan project..."></textarea>
                                 </div>
-
-                                <div class="flex items-center gap-3 pt-3">
-                                    <button type="submit" class="wms-btn flex-1 justify-center bg-[#C81E2C] text-white shadow-[0_8px_20px_rgba(200,30,44,0.24)] py-[10px] px-[17px] rounded-lg font-semibold text-[14px] hover:brightness-105 active:translate-y-[1px] transition-all">
-                                        Simpan Project
-                                    </button>
-                                    <button type="button" @click="modalOpen = false" class="wms-btn flex-1 justify-center bg-white text-[#3D3A44] border border-[#E7E5E3] shadow-[0_1px_2px_rgba(14,13,18,0.05)] py-[10px] px-[17px] rounded-lg font-semibold text-[14px] hover:brightness-105 active:translate-y-[1px] transition-all">
-                                        Batal
-                                    </button>
-                                </div>
                             </form>
+                        </div>
+
+                        {{-- Modal Footer (Fixed / Selalu Tampak) --}}
+                        <div class="flex items-center gap-3 p-4 sm:px-[22px] sm:py-3.5 border-t border-[#E7E5E3] bg-[#FAF9F8] flex-shrink-0">
+                            <button type="submit" form="projectForm" class="wms-btn flex-1 justify-center bg-[#C81E2C] text-white shadow-[0_8px_20px_rgba(200,30,44,0.24)] py-[10px] px-[17px] rounded-lg font-semibold text-[14px] hover:brightness-105 active:translate-y-[1px] transition-all cursor-pointer">
+                                <span x-text="isEditing ? 'Simpan Perubahan' : 'Simpan Project'"></span>
+                            </button>
+                            <button type="button" @click="modalOpen = false" class="wms-btn flex-1 justify-center bg-white text-[#3D3A44] border border-[#E7E5E3] shadow-[0_1px_2px_rgba(14,13,18,0.05)] py-[10px] px-[17px] rounded-lg font-semibold text-[14px] hover:bg-[#F8F7F6] active:translate-y-[1px] transition-all cursor-pointer">
+                                Batal
+                            </button>
                         </div>
                     </div>
                 </div>
