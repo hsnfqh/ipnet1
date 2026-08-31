@@ -226,10 +226,36 @@ class DashboardController extends Controller
     public function engineer()
     {
         $user = auth()->user();
-        $myTasks = Task::with(['project'])->where('engineer_id', $user->id)->get();
-        $todaySchedules = Schedule::with(['project'])
-            ->where('engineer_id', $user->id)
+        $hasTaskUser     = \Illuminate\Support\Facades\Schema::hasTable('task_user');
+        $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
+
+        $taskRelations = ['project', 'engineer'];
+        if ($hasTaskUser) {
+            $taskRelations[] = 'engineers';
+        }
+
+        $myTasks = Task::with($taskRelations)
+            ->where(function($q) use ($user, $hasTaskUser) {
+                $q->where('engineer_id', $user->id);
+                if ($hasTaskUser) {
+                    $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $user->id));
+                }
+            })
+            ->get();
+
+        $scheduleRelations = ['project', 'engineer'];
+        if ($hasScheduleUser) {
+            $scheduleRelations[] = 'engineers';
+        }
+
+        $todaySchedules = Schedule::with($scheduleRelations)
             ->where('date', now()->toDateString())
+            ->where(function($q) use ($user, $hasScheduleUser) {
+                $q->where('engineer_id', $user->id);
+                if ($hasScheduleUser) {
+                    $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $user->id));
+                }
+            })
             ->get();
 
         $incompleteMyTasks = $myTasks->where('status', '!=', 'Completed')
