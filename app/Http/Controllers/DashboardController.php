@@ -80,10 +80,9 @@ class DashboardController extends Controller
         // DATA CHART LOAD PEKERJAAN ENGINEER (Bulan Ini & Minggu Ini)
         // Mendukung Filter Tim Lintas Divisi (Opsi 3: Default Maintenance untuk Doris)
         // ============================================================
-        $startOfWeek  = now()->startOfWeek();
-        $endOfWeek    = now()->endOfWeek();
-        $startOfMonth = now()->startOfMonth();
-        $endOfMonth   = now()->endOfMonth();
+        $startOfWeek      = now()->startOfWeek()->startOfDay();
+        $endOfWeek        = now()->endOfWeek()->endOfDay();
+        $endOfActiveCycle = now()->addDays(30)->endOfDay();
 
         $buildEngineerLoad = function($taskList) use ($engineers, $hasTaskUser) {
             return $engineers->map(function($engineer) use ($taskList, $hasTaskUser) {
@@ -118,31 +117,29 @@ class DashboardController extends Controller
             })->values();
         };
 
-        // Data Bulan Ini: Seluruh task aktif pada bulan berjalan ini
+        // Data Bulan Ini: Seluruh task aktif dalam siklus 30 hari berjalan (atau tenggat <= 30 hari ke depan)
         $engineerLoadMonthData = $buildEngineerLoad(
-            $tasks->filter(function($t) use ($startOfMonth, $endOfMonth) {
+            $tasks->filter(function($t) use ($endOfActiveCycle) {
                 if ($t->status === 'Completed') {
                     return false;
                 }
                 if ($t->deadline) {
-                    return $t->deadline <= $endOfMonth->copy()->endOfDay();
+                    return $t->deadline <= $endOfActiveCycle;
                 }
                 return true;
             })
         );
 
-        // Data Minggu Ini: Hanya task aktif yang deadlinenya jatuh pada pekan ini
+        // Data Minggu Ini: Task aktif yang mendesak atau deadlinenya jatuh pada pekan ini
         $engineerLoadWeekData = $buildEngineerLoad(
-            $tasks->filter(function($t) use ($startOfWeek, $endOfWeek) {
+            $tasks->filter(function($t) use ($endOfWeek) {
                 if ($t->status === 'Completed') {
                     return false;
                 }
                 if ($t->deadline) {
-                    return $t->deadline >= $startOfWeek->copy()->startOfDay() 
-                        && $t->deadline <= $endOfWeek->copy()->endOfDay();
+                    return $t->deadline <= $endOfWeek;
                 }
-                return $t->created_at >= $startOfWeek->copy()->startOfDay() 
-                    && $t->created_at <= $endOfWeek->copy()->endOfDay();
+                return true;
             })
         );
 
