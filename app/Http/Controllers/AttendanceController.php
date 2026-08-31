@@ -14,7 +14,7 @@ class AttendanceController extends Controller
     // Koordinat kantor PT IP Network Solusindo (Jl. Majapahit No.26P)
     const OFFICE_LAT = -6.1716;
     const OFFICE_LON = 106.8169;
-    const RADIUS_METER = 100;
+    const RADIUS_METER = 500;
 
     // ─── Engineer: halaman Clock In / Out ───────────────────────────────────
     public function index()
@@ -30,6 +30,16 @@ class AttendanceController extends Controller
 
         $clockIn  = $todayAttendances->firstWhere('type', 'clock_in');
         $clockOut = $todayAttendances->firstWhere('type', 'clock_out');
+
+        // Auto-sinkronisasi status radius jika sebelumnya tercatat di bawah 500 meter
+        if ($clockIn && !$clockIn->is_within_range && $clockIn->distance_meters !== null && $clockIn->distance_meters <= self::RADIUS_METER) {
+            $clockIn->is_within_range = true;
+            try { $clockIn->save(); } catch (\Exception $e) {}
+        }
+        if ($clockOut && !$clockOut->is_within_range && $clockOut->distance_meters !== null && $clockOut->distance_meters <= self::RADIUS_METER) {
+            $clockOut->is_within_range = true;
+            try { $clockOut->save(); } catch (\Exception $e) {}
+        }
 
         // Riwayat 7 hari terakhir
         $history = Attendance::where('user_id', $user->id)
@@ -50,6 +60,7 @@ class AttendanceController extends Controller
             'longitude' => 'required|numeric',
             'photo'     => 'nullable|string', // base64
             'note'      => 'nullable|string|max:255',
+            'address'   => 'nullable|string|max:500',
         ]);
 
         $user  = auth()->user();
@@ -72,6 +83,12 @@ class AttendanceController extends Controller
         $distance = Attendance::haversineDistance(self::OFFICE_LAT, self::OFFICE_LON, $lat, $lon);
         $withinRange = $distance <= self::RADIUS_METER;
 
+        // Tentukan alamat
+        $address = $request->address;
+        if (empty($address) && $withinRange) {
+            $address = 'Kantor Pusat PT IP Network Solusindo (Jl. Majapahit No.26P)';
+        }
+
         // Simpan foto selfie jika ada
         $photoPath = null;
         if ($request->photo) {
@@ -86,6 +103,7 @@ class AttendanceController extends Controller
             'distance_meters' => $distance,
             'is_within_range' => $withinRange,
             'photo_path'      => $photoPath,
+            'address'         => $address,
             'note'            => $request->note,
             'attendance_date' => $today,
         ]);
@@ -95,6 +113,7 @@ class AttendanceController extends Controller
             'attendance'   => $attendance,
             'within_range' => $withinRange,
             'distance'     => $distance,
+            'address'      => $attendance->address,
             'time'         => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('H:i'),
             'date'         => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('d M Y'),
         ]);
@@ -108,6 +127,7 @@ class AttendanceController extends Controller
             'longitude' => 'required|numeric',
             'photo'     => 'nullable|string',
             'note'      => 'nullable|string|max:255',
+            'address'   => 'nullable|string|max:500',
         ]);
 
         $user  = auth()->user();
@@ -139,6 +159,12 @@ class AttendanceController extends Controller
         $distance    = Attendance::haversineDistance(self::OFFICE_LAT, self::OFFICE_LON, $lat, $lon);
         $withinRange = $distance <= self::RADIUS_METER;
 
+        // Tentukan alamat
+        $address = $request->address;
+        if (empty($address) && $withinRange) {
+            $address = 'Kantor Pusat PT IP Network Solusindo (Jl. Majapahit No.26P)';
+        }
+
         $photoPath = null;
         if ($request->photo) {
             $photoPath = $this->saveBase64Photo($request->photo, $user->id, 'clock_out');
@@ -152,6 +178,7 @@ class AttendanceController extends Controller
             'distance_meters' => $distance,
             'is_within_range' => $withinRange,
             'photo_path'      => $photoPath,
+            'address'         => $address,
             'note'            => $request->note,
             'attendance_date' => $today,
         ]);
@@ -166,6 +193,7 @@ class AttendanceController extends Controller
             'attendance'     => $attendance,
             'duration'       => "{$hours} jam {$minutes} menit",
             'duration_short' => "{$hours}j {$minutes}m",
+            'address'        => $attendance->address,
             'time'           => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('H:i'),
             'date'           => Carbon::parse($attendance->created_at)->setTimezone('Asia/Jakarta')->format('d M Y'),
         ]);
@@ -244,6 +272,7 @@ class AttendanceController extends Controller
                 'distance'       => $a->distance_meters,
                 'is_within_range'=> $a->is_within_range,
                 'photo_url'      => $a->photo_path ? Storage::url($a->photo_path) : null,
+                'address'        => $a->address,
                 'note'           => $a->note,
             ]);
 

@@ -256,7 +256,12 @@
                         <td style="text-align: center; font-weight: bold;">{{ $row['clock_in'] }}</td>
                         <td style="text-align: center; font-weight: bold;">{{ $row['clock_out'] }}</td>
                         <td style="text-align: center; font-weight: bold; color: #2563EB;">{{ $row['duration'] }}</td>
-                        <td style="text-align: center;">{{ $row['distance'] }}</td>
+                        <td style="text-align: center;">
+                            <div>{{ $row['distance'] }}</div>
+                            @if(!empty($row['address']) && $row['address'] !== '-')
+                                <div style="font-size: 7.5px; color: #64748B; margin-top: 2px; line-height: 1.1;">{{ \Illuminate\Support\Str::limit($row['address'], 40) }}</div>
+                            @endif
+                        </td>
                         <td style="color: #475569; font-size: 8.5px;">{{ $row['note'] }}</td>
                     </tr>
                 @empty

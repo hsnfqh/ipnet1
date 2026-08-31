@@ -222,10 +222,15 @@
                                                 <span class="font-bold text-[#17151C] text-[13px]" x-text="row.duration || '—'"></span>
                                             </td>
 
-                                            {{-- Jarak Lokasi --}}
-                                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                            {{-- Jarak & Lokasi --}}
+                                            <td class="py-3.5 px-4 text-center">
                                                 <template x-if="row.distance !== null">
-                                                    <span class="font-mono text-[12.5px] font-medium text-[#3D3A44]" x-text="row.distance + ' m'"></span>
+                                                    <div>
+                                                        <span class="font-mono text-[12.5px] font-medium text-[#3D3A44]" x-text="row.distance + ' m'"></span>
+                                                        <template x-if="row.address">
+                                                            <div class="text-[11px] text-[#75727C] font-normal leading-tight mt-0.5 max-w-[220px] mx-auto truncate" :title="row.address" x-text="row.address"></div>
+                                                        </template>
+                                                    </div>
                                                 </template>
                                                 <template x-if="row.distance === null">
                                                     <span class="text-[#948F99] font-mono text-[12px]">—</span>
@@ -428,6 +433,7 @@ document.addEventListener('alpine:init', () => {
                         clock_in_time:  ci ? ci.time : null,
                         clock_out_time: co ? co.time : null,
                         distance:       ci ? ci.distance : null,
+                        address:        ci ? (ci.address || null) : (co ? co.address : null),
                         photo_url:      ci ? ci.photo_url : null,
                         duration,
                         status: ci

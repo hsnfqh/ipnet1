@@ -88,11 +88,13 @@ class AttendanceExportService
             $outTime = '-';
             $duration = '-';
             $distance = '-';
+            $address = '-';
             $note = '-';
 
             if ($clockIn) {
                 $inTime = Carbon::parse($clockIn->created_at)->setTimezone('Asia/Jakarta')->format('H:i') . ' WIB';
                 $distance = $clockIn->distance_meters ? round($clockIn->distance_meters) . ' m' : '-';
+                $address = $clockIn->address ?: ($clockOut?->address ?: '-');
                 $note = $clockIn->note ?: ($clockOut?->note ?: '-');
 
                 if ($clockIn->is_within_range) {
@@ -128,6 +130,7 @@ class AttendanceExportService
                 'clock_out'     => $outTime,
                 'duration'      => $duration,
                 'distance'      => $distance,
+                'address'       => $address,
                 'note'          => $note,
             ];
         }

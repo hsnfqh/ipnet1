@@ -77,10 +77,9 @@
                 $durationStr = "{$h}j {$m}m";
             }
 
-            $statusType = 'absent';
-            $statusLabel = 'Tidak Hadir';
+            $isWithin = $ci ? ($ci->is_within_range || (($ci->distance_meters ?? 9999) <= 500)) : false;
             if ($ci) {
-                if ($ci->is_within_range) {
+                if ($isWithin) {
                     $statusType  = 'present';
                     $statusLabel = 'Hadir (Sesuai Radius)';
                 } else {
@@ -99,10 +98,28 @@
                 'duration'    => $durationStr,
                 'statusType'  => $statusType,
                 'statusLabel' => $statusLabel,
+                'address'     => $ci->address ?? ($co->address ?? null),
                 'notes'       => ($ci && $ci->notes) ? $ci->notes : (($co && $co->notes) ? $co->notes : '—'),
             ];
         }
     }
+
+    $clockInPayload = $clockIn ? [
+        'time' => \Carbon\Carbon::parse($clockIn->created_at)->setTimezone('Asia/Jakarta')->format('H:i'),
+        'is_within_range' => (bool) ($clockIn->is_within_range || (($clockIn->distance_meters ?? 9999) <= 500)),
+        'distance' => $clockIn->distance_meters ?? $clockIn->distance,
+        'address' => $clockIn->address,
+    ] : null;
+
+    $clockOutPayload = $clockOut ? [
+        'time' => \Carbon\Carbon::parse($clockOut->created_at)->setTimezone('Asia/Jakarta')->format('H:i'),
+        'address' => $clockOut->address,
+    ] : null;
+
+    $durationPayload = ($clockIn && $clockOut) ? (function() use ($clockIn, $clockOut) {
+        $m = \Carbon\Carbon::parse($clockIn->created_at)->diffInMinutes(\Carbon\Carbon::parse($clockOut->created_at));
+        return intdiv($m, 60).'j '.($m % 60).'m';
+    })() : null;
 @endphp
 
 <div class="flex h-screen overflow-hidden">
@@ -125,7 +142,7 @@
                     <div>
                         <div class="font-bold text-[#17151C] flex items-center gap-1.5 flex-wrap">
                             <span>PT IP Network Solusindo</span>
-                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#F1F0EE] text-[#75727C]">Radius 100m</span>
+                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#F1F0EE] text-[#75727C]">Radius 500m</span>
                         </div>
                         <p class="text-[12px] text-[#75727C] leading-snug">Jl. Majapahit No.26P, Petojo Sel., Kecamatan Gambir, Kota Jakarta Pusat, DKI Jakarta 10160</p>
                     </div>
@@ -160,7 +177,7 @@
                 <div class="wms-card p-4 sm:p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow border border-[#E7E5E3]">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">Clock In (Masuk)</span>
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center"
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
                              :class="clockIn ? (clockIn.is_within_range ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600') : 'bg-[#F1F0EE] text-[#75727C]'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
@@ -169,17 +186,36 @@
                     </div>
                     <div class="mt-2.5">
                         <div class="font-display text-[28px] sm:text-[32px] font-bold text-[#17151C] leading-none tracking-tight font-mono" x-text="clockIn ? clockIn.time : '--:--'">--:--</div>
-                        <div class="mt-2 flex items-center gap-2">
-                            <template x-if="clockIn">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-md"
-                                      :class="clockIn.is_within_range ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'">
-                                    <span class="w-1.5 h-1.5 rounded-full" :class="clockIn.is_within_range ? 'bg-emerald-500' : 'bg-amber-500'"></span>
-                                    <span x-text="clockIn.is_within_range ? 'Hadir (Sesuai Radius)' : 'Luar Jangkauan'"></span>
-                                </span>
-                            </template>
-                            <template x-if="!clockIn">
-                                <span class="text-[12px] text-[#948F99]">Belum Clock In hari ini</span>
-                            </template>
+                        <div class="mt-2 flex flex-col gap-1.5">
+                            <div class="flex items-center gap-2">
+                                <template x-if="clockIn">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold rounded-md"
+                                          :class="clockIn.is_within_range ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'">
+                                        <span class="w-1.5 h-1.5 rounded-full" :class="clockIn.is_within_range ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+                                        <span x-text="clockIn.is_within_range ? 'Hadir (Sesuai Radius)' : 'Luar Jangkauan'"></span>
+                                    </span>
+                                </template>
+                                <template x-if="!clockIn">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-[#F1F0EE] text-[#75727C]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#948F99]"></span>
+                                        Belum Clock In
+                                    </span>
+                                </template>
+                            </div>
+
+                            <div class="text-[11.5px] text-[#75727C] flex items-center gap-1.5 min-w-0 pt-0.5">
+                                <template x-if="clockIn">
+                                    <div class="flex items-center gap-1.5 min-w-0 truncate" :title="clockIn.address || 'Lokasi terverifikasi'">
+                                        <svg class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span class="truncate text-[#17151C]" x-text="clockIn.address ? clockIn.address : 'Presensi masuk tercatat'"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!clockIn">
+                                    <span class="text-[#948F99] text-[11.5px]">Jadwal masuk: 08:30 WIB</span>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -188,7 +224,7 @@
                 <div class="wms-card p-4 sm:p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow border border-[#E7E5E3]">
                     <div class="flex items-center justify-between">
                         <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">Clock Out (Pulang)</span>
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center"
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
                              :class="clockOut ? 'bg-emerald-50 text-emerald-600' : 'bg-[#F1F0EE] text-[#75727C]'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -197,19 +233,44 @@
                     </div>
                     <div class="mt-2.5">
                         <div class="font-display text-[28px] sm:text-[32px] font-bold text-[#17151C] leading-none tracking-tight font-mono" x-text="clockOut ? clockOut.time : '--:--'">--:--</div>
-                        <div class="mt-2 flex items-center gap-2">
-                            <template x-if="clockOut">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    <span x-text="'Durasi: ' + (duration || '-')"></span>
-                                </span>
-                            </template>
-                            <template x-if="!clockOut && clockIn">
-                                <span class="text-[12px] text-[#75727C]">Sedang bertugas (Jam pulang 17:30)</span>
-                            </template>
-                            <template x-if="!clockOut && !clockIn">
-                                <span class="text-[12px] text-[#948F99]">Belum Clock In</span>
-                            </template>
+                        <div class="mt-2 flex flex-col gap-1.5">
+                            <div class="flex items-center gap-2">
+                                <template x-if="clockOut">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        <span x-text="'Durasi: ' + (duration || '-')"></span>
+                                    </span>
+                                </template>
+                                <template x-if="!clockOut && clockIn">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                        Sedang Bertugas
+                                    </span>
+                                </template>
+                                <template x-if="!clockOut && !clockIn">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-[#F1F0EE] text-[#75727C]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#948F99]"></span>
+                                        Belum Pulang
+                                    </span>
+                                </template>
+                            </div>
+
+                            <div class="text-[11.5px] text-[#75727C] flex items-center gap-1.5 min-w-0 pt-0.5">
+                                <template x-if="clockOut">
+                                    <div class="flex items-center gap-1.5 min-w-0 truncate">
+                                        <svg class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span class="truncate text-[#17151C]">Presensi pulang terekam</span>
+                                    </div>
+                                </template>
+                                <template x-if="!clockOut && clockIn">
+                                    <span class="text-[#75727C] text-[11.5px]">Jam kepulangan resmi: 17:30 WIB</span>
+                                </template>
+                                <template x-if="!clockOut && !clockIn">
+                                    <span class="text-[#948F99] text-[11.5px]">Menunggu presensi masuk</span>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -217,8 +278,15 @@
                 {{-- Card 3: Lokasi & GPS --}}
                 <div class="wms-card p-4 sm:p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow border border-[#E7E5E3]">
                     <div class="flex items-center justify-between">
-                        <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">Lokasi & GPS Real-Time</span>
-                        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">Lokasi & GPS Real-Time</span>
+                            <span class="relative flex h-2 w-2" x-show="currentLat">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" :class="withinRange ? 'bg-emerald-400' : 'bg-amber-400'"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2" :class="withinRange ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+                            </span>
+                        </div>
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+                             :class="currentDistance !== null ? (withinRange ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600') : 'bg-blue-50 text-blue-600'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -226,22 +294,60 @@
                         </div>
                     </div>
                     <div class="mt-2.5">
-                        <div class="font-display text-[22px] sm:text-[24px] font-bold text-[#17151C] leading-tight truncate">
+                        <div class="flex items-baseline gap-1.5 leading-none">
                             <template x-if="currentDistance !== null">
-                                <span><span x-text="currentDistance" class="font-mono">0</span> <span class="text-[13px] font-semibold text-[#75727C]">m dari kantor</span></span>
+                                <div class="flex items-baseline gap-1.5">
+                                    <span class="font-display text-[28px] sm:text-[32px] font-bold text-[#17151C] leading-none tracking-tight font-mono" x-text="currentDistance">0</span>
+                                    <span class="text-[13px] font-bold text-[#75727C]">m</span>
+                                    <span class="text-[12px] font-medium text-[#948F99]">dari kantor</span>
+                                </div>
                             </template>
                             <template x-if="currentDistance === null">
-                                <span class="text-[14px] text-[#75727C] font-normal" x-text="gpsStatus">Mendeteksi...</span>
+                                <div class="flex items-center gap-2 py-0.5">
+                                    <svg class="w-4 h-4 animate-spin text-[#75727C]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                    <span class="text-[13.5px] font-medium text-[#75727C]" x-text="gpsStatus">Mendeteksi GPS...</span>
+                                </div>
                             </template>
                         </div>
-                        <div class="mt-2 flex items-center gap-2">
-                            <template x-if="currentLat">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-md"
-                                      :class="withinRange ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'">
-                                    <span class="w-1.5 h-1.5 rounded-full" :class="withinRange ? 'bg-emerald-500' : 'bg-amber-500'"></span>
-                                    <span x-text="withinRange ? 'Dalam Radius (Maks 100m)' : 'Luar Radius Kantor'"></span>
-                                </span>
-                            </template>
+
+                        <div class="mt-2 flex flex-col gap-1.5">
+                            <div class="flex items-center gap-2">
+                                <template x-if="currentLat">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold rounded-md"
+                                          :class="withinRange ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'">
+                                        <span class="w-1.5 h-1.5 rounded-full" :class="withinRange ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+                                        <span x-text="withinRange ? 'Dalam Radius (Maks 500m)' : 'Luar Radius Kantor'"></span>
+                                    </span>
+                                </template>
+                                <template x-if="!currentLat">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-[#F1F0EE] text-[#75727C]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#948F99]"></span>
+                                        Mencari Koordinat...
+                                    </span>
+                                </template>
+                            </div>
+
+                            {{-- Tampilan Alamat Terdeteksi Real-Time (Rapi, Elegan, Tanpa Kotak Kasar) --}}
+                            <div class="text-[11.5px] text-[#4A4753] flex items-center gap-1.5 min-w-0 pt-0.5">
+                                <template x-if="currentAddress">
+                                    <div class="flex items-center gap-1.5 min-w-0 truncate" :title="currentAddress">
+                                        <svg class="w-3.5 h-3.5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        <span class="truncate text-[#17151C]" x-text="currentAddress"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!currentAddress && isGeocoding">
+                                    <div class="flex items-center gap-1.5 min-w-0 truncate text-[#948F99]">
+                                        <svg class="w-3 h-3 animate-spin text-[#948F99] flex-shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                        <span class="truncate">Mendeteksi alamat terdekat...</span>
+                                    </div>
+                                </template>
+                                <template x-if="!currentAddress && !isGeocoding">
+                                    <span class="text-[#948F99] truncate" x-text="gpsError ? gpsError : 'Menunggu sinyal GPS...'"></span>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -532,7 +638,7 @@
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                             <span class="font-bold text-[#17151C] text-[13px]" x-text="row.duration"></span>
                                         </td>
-                                        {{-- Status --}}
+                                        {{-- Status & Lokasi --}}
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                             <template x-if="row.statusType === 'present'">
                                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -548,6 +654,17 @@
                                             </template>
                                             <template x-if="row.statusType === 'absent'">
                                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-lg bg-[#F1F0EE] text-[#75727C]" x-text="row.statusLabel"></span>
+                                            </template>
+
+                                            {{-- Subtext Alamat Terdeteksi --}}
+                                            <template x-if="row.address">
+                                                <div class="text-[10.5px] text-[#75727C] font-normal mt-1 flex items-center justify-center gap-1 max-w-[210px] mx-auto truncate" :title="row.address">
+                                                    <svg class="w-3 h-3 text-[#C81E2C] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    </svg>
+                                                    <span class="truncate" x-text="row.address"></span>
+                                                </div>
                                             </template>
                                         </td>
                                         {{-- Catatan --}}
@@ -653,8 +770,20 @@
                                 <div class="font-mono text-[14px] text-amber-950 font-bold" x-text="currentDistance + ' meter'"></div>
                             </div>
 
+                            {{-- Alamat Terdeteksi di Modal --}}
+                            <div class="p-3.5 bg-[#FAF9F8] border border-[#E7E5E3] rounded-xl text-left">
+                                <div class="text-[11px] font-bold uppercase tracking-wider text-[#75727C] flex items-center gap-1.5 mb-1">
+                                    <svg class="w-3.5 h-3.5 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    Lokasi Terdeteksi:
+                                </div>
+                                <div class="text-[13px] font-semibold text-[#17151C] leading-snug" x-text="currentAddress || (currentLat ? ('Koordinat: ' + currentLat.toFixed(5) + ', ' + currentLon.toFixed(5)) : 'Mendeteksi alamat...')"></div>
+                            </div>
+
                             <p class="text-[13.5px] text-[#3D3A44] leading-relaxed text-center">
-                                Posisi GPS Anda terdeteksi melebihi batas radius kantor (<strong>100 meter</strong>). Absensi tetap dapat disimpan dan otomatis diberi catatan status <strong class="text-amber-800">Luar Jangkauan</strong>.
+                                Posisi GPS Anda terdeteksi melebihi batas radius kantor (<strong>500 meter</strong>). Absensi tetap dapat disimpan dan otomatis diberi catatan status <strong class="text-amber-800">Luar Jangkauan</strong> beserta lokasi terdeteksi.
                             </p>
                         </div>
 
@@ -750,18 +879,21 @@
 <script>
 document.addEventListener('alpine:init', () => {
     Alpine.data('attendanceManager', (initialHistory = []) => ({
-        // State GPS
-        currentLat:      null,
-        currentLon:      null,
-        currentDistance: null,
-        withinRange:     false,
-        gpsStatus:       'Mendeteksi lokasi...',
-        gpsError:        null,
+        // State GPS & Lokasi
+        currentLat:         null,
+        currentLon:         null,
+        currentDistance:    null,
+        currentAddress:     null,
+        isGeocoding:        false,
+        lastGeocodedCoords: null,
+        withinRange:        false,
+        gpsStatus:          'Mendeteksi lokasi...',
+        gpsError:           null,
 
         // State presensi
-        clockIn:   @json($clockIn ? ['time' => \Carbon\Carbon::parse($clockIn->created_at)->setTimezone('Asia/Jakarta')->format('H:i'), 'is_within_range' => $clockIn->is_within_range, 'distance' => $clockIn->distance_meters ?? $clockIn->distance] : null),
-        clockOut:  @json($clockOut ? ['time' => \Carbon\Carbon::parse($clockOut->created_at)->setTimezone('Asia/Jakarta')->format('H:i')] : null),
-        duration:  @json($clockIn && $clockOut ? (function() use ($clockIn, $clockOut) { $m = \Carbon\Carbon::parse($clockIn->created_at)->diffInMinutes(\Carbon\Carbon::parse($clockOut->created_at)); return intdiv($m,60).'j '.($m%60).'m'; })() : null),
+        clockIn:   @json($clockInPayload),
+        clockOut:  @json($clockOutPayload),
+        duration:  @json($durationPayload),
 
         // Riwayat & Paging
         historyRows:    initialHistory || [],
@@ -826,9 +958,12 @@ document.addEventListener('alpine:init', () => {
                         -6.1716, 106.8169,
                         this.currentLat, this.currentLon
                     );
-                    this.withinRange = this.currentDistance <= 100;
+                    this.withinRange = this.currentDistance <= 500;
                     this.gpsStatus = this.currentDistance + ' m dari kantor';
                     this.gpsError = null;
+
+                    // Trigger reverse geocoding untuk deteksi nama jalan / kota
+                    this.reverseGeocode(this.currentLat, this.currentLon);
                 },
                 (err) => {
                     this.gpsError = 'GPS tidak dapat diakses. Pastikan izin lokasi diaktifkan.';
@@ -836,6 +971,65 @@ document.addEventListener('alpine:init', () => {
                 },
                 { enableHighAccuracy: true, timeout: 10000 }
             );
+        },
+
+        async reverseGeocode(lat, lon) {
+            // Hindari request berulang untuk koordinat yang sama
+            if (this.lastGeocodedCoords && 
+                Math.abs(this.lastGeocodedCoords.lat - lat) < 0.0001 && 
+                Math.abs(this.lastGeocodedCoords.lon - lon) < 0.0001) {
+                return;
+            }
+            this.lastGeocodedCoords = { lat, lon };
+            this.isGeocoding = true;
+
+            try {
+                // Free OpenStreetMap Nominatim reverse geocode dengan bahasa Indonesia
+                const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+                const response = await fetch(url, {
+                    headers: { 'Accept-Language': 'id,en' }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.address) {
+                        const addr = data.address;
+                        const parts = [];
+
+                        // Nama Gedung / Fasilitas
+                        const poi = addr.building || addr.amenity || addr.office || addr.commercial || addr.shop;
+                        if (poi) parts.push(poi);
+
+                        // Nama Jalan
+                        if (addr.road) {
+                            parts.push(addr.road + (addr.house_number ? ' No. ' + addr.house_number : ''));
+                        }
+
+                        // Kelurahan / Kecamatan / Daerah
+                        const district = addr.suburb || addr.village || addr.neighbourhood || addr.city_district;
+                        if (district) parts.push(district);
+
+                        // Kota / Kabupaten
+                        const city = addr.city || addr.town || addr.municipality || addr.county;
+                        if (city) parts.push(city);
+
+                        // Provinsi
+                        const state = addr.state;
+                        if (state && (!city || !city.includes(state))) parts.push(state);
+
+                        this.currentAddress = parts.length > 0 ? parts.join(', ') : (data.display_name || '');
+                    } else if (data && data.display_name) {
+                        this.currentAddress = data.display_name.split(',').slice(0, 4).join(', ');
+                    }
+                }
+            } catch (err) {
+                console.warn('Geocoding notice:', err);
+                if (!this.currentAddress) {
+                    this.currentAddress = `Koordinat (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
+                }
+            } finally {
+                this.isGeocoding = false;
+            }
         },
 
         haversine(lat1, lon1, lat2, lon2) {
@@ -1044,6 +1238,7 @@ document.addEventListener('alpine:init', () => {
                         longitude: this.currentLon,
                         photo:     this.capturedPhoto || null,
                         note:      this.note,
+                        address:   this.currentAddress || null,
                     })
                 });
 
@@ -1051,12 +1246,14 @@ document.addEventListener('alpine:init', () => {
 
                 if (resp.ok) {
                     const submittedNote = this.note;
+                    const savedAddress  = data.address || this.currentAddress;
 
                     if (type === 'clock_in') {
                         this.clockIn = {
                             time: data.time || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }),
                             is_within_range: data.within_range,
                             distance: data.distance,
+                            address: savedAddress,
                         };
 
                         const todayDateStr = data.date || new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
@@ -1067,6 +1264,7 @@ document.addEventListener('alpine:init', () => {
                             existingRow.clockIn     = this.clockIn.time;
                             existingRow.statusType  = data.within_range ? 'present' : 'late';
                             existingRow.statusLabel = data.within_range ? 'Hadir (Sesuai Radius)' : `Luar Jangkauan (${data.distance}m)`;
+                            existingRow.address     = savedAddress;
                             if (submittedNote) existingRow.notes = submittedNote;
                         } else {
                             this.historyRows.unshift({
@@ -1078,12 +1276,14 @@ document.addEventListener('alpine:init', () => {
                                 duration:    '—',
                                 statusType:  data.within_range ? 'present' : 'late',
                                 statusLabel: data.within_range ? 'Hadir (Sesuai Radius)' : `Luar Jangkauan (${data.distance}m)`,
+                                address:     savedAddress,
                                 notes:       submittedNote || '—'
                             });
                         }
                     } else {
                         this.clockOut = {
                             time: data.time || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }),
+                            address: savedAddress,
                         };
                         this.duration = data.duration_short || data.duration || '';
 
@@ -1091,6 +1291,7 @@ document.addEventListener('alpine:init', () => {
                         if (existingRow) {
                             existingRow.clockOut = this.clockOut.time;
                             existingRow.duration = data.duration_short || this.duration;
+                            if (savedAddress && !existingRow.address) existingRow.address = savedAddress;
                             if (submittedNote) existingRow.notes = submittedNote;
                         }
                     }
