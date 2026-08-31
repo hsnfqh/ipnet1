@@ -19,14 +19,21 @@ class TaskController extends Controller
         $isLead       = ScopeHelper::isManagerial($user);
         $isDirektur   = $user->hasAnyRole(['Direktur', 'HD / Direktur']);
         $isSupervisor = ScopeHelper::isGlobal($user);
-        $canManage    = ScopeHelper::canManageProjectsAndTasks($user);
+        $canManage    = ScopeHelper::canManageTasks($user);
         $scopeIds     = ScopeHelper::getScopeUserIds($user);
 
-        $tasks = Task::with(['project', 'engineer', 'creator'])
-            ->when($scopeIds !== null, function($query) use ($scopeIds) {
-                return count($scopeIds) === 1
-                    ? $query->where('engineer_id', $scopeIds[0])
-                    : $query->whereIn('engineer_id', $scopeIds);
+        $tasks = Task::with(['project', 'engineer', 'engineers', 'creator'])
+            ->when($scopeIds !== null, function($query) use ($scopeIds, $user) {
+                return $query->where(function($q) use ($scopeIds, $user) {
+                    if (count($scopeIds) === 1) {
+                        $q->where('engineer_id', $scopeIds[0])
+                          ->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+                    } else {
+                        $q->whereIn('engineer_id', $scopeIds)
+                          ->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                    }
+                    $q->orWhere('created_by', $user->id);
+                });
             })
             ->get();
 
@@ -44,17 +51,30 @@ class TaskController extends Controller
         $data['progress'] = 0;
         $data['attachments'] = 0;
         $data['status'] = $data['status'] ?? 'Assigned';
+
+        // Kelola multi-assignee (engineer_ids)
+        $engineerIds = $request->input('engineer_ids', []);
+        if (empty($engineerIds) && !empty($data['engineer_id'])) {
+            $engineerIds = [(int) $data['engineer_id']];
+        }
+        if (!empty($engineerIds)) {
+            $data['engineer_id'] = $engineerIds[0];
+        }
+        unset($data['engineer_ids']);
         
         $task = Task::create($data);
-        $task = $task->load(['project', 'engineer', 'creator']);
+        if (!empty($engineerIds)) {
+            $task->engineers()->sync($engineerIds);
+        }
+        $task = $task->load(['project', 'engineer', 'engineers', 'creator']);
 
-        // Kirim notifikasi ke engineer yang ditunjuk
-        if ($task->engineer_id) {
+        // Kirim notifikasi ke seluruh engineer/tim yang ditugaskan
+        foreach ($engineerIds as $engId) {
             \App\Models\Notification::create([
-                'user_id' => $task->engineer_id,
-                'title' => 'Tugas Baru Ditugaskan',
+                'user_id' => $engId,
+                'title'   => 'Tugas Baru Ditugaskan',
                 'message' => 'Anda ditugaskan pada tugas baru: "' . $task->title . '" untuk proyek ' . ($task->project?->name ?? 'Project'),
-                'url' => route('tasks.index'),
+                'url'     => route('tasks.index'),
                 'is_read' => false,
             ]);
         }
@@ -64,27 +84,42 @@ class TaskController extends Controller
         }
 
         return redirect()->route('tasks.index')
-            ->with('success', 'Task berhasil dibuat dan diassign!');
+            ->with('success', 'Task berhasil dibuat dan ditugaskan ke tim!');
     }
 
     public function update(Request $request, Task $task)
     {
         $user = auth()->user();
 
-        // Opsi A: Hanya Team Leader (Nugraha, Ignatius, dll) yang memiliki wewenang untuk mengubah atau memperbarui task
-        abort_unless(ScopeHelper::canManageProjectsAndTasks($user), 403, 'Hanya Team Leader yang berhak mengubah atau memperbarui task.');
+        // Hanya Team Leader & Koordinator Helpdesk yang memiliki wewenang untuk mengubah atau memperbarui task
+        abort_unless(ScopeHelper::canManageTasks($user), 403, 'Hanya Team Leader / Koordinator yang berhak mengubah atau memperbarui task.');
 
         $validated = $request->validate([
-            'title'       => 'sometimes|required|string|max:255',
-            'project_id'  => 'sometimes|required|exists:projects,id',
-            'engineer_id' => 'sometimes|required|exists:users,id',
-            'priority'    => 'sometimes|required|in:High,Medium,Low',
-            'deadline'    => 'sometimes|required|date',
-            'description' => 'sometimes|nullable|string',
-            'status'      => 'sometimes|required|in:Assigned,In Progress,Waiting Review,Completed',
-            'progress'    => 'sometimes|nullable|integer|min:0|max:100',
-            'doc_file'    => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
+            'title'          => 'sometimes|required|string|max:255',
+            'project_id'     => 'sometimes|required|exists:projects,id',
+            'engineer_id'    => 'sometimes|nullable|exists:users,id',
+            'engineer_ids'   => 'sometimes|nullable|array|min:1',
+            'engineer_ids.*' => 'exists:users,id',
+            'priority'       => 'sometimes|required|in:High,Medium,Low',
+            'deadline'       => 'sometimes|required|date',
+            'description'    => 'sometimes|nullable|string',
+            'status'         => 'sometimes|required|in:Assigned,In Progress,Waiting Review,Completed',
+            'progress'       => 'sometimes|nullable|integer|min:0|max:100',
+            'doc_file'       => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
         ]);
+
+        // Multi-assignee sync
+        if ($request->has('engineer_ids') || $request->has('engineer_id')) {
+            $engineerIds = $request->input('engineer_ids');
+            if (empty($engineerIds) && $request->filled('engineer_id')) {
+                $engineerIds = [(int) $request->input('engineer_id')];
+            }
+            if (!empty($engineerIds)) {
+                $task->engineer_id = $engineerIds[0];
+                $task->engineers()->sync($engineerIds);
+            }
+        }
+        unset($validated['engineer_ids']);
 
         // Handle file upload dokumentasi
         if ($request->hasFile('doc_file')) {
@@ -117,7 +152,7 @@ class TaskController extends Controller
         $engineerChanged = $task->isDirty('engineer_id');
 
         $task->save();
-        $task = $task->load(['project', 'engineer', 'creator']);
+        $task = $task->load(['project', 'engineer', 'engineers', 'creator']);
 
         // Kirim notifikasi jika engineer berubah
         if ($engineerChanged && $task->engineer_id) {

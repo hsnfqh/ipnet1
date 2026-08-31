@@ -25,14 +25,16 @@ class ScheduleRequest extends FormRequest
         $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
 
         return [
-            'title'       => 'required|string|max:255',
-            'project_id'  => 'required|exists:projects,id',
-            'engineer_id' => 'required|exists:users,id',
-            'date'        => $isUpdate ? 'required|date' : 'required|date|after_or_equal:today',
-            'start_time'  => 'required|date_format:H:i',
-            'end_time'    => 'required|date_format:H:i|after:start_time',
-            'location'    => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'title'          => 'required|string|max:255',
+            'project_id'     => 'required|exists:projects,id',
+            'engineer_id'    => 'required_without:engineer_ids|nullable|exists:users,id',
+            'engineer_ids'   => 'required_without:engineer_id|nullable|array|min:1',
+            'engineer_ids.*' => 'exists:users,id',
+            'date'           => 'required|date',
+            'start_time'     => 'required|date_format:H:i',
+            'end_time'       => 'required|date_format:H:i|after:start_time',
+            'location'       => 'nullable|string|max:255',
+            'description'    => 'nullable|string',
         ];
     }
 }

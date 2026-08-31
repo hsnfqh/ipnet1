@@ -15,11 +15,12 @@ class ProjectController extends Controller
         $isLead       = \App\Helpers\ScopeHelper::isManagerial($user);
         $isDirektur   = $user->hasAnyRole(['Direktur', 'HD / Direktur']);
         $isSupervisor = \App\Helpers\ScopeHelper::isGlobal($user);
-        $canManage    = \App\Helpers\ScopeHelper::canManageProjectsAndTasks($user);
+        $canManage    = \App\Helpers\ScopeHelper::canManageTasks($user);
+        $canCreate    = \App\Helpers\ScopeHelper::canCreateProjects($user);
         $scopeIds     = \App\Helpers\ScopeHelper::getScopeUserIds($user);
 
         if ($scopeIds === null) {
-            // Global (Direktur / Group Leader): Semua project
+            // Global (Direktur / Group Leader / Lead Maintenance memantau seluruh proyek)
             $projects = Project::with(['tasks.engineer:id,name', 'creator:id,name'])->get();
         } else {
             // Team Leader / Engineer: Project yang memiliki task di dalam scope-nya atau dibuat oleh dirinya sendiri
@@ -34,7 +35,7 @@ class ProjectController extends Controller
                 ->get();
         }
 
-        return view('projects.index', compact('projects', 'isLead', 'canManage', 'isDirektur', 'isSupervisor'));
+        return view('projects.index', compact('projects', 'isLead', 'canManage', 'canCreate', 'isDirektur', 'isSupervisor'));
     }
 
     public function store(ProjectRequest $request)
@@ -74,7 +75,7 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
-        abort_unless(\App\Helpers\ScopeHelper::canManageProjectsAndTasks(auth()->user()), 403, 'Hanya Team Leader yang berhak menghapus project.');
+        abort_unless(\App\Helpers\ScopeHelper::canCreateProjects(auth()->user()), 403, 'Hanya Team Leader teknis / Lead Engineer yang berhak menghapus project.');
 
         try {
             $project->delete();

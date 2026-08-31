@@ -74,9 +74,9 @@
                         <option value="Direktur">Direktur</option>
                         <option value="Group Leader">Group Leader</option>
                         <option value="Team Leader">Team Leader</option>
-                        <option value="Lead Maintenance">Lead Maintenance</option>
+                        <option value="Lead Maintenance">Lead Maintenance / Helpdesk</option>
                         <option value="Engineer">Engineer</option>
-                        <option value="Maintenance">Maintenance</option>
+                        <option value="Maintenance">Maintenance / Helpdesk Staff</option>
                         <option value="Lead Engineer">Lead Engineer</option>
                     </select>
                     <select x-model="divisionFilter" style="width:170px; padding:9px 11px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white;">
@@ -311,9 +311,9 @@
                                             <option value="Direktur">Direktur</option>
                                             <option value="Group Leader">Group Leader</option>
                                             <option value="Team Leader">Team Leader (Leader Divisi)</option>
-                                            <option value="Lead Maintenance">Lead Maintenance</option>
+                                            <option value="Lead Maintenance">Lead Maintenance / Helpdesk</option>
                                             <option value="Engineer">Engineer</option>
-                                            <option value="Maintenance">Maintenance</option>
+                                            <option value="Maintenance">Maintenance / Helpdesk Staff</option>
                                         </select>
                                     </div>
                                     <div>
@@ -1064,9 +1064,10 @@
                         'Engineer L2':      { bg: '#ECFDF5', fg: '#047857', border: '#A7F3D0', dot: '#059669' },
                     };
                     const s = styles[role] || { bg: '#F1F0EE', fg: '#3D3A44', border: '#E7E5E3', dot: '#75727C' };
+                    const label = role === 'Lead Maintenance' ? 'Lead Maintenance / Helpdesk' : (role === 'Maintenance' ? 'Maintenance / Helpdesk' : role);
                     return `<span style="background: ${s.bg}; color: ${s.fg}; border: 1px solid ${s.border}; font-size: 11.5px; font-weight: 700; padding: 3.5px 10px 3.5px 8px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.1px;">
                                 <span style="width: 6px; height: 6px; border-radius: 50%; background: ${s.dot}; flex-shrink: 0;"></span>
-                                ${role}
+                                ${label}
                             </span>`;
                 },
 

@@ -51,8 +51,8 @@ class DummyUserSeeder extends Seeder
             ['code' => 'SEC', 'description' => 'Divisi Keamanan Jaringan & Cyber Security Protection']
         );
         $divMnt = Division::firstOrCreate(
-            ['name' => 'Divisi Maintenance'],
-            ['code' => 'MNT', 'description' => 'Divisi Pemeliharaan Rutin, Preventive & Corrective Maintenance SLA']
+            ['name' => 'Divisi Maintenance & Helpdesk'],
+            ['code' => 'MNT', 'description' => 'Divisi Helpdesk Klien, Penanganan Tiket SLA, dan Koordinasi Pemeliharaan Rutin']
         );
 
         // 3. Tim
@@ -65,8 +65,8 @@ class DummyUserSeeder extends Seeder
             ['description' => 'Tim Monitoring, Hardening & Security Implementation']
         );
         $teamMnt = Team::firstOrCreate(
-            ['name' => 'Tim Maintenance', 'division_id' => $divMnt->id],
-            ['description' => 'Tim Preventive Maintenance, SLA Support & Field Troubleshooting']
+            ['name' => 'Tim Helpdesk & Maintenance', 'division_id' => $divMnt->id],
+            ['description' => 'Tim Helpdesk, Dispatcher Teknisi, Monitoring SLA & Koordinasi Kunjungan Lapangan']
         );
 
         // ============================================================
@@ -211,14 +211,14 @@ class DummyUserSeeder extends Seeder
         );
         $engSec1->syncRoles(['Engineer']);
 
-        // --- DIVISI MAINTENANCE (DORIS, MARIO, ERIS) ---
+        // --- DIVISI MAINTENANCE & HELPDESK (DORIS, MARIO, ERIS) ---
         $tlMnt = User::updateOrCreate(
             ['email' => 'doris@ipnetsolusindo.com'],
             [
                 'name'        => 'Doris',
                 'password'    => Hash::make('password123'),
                 'phone'       => '08111000010',
-                'position'    => 'Lead Maintenance',
+                'position'    => 'Lead Maintenance & Helpdesk Coordinator',
                 'status'      => 'Active',
                 'division_id' => $divMnt->id,
                 'team_id'     => $teamMnt->id,
@@ -234,7 +234,7 @@ class DummyUserSeeder extends Seeder
                 'name'        => 'Mario',
                 'password'    => Hash::make('password123'),
                 'phone'       => '08111000011',
-                'position'    => 'Maintenance Staff',
+                'position'    => 'Helpdesk & Maintenance Staff',
                 'status'      => 'Active',
                 'division_id' => $divMnt->id,
                 'team_id'     => $teamMnt->id,
@@ -249,7 +249,7 @@ class DummyUserSeeder extends Seeder
                 'name'        => 'Eris',
                 'password'    => Hash::make('password123'),
                 'phone'       => '08111000012',
-                'position'    => 'Maintenance Staff',
+                'position'    => 'Helpdesk & Maintenance Staff',
                 'status'      => 'Active',
                 'division_id' => $divMnt->id,
                 'team_id'     => $teamMnt->id,
@@ -312,7 +312,7 @@ class DummyUserSeeder extends Seeder
                 'deadline'       => now()->addDays(75),
                 'status'         => 'On Progress',
                 'description'    => 'Kontrak pemeliharaan berkala SLA 99.9%, inspeksi bulanan switch core, dan restrukturisasi segmentasi VLAN medis.',
-                'created_by'     => $tlMnt->id,
+                'created_by'     => $tlNet->id,
             ],
             [
                 'name'           => 'Upgrade Bandwidth & WiFi 6 - Mall Kelapa Gading',
@@ -377,7 +377,7 @@ class DummyUserSeeder extends Seeder
                 'deadline'       => now()->addDays(80),
                 'status'         => 'On Progress',
                 'description'    => 'Jadwal visit berkala triwulanan pembersihan rack, audit firmware switch Cisco, dan health check firewall.',
-                'created_by'     => $tlMnt->id,
+                'created_by'     => $tlSec->id,
             ],
             [
                 'name'           => 'Managed Services & Maintenance Mingguan - Mall Kelapa Gading',
@@ -390,7 +390,7 @@ class DummyUserSeeder extends Seeder
                 'deadline'       => now()->addDays(53),
                 'status'         => 'On Progress',
                 'description'    => 'Layanan on-site support mingguan untuk pengecekan throughput WiFi publik dan gateway captive portal.',
-                'created_by'     => $tlMnt->id,
+                'created_by'     => $tlNet->id,
             ],
             [
                 'name'           => 'Maintenance & SLA Support WiFi Corporate - Menara BTPN',
@@ -403,7 +403,7 @@ class DummyUserSeeder extends Seeder
                 'deadline'       => now()->addDays(85),
                 'status'         => 'On Progress',
                 'description'    => 'Visit bulanan pengecekan log autentikasi 802.1X FreeRadius dan optimasi sinyal AP Aruba.',
-                'created_by'     => $tlMnt->id,
+                'created_by'     => $tlNet->id,
             ],
             [
                 'name'           => 'Inspeksi & Pemeliharaan Berkala CCTV NVR - Gudang Lazada',
@@ -416,7 +416,7 @@ class DummyUserSeeder extends Seeder
                 'deadline'       => now()->addDays(87),
                 'status'         => 'On Progress',
                 'description'    => 'Pengecekan rutin storage NVR, angle kamera CCTV, dan cleaning debu lensa di area warehouse.',
-                'created_by'     => $tlMnt->id,
+                'created_by'     => $tlNet->id,
             ],
             [
                 'name'           => 'Redundant BGP Peering & Routing - Data Center Telkomsigma',
@@ -651,6 +651,7 @@ class DummyUserSeeder extends Seeder
                 'title'       => 'Tarik Kabel Fiber Optik Lantai 12-16 Gedung BCA',
                 'project_id'  => $projects[2]->id,
                 'engineer_id' => $engNet1->id,
+                'team'        => [$engNet1->id, $engNet4->id, $engMnt1->id],
                 'priority'    => 'High',
                 'deadline'    => now()->addDays(1),
                 'progress'    => 80,
@@ -662,6 +663,7 @@ class DummyUserSeeder extends Seeder
                 'title'       => 'Splicing & Terminasi Fiber Optik ODF Ruang Server BCA',
                 'project_id'  => $projects[2]->id,
                 'engineer_id' => $engNet1->id,
+                'team'        => [$engNet1->id, $engNet4->id],
                 'priority'    => 'High',
                 'deadline'    => now()->addDays(3),
                 'progress'    => 45,
@@ -675,6 +677,7 @@ class DummyUserSeeder extends Seeder
                 'title'       => 'Audit Rule Firewall & Port Filtering Bank Mandiri',
                 'project_id'  => $projects[1]->id,
                 'engineer_id' => $engSec1->id,
+                'team'        => [$engSec1->id, $tlSec->id],
                 'priority'    => 'High',
                 'deadline'    => now()->addDays(2),
                 'progress'    => 75,
@@ -750,6 +753,7 @@ class DummyUserSeeder extends Seeder
                 'title'       => 'Supervisi Jadwal Kunjungan SLA Bulanan RS Siloam',
                 'project_id'  => $projects[3]->id,
                 'engineer_id' => $tlMnt->id,
+                'team'        => [$tlMnt->id, $engNet3->id, $engMnt1->id],
                 'priority'    => 'High',
                 'deadline'    => now()->addDays(2),
                 'progress'    => 60,
@@ -761,6 +765,7 @@ class DummyUserSeeder extends Seeder
                 'title'       => 'Evaluasi Laporan Berkala & Berita Acara Maintenance BCA',
                 'project_id'  => $projects[8]->id,
                 'engineer_id' => $tlMnt->id,
+                'team'        => [$tlMnt->id, $engSec1->id],
                 'priority'    => 'Medium',
                 'deadline'    => now()->addDays(5),
                 'progress'    => 20,
@@ -774,6 +779,7 @@ class DummyUserSeeder extends Seeder
                 'title'       => 'Inspeksi Fisik & Cleaning Debu Rack Server RS Siloam',
                 'project_id'  => $projects[3]->id,
                 'engineer_id' => $engMnt1->id,
+                'team'        => [$engMnt1->id, $tlMnt->id],
                 'priority'    => 'Medium',
                 'deadline'    => now()->addDays(1),
                 'progress'    => 80,
@@ -785,6 +791,7 @@ class DummyUserSeeder extends Seeder
                 'title'       => 'Testing Sinyal & Heatmap Survey Berkala Mall Kelapa Gading',
                 'project_id'  => $projects[9]->id,
                 'engineer_id' => $engMnt1->id,
+                'team'        => [$engMnt1->id, $engNet2->id],
                 'priority'    => 'High',
                 'deadline'    => now()->addDays(3),
                 'progress'    => 40,
@@ -796,6 +803,7 @@ class DummyUserSeeder extends Seeder
                 'title'       => 'Pemeriksaan Angle & Pembersihan Lensa 48 CCTV Lazada',
                 'project_id'  => $projects[11]->id,
                 'engineer_id' => $engMnt1->id,
+                'team'        => [$engMnt1->id, $engNet1->id],
                 'priority'    => 'Low',
                 'deadline'    => now()->addDays(4),
                 'progress'    => 25,
@@ -807,30 +815,33 @@ class DummyUserSeeder extends Seeder
                 'title'       => 'Penggantian Patch Cord LAN Cat6 Rusak RS Siloam',
                 'project_id'  => $projects[3]->id,
                 'engineer_id' => $engMnt1->id,
+                'team'        => [$engMnt1->id, $engNet3->id],
                 'priority'    => 'Medium',
-                'deadline'    => now()->subDays(2),
-                'progress'    => 100,
-                'status'      => 'Completed',
-                'description' => 'Pergantian 6 patch cord yang mengalami error CRC pada switch distribusi lantai 3.',
-                'created_by'  => $tlMnt->id,
-            ],
-
-            // ERIS (L2 Maintenance Engineer)
-            [
-                'title'       => 'Audit Log Error & Health Check Switch Core RS Siloam',
-                'project_id'  => $projects[3]->id,
-                'engineer_id' => $engMnt2->id,
-                'priority'    => 'High',
                 'deadline'    => now()->addDays(2),
                 'progress'    => 70,
                 'status'      => 'In Progress',
-                'description' => 'Pengecekan log buffer switch core, utilisasi memori/CPU, dan uji STP loop prevention.',
+                'description' => 'Re-terminasi 8 konektor RJ45 Cat6 dan penggantian patch cord warna biru di distribution panel.',
+                'created_by'  => $tlMnt->id,
+            ],
+
+            // ERIS (L1 Maintenance Engineer)
+            [
+                'title'       => 'Pengecekan Log Autentikasi 802.1X Menara BTPN',
+                'project_id'  => $projects[10]->id,
+                'engineer_id' => $engMnt2->id,
+                'team'        => [$engMnt2->id, $engNet3->id],
+                'priority'    => 'Medium',
+                'deadline'    => now()->addDays(2),
+                'progress'    => 65,
+                'status'      => 'In Progress',
+                'description' => 'Analisis reject log pada server FreeRadius dan troubleshooting sertifikat klien yang kedaluwarsa.',
                 'created_by'  => $tlMnt->id,
             ],
             [
                 'title'       => 'Backup Konfigurasi & Firmware Check Firewall BCA Thamrin',
                 'project_id'  => $projects[8]->id,
                 'engineer_id' => $engMnt2->id,
+                'team'        => [$engMnt2->id, $tlMnt->id],
                 'priority'    => 'High',
                 'deadline'    => now()->addDays(3),
                 'progress'    => 50,
@@ -842,6 +853,7 @@ class DummyUserSeeder extends Seeder
                 'title'       => 'Optimasi Channel & Roaming AP WiFi Menara BTPN',
                 'project_id'  => $projects[10]->id,
                 'engineer_id' => $engMnt2->id,
+                'team'        => [$engMnt2->id, $engNet2->id],
                 'priority'    => 'High',
                 'deadline'    => now()->addDays(4),
                 'progress'    => 35,
@@ -853,6 +865,7 @@ class DummyUserSeeder extends Seeder
                 'title'       => 'Health Check Storage RAID NVR CCTV Lazada Warehouse',
                 'project_id'  => $projects[11]->id,
                 'engineer_id' => $engMnt2->id,
+                'team'        => [$engMnt2->id, $engNet1->id],
                 'priority'    => 'Medium',
                 'deadline'    => now()->subDays(1),
                 'progress'    => 100,
@@ -863,7 +876,12 @@ class DummyUserSeeder extends Seeder
         ];
 
         foreach ($tasksData as $tData) {
-            Task::updateOrCreate(['title' => $tData['title'], 'project_id' => $tData['project_id']], $tData);
+            $team = $tData['team'] ?? [$tData['engineer_id']];
+            unset($tData['team']);
+            $task = Task::updateOrCreate(['title' => $tData['title'], 'project_id' => $tData['project_id']], $tData);
+            if (!empty($team)) {
+                $task->engineers()->sync($team);
+            }
         }
 
         // ============================================================

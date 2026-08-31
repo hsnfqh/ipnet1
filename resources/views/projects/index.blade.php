@@ -38,7 +38,7 @@
                     </select>
                 </div>
                 
-                @if($canManage)
+                @if($canCreate ?? false)
                 <button @click="openModal()" class="wms-btn w-full sm:w-auto justify-center bg-[#C81E2C] text-white shadow-[0_8px_20px_rgba(200,30,44,0.24)] px-[17px] py-[10px] rounded-lg font-semibold text-[14px] flex items-center gap-1.5 hover:brightness-105 active:translate-y-[1px] transition-all">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -115,7 +115,7 @@
                                                 </svg>
                                             </button>
                                             
-                                            @if($canManage)
+                                            @if($canCreate ?? false)
                                              <button @click="editProject(project)" title="Edit Project" class="rounded-lg p-1.5 text-[#75727C] hover:text-[#17151C] hover:bg-[#F1F0EE] transition-colors duration-200">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>

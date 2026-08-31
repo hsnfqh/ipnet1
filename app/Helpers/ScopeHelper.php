@@ -72,14 +72,34 @@ class ScopeHelper
     }
 
     /**
-     * Apakah user memiliki wewenang operasional untuk menambah/mengedit project dan membuat/assign task?
-     * Hanya Team Leader (Lead Network, Lead Security, Lead Maintenance, dll) dan Lead Engineer.
-     * Direktur & Group Leader difokuskan untuk monitoring/supervisi.
+     * Apakah user memiliki wewenang operasional untuk membuat project baru?
+     * Hanya Team Leader teknis (Network Leader, Security Leader) dan Lead Engineer.
+     * Lead Maintenance bertindak sebagai Helpdesk / Dispatcher sehingga tidak membuat project baru dari nol.
      */
-    public static function canManageProjectsAndTasks($user): bool
+    public static function canCreateProjects($user): bool
+    {
+        if (!$user) return false;
+        if ($user->hasRole('Lead Maintenance')) return false;
+        return $user->hasAnyRole(['Team Leader', 'Lead Engineer']);
+    }
+
+    /**
+     * Apakah user memiliki wewenang operasional untuk mengelola task/tiket (buat & edit task)?
+     * Mencakup Team Leader teknis, Lead Maintenance (Helpdesk), dan Lead Engineer.
+     */
+    public static function canManageTasks($user): bool
     {
         if (!$user) return false;
         return $user->hasAnyRole(['Team Leader', 'Lead Maintenance', 'Lead Engineer']);
+    }
+
+    /**
+     * Apakah user memiliki wewenang operasional (proyek/task)?
+     * Deprecated: Gunakan canCreateProjects atau canManageTasks untuk pengecekan spesifik.
+     */
+    public static function canManageProjectsAndTasks($user): bool
+    {
+        return self::canManageTasks($user);
     }
 
     /**
@@ -97,7 +117,12 @@ class ScopeHelper
             return null;
         }
 
-        // 2. Leader Divisi (Network Leader / Security Leader / Maintenance Leader) -> Akses SEMUA engineer di divisinya
+        // 2. Lead Maintenance -> Sebagai Helpdesk/Koordinator, dapat memantau seluruh teknisi & tiket yang didelegasikan
+        if ($user->hasRole('Lead Maintenance')) {
+            return null;
+        }
+
+        // 3. Leader Divisi (Network Leader / Security Leader) -> Akses SEMUA engineer di divisinya
         if (self::isTeamLeader($user)) {
             if ($user->division_id) {
                 return \App\Models\User::where('division_id', $user->division_id)
@@ -112,7 +137,7 @@ class ScopeHelper
             return [$user->id];
         }
 
-        // 3. Engineer / Maintenance Staff -> Hanya dirinya sendiri
+        // 4. Engineer / Maintenance Staff -> Hanya dirinya sendiri
         return [$user->id];
     }
 
@@ -159,14 +184,15 @@ class ScopeHelper
             'Engineer L2',
         ];
 
-        // 1. Direktur & Group Leader (GL) -> Bisa assign ke SEMUA personel teknis (TL, GL, Engineer) di seluruh divisi
-        if (self::isGlobal($user)) {
+        // 1. Direktur, Group Leader (GL), DAN Lead Maintenance (Helpdesk Dispatcher)
+        // -> Dapat menugaskan (dispatch) ke SEMUA personel teknis (Network & Security Engineer)
+        if (self::isGlobal($user) || $user->hasRole('Lead Maintenance')) {
             return \App\Models\User::whereHas('roles', function($q) use ($operationalRoles) {
                 $q->whereIn('name', $operationalRoles);
             })->active()->get();
         }
 
-        // 2. Leader Divisi (Network Leader / Security Leader) -> Assign ke personel di divisinya + dirinya sendiri
+        // 2. Leader Divisi Teknis (Network Leader / Security Leader) -> Assign ke personel di divisinya + dirinya sendiri
         if (self::isTeamLeader($user)) {
             if ($user->division_id) {
                 return \App\Models\User::whereHas('roles', function($q) use ($operationalRoles) {

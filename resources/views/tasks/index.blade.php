@@ -93,10 +93,30 @@
 
                                     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; flex-wrap:wrap;">
                                         <div style="display:flex; align-items:center; gap:6px; min-width:0;">
-                                            <div style="width:22px; height:22px; border-radius:50%; background:#C81E2C; color:white; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0;">
-                                                <span x-text="task.engineer?.name ? task.engineer.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase() : '?'"></span>
+                                            <!-- Stacked avatars jika ditugaskan ke tim (multi-assignee) -->
+                                            <div style="display:flex; align-items:center; margin-right:2px;">
+                                                <template x-for="(eng, idx) in (task.engineers && task.engineers.length > 0 ? task.engineers.slice(0, 2) : (task.engineer ? [task.engineer] : []))" :key="eng.id">
+                                                    <div style="width:22px; height:22px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0; border:1.5px solid white;"
+                                                         :style="{ background: idx === 0 ? '#C81E2C' : '#2563EB', marginLeft: idx > 0 ? '-6px' : '0' }"
+                                                         :title="eng.name + (idx === 0 ? ' (PIC Utama)' : ' (Pendamping Lapangan)')">
+                                                        <span x-text="eng.name ? eng.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase() : '?'"></span>
+                                                    </div>
+                                                </template>
+                                                <template x-if="task.engineers && task.engineers.length > 2">
+                                                    <div style="width:20px; height:20px; border-radius:50%; background:#75727C; color:white; display:flex; align-items:center; justify-content:center; font-size:8.5px; font-weight:700; flex-shrink:0; border:1.5px solid white; margin-left:-6px;"
+                                                         :title="task.engineers.map(e => e.name).join(', ')">
+                                                        <span x-text="'+' + (task.engineers.length - 2)"></span>
+                                                    </div>
+                                                </template>
                                             </div>
-                                            <span style="font-size:11px; color:#3D3A44; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="task.engineer?.name"></span>
+
+                                            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; color:#3D3A44; font-weight:500;">
+                                                <span x-text="task.engineer?.name || 'Belum diassign'"></span>
+                                                <template x-if="task.engineers && task.engineers.length > 1">
+                                                    <span style="font-size:9.5px; font-weight:700; color:#1D4ED8; background:#EFF6FF; padding:1px 5px; border-radius:8px; margin-left:3px;"
+                                                          x-text="'+' + (task.engineers.length - 1) + ' tim'"></span>
+                                                </template>
+                                            </div>
                                         </div>
                                         <span style="font-size:10px; font-family:'IBM Plex Mono',monospace; color:#75727C; white-space:nowrap;" x-text="formatDeadline(task.deadline)"></span>
                                     </div>
@@ -208,15 +228,49 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Assign ke Engineer</label>
-                                        <select x-model="form.engineer_id"
-                                                style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;"
-                                                required>
-                                            <option value="">Pilih Engineer</option>
-                                            <template x-for="engineer in engineers" :key="engineer.id">
-                                                <option :value="engineer.id" x-text="engineer.name + (engineer.position ? ' — ' + engineer.position : (engineer.role ? ' — ' + engineer.role : ''))"></option>
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                            <label style="font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">
+                                                Tim Pelaksana & Pendamping Lapangan
+                                            </label>
+                                            <span style="font-size:11px; color:#C81E2C; font-weight:600;" x-text="(form.engineer_ids?.length || 0) + ' Teknisi Dipilih'"></span>
+                                        </div>
+
+                                        <!-- Chip tag teknisi terpilih -->
+                                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; min-height:36px; padding:6px; background:#F8F7F6; border:1px solid #E7E5E3; border-radius:8px; align-items:center;">
+                                            <template x-for="(engId, idx) in form.engineer_ids" :key="engId">
+                                                <div style="display:inline-flex; align-items:center; gap:5px; background:white; border:1px solid #E7E5E3; padding:3px 8px; border-radius:20px; font-size:11.5px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                                                    <span style="width:6px; height:6px; border-radius:50%;" :style="{ background: idx === 0 ? '#C81E2C' : '#2563EB' }"></span>
+                                                    <span style="font-weight:600; color:#17151C;" x-text="getEngineerName(engId)"></span>
+                                                    <span style="font-size:9.5px; font-weight:700; padding:1px 5px; border-radius:10px;" :style="{ background: idx === 0 ? '#FDF1F2' : '#EFF6FF', color: idx === 0 ? '#C81E2C' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC' : 'Pendamping'"></span>
+                                                    <button type="button" @click="toggleEngineer(engId)" style="background:none; border:none; color:#75727C; cursor:pointer; padding:0; display:flex; align-items:center;" title="Hapus">
+                                                        <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                    </button>
+                                                </div>
                                             </template>
-                                        </select>
+                                            <span x-show="!form.engineer_ids || form.engineer_ids.length === 0" style="font-size:12px; color:#948F99; margin-left:4px;">Pilih minimal 1 teknisi dari daftar di bawah...</span>
+                                        </div>
+
+                                        <!-- Checklist teknisi (dengan tinggi lega 210px agar nyaman dan tidak terpotong) -->
+                                        <div style="max-height:210px; overflow-y:auto; border:1px solid #E7E5E3; border-radius:8px; background:white; padding:4px;">
+                                            <template x-for="engineer in engineers" :key="engineer.id">
+                                                <div @click="toggleEngineer(engineer.id)" 
+                                                     style="display:flex; align-items:center; justify-content:space-between; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; transition:all 0.1s ease;"
+                                                     :style="{ background: form.engineer_ids && form.engineer_ids.includes(engineer.id) ? '#FDF1F2' : 'transparent' }">
+                                                    <div style="display:flex; align-items:center; gap:8px;">
+                                                        <input type="checkbox" :checked="form.engineer_ids && form.engineer_ids.includes(engineer.id)" style="accent-color:#C81E2C; cursor:pointer;" @click.stop="toggleEngineer(engineer.id)">
+                                                        <div>
+                                                            <div style="font-weight:600; color:#17151C;" x-text="engineer.name"></div>
+                                                            <div style="font-size:10.5px; color:#75727C;" x-text="engineer.position || engineer.role"></div>
+                                                        </div>
+                                                    </div>
+                                                    <template x-if="form.engineer_ids && form.engineer_ids.includes(engineer.id)">
+                                                        <span style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:10px;" 
+                                                              :style="{ background: form.engineer_ids.indexOf(engineer.id) === 0 ? '#FDF1F2' : '#EFF6FF', color: form.engineer_ids.indexOf(engineer.id) === 0 ? '#C81E2C' : '#1D4ED8' }"
+                                                              x-text="form.engineer_ids.indexOf(engineer.id) === 0 ? 'PIC Utama' : 'Pendamping'"></span>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </div>
                                     <div class="modal-grid-2">
                                         <div>
@@ -400,9 +454,25 @@
                             <p style="margin:0 0 14px; font-size:12px; color:#75727C;" x-text="selectedTask?.project?.name"></p>
 
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; background:#F8F7F6; padding:12px; border-radius:8px; font-size:12px;">
-                                <div>
-                                    <span style="color:#75727C; font-weight:500;">Assignee:</span>
-                                    <strong style="color:#17151C; display:block;" x-text="selectedTask?.engineer?.name || '-'"></strong>
+                                <div style="grid-column: 1 / -1; background:white; border:1px solid #E7E5E3; border-radius:8px; padding:10px 12px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                        <span style="font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Tim Pelaksana & Pendamping Lapangan</span>
+                                        <span style="font-size:11px; font-weight:600; color:#C81E2C;" x-text="(selectedTask?.engineers?.length || (selectedTask?.engineer ? 1 : 0)) + ' Personil'"></span>
+                                    </div>
+                                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                                        <template x-for="(eng, idx) in (selectedTask?.engineers && selectedTask.engineers.length > 0 ? selectedTask.engineers : (selectedTask?.engineer ? [selectedTask.engineer] : []))" :key="eng.id">
+                                            <div style="display:inline-flex; align-items:center; gap:6px; background:#F8F7F6; border:1px solid #E7E5E3; padding:4px 10px 4px 6px; border-radius:20px; font-size:11.5px;">
+                                                <div style="width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:white;" :style="{ background: idx === 0 ? '#C81E2C' : '#2563EB' }">
+                                                    <span x-text="eng.name ? eng.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase() : '?'"></span>
+                                                </div>
+                                                <div>
+                                                    <span style="font-weight:600; color:#17151C;" x-text="eng.name"></span>
+                                                    <span x-show="eng.position" style="font-size:10px; color:#75727C; margin-left:2px;" x-text="'(' + eng.position + ')'"></span>
+                                                </div>
+                                                <span style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:10px;" :style="{ background: idx === 0 ? '#FDF1F2' : '#EFF6FF', color: idx === 0 ? '#C81E2C' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC Utama' : 'Pendamping'"></span>
+                                            </div>
+                                        </template>
+                                    </div>
                                 </div>
                                 <div>
                                     <span style="color:#75727C; font-weight:500;">Priority:</span>
@@ -609,6 +679,8 @@
                 filterProject: '',
                 filterPriority: '',
                 filterEngineer: '',
+                engineerDropdownOpen: false,
+                engineerSearch: '',
                 columnPagination: {
                     'Assigned': 10,
                     'In Progress': 10,
@@ -620,6 +692,7 @@
                     title: '',
                     project_id: null,
                     engineer_id: null,
+                    engineer_ids: [],
                     priority: 'Medium',
                     deadline: '',
                     status: 'Assigned',
@@ -637,6 +710,22 @@
                     console.log('Tasks Manager initialized!');
                 },
 
+                getEngineerName: function(id) {
+                    var eng = this.engineers.find(function(e) { return e.id == id; });
+                    return eng ? eng.name : 'Teknisi';
+                },
+
+                toggleEngineer: function(id) {
+                    if (!this.form.engineer_ids) this.form.engineer_ids = [];
+                    var idx = this.form.engineer_ids.indexOf(id);
+                    if (idx === -1) {
+                        this.form.engineer_ids.push(id);
+                    } else {
+                        this.form.engineer_ids.splice(idx, 1);
+                    }
+                    this.form.engineer_id = this.form.engineer_ids.length > 0 ? this.form.engineer_ids[0] : null;
+                },
+
                 openDetailModal: function(task) {
                     this.selectedTask = task;
                     this.detailModalOpen = true;
@@ -648,7 +737,9 @@
                         var matchStatus = t.status === status;
                         var matchProject = self.filterProject === '' || t.project_id == self.filterProject;
                         var matchPriority = self.filterPriority === '' || t.priority === self.filterPriority;
-                        var matchEngineer = self.filterEngineer === '' || t.engineer_id == self.filterEngineer;
+                        var matchEngineer = self.filterEngineer === '' || 
+                            t.engineer_id == self.filterEngineer || 
+                            (t.engineers && t.engineers.some(function(e) { return e.id == self.filterEngineer; }));
                         return matchStatus && matchProject && matchPriority && matchEngineer;
                     });
                 },
@@ -665,11 +756,15 @@
 
                 openModal: function() {
                     this.editing = false;
+                    this.engineerDropdownOpen = false;
+                    this.engineerSearch = '';
+                    var initialEngId = this.engineers[0]?.id || null;
                     this.form = {
                         id: null,
                         title: '',
                         project_id: this.projects[0]?.id || null,
-                        engineer_id: this.engineers[0]?.id || null,
+                        engineer_id: initialEngId,
+                        engineer_ids: initialEngId ? [initialEngId] : [],
                         priority: 'Medium',
                         deadline: '',
                         status: 'Assigned',
@@ -681,11 +776,18 @@
 
                 editTask: function(task) {
                     this.editing = true;
+                    this.engineerDropdownOpen = false;
+                    this.engineerSearch = '';
+                    var validIds = this.engineers.map(function(e) { return e.id; });
+                    var ids = (task.engineers && task.engineers.length > 0)
+                        ? task.engineers.map(function(e) { return e.id; }).filter(function(id) { return validIds.includes(id); })
+                        : (validIds.includes(task.engineer_id) ? [task.engineer_id] : (validIds.length > 0 ? [validIds[0]] : []));
                     this.form = {
                         id: task.id,
                         title: task.title,
                         project_id: task.project_id,
-                        engineer_id: task.engineer_id,
+                        engineer_id: ids[0] || (validIds.length > 0 ? validIds[0] : null),
+                        engineer_ids: ids,
                         priority: task.priority,
                         deadline: task.deadline ? task.deadline.split('T')[0] : '',
                         status: task.status,
@@ -723,6 +825,12 @@
 
                 saveTask: async function() {
                     try {
+                        if (!this.form.engineer_ids || this.form.engineer_ids.length === 0) {
+                            this.showToast('Pilih minimal 1 orang teknisi / pendamping lapangan!');
+                            return;
+                        }
+                        this.form.engineer_id = this.form.engineer_ids[0];
+
                         var url = this.editing ? '/tasks/' + this.form.id : '/tasks';
                         var method = this.editing ? 'PUT' : 'POST';
 
@@ -751,7 +859,7 @@
                                 'Completed': 10
                             };
                             this.modalOpen = false;
-                            this.showToast(this.editing ? 'Task berhasil diperbarui!' : 'Task berhasil dibuat dan diassign!');
+                            this.showToast(this.editing ? 'Task berhasil diperbarui!' : 'Task berhasil dibuat dan ditugaskan ke tim!');
                         } else {
                             var error = await response.json();
                             this.showToast('Error: ' + (error.message || 'Terjadi kesalahan'));

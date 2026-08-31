@@ -42,6 +42,11 @@ class Task extends Model
         return $this->belongsTo(User::class, 'engineer_id');
     }
 
+    public function engineers()
+    {
+        return $this->belongsToMany(User::class, 'task_user')->withTimestamps();
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
