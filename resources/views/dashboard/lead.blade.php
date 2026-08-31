@@ -298,8 +298,12 @@
                     },
                     tooltip: {
                         callbacks: {
+                            title: function(context) {
+                                const item = projectData[context[0].dataIndex];
+                                return item && item.fullName ? item.fullName : context[0].label;
+                            },
                             label: function(context) {
-                                return context.parsed.y + '%';
+                                return 'Progress: ' + context.parsed.y + '%';
                             }
                         }
                     }

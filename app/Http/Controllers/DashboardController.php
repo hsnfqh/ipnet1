@@ -57,17 +57,27 @@ class DashboardController extends Controller
         }
         $schedules = $schedulesQuery->get();
 
-        // Hanya tampilkan max 5 project yang sedang On Progress untuk bar chart
-        $projectProgressData = $projects
-            ->where('status', 'On Progress')
-            ->sortByDesc('created_at')
-            ->take(5)
-            ->map(function($project) {
-                return [
-                    'name'     => substr($project->name, 0, 18),
-                    'progress' => $project->progress,
-                ];
-            })->values();
+        // Ambil project yang sedang On Progress dan prioritaskan yang memiliki task & progress aktif
+        $onProgressProjects = $projects->where('status', 'On Progress');
+        $activeWithTasks = $onProgressProjects->filter(fn($p) => $p->tasks->count() > 0)
+            ->sortByDesc(fn($p) => $p->progress);
+
+        $selectedProjects = $activeWithTasks->take(5);
+
+        if ($selectedProjects->count() < 5) {
+            $otherProjects = $onProgressProjects->whereNotIn('id', $selectedProjects->pluck('id'))
+                ->sortByDesc('created_at')
+                ->take(5 - $selectedProjects->count());
+            $selectedProjects = $selectedProjects->concat($otherProjects);
+        }
+
+        $projectProgressData = $selectedProjects->map(function($project) {
+            return [
+                'name'     => substr($project->name, 0, 20),
+                'fullName' => $project->name,
+                'progress' => $project->progress,
+            ];
+        })->values();
 
         $statusData = [
             ['name' => 'Assigned', 'value' => $tasks->where('status', 'Assigned')->count(), 'color' => '#3B82F6'],

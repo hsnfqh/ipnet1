@@ -72,7 +72,15 @@ class Project extends Model
     {
         $tasks = $this->tasks;  // gunakan relasi yang sudah di-eager load (tidak ada extra query)
         $totalTasks = $tasks->count();
-        if ($totalTasks === 0) return 0;
+        if ($totalTasks === 0) {
+            return (int) ($this->attributes['progress'] ?? 0);
+        }
+
+        // Hitung rata-rata progress riil dari seluruh task di project ini
+        $avgProgress = $tasks->avg('progress');
+        if ($avgProgress !== null && $avgProgress > 0) {
+            return round($avgProgress);
+        }
 
         $completedTasks = $tasks->where('status', 'Completed')->count();
         return round(($completedTasks / $totalTasks) * 100);
