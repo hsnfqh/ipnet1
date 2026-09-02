@@ -304,6 +304,8 @@ Route::get('/migrate-db', function () {
         Artisan::call('migrate', ['--force' => true]);
         Artisan::call('config:clear');
         Artisan::call('cache:clear');
+        Artisan::call('view:clear');
+        Artisan::call('route:clear');
         return response()->json([
             'status'  => 'success',
             'message' => 'Migrasi tabel database berhasil dijalankan di hosting!',
