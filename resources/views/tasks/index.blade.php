@@ -266,18 +266,18 @@
                                             <template x-for="engineer in engineers" :key="engineer.id">
                                                 <div @click="toggleEngineer(engineer.id)" 
                                                      style="display:flex; align-items:center; justify-content:space-between; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; transition:all 0.1s ease;"
-                                                     :style="{ background: form.engineer_ids && form.engineer_ids.includes(engineer.id) ? '#FDF1F2' : 'transparent' }">
+                                                     :style="{ background: isEngineerSelected(engineer.id) ? '#FDF1F2' : 'transparent' }">
                                                     <div style="display:flex; align-items:center; gap:8px;">
-                                                        <input type="checkbox" :checked="form.engineer_ids && form.engineer_ids.includes(engineer.id)" style="accent-color:#C81E2C; cursor:pointer;" @click.stop="toggleEngineer(engineer.id)">
+                                                        <input type="checkbox" :checked="isEngineerSelected(engineer.id)" style="accent-color:#C81E2C; cursor:pointer; pointer-events:none;">
                                                         <div>
                                                             <div style="font-weight:600; color:#17151C;" x-text="engineer.name"></div>
                                                             <div style="font-size:10.5px; color:#75727C;" x-text="engineer.position || engineer.role"></div>
                                                         </div>
                                                     </div>
-                                                    <template x-if="form.engineer_ids && form.engineer_ids.includes(engineer.id)">
+                                                    <template x-if="isEngineerSelected(engineer.id)">
                                                         <span style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:10px;" 
-                                                              :style="{ background: form.engineer_ids.indexOf(engineer.id) === 0 ? '#FDF1F2' : '#EFF6FF', color: form.engineer_ids.indexOf(engineer.id) === 0 ? '#C81E2C' : '#1D4ED8' }"
-                                                              x-text="form.engineer_ids.indexOf(engineer.id) === 0 ? 'PIC Utama' : 'Pendamping'"></span>
+                                                              :style="{ background: (form.engineer_ids && parseInt(form.engineer_ids[0], 10) === parseInt(engineer.id, 10)) ? '#FDF1F2' : '#EFF6FF', color: (form.engineer_ids && parseInt(form.engineer_ids[0], 10) === parseInt(engineer.id, 10)) ? '#C81E2C' : '#1D4ED8' }"
+                                                              x-text="(form.engineer_ids && parseInt(form.engineer_ids[0], 10) === parseInt(engineer.id, 10)) ? 'PIC Utama' : 'Pendamping'"></span>
                                                     </template>
                                                 </div>
                                             </template>
@@ -757,11 +757,18 @@
                     return eng ? eng.name : 'Teknisi';
                 },
 
+                isEngineerSelected: function(id) {
+                    if (!this.form.engineer_ids || !Array.isArray(this.form.engineer_ids)) return false;
+                    var target = parseInt(id, 10);
+                    return this.form.engineer_ids.some(function(i) { return parseInt(i, 10) === target; });
+                },
+
                 toggleEngineer: function(id) {
-                    if (!this.form.engineer_ids) this.form.engineer_ids = [];
-                    var idx = this.form.engineer_ids.indexOf(id);
+                    if (!this.form.engineer_ids || !Array.isArray(this.form.engineer_ids)) this.form.engineer_ids = [];
+                    var target = parseInt(id, 10);
+                    var idx = this.form.engineer_ids.findIndex(function(i) { return parseInt(i, 10) === target; });
                     if (idx === -1) {
-                        this.form.engineer_ids.push(id);
+                        this.form.engineer_ids.push(target);
                     } else {
                         this.form.engineer_ids.splice(idx, 1);
                     }
@@ -822,10 +829,10 @@
                     this.editing = true;
                     this.engineerDropdownOpen = false;
                     this.engineerSearch = '';
-                    var validIds = this.engineers.map(function(e) { return e.id; });
+                    var validIds = this.engineers.map(function(e) { return parseInt(e.id, 10); });
                     var ids = (task.engineers && task.engineers.length > 0)
-                        ? task.engineers.map(function(e) { return e.id; }).filter(function(id) { return validIds.includes(id); })
-                        : (validIds.includes(task.engineer_id) ? [task.engineer_id] : (validIds.length > 0 ? [validIds[0]] : []));
+                        ? task.engineers.map(function(e) { return parseInt(e.id, 10); }).filter(function(id) { return validIds.includes(id); })
+                        : (task.engineer_id && validIds.includes(parseInt(task.engineer_id, 10)) ? [parseInt(task.engineer_id, 10)] : (validIds.length > 0 ? [validIds[0]] : []));
 
                     var dateStr = '';
                     var timeStr = task.deadline_time ? task.deadline_time.substring(0, 5) : '';

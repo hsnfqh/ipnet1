@@ -90,7 +90,7 @@ class ScopeHelper
     public static function canManageTasks($user): bool
     {
         if (!$user) return false;
-        return $user->hasAnyRole(['Team Leader', 'Lead Maintenance', 'Lead Engineer']);
+        return $user->hasAnyRole(['Direktur', 'Group Leader', 'Team Leader', 'Lead Maintenance', 'Lead Engineer']);
     }
 
     /**

@@ -217,12 +217,19 @@ class TaskController extends Controller
                 $validated['deadline_time'] = null;
             }
         }
+        if (isset($validated['deadline_time']) && !Schema::hasColumn('tasks', 'deadline_time')) {
+            unset($validated['deadline_time']);
+        }
 
         // Multi-assignee sync
         if ($request->has('engineer_ids') || $request->has('engineer_id')) {
-            $engineerIds = $request->input('engineer_ids');
-            if (empty($engineerIds) && $request->filled('engineer_id')) {
+            $rawEngIds = $request->input('engineer_ids');
+            if (!empty($rawEngIds)) {
+                $engineerIds = array_values(array_unique(array_filter(array_map('intval', (array) $rawEngIds))));
+            } elseif ($request->filled('engineer_id')) {
                 $engineerIds = [(int) $request->input('engineer_id')];
+            } else {
+                $engineerIds = [];
             }
             if (!empty($engineerIds)) {
                 $task->engineer_id = $engineerIds[0];

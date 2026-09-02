@@ -183,12 +183,12 @@
                                 </div>
                             </div>
                         </template>
-                        <div class="jkw-empty" x-show="daySchedules.length === 0" style="padding:32px 16px; text-align:center;">
-                            <div class="jkw-empty-icon" style="margin-bottom:8px;">
+                        <div class="jkw-empty" x-show="daySchedules.length === 0" style="padding:48px 16px 56px; text-align:center;">
+                            <div class="jkw-empty-icon" style="margin-bottom:12px;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
-                            <p style="margin-bottom:12px; font-size:13px; color:#75727C;">Tidak ada jadwal atau deadline pada hari ini.</p>
-                            <button type="button" @click="openModal()" style="background:#C81E2C; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(200,30,44,0.2);">
+                            <p style="margin-bottom:20px; font-size:13.5px; color:#75727C;">Tidak ada jadwal atau deadline pada hari ini.</p>
+                            <button type="button" @click="openModal()" style="background:#C81E2C; color:white; border:none; padding:10px 20px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 14px rgba(200,30,44,0.22); transition:all 0.15s ease;">
                                 <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 Tambah Jadwal Hari Ini
                             </button>
