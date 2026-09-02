@@ -319,6 +319,48 @@ Route::get('/migrate-db', function () {
     }
 });
 
+// Utility route untuk menghapus seluruh data dummy (Project, Task, Schedule, Timesheet, Attendance, Notifikasi)
+// SEMENTARA SELURUH DATA USER & ENGINEER TETAP UTUH
+Route::get('/clear-dummy-data', function () {
+    try {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        if (Schema::hasTable('task_user')) {
+            DB::table('task_user')->truncate();
+        }
+        if (Schema::hasTable('schedule_user')) {
+            DB::table('schedule_user')->truncate();
+        }
+
+        \App\Models\Task::truncate();
+        \App\Models\Schedule::truncate();
+        \App\Models\Project::truncate();
+        \App\Models\Timesheet::truncate();
+        \App\Models\Attendance::truncate();
+        \App\Models\Notification::truncate();
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        Artisan::call('config:clear');
+        Artisan::call('cache:clear');
+        Artisan::call('view:clear');
+        Artisan::call('route:clear');
+
+        return response()->json([
+            'status'           => 'success',
+            'message'          => 'Semua data dummy (project, task, schedule, timesheet, presensi, notifikasi) berhasil dibersihkan total!',
+            'kept_users_count' => \App\Models\User::count(),
+            'projects_count'   => \App\Models\Project::count(),
+            'tasks_count'      => \App\Models\Task::count(),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'Gagal membersihkan data: ' . $e->getMessage(),
+        ], 500);
+    }
+});
+
 // Utility route untuk migrate database & seed user resmi & clear cache dari browser di cPanel
 Route::get('/run-migration', function () {
     $outputs = [];
