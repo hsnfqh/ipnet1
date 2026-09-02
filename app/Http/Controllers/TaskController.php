@@ -134,11 +134,13 @@ class TaskController extends Controller
         $task = $task->load($withLoad);
 
         // Kirim notifikasi ke seluruh engineer/tim yang ditugaskan
+        $creator = auth()->user();
+        $creatorName = $creator ? $creator->name : 'Team Leader';
         foreach ($engineerIds as $engId) {
             \App\Models\Notification::create([
-                'user_id' => $engId,
+                'user_id' => (int) $engId,
                 'title'   => 'Tugas Baru Ditugaskan',
-                'message' => 'Anda ditugaskan pada tugas baru: "' . $task->title . '" untuk proyek ' . ($task->project?->name ?? 'Project'),
+                'message' => 'Anda ditugaskan oleh ' . $creatorName . ' pada tugas: "' . $task->title . '" untuk proyek ' . ($task->project?->name ?? 'Project'),
                 'url'     => route('tasks.index'),
                 'is_read' => false,
             ]);
@@ -264,15 +266,27 @@ class TaskController extends Controller
         $task->save();
         $task = $task->load(['project', 'engineer', 'engineers', 'creator']);
 
-        // Kirim notifikasi jika engineer berubah
-        if ($engineerChanged && $task->engineer_id) {
-            \App\Models\Notification::create([
-                'user_id' => $task->engineer_id,
-                'title' => 'Tugas Baru Ditugaskan',
-                'message' => 'Anda ditugaskan pada tugas: "' . $task->title . '" untuk proyek ' . ($task->project?->name ?? 'Project'),
-                'url' => route('tasks.index'),
-                'is_read' => false,
-            ]);
+        // Multi-assignee list
+        $allAssigneeIds = [];
+        if ($task->relationLoaded('engineers') && $task->engineers->isNotEmpty()) {
+            $allAssigneeIds = $task->engineers->pluck('id')->toArray();
+        } elseif ($task->engineer_id) {
+            $allAssigneeIds = [$task->engineer_id];
+        }
+
+        // Kirim notifikasi jika penugasan engineer diubah atau diperbarui
+        if ($engineerChanged || $request->has('engineer_ids') || $request->has('engineer_id')) {
+            $assigner = auth()->user();
+            $assignerName = $assigner ? $assigner->name : 'Team Leader';
+            foreach ($allAssigneeIds as $engId) {
+                \App\Models\Notification::create([
+                    'user_id' => (int) $engId,
+                    'title'   => 'Penugasan Tugas: ' . $task->title,
+                    'message' => 'Anda ditugaskan oleh ' . $assignerName . ' pada tugas: "' . $task->title . '" untuk proyek ' . ($task->project?->name ?? 'Project'),
+                    'url'     => route('tasks.index'),
+                    'is_read' => false,
+                ]);
+            }
         }
 
         // Kirim notifikasi ke manajer jika diupdate oleh engineer biasa
@@ -296,11 +310,11 @@ class TaskController extends Controller
             }
         }
 
-        // Kirim notifikasi ke Engineer jika manajerial mengubah status task
+        // Kirim notifikasi ke seluruh Engineer terkait jika manajerial mengubah status task
         if ($user && ScopeHelper::isManagerial($user) && $statusChanged) {
-            if ($task->engineer_id) {
+            foreach ($allAssigneeIds as $engId) {
                 \App\Models\Notification::create([
-                    'user_id' => $task->engineer_id,
+                    'user_id' => (int) $engId,
                     'title'   => 'Status Tugas Diperbarui',
                     'message' => 'Status tugas "' . $task->title . '" telah diubah menjadi ' . $task->status . ' oleh ' . $user->name . '.',
                     'url'     => route('tasks.index'),

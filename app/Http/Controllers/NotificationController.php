@@ -32,7 +32,7 @@ class NotificationController extends Controller
         $userId = auth()->id();
         $notifications = Notification::where('user_id', $userId)
             ->orderByDesc('created_at')
-            ->limit(5)
+            ->limit(10)
             ->get();
 
         $unreadCount = Notification::where('user_id', $userId)

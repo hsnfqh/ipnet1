@@ -74,8 +74,9 @@
                         </div>
                     </template>
                     <template x-for="notif in notifications" :key="notif.id">
-                        <div class="relative group flex items-center justify-between px-4 py-3 hover:bg-gray-50/80 transition-colors"
-                             :class="!notif.is_read ? 'bg-red-50/20' : ''">
+                        <div class="relative group flex items-center justify-between px-4 py-3 hover:bg-gray-50/80 transition-colors cursor-pointer"
+                             :class="!notif.is_read ? 'bg-red-50/20' : ''"
+                             @click="goToNotif(notif)">
                             <div class="flex-1 min-w-0 pr-2">
                                 <div class="flex gap-2">
                                     <span class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" :class="!notif.is_read ? 'bg-red-600' : 'bg-transparent'"></span>
@@ -187,7 +188,15 @@
                 this.fetchNotifications();
                 this.pollingInterval = setInterval(() => {
                     this.fetchNotifications();
-                }, 30000);
+                }, 8000);
+            },
+
+            goToNotif(notif) {
+                if (notif && notif.url) {
+                    window.location.href = notif.url;
+                } else {
+                    window.location.href = '{{ route('notifications.index') }}';
+                }
             },
 
             async fetchNotifications() {

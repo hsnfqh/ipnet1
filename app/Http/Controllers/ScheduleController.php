@@ -206,6 +206,19 @@ class ScheduleController extends Controller
                 ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
                 : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
 
+            // Kirim notifikasi ke seluruh engineer yang dijadwalkan
+            $creator = auth()->user();
+            $creatorName = $creator ? $creator->name : 'Team Leader';
+            foreach ($engineerIdsList as $engId) {
+                \App\Models\Notification::create([
+                    'user_id' => (int) $engId,
+                    'title'   => 'Agenda Jadwal Baru: ' . $schedule->title,
+                    'message' => 'Anda dijadwalkan oleh ' . $creatorName . ' pada agenda: "' . $schedule->title . '" (' . ($schedule->date ? $schedule->date->format('d/m/Y') : '-') . ($schedule->start_time ? ' pukul ' . substr($schedule->start_time, 0, 5) . ' WIB' : '') . ').',
+                    'url'     => route('schedules.index'),
+                    'is_read' => false,
+                ]);
+            }
+
             $response = [
                 'id' => $schedule->id,
                 'title' => $schedule->title,
@@ -305,6 +318,19 @@ class ScheduleController extends Controller
             $engineersList = $hasScheduleUser && $schedule->relationLoaded('engineers')
                 ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
                 : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
+
+            // Kirim notifikasi ke seluruh engineer jika agenda diperbarui
+            $creator = auth()->user();
+            $creatorName = $creator ? $creator->name : 'Team Leader';
+            foreach ($engineerIdsList as $engId) {
+                \App\Models\Notification::create([
+                    'user_id' => (int) $engId,
+                    'title'   => 'Pembaruan Agenda: ' . $schedule->title,
+                    'message' => 'Agenda "' . $schedule->title . '" telah diperbarui oleh ' . $creatorName . ' (' . ($schedule->date ? $schedule->date->format('d/m/Y') : '-') . ($schedule->start_time ? ' pukul ' . substr($schedule->start_time, 0, 5) . ' WIB' : '') . ').',
+                    'url'     => route('schedules.index'),
+                    'is_read' => false,
+                ]);
+            }
 
             $response = [
                 'id' => $schedule->id,
