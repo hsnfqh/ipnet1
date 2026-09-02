@@ -188,7 +188,7 @@
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
                             <p style="margin-bottom:20px; font-size:13.5px; color:#75727C;">Tidak ada jadwal atau deadline pada hari ini.</p>
-                            <button type="button" @click="openModal()" style="background:#C81E2C; color:white; border:none; padding:10px 20px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 14px rgba(200,30,44,0.22); transition:all 0.15s ease;">
+                            <button type="button" @click="openModal()" style="margin-top:20px !important; background:#C81E2C; color:white; border:none; padding:10px 22px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 14px rgba(200,30,44,0.22); transition:all 0.15s ease;">
                                 <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 Tambah Jadwal Hari Ini
                             </button>
@@ -834,10 +834,11 @@
 .jkw-day-meta { display:flex !important; align-items:center !important; gap:6px !important; font-size:11.5px !important; color:var(--jkw-muted) !important; flex-wrap:wrap !important; }
 .jkw-sep { color:var(--jkw-line) !important; }
 
-.jkw-empty { text-align:center !important; padding:40px 16px !important; color:var(--jkw-muted) !important; }
-.jkw-empty-icon { width:44px !important; height:44px !important; border-radius:10px !important; background:var(--jkw-bg-soft) !important; display:flex !important; align-items:center !important; justify-content:center !important; margin:0 auto 12px !important; }
+.jkw-empty { text-align:center !important; padding:48px 16px 56px !important; color:var(--jkw-muted) !important; }
+.jkw-empty-icon { width:44px !important; height:44px !important; border-radius:10px !important; background:var(--jkw-bg-soft) !important; display:flex !important; align-items:center !important; justify-content:center !important; margin:0 auto 14px !important; }
 .jkw-empty-icon svg { width:20px !important; height:20px !important; opacity:.6 !important; }
-.jkw-empty p { font-size:13.5px !important; margin:0 !important; }
+.jkw-empty p { font-size:13.5px !important; margin:0 0 20px 0 !important; color:#75727C !important; }
+.jkw-empty button { margin-top:16px !important; }
 
 /* ---------- week view ---------- */
 .jkw-week-scroll { overflow-x:auto !important; -webkit-overflow-scrolling:touch !important; scroll-snap-type:x proximity !important; }
