@@ -428,21 +428,19 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
             </div>
-            <h3 style="margin:0 0 6px; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:700; color:#17151C;">Hapus Sertifikasi?</h3>
-            <p style="margin:0 0 20px; font-size:13px; color:#75727C; line-height:1.5;">
-                Anda yakin ingin menghapus sertifikat <strong x-text="deletingCertName" style="color:#17151C;"></strong>?
-            </p>
+            <h3 style="margin:0 0 6px; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:700; color:#17151C;">Yakin Hapus Sertifikasi?</h3>
+            <p style="margin:0 0 20px; font-size:13px; color:#75727C; line-height:1.5;" x-text="'Sertifikat &quot;' + deletingCertName + '&quot; akan dihapus.'"></p>
             <div style="display:flex; gap:10px;">
-                <button type="button" @click="deleteModalOpen = false" style="flex:1; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-weight:600; font-size:13px; color:#3D3A44; cursor:pointer;">
-                    Batal
-                </button>
                 <form :action="'/profile/certification/' + deletingCertId" method="POST" style="flex:1; margin:0;">
                     @csrf
                     @method('DELETE')
                     <button type="submit" style="width:100%; padding:10px 14px; border-radius:8px; border:none; background:#C81E2C; font-weight:600; font-size:13px; color:white; cursor:pointer;">
-                        Ya, Hapus
+                        Hapus
                     </button>
                 </form>
+                <button type="button" @click="deleteModalOpen = false" style="flex:1; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-weight:600; font-size:13px; color:#3D3A44; cursor:pointer;">
+                    Batal
+                </button>
             </div>
         </div>
     </div>

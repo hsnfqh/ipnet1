@@ -423,7 +423,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
-                                <span x-text="cameraOpen ? 'Tutup Kamera' : (capturedPhoto ? 'Foto Terambil ✓' : 'Tambah Foto Selfie')"></span>
+                                <span x-text="cameraOpen ? 'Tutup Kamera' : (capturedPhoto ? 'Foto Terambil' : 'Tambah Foto Selfie')"></span>
                             </button>
                         </template>
                     </div>
@@ -470,7 +470,7 @@
                                     </div>
                                     <p class="text-[11px] text-gray-200 leading-snug" x-text="cameraError"></p>
                                     <p class="text-[10px] text-amber-300 leading-tight">
-                                        💡 Klik ikon gembok/pengaturan di samping URL browser &rarr; ubah Kamera ke <strong>Izinkan (Allow)</strong>
+                                        Petunjuk: Klik ikon izin di samping URL browser &rarr; ubah Kamera ke <strong>Izinkan (Allow)</strong>
                                     </p>
                                     <div class="flex items-center gap-2 mt-1">
                                         <button type="button" 
@@ -497,7 +497,7 @@
                             <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden" x-show="capturedPhoto">
                                 <img :src="capturedPhoto" class="w-full h-full object-cover border-2 border-emerald-500 rounded-xl" alt="Selfie preview">
                                 <span class="absolute top-2 right-2 px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-bold shadow">
-                                    Foto Siap ✓
+                                    Foto Siap
                                 </span>
                             </div>
                             
@@ -836,7 +836,7 @@
                                         </label>
                                     </div>
                                     <p class="text-[11px] text-[#75727C] leading-normal">
-                                        💡 Foto dan alasan bersifat opsional. Jika tidak ingin melampirkan foto, Anda tetap bisa langsung klik tombol simpan di bawah.
+                                        Catatan: Foto dan keterangan bersifat opsional. Jika tidak ingin melampirkan foto, Anda tetap dapat langsung menyimpan presensi di bawah.
                                     </p>
                                 </div>
                             </div>

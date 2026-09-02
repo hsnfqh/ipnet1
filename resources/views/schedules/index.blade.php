@@ -64,6 +64,16 @@
                         </svg>
                         <span>Export PDF</span>
                     </a>
+
+                    <button type="button"
+                            @click="openModal()"
+                            class="jkw-btn jkw-btn--primary"
+                            title="Tambah Jadwal Baru">
+                        <svg class="jkw-icon" style="color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Tambah Jadwal</span>
+                    </button>
                 </div>
             </div>
 
@@ -102,7 +112,7 @@
                     <span style="font-size:11px; font-weight:700; color:var(--jkw-muted); text-transform:uppercase; letter-spacing:.3px; white-space:nowrap; flex-shrink:0;">Keterangan:</span>
                     <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         <span style="width:10px; height:10px; border-radius:2px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
-                        <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Jadwal Kerja</span>
+                        <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Jadwal Meeting</span>
                     </span>
                     <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
                     <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
@@ -135,10 +145,29 @@
 
                     <div class="jkw-day-list">
                         <template x-for="schedule in paginatedDaySchedules" :key="schedule._uid">
-                            <div class="jkw-day-item" :style="'border-left: 4px solid ' + schedule._color + '; padding-left: 14px;'">
-                                <div class="jkw-time" x-text="schedule._type === 'schedule' ? (schedule.start_time + ' – ' + schedule.end_time) : schedule._timeLabel"></div>
+                            <div class="jkw-day-item" :class="'jkw-day-item--' + schedule._type">
+                                <div class="jkw-time" style="display:flex; align-items:center; gap:5px;">
+                                    <svg style="width:13px; height:13px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+                                    <span x-text="schedule._timeLabel"></span>
+                                </div>
                                 <div class="jkw-day-main">
-                                    <div class="jkw-day-title" x-text="schedule._displayTitle"></div>
+                                    <div class="jkw-day-title" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                                        <span x-text="schedule._displayTitle"></span>
+                                        <template x-if="schedule._type === 'schedule'">
+                                            @if($isLead)
+                                            <div style="display:flex; align-items:center; gap:6px;">
+                                                <button type="button" @click="shareWhatsApp(schedule)" style="background:#22C55E; color:white; border:none; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0; box-shadow:0 2px 6px rgba(34,197,94,0.25);" title="Bagikan Undangan Meeting ke WhatsApp">
+                                                    <svg style="width:12px; height:12px;" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                                                    Kirim ke WA
+                                                </button>
+                                                <button type="button" @click="openModal(schedule)" style="background:#F8F7F6; border:1px solid #E7E5E3; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:600; color:#3D3A44; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+                                                    <svg style="width:11px; height:11px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                    Edit
+                                                </button>
+                                            </div>
+                                            @endif
+                                        </template>
+                                    </div>
                                     <div class="jkw-day-meta">
                                         <span class="jkw-avatar jkw-avatar--sm" :style="'background:' + colorFromName(schedule.engineer?.name || '-')" x-text="initials(schedule.engineer?.name || '-')"></span>
                                         <span x-text="schedule.engineer?.name || '-'"></span>
@@ -154,11 +183,15 @@
                                 </div>
                             </div>
                         </template>
-                        <div class="jkw-empty" x-show="daySchedules.length === 0">
-                            <div class="jkw-empty-icon">
+                        <div class="jkw-empty" x-show="daySchedules.length === 0" style="padding:32px 16px; text-align:center;">
+                            <div class="jkw-empty-icon" style="margin-bottom:8px;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
-                            <p>Tidak ada jadwal atau deadline pada hari ini.</p>
+                            <p style="margin-bottom:12px; font-size:13px; color:#75727C;">Tidak ada jadwal atau deadline pada hari ini.</p>
+                            <button type="button" @click="openModal()" style="background:#C81E2C; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(200,30,44,0.2);">
+                                <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                Tambah Jadwal Hari Ini
+                            </button>
                         </div>
                     </div>
 
@@ -230,8 +263,11 @@
                                     </div>
                                     <div class="jkw-week-col-body">
                                         <template x-for="event in getAllEventsForDay(day.fullDate)" :key="event._uid">
-                                            <div class="jkw-mini-card" :style="'border-left: 3px solid ' + event._color + ';'">
-                                                <div class="jkw-mini-time" x-text="event._timeLabel" style="font-size:10px; opacity:0.7;"></div>
+                                            <div class="jkw-mini-card" 
+                                                 :style="'border-left: 3px solid ' + event._color + ';' + (event._type === 'schedule' ? ' cursor:pointer;' : ' cursor:default; pointer-events:none;')"
+                                                 :title="event._tooltip"
+                                                 @click="if (event._type === 'schedule') { openModal(event); }">
+                                                <div class="jkw-mini-time" x-text="event._timeLabel" style="font-size:10px; font-weight:700;" :style="{ color: event._color }"></div>
                                                 <div class="jkw-mini-title" x-text="event._displayTitle"></div>
                                                 <div class="jkw-mini-eng" x-text="event._subLabel"></div>
                                             </div>
@@ -275,7 +311,14 @@
                                         <div class="jkw-month-daynum" x-text="day.dayNum"></div>
                                         <div class="jkw-month-events">
                                             <template x-for="event in getAllEventsForDay(day.fullDate).slice(0, 3)" :key="event._uid">
-                                                <div class="jkw-month-event" :style="'background:' + event._color + '; color:#fff;'" x-text="event._displayTitle"></div>
+                                                <div class="jkw-month-event"
+                                                     :style="'background:' + event._color + '; color:#fff; display:flex; align-items:center; gap:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:2px 6px; border-radius:4px; font-size:10.5px; margin-bottom:2px;' + (event._type === 'schedule' ? ' cursor:pointer; opacity:1;' : ' cursor:default; opacity:0.92; pointer-events:none;')"
+                                                     :title="event._tooltip"
+                                                     @click="if (event._type === 'schedule') { openModal(event); }">
+                                                    <span x-show="event._type === 'schedule' && event.start_time" style="font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:9.5px; opacity:0.95; flex-shrink:0;" x-text="event.start_time"></span>
+                                                    <span x-show="event._type === 'task' && event.deadline_time" style="font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:9.5px; opacity:0.95; flex-shrink:0;" x-text="event.deadline_time"></span>
+                                                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="event._displayTitle"></span>
+                                                </div>
                                             </template>
                                             <div class="jkw-month-more" x-show="getAllEventsForDay(day.fullDate).length > 3" x-text="'+' + (getAllEventsForDay(day.fullDate).length - 3) + ' lagi'"></div>
                                         </div>
@@ -317,11 +360,19 @@
                                             </span>
                                         </td>
                                         <td class="jkw-mono" x-text="schedule.date.split('T')[0]"></td>
-                                        <td class="jkw-mono" x-text="schedule.start_time + ' – ' + schedule.end_time"></td>
+                                        <td class="jkw-mono" x-text="schedule.start_time ? (schedule.start_time.substring(0, 5) + ' WIB') : '-'"></td>
                                         <td class="jkw-td-wrap" x-text="schedule.location"></td>
                                         @if($isLead)
                                         <td>
                                             <div style="display:flex; justify-content:flex-end; gap:4px;">
+                                                <button type="button"
+                                                        @click="shareWhatsApp(schedule)"
+                                                        style="background:none; border:none; cursor:pointer; color:#16A34A; padding:6px; border-radius:7px; transition:all 0.15s ease;"
+                                                        title="Kirim Undangan ke WhatsApp"
+                                                        onmouseover="this.style.background='#DCFCE7'; this.style.color='#15803D'"
+                                                        onmouseout="this.style.background='transparent'; this.style.color='#16A34A'">
+                                                    <svg style="width:16px; height:16px;" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                                                </button>
                                                 <button type="button"
                                                         @click="editSchedule(schedule)"
                                                         style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:7px; transition:all 0.15s ease;"
@@ -358,7 +409,7 @@
                 </div>
             </div>
 
-            {{-- CONFIRM DELETE MODAL --}}
+            {{-- CONFIRM DELETE MODAL (STANDAR TIMESHEET) --}}
             <template x-teleport="body">
                 <div x-show="confirmOpen"
                      x-cloak
@@ -368,43 +419,27 @@
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0"
-                     style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
-                     @click.self="confirmOpen = false">
+                     class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+                     @click.self="confirmOpen = false"
+                     @keydown.escape.window="confirmOpen = false">
 
-                    <div style="background:white; border-radius:16px; width:420px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(14,13,18,0.2); margin:auto; position:relative; animation:jkwFadeUp 0.18s ease;">
+                    <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(14,13,18,0.2)] animate-fade-in-up">
+                        <div class="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#C81E2C]">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
 
-                        <div style="padding:20px 24px;">
-                            <div style="display:flex; justify-content:center mb-4;">
-                                <div style="width:56px; height:56px; border-radius:50%; background:#FEF2F2; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-                                    <svg style="width:28px; height:28px; color:#C81E2C;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                    </svg>
-                                </div>
-                            </div>
+                        <h3 class="text-center font-display text-[17px] font-bold text-[#17151C] mb-2">Yakin Hapus Jadwal?</h3>
+                        <p class="text-center text-[13.5px] text-[#75727C] mb-6 break-words" x-text="'Jadwal &quot;' + (confirmData?.title || '') + '&quot; akan dihapus.'"></p>
 
-                            <h3 style="text-align:center; font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:#17151C; margin-bottom:8px;">
-                                Yakin hapus data?
-                            </h3>
-
-                            <p style="text-align:center; font-size:14px; color:#75727C; margin-bottom:24px; word-break:break-word;">
-                                Jadwal "<span x-text="confirmData?.title" style="font-weight:600; color:#17151C;"></span>" akan dihapus permanen.
-                                <br>Apakah Anda yakin?
-                            </p>
-
-                            <div style="display:flex; gap:12px;">
-                                <button @click="confirmDeleteAction()"
-                                        style="flex:1; padding:10px 16px; border-radius:8px; background:#C81E2C; color:white; border:none; font-weight:600; font-size:14px; cursor:pointer; transition:all 0.15s ease;"
-                                        onmouseover="this.style.filter='brightness(1.05)'"
-                                        onmouseout="this.style.filter='brightness(1)'">
-                                    Yakin
-                                </button>
-                                <button @click="confirmOpen = false"
-                                        style="flex:1; padding:10px 16px; border-radius:8px; background:white; color:#3D3A44; border:1px solid #E7E5E3; font-weight:600; font-size:14px; cursor:pointer; transition:all 0.15s ease;"
-                                        onmouseover="this.style.background='#F8F7F6'"
-                                        onmouseout="this.style.background='white'">
-                                    Batal
-                                </button>
-                            </div>
+                        <div class="flex gap-3">
+                            <button type="button" @click="confirmDeleteAction()" class="flex-1 py-2.5 px-4 rounded-xl bg-[#C81E2C] text-white font-semibold text-[13.5px] hover:bg-[#A31622] transition cursor-pointer">
+                                Hapus
+                            </button>
+                            <button type="button" @click="confirmOpen = false" class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                                Batal
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -452,38 +487,105 @@
                                             <template x-for="project in projects" :key="project.id">
                                                 <option :value="project.id" x-text="project.name"></option>
                                             </template>
+                                            <option value="other" style="font-weight:600; color:#C81E2C;">Other</option>
                                         </select>
+                                        <!-- Input nama project jika memilih 'other' -->
+                                        <div x-show="form.project_id === 'other'" style="margin-top:8px;">
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#C81E2C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">
+                                                Nama Project / Meeting
+                                            </label>
+                                            <input type="text" x-model="form.new_project_name"
+                                                   placeholder="Masukkan nama project atau meeting..."
+                                                   style="width:100%; padding:9px 12px; border-radius:8px; border:1.5px solid #C81E2C; font-size:14px; color:#17151C; outline:none; background:#FFF5F5; box-sizing:border-box;"
+                                                   :required="form.project_id === 'other'">
+                                        </div>
                                     </div>
                                     <div>
-                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Engineer</label>
-                                        <select x-model="form.engineer_id" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
-                                            <option value="">Pilih Engineer</option>
-                                            <template x-for="engineer in engineers" :key="engineer.id">
-                                                <option :value="engineer.id" x-text="engineer.name + (isEngineerBusyOnDate(engineer.id, form.date) ? ' (sudah ada jadwal)' : '')"></option>
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                            <label style="font-size:11.5px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:.3px;">
+                                                Engineer / Peserta
+                                            </label>
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <button type="button" @click="selectAllEngineers()" 
+                                                        style="background:none; border:none; color:#C81E2C; font-size:11px; font-weight:700; cursor:pointer; padding:0; text-decoration:underline;">
+                                                    + Pilih Semua
+                                                </button>
+                                                <span style="color:#D5D3D0; font-size:10px;">|</span>
+                                                <button type="button" @click="clearEngineers()" 
+                                                        style="background:none; border:none; color:#75727C; font-size:11px; font-weight:600; cursor:pointer; padding:0;">
+                                                    Kosongkan
+                                                </button>
+                                                <span style="font-size:11px; color:#C81E2C; font-weight:700; background:#FDF1F2; padding:2px 7px; border-radius:10px;" 
+                                                      x-text="(form.engineer_ids?.length || 0) + ' Dipilih'"></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Chip tag engineer terpilih -->
+                                        <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; min-height:34px; padding:6px; background:#F8F7F6; border:1px solid #E7E5E3; border-radius:8px; align-items:center;">
+                                            <template x-for="(engId, idx) in form.engineer_ids" :key="engId">
+                                                <div style="display:inline-flex; align-items:center; gap:5px; background:white; border:1px solid #E7E5E3; padding:3px 8px; border-radius:20px; font-size:11px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                                                    <span style="width:6px; height:6px; border-radius:50%;" :style="{ background: idx === 0 ? '#C81E2C' : '#2563EB' }"></span>
+                                                    <span style="font-weight:600; color:#17151C;" x-text="getEngineerName(engId)"></span>
+                                                    <span style="font-size:9.5px; font-weight:700; padding:1px 5px; border-radius:10px;" :style="{ background: idx === 0 ? '#FDF1F2' : '#EFF6FF', color: idx === 0 ? '#C81E2C' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC' : 'Peserta'"></span>
+                                                    <button type="button" @click="toggleEngineer(engId)" style="background:none; border:none; color:#75727C; cursor:pointer; padding:0; display:flex; align-items:center;" title="Hapus">
+                                                        <svg style="width:11px; height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                    </button>
+                                                </div>
                                             </template>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Tanggal</label>
-                                        <input type="date" x-model="form.date" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
+                                            <span x-show="!form.engineer_ids || form.engineer_ids.length === 0" style="font-size:11.5px; color:#948F99; margin-left:4px;">Pilih engineer dari daftar atau klik "Pilih Semua"...</span>
+                                        </div>
+
+                                        <!-- Checklist engineer -->
+                                        <div style="max-height:160px; overflow-y:auto; border:1px solid #E7E5E3; border-radius:8px; background:white; padding:4px;">
+                                            <template x-for="engineer in engineers" :key="engineer.id">
+                                                <div @click="toggleEngineer(engineer.id)" 
+                                                     style="display:flex; align-items:center; justify-content:space-between; padding:5px 8px; border-radius:6px; cursor:pointer; font-size:12px; transition:all 0.1s ease;"
+                                                     :style="{ background: form.engineer_ids && form.engineer_ids.includes(engineer.id) ? '#FDF1F2' : 'transparent' }">
+                                                    <div style="display:flex; align-items:center; gap:8px;">
+                                                        <input type="checkbox" :checked="form.engineer_ids && form.engineer_ids.includes(engineer.id)" style="accent-color:#C81E2C; cursor:pointer;" @click.stop="toggleEngineer(engineer.id)">
+                                                        <div style="font-weight:600; color:#17151C;" x-text="engineer.name"></div>
+                                                    </div>
+                                                    <template x-if="form.engineer_ids && form.engineer_ids.includes(engineer.id)">
+                                                        <span style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:10px;" 
+                                                              :style="{ background: form.engineer_ids.indexOf(engineer.id) === 0 ? '#FDF1F2' : '#EFF6FF', color: form.engineer_ids.indexOf(engineer.id) === 0 ? '#C81E2C' : '#1D4ED8' }"
+                                                              x-text="form.engineer_ids.indexOf(engineer.id) === 0 ? 'PIC' : 'Peserta'"></span>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </div>
                                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                                         <div>
-                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Jam Mulai</label>
-                                            <input type="time" x-model="form.start_time" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
+                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Tanggal</label>
+                                            <input type="date" x-model="form.date" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;" required>
                                         </div>
                                         <div>
-                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Jam Selesai</label>
-                                            <input type="time" x-model="form.end_time" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
+                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Jam</label>
+                                            <input type="time" x-model="form.start_time" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;" required>
                                         </div>
                                     </div>
                                     <div>
                                         <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Lokasi</label>
-                                        <input type="text" x-model="form.location" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease;" required>
+                                        <input type="text" x-model="form.location" placeholder="Masukkan lokasi atau media pertemuan..." style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;">
                                     </div>
                                     <div>
                                         <label style="display:block; font-size:11.5px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px;">Deskripsi</label>
                                         <textarea x-model="form.description" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; min-height:80px; transition:border 0.15s ease;" rows="3"></textarea>
+                                    </div>
+
+                                    <!-- Integrasi Notifikasi WhatsApp -->
+                                    <div style="background:#F0FDF4; border:1.5px solid #86EFAC; border-radius:10px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                                        <label style="display:flex; align-items:center; gap:9px; cursor:pointer; font-size:13px; font-weight:600; color:#15803D; margin:0; user-select:none;">
+                                            <input type="checkbox" x-model="form.send_wa" style="width:17px; height:17px; accent-color:#16A34A; cursor:pointer;">
+                                            <span>Kirimkan undangan resmi ke WhatsApp setelah disimpan</span>
+                                        </label>
+                                        <button type="button" 
+                                                @click="shareWhatsAppFromForm()"
+                                                style="background:#22C55E; color:white; border:none; padding:7px 14px; border-radius:7px; font-weight:700; font-size:12.5px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(34,197,94,0.3); flex-shrink:0;"
+                                                title="Bagikan undangan ke WhatsApp sekarang">
+                                            <svg style="width:14px; height:14px;" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                                            <span>Bagikan ke WhatsApp</span>
+                                        </button>
                                     </div>
                                 </div>
                                 <div style="display:flex; gap:10px; margin-top:18px; padding-top:16px; border-top:1px solid #EFEDEB;">
@@ -716,8 +818,17 @@
 
 /* ---------- day view ---------- */
 .jkw-day-list { padding:14px 14px !important; display:flex !important; flex-direction:column !important; gap:8px !important; }
-.jkw-day-item { display:flex !important; align-items:flex-start !important; gap:12px !important; padding:12px !important; background:var(--jkw-primary-soft) !important; border-left:3px solid var(--jkw-primary) !important; border-radius:8px !important; flex-wrap:wrap !important; }
-.jkw-time { font-family:'IBM Plex Mono', monospace !important; font-size:12px !important; font-weight:700 !important; color:var(--jkw-primary-dark) !important; white-space:nowrap !important; }
+.jkw-day-item { display:flex !important; align-items:flex-start !important; gap:12px !important; padding:12px 16px !important; border-radius:8px !important; flex-wrap:wrap !important; transition:all 0.15s ease !important; }
+.jkw-day-item--schedule { background:#EFF6FF !important; border-left:4px solid #2563EB !important; }
+.jkw-day-item--schedule .jkw-time { color:#1D4ED8 !important; }
+.jkw-day-item--schedule .jkw-time svg { color:#2563EB !important; }
+.jkw-day-item--task { background:#FDF1F2 !important; border-left:4px solid #C81E2C !important; }
+.jkw-day-item--task .jkw-time { color:#991B1B !important; }
+.jkw-day-item--task .jkw-time svg { color:#C81E2C !important; }
+.jkw-day-item--project { background:#FEF2F2 !important; border-left:4px solid #991B1B !important; }
+.jkw-day-item--project .jkw-time { color:#7F1D1D !important; }
+.jkw-day-item--project .jkw-time svg { color:#991B1B !important; }
+.jkw-time { font-family:'IBM Plex Mono', monospace !important; font-size:12px !important; font-weight:700 !important; white-space:nowrap !important; }
 .jkw-day-main { flex:1 1 160px !important; min-width:0 !important; }
 .jkw-day-title { font-size:13.5px !important; font-weight:700 !important; color:var(--jkw-ink) !important; margin-bottom:3px !important; word-break:break-word !important; }
 .jkw-day-meta { display:flex !important; align-items:center !important; gap:6px !important; font-size:11.5px !important; color:var(--jkw-muted) !important; flex-wrap:wrap !important; }
@@ -887,10 +998,12 @@
                     id: null,
                     title: '',
                     project_id: null,
+                    new_project_name: '',
                     engineer_id: null,
+                    engineer_ids: [],
                     date: '',
-                    start_time: '08:00',
-                    end_time: '17:00',
+                    start_time: '09:00',
+                    end_time: '',
                     location: '',
                     description: ''
                 },
@@ -1106,29 +1219,48 @@
 
                     // --- Jadwal biasa (BIRU) ---
                     var filtered = this.engineerFilter
-                        ? this.schedules.filter(function(s) { return String(s.engineer_id) === String(self.engineerFilter); })
+                        ? this.schedules.filter(function(s) { 
+                            var engIds = s.engineer_ids || (s.engineers ? s.engineers.map(function(e){ return e.id; }) : [s.engineer_id]);
+                            return engIds.some(function(id) { return String(id) === String(self.engineerFilter); });
+                        })
                         : this.schedules;
                     filtered.forEach(function(s) {
                         var d = (s.date || '').split('T')[0];
                         if (d === date) {
+                            var sTime = s.start_time ? s.start_time.substring(0, 5) : '';
+                            var eTime = s.end_time ? s.end_time.substring(0, 5) : '';
+                            var timeLabel = sTime ? (sTime + ' WIB') : 'Jadwal';
+                            
+                            var engLabel = '';
+                            if (s.engineers && s.engineers.length > 1) {
+                                engLabel = s.engineers[0].name + ' (+' + (s.engineers.length - 1) + ')';
+                            } else if (s.engineer && s.engineer.name) {
+                                engLabel = s.engineer.name;
+                            } else if (s.project && s.project.name) {
+                                engLabel = s.project.name;
+                            }
+
                             events.push({
                                 _uid: 'sch-' + s.id,
                                 _type: 'schedule',
                                 _color: '#2563EB',
                                 _displayTitle: s.title,
-                                _timeLabel: s.start_time ? s.start_time.substring(0, 5) : '',
-                                _subLabel: (s.engineer && s.engineer.name) ? s.engineer.name : (s.project && s.project.name ? s.project.name : ''),
+                                _timeLabel: timeLabel,
+                                _tooltip: s.title + (sTime ? ' (' + timeLabel + ')' : '') + ' • Klik untuk edit',
+                                _subLabel: engLabel,
                                 id: s.id,
                                 title: s.title,
                                 project_id: s.project_id,
                                 engineer_id: s.engineer_id,
+                                engineer_ids: s.engineer_ids || [],
                                 date: s.date,
-                                start_time: s.start_time ? s.start_time.substring(0, 5) : '',
-                                end_time: s.end_time ? s.end_time.substring(0, 5) : '',
+                                start_time: sTime,
+                                end_time: eTime,
                                 location: s.location,
                                 description: s.description,
                                 project: s.project,
-                                engineer: s.engineer
+                                engineer: s.engineer,
+                                engineers: s.engineers || []
                             });
                         }
                     });
@@ -1139,12 +1271,15 @@
                         : this.tasks;
                     filteredTasks.forEach(function(t) {
                         if (t.deadline === date) {
+                            var dTime = t.deadline_time ? t.deadline_time.substring(0, 5) : '';
+                            var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Deadline';
                             events.push({
                                 _uid: 'task-' + t.id,
                                 _type: 'task',
                                 _color: '#C81E2C',
-                                _displayTitle: 'Deadline: ' + t.title,
-                                _timeLabel: 'Deadline',
+                                _displayTitle: t.title,
+                                _timeLabel: taskTimeLabel,
+                                _tooltip: 'Deadline Task: ' + t.title + (dTime ? ' (' + dTime + ' WIB)' : ''),
                                 _subLabel: (t.engineer && t.engineer.name) ? t.engineer.name : (t.project && t.project.name ? t.project.name : ''),
                                 id: t.id,
                                 title: t.title,
@@ -1153,7 +1288,8 @@
                                 priority: t.priority,
                                 status: t.status,
                                 deadline: t.deadline,
-                                start_time: '',
+                                deadline_time: dTime,
+                                start_time: dTime,
                                 end_time: '',
                                 location: '',
                                 description: ''
@@ -1168,8 +1304,9 @@
                                 _uid: 'proj-' + p.id,
                                 _type: 'project',
                                 _color: '#991B1B',
-                                _displayTitle: 'Deadline: ' + p.name,
-                                _timeLabel: 'Deadline',
+                                _displayTitle: p.name,
+                                _timeLabel: 'Project',
+                                _tooltip: 'Deadline Project: ' + p.name + (p.client ? ' (' + p.client + ')' : ''),
                                 _subLabel: p.client || '',
                                 id: p.id,
                                 title: p.name,
@@ -1190,32 +1327,75 @@
                     return this.editing ? 'Edit Jadwal' : 'Buat Jadwal';
                 },
 
+                toggleEngineer: function(id) {
+                    if (!this.form.engineer_ids) this.form.engineer_ids = [];
+                    var idx = this.form.engineer_ids.indexOf(id);
+                    if (idx === -1) {
+                        this.form.engineer_ids.push(id);
+                    } else {
+                        this.form.engineer_ids.splice(idx, 1);
+                    }
+                    this.form.engineer_id = this.form.engineer_ids[0] || null;
+                },
+
+                selectAllEngineers: function() {
+                    this.form.engineer_ids = this.engineers.map(function(e) { return e.id; });
+                    this.form.engineer_id = this.form.engineer_ids[0] || null;
+                },
+
+                clearEngineers: function() {
+                    this.form.engineer_ids = [];
+                    this.form.engineer_id = null;
+                },
+
+                getEngineerName: function(id) {
+                    var eng = this.engineers.find(function(e) { return e.id === id; });
+                    return eng ? eng.name : 'Engineer #' + id;
+                },
+
                 openModal: function(schedule) {
                     if (schedule) {
                         this.editing = true;
+                        var engIds = [];
+                        if (schedule.engineer_ids && schedule.engineer_ids.length > 0) {
+                            engIds = schedule.engineer_ids.slice();
+                        } else if (schedule.engineers && schedule.engineers.length > 0) {
+                            engIds = schedule.engineers.map(function(e) { return e.id; });
+                        } else if (schedule.engineer_id) {
+                            engIds = [schedule.engineer_id];
+                        }
+
                         this.form = {
                             id: schedule.id,
                             title: schedule.title,
                             project_id: schedule.project_id,
-                            engineer_id: schedule.engineer_id,
-                            date: schedule.date.split('T')[0],
-                            start_time: schedule.start_time,
-                            end_time: schedule.end_time,
-                            location: schedule.location,
-                            description: schedule.description || ''
+                            new_project_name: '',
+                            engineer_id: engIds[0] || null,
+                            engineer_ids: engIds,
+                            date: schedule.date ? schedule.date.split('T')[0] : '',
+                            start_time: schedule.start_time ? schedule.start_time.substring(0, 5) : '09:00',
+                            end_time: schedule.end_time ? schedule.end_time.substring(0, 5) : '',
+                            location: schedule.location || '',
+                            description: schedule.description || '',
+                            send_wa: true
                         };
                     } else {
                         this.editing = false;
+                        var todayFormatted = this.formatDate(new Date());
+                        var initialEngIds = this.engineers.length > 0 ? [this.engineers[0].id] : [];
                         this.form = {
                             id: null,
                             title: '',
                             project_id: this.projects[0] ? this.projects[0].id : null,
-                            engineer_id: this.engineers[0] ? this.engineers[0].id : null,
-                            date: this.viewMode === 'day' ? this.currentDateStr : '',
-                            start_time: '08:00',
-                            end_time: '17:00',
+                            new_project_name: '',
+                            engineer_id: initialEngIds[0] || null,
+                            engineer_ids: initialEngIds,
+                            date: this.viewMode === 'day' ? this.currentDateStr : todayFormatted,
+                            start_time: '09:00',
+                            end_time: '',
                             location: '',
-                            description: ''
+                            description: '',
+                            send_wa: true
                         };
                     }
                     this.modalOpen = true;
@@ -1239,6 +1419,27 @@
 
                 saveSchedule: async function() {
                     try {
+                        if (this.form.project_id === 'other') {
+                            if (!this.form.new_project_name || !this.form.new_project_name.trim()) {
+                                this.showToast('Silakan masukkan nama project / meeting!');
+                                return;
+                            }
+                        } else if (!this.form.project_id) {
+                            this.showToast('Silakan pilih project!');
+                            return;
+                        }
+
+                        if (!this.form.engineer_ids || this.form.engineer_ids.length === 0) {
+                            this.showToast('Pilih minimal 1 orang engineer / peserta!');
+                            return;
+                        }
+                        this.form.engineer_id = this.form.engineer_ids[0];
+
+                        // Jika end_time kosong, samakan dengan start_time
+                        if (!this.form.end_time) {
+                            this.form.end_time = this.form.start_time;
+                        }
+
                         var url = this.editing ? '/schedules/' + this.form.id : '/schedules';
                         var method = this.editing ? 'PUT' : 'POST';
 
@@ -1254,17 +1455,36 @@
 
                         if (response.ok) {
                             var data = await response.json();
+                            if (data.project && !this.projects.some(function(p) { return p.id === data.project.id; })) {
+                                this.projects.push(data.project);
+                            }
                             if (this.editing) {
                                 var index = this.schedules.findIndex(function(s) { return s.id === this.form.id; }.bind(this));
-                                this.schedules[index] = data;
+                                if (index !== -1) this.schedules[index] = data;
                             } else {
                                 this.schedules.push(data);
                             }
                             this.modalOpen = false;
-                            this.showToast('Jadwal berhasil ' + (this.editing ? 'diperbarui' : 'ditambahkan') + '!');
+
+                            var self = this;
+                            if (this.form.send_wa) {
+                                setTimeout(function() {
+                                    self.shareWhatsApp(data);
+                                }, 150);
+                                this.showToast('Jadwal berhasil disimpan! Membuka WhatsApp...');
+                            } else {
+                                this.showToast('Jadwal berhasil ' + (this.editing ? 'diperbarui' : 'ditambahkan') + '!');
+                            }
                         } else {
                             var error = await response.json();
-                            this.showToast('Error: ' + (error.message || 'Terjadi kesalahan'));
+                            var errorMsg = error.message || 'Terjadi kesalahan';
+                            if (error.errors) {
+                                var firstKey = Object.keys(error.errors)[0];
+                                if (firstKey && error.errors[firstKey][0]) {
+                                    errorMsg = error.errors[firstKey][0];
+                                }
+                            }
+                            this.showToast('Error: ' + errorMsg);
                         }
                     } catch (error) {
                         console.error('Error saving schedule:', error);
@@ -1294,6 +1514,91 @@
                         console.error('Error deleting schedule:', error);
                         this.showToast('Terjadi kesalahan saat menghapus jadwal.');
                     }
+                },
+
+                formatWhatsAppMessage: function(schedule) {
+                    var project = (schedule.project && schedule.project.name) ? schedule.project.name : (schedule.new_project_name || '-');
+                    
+                    var dateFormatted = schedule.date || '';
+                    if (schedule.date) {
+                        var rawDate = schedule.date.split('T')[0];
+                        var parts = rawDate.split('-');
+                        if (parts.length === 3) {
+                            var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                            if (!isNaN(d.getTime())) {
+                                var days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+                                var months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                                dateFormatted = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+                            }
+                        }
+                    }
+
+                    var engNames = [];
+                    if (schedule.engineers && schedule.engineers.length > 0) {
+                        engNames = schedule.engineers.map(function(e) { return e.name; });
+                    } else if (schedule.engineer_ids && schedule.engineer_ids.length > 0) {
+                        var self = this;
+                        engNames = schedule.engineer_ids.map(function(id) { return self.getEngineerName(id); });
+                    } else if (schedule.engineer && schedule.engineer.name) {
+                        engNames = [schedule.engineer.name];
+                    } else if (schedule.engineer_id) {
+                        engNames = [this.getEngineerName(schedule.engineer_id)];
+                    }
+
+                    var engText = engNames.length > 0 
+                        ? engNames.map(function(name, i) { return (i === 0 ? '• ' + name + ' (PIC / Koordinator)' : '• ' + name); }).join('\n')
+                        : '• Seluruh Rekan Tim Terkait';
+
+                    var timeText = schedule.start_time ? schedule.start_time.substring(0, 5).replace(':', '.') + ' WIB' : 'Menyesuaikan';
+                    var locText = (schedule.location && schedule.location.trim()) ? schedule.location.trim() : 'Menyesuaikan';
+                    var noteText = (schedule.description && schedule.description.trim()) 
+                        ? schedule.description.trim() 
+                        : 'Mohon dapat hadir tepat waktu dan mempersiapkan informasi terkait progres, kebutuhan teknis, serta hal-hal yang perlu dikoordinasikan dalam pelaksanaan pekerjaan.';
+
+                    var projectContext = (project && project !== '-' && project !== 'Other') ? 'pekerjaan ' + project : 'pekerjaan operasional lapangan';
+
+                    var msg = "*UNDANGAN MEETING TIM ENGINEER KERJA*\n"
+                            + "*PT IP-NET SOLUSINDO*\n\n"
+                            + "Yth. Rekan-rekan Tim,\n\n"
+                            + "Sehubungan dengan pelaksanaan koordinasi operasional terkait " + projectContext + ", bersama ini kami sampaikan jadwal pertemuan sebagai berikut:\n\n"
+                            + "Agenda Pertemuan : " + (schedule.title || '-') + "\n"
+                            + "Proyek / Layanan : " + project + "\n"
+                            + "Hari, Tanggal : " + dateFormatted + "\n"
+                            + "Waktu Pelaksanaan : " + timeText + "\n"
+                            + "Lokasi / Platform : " + locText + "\n\n"
+                            + "Peserta Terjadwal :\n" + engText + "\n\n"
+                            + "Catatan / Instruksi Tambahan:\n" + noteText + "\n\n"
+                            + "Atas perhatian dan kerja sama yang baik, kami ucapkan terima kasih.";
+
+                    return msg;
+                },
+
+                shareWhatsApp: function(schedule) {
+                    try {
+                        var text = this.formatWhatsAppMessage(schedule);
+                        var url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(text);
+                        window.open(url, '_blank');
+                    } catch (e) {
+                        console.error('Error sharing to WhatsApp:', e);
+                    }
+                },
+
+                shareWhatsAppFromForm: function() {
+                    var formSchedule = {
+                        title: this.form.title || 'Meeting Baru',
+                        project_id: this.form.project_id,
+                        new_project_name: this.form.new_project_name,
+                        date: this.form.date,
+                        start_time: this.form.start_time,
+                        location: this.form.location,
+                        description: this.form.description,
+                        engineer_ids: this.form.engineer_ids
+                    };
+                    if (this.form.project_id && this.form.project_id !== 'other') {
+                        var p = this.projects.find(function(pr) { return pr.id == formSchedule.project_id; });
+                        if (p) formSchedule.project = p;
+                    }
+                    this.shareWhatsApp(formSchedule);
                 },
 
                 showToast: function(message) {

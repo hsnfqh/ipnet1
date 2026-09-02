@@ -18,6 +18,7 @@ class Task extends Model
         'priority',
         'status',
         'deadline',
+        'deadline_time',
         'progress',
         'attachments',
         'doc_file',
@@ -26,7 +27,8 @@ class Task extends Model
     ];
 
     protected $casts = [
-        'deadline' => 'date',
+        'deadline' => 'datetime',
+        'deadline_time' => 'string',
         'progress' => 'integer',
         'attachments' => 'integer',
     ];

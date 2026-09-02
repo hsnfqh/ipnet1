@@ -71,20 +71,18 @@
                     </div>
                     <select x-model="roleFilter" style="width:170px; padding:9px 11px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white;">
                         <option value="Semua">Semua Role</option>
-                        <option value="Direktur">Direktur</option>
-                        <option value="Group Leader">Group Leader</option>
-                        <option value="Team Leader">Team Leader</option>
-                        <option value="Lead Maintenance">Lead Maintenance / Helpdesk</option>
-                        <option value="Engineer">Engineer</option>
-                        <option value="Maintenance">Maintenance / Helpdesk Staff</option>
-                        <option value="Lead Engineer">Lead Engineer</option>
+                        @foreach($filterableRoles as $r)
+                        <option value="{{ $r }}">{{ $r }}</option>
+                        @endforeach
                     </select>
+                    @if($isGlobal || count($divisions) > 1)
                     <select x-model="divisionFilter" style="width:170px; padding:9px 11px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white;">
                         <option value="Semua">Semua Divisi</option>
                         @foreach($divisions as $division)
                         <option value="{{ $division->name }}">{{ $division->name }}</option>
                         @endforeach
                     </select>
+                    @endif
                     <select x-model="statusFilter" style="width:150px; padding:9px 11px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white;">
                         <option value="Semua">Semua Status</option>
                         <option value="Active">Active</option>
@@ -108,12 +106,11 @@
                     <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
                         <thead>
                             <tr style="background:#F1F0EE;">
-                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Nama</th>
-                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Email</th>
-                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">No. HP</th>
+                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Nama Lengkap</th>
+                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Alamat Email</th>
+                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">No. Telepon</th>
                                 <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Role</th>
                                 <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Divisi</th>
-                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Jabatan</th>
                                 <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Sertifikasi</th>
                                 <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Status</th>
                                 <th style="text-align:right; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Aksi</th>
@@ -133,7 +130,7 @@
                                     <td style="padding:10px 16px; color:#3D3A44;" x-text="user.email"></td>
                                     <td style="padding:10px 16px; color:#3D3A44; font-family:'IBM Plex Mono',monospace; font-size:12.5px;" x-text="user.phone"></td>
                                     <td style="padding:10px 16px; white-space:nowrap;">
-                                        <span x-html="getRoleBadge(user.role_name)"></span>
+                                        <span x-html="getRoleBadge(user)"></span>
                                     </td>
                                     {{-- Divisi & Level --}}
                                     <td style="padding:10px 16px; white-space:nowrap;">
@@ -144,7 +141,6 @@
                                             </template>
                                         </div>
                                     </td>
-                                    <td style="padding:10px 16px; color:#3D3A44;" x-text="user.position"></td>
                                     <!-- Sertifikasi Status -->
                                     <td style="padding:10px 16px;">
                                         <template x-if="user.has_certification">
@@ -162,15 +158,14 @@
                                             </div>
                                         </template>
                                         <template x-if="!user.has_certification">
-                                            <span style="color:#948F99; font-size:12px;">Belum upload</span>
+                                            <span style="color:#948F99; font-size:12px;">Belum diunggah</span>
                                         </template>
                                     </td>
                                     <td style="padding:10px 16px;" x-html="getStatusBadge(user.status)"></td>
                                     <td style="padding:10px 16px;">
                                         <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px;">
-                                            <template x-if="canManageUser(user)">
+                                            <template x-if="user.can_manage">
                                                 <div style="display:flex; align-items:center; gap:8px;">
-                                                    @if(\App\Helpers\ScopeHelper::isManagerial(auth()->user()))
                                                     <button @click="toggleStatus(user)" 
                                                             style="background:none; border:none; cursor:pointer; padding:6px; border-radius:8px;"
                                                             :style="user.status === 'Active' ? 'color:#1B7A46;' : 'color:#948F99;'"
@@ -187,18 +182,15 @@
                                                     </button>
                                                     <button @click="deleteUser(user)" 
                                                             style="background:none; border:none; cursor:pointer; color:#C81E2C; padding:6px; border-radius:8px;"
-                                                            :disabled="user.id === currentUserId"
-                                                            :style="user.id === currentUserId ? 'opacity:0.3; cursor:not-allowed;' : ''"
                                                             title="Hapus User">
                                                         <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                         </svg>
                                                     </button>
-                                                    @endif
                                                 </div>
                                             </template>
-                                            <template x-if="!canManageUser(user)">
-                                                <span style="font-size:11.5px; color:#948F99; font-style:italic;">Akses Terproteksi</span>
+                                            <template x-if="!user.can_manage">
+                                                <span style="font-size:11.5px; color:#948F99; font-style:italic;" x-text="user.is_self ? 'Akun Anda' : 'Terproteksi'"></span>
                                             </template>
                                         </div>
                                     </td>
@@ -213,7 +205,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                         </svg>
                     </div>
-                    <p style="font-size:13.5px; margin:0;">Tidak ada user yang cocok dengan filter</p>
+                    <p style="font-size:13.5px; margin:0;">Tidak ada data pengguna yang sesuai dengan filter.</p>
                 </div>
 
                 {{-- Pagination Footer --}}
@@ -307,13 +299,10 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                     <div>
                                         <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Role</label>
-                                        <select x-model="form.role" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]" required>
-                                            <option value="Direktur">Direktur</option>
-                                            <option value="Group Leader">Group Leader</option>
-                                            <option value="Team Leader">Team Leader (Leader Divisi)</option>
-                                            <option value="Lead Maintenance">Lead Maintenance / Helpdesk</option>
-                                            <option value="Engineer">Engineer</option>
-                                            <option value="Maintenance">Maintenance / Helpdesk Staff</option>
+                                        <select x-model="form.role" @change="autoFillPosition()" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]" required>
+                                            @foreach($creatableRoles as $cr)
+                                            <option value="{{ $cr }}">{{ $cr === 'Team Leader' ? 'Team Leader (Leader Divisi)' : ($cr === 'Lead Maintenance' ? 'Lead Maintenance / Helpdesk' : ($cr === 'Maintenance' ? 'Maintenance / Helpdesk Staff' : $cr)) }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <div>
@@ -331,8 +320,13 @@
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                         <div>
                                             <label class="block text-[11.5px] font-semibold text-[#75727C] mb-1">Divisi</label>
-                                            <select x-model="form.division_id" class="w-full py-2 px-3 text-[13px] bg-white border border-[#E7E5E3] rounded-lg focus:outline-none focus:border-[#C81E2C] transition text-[#17151C]">
+                                            <select x-model="form.division_id" 
+                                                    @change="filterTeams(); autoFillPosition();"
+                                                    class="w-full py-2 px-3 text-[13px] bg-white border border-[#E7E5E3] rounded-lg focus:outline-none focus:border-[#C81E2C] transition text-[#17151C]"
+                                                    {{ !$isGlobal && count($divisions) === 1 ? 'disabled' : '' }}>
+                                                @if($isGlobal)
                                                 <option value="">-- Tanpa Divisi (Global) --</option>
+                                                @endif
                                                 @foreach($divisions as $division)
                                                 <option value="{{ $division->id }}">{{ $division->name }}</option>
                                                 @endforeach
@@ -340,7 +334,9 @@
                                         </div>
                                         <div>
                                             <label class="block text-[11.5px] font-semibold text-[#75727C] mb-1">Level Teknis</label>
-                                            <select x-model="form.level" class="w-full py-2 px-3 text-[13px] bg-white border border-[#E7E5E3] rounded-lg focus:outline-none focus:border-[#C81E2C] transition text-[#17151C]">
+                                            <select x-model="form.level" 
+                                                    @change="autoFillPosition()"
+                                                    class="w-full py-2 px-3 text-[13px] bg-white border border-[#E7E5E3] rounded-lg focus:outline-none focus:border-[#C81E2C] transition text-[#17151C]">
                                                 <option value="">-- Tanpa Level --</option>
                                                 <option value="L1">L1</option>
                                                 <option value="L2">L2</option>
@@ -349,16 +345,30 @@
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Jabatan / Posisi</label>
-                                    <input type="text" x-model="form.position" placeholder="Contoh: L1 Network Engineer, Security Leader, dll" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]" required>
-                                </div>
-
                                 <div x-show="!editing || form.password">
                                     <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">
                                         Password <span x-show="editing" class="text-[#948F99] font-normal lowercase">(kosongkan jika tidak diubah)</span>
                                     </label>
-                                    <input type="password" x-model="form.password" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]" :required="!editing">
+                                    <div class="relative">
+                                        <input :type="showPassword ? 'text' : 'password'" 
+                                               x-model="form.password" 
+                                               placeholder="Minimal 6 karakter"
+                                               class="w-full py-2.5 pl-3.5 pr-11 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]" 
+                                               :required="!editing">
+                                        <button type="button" 
+                                                @click="showPassword = !showPassword"
+                                                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#948F99] hover:text-[#17151C] transition p-1 cursor-pointer focus:outline-none"
+                                                tabindex="-1"
+                                                :title="showPassword ? 'Sembunyikan password' : 'Lihat password'">
+                                            <svg x-show="!showPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            <svg x-show="showPassword" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -583,6 +593,48 @@
                 </div>
             </div>
             </template>
+
+            <!-- ========================================================== -->
+            <!-- MODAL KONFIRMASI HAPUS (STANDAR TIMESHEET)                 -->
+            <!-- ========================================================== -->
+            <template x-teleport="body">
+                <div x-show="confirmModalOpen" 
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+                     @click.self="confirmModalOpen = false"
+                     @keydown.escape.window="confirmModalOpen = false">
+                    
+                    <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(14,13,18,0.2)] animate-fade-in-up">
+                        <div class="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#C81E2C]">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
+                        
+                        <h3 class="text-center font-display text-[17px] font-bold text-[#17151C] mb-2" x-text="confirmModalData.title || 'Yakin Hapus Pengguna?'"></h3>
+                        <p class="text-center text-[13.5px] text-[#75727C] mb-6 break-words" x-text="confirmModalData.message"></p>
+
+                        <div class="flex gap-3">
+                            <button type="button" 
+                                    @click="if (confirmModalData.onConfirm) { confirmModalData.onConfirm(); } confirmModalOpen = false;" 
+                                    class="flex-1 py-2.5 px-4 rounded-xl bg-[#C81E2C] text-white font-semibold text-[13.5px] hover:bg-[#A31622] transition cursor-pointer">
+                                Hapus
+                            </button>
+                            <button type="button" 
+                                    @click="confirmModalOpen = false" 
+                                    class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                                Batal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
             
         </div>
     </div>
@@ -654,6 +706,14 @@
                 modalOpen: false,
                 viewCertModal: false,
                 editing: false,
+                showPassword: false,
+                allDivisions: @json($divisions),
+                confirmModalOpen: false,
+                confirmModalData: {
+                    title: '',
+                    message: '',
+                    onConfirm: null
+                },
                 certImageError: false,
                 viewingUser: {},
                 selectedCert: null,
@@ -682,7 +742,24 @@
                     return this.users.filter(u => {
                         const matchSearch = u.name.toLowerCase().includes(this.search.toLowerCase()) || 
                                            u.email.toLowerCase().includes(this.search.toLowerCase());
-                        const matchRole = this.roleFilter === 'Semua' || u.role_name === this.roleFilter;
+                        
+                        let matchRole = false;
+                        if (this.roleFilter === 'Semua') {
+                            matchRole = true;
+                        } else if (this.roleFilter === 'Engineer L1') {
+                            matchRole = (u.role_name === 'Engineer' && u.level === 'L1');
+                        } else if (this.roleFilter === 'Engineer L2') {
+                            matchRole = (u.role_name === 'Engineer' && u.level === 'L2');
+                        } else if (this.roleFilter === 'Team Leader') {
+                            matchRole = (u.role_name === 'Team Leader');
+                        } else if (this.roleFilter === 'Group Leader') {
+                            matchRole = (u.role_name === 'Group Leader');
+                        } else if (this.roleFilter === 'Direktur') {
+                            matchRole = (u.role_name === 'Direktur' || u.role_name === 'HD / Direktur');
+                        } else {
+                            matchRole = (u.role_name === this.roleFilter);
+                        }
+
                         const matchDivision = this.divisionFilter === 'Semua' || u.division_name === this.divisionFilter;
                         const matchStatus = this.statusFilter === 'Semua' || u.status === this.statusFilter;
                         return matchSearch && matchRole && matchDivision && matchStatus;
@@ -710,10 +787,11 @@
                 },
 
                 get modalTitle() {
-                    return this.editing ? ' Edit User' : ' Tambah User';
+                    return this.editing ? 'Edit Data Pengguna' : 'Tambah Pengguna Baru';
                 },
 
                 openModal(user = null) {
+                    this.showPassword = false;
                     if (user) {
                         this.editing = true;
                         this.form = {
@@ -739,19 +817,39 @@
                             name: '',
                             email: '',
                             phone: '',
-                            role: 'Engineer',
+                            role: '{{ $creatableRoles[0] ?? "Engineer" }}',
                             status: 'Active',
                             position: '',
                             password: '',
-                            division_id: '',
+                            division_id: '{{ $userDivisionId ?? "" }}',
                             team_id: '',
-                            level: '',
+                            level: 'L1',
                             certification_file_name: '',
                             certification_file: null,
                         };
-                        this.availableTeams = [];
+                        this.filterTeams();
+                        this.autoFillPosition();
                     }
                     this.modalOpen = true;
+                },
+
+                autoFillPosition() {
+                    if (this.editing && this.form.position && this.form.position.trim()) return;
+                    let divName = '';
+                    const div = this.allDivisions.find(d => String(d.id) === String(this.form.division_id));
+                    if (div) {
+                        divName = div.name.replace('Divisi ', '').trim();
+                    }
+                    if (this.form.role === 'Direktur') {
+                        this.form.position = 'Direktur Utama';
+                    } else if (this.form.role === 'Group Leader') {
+                        this.form.position = 'Group Leader';
+                    } else if (this.form.role === 'Team Leader') {
+                        this.form.position = (divName ? divName + ' Leader' : 'Team Leader');
+                    } else if (this.form.role === 'Engineer') {
+                        const lvl = this.form.level ? this.form.level + ' ' : '';
+                        this.form.position = lvl + (divName ? divName + ' ' : '') + 'Engineer';
+                    }
                 },
 
                 filterTeams() {
@@ -842,40 +940,49 @@
                                 this.users.push(data);
                             }
                             this.modalOpen = false;
-                            this.showToast(' User berhasil ' + (this.editing ? 'diperbarui' : 'ditambahkan') + '!');
+                            this.showToast('Data pengguna berhasil ' + (this.editing ? 'diperbarui' : 'ditambahkan') + '!');
                         } else {
                             const error = await response.json();
-                            this.showToast(' Error: ' + (error.message || 'Terjadi kesalahan'));
+                            this.showToast('Error: ' + (error.message || 'Terjadi kesalahan'));
                         }
                     } catch (error) {
-                        console.error(' Error saving user:', error);
-                        this.showToast(' Terjadi kesalahan saat menyimpan user.');
+                        console.error('Error saving user:', error);
+                        this.showToast('Terjadi kesalahan saat menyimpan data pengguna.');
                     }
                 },
 
-                async deleteUser(user) {
+                deleteUser(user) {
                     if (user.id === {{ auth()->id() }}) {
-                        this.showToast(' Anda tidak dapat menghapus akun sendiri!');
+                        this.showToast('Anda tidak dapat menghapus akun Anda sendiri!');
                         return;
                     }
-                    if (!confirm(`Apakah Anda yakin ingin menghapus user "${user.name}"?`)) return;
                     
-                    try {
-                        const response = await fetch(`/users/${user.id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            }
-                        });
+                    this.confirmModalData = {
+                        title: 'Yakin Hapus Pengguna?',
+                        message: `Data pengguna "${user.name}" akan dihapus.`,
+                        onConfirm: async () => {
+                            try {
+                                const response = await fetch(`/users/${user.id}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                                    }
+                                });
 
-                        if (response.ok) {
-                            this.users = this.users.filter(u => u.id !== user.id);
-                            this.showToast(' User berhasil dihapus!');
+                                if (response.ok) {
+                                    this.users = this.users.filter(u => u.id !== user.id);
+                                    this.showToast('Pengguna berhasil dihapus!');
+                                } else {
+                                    const err = await response.json();
+                                    this.showToast('Gagal menghapus: ' + (err.message || 'Terjadi kesalahan'));
+                                }
+                            } catch (error) {
+                                console.error('Error deleting user:', error);
+                                this.showToast('Terjadi kesalahan saat menghapus data pengguna.');
+                            }
                         }
-                    } catch (error) {
-                        console.error(' Error deleting user:', error);
-                        this.showToast(' Terjadi kesalahan saat menghapus user.');
-                    }
+                    };
+                    this.confirmModalOpen = true;
                 },
 
                 async toggleStatus(user) {
@@ -1002,69 +1109,66 @@
                     }
                 },
 
-                async deleteCertification(cert) {
+                deleteCertification(cert) {
                     if (!cert || !cert.id) {
                         this.showToast('Pilih sertifikat terlebih dahulu.');
                         return;
                     }
-                    if (!confirm(`Apakah Anda yakin ingin menghapus sertifikat "${cert.name}"? Dokumen ini juga akan otomatis terhapus dari akun engineer.`)) {
-                        return;
-                    }
-                    try {
-                        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
-                        const response = await fetch(`/certifications/${cert.id}/reject`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': token
-                            }
-                        });
+                    
+                    this.confirmModalData = {
+                        title: 'Yakin Hapus Sertifikat?',
+                        message: `Dokumen sertifikat "${cert.name}" akan dihapus.`,
+                        onConfirm: async () => {
+                            try {
+                                const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                                const response = await fetch(`/certifications/${cert.id}/reject`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': token
+                                    }
+                                });
 
-                        const data = await response.json();
+                                const data = await response.json();
 
-                        if (response.ok) {
-                            if (data.user) {
-                                const index = this.users.findIndex(u => u.id === data.user.id);
-                                if (index !== -1) {
-                                    this.users[index] = data.user;
-                                    this.users = JSON.parse(JSON.stringify(this.users));
-                                    this.viewingUser = data.user;
-                                    this.selectedCert = (data.user.certifications && data.user.certifications.length > 0) ? data.user.certifications[0] : null;
+                                if (response.ok) {
+                                    if (data.user) {
+                                        const index = this.users.findIndex(u => u.id === data.user.id);
+                                        if (index !== -1) {
+                                            this.users[index] = data.user;
+                                            this.viewingUser = data.user;
+                                            this.selectedCert = null;
+                                        }
+                                    }
+                                    this.showToast('Sertifikat berhasil dihapus.');
+                                } else {
+                                    this.showToast('Gagal menghapus sertifikat.');
                                 }
+                            } catch (error) {
+                                console.error('Error deleting certification:', error);
+                                this.showToast('Terjadi kesalahan saat menghapus sertifikat.');
                             }
-                            
-                            this.viewCertModal = false;
-                            this.showToast(`Sertifikasi "${cert.name}" berhasil dihapus!`);
-                        } else {
-                            this.showToast('Gagal: ' + (data.message || 'Terjadi kesalahan'));
                         }
-                    } catch (error) {
-                        console.error('Error deleting certification:', error);
-                        this.showToast('Terjadi kesalahan saat menghapus sertifikasi.');
-                    }
+                    };
+                    this.confirmModalOpen = true;
                 },
 
-
-
-
-
-                getRoleBadge(role) {
+                getRoleBadge(user) {
+                    const role = (typeof user === 'object' && user !== null) ? user.role_name : user;
+                    const level = (typeof user === 'object' && user !== null) ? user.level : null;
+                    const roleKey = (role === 'Engineer' && level) ? ('Engineer ' + level) : role;
                     const styles = {
                         'Direktur':         { bg: '#FDF1F2', fg: '#C81E2C', border: '#FADADF', dot: '#C81E2C' },
                         'HD / Direktur':    { bg: '#FDF1F2', fg: '#C81E2C', border: '#FADADF', dot: '#C81E2C' },
-                        'Lead Engineer':    { bg: '#FDF1F2', fg: '#C81E2C', border: '#FADADF', dot: '#C81E2C' },
                         'Group Leader':     { bg: '#EEF2FF', fg: '#4338CA', border: '#C7D2FE', dot: '#4F46E5' },
-                        'Lead Divisi':      { bg: '#EEF2FF', fg: '#4338CA', border: '#C7D2FE', dot: '#4F46E5' },
                         'Team Leader':      { bg: '#FFFBEB', fg: '#B45309', border: '#FDE68A', dot: '#D97706' },
-                        'Lead Maintenance': { bg: '#FFFBEB', fg: '#B45309', border: '#FDE68A', dot: '#D97706' },
                         'Engineer':         { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
-                        'Maintenance':      { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
                         'Engineer L1':      { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
                         'Engineer L2':      { bg: '#ECFDF5', fg: '#047857', border: '#A7F3D0', dot: '#059669' },
                     };
-                    const s = styles[role] || { bg: '#F1F0EE', fg: '#3D3A44', border: '#E7E5E3', dot: '#75727C' };
-                    const label = role === 'Lead Maintenance' ? 'Lead Maintenance / Helpdesk' : (role === 'Maintenance' ? 'Maintenance / Helpdesk' : role);
+                    const s = styles[roleKey] || styles[role] || { bg: '#F1F0EE', fg: '#3D3A44', border: '#E7E5E3', dot: '#75727C' };
+                    const label = (role === 'Engineer' && level) ? ('Engineer ' + level) : role;
                     return `<span style="background: ${s.bg}; color: ${s.fg}; border: 1px solid ${s.border}; font-size: 11.5px; font-weight: 700; padding: 3.5px 10px 3.5px 8px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.1px;">
                                 <span style="width: 6px; height: 6px; border-radius: 50%; background: ${s.dot}; flex-shrink: 0;"></span>
                                 ${label}

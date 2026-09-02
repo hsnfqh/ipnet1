@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-    private function formatUserResponse(User $user): array
+    private function formatUserResponse(User $user, ?User $authUser = null): array
     {
         $certs = $user->certifications->map(function($c) {
             return [
@@ -42,6 +42,8 @@ class UserController extends Controller
             }
         }
 
+        $canManage = $authUser ? ScopeHelper::canManageUser($authUser, $user) : false;
+
         return [
             'id'                        => $user->id,
             'name'                      => $user->name,
@@ -62,6 +64,8 @@ class UserController extends Controller
             'approved_certs_count'      => $approvedCount,
             'certification_status'      => $overallStatus,
             'has_certification'         => $totalCerts > 0,
+            'can_manage'                => $canManage,
+            'is_self'                   => $authUser ? ($authUser->id === $user->id) : false,
         ];
     }
 
@@ -69,32 +73,75 @@ class UserController extends Controller
     public function index()
     {
         $authUser  = auth()->user();
+        abort_unless(ScopeHelper::isManagerial($authUser), 403, 'Anda tidak memiliki akses ke Manajemen Pengguna.');
+
         $scopeIds  = ScopeHelper::getScopeUserIds($authUser);
 
         // Load users sesuai scope role yang login
         $query = User::with(['roles', 'certifications', 'division', 'team']);
 
         if ($scopeIds !== null) {
-            // Non-global: filter user berdasarkan divisi/tim/diri sendiri
+            // Non-global (Team Leader): filter user berdasarkan divisi/tim
             $query->whereIn('id', $scopeIds);
         }
 
-        $users = $query->get()->map(function($user) {
-            return $this->formatUserResponse($user);
+        $users = $query->get()->map(function($user) use ($authUser) {
+            return $this->formatUserResponse($user, $authUser);
         });
 
-        $roles     = Role::all();
-        $divisions = Division::orderBy('name')->get();
-        $teams     = Team::with('division')->orderBy('name')->get();
+        // Ambil role filter dan role yang boleh dibuat sesuai hierarki wewenang
+        $filterableRoles = ScopeHelper::getFilterableRoles($authUser);
+        $creatableRoles  = ScopeHelper::getCreatableRoles($authUser);
 
-        return view('users.index', compact('users', 'roles', 'divisions', 'teams'));
+        // Pembatasan Divisi: Jika Team Leader teknis, kunci hanya ke divisinya sendiri
+        if (ScopeHelper::isTeamLeader($authUser) && $authUser->division_id) {
+            $divisions = Division::where('id', $authUser->division_id)->get();
+            $teams     = Team::where('division_id', $authUser->division_id)->orderBy('name')->get();
+        } else {
+            $divisions = Division::orderBy('name')->get();
+            $teams     = Team::with('division')->orderBy('name')->get();
+        }
+
+        $isGlobal = ScopeHelper::isGlobal($authUser);
+        $userDivisionId = $authUser->division_id;
+
+        return view('users.index', compact('users', 'filterableRoles', 'creatableRoles', 'divisions', 'teams', 'isGlobal', 'userDivisionId'));
     }
 
 
     public function store(UserRequest $request)
     {
+        $authUser = auth()->user();
+        abort_unless(ScopeHelper::isManagerial($authUser), 403, 'Anda tidak memiliki izin menambah pengguna.');
+
+        $creatableRoles = ScopeHelper::getCreatableRoles($authUser);
+        if (!in_array($request->role, $creatableRoles)) {
+            if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
+                return response()->json(['message' => 'Anda tidak memiliki wewenang untuk menetapkan role ' . $request->role], 403);
+            }
+            return redirect()->route('users.index')->with('error', 'Anda tidak memiliki wewenang untuk menetapkan role ' . $request->role);
+        }
+
         $data = $request->validated();
         $data['password'] = Hash::make($data['password']);
+
+        // Jika Team Leader teknis, otomatis kunci penempatan ke divisinya sendiri
+        if (ScopeHelper::isTeamLeader($authUser) && $authUser->division_id) {
+            $data['division_id'] = $authUser->division_id;
+        }
+
+        // Otomatis tentukan jabatan / posisi jika tidak diisi manual
+        if (empty($data['position'])) {
+            $division = Division::find($data['division_id'] ?? null);
+            $divName = $division ? str_replace('Divisi ', '', $division->name) : '';
+            if ($data['role'] === 'Engineer') {
+                $data['position'] = trim(($data['level'] ?? '') . ' ' . $divName . ' Engineer');
+            } elseif ($data['role'] === 'Team Leader') {
+                $data['position'] = trim($divName . ' Leader');
+            } else {
+                $data['position'] = $data['role'];
+            }
+        }
         
         if ($request->hasFile('certification_file')) {
             $file = $request->file('certification_file');
@@ -127,7 +174,7 @@ class UserController extends Controller
         $user->assignRole($data['role']);
         
         if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
-            return response()->json($this->formatUserResponse($user));
+            return response()->json($this->formatUserResponse($user, $authUser));
         }
 
         return redirect()->route('users.index')
@@ -137,14 +184,24 @@ class UserController extends Controller
     public function update(UserRequest $request, User $user)
     {
         $authUser = auth()->user();
-        if (!$authUser->hasAnyRole(['Direktur', 'HD / Direktur']) && $user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
+        if (!ScopeHelper::canManageUser($authUser, $user)) {
             if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
-                return response()->json(['message' => 'Hanya Direktur yang dapat mengubah data akun Direktur.'], 403);
+                return response()->json(['message' => 'Anda tidak memiliki wewenang untuk mengubah data user ini.'], 403);
             }
-            return redirect()->route('users.index')->with('error', 'Hanya Direktur yang dapat mengubah data akun Direktur.');
+            return redirect()->route('users.index')->with('error', 'Anda tidak memiliki wewenang untuk mengubah data user ini.');
         }
 
         $data = $request->validated();
+
+        if (isset($data['role'])) {
+            $creatableRoles = ScopeHelper::getCreatableRoles($authUser);
+            if (!in_array($data['role'], $creatableRoles)) {
+                if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
+                    return response()->json(['message' => 'Anda tidak berhak menetapkan role ' . $data['role']], 403);
+                }
+                return redirect()->route('users.index')->with('error', 'Anda tidak berhak menetapkan role ' . $data['role']);
+            }
+        }
         
         if (isset($data['password']) && !empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
@@ -195,7 +252,7 @@ class UserController extends Controller
         }
         
         if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
-            return response()->json($this->formatUserResponse($user));
+            return response()->json($this->formatUserResponse($user, $authUser));
         }
 
         return redirect()->route('users.index')
@@ -205,11 +262,11 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $authUser = auth()->user();
-        if (!$authUser->hasAnyRole(['Direktur', 'HD / Direktur']) && $user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
+        if (!ScopeHelper::canManageUser($authUser, $user)) {
             if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
-                return response()->json(['error' => 'Hanya Direktur yang dapat menghapus akun Direktur.'], 403);
+                return response()->json(['error' => 'Anda tidak memiliki wewenang untuk menghapus akun ini.'], 403);
             }
-            return redirect()->route('users.index')->with('error', 'Hanya Direktur yang dapat menghapus akun Direktur.');
+            return redirect()->route('users.index')->with('error', 'Anda tidak memiliki wewenang untuk menghapus akun ini.');
         }
 
         if ($user->id === auth()->id()) {
@@ -233,8 +290,8 @@ class UserController extends Controller
     public function toggleStatus(User $user)
     {
         $authUser = auth()->user();
-        if (!$authUser->hasAnyRole(['Direktur', 'HD / Direktur']) && $user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
-            return response()->json(['error' => 'Hanya Direktur yang dapat mengubah status akun Direktur.'], 403);
+        if (!ScopeHelper::canManageUser($authUser, $user)) {
+            return response()->json(['error' => 'Anda tidak memiliki wewenang untuk mengubah status akun ini.'], 403);
         }
 
         if ($user->id === auth()->id()) {
@@ -250,7 +307,7 @@ class UserController extends Controller
             'success' => true,
             'status'  => $user->status,
             'message' => 'Status user berhasil diubah menjadi ' . $user->status,
-            'user'    => $this->formatUserResponse($user)
+            'user'    => $this->formatUserResponse($user, $authUser)
         ]);
     }
 

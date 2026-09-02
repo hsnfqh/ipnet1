@@ -307,8 +307,11 @@
                                     <span class="text-[11px] font-bold uppercase tracking-wider text-[#AF1424] bg-[#AF1424]/10 px-2 py-0.5 rounded">Detail Informasi Project</span>
                                     <span x-html="detailProject ? getStatusBadge(detailProject.status) : ''"></span>
                                     <template x-if="detailProject?.visit_schedule && detailProject?.visit_schedule !== 'None' && detailProject?.visit_schedule !== '-'">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]">
-                                            🔄 Visit: <span x-text="detailProject.visit_schedule"></span>
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]">
+                                            <svg class="w-3 h-3 text-[#4F46E5]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                            </svg>
+                                            <span>Jadwal Visit: <span x-text="detailProject.visit_schedule"></span></span>
                                         </span>
                                     </template>
                                 </div>
@@ -423,44 +426,29 @@
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0"
-                     class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 sm:p-5"
-                     @click.self="confirmOpen = false">
+                     class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+                     @click.self="confirmOpen = false"
+                     @keydown.escape.window="confirmOpen = false">
                     
-                    <div class="bg-white rounded-2xl w-[420px] max-w-full overflow-y-auto animate-fade-in-up shadow-[0_20px_60px_rgba(14,13,18,0.2)]">
-                        <div class="p-5 sm:p-6">
-                            <!-- Icon -->
-                            <div class="flex justify-center mb-4">
-                                <div class="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center">
-                                    <svg class="w-7 h-7 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                    </svg>
-                                </div>
-                            </div>
+                    <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(14,13,18,0.2)] animate-fade-in-up">
+                        <div class="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#C81E2C]">
+                            <svg class="w-7 h-7 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
 
-                            <!-- Content -->
-                            <div class="text-center mb-6">
-                                <h3 class="font-display text-[18px] font-bold text-[#17151C] mb-2">
-                                    Yakin Hapus Project Ini?
-                                </h3>
-                                <p class="text-[13.5px] text-[#75727C] leading-relaxed">
-                                    Project <strong class="text-[#17151C]" x-text="confirmData ? confirmData.name : ''"></strong> akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.
-                                </p>
-                            </div>
+                        <h3 class="text-center font-display text-[17px] font-bold text-[#17151C] mb-2">Yakin Hapus Project?</h3>
+                        <p class="text-center text-[13.5px] text-[#75727C] mb-6 break-words" x-text="'Project &quot;' + (confirmData ? confirmData.name : '') + '&quot; akan dihapus.'"></p>
 
-                            <!-- Actions -->
-                            <div class="flex items-center gap-3">
-                                <button @click="confirmDeleteAction()" 
-                                        class="flex-1 py-2.5 px-4 rounded-lg bg-[#C81E2C] text-white font-semibold text-[14px] shadow-[0_8px_20px_rgba(200,30,44,0.24)] hover:brightness-105 active:translate-y-[1px] transition-all">
-                                    Yakin, Hapus
-                                </button>
-                                <button @click="confirmOpen = false" 
-                                        class="flex-1 py-2.5 px-4 rounded-lg bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[14px] hover:bg-[#F8F7F6] transition-all">
-                                    Batal
-                                </button>
-                            </div>
+                        <div class="flex gap-3">
+                            <button type="button" @click="confirmDeleteAction()" class="flex-1 py-2.5 px-4 rounded-xl bg-[#C81E2C] text-white font-semibold text-[13.5px] hover:bg-[#A31622] transition cursor-pointer">
+                                Hapus
+                            </button>
+                            <button type="button" @click="confirmOpen = false" class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                                Batal
+                            </button>
                         </div>
                     </div>
-                </div>
             </template>
         </div>
     </div>

@@ -19,11 +19,18 @@ class ProjectController extends Controller
         $canCreate    = \App\Helpers\ScopeHelper::canCreateProjects($user);
         $scopeIds     = \App\Helpers\ScopeHelper::getScopeUserIds($user);
 
-        if ($scopeIds === null) {
-            // Global (Direktur / Group Leader / Lead Maintenance memantau seluruh proyek)
+        if ($isDirektur || $isSupervisor) {
+            // Direktur & Group Leader: Global memantau semua proyek lintas divisi
+            $projects = Project::with(['tasks.engineer:id,name', 'creator:id,name'])->get();
+        } elseif ($user->hasRole('Team Leader') && $user->division_id) {
+            // Team Leader: Hanya proyek yang berada di divisinya sendiri
+            $projects = Project::with(['tasks.engineer:id,name', 'creator:id,name'])
+                ->where('division_id', $user->division_id)
+                ->get();
+        } elseif ($isLead) {
             $projects = Project::with(['tasks.engineer:id,name', 'creator:id,name'])->get();
         } else {
-            // Team Leader / Engineer: Project yang memiliki task di dalam scope-nya atau dibuat oleh dirinya sendiri
+            // Engineer non-lead: Hanya project yang ada task untuk dirinya
             $projectIds = \App\Models\Task::whereIn('engineer_id', $scopeIds)
                 ->pluck('project_id')
                 ->unique();
@@ -42,8 +49,10 @@ class ProjectController extends Controller
     {
         $data = $request->validated();
         $data['created_by'] = auth()->id();
-        // Status awal selalu Planning saat project baru dibuat
         $data['status'] = 'Planning';
+        if (auth()->user()->division_id) {
+            $data['division_id'] = auth()->user()->division_id;
+        }
 
         $project = Project::create($data);
 
@@ -52,15 +61,12 @@ class ProjectController extends Controller
         }
 
         return redirect()->route('projects.index')
-            ->with('success', 'Project berhasil ditambahkan!');
+            ->with('success', 'Project berhasil dibuat!');
     }
 
     public function update(ProjectRequest $request, Project $project)
     {
-        $data = $request->validated();
-        // Status TIDAK diubah dari form — auto-dihitung dari tasks
-        // Hanya update metadata project saja
-        $project->update($data);
+        $project->update($request->validated());
 
         // Recalculate status otomatis berdasarkan tasks
         $this->recalculateStatus($project);
@@ -75,9 +81,12 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
-        abort_unless(\App\Helpers\ScopeHelper::canCreateProjects(auth()->user()), 403, 'Hanya Team Leader teknis / Lead Engineer yang berhak menghapus project.');
+        abort_unless(\App\Helpers\ScopeHelper::canCreateProjects(auth()->user()), 403, 'Anda tidak memiliki hak akses untuk menghapus project.');
 
         try {
+            // Cascade soft delete tasks & schedules
+            $project->tasks()->delete();
+            $project->schedules()->delete();
             $project->delete();
 
             if (request()->wantsJson() || request()->isJson() || request()->ajax()) {

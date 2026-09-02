@@ -48,11 +48,25 @@ class TaskController extends Controller
             })
             ->get();
 
-        $projects  = $isLead ? Project::all() : Project::whereIn('id', $tasks->pluck('project_id')->unique())->get();
+        // Project khusus untuk modal Buat & Assign Task: murni project aktif divisi user
+        $divisionId = $user->division_id;
+        $isGlobal   = ScopeHelper::isGlobal($user);
+
+        $formProjectsQuery = Project::where('status', '!=', 'Completed');
+        if ($divisionId && !$isGlobal) {
+            $formProjectsQuery->where('division_id', $divisionId);
+        }
+        $formProjects = $formProjectsQuery->orderBy('name')->get();
+
+        // Project untuk filter board (mencakup project aktif divisi + project task yang sedang ada di board)
+        $taskProjectIds = $tasks->pluck('project_id')->filter()->unique();
+        $boardProjects = Project::whereIn('id', $taskProjectIds)->get();
+        $projects = $formProjects->merge($boardProjects)->unique('id')->values();
+
         $engineers = ScopeHelper::getAssignableEngineers($user);
         $currentUserId = $user->id;
 
-        return view('tasks.index', compact('tasks', 'projects', 'engineers', 'currentUserId', 'isLead', 'canManage', 'isDirektur', 'isSupervisor'));
+        return view('tasks.index', compact('tasks', 'projects', 'formProjects', 'engineers', 'currentUserId', 'isLead', 'canManage', 'isDirektur', 'isSupervisor'));
     }
 
     public function store(TaskRequest $request)
@@ -62,6 +76,41 @@ class TaskController extends Controller
         $data['progress'] = 0;
         $data['attachments'] = 0;
         $data['status'] = $data['status'] ?? 'Assigned';
+
+        // Kelola project 'other' / project baru yang ditulis sendiri oleh user
+        if ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
+            $projectName = trim($request->input('new_project_name'));
+            if (!empty($projectName)) {
+                $project = Project::firstOrCreate(
+                    ['name' => $projectName],
+                    [
+                        'client'       => 'Internal / Lainnya',
+                        'location'     => 'On-Site / Lapangan',
+                        'start_date'   => now()->toDateString(),
+                        'deadline'     => $request->filled('deadline') ? substr($request->input('deadline'), 0, 10) : now()->addMonth()->toDateString(),
+                        'status'       => 'Planning',
+                        'project_type' => 'One-Time Project',
+                        'created_by'   => auth()->id(),
+                    ]
+                );
+                $data['project_id'] = $project->id;
+            }
+        }
+        unset($data['new_project_name']);
+
+        // Kelola deadline & opsional jam (deadline_time)
+        $deadlineTime = $request->filled('deadline_time') ? trim($request->input('deadline_time')) : null;
+        if (!empty($deadlineTime)) {
+            if (strlen($deadlineTime) === 5) {
+                $deadlineTime .= ':00';
+            }
+            $datePart = substr($data['deadline'], 0, 10);
+            $data['deadline'] = $datePart . ' ' . $deadlineTime;
+            $data['deadline_time'] = $deadlineTime;
+        } else {
+            $data['deadline'] = substr($data['deadline'], 0, 10) . ' 00:00:00';
+            $data['deadline_time'] = null;
+        }
 
         // Kelola multi-assignee (engineer_ids)
         $engineerIds = $request->input('engineer_ids', []);
@@ -73,6 +122,7 @@ class TaskController extends Controller
         }
         unset($data['engineer_ids']);
         
+        $hasTaskUser = Schema::hasTable('task_user');
         $task = Task::create($data);
         if ($hasTaskUser && !empty($engineerIds)) {
             $task->engineers()->sync($engineerIds);
@@ -109,19 +159,62 @@ class TaskController extends Controller
         // Hanya Team Leader & Koordinator Helpdesk yang memiliki wewenang untuk mengubah atau memperbarui task
         abort_unless(ScopeHelper::canManageTasks($user), 403, 'Hanya Team Leader / Koordinator yang berhak mengubah atau memperbarui task.');
 
-        $validated = $request->validate([
-            'title'          => 'sometimes|required|string|max:255',
-            'project_id'     => 'sometimes|required|exists:projects,id',
-            'engineer_id'    => 'sometimes|nullable|exists:users,id',
-            'engineer_ids'   => 'sometimes|nullable|array|min:1',
-            'engineer_ids.*' => 'exists:users,id',
-            'priority'       => 'sometimes|required|in:High,Medium,Low',
-            'deadline'       => 'sometimes|required|date',
-            'description'    => 'sometimes|nullable|string',
-            'status'         => 'sometimes|required|in:Assigned,In Progress,Waiting Review,Completed',
-            'progress'       => 'sometimes|nullable|integer|min:0|max:100',
-            'doc_file'       => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
-        ]);
+        $rules = [
+            'title'             => 'sometimes|required|string|max:255',
+            'project_id'        => 'sometimes|required',
+            'new_project_name'  => 'sometimes|nullable|string|max:255',
+            'engineer_id'       => 'sometimes|nullable|exists:users,id',
+            'engineer_ids'      => 'sometimes|nullable|array|min:1',
+            'engineer_ids.*'    => 'exists:users,id',
+            'priority'          => 'sometimes|required|in:High,Medium,Low',
+            'deadline'          => 'sometimes|required|date',
+            'deadline_time'     => 'sometimes|nullable|string',
+            'description'       => 'sometimes|nullable|string',
+            'status'            => 'sometimes|required|in:Assigned,In Progress,Waiting Review,Completed',
+            'progress'          => 'sometimes|nullable|integer|min:0|max:100',
+            'doc_file'          => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
+        ];
+        if ($request->has('project_id') && $request->input('project_id') !== 'other') {
+            $rules['project_id'] .= '|exists:projects,id';
+        }
+        $validated = $request->validate($rules);
+
+        // Kelola project 'other' / project baru jika diedit
+        if ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
+            $projectName = trim($request->input('new_project_name'));
+            if (!empty($projectName)) {
+                $project = Project::firstOrCreate(
+                    ['name' => $projectName],
+                    [
+                        'client'       => 'Internal / Lainnya',
+                        'location'     => 'On-Site / Lapangan',
+                        'start_date'   => now()->toDateString(),
+                        'deadline'     => $request->filled('deadline') ? substr($request->input('deadline'), 0, 10) : now()->addMonth()->toDateString(),
+                        'status'       => 'Planning',
+                        'project_type' => 'One-Time Project',
+                        'created_by'   => auth()->id(),
+                    ]
+                );
+                $validated['project_id'] = $project->id;
+            }
+        }
+        unset($validated['new_project_name']);
+
+        // Kelola deadline & opsional jam
+        if (isset($validated['deadline'])) {
+            $deadlineTime = $request->filled('deadline_time') ? trim($request->input('deadline_time')) : null;
+            if (!empty($deadlineTime)) {
+                if (strlen($deadlineTime) === 5) {
+                    $deadlineTime .= ':00';
+                }
+                $datePart = substr($validated['deadline'], 0, 10);
+                $validated['deadline'] = $datePart . ' ' . $deadlineTime;
+                $validated['deadline_time'] = $deadlineTime;
+            } else {
+                $validated['deadline'] = substr($validated['deadline'], 0, 10) . ' 00:00:00';
+                $validated['deadline_time'] = null;
+            }
+        }
 
         // Multi-assignee sync
         if ($request->has('engineer_ids') || $request->has('engineer_id')) {

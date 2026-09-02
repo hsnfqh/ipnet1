@@ -25,16 +25,24 @@ class ScheduleRequest extends FormRequest
         $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
 
         return [
-            'title'          => 'required|string|max:255',
-            'project_id'     => 'required|exists:projects,id',
-            'engineer_id'    => 'required_without:engineer_ids|nullable|exists:users,id',
-            'engineer_ids'   => 'required_without:engineer_id|nullable|array|min:1',
-            'engineer_ids.*' => 'exists:users,id',
-            'date'           => 'required|date',
-            'start_time'     => 'required|date_format:H:i',
-            'end_time'       => 'required|date_format:H:i|after:start_time',
-            'location'       => 'nullable|string|max:255',
-            'description'    => 'nullable|string',
+            'title'            => 'required|string|max:255',
+            'project_id'       => 'required',
+            'new_project_name' => 'required_if:project_id,other|nullable|string|max:255',
+            'engineer_id'      => 'required_without:engineer_ids|nullable|exists:users,id',
+            'engineer_ids'     => 'required_without:engineer_id|nullable|array|min:1',
+            'engineer_ids.*'   => 'exists:users,id',
+            'date'             => 'required|date',
+            'start_time'       => 'required',
+            'end_time'         => 'nullable',
+            'location'         => 'nullable|string|max:255',
+            'description'      => 'nullable|string',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->sometimes('project_id', 'exists:projects,id', function ($input) {
+            return $input->project_id !== 'other';
+        });
     }
 }

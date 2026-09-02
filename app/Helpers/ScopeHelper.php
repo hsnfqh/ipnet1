@@ -80,7 +80,7 @@ class ScopeHelper
     {
         if (!$user) return false;
         if ($user->hasRole('Lead Maintenance')) return false;
-        return $user->hasAnyRole(['Team Leader', 'Lead Engineer']);
+        return $user->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Engineer']);
     }
 
     /**
@@ -220,5 +220,109 @@ class ScopeHelper
 
         // 3. Engineer -> Hanya dirinya sendiri
         return collect([$user]);
+    }
+
+    /**
+     * Role apa saja yang dapat dibuat oleh user yang sedang login?
+     */
+    public static function getCreatableRoles($user): array
+    {
+        if (!$user) return [];
+
+        if ($user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
+            return ['Direktur', 'Group Leader', 'Team Leader', 'Lead Maintenance', 'Engineer', 'Maintenance'];
+        }
+
+        if (self::isGroupLeader($user)) {
+            return ['Team Leader', 'Lead Maintenance', 'Engineer', 'Maintenance'];
+        }
+
+        if (self::isTeamLeader($user)) {
+            // Team Leader hanya dapat merekrut/menambah Engineer di divisinya
+            return ['Engineer'];
+        }
+
+        if ($user->hasRole('Lead Maintenance')) {
+            return ['Maintenance'];
+        }
+
+        return [];
+    }
+
+    /**
+     * Role apa saja yang relevan ditampilkan di filter pencarian user?
+     */
+    public static function getFilterableRoles($user): array
+    {
+        if (!$user) return [];
+
+        if ($user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
+            return ['Direktur', 'Group Leader', 'Team Leader', 'Engineer L1', 'Engineer L2'];
+        }
+
+        if (self::isGroupLeader($user)) {
+            return ['Team Leader', 'Engineer L1', 'Engineer L2'];
+        }
+
+        if (self::isTeamLeader($user)) {
+            // Untuk Team Leader: Tim teknis terdiri dari Engineer L1, Engineer L2, dan dirinya sendiri
+            return ['Engineer L1', 'Engineer L2', 'Team Leader'];
+        }
+
+        return ['Engineer L1', 'Engineer L2'];
+    }
+
+    /**
+     * Apakah auth user berhak mengelola (edit, toggle status, hapus) target user?
+     */
+    public static function canManageUser($authUser, $targetUser): bool
+    {
+        if (!$authUser || !$targetUser) return false;
+
+        // Tidak dapat mengubah status atau menghapus akun sendiri
+        if ($authUser->id === $targetUser->id) {
+            return false;
+        }
+
+        // 1. Direktur memiliki wewenang penuh atas semua bawahan
+        if ($authUser->hasAnyRole(['Direktur', 'HD / Direktur'])) {
+            return true;
+        }
+
+        // Target adalah Direktur -> tidak ada yang boleh mengubah selain sesama Direktur
+        if ($targetUser->hasAnyRole(['Direktur', 'HD / Direktur'])) {
+            return false;
+        }
+
+        // 2. Group Leader dapat mengelola Team Leader, Lead Maintenance, Engineer, Maintenance
+        if (self::isGroupLeader($authUser)) {
+            // Tidak dapat mengelola sesama Group Leader
+            if ($targetUser->hasAnyRole(['Group Leader', 'Lead Divisi'])) {
+                return false;
+            }
+            return true;
+        }
+
+        // 3. Team Leader hanya dapat mengelola Engineer di divisinya sendiri
+        if (self::isTeamLeader($authUser)) {
+            if ($targetUser->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Maintenance', 'Lead Engineer'])) {
+                return false;
+            }
+            // Harus satu divisi / tim
+            if ($authUser->division_id && $targetUser->division_id === $authUser->division_id) {
+                return true;
+            }
+            if ($authUser->team_id && $targetUser->team_id === $authUser->team_id) {
+                return true;
+            }
+            return false;
+        }
+
+        // 4. Lead Maintenance hanya dapat mengelola staf Maintenance
+        if ($authUser->hasRole('Lead Maintenance')) {
+            return $targetUser->hasRole('Maintenance');
+        }
+
+        return false;
     }
 }

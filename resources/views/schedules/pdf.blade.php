@@ -240,12 +240,7 @@
                     $dayName    = $parsedDate ? ($daysIndo[$parsedDate->format('l')] ?? $parsedDate->format('l')) : '-';
                     $dateStr    = $parsedDate ? $parsedDate->format('d/m/Y') : '-';
 
-                    $timeStr = '-';
-                    if ($sched->start_time && $sched->end_time) {
-                        $timeStr = substr($sched->start_time, 0, 5) . ' - ' . substr($sched->end_time, 0, 5) . ' WIB';
-                    } elseif ($sched->start_time) {
-                        $timeStr = substr($sched->start_time, 0, 5) . ' WIB';
-                    }
+                    $timeStr = $sched->start_time ? substr($sched->start_time, 0, 5) . ' WIB' : '-';
                 @endphp
                 <tr class="{{ $index % 2 === 1 ? 'row-even' : '' }}">
                     <td class="text-center">{{ $index + 1 }}</td>

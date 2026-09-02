@@ -706,7 +706,7 @@
                     </svg>
                 </div>
                 
-                <h3 class="text-center font-display text-[17px] font-bold text-[#17151C] mb-2">Hapus Catatan Timesheet?</h3>
+                <h3 class="text-center font-display text-[17px] font-bold text-[#17151C] mb-2">Yakin Hapus Catatan Timesheet?</h3>
                 <p class="text-center text-[13.5px] text-[#75727C] mb-6 break-words" x-text="'Log aktivitas: &quot;' + deleteTitle + '&quot; akan dihapus.'"></p>
 
                 <form :action="`/timesheets/${deleteId}`" method="POST" class="flex gap-3">

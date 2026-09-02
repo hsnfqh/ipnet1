@@ -118,7 +118,7 @@
                                                 </template>
                                             </div>
                                         </div>
-                                        <span style="font-size:10px; font-family:'IBM Plex Mono',monospace; color:#75727C; white-space:nowrap;" x-text="formatDeadline(task.deadline)"></span>
+                                        <span style="font-size:10px; font-family:'IBM Plex Mono',monospace; color:#75727C; white-space:nowrap;" x-text="formatDeadline(task.deadline, task.deadline_time)"></span>
                                     </div>
 
                                     <div style="width:100%; background:#EFEDEB; border-radius:20px; height:5px; overflow:hidden;">
@@ -222,10 +222,21 @@
                                                 style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;"
                                                 required>
                                             <option value="">Pilih Project</option>
-                                            <template x-for="project in projects" :key="project.id">
+                                            <template x-for="project in modalProjects" :key="project.id">
                                                 <option :value="project.id" x-text="project.name"></option>
                                             </template>
+                                            <option value="other" style="font-weight:600; color:#C81E2C;">Other</option>
                                         </select>
+                                        <!-- Input nama project jika memilih 'other' -->
+                                        <div x-show="form.project_id === 'other'" style="margin-top:8px; animation:fadeInUp 0.2s ease;">
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#C81E2C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">
+                                                Nama Project
+                                            </label>
+                                            <input type="text" x-model="form.new_project_name"
+                                                   placeholder="Masukkan nama project..."
+                                                   style="width:100%; padding:9px 12px; border-radius:8px; border:1.5px solid #C81E2C; font-size:14px; color:#17151C; outline:none; background:#FFF5F5; box-sizing:border-box;"
+                                                   :required="form.project_id === 'other'">
+                                        </div>
                                     </div>
                                     <div>
                                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -282,10 +293,25 @@
                                             </select>
                                         </div>
                                         <div>
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Deadline</label>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Tanggal Deadline</label>
                                             <input type="date" x-model="form.deadline"
                                                    style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;"
                                                    required>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                            <label style="font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">
+                                                Jam Deadline
+                                            </label>
+                                            <span style="font-size:10.5px; color:#948F99; font-weight:500;">(Opsional)</span>
+                                        </div>
+                                        <div style="display:flex; align-items:center; gap:8px;">
+                                            <input type="time" x-model="form.deadline_time"
+                                                   style="flex:1; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;">
+                                            <button type="button" x-show="form.deadline_time" @click="form.deadline_time = ''" 
+                                                    style="background:#F1F0EE; border:none; padding:9px 12px; border-radius:8px; font-size:11.5px; color:#75727C; cursor:pointer;"
+                                                    title="Hapus jam">Reset Jam</button>
                                         </div>
                                     </div>
                                     <div x-show="editing" class="modal-grid-2">
@@ -366,7 +392,7 @@
                                     <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="progressForm.fileName || 'Pilih file foto/dokumen pekerjaan...'"></span>
                                     <input type="file" id="doc_file_input" accept="image/*,.pdf,.doc,.docx" style="display:none;" @change="handleFileChange($event)">
                                 </label>
-                                <p x-show="progressForm.fileName" style="font-size:10.5px; color:#1B7A46; margin-top:4px; margin-bottom:0;">✓ File siap diupload</p>
+                                <p x-show="progressForm.fileName" style="font-size:10.5px; color:#1B7A46; margin-top:4px; margin-bottom:0;">File siap diunggah</p>
                             </div>
                             <div style="margin-bottom:16px;">
                                 <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Keterangan / Hasil Pekerjaan</label>
@@ -400,30 +426,33 @@
             <template x-teleport="body">
                 <div x-show="confirmOpen"
                      x-cloak
-                     style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
-                     @click.self="confirmOpen = false">
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+                     @click.self="confirmOpen = false"
+                     @keydown.escape.window="confirmOpen = false">
 
-                    <div style="background:white; border-radius:16px; width:420px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(14,13,18,0.2); margin:auto; animation:fadeInUp 0.2s ease;">
-                        <div style="padding:24px;">
-                            <div style="display:flex; justify-content:center; margin-bottom:16px;">
-                                <div style="width:56px; height:56px; border-radius:50%; background:#FEF2F2; display:flex; align-items:center; justify-content:center;">
-                                    <svg style="width:28px; height:28px; color:#C81E2C;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                            <h3 style="margin:0 0 8px; text-align:center; font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:#17151C;">Yakin hapus task?</h3>
-                            <p style="text-align:center; font-size:14px; color:#75727C; margin:0 0 24px; word-break:break-word;">
-                                Task "<span x-text="confirmData?.title" style="font-weight:600; color:#17151C;"></span>" akan dihapus permanen.
-                            </p>
-                            <div style="display:flex; flex-direction:column; gap:10px;">
-                                <button @click="deleteTask()" style="padding:10px 16px; border-radius:8px; background:#C81E2C; color:white; font-weight:600; font-size:14px; border:none; cursor:pointer;">
-                                    Yakin, Hapus
-                                </button>
-                                <button @click="confirmOpen = false" style="padding:10px 16px; border-radius:8px; background:white; color:#3D3A44; border:1px solid #E7E5E3; font-weight:600; font-size:14px; cursor:pointer;">
-                                    Batal
-                                </button>
-                            </div>
+                    <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(14,13,18,0.2)] animate-fade-in-up">
+                        <div class="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#C81E2C]">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
+                        
+                        <h3 class="text-center font-display text-[17px] font-bold text-[#17151C] mb-2">Yakin Hapus Task?</h3>
+                        <p class="text-center text-[13.5px] text-[#75727C] mb-6 break-words" x-text="'Task &quot;' + (confirmData?.title || '') + '&quot; akan dihapus.'"></p>
+
+                        <div class="flex gap-3">
+                            <button type="button" @click="deleteTask()" class="flex-1 py-2.5 px-4 rounded-xl bg-[#C81E2C] text-white font-semibold text-[13.5px] hover:bg-[#A31622] transition cursor-pointer">
+                                Hapus
+                            </button>
+                            <button type="button" @click="confirmOpen = false" class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                                Batal
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -484,7 +513,7 @@
                                 </div>
                                 <div>
                                     <span style="color:#75727C; font-weight:500;">Deadline:</span>
-                                    <strong style="color:#17151C; display:block;" x-text="formatDeadline(selectedTask?.deadline)"></strong>
+                                    <strong style="color:#17151C; display:block;" x-text="formatDeadline(selectedTask?.deadline, selectedTask?.deadline_time)"></strong>
                                 </div>
                             </div>
 
@@ -666,6 +695,7 @@
             return {
                 tasks: @json($tasks),
                 projects: @json($projects),
+                formProjects: @json($formProjects ?? $projects),
                 engineers: @json($engineers),
                 currentUserId: parseInt(document.querySelector('[data-current-user-id]')?.dataset?.currentUserId || '0'),
                 isLead: document.querySelector('[data-is-lead]')?.dataset?.isLead === 'true',
@@ -691,10 +721,12 @@
                     id: null,
                     title: '',
                     project_id: null,
+                    new_project_name: '',
                     engineer_id: null,
                     engineer_ids: [],
                     priority: 'Medium',
                     deadline: '',
+                    deadline_time: '',
                     status: 'Assigned',
                     progress: 0,
                     description: ''
@@ -702,8 +734,18 @@
                 progressForm: {
                     taskId: null,
                     progress: 0,
+                    notes: '',
                     fileName: '',
                     docFile: null
+                },
+
+                get modalProjects() {
+                    var list = (this.formProjects && this.formProjects.length > 0) ? this.formProjects.slice() : this.projects.slice();
+                    if (this.editing && this.form.project_id && !list.some(function(p){ return p.id === this.form.project_id; }.bind(this))) {
+                        var currentP = this.projects.find(function(p){ return p.id === this.form.project_id; }.bind(this));
+                        if (currentP) list.unshift(currentP);
+                    }
+                    return list;
                 },
 
                 init: function() {
@@ -763,10 +805,12 @@
                         id: null,
                         title: '',
                         project_id: this.projects[0]?.id || null,
+                        new_project_name: '',
                         engineer_id: initialEngId,
                         engineer_ids: initialEngId ? [initialEngId] : [],
                         priority: 'Medium',
                         deadline: '',
+                        deadline_time: '',
                         status: 'Assigned',
                         progress: 0,
                         description: ''
@@ -782,14 +826,37 @@
                     var ids = (task.engineers && task.engineers.length > 0)
                         ? task.engineers.map(function(e) { return e.id; }).filter(function(id) { return validIds.includes(id); })
                         : (validIds.includes(task.engineer_id) ? [task.engineer_id] : (validIds.length > 0 ? [validIds[0]] : []));
+
+                    var dateStr = '';
+                    var timeStr = task.deadline_time ? task.deadline_time.substring(0, 5) : '';
+                    if (task.deadline) {
+                        if (task.deadline.includes('T')) {
+                            var parts = task.deadline.split('T');
+                            dateStr = parts[0];
+                            if (!timeStr && parts[1] && parts[1].substring(0, 5) !== '00:00') {
+                                timeStr = parts[1].substring(0, 5);
+                            }
+                        } else if (task.deadline.includes(' ')) {
+                            var parts = task.deadline.split(' ');
+                            dateStr = parts[0];
+                            if (!timeStr && parts[1] && parts[1].substring(0, 5) !== '00:00') {
+                                timeStr = parts[1].substring(0, 5);
+                            }
+                        } else {
+                            dateStr = task.deadline;
+                        }
+                    }
+
                     this.form = {
                         id: task.id,
                         title: task.title,
                         project_id: task.project_id,
+                        new_project_name: '',
                         engineer_id: ids[0] || (validIds.length > 0 ? validIds[0] : null),
                         engineer_ids: ids,
                         priority: task.priority,
-                        deadline: task.deadline ? task.deadline.split('T')[0] : '',
+                        deadline: dateStr,
+                        deadline_time: timeStr,
                         status: task.status,
                         original_status: task.status,
                         progress: task.progress || 0,
@@ -825,6 +892,16 @@
 
                 saveTask: async function() {
                     try {
+                        if (this.form.project_id === 'other') {
+                            if (!this.form.new_project_name || !this.form.new_project_name.trim()) {
+                                this.showToast('Silakan masukkan nama project!');
+                                return;
+                            }
+                        } else if (!this.form.project_id) {
+                            this.showToast('Silakan pilih project!');
+                            return;
+                        }
+
                         if (!this.form.engineer_ids || this.form.engineer_ids.length === 0) {
                             this.showToast('Pilih minimal 1 orang teknisi / pendamping lapangan!');
                             return;
@@ -846,6 +923,12 @@
 
                         if (response.ok) {
                             var data = await response.json();
+
+                            // Jika ada project baru dan belum ada di list projects lokal, tambahkan ke dropdown
+                            if (data.project && !this.projects.some(function(p) { return p.id === data.project.id; })) {
+                                this.projects.push(data.project);
+                            }
+
                             if (this.editing) {
                                 var index = this.tasks.findIndex(function(t) { return t.id === data.id; });
                                 if (index !== -1) this.tasks[index] = data;
@@ -862,7 +945,14 @@
                             this.showToast(this.editing ? 'Task berhasil diperbarui!' : 'Task berhasil dibuat dan ditugaskan ke tim!');
                         } else {
                             var error = await response.json();
-                            this.showToast('Error: ' + (error.message || 'Terjadi kesalahan'));
+                            var errorMsg = error.message || 'Terjadi kesalahan';
+                            if (error.errors) {
+                                var firstKey = Object.keys(error.errors)[0];
+                                if (firstKey && error.errors[firstKey][0]) {
+                                    errorMsg = error.errors[firstKey][0];
+                                }
+                            }
+                            this.showToast('Error: ' + errorMsg);
                         }
                     } catch (error) {
                         console.error('Error saving task:', error);
@@ -1016,12 +1106,40 @@
                             '</span>';
                 },
 
-                formatDeadline: function(deadline) {
+                formatDeadline: function(deadline, deadlineTime) {
                     if (!deadline) return '';
-                    var d = new Date(deadline);
+                    var datePart = '';
+                    var timePart = '';
+
+                    if (deadline.includes('T')) {
+                        var parts = deadline.split('T');
+                        datePart = parts[0];
+                        if (!deadlineTime && parts[1] && parts[1].substring(0, 5) !== '00:00') {
+                            timePart = parts[1].substring(0, 5);
+                        }
+                    } else if (deadline.includes(' ')) {
+                        var parts = deadline.split(' ');
+                        datePart = parts[0];
+                        if (!deadlineTime && parts[1] && parts[1].substring(0, 5) !== '00:00') {
+                            timePart = parts[1].substring(0, 5);
+                        }
+                    } else {
+                        datePart = deadline;
+                    }
+
+                    if (deadlineTime) {
+                        timePart = deadlineTime.substring(0, 5);
+                    }
+
+                    var d = new Date(datePart + 'T00:00:00');
                     if (isNaN(d.getTime())) return deadline;
                     var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                    return String(d.getUTCDate()).padStart(2,'0') + ' ' + months[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+                    var formattedDate = String(d.getDate()).padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+
+                    if (timePart && timePart !== '00:00') {
+                        return formattedDate + ' • ' + timePart;
+                    }
+                    return formattedDate;
                 },
 
                 showToast: function(message) {

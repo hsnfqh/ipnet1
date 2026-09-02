@@ -23,6 +23,7 @@ class Project extends Model
         'deadline',
         'status',
         'created_by',
+        'division_id',
     ];
 
     protected $casts = [
@@ -36,6 +37,11 @@ class Project extends Model
     ];
 
     // Relationships
+    public function division()
+    {
+        return $this->belongsTo(Division::class);
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

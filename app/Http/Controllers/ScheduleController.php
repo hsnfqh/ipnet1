@@ -84,7 +84,16 @@ class ScheduleController extends Controller
                 ];
             });
 
-        $projects  = Project::all();
+        $divisionId = $user->division_id;
+        $isGlobal = ScopeHelper::isGlobal($user);
+        $projectsQuery = Project::where('status', '!=', 'Completed');
+        if ($divisionId && !$isGlobal) {
+            $projectsQuery->where(function($q) use ($divisionId) {
+                $q->where('division_id', $divisionId)
+                  ->orWhereNull('division_id');
+            });
+        }
+        $projects  = $projectsQuery->orderBy('name')->get();
         $engineers = ScopeHelper::getAssignableEngineers($user);
 
         // Tasks dengan deadline untuk ditampilkan di kalender
@@ -99,15 +108,16 @@ class ScheduleController extends Controller
             ->get()
             ->map(function($task) {
                 return [
-                    'id'          => $task->id,
-                    'title'       => $task->title,
-                    'deadline'    => $task->deadline ? $task->deadline->format('Y-m-d') : null,
-                    'priority'    => $task->priority,
-                    'status'      => $task->status,
-                    'engineer_id' => $task->engineer_id,
-                    'project_id'  => $task->project_id,
-                    'project'     => $task->project ? ['id' => $task->project->id, 'name' => $task->project->name] : null,
-                    'engineer'    => $task->engineer ? ['id' => $task->engineer->id, 'name' => $task->engineer->name] : null,
+                    'id'            => $task->id,
+                    'title'         => $task->title,
+                    'deadline'      => $task->deadline ? $task->deadline->format('Y-m-d') : null,
+                    'deadline_time' => $task->deadline_time ? substr($task->deadline_time, 0, 5) : '',
+                    'priority'      => $task->priority,
+                    'status'        => $task->status,
+                    'engineer_id'   => $task->engineer_id,
+                    'project_id'    => $task->project_id,
+                    'project'       => $task->project ? ['id' => $task->project->id, 'name' => $task->project->name] : null,
+                    'engineer'      => $task->engineer ? ['id' => $task->engineer->id, 'name' => $task->engineer->name] : null,
                 ];
             });
 
@@ -143,6 +153,32 @@ class ScheduleController extends Controller
         try {
             $data = $request->validated();
             $data['created_by'] = auth()->id();
+            $hasScheduleUser = Schema::hasTable('schedule_user');
+
+            // Kelola project 'other' / project baru jika diketik sendiri
+            if ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
+                $projectName = trim($request->input('new_project_name'));
+                if (!empty($projectName)) {
+                    $project = Project::firstOrCreate(
+                        ['name' => $projectName],
+                        [
+                            'client'       => 'Internal / Umum',
+                            'location'     => $request->input('location') ?: 'Kantor / Ruang Meeting',
+                            'start_date'   => $request->input('date') ?: now()->toDateString(),
+                            'deadline'     => $request->input('date') ?: now()->toDateString(),
+                            'status'       => 'On Progress',
+                            'project_type' => 'Meeting / Internal',
+                            'created_by'   => auth()->id(),
+                        ]
+                    );
+                    $data['project_id'] = $project->id;
+                }
+            }
+            unset($data['new_project_name']);
+
+            if (empty($data['end_time']) && !empty($data['start_time'])) {
+                $data['end_time'] = $data['start_time'];
+            }
 
             $engineerIds = $request->input('engineer_ids', []);
             if (empty($engineerIds) && !empty($data['engineer_id'])) {
@@ -218,6 +254,32 @@ class ScheduleController extends Controller
         try {
             $data = $request->validated();
             $hasScheduleUser = Schema::hasTable('schedule_user');
+
+            // Kelola project 'other' / project baru jika diedit
+            if ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
+                $projectName = trim($request->input('new_project_name'));
+                if (!empty($projectName)) {
+                    $project = Project::firstOrCreate(
+                        ['name' => $projectName],
+                        [
+                            'client'       => 'Internal / Umum',
+                            'location'     => $request->input('location') ?: 'Kantor / Ruang Meeting',
+                            'start_date'   => $request->input('date') ?: now()->toDateString(),
+                            'deadline'     => $request->input('date') ?: now()->toDateString(),
+                            'status'       => 'On Progress',
+                            'project_type' => 'Meeting / Internal',
+                            'created_by'   => auth()->id(),
+                        ]
+                    );
+                    $data['project_id'] = $project->id;
+                }
+            }
+            unset($data['new_project_name']);
+
+            if (empty($data['end_time']) && !empty($data['start_time'])) {
+                $data['end_time'] = $data['start_time'];
+            }
+
             $engineerIds = $request->input('engineer_ids', []);
             if (empty($engineerIds) && !empty($data['engineer_id'])) {
                 $engineerIds = [(int) $data['engineer_id']];
@@ -237,12 +299,19 @@ class ScheduleController extends Controller
             }
             $schedule->load($withRelations);
 
+            $engineerIdsList = $hasScheduleUser && $schedule->relationLoaded('engineers')
+                ? $schedule->engineers->pluck('id')->toArray()
+                : ($schedule->engineer_id ? [$schedule->engineer_id] : []);
+            $engineersList = $hasScheduleUser && $schedule->relationLoaded('engineers')
+                ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
+                : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
+
             $response = [
                 'id' => $schedule->id,
                 'title' => $schedule->title,
                 'project_id' => $schedule->project_id,
                 'engineer_id' => $schedule->engineer_id,
-                'engineer_ids' => $schedule->engineers->pluck('id')->toArray(),
+                'engineer_ids' => $engineerIdsList,
                 'date' => $schedule->date ? $schedule->date->format('Y-m-d') : '',
                 'start_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) : '',
                 'end_time' => $schedule->end_time ? substr($schedule->end_time, 0, 5) : '',
@@ -256,7 +325,7 @@ class ScheduleController extends Controller
                     'id' => $schedule->engineer->id,
                     'name' => $schedule->engineer->name,
                 ] : null,
-                'engineers' => $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray(),
+                'engineers' => $engineersList,
             ];
 
             if ($request->wantsJson() || $request->ajax()) {
