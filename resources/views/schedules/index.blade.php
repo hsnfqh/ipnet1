@@ -1627,7 +1627,7 @@
                     filteredTasks.forEach(function(t) {
                         if (t.deadline === date) {
                             var dTime = t.deadline_time ? t.deadline_time.substring(0, 5) : '';
-                            var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Deadline';
+                            var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
 
                             var taskEngLabel = '';
                             if (t.engineers && t.engineers.length > 0) {
@@ -1644,7 +1644,7 @@
                                 _color: '#C81E2C',
                                 _displayTitle: t.title,
                                 _timeLabel: taskTimeLabel,
-                                _tooltip: 'Deadline Task: ' + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (taskEngLabel ? '\nEngineer: ' + taskEngLabel : ''),
+                                _tooltip: 'Jadwal Kegiatan: ' + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (taskEngLabel ? '\nEngineer: ' + taskEngLabel : ''),
                                 _subLabel: taskEngLabel,
                                 id: t.id,
                                 title: t.title,

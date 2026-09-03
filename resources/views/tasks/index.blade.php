@@ -318,7 +318,7 @@
                                             </select>
                                         </div>
                                         <div>
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Tanggal Deadline</label>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Tanggal Kegiatan</label>
                                             <input type="date" x-model="form.deadline"
                                                    style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;"
                                                    required>
@@ -327,7 +327,7 @@
                                     <div>
                                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                                             <label style="font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">
-                                                Jam Deadline
+                                                Jam Kegiatan
                                             </label>
                                             <span style="font-size:10.5px; color:#948F99; font-weight:500;">(Opsional)</span>
                                         </div>
@@ -537,7 +537,7 @@
                                     <strong style="color:#C81E2C; display:block;" x-text="selectedTask?.status"></strong>
                                 </div>
                                 <div>
-                                    <span style="color:#75727C; font-weight:500;">Deadline:</span>
+                                    <span style="color:#75727C; font-weight:500;">Tanggal Kegiatan:</span>
                                     <strong style="color:#17151C; display:block;" x-text="formatDeadline(selectedTask?.deadline, selectedTask?.deadline_time)"></strong>
                                 </div>
                             </div>
