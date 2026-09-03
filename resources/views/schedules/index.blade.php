@@ -928,12 +928,12 @@
 /* ---------- day view ---------- */
 .jkw-day-list { padding:14px 14px !important; display:flex !important; flex-direction:column !important; gap:8px !important; }
 .jkw-day-item { display:flex !important; align-items:flex-start !important; gap:12px !important; padding:12px 16px !important; border-radius:8px !important; flex-wrap:wrap !important; transition:all 0.15s ease !important; }
-.jkw-day-item--schedule { background:#EFF6FF !important; border-left:4px solid #2563EB !important; }
+.jkw-day-item--schedule { background:rgba(37,99,235,0.13) !important; border-left:4px solid #2563EB !important; }
 .jkw-day-item--schedule .jkw-time { color:#1D4ED8 !important; }
 .jkw-day-item--schedule .jkw-time svg { color:#2563EB !important; }
-.jkw-day-item--day_off { background:#F1F5F9 !important; border-left:4px solid #64748B !important; }
-.jkw-day-item--day_off .jkw-time { color:#334155 !important; }
-.jkw-day-item--day_off .jkw-time svg { color:#64748B !important; }
+.jkw-day-item--day_off { background:rgba(100,116,139,0.20) !important; border-left:4px solid #475569 !important; }
+.jkw-day-item--day_off .jkw-time { color:#334155 !important; font-weight:800 !important; }
+.jkw-day-item--day_off .jkw-time svg { color:#475569 !important; }
 .jkw-day-item--task { background:#FDF1F2 !important; border-left:4px solid #C81E2C !important; }
 .jkw-day-item--task .jkw-time { color:#991B1B !important; }
 .jkw-day-item--task .jkw-time svg { color:#C81E2C !important; }
@@ -961,11 +961,11 @@
 .jkw-week-col-head { font-size:11px !important; color:var(--jkw-muted) !important; font-weight:700 !important; margin-bottom:10px !important; display:flex !important; align-items:center !important; gap:5px !important; }
 .jkw-week-col-body { display:flex !important; flex-direction:column !important; gap:6px !important; }
 .jkw-mini-card { border-radius:6px !important; padding:6px 9px !important; }
-.jkw-mini-card--schedule { background:rgba(37,99,235,0.07) !important; }
-.jkw-mini-card--day_off { background:rgba(100,116,139,0.11) !important; }
-.jkw-mini-card--task { background:rgba(200,30,44,0.07) !important; }
-.jkw-mini-card--project { background:rgba(153,27,27,0.07) !important; }
-.jkw-mini-time { font-family:'IBM Plex Mono', monospace !important; font-size:10px !important; font-weight:700 !important; color:var(--jkw-ink-2) !important; }
+.jkw-mini-card--schedule { background:rgba(37,99,235,0.13) !important; }
+.jkw-mini-card--day_off { background:rgba(100,116,139,0.20) !important; }
+.jkw-mini-card--task { background:rgba(200,30,44,0.08) !important; }
+.jkw-mini-card--project { background:rgba(153,27,27,0.08) !important; }
+.jkw-mini-time { font-family:'IBM Plex Mono', monospace !important; font-size:10px !important; font-weight:700 !important; }
 .jkw-mini-title { font-size:11.5px !important; color:var(--jkw-ink) !important; font-weight:600 !important; line-height:1.3 !important; margin-top:1px !important; word-break:break-word !important; }
 .jkw-mini-eng { font-size:9.5px !important; color:var(--jkw-muted) !important; margin-top:1px !important; }
 .jkw-mini-empty { font-size:11px !important; color:#C7C4CD !important; padding:8px 0 !important; text-align:center !important; }
