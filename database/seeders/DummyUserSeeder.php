@@ -30,6 +30,8 @@ class DummyUserSeeder extends Seeder
             'Group Leader',
             'PMO',
             'Project Manager',
+            'Sales',
+            'BusDev',
             'Lead Divisi',
             'Team Leader',
             'Lead Maintenance',
@@ -134,6 +136,52 @@ class DummyUserSeeder extends Seeder
             ]
         );
         $pmRizki->syncRoles(['Project Manager']);
+
+        // --- TIM SALES & BUSDEV (TAHAP 1: ACQUIRE) ---
+        $salesRaiza = User::updateOrCreate(
+            ['email' => 'raiza@ipnetsolusindo.com'],
+            [
+                'name'        => 'Raiza',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000021',
+                'position'    => 'Account Executive & Sales',
+                'status'      => 'Active',
+                'division_id' => null,
+                'team_id'     => null,
+                'level'       => 'Senior',
+            ]
+        );
+        $salesRaiza->syncRoles(['Sales']);
+
+        $salesRibka = User::updateOrCreate(
+            ['email' => 'ribka@ipnetsolusindo.com'],
+            [
+                'name'        => 'Ribka',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000022',
+                'position'    => 'Senior Sales & BusDev',
+                'status'      => 'Active',
+                'division_id' => null,
+                'team_id'     => null,
+                'level'       => 'Senior',
+            ]
+        );
+        $salesRibka->syncRoles(['Sales']);
+
+        $salesWidodo = User::updateOrCreate(
+            ['email' => 'widodo@ipnetsolusindo.com'],
+            [
+                'name'        => 'Widodo',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000023',
+                'position'    => 'Sales Executive',
+                'status'      => 'Active',
+                'division_id' => null,
+                'team_id'     => null,
+                'level'       => 'Senior',
+            ]
+        );
+        $salesWidodo->syncRoles(['Sales']);
 
         // --- DIVISI NETWORK ---
         $tlNet = User::updateOrCreate(

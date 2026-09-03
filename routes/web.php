@@ -42,7 +42,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     // Modul 1: ACQUIRE (Sales Pipeline & Handover 1 to Design)
-    Route::prefix('acquire')->middleware('role:PMO|Project Manager|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance|Lead Engineer')->group(function () {
+    Route::prefix('acquire')->middleware('role:PMO|Project Manager|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance|Lead Engineer|Sales|BusDev')->group(function () {
         Route::get('/', [AcquireController::class, 'index'])->name('acquire.index');
         Route::post('/', [AcquireController::class, 'store'])->name('acquire.store');
         Route::put('/{project}', [AcquireController::class, 'update'])->name('acquire.update');

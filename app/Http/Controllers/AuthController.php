@@ -56,6 +56,11 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
+        // Sales & BusDev -> Peluang & Kontrak (Acquire)
+        if ($user->hasAnyRole(['Sales', 'BusDev'])) {
+            return route('acquire.index');
+        }
+
         // PMO & Project Manager -> Dashboard PMO
         if ($user->hasAnyRole(['PMO', 'Project Manager'])) {
             return route('pmo.dashboard');

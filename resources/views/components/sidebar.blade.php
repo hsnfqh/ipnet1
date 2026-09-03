@@ -3,10 +3,16 @@
     $currentRoute = request()->route() ? request()->route()->getName() : '';
     $isPmoUser = $user && $user->hasAnyRole(['PMO', 'Project Manager']);
     $isDirekturOrGl = $user && $user->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader']);
+    $isSales = $user && $user->hasAnyRole(['Sales', 'BusDev']);
 
     $navItems = [];
 
-    if ($isPmoUser) {
+    if ($isSales) {
+        $navItems = [
+            ['key' => 'acquire',  'label' => 'Peluang & Kontrak', 'route' => 'acquire.index'],
+            ['key' => 'projects', 'label' => 'Project',           'route' => 'projects.index'],
+        ];
+    } elseif ($isPmoUser) {
         $navItems = [
             ['key' => 'acquire',       'label' => 'Peluang & Kontrak', 'route' => 'acquire.index'],
             ['key' => 'pmo_dashboard', 'label' => 'Dashboard PMO',     'route' => 'pmo.dashboard'],
