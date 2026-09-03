@@ -334,7 +334,7 @@
                             <div class="jkw-month-row">
                                 <template x-for="(day, di) in week" :key="day.fullDate">
                                     <div class="jkw-month-cell" :class="{ 'is-out': !day.inMonth, 'is-today': day.fullDate === todayStr }">
-                                        <div class="jkw-month-daynum" x-text="day.dayNum"></div>
+                                        <div class="jkw-month-daynum" @click="goToDayView(day.fullDate)" style="cursor:pointer;" :title="'Lihat jadwal harian tanggal ' + day.dayNum" x-text="day.dayNum"></div>
                                         <div class="jkw-month-events">
                                             <template x-for="event in getAllEventsForDay(day.fullDate).slice(0, 3)" :key="event._uid">
                                                 <div class="jkw-month-event"
@@ -347,7 +347,17 @@
                                                     <span x-show="event._subLabel" style="opacity:0.88; font-weight:400; font-size:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="'(' + event._subLabel + ')'"></span>
                                                 </div>
                                             </template>
-                                            <div class="jkw-month-more" x-show="getAllEventsForDay(day.fullDate).length > 3" x-text="'+' + (getAllEventsForDay(day.fullDate).length - 3) + ' lagi'"></div>
+                                            <button type="button" 
+                                                    class="jkw-month-more" 
+                                                    x-show="getAllEventsForDay(day.fullDate).length > 3" 
+                                                    @click.stop="goToDayView(day.fullDate)"
+                                                    style="display:inline-flex; align-items:center; gap:2px; font-size:10px; font-weight:700; color:#2563EB; background:#EFF6FF; border:1px solid #DBEAFE; border-radius:4px; padding:2px 6px; cursor:pointer; width:100%; justify-content:center; margin-top:2px; transition:all 0.15s ease;"
+                                                    onmouseover="this.style.background='#DBEAFE'; this.style.color='#1D4ED8';"
+                                                    onmouseout="this.style.background='#EFF6FF'; this.style.color='#2563EB';"
+                                                    title="Klik untuk melihat semua jadwal pada tanggal ini di tampilan Harian">
+                                                <span x-text="'+' + (getAllEventsForDay(day.fullDate).length - 3) + ' lagi'"></span>
+                                                <svg style="width:10px; height:10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                            </button>
                                         </div>
                                     </div>
                                 </template>
@@ -1378,6 +1388,15 @@
                 goToday: function() {
                     this.currentDate = new Date();
                     this.dayPage = 1;
+                },
+                goToDayView: function(dateStr) {
+                    if (!dateStr) return;
+                    var parts = dateStr.split('-');
+                    if (parts.length === 3) {
+                        this.currentDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                        this.viewMode = 'day';
+                        this.dayPage = 1;
+                    }
                 },
 
                 get weekDays() {
