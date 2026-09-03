@@ -15,18 +15,11 @@
             <div class="mb-5">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E7E5E3] shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
                     <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11.5px] font-bold bg-[#EFF6FF] text-[#2563EB] border border-[#DBEAFE]">
-                                <span class="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-pulse"></span>
-                                Tahap 1: ACQUIRE
-                            </span>
-                            <span class="text-[12px] text-[#75727C] font-medium">&bull; Pipeline Penjualan & Kontrak PO</span>
-                        </div>
                         <h1 class="text-[20px] sm:text-[24px] font-bold text-[#17151C] tracking-tight">
                             Peluang & Kontrak Proyek
                         </h1>
                         <p class="text-[13px] sm:text-[13.5px] text-[#75727C] mt-0.5">
-                            Kelola prospek calon klien, nilai penawaran komersial, hingga serah terima <span class="font-semibold text-[#17151C]">Handover 1 &rarr; Tim Design</span>.
+                            Kelola prospek calon klien dan nilai penawaran komersial.
                         </p>
                     </div>
 
@@ -343,7 +336,7 @@
                         <div class="p-5 sm:p-6 bg-[#FAF9F8] border-b border-[#E7E5E3] flex items-start justify-between">
                             <div>
                                 <span class="text-[11px] font-bold uppercase tracking-wider text-[#2563EB] bg-[#EFF6FF] px-2.5 py-0.5 rounded-full border border-[#DBEAFE]">
-                                    Tahap 1: Acquire & Closing PO
+                                    Peluang & Kontrak Penjualan
                                 </span>
                                 <h3 class="text-[18px] font-bold text-[#17151C] mt-1.5" x-text="isEdit ? 'Edit Data Peluang' : 'Daftarkan Peluang / Kontrak Baru'"></h3>
                             </div>
