@@ -1423,7 +1423,7 @@
                                 _color: isDayOff ? '#64748B' : '#2563EB',
                                 _displayTitle: s.title,
                                 _timeLabel: timeLabel,
-                                _tooltip: (isDayOff ? '🌴 Day Off: ' : '📅 ') + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + ' • Klik untuk edit',
+                                _tooltip: (isDayOff ? 'Day Off: ' : 'Jadwal: ') + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + ' • Klik untuk edit',
                                 _subLabel: engLabel,
                                 category: s.category || 'Meeting',
                                 id: s.id,
