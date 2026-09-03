@@ -138,11 +138,12 @@
                             <button type="button" class="jkw-nav-btn" @click="changeDay(1)" title="Hari Berikutnya">
                                 <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
-                            <button type="button" class="jkw-today-btn" @click="goToday()">Hari ini</button>
+                            <button type="button" class="jkw-today-btn" x-show="currentDateStr !== todayStr" @click="goToday()" title="Kembali ke Hari Ini">Ke Hari Ini</button>
                         </div>
 
-                        <div class="jkw-nav-center">
+                        <div class="jkw-nav-center" style="display:flex; align-items:center; gap:8px;">
                             <span class="jkw-nav-title" x-text="dayLabel"></span>
+                            <span x-show="currentDateStr === todayStr" style="background:#FDF1F2; color:#AF1424; border:1px solid #F3C6CB; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px;">Hari ini</span>
                         </div>
 
                         {{-- Quick Date Jump Picker --}}
@@ -294,11 +295,12 @@
                             <button type="button" class="jkw-nav-btn" @click="changeWeek(1)" title="Minggu Berikutnya">
                                 <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
-                            <button type="button" class="jkw-today-btn" @click="goToday()">Hari ini</button>
+                            <button type="button" class="jkw-today-btn" x-show="!weekDays.some(function(d){ return d.fullDate === todayStr; })" @click="goToday()" title="Kembali ke Minggu Ini">Ke Minggu Ini</button>
                         </div>
 
-                        <div class="jkw-nav-center">
+                        <div class="jkw-nav-center" style="display:flex; align-items:center; gap:8px;">
                             <span class="jkw-nav-title" x-text="weekRange"></span>
+                            <span x-show="weekDays.some(function(d){ return d.fullDate === todayStr; })" style="background:#FDF1F2; color:#AF1424; border:1px solid #F3C6CB; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px;">Minggu ini</span>
                         </div>
 
                         {{-- Quick Date Jump Picker --}}
@@ -365,11 +367,12 @@
                             <button type="button" class="jkw-nav-btn" @click="changeMonth(1)" title="Bulan Berikutnya">
                                 <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
-                            <button type="button" class="jkw-today-btn" @click="goToday()">Hari ini</button>
+                            <button type="button" class="jkw-today-btn" x-show="currentDate.getMonth() !== (new Date()).getMonth() || currentDate.getFullYear() !== (new Date()).getFullYear()" @click="goToday()" title="Kembali ke Bulan Ini">Ke Bulan Ini</button>
                         </div>
 
-                        <div class="jkw-nav-center">
+                        <div class="jkw-nav-center" style="display:flex; align-items:center; gap:8px;">
                             <span class="jkw-nav-title" x-text="monthLabel"></span>
+                            <span x-show="currentDate.getMonth() === (new Date()).getMonth() && currentDate.getFullYear() === (new Date()).getFullYear()" style="background:#FDF1F2; color:#AF1424; border:1px solid #F3C6CB; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px;">Bulan ini</span>
                         </div>
 
                         {{-- Quick Date Jump Picker --}}
