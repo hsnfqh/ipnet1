@@ -26,7 +26,7 @@ class ScheduleRequest extends FormRequest
 
         return [
             'title'            => 'required|string|max:255',
-            'category'         => 'nullable|string|in:Meeting,Day Off,Lainnya',
+            'category'         => 'nullable|string|in:Meeting,Task,Kegiatan,Day Off,Lainnya',
             'project_id'       => 'nullable',
             'new_project_name' => 'required_if:project_id,other|nullable|string|max:255',
             'engineer_id'      => 'required_without:engineer_ids|nullable|exists:users,id',

@@ -117,17 +117,12 @@
                     <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
                     <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         <span style="width:10px; height:10px; border-radius:2px; background:#C81E2C; flex-shrink:0; display:inline-block;"></span>
-                        <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Deadline Task</span>
-                    </span>
-                    <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
-                    <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        <span style="width:10px; height:10px; border-radius:2px; background:#991B1B; flex-shrink:0; display:inline-block;"></span>
-                        <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Deadline Project</span>
+                        <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Jadwal Task / Kegiatan</span>
                     </span>
                     <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
                     <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
                         <span style="width:10px; height:10px; border-radius:2px; background:#64748B; flex-shrink:0; display:inline-block;"></span>
-                        <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Day Off / Libur</span>
+                        <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Day Off / Cuti</span>
                     </span>
                 </div>
             </template>
@@ -552,22 +547,32 @@
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">
                                             Kategori Jadwal
                                         </label>
-                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                                             <button type="button" 
                                                     class="jkw-cat-btn jkw-cat-btn--meeting"
                                                     :class="{ 'is-active': form.category === 'Meeting' }"
                                                     @click="setCategory('Meeting')">
-                                                <svg style="width:16px; height:16px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                                 </svg>
-                                                <span>Jadwal Meeting</span>
+                                                <span>Meeting</span>
+                                            </button>
+
+                                            <button type="button" 
+                                                    class="jkw-cat-btn jkw-cat-btn--task"
+                                                    :class="{ 'is-active': form.category === 'Task' || form.category === 'Kegiatan' }"
+                                                    @click="setCategory('Task')">
+                                                <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                                </svg>
+                                                <span>Task / Kegiatan</span>
                                             </button>
 
                                             <button type="button" 
                                                     class="jkw-cat-btn jkw-cat-btn--dayoff"
                                                     :class="{ 'is-active': form.category === 'Day Off' }"
                                                     @click="setCategory('Day Off')">
-                                                <svg style="width:16px; height:16px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <circle cx="12" cy="12" r="5"/>
                                                     <line x1="12" y1="1" x2="12" y2="3"/>
                                                     <line x1="12" y1="21" x2="12" y2="23"/>
@@ -578,7 +583,7 @@
                                                     <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
                                                     <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                                                 </svg>
-                                                <span>Day Off / Libur</span>
+                                                <span>Day Off / Cuti</span>
                                             </button>
                                         </div>
                                     </div>
@@ -1184,6 +1189,26 @@
     color: #FFFFFF !important;
 }
 
+.jkw-cat-btn--task {
+    background: #FFFFFF !important;
+    color: #C81E2C !important;
+    border: 1.5px solid #FCA5A5 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+}
+.jkw-cat-btn--task:hover {
+    background: #FEF2F2 !important;
+    border-color: #F87171 !important;
+}
+.jkw-cat-btn--task.is-active {
+    background: #C81E2C !important;
+    color: #FFFFFF !important;
+    border-color: #C81E2C !important;
+    box-shadow: 0 4px 14px rgba(200, 30, 44, 0.35) !important;
+}
+.jkw-cat-btn--task.is-active svg {
+    color: #FFFFFF !important;
+}
+
 .jkw-cat-btn--dayoff {
     background: #FFFFFF !important;
     color: #64748B !important;
@@ -1553,7 +1578,9 @@
                             var sTime = s.start_time ? s.start_time.substring(0, 5) : '';
                             var eTime = s.end_time ? s.end_time.substring(0, 5) : '';
                             var isDayOff = s.category === 'Day Off';
-                            var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : 'Jadwal');
+                            var isTaskCat = s.category === 'Task' || s.category === 'Kegiatan';
+                            var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : 'Jadwal'));
+                            var eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
                             
                             var engLabel = '';
                             if (s.engineers && s.engineers.length > 0) {
@@ -1566,11 +1593,11 @@
 
                             events.push({
                                 _uid: 'sch-' + s.id,
-                                _type: isDayOff ? 'day_off' : 'schedule',
-                                _color: isDayOff ? '#64748B' : '#2563EB',
+                                _type: isDayOff ? 'day_off' : (isTaskCat ? 'task' : 'schedule'),
+                                _color: eventColor,
                                 _displayTitle: s.title,
                                 _timeLabel: timeLabel,
-                                _tooltip: (isDayOff ? 'Day Off: ' : 'Jadwal: ') + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + ' • Klik untuk edit',
+                                _tooltip: (isDayOff ? 'Day Off: ' : (isTaskCat ? 'Task/Kegiatan: ' : 'Jadwal: ')) + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + ' • Klik untuk edit',
                                 _subLabel: engLabel,
                                 category: s.category || 'Meeting',
                                 id: s.id,
@@ -1732,7 +1759,7 @@
                 setCategory: function(cat) {
                     this.form.category = cat;
                     if (cat === 'Day Off') {
-                        if (!this.form.title || this.form.title === '' || this.form.title.toLowerCase().includes('meeting')) {
+                        if (!this.form.title || this.form.title === '' || this.form.title.toLowerCase().includes('meeting') || this.form.title.toLowerCase().includes('task')) {
                             this.form.title = 'Day Off / Cuti';
                         }
                         this.form.start_time = '';
@@ -1740,7 +1767,7 @@
                         if (this.form.sessions) {
                             this.form.sessions.forEach(function(s) { s.start_time = ''; s.end_time = ''; });
                         }
-                    } else if (cat === 'Meeting') {
+                    } else {
                         if (this.form.title === 'Day Off / Cuti' || this.form.title === 'Day Off') {
                             this.form.title = '';
                         }
