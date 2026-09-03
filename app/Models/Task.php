@@ -33,6 +33,26 @@ class Task extends Model
         'attachments' => 'integer',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(function (Task $task) {
+            if ($task->project_id && $project = Project::find($task->project_id)) {
+                $project->syncStatusWithTasks();
+            }
+            if ($task->wasChanged('project_id') && $oldProjectId = $task->getOriginal('project_id')) {
+                if ($oldProject = Project::find($oldProjectId)) {
+                    $oldProject->syncStatusWithTasks();
+                }
+            }
+        });
+
+        static::deleted(function (Task $task) {
+            if ($task->project_id && $project = Project::find($task->project_id)) {
+                $project->syncStatusWithTasks();
+            }
+        });
+    }
+
     // Relationships
     public function project()
     {

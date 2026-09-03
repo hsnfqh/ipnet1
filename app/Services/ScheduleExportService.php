@@ -126,8 +126,11 @@ class ScheduleExportService
             $tglStr = $dateObj ? $dateObj->format('d/m/Y') : '-';
             $hariStr = $dateObj ? ($this->daysIndo[$dateObj->format('l')] ?? $dateObj->format('l')) : '-';
 
-            $startTimeStr = $sch->start_time ? substr($sch->start_time, 0, 5) : '-';
+            $startTimeStr = $sch->category === 'Day Off' ? ($sch->start_time ? substr($sch->start_time, 0, 5) : 'Seharian') : ($sch->start_time ? substr($sch->start_time, 0, 5) : '-');
             $endTimeStr = $sch->end_time ? substr($sch->end_time, 0, 5) : '-';
+
+            $projName = $sch->category === 'Day Off' ? 'Day Off / Libur' : ($sch->project->name ?? '-');
+            $engName = ($sch->relationLoaded('engineers') && $sch->engineers->isNotEmpty()) ? $sch->engineers->pluck('name')->join(', ') : ($sch->engineer->name ?? '-');
 
             $sheet->setCellValue('A' . $currentRow, $no);
             $sheet->setCellValue('B' . $currentRow, $tglStr);
@@ -135,8 +138,8 @@ class ScheduleExportService
             $sheet->setCellValue('D' . $currentRow, $startTimeStr);
             $sheet->setCellValue('E' . $currentRow, $endTimeStr);
             $sheet->setCellValue('F' . $currentRow, $sch->title ?: '-');
-            $sheet->setCellValue('G' . $currentRow, $sch->project->name ?? '-');
-            $sheet->setCellValue('H' . $currentRow, $sch->engineer->name ?? '-');
+            $sheet->setCellValue('G' . $currentRow, $projName);
+            $sheet->setCellValue('H' . $currentRow, $engName);
             $sheet->setCellValue('I' . $currentRow, $sch->location ?: '-');
             $sheet->setCellValue('J' . $currentRow, $sch->description ?: '-');
 

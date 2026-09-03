@@ -128,4 +128,27 @@ class Project extends Model
     {
         return $this->status !== 'Completed' && $this->deadline < now();
     }
+
+    /**
+     * Sinkronisasi status project secara otomatis berdasarkan status & progress tasks terkait
+     */
+    public function syncStatusWithTasks(): void
+    {
+        $tasks = $this->tasks()->get();
+        if ($tasks->isEmpty()) {
+            return;
+        }
+
+        if ($tasks->every(fn($t) => $t->status === 'Completed')) {
+            $newStatus = 'Completed';
+        } elseif ($tasks->some(fn($t) => in_array($t->status, ['In Progress', 'Waiting Review']) || $t->progress > 0)) {
+            $newStatus = 'On Progress';
+        } else {
+            $newStatus = $this->status === 'Completed' ? 'Planning' : $this->status;
+        }
+
+        if ($this->status !== $newStatus) {
+            $this->updateQuietly(['status' => $newStatus]);
+        }
+    }
 }

@@ -57,15 +57,14 @@ class DashboardController extends Controller
         }
         $schedules = $schedulesQuery->get();
 
-        // Ambil project yang sedang On Progress dan prioritaskan yang memiliki task & progress aktif
-        $onProgressProjects = $projects->where('status', 'On Progress');
-        $activeWithTasks = $onProgressProjects->filter(fn($p) => $p->tasks->count() > 0)
-            ->sortByDesc(fn($p) => $p->progress);
-
-        $selectedProjects = $activeWithTasks->take(5);
+        // Ambil 5 project terbaru yang sedang aktif (diurutkan berdasarkan yang paling baru dibuat)
+        $selectedProjects = $projects->where('status', 'On Progress')
+            ->sortByDesc('created_at')
+            ->take(5);
 
         if ($selectedProjects->count() < 5) {
-            $otherProjects = $onProgressProjects->whereNotIn('id', $selectedProjects->pluck('id'))
+            $otherProjects = $projects->where('status', '!=', 'Completed')
+                ->whereNotIn('id', $selectedProjects->pluck('id'))
                 ->sortByDesc('created_at')
                 ->take(5 - $selectedProjects->count());
             $selectedProjects = $selectedProjects->concat($otherProjects);
@@ -73,6 +72,7 @@ class DashboardController extends Controller
 
         $projectProgressData = $selectedProjects->map(function($project) {
             return [
+                'id'       => $project->id,
                 'name'     => substr($project->name, 0, 20),
                 'fullName' => $project->name,
                 'progress' => $project->progress,

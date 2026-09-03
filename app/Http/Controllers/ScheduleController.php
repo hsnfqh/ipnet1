@@ -60,6 +60,7 @@ class ScheduleController extends Controller
                 return [
                     'id'          => $schedule->id,
                     'title'       => $schedule->title,
+                    'category'    => $schedule->category ?? 'Meeting',
                     'project_id'  => $schedule->project_id,
                     'engineer_id' => $schedule->engineer_id,
                     'engineer_ids'=> $engineerIds,
@@ -96,17 +97,40 @@ class ScheduleController extends Controller
         $projects  = $projectsQuery->orderBy('name')->get();
         $engineers = ScopeHelper::getAssignableEngineers($user);
 
+        $hasTaskUser = Schema::hasTable('task_user');
+        $withTaskRelations = ['project', 'engineer'];
+        if ($hasTaskUser) {
+            $withTaskRelations[] = 'engineers';
+        }
+
         // Tasks dengan deadline untuk ditampilkan di kalender
-        $tasks = Task::with(['project', 'engineer'])
-            ->when($scopeIds !== null, function($query) use ($scopeIds) {
-                return count($scopeIds) === 1
-                    ? $query->where('engineer_id', $scopeIds[0])
-                    : $query->whereIn('engineer_id', $scopeIds);
+        $tasks = Task::with($withTaskRelations)
+            ->when($scopeIds !== null, function($query) use ($scopeIds, $hasTaskUser) {
+                return $query->where(function($q) use ($scopeIds, $hasTaskUser) {
+                    if (count($scopeIds) === 1) {
+                        $q->where('engineer_id', $scopeIds[0]);
+                        if ($hasTaskUser) {
+                            $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+                        }
+                    } else {
+                        $q->whereIn('engineer_id', $scopeIds);
+                        if ($hasTaskUser) {
+                            $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                        }
+                    }
+                });
             })
             ->whereNotNull('deadline')
             ->whereNot('status', 'Completed')
             ->get()
-            ->map(function($task) {
+            ->map(function($task) use ($hasTaskUser) {
+                $engineerIds = $hasTaskUser && $task->relationLoaded('engineers') && $task->engineers->isNotEmpty()
+                    ? $task->engineers->pluck('id')->toArray()
+                    : ($task->engineer_id ? [$task->engineer_id] : []);
+                $engineersList = $hasTaskUser && $task->relationLoaded('engineers') && $task->engineers->isNotEmpty()
+                    ? $task->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
+                    : ($task->engineer ? [['id' => $task->engineer->id, 'name' => $task->engineer->name]] : []);
+
                 return [
                     'id'            => $task->id,
                     'title'         => $task->title,
@@ -115,6 +139,8 @@ class ScheduleController extends Controller
                     'priority'      => $task->priority,
                     'status'        => $task->status,
                     'engineer_id'   => $task->engineer_id,
+                    'engineer_ids'  => $engineerIds,
+                    'engineers'     => $engineersList,
                     'project_id'    => $task->project_id,
                     'project'       => $task->project ? ['id' => $task->project->id, 'name' => $task->project->name] : null,
                     'engineer'      => $task->engineer ? ['id' => $task->engineer->id, 'name' => $task->engineer->name] : null,
@@ -123,9 +149,21 @@ class ScheduleController extends Controller
 
         // Projects dengan deadline untuk ditampilkan di kalender
         $calendarProjects = Project::with('creator')
-            ->when($scopeIds !== null, function($query) use ($scopeIds) {
+            ->when($scopeIds !== null, function($query) use ($scopeIds, $hasTaskUser) {
                 // Non-global hanya lihat project yang ada task untuk timnya
-                $projectIds = Task::whereIn('engineer_id', $scopeIds)->pluck('project_id')->unique();
+                $projectIdsQuery = Task::query();
+                if (count($scopeIds) === 1) {
+                    $projectIdsQuery->where('engineer_id', $scopeIds[0]);
+                    if ($hasTaskUser) {
+                        $projectIdsQuery->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+                    }
+                } else {
+                    $projectIdsQuery->whereIn('engineer_id', $scopeIds);
+                    if ($hasTaskUser) {
+                        $projectIdsQuery->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                    }
+                }
+                $projectIds = $projectIdsQuery->pluck('project_id')->unique();
                 return $query->whereIn('id', $projectIds);
             })
             ->whereNotNull('deadline')
@@ -155,8 +193,11 @@ class ScheduleController extends Controller
             $data['created_by'] = auth()->id();
             $hasScheduleUser = Schema::hasTable('schedule_user');
 
-            // Kelola project 'other' / project baru jika diketik sendiri
-            if ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
+            // Kelola category & project 'other' / Day Off
+            $data['category'] = $request->input('category', 'Meeting');
+            if ($data['category'] === 'Day Off') {
+                $data['project_id'] = null;
+            } elseif ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
                 $projectName = trim($request->input('new_project_name'));
                 if (!empty($projectName)) {
                     $project = Project::firstOrCreate(
@@ -209,11 +250,12 @@ class ScheduleController extends Controller
             // Kirim notifikasi ke seluruh engineer yang dijadwalkan
             $creator = auth()->user();
             $creatorName = $creator ? $creator->name : 'Team Leader';
+            $notifTitle = $schedule->category === 'Day Off' ? 'Jadwal Day Off / Cuti: ' . $schedule->title : 'Agenda Jadwal Baru: ' . $schedule->title;
             foreach ($engineerIdsList as $engId) {
                 \App\Models\Notification::create([
                     'user_id' => (int) $engId,
-                    'title'   => 'Agenda Jadwal Baru: ' . $schedule->title,
-                    'message' => 'Anda dijadwalkan oleh ' . $creatorName . ' pada agenda: "' . $schedule->title . '" (' . ($schedule->date ? $schedule->date->format('d/m/Y') : '-') . ($schedule->start_time ? ' pukul ' . substr($schedule->start_time, 0, 5) . ' WIB' : '') . ').',
+                    'title'   => $notifTitle,
+                    'message' => 'Anda dijadwalkan oleh ' . $creatorName . ' pada: "' . $schedule->title . '" (' . ($schedule->date ? $schedule->date->format('d/m/Y') : '-') . ($schedule->start_time ? ' pukul ' . substr($schedule->start_time, 0, 5) . ' WIB' : '') . ').',
                     'url'     => route('schedules.index'),
                     'is_read' => false,
                 ]);
@@ -222,6 +264,7 @@ class ScheduleController extends Controller
             $response = [
                 'id' => $schedule->id,
                 'title' => $schedule->title,
+                'category' => $schedule->category ?? 'Meeting',
                 'project_id' => $schedule->project_id,
                 'engineer_id' => $schedule->engineer_id,
                 'engineer_ids' => $engineerIdsList,
@@ -246,7 +289,7 @@ class ScheduleController extends Controller
             }
 
             return redirect()->route('schedules.index')
-                ->with('success', 'Jadwal kunjungan tim berhasil ditambahkan!');
+                ->with('success', 'Jadwal tim berhasil ditambahkan!');
                 
         } catch (\Exception $e) {
             if ($request->wantsJson() || $request->ajax()) {
@@ -268,8 +311,11 @@ class ScheduleController extends Controller
             $data = $request->validated();
             $hasScheduleUser = Schema::hasTable('schedule_user');
 
-            // Kelola project 'other' / project baru jika diedit
-            if ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
+            // Kelola category & project 'other' / Day Off jika diedit
+            $data['category'] = $request->input('category', $schedule->category ?? 'Meeting');
+            if ($data['category'] === 'Day Off') {
+                $data['project_id'] = null;
+            } elseif ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
                 $projectName = trim($request->input('new_project_name'));
                 if (!empty($projectName)) {
                     $project = Project::firstOrCreate(
@@ -322,10 +368,11 @@ class ScheduleController extends Controller
             // Kirim notifikasi ke seluruh engineer jika agenda diperbarui
             $creator = auth()->user();
             $creatorName = $creator ? $creator->name : 'Team Leader';
+            $notifTitle = $schedule->category === 'Day Off' ? 'Pembaruan Jadwal Day Off: ' . $schedule->title : 'Pembaruan Agenda: ' . $schedule->title;
             foreach ($engineerIdsList as $engId) {
                 \App\Models\Notification::create([
                     'user_id' => (int) $engId,
-                    'title'   => 'Pembaruan Agenda: ' . $schedule->title,
+                    'title'   => $notifTitle,
                     'message' => 'Agenda "' . $schedule->title . '" telah diperbarui oleh ' . $creatorName . ' (' . ($schedule->date ? $schedule->date->format('d/m/Y') : '-') . ($schedule->start_time ? ' pukul ' . substr($schedule->start_time, 0, 5) . ' WIB' : '') . ').',
                     'url'     => route('schedules.index'),
                     'is_read' => false,
@@ -335,6 +382,7 @@ class ScheduleController extends Controller
             $response = [
                 'id' => $schedule->id,
                 'title' => $schedule->title,
+                'category' => $schedule->category ?? 'Meeting',
                 'project_id' => $schedule->project_id,
                 'engineer_id' => $schedule->engineer_id,
                 'engineer_ids' => $engineerIdsList,

@@ -93,7 +93,10 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 sm:mb-5">
                 <!-- Project Progress Chart -->
                 <div class="lg:col-span-2 wms-card p-4 sm:p-5">
-                    <h3 class="font-display text-[15px] font-semibold text-wms-ink-900 mb-4">Progress Project Berjalan</h3>
+                    <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+                        <h3 class="font-display text-[15px] font-semibold text-wms-ink-900">Progress Project Berjalan (5 Terbaru)</h3>
+                        <a href="{{ route('projects.index') }}" class="text-wms-red-600 text-[12.5px] font-semibold hover:underline">Lihat semua</a>
+                    </div>
                     <div class="w-full overflow-x-auto">
                         <div style="height: 220px; min-width: 280px;">
                             <canvas id="projectProgressChart"></canvas>
@@ -292,6 +295,12 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                onClick: function(event, elements) {
+                    window.location.href = "{{ route('projects.index') }}";
+                },
+                onHover: function(event, chartElement) {
+                    event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                },
                 plugins: {
                     legend: {
                         display: false,

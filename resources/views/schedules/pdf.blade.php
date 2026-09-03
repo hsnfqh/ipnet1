@@ -240,7 +240,13 @@
                     $dayName    = $parsedDate ? ($daysIndo[$parsedDate->format('l')] ?? $parsedDate->format('l')) : '-';
                     $dateStr    = $parsedDate ? $parsedDate->format('d/m/Y') : '-';
 
-                    $timeStr = $sched->start_time ? substr($sched->start_time, 0, 5) . ' WIB' : '-';
+                    $timeStr = $sched->category === 'Day Off' 
+                        ? ($sched->start_time ? substr($sched->start_time, 0, 5) . ' WIB' : 'Seharian')
+                        : ($sched->start_time ? substr($sched->start_time, 0, 5) . ' WIB' : '-');
+
+                    $engNames = ($sched->relationLoaded('engineers') && $sched->engineers->isNotEmpty())
+                        ? $sched->engineers->pluck('name')->join(', ')
+                        : ($sched->engineer?->name ?? 'Belum Ditentukan');
                 @endphp
                 <tr class="{{ $index % 2 === 1 ? 'row-even' : '' }}">
                     <td class="text-center">{{ $index + 1 }}</td>
@@ -251,18 +257,21 @@
                     </td>
                     <td>
                         <strong style="color: #0F172A;">{{ $sched->title }}</strong>
+                        @if($sched->category === 'Day Off')
+                            <span style="font-size: 8px; color: #64748B; background: #F1F5F9; padding: 1px 4px; border-radius: 3px; font-weight: bold; margin-left: 3px;">Day Off</span>
+                        @endif
                         @if(!empty($sched->description))
                             <div style="font-size: 8px; color: #64748B; margin-top: 2px;">{{ $sched->description }}</div>
                         @endif
                     </td>
                     <td>
-                        <span class="project-tag">{{ $sched->project?->name ?? 'Non-Project / Umum' }}</span>
-                        @if($sched->project?->client)
+                        <span class="project-tag">{{ $sched->category === 'Day Off' ? 'Day Off / Libur' : ($sched->project?->name ?? 'Non-Project / Umum') }}</span>
+                        @if($sched->category !== 'Day Off' && $sched->project?->client)
                             <div style="font-size: 8px; color: #64748B;">Client: {{ $sched->project->client }}</div>
                         @endif
                     </td>
                     <td>
-                        <span class="engineer-badge">{{ $sched->engineer?->name ?? 'Belum Ditentukan' }}</span>
+                        <span class="engineer-badge">{{ $engNames }}</span>
                     </td>
                     <td>{{ $sched->location ?: '-' }}</td>
                 </tr>

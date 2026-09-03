@@ -13,6 +13,7 @@ class Schedule extends Model
 
     protected $fillable = [
         'title',
+        'category',
         'project_id',
         'engineer_id',
         'date',
