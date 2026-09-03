@@ -154,6 +154,18 @@
                                             </svg>
                                             Edit
                                         </button>
+                                        <template x-if="task.status !== 'Completed' || task.progress < 100">
+                                            <button type="button" 
+                                                    @click="quickCompleteTask(task)"
+                                                    style="width:32px; flex-shrink:0; padding:6px 0; border-radius:6px; border:1px solid #BBF7D0; background:#F0FDF4; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s ease; color:#16A34A;"
+                                                    onmouseover="this.style.background='#DCFCE7'; this.style.borderColor='#86EFAC';"
+                                                    onmouseout="this.style.background='#F0FDF4'; this.style.borderColor='#BBF7D0';"
+                                                    title="Tandai Selesai Langsung (100% Completed)">
+                                                <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                            </button>
+                                        </template>
                                         <button @click="confirmDelete(task)"
                                                 style="width:32px; flex-shrink:0; padding:6px 0; border-radius:6px; border:1px solid #E7E5E3; background:white; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s ease; color:#C81E2C;"
                                                 onmouseover="this.style.background='#FDF1F2'" onmouseout="this.style.background='white'">
@@ -163,16 +175,29 @@
                                         </button>
                                     </div>
                                     @else
-                                    <div style="margin-top:10px;">
+                                    <div style="display:flex; gap:6px; margin-top:10px;">
                                         <button @click="openDetailModal(task)"
-                                                style="width:100%; padding:7px 0; border-radius:6px; border:1px solid #E7E5E3; background:#F8F7F6; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; transition:all 0.15s ease; font-size:12px; font-weight:600; color:#3D3A44;"
+                                                style="flex:1; padding:7px 0; border-radius:6px; border:1px solid #E7E5E3; background:#F8F7F6; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; transition:all 0.15s ease; font-size:12px; font-weight:600; color:#3D3A44;"
                                                 onmouseover="this.style.background='#EFEDEB'" onmouseout="this.style.background='#F8F7F6'">
                                             <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                             </svg>
-                                            Lihat Detail Task
+                                            Detail Task
                                         </button>
+                                        <template x-if="task.status !== 'Completed' || task.progress < 100">
+                                            <button type="button" 
+                                                    @click="quickCompleteTask(task)"
+                                                    style="padding:7px 12px; border-radius:6px; border:1px solid #BBF7D0; background:#F0FDF4; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.15s ease; color:#16A34A; font-size:12px; font-weight:700;"
+                                                    onmouseover="this.style.background='#DCFCE7'; this.style.borderColor='#86EFAC';"
+                                                    onmouseout="this.style.background='#F0FDF4'; this.style.borderColor='#BBF7D0';"
+                                                    title="Tandai Selesai (100% Completed)">
+                                                <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                                Selesai
+                                            </button>
+                                        </template>
                                     </div>
                                     @endif
                                 </div>
@@ -563,6 +588,23 @@
                                         Belum ada dokumentasi foto/file yang diupload untuk task ini.
                                     </div>
                                 </template>
+                            </div>
+
+                            <!-- Detail Modal Footer Actions -->
+                            <div style="margin-top:20px; padding-top:16px; border-top:1px solid #E7E5E3; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                                <template x-if="selectedTask?.status !== 'Completed' || selectedTask?.progress < 100">
+                                    <button type="button" 
+                                            @click="quickCompleteTask(selectedTask); detailModalOpen = false;"
+                                            style="padding:9px 18px; border-radius:8px; border:none; background:#16A34A; color:white; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(22,163,74,0.25); transition:all 0.15s ease;"
+                                            onmouseover="this.style.background='#15803D'"
+                                            onmouseout="this.style.background='#16A34A'">
+                                        <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        Tandai Selesai (100% Completed)
+                                    </button>
+                                </template>
+                                <button type="button" @click="detailModalOpen = false" style="padding:9px 18px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13px; font-weight:600; color:#3D3A44; cursor:pointer; margin-left:auto;">
+                                    Tutup
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1019,6 +1061,46 @@
                     } catch (error) {
                         console.error('Error starting task:', error);
                         this.showToast('Terjadi kesalahan saat memulai task.');
+                    }
+                },
+
+                quickCompleteTask: async function(task) {
+                    if (!task || !task.id) return;
+                    try {
+                        var response = await fetch('/tasks/' + task.id, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({ 
+                                status: 'Completed', 
+                                progress: 100 
+                            })
+                        });
+
+                        if (response.ok) {
+                            var data = await response.json();
+                            var idx = this.tasks.findIndex(function(t) { return t.id === task.id; });
+                            if (idx !== -1 && data) {
+                                this.tasks[idx] = data;
+                            } else {
+                                task.status = 'Completed';
+                                task.progress = 100;
+                            }
+                            if (this.selectedTask && this.selectedTask.id === task.id) {
+                                this.selectedTask.status = 'Completed';
+                                this.selectedTask.progress = 100;
+                            }
+                            this.showToast('Task "' + task.title + '" berhasil diselesaikan (100% Completed)!');
+                        } else {
+                            var err = await response.json();
+                            this.showToast('Error: ' + (err.message || 'Gagal menyelesaikan task.'));
+                        }
+                    } catch (error) {
+                        console.error('Error completing task:', error);
+                        this.showToast('Terjadi kesalahan saat menyelesaikan task.');
                     }
                 },
 
