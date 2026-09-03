@@ -146,11 +146,13 @@
                         </div>
 
                         {{-- Quick Date Jump Picker --}}
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer; background:#FFFFFF; border:1px solid #E7E5E3; border-radius:8px; padding:6px 12px; gap:6px; font-size:12px; font-weight:600; color:#3D3A44; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
-                                   onmouseover="this.style.background='#F8F7F6'; this.style.borderColor='#CBD5E1';"
-                                   onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#E7E5E3';"
-                                   title="Lompat Langsung ke Tanggal Pilihan (Cepat)">
+                        <div style="position:relative; display:inline-flex; align-items:center;">
+                            <button type="button" 
+                                    @click="$refs.dayPicker.showPicker ? $refs.dayPicker.showPicker() : $refs.dayPicker.click()"
+                                    style="display:inline-flex; align-items:center; gap:6px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; color:#3D3A44; cursor:pointer; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
+                                    onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8';"
+                                    onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#CBD5E1';"
+                                    title="Lompat Langsung ke Tanggal Pilihan (Cepat)">
                                 <svg style="width:14px; height:14px; color:#AF1424;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                                     <line x1="16" y1="2" x2="16" y2="6"/>
@@ -158,10 +160,12 @@
                                     <line x1="3" y1="10" x2="21" y2="10"/>
                                 </svg>
                                 <span>Pilih Tanggal</span>
-                                <input type="date" 
-                                       @change="jumpToDate($event.target.value)" 
-                                       style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
-                            </label>
+                            </button>
+                            <input type="date" 
+                                   x-ref="dayPicker"
+                                   @change="jumpToDate($event.target.value)" 
+                                   onclick="try{this.showPicker()}catch(e){}"
+                                   style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:5;">
                         </div>
                     </div>
 
@@ -298,11 +302,13 @@
                         </div>
 
                         {{-- Quick Date Jump Picker --}}
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer; background:#FFFFFF; border:1px solid #E7E5E3; border-radius:8px; padding:6px 12px; gap:6px; font-size:12px; font-weight:600; color:#3D3A44; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
-                                   onmouseover="this.style.background='#F8F7F6'; this.style.borderColor='#CBD5E1';"
-                                   onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#E7E5E3';"
-                                   title="Lompat Langsung ke Tanggal / Minggu Pilihan (Cepat)">
+                        <div style="position:relative; display:inline-flex; align-items:center;">
+                            <button type="button" 
+                                    @click="$refs.weekPicker.showPicker ? $refs.weekPicker.showPicker() : $refs.weekPicker.click()"
+                                    style="display:inline-flex; align-items:center; gap:6px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; color:#3D3A44; cursor:pointer; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
+                                    onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8';"
+                                    onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#CBD5E1';"
+                                    title="Lompat Langsung ke Tanggal / Minggu Pilihan (Cepat)">
                                 <svg style="width:14px; height:14px; color:#AF1424;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                                     <line x1="16" y1="2" x2="16" y2="6"/>
@@ -310,10 +316,12 @@
                                     <line x1="3" y1="10" x2="21" y2="10"/>
                                 </svg>
                                 <span>Pilih Tanggal</span>
-                                <input type="date" 
-                                       @change="jumpToDate($event.target.value)" 
-                                       style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
-                            </label>
+                            </button>
+                            <input type="date" 
+                                   x-ref="weekPicker"
+                                   @change="jumpToDate($event.target.value)" 
+                                   onclick="try{this.showPicker()}catch(e){}"
+                                   style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:5;">
                         </div>
                     </div>
 
@@ -365,11 +373,13 @@
                         </div>
 
                         {{-- Quick Date Jump Picker --}}
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer; background:#FFFFFF; border:1px solid #E7E5E3; border-radius:8px; padding:6px 12px; gap:6px; font-size:12px; font-weight:600; color:#3D3A44; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
-                                   onmouseover="this.style.background='#F8F7F6'; this.style.borderColor='#CBD5E1';"
-                                   onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#E7E5E3';"
-                                   title="Lompat Langsung ke Bulan / Tanggal Pilihan (Cepat)">
+                        <div style="position:relative; display:inline-flex; align-items:center;">
+                            <button type="button" 
+                                    @click="$refs.monthPicker.showPicker ? $refs.monthPicker.showPicker() : $refs.monthPicker.click()"
+                                    style="display:inline-flex; align-items:center; gap:6px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; color:#3D3A44; cursor:pointer; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
+                                    onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8';"
+                                    onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#CBD5E1';"
+                                    title="Lompat Langsung ke Bulan / Tanggal Pilihan (Cepat)">
                                 <svg style="width:14px; height:14px; color:#AF1424;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                                     <line x1="16" y1="2" x2="16" y2="6"/>
@@ -377,10 +387,12 @@
                                     <line x1="3" y1="10" x2="21" y2="10"/>
                                 </svg>
                                 <span>Pilih Tanggal / Bulan</span>
-                                <input type="date" 
-                                       @change="jumpToDate($event.target.value)" 
-                                       style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
-                            </label>
+                            </button>
+                            <input type="date" 
+                                   x-ref="monthPicker"
+                                   @change="jumpToDate($event.target.value)" 
+                                   onclick="try{this.showPicker()}catch(e){}"
+                                   style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:5;">
                         </div>
                     </div>
 
