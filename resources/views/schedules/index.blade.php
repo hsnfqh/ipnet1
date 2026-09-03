@@ -777,6 +777,49 @@
                 </div>
             </template>
 
+            {{-- MODAL KONFIRMASI HAPUS JADWAL (CENTER POPUP) --}}
+            <template x-teleport="body">
+                <div x-show="deleteConfirmOpen" 
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:999999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
+                     @click.self="deleteConfirmOpen = false">
+                    <div style="background:white; border-radius:16px; width:440px; max-width:100%; box-shadow:0 20px 50px rgba(14,13,18,0.24); padding:24px; text-align:center; animation:jkwFadeUp 0.18s ease; margin:auto;">
+                        <div style="width:52px; height:52px; border-radius:14px; background:#FEE2E2; color:#DC2626; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                            <svg style="width:26px; height:26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
+                        <h3 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:#0F172A;">Hapus Jadwal?</h3>
+                        <p style="margin:8px 0 0; font-size:13px; color:#64748B; line-height:1.5;">
+                            Apakah Anda yakin ingin menghapus jadwal <strong style="color:#0F172A;" x-text="scheduleToDelete?.title || scheduleToDelete?._displayTitle || 'ini'"></strong>? Tindakan ini tidak dapat dibatalkan.
+                        </p>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
+                            <button type="button" 
+                                    @click="deleteConfirmOpen = false" 
+                                    style="width:100%; padding:10px 16px; background:#FFFFFF; border:1.5px solid #E2E8F0; border-radius:9px; font-size:13px; font-weight:600; color:#475569; cursor:pointer; transition:all 0.15s ease;"
+                                    onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1';"
+                                    onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#E2E8F0';">
+                                Batal
+                            </button>
+                            <button type="button" 
+                                    @click="confirmDeleteSchedule()" 
+                                    style="width:100%; padding:10px 16px; background:#DC2626; border:none; border-radius:9px; font-size:13px; font-weight:700; color:white; cursor:pointer; box-shadow:0 4px 14px rgba(220,38,38,0.25); transition:all 0.15s ease;"
+                                    onmouseover="this.style.background='#B91C1C';"
+                                    onmouseout="this.style.background='#DC2626';">
+                                Ya, Hapus
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
         </div>
     </div>
 </div>
@@ -1240,6 +1283,8 @@
                 editing: false,
                 confirmOpen: false,
                 confirmData: null,
+                deleteConfirmOpen: false,
+                scheduleToDelete: null,
                 form: {
                     id: null,
                     title: '',
@@ -1866,14 +1911,17 @@
                     }
                 },
 
-                deleteSchedule: async function(schedule) {
+                deleteSchedule: function(schedule) {
                     if (!schedule || !schedule.id) return;
-                    var title = schedule.title || schedule._displayTitle || 'jadwal ini';
-                    if (!confirm('Apakah Anda yakin ingin menghapus ' + title + '?')) {
-                        return;
-                    }
+                    this.scheduleToDelete = schedule;
+                    this.deleteConfirmOpen = true;
+                },
+
+                confirmDeleteSchedule: async function() {
+                    if (!this.scheduleToDelete || !this.scheduleToDelete.id) return;
+                    var targetId = this.scheduleToDelete.id;
                     try {
-                        var response = await fetch('/schedules/' + schedule.id, {
+                        var response = await fetch('/schedules/' + targetId, {
                             method: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -1882,11 +1930,12 @@
                         });
 
                         if (response.ok) {
-                            var targetId = schedule.id;
                             this.schedules = this.schedules.filter(function(s) {
                                 return s.id !== targetId;
                             });
+                            this.deleteConfirmOpen = false;
                             this.modalOpen = false;
+                            this.scheduleToDelete = null;
                             this.showToast('Jadwal berhasil dihapus!');
                         } else {
                             this.showToast('Gagal menghapus jadwal.');
