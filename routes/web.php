@@ -66,8 +66,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('dashboard.engineer')
         ->middleware('role:Engineer L1|Engineer L2|Engineer|Maintenance');
 
-    // Projects - Managerial & PMO Roles
-    Route::prefix('projects')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance|PMO|Project Manager')->group(function () {
+    // Projects - Managerial, PMO & Sales Roles
+    Route::prefix('projects')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance|PMO|Project Manager|Sales|BusDev')->group(function () {
         Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
         Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
         Route::put('/{project}', [ProjectController::class, 'update'])->name('projects.update');

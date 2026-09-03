@@ -14,13 +14,16 @@ class ProjectController extends Controller
         $user         = auth()->user();
         $isLead       = \App\Helpers\ScopeHelper::isManagerial($user);
         $isDirektur   = $user->hasAnyRole(['Direktur', 'HD / Direktur']);
-        $isSupervisor = \App\Helpers\ScopeHelper::isGlobal($user);
-        $canManage    = \App\Helpers\ScopeHelper::canManageTasks($user);
-        $canCreate    = \App\Helpers\ScopeHelper::canCreateProjects($user);
+        $isSupervisor = \App\Helpers\ScopeHelper::isGroupLeader($user);
+        $isSales      = $user->hasAnyRole(['Sales', 'BusDev']);
+        $isPmo        = $user->hasAnyRole(['PMO', 'Project Manager']);
+
+        $canManage    = \App\Helpers\ScopeHelper::isManagerial($user) || $isSales;
+        $canCreate    = \App\Helpers\ScopeHelper::canCreateProjects($user) || $isSales;
         $scopeIds     = \App\Helpers\ScopeHelper::getScopeUserIds($user);
 
-        if ($isDirektur || $isSupervisor) {
-            // Direktur & Group Leader: Global memantau semua proyek lintas divisi
+        if ($isDirektur || $isSupervisor || $isSales || $isPmo) {
+            // Direktur, Group Leader, Sales, PMO: Memantau seluruh portofolio proyek
             $projects = Project::with(['tasks.engineer:id,name', 'creator:id,name'])->get();
         } elseif ($user->hasRole('Team Leader') && $user->division_id) {
             // Team Leader: Hanya proyek yang berada di divisinya sendiri
