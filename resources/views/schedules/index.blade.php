@@ -286,12 +286,12 @@
                                         <template x-for="event in getAllEventsForDay(day.fullDate)" :key="event._uid">
                                             <div class="jkw-mini-card" 
                                                  :class="'jkw-mini-card--' + event._type"
-                                                 :style="'border-left: 3.5px solid ' + (event._type === 'day_off' ? '#475569' : event._color) + ';' + (event._type === 'schedule' || event._type === 'day_off' ? ' cursor:pointer;' : ' cursor:default; pointer-events:none;')"
+                                                 :style="'border-left: 3px solid ' + event._color + ';' + (event._type === 'schedule' || event._type === 'day_off' ? ' cursor:pointer;' : ' cursor:default; pointer-events:none;')"
                                                  :title="event._tooltip"
                                                  @click="if (event._type === 'schedule' || event._type === 'day_off') { openModal(event); }">
-                                                <div class="jkw-mini-time" x-text="event._timeLabel" style="font-size:10px; font-weight:800;" :style="{ color: event._type === 'day_off' ? '#1E293B' : event._color }"></div>
-                                                <div class="jkw-mini-title" x-text="event._displayTitle" style="font-size:11.5px; line-height:1.3; margin-top:1px; word-break:break-word;" :style="{ color: event._type === 'day_off' ? '#0F172A; font-weight:700;' : 'var(--jkw-ink); font-weight:600;' }"></div>
-                                                <div class="jkw-mini-eng" x-text="event._subLabel" style="font-size:10px; margin-top:1px;" :style="{ color: event._type === 'day_off' ? '#334155; font-weight:600;' : 'var(--jkw-muted);' }"></div>
+                                                <div class="jkw-mini-time" x-text="event._timeLabel" style="font-size:10px; font-weight:700;" :style="{ color: event._color }"></div>
+                                                <div class="jkw-mini-title" x-text="event._displayTitle"></div>
+                                                <div class="jkw-mini-eng" x-text="event._subLabel"></div>
                                             </div>
                                         </template>
                                         <div class="jkw-mini-empty" x-show="getAllEventsForDay(day.fullDate).length === 0">—</div>
@@ -931,11 +931,9 @@
 .jkw-day-item--schedule { background:#EFF6FF !important; border-left:4px solid #2563EB !important; }
 .jkw-day-item--schedule .jkw-time { color:#1D4ED8 !important; }
 .jkw-day-item--schedule .jkw-time svg { color:#2563EB !important; }
-.jkw-day-item--day_off { background:#F1F5F9 !important; border:1px solid #CBD5E1 !important; border-left:4px solid #475569 !important; }
-.jkw-day-item--day_off .jkw-time { color:#1E293B !important; font-weight:800 !important; }
-.jkw-day-item--day_off .jkw-time svg { color:#475569 !important; }
-.jkw-day-item--day_off .jkw-day-title { color:#0F172A !important; font-weight:700 !important; }
-.jkw-day-item--day_off .jkw-day-meta { color:#334155 !important; font-weight:600 !important; }
+.jkw-day-item--day_off { background:rgba(100,116,139,0.12) !important; border-left:4px solid #64748B !important; }
+.jkw-day-item--day_off .jkw-time { color:#475569 !important; font-weight:700 !important; }
+.jkw-day-item--day_off .jkw-time svg { color:#64748B !important; }
 .jkw-day-item--task { background:#FDF1F2 !important; border-left:4px solid #C81E2C !important; }
 .jkw-day-item--task .jkw-time { color:#991B1B !important; }
 .jkw-day-item--task .jkw-time svg { color:#C81E2C !important; }
@@ -962,14 +960,12 @@
 .jkw-week-col.is-today { background:var(--jkw-bg-soft) !important; }
 .jkw-week-col-head { font-size:11px !important; color:var(--jkw-muted) !important; font-weight:700 !important; margin-bottom:10px !important; display:flex !important; align-items:center !important; gap:5px !important; }
 .jkw-week-col-body { display:flex !important; flex-direction:column !important; gap:6px !important; }
-.jkw-mini-card { border-radius:6px !important; padding:6px 9px !important; transition:all .15s ease !important; }
-.jkw-mini-card--schedule { background:#EFF6FF !important; border:1px solid #BFDBFE !important; }
-.jkw-mini-card--day_off { background:#F1F5F9 !important; border:1px solid #CBD5E1 !important; }
-.jkw-mini-card--day_off .jkw-mini-title { color:#0F172A !important; font-weight:700 !important; }
-.jkw-mini-card--day_off .jkw-mini-eng { color:#334155 !important; font-weight:600 !important; }
-.jkw-mini-card--task { background:#FDF1F2 !important; border:1px solid #FECDD3 !important; }
-.jkw-mini-card--project { background:#FEF2F2 !important; border:1px solid #FECACA !important; }
-.jkw-mini-time { font-family:'IBM Plex Mono', monospace !important; font-size:10px !important; font-weight:700 !important; color:var(--jkw-ink-2) !important; }
+.jkw-mini-card { border-radius:6px !important; padding:6px 9px !important; }
+.jkw-mini-card--schedule { background:rgba(37,99,235,0.08) !important; border:1px solid rgba(37,99,235,0.18) !important; }
+.jkw-mini-card--day_off { background:rgba(100,116,139,0.14) !important; border:1px solid rgba(100,116,139,0.24) !important; }
+.jkw-mini-card--task { background:rgba(200,30,44,0.08) !important; border:1px solid rgba(200,30,44,0.18) !important; }
+.jkw-mini-card--project { background:rgba(153,27,27,0.08) !important; border:1px solid rgba(153,27,27,0.18) !important; }
+.jkw-mini-time { font-family:'IBM Plex Mono', monospace !important; font-size:10px !important; font-weight:700 !important; }
 .jkw-mini-title { font-size:11.5px !important; color:var(--jkw-ink) !important; font-weight:600 !important; line-height:1.3 !important; margin-top:1px !important; word-break:break-word !important; }
 .jkw-mini-eng { font-size:9.5px !important; color:var(--jkw-muted) !important; margin-top:1px !important; }
 .jkw-mini-empty { font-size:11px !important; color:#C7C4CD !important; padding:8px 0 !important; text-align:center !important; }
