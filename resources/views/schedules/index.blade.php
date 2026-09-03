@@ -138,7 +138,6 @@
                             <button type="button" class="jkw-nav-btn" @click="changeDay(1)" title="Hari Berikutnya">
                                 <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
-                            <button type="button" class="jkw-today-btn" x-show="currentDateStr !== todayStr" @click="goToday()" title="Kembali ke Hari Ini">Ke Hari Ini</button>
                         </div>
 
                         <div class="jkw-nav-center" style="display:flex; align-items:center; gap:8px;">
@@ -295,7 +294,6 @@
                             <button type="button" class="jkw-nav-btn" @click="changeWeek(1)" title="Minggu Berikutnya">
                                 <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
-                            <button type="button" class="jkw-today-btn" x-show="!weekDays.some(function(d){ return d.fullDate === todayStr; })" @click="goToday()" title="Kembali ke Minggu Ini">Ke Minggu Ini</button>
                         </div>
 
                         <div class="jkw-nav-center" style="display:flex; align-items:center; gap:8px;">
@@ -367,7 +365,6 @@
                             <button type="button" class="jkw-nav-btn" @click="changeMonth(1)" title="Bulan Berikutnya">
                                 <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
-                            <button type="button" class="jkw-today-btn" x-show="currentDate.getMonth() !== (new Date()).getMonth() || currentDate.getFullYear() !== (new Date()).getFullYear()" @click="goToday()" title="Kembali ke Bulan Ini">Ke Bulan Ini</button>
                         </div>
 
                         <div class="jkw-nav-center" style="display:flex; align-items:center; gap:8px;">
@@ -1434,9 +1431,37 @@
                     return ((parts[0] ? parts[0][0] : '') + (parts[1] ? parts[1][0] : '')).toUpperCase();
                 },
                 colorFromName: function(name) {
-                    var palette = ['#C81E2C', '#1E8A4C', '#B8860B', '#3457D5', '#7A4FBF', '#C2563E', '#0E7C86'];
+                    if (!name || name === '-') return '#64748B';
+                    var cleanName = name.trim().toLowerCase();
+                    
+                    var eng = this.engineers.find(function(e) { 
+                        return e.name && e.name.trim().toLowerCase() === cleanName; 
+                    });
+
+                    var pos = (eng && eng.position) ? eng.position.toLowerCase() : '';
+                    var role = (eng && eng.role) ? eng.role.toLowerCase() : '';
+                    
+                    // 1. Team Leader / Lead / Direktur -> Purple (#7C3AED)
+                    if (pos.includes('leader') || pos.includes('lead') || role.includes('lead') || role.includes('direktur') || cleanName.includes('nugraha') || cleanName.includes('susanto')) {
+                        return '#7C3AED';
+                    }
+                    // 2. Engineer L2 / Senior -> Deep Blue (#2563EB)
+                    if (pos.includes('l2') || pos.includes('senior') || pos.includes('level 2') || role.includes('l2') || ['dedy suryana', 'raihan ghiffary', 'syaiful amin', 'ardiansyah'].includes(cleanName)) {
+                        return '#2563EB';
+                    }
+                    // 3. Engineer L1 / Field Staff -> Emerald Green (#059669)
+                    if (pos.includes('l1') || pos.includes('junior') || pos.includes('level 1') || pos.includes('maintenance') || role.includes('l1') || ['dafa rizqullah', 'helmi shiamsyah', 'panca pangga ramadhan', 'rorik', 'shiamsyah azis'].includes(cleanName)) {
+                        return '#059669';
+                    }
+                    // 4. Sales / BusDev -> Amber Orange (#D97706)
+                    if (pos.includes('sales') || role.includes('sales') || pos.includes('busdev') || ['raiza', 'ribka', 'widodo'].includes(cleanName)) {
+                        return '#D97706';
+                    }
+
+                    // Fallback palette
+                    var palette = ['#2563EB', '#059669', '#7C3AED', '#D97706', '#0891B2'];
                     var hash = 0;
-                    for (var i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+                    for (var i = 0; i < cleanName.length; i++) hash = cleanName.charCodeAt(i) + ((hash << 5) - hash);
                     return palette[Math.abs(hash) % palette.length];
                 },
 
