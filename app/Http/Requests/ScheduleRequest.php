@@ -32,11 +32,16 @@ class ScheduleRequest extends FormRequest
             'engineer_id'      => 'required_without:engineer_ids|nullable|exists:users,id',
             'engineer_ids'     => 'required_without:engineer_id|nullable|array|min:1',
             'engineer_ids.*'   => 'exists:users,id',
-            'date'             => 'required|date',
+            'date'             => 'required_without:sessions|nullable|date',
             'start_time'       => 'nullable',
             'end_time'         => 'nullable',
             'location'         => 'nullable|string|max:255',
             'description'      => 'nullable|string',
+            'sessions'         => 'nullable|array|min:1',
+            'sessions.*.date'  => 'required|date',
+            'sessions.*.start_time' => 'nullable',
+            'sessions.*.end_time'   => 'nullable',
+            'sessions.*.location'   => 'nullable|string|max:255',
         ];
     }
 

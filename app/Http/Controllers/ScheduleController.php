@@ -217,10 +217,6 @@ class ScheduleController extends Controller
             }
             unset($data['new_project_name']);
 
-            if (empty($data['end_time']) && !empty($data['start_time'])) {
-                $data['end_time'] = $data['start_time'];
-            }
-
             $engineerIds = $request->input('engineer_ids', []);
             if (empty($engineerIds) && !empty($data['engineer_id'])) {
                 $engineerIds = [(int) $data['engineer_id']];
@@ -229,63 +225,109 @@ class ScheduleController extends Controller
                 $data['engineer_id'] = $engineerIds[0];
             }
             unset($data['engineer_ids']);
-            
-            $schedule = Schedule::create($data);
-            if ($hasScheduleUser && !empty($engineerIds)) {
-                $schedule->engineers()->sync($engineerIds);
-            }
-            $withRelations = ['project', 'engineer', 'creator'];
-            if ($hasScheduleUser) {
-                $withRelations[] = 'engineers';
-            }
-            $schedule->load($withRelations);
 
-            $engineerIdsList = $hasScheduleUser && $schedule->relationLoaded('engineers')
-                ? $schedule->engineers->pluck('id')->toArray()
-                : ($schedule->engineer_id ? [$schedule->engineer_id] : []);
-            $engineersList = $hasScheduleUser && $schedule->relationLoaded('engineers')
-                ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
-                : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
+            // Parse multiple sessions jika ada
+            $rawSessions = $request->input('sessions', []);
+            $sessions = [];
+            if (!empty($rawSessions) && is_array($rawSessions)) {
+                foreach ($rawSessions as $s) {
+                    if (!empty($s['date'])) {
+                        $startTime = !empty($s['start_time']) ? $s['start_time'] : null;
+                        $endTime   = !empty($s['end_time']) ? $s['end_time'] : $startTime;
+                        $sessions[] = [
+                            'date'       => $s['date'],
+                            'start_time' => $startTime,
+                            'end_time'   => $endTime,
+                            'location'   => isset($s['location']) && trim($s['location']) !== '' ? trim($s['location']) : ($data['location'] ?? null),
+                        ];
+                    }
+                }
+            }
 
-            // Kirim notifikasi ke seluruh engineer yang dijadwalkan
+            // Fallback single session
+            if (empty($sessions)) {
+                $startTime = !empty($data['start_time']) ? $data['start_time'] : null;
+                $endTime   = !empty($data['end_time']) ? $data['end_time'] : $startTime;
+                $sessions[] = [
+                    'date'       => $data['date'] ?? now()->toDateString(),
+                    'start_time' => $startTime,
+                    'end_time'   => $endTime,
+                    'location'   => $data['location'] ?? null,
+                ];
+            }
+
+            $createdSchedules = [];
             $creator = auth()->user();
             $creatorName = $creator ? $creator->name : 'Team Leader';
-            $notifTitle = $schedule->category === 'Day Off' ? 'Jadwal Day Off / Cuti: ' . $schedule->title : 'Agenda Jadwal Baru: ' . $schedule->title;
-            foreach ($engineerIdsList as $engId) {
-                \App\Models\Notification::create([
-                    'user_id' => (int) $engId,
-                    'title'   => $notifTitle,
-                    'message' => 'Anda dijadwalkan oleh ' . $creatorName . ' pada: "' . $schedule->title . '" (' . ($schedule->date ? $schedule->date->format('d/m/Y') : '-') . ($schedule->start_time ? ' pukul ' . substr($schedule->start_time, 0, 5) . ' WIB' : '') . ').',
-                    'url'     => route('schedules.index'),
-                    'is_read' => false,
-                ]);
+
+            foreach ($sessions as $session) {
+                $scheduleData = $data;
+                $scheduleData['date']       = $session['date'];
+                $scheduleData['start_time'] = $session['start_time'];
+                $scheduleData['end_time']   = $session['end_time'];
+                $scheduleData['location']   = $session['location'];
+                unset($scheduleData['sessions']);
+
+                $schedule = Schedule::create($scheduleData);
+                if ($hasScheduleUser && !empty($engineerIds)) {
+                    $schedule->engineers()->sync($engineerIds);
+                }
+                $withRelations = ['project', 'engineer', 'creator'];
+                if ($hasScheduleUser) {
+                    $withRelations[] = 'engineers';
+                }
+                $schedule->load($withRelations);
+
+                $engineerIdsList = $hasScheduleUser && $schedule->relationLoaded('engineers')
+                    ? $schedule->engineers->pluck('id')->toArray()
+                    : ($schedule->engineer_id ? [$schedule->engineer_id] : []);
+                $engineersList = $hasScheduleUser && $schedule->relationLoaded('engineers')
+                    ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
+                    : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
+
+                // Notifikasi ke engineer
+                $notifTitle = $schedule->category === 'Day Off' ? 'Jadwal Day Off / Cuti: ' . $schedule->title : 'Agenda Jadwal Baru: ' . $schedule->title;
+                foreach ($engineerIdsList as $engId) {
+                    \App\Models\Notification::create([
+                        'user_id' => (int) $engId,
+                        'title'   => $notifTitle,
+                        'message' => 'Anda dijadwalkan oleh ' . $creatorName . ' pada: "' . $schedule->title . '" (' . ($schedule->date ? $schedule->date->format('d/m/Y') : '-') . ($schedule->start_time ? ' pukul ' . substr($schedule->start_time, 0, 5) . ' WIB' : '') . ').',
+                        'url'     => route('schedules.index'),
+                        'is_read' => false,
+                    ]);
+                }
+
+                $createdSchedules[] = [
+                    'id'          => $schedule->id,
+                    'title'       => $schedule->title,
+                    'category'    => $schedule->category ?? 'Meeting',
+                    'project_id'  => $schedule->project_id,
+                    'engineer_id' => $schedule->engineer_id,
+                    'engineer_ids'=> $engineerIdsList,
+                    'date'        => $schedule->date ? $schedule->date->format('Y-m-d') : '',
+                    'start_time'  => $schedule->start_time ? substr($schedule->start_time, 0, 5) : '',
+                    'end_time'    => $schedule->end_time ? substr($schedule->end_time, 0, 5) : '',
+                    'location'    => $schedule->location,
+                    'description' => $schedule->description,
+                    'project'     => $schedule->project ? [
+                        'id'   => $schedule->project->id,
+                        'name' => $schedule->project->name,
+                    ] : null,
+                    'engineer'    => $schedule->engineer ? [
+                        'id'   => $schedule->engineer->id,
+                        'name' => $schedule->engineer->name,
+                    ] : null,
+                    'engineers'   => $engineersList,
+                ];
             }
 
-            $response = [
-                'id' => $schedule->id,
-                'title' => $schedule->title,
-                'category' => $schedule->category ?? 'Meeting',
-                'project_id' => $schedule->project_id,
-                'engineer_id' => $schedule->engineer_id,
-                'engineer_ids' => $engineerIdsList,
-                'date' => $schedule->date ? $schedule->date->format('Y-m-d') : '',
-                'start_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) : '',
-                'end_time' => $schedule->end_time ? substr($schedule->end_time, 0, 5) : '',
-                'location' => $schedule->location,
-                'description' => $schedule->description,
-                'project' => $schedule->project ? [
-                    'id' => $schedule->project->id,
-                    'name' => $schedule->project->name,
-                ] : null,
-                'engineer' => $schedule->engineer ? [
-                    'id' => $schedule->engineer->id,
-                    'name' => $schedule->engineer->name,
-                ] : null,
-                'engineers' => $engineersList,
-            ];
-
             if ($request->wantsJson() || $request->ajax()) {
-                return response()->json($response, 201);
+                return response()->json([
+                    'success'   => true,
+                    'message'   => count($createdSchedules) . ' jadwal berhasil dibuat!',
+                    'schedule'  => $createdSchedules[0] ?? null,
+                    'schedules' => $createdSchedules,
+                ], 201);
             }
 
             return redirect()->route('schedules.index')

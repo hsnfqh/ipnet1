@@ -670,22 +670,68 @@
                                         </div>
                                     </div>
 
-                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                                        <div>
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Tanggal</label>
-                                            <input type="date" x-model="form.date" style="width:100%; padding:10px 12px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:border-color 0.15s ease; box-sizing:border-box;" required>
-                                        </div>
-                                        <div>
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">
-                                                <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
+                                    <!-- Sesi Tanggal & Waktu (Multi-Date / Multi-Session) -->
+                                    <div style="margin-bottom:14px;">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                                            <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
+                                                Tanggal & Waktu Kegiatan
                                             </label>
-                                            <input type="time" x-model="form.start_time" style="width:100%; padding:10px 12px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:border-color 0.15s ease; box-sizing:border-box;" :required="form.category === 'Meeting'">
+                                            <template x-if="!editing && form.sessions && form.sessions.length > 1">
+                                                <span style="font-size:11px; font-weight:700; color:#2563EB; background:#EFF6FF; border:1px solid #DBEAFE; padding:2px 8px; border-radius:12px;" 
+                                                      x-text="form.sessions.length + ' Tanggal / Sesi'"></span>
+                                            </template>
                                         </div>
-                                    </div>
 
-                                    <div x-show="form.category !== 'Day Off'">
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Lokasi / Link Meeting</label>
-                                        <input type="text" x-model="form.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:border-color 0.15s ease; box-sizing:border-box;">
+                                        <!-- List Kartu Sesi -->
+                                        <div style="display:flex; flex-direction:column; gap:10px;">
+                                            <template x-for="(session, sIdx) in (form.sessions || [])" :key="sIdx">
+                                                <div style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:12px 14px; position:relative; transition:all 0.15s ease;">
+                                                    <!-- Header Sesi jika lebih dari 1 sesi -->
+                                                    <div x-show="!editing && form.sessions && form.sessions.length > 1" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid #E2E8F0;">
+                                                        <div style="display:flex; align-items:center; gap:6px;">
+                                                            <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#2563EB; color:white; font-size:10.5px; font-weight:700;" x-text="sIdx + 1"></span>
+                                                            <span style="font-size:12px; font-weight:700; color:#1E293B;" x-text="'Sesi Jadwal ke-' + (sIdx + 1)"></span>
+                                                        </div>
+                                                        <button type="button" @click="removeSession(sIdx)" style="background:none; border:none; color:#EF4444; font-size:11.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:6px;" onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='none'">
+                                                            <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                            <span>Hapus</span>
+                                                        </button>
+                                                    </div>
+
+                                                    <!-- Grid Tanggal & Jam -->
+                                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                                        <div>
+                                                            <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Tanggal</label>
+                                                            <input type="date" x-model="session.date" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;" required>
+                                                        </div>
+                                                        <div>
+                                                            <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">
+                                                                <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
+                                                            </label>
+                                                            <input type="time" x-model="session.start_time" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;" :required="form.category === 'Meeting'">
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Lokasi per Sesi jika Meeting -->
+                                                    <div x-show="form.category !== 'Day Off'" style="margin-top:8px;">
+                                                        <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Lokasi / Link Meeting (Sesi Ini)</label>
+                                                        <input type="text" x-model="session.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." style="width:100%; padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:12.5px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+
+                                        <!-- Tombol Tambah Tanggal / Sesi -->
+                                        <template x-if="!editing">
+                                            <button type="button" 
+                                                    @click="addSession()" 
+                                                    style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 12px; background:#F8FAFC; border:1.5px dashed #94A3B8; border-radius:9px; font-size:12.5px; font-weight:700; color:#2563EB; cursor:pointer; transition:all 0.15s ease; margin-top:8px;"
+                                                    onmouseover="this.style.background='#EFF6FF'; this.style.borderColor='#3B82F6'; this.style.color='#1D4ED8';"
+                                                    onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8'; this.style.color='#2563EB';">
+                                                <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                                <span>+ Tambah Tanggal / Sesi Jadwal</span>
+                                            </button>
+                                        </template>
                                     </div>
 
                                     <div>
@@ -1592,6 +1638,9 @@
                         }
                         this.form.start_time = '';
                         this.form.end_time = '';
+                        if (this.form.sessions) {
+                            this.form.sessions.forEach(function(s) { s.start_time = ''; s.end_time = ''; });
+                        }
                     } else if (cat === 'Meeting') {
                         if (this.form.title === 'Day Off / Cuti' || this.form.title === 'Day Off') {
                             this.form.title = '';
@@ -1599,9 +1648,31 @@
                         if (!this.form.start_time) {
                             this.form.start_time = '09:00';
                         }
+                        if (this.form.sessions) {
+                            this.form.sessions.forEach(function(s) { if (!s.start_time) s.start_time = '09:00'; });
+                        }
                         if (!this.form.project_id && this.projects.length > 0) {
                             this.form.project_id = this.projects[0].id;
                         }
+                    }
+                },
+
+                addSession: function() {
+                    if (!this.form.sessions) this.form.sessions = [];
+                    var last = this.form.sessions.length > 0 ? this.form.sessions[this.form.sessions.length - 1] : null;
+                    var defaultTime = this.form.category === 'Day Off' ? '' : (last && last.start_time ? last.start_time : '09:00');
+                    var defaultLoc = this.form.category === 'Day Off' ? '' : (last && last.location ? last.location : '');
+                    this.form.sessions.push({
+                        date: last && last.date ? last.date : this.formatDate(new Date()),
+                        start_time: defaultTime,
+                        end_time: '',
+                        location: defaultLoc
+                    });
+                },
+
+                removeSession: function(idx) {
+                    if (this.form.sessions && this.form.sessions.length > 1) {
+                        this.form.sessions.splice(idx, 1);
                     }
                 },
 
@@ -1617,6 +1688,11 @@
                             engIds = [schedule.engineer_id];
                         }
 
+                        var schDate = schedule.date ? schedule.date.split('T')[0] : '';
+                        var schStart = schedule.start_time ? schedule.start_time.substring(0, 5) : (schedule.category === 'Day Off' ? '' : '09:00');
+                        var schEnd = schedule.end_time ? schedule.end_time.substring(0, 5) : '';
+                        var schLoc = schedule.location || '';
+
                         this.form = {
                             id: schedule.id,
                             title: schedule.title,
@@ -1625,17 +1701,26 @@
                             new_project_name: '',
                             engineer_id: engIds[0] || null,
                             engineer_ids: engIds,
-                            date: schedule.date ? schedule.date.split('T')[0] : '',
-                            start_time: schedule.start_time ? schedule.start_time.substring(0, 5) : '09:00',
-                            end_time: schedule.end_time ? schedule.end_time.substring(0, 5) : '',
-                            location: schedule.location || '',
+                            date: schDate,
+                            start_time: schStart,
+                            end_time: schEnd,
+                            location: schLoc,
                             description: schedule.description || '',
-                            send_wa: false
+                            send_wa: false,
+                            sessions: [
+                                {
+                                    date: schDate,
+                                    start_time: schStart,
+                                    end_time: schEnd,
+                                    location: schLoc
+                                }
+                            ]
                         };
                     } else {
                         this.editing = false;
                         var todayFormatted = this.formatDate(new Date());
                         var initialEngIds = this.engineers.length > 0 ? [this.engineers[0].id] : [];
+                        var targetDate = this.viewMode === 'day' ? this.currentDateStr : todayFormatted;
                         this.form = {
                             id: null,
                             title: '',
@@ -1644,11 +1729,19 @@
                             new_project_name: '',
                             engineer_id: initialEngIds[0] || null,
                             engineer_ids: initialEngIds,
-                            date: this.viewMode === 'day' ? this.currentDateStr : todayFormatted,
+                            date: targetDate,
                             start_time: '09:00',
                             end_time: '',
                             location: '',
-                            description: ''
+                            description: '',
+                            sessions: [
+                                {
+                                    date: targetDate,
+                                    start_time: '09:00',
+                                    end_time: '',
+                                    location: ''
+                                }
+                            ]
                         };
                     }
                     this.modalOpen = true;
@@ -1690,6 +1783,14 @@
                         }
                         this.form.engineer_id = this.form.engineer_ids[0];
 
+                        // Sinkronkan sesi pertama dengan form root
+                        if (this.form.sessions && this.form.sessions.length > 0) {
+                            this.form.date = this.form.sessions[0].date;
+                            this.form.start_time = this.form.sessions[0].start_time;
+                            this.form.end_time = this.form.sessions[0].end_time || this.form.sessions[0].start_time;
+                            this.form.location = this.form.sessions[0].location || '';
+                        }
+
                         // Jika end_time kosong dan ada start_time, samakan dengan start_time
                         if (this.form.start_time && !this.form.end_time) {
                             this.form.end_time = this.form.start_time;
@@ -1710,17 +1811,28 @@
 
                         if (response.ok) {
                             var data = await response.json();
-                            if (data.project && !this.projects.some(function(p) { return p.id === data.project.id; })) {
-                                this.projects.push(data.project);
-                            }
-                            if (this.editing) {
-                                var index = this.schedules.findIndex(function(s) { return s.id === this.form.id; }.bind(this));
-                                if (index !== -1) this.schedules[index] = data;
+                            if (data.schedules && Array.isArray(data.schedules)) {
+                                data.schedules.forEach(function(sch) {
+                                    if (sch.project && !this.projects.some(function(p) { return p.id === sch.project.id; })) {
+                                        this.projects.push(sch.project);
+                                    }
+                                    this.schedules.push(sch);
+                                }.bind(this));
+                                this.modalOpen = false;
+                                this.showToast(data.message || (data.schedules.length + ' Jadwal berhasil ditambahkan!'));
                             } else {
-                                this.schedules.push(data);
+                                if (data.project && !this.projects.some(function(p) { return p.id === data.project.id; })) {
+                                    this.projects.push(data.project);
+                                }
+                                if (this.editing) {
+                                    var index = this.schedules.findIndex(function(s) { return s.id === this.form.id; }.bind(this));
+                                    if (index !== -1) this.schedules[index] = data;
+                                } else {
+                                    this.schedules.push(data);
+                                }
+                                this.modalOpen = false;
+                                this.showToast('Jadwal berhasil ' + (this.editing ? 'diperbarui' : 'ditambahkan') + '!');
                             }
-                            this.modalOpen = false;
-                            this.showToast('Jadwal berhasil ' + (this.editing ? 'diperbarui' : 'ditambahkan') + '!');
                         } else {
                             var error = await response.json();
                             var errorMsg = error.message || 'Terjadi kesalahan';
