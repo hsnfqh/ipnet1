@@ -167,9 +167,13 @@
                                                         Kirim ke WA
                                                     </button>
                                                 </template>
-                                                <button type="button" @click="openModal(schedule)" style="background:#F8F7F6; border:1px solid #E7E5E3; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:600; color:#3D3A44; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+                                                <button type="button" @click="openModal(schedule)" style="background:#F8F7F6; border:1px solid #E7E5E3; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:600; color:#3D3A44; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;" title="Edit Jadwal">
                                                     <svg style="width:11px; height:11px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                     Edit
+                                                </button>
+                                                <button type="button" @click="deleteSchedule(schedule)" style="background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:600; color:#DC2626; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;" title="Hapus Jadwal">
+                                                    <svg style="width:11px; height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    Hapus
                                                 </button>
                                             </div>
                                             @endif
@@ -747,13 +751,25 @@
                                             onmouseout="this.style.filter='brightness(1)'; this.style.transform='translateY(0)';">
                                         Simpan Jadwal
                                     </button>
-                                    <button type="button"
-                                            @click="modalOpen = false"
-                                            style="width:100%; justify-content:center; background:#FFFFFF; color:#475569; border:1.5px solid #E2E8F0; padding:11px 18px; border-radius:9px; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease; box-sizing:border-box;"
-                                            onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1';"
-                                            onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#E2E8F0';">
-                                        Batal
-                                    </button>
+                                    <template x-if="editing">
+                                        <button type="button"
+                                                @click="deleteSchedule(form)"
+                                                style="width:100%; justify-content:center; background:#FEF2F2; color:#DC2626; border:1.5px solid #FECACA; padding:11px 18px; border-radius:9px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.15s ease; box-sizing:border-box;"
+                                                onmouseover="this.style.background='#FEE2E2'"
+                                                onmouseout="this.style.background='#FEF2F2'">
+                                            <svg style="width:14px; height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            Hapus Jadwal
+                                        </button>
+                                    </template>
+                                    <template x-if="!editing">
+                                        <button type="button"
+                                                @click="modalOpen = false"
+                                                style="width:100%; justify-content:center; background:#FFFFFF; color:#475569; border:1.5px solid #E2E8F0; padding:11px 18px; border-radius:9px; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease; box-sizing:border-box;"
+                                                onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1';"
+                                                onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#E2E8F0';">
+                                            Batal
+                                        </button>
+                                    </template>
                                 </div>
                             </form>
                         </div>
@@ -1851,6 +1867,11 @@
                 },
 
                 deleteSchedule: async function(schedule) {
+                    if (!schedule || !schedule.id) return;
+                    var title = schedule.title || schedule._displayTitle || 'jadwal ini';
+                    if (!confirm('Apakah Anda yakin ingin menghapus ' + title + '?')) {
+                        return;
+                    }
                     try {
                         var response = await fetch('/schedules/' + schedule.id, {
                             method: 'DELETE',
@@ -1861,9 +1882,11 @@
                         });
 
                         if (response.ok) {
+                            var targetId = schedule.id;
                             this.schedules = this.schedules.filter(function(s) {
-                                return s.id !== schedule.id;
+                                return s.id !== targetId;
                             });
+                            this.modalOpen = false;
                             this.showToast('Jadwal berhasil dihapus!');
                         } else {
                             this.showToast('Gagal menghapus jadwal.');
