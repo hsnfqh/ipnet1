@@ -9,8 +9,12 @@
 
     if ($isSales) {
         $navItems = [
-            ['key' => 'acquire',  'label' => 'Peluang & Kontrak', 'route' => 'acquire.index'],
-            ['key' => 'projects', 'label' => 'Project',           'route' => 'projects.index'],
+            ['key' => 'acquire',    'label' => 'Peluang & Kontrak', 'route' => 'acquire.index'],
+            ['key' => 'projects',   'label' => 'Project',           'route' => 'projects.index'],
+            ['key' => 'tasks',      'label' => 'Task',              'route' => 'tasks.index'],
+            ['key' => 'schedules',  'label' => 'Jadwal',            'route' => 'schedules.index'],
+            ['key' => 'timesheets', 'label' => 'Timesheet',         'route' => 'timesheets.index'],
+            ['key' => 'attendance', 'label' => 'Presensi',          'route' => 'attendance.index'],
         ];
     } elseif ($isPmoUser) {
         $navItems = [
