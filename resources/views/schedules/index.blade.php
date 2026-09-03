@@ -130,17 +130,39 @@
             {{-- DAY VIEW --}}
             <div x-show="viewMode === 'day'" x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-card">
-                    <div class="jkw-nav">
-                        <button type="button" class="jkw-nav-btn" @click="changeDay(-1)">
-                            <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                        </button>
-                        <div class="jkw-nav-center">
-                            <span class="jkw-nav-title" x-text="dayLabel"></span>
+                    <div class="jkw-nav" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" class="jkw-nav-btn" @click="changeDay(-1)" title="Hari Sebelumnya">
+                                <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <button type="button" class="jkw-nav-btn" @click="changeDay(1)" title="Hari Berikutnya">
+                                <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
                             <button type="button" class="jkw-today-btn" @click="goToday()">Hari ini</button>
                         </div>
-                        <button type="button" class="jkw-nav-btn" @click="changeDay(1)">
-                            <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </button>
+
+                        <div class="jkw-nav-center">
+                            <span class="jkw-nav-title" x-text="dayLabel"></span>
+                        </div>
+
+                        {{-- Quick Date Jump Picker --}}
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer; background:#FFFFFF; border:1px solid #E7E5E3; border-radius:8px; padding:6px 12px; gap:6px; font-size:12px; font-weight:600; color:#3D3A44; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
+                                   onmouseover="this.style.background='#F8F7F6'; this.style.borderColor='#CBD5E1';"
+                                   onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#E7E5E3';"
+                                   title="Lompat Langsung ke Tanggal Pilihan (Cepat)">
+                                <svg style="width:14px; height:14px; color:#AF1424;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                <span>Pilih Tanggal</span>
+                                <input type="date" 
+                                       @change="jumpToDate($event.target.value)" 
+                                       style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
+                            </label>
+                        </div>
                     </div>
 
                     <div class="jkw-day-list">
@@ -152,8 +174,8 @@
                                 </div>
                                 <div class="jkw-day-main">
                                     <div class="jkw-day-title" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                                        <span x-text="schedule._displayTitle"></span>
-                                        <template x-if="schedule._type === 'schedule' || schedule._type === 'day_off'">
+                                        <span x-text="schedule._displayTitle" style="cursor:pointer;" @click="handleEventClick(schedule)"></span>
+                                        <template x-if="schedule._type === 'schedule' || schedule._type === 'day_off' || schedule._type === 'task'">
                                             @if($isLead)
                                             <div style="display:flex; align-items:center; gap:6px;">
                                                 <template x-if="schedule._type === 'schedule'">
@@ -162,7 +184,7 @@
                                                         Kirim ke WA
                                                     </button>
                                                 </template>
-                                                <button type="button" @click="openModal(schedule)" style="background:#F8F7F6; border:1px solid #E7E5E3; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:600; color:#3D3A44; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;" title="Edit Jadwal">
+                                                <button type="button" @click="handleEventClick(schedule)" style="background:#F8F7F6; border:1px solid #E7E5E3; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:600; color:#3D3A44; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;" title="Edit / Detail Jadwal">
                                                     <svg style="width:11px; height:11px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                     Edit
                                                 </button>
@@ -260,24 +282,46 @@
             {{-- WEEK VIEW --}}
             <div x-show="viewMode === 'week'" x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-card">
-                    <div class="jkw-nav">
-                        <button type="button" class="jkw-nav-btn" @click="changeWeek(-1)">
-                            <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                        </button>
-                        <div class="jkw-nav-center">
-                            <span class="jkw-nav-title" x-text="weekRange"></span>
+                    <div class="jkw-nav" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" class="jkw-nav-btn" @click="changeWeek(-1)" title="Minggu Sebelumnya">
+                                <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <button type="button" class="jkw-nav-btn" @click="changeWeek(1)" title="Minggu Berikutnya">
+                                <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
                             <button type="button" class="jkw-today-btn" @click="goToday()">Hari ini</button>
                         </div>
-                        <button type="button" class="jkw-nav-btn" @click="changeWeek(1)">
-                            <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </button>
+
+                        <div class="jkw-nav-center">
+                            <span class="jkw-nav-title" x-text="weekRange"></span>
+                        </div>
+
+                        {{-- Quick Date Jump Picker --}}
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer; background:#FFFFFF; border:1px solid #E7E5E3; border-radius:8px; padding:6px 12px; gap:6px; font-size:12px; font-weight:600; color:#3D3A44; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
+                                   onmouseover="this.style.background='#F8F7F6'; this.style.borderColor='#CBD5E1';"
+                                   onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#E7E5E3';"
+                                   title="Lompat Langsung ke Tanggal / Minggu Pilihan (Cepat)">
+                                <svg style="width:14px; height:14px; color:#AF1424;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                <span>Pilih Tanggal</span>
+                                <input type="date" 
+                                       @change="jumpToDate($event.target.value)" 
+                                       style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
+                            </label>
+                        </div>
                     </div>
 
                     <div class="jkw-week-scroll">
                         <div class="jkw-week-grid">
                             <template x-for="day in weekDays" :key="day.fullDate">
                                 <div class="jkw-week-col" :class="{ 'is-today': day.fullDate === todayStr }">
-                                    <div class="jkw-week-col-head">
+                                    <div class="jkw-week-col-head" @click="goToDayView(day.fullDate)" style="cursor:pointer;" :title="'Lihat jadwal harian tanggal ' + day.date">
                                         <span x-text="day.name"></span>
                                         <span class="jkw-mono" x-text="day.date"></span>
                                     </div>
@@ -285,9 +329,9 @@
                                         <template x-for="event in getAllEventsForDay(day.fullDate)" :key="event._uid">
                                             <div class="jkw-mini-card" 
                                                  :class="'jkw-mini-card--' + event._type"
-                                                 :style="'border-left: 3px solid ' + event._color + ';' + (event._type === 'schedule' || event._type === 'day_off' ? ' cursor:pointer;' : ' cursor:default; pointer-events:none;')"
-                                                 :title="event._tooltip"
-                                                 @click="if (event._type === 'schedule' || event._type === 'day_off') { openModal(event); }">
+                                                 :style="'border-left: 3px solid ' + event._color + '; cursor:pointer;'"
+                                                 :title="event._tooltip + ' • Klik untuk detail / edit'"
+                                                 @click="handleEventClick(event)">
                                                 <div class="jkw-mini-time" x-text="event._timeLabel" style="font-size:10px; font-weight:700;" :style="{ color: event._color }"></div>
                                                 <div class="jkw-mini-title" x-text="event._displayTitle"></div>
                                                 <div class="jkw-mini-eng" x-text="event._subLabel"></div>
@@ -305,17 +349,39 @@
             {{-- MONTH VIEW --}}
             <div x-show="viewMode === 'month'" x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-card">
-                    <div class="jkw-nav">
-                        <button type="button" class="jkw-nav-btn" @click="changeMonth(-1)">
-                            <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                        </button>
-                        <div class="jkw-nav-center">
-                            <span class="jkw-nav-title" x-text="monthLabel"></span>
+                    <div class="jkw-nav" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button type="button" class="jkw-nav-btn" @click="changeMonth(-1)" title="Bulan Sebelumnya">
+                                <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <button type="button" class="jkw-nav-btn" @click="changeMonth(1)" title="Bulan Berikutnya">
+                                <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
                             <button type="button" class="jkw-today-btn" @click="goToday()">Hari ini</button>
                         </div>
-                        <button type="button" class="jkw-nav-btn" @click="changeMonth(1)">
-                            <svg class="jkw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </button>
+
+                        <div class="jkw-nav-center">
+                            <span class="jkw-nav-title" x-text="monthLabel"></span>
+                        </div>
+
+                        {{-- Quick Date Jump Picker --}}
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer; background:#FFFFFF; border:1px solid #E7E5E3; border-radius:8px; padding:6px 12px; gap:6px; font-size:12px; font-weight:600; color:#3D3A44; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
+                                   onmouseover="this.style.background='#F8F7F6'; this.style.borderColor='#CBD5E1';"
+                                   onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#E7E5E3';"
+                                   title="Lompat Langsung ke Bulan / Tanggal Pilihan (Cepat)">
+                                <svg style="width:14px; height:14px; color:#AF1424;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                <span>Pilih Tanggal / Bulan</span>
+                                <input type="date" 
+                                       @change="jumpToDate($event.target.value)" 
+                                       style="position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer;">
+                            </label>
+                        </div>
                     </div>
 
                     <div class="jkw-month-scroll">
@@ -333,9 +399,9 @@
                                         <div class="jkw-month-events">
                                             <template x-for="event in getAllEventsForDay(day.fullDate).slice(0, 3)" :key="event._uid">
                                                 <div class="jkw-month-event"
-                                                     :style="'background:' + event._color + '; color:#fff; display:flex; align-items:center; gap:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:2px 6px; border-radius:4px; font-size:10px; margin-bottom:2px;' + (event._type === 'schedule' || event._type === 'day_off' ? ' cursor:pointer; opacity:1;' : ' cursor:default; opacity:0.92; pointer-events:none;')"
-                                                     :title="event._tooltip"
-                                                     @click="if (event._type === 'schedule' || event._type === 'day_off') { openModal(event); }">
+                                                     :style="'background:' + event._color + '; color:#fff; display:flex; align-items:center; gap:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:2px 6px; border-radius:4px; font-size:10px; margin-bottom:2px; cursor:pointer; opacity:1;'"
+                                                     :title="event._tooltip + ' • Klik untuk detail / edit'"
+                                                     @click="handleEventClick(event)">
                                                     <span x-show="(event._type === 'schedule' || event._type === 'day_off') && event.start_time" style="font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:9.5px; opacity:0.95; flex-shrink:0;" x-text="event.start_time"></span>
                                                     <span x-show="event._type === 'task' && event.deadline_time" style="font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:9.5px; opacity:0.95; flex-shrink:0;" x-text="event.deadline_time"></span>
                                                     <span style="font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="event._displayTitle"></span>
@@ -1852,6 +1918,28 @@
 
                 editSchedule: function(schedule) {
                     this.openModal(schedule);
+                },
+
+                jumpToDate: function(dateVal) {
+                    if (!dateVal) return;
+                    var parts = dateVal.split('-');
+                    if (parts.length === 3) {
+                        var yr = parseInt(parts[0], 10);
+                        var mo = parseInt(parts[1], 10) - 1;
+                        var dy = parseInt(parts[2], 10);
+                        this.currentDate = new Date(yr, mo, dy);
+                        this.dayPage = 1;
+                        this.showToast('Lompat ke tanggal ' + this.dayLabel);
+                    }
+                },
+
+                handleEventClick: function(event) {
+                    if (!event) return;
+                    if (event.id && (this.schedules.some(function(s) { return s.id === event.id; }) || event._type === 'schedule' || event._type === 'day_off' || event._type === 'task')) {
+                        this.openModal(event);
+                    } else {
+                        window.location.href = '/tasks';
+                    }
                 },
 
                 confirmDelete: function(schedule) {
