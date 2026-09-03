@@ -1345,9 +1345,7 @@
                 perPage: 10,
 
                 get daySchedules() {
-                    return this.getAllEventsForDay(this.currentDateStr).sort(function(a, b) {
-                        return (a._timeLabel || '').localeCompare(b._timeLabel || '');
-                    });
+                    return this.getAllEventsForDay(this.currentDateStr);
                 },
                 get totalDayPages() {
                     return Math.ceil(this.daySchedules.length / this.perPage) || 1;
@@ -1640,6 +1638,26 @@
                                 description: ''
                             });
                         }
+                    });
+
+                    // Urutkan agenda secara kronologis dari jam paling pagi ke jam paling malam (00:00 -> 23:59)
+                    events.sort(function(a, b) {
+                        var timeA = (a.start_time || a.deadline_time || '').trim().substring(0, 5);
+                        var timeB = (b.start_time || b.deadline_time || '').trim().substring(0, 5);
+
+                        // Jika salah satu tidak punya jam (misal Day Off / All-day), letakkan teratur
+                        if (!timeA && a._type === 'day_off') timeA = '99:99';
+                        if (!timeB && b._type === 'day_off') timeB = '99:99';
+                        if (!timeA) timeA = '99:98';
+                        if (!timeB) timeB = '99:98';
+
+                        if (timeA !== timeB) {
+                            return timeA.localeCompare(timeB);
+                        }
+
+                        var titleA = a.title || a._displayTitle || '';
+                        var titleB = b.title || b._displayTitle || '';
+                        return titleA.localeCompare(titleB);
                     });
 
                     return events;
