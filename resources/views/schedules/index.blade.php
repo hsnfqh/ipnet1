@@ -152,7 +152,7 @@
                                     style="display:inline-flex; align-items:center; gap:6px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; color:#3D3A44; cursor:pointer; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
                                     onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8';"
                                     onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#CBD5E1';"
-                                    title="Lompat Langsung ke Tanggal Pilihan (Cepat)">
+                                    title="Pilih tanggal untuk melihat jadwal">
                                 <svg style="width:14px; height:14px; color:#AF1424;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                                     <line x1="16" y1="2" x2="16" y2="6"/>
@@ -308,7 +308,7 @@
                                     style="display:inline-flex; align-items:center; gap:6px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; color:#3D3A44; cursor:pointer; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
                                     onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8';"
                                     onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#CBD5E1';"
-                                    title="Lompat Langsung ke Tanggal / Minggu Pilihan (Cepat)">
+                                    title="Pilih tanggal untuk melihat jadwal mingguan">
                                 <svg style="width:14px; height:14px; color:#AF1424;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                                     <line x1="16" y1="2" x2="16" y2="6"/>
@@ -379,7 +379,7 @@
                                     style="display:inline-flex; align-items:center; gap:6px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; color:#3D3A44; cursor:pointer; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.04);"
                                     onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8';"
                                     onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#CBD5E1';"
-                                    title="Lompat Langsung ke Bulan / Tanggal Pilihan (Cepat)">
+                                    title="Pilih tanggal atau bulan untuk melihat jadwal bulanan">
                                 <svg style="width:14px; height:14px; color:#AF1424;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                                     <line x1="16" y1="2" x2="16" y2="6"/>
@@ -1969,7 +1969,7 @@
                         var dy = parseInt(parts[2], 10);
                         this.currentDate = new Date(yr, mo, dy);
                         this.dayPage = 1;
-                        this.showToast('Lompat ke tanggal ' + this.dayLabel);
+                        this.showToast('Menampilkan jadwal untuk tanggal ' + this.dayLabel);
                     }
                 },
 
