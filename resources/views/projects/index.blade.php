@@ -147,10 +147,23 @@
 
                 <!-- Pagination -->
                 <div class="p-3.5 sm:px-5 sm:py-3.5 border-t border-[#EFEDEB] flex flex-col sm:flex-row items-center justify-between gap-3 text-[12.5px] text-[#75727C]">
-                    <div class="text-center sm:text-left">
-                        Menampilkan <span class="font-medium text-[#17151C]" x-text="filteredProjects.length > 0 ? (currentPage - 1) * perPage + 1 : 0"></span> &ndash; <span class="font-medium text-[#17151C]" x-text="Math.min(currentPage * perPage, filteredProjects.length)"></span> dari <span class="font-medium text-[#17151C]" x-text="filteredProjects.length"></span> project
+                    <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
+                        <span>Tampilkan:</span>
+                        <select x-model="perPage" @change="currentPage = 1" class="px-2 py-1 bg-white border border-[#E7E5E3] rounded-lg text-[12px] font-semibold text-[#17151C] outline-none hover:border-[#CBD5E1] transition cursor-pointer">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="30">30</option>
+                            <option value="all">Semua</option>
+                        </select>
+                        <span class="text-[#A19DA8]">&bull;</span>
+                        <div>
+                            Menampilkan 
+                            <span class="font-medium text-[#17151C]" x-text="filteredProjects.length > 0 ? (perPage === 'all' ? 1 : (currentPage - 1) * (parseInt(perPage) || 10) + 1) : 0"></span> &ndash; 
+                            <span class="font-medium text-[#17151C]" x-text="perPage === 'all' ? filteredProjects.length : Math.min(currentPage * (parseInt(perPage) || 10), filteredProjects.length)"></span> 
+                            dari <span class="font-medium text-[#17151C]" x-text="filteredProjects.length"></span> project
+                        </div>
                     </div>
-                    <div class="flex items-center gap-1" x-show="totalPages > 1">
+                    <div class="flex items-center gap-1" x-show="totalPages > 1 && perPage !== 'all'">
                         <button @click="prevPage()" :disabled="currentPage === 1" title="Sebelumnya" class="w-7 h-7 rounded-md border border-[#E7E5E3] hover:bg-[#F1F0EE] text-[#3D3A44] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
@@ -497,12 +510,16 @@
             },
 
             get paginatedProjects() {
-                const start = (this.currentPage - 1) * this.perPage;
-                return this.filteredProjects.slice(start, start + this.perPage);
+                if (this.perPage === 'all') return this.filteredProjects;
+                const limit = parseInt(this.perPage, 10) || 10;
+                const start = (this.currentPage - 1) * limit;
+                return this.filteredProjects.slice(start, start + limit);
             },
 
             get totalPages() {
-                return Math.max(1, Math.ceil(this.filteredProjects.length / this.perPage));
+                if (this.perPage === 'all') return 1;
+                const limit = parseInt(this.perPage, 10) || 10;
+                return Math.max(1, Math.ceil(this.filteredProjects.length / limit));
             },
 
             goToPage(page) { this.currentPage = page; },
