@@ -18,6 +18,8 @@ class RoleSeeder extends Seeder
             'Direktur',
             'HD / Direktur',
             'Group Leader',
+            'PMO',
+            'Project Manager',
             'Lead Divisi',
             'Team Leader',
             'Lead Maintenance',

@@ -28,6 +28,8 @@ class DummyUserSeeder extends Seeder
             'Direktur',
             'HD / Direktur',
             'Group Leader',
+            'PMO',
+            'Project Manager',
             'Lead Divisi',
             'Team Leader',
             'Lead Maintenance',
@@ -58,19 +60,19 @@ class DummyUserSeeder extends Seeder
         // 3. Tim
         $teamNet = Team::firstOrCreate(
             ['name' => 'Tim Network', 'division_id' => $divNet->id],
-            ['description' => 'Tim Operasional, Deployment & Instalasi Jaringan Lapangan']
+            ['leader_id' => null]
         );
         $teamSec = Team::firstOrCreate(
             ['name' => 'Tim Security', 'division_id' => $divSec->id],
-            ['description' => 'Tim Monitoring, Hardening & Security Implementation']
+            ['leader_id' => null]
         );
         $teamMnt = Team::firstOrCreate(
-            ['name' => 'Tim Helpdesk & Maintenance', 'division_id' => $divMnt->id],
-            ['description' => 'Tim Helpdesk, Dispatcher Teknisi, Monitoring SLA & Koordinasi Kunjungan Lapangan']
+            ['name' => 'Tim Maintenance & Helpdesk', 'division_id' => $divMnt->id],
+            ['leader_id' => null]
         );
 
         // ============================================================
-        // 4. SEED USERS RESMI IP-NET (MANAGERIAL & 3 DIVISI)
+        // 4. SEED USERS RESMI IP-NET (MANAGERIAL, PMO & 3 DIVISI)
         // ============================================================
         $direktur = User::updateOrCreate(
             ['email' => 'hariyadi@ipnetsolusindo.com'],
@@ -101,6 +103,37 @@ class DummyUserSeeder extends Seeder
             ]
         );
         $gl->syncRoles(['Group Leader']);
+
+        // --- PMO (PROJECT MANAGEMENT OFFICE) ---
+        $pmoHead = User::updateOrCreate(
+            ['email' => 'kuncoro@ipnetsolusindo.com'],
+            [
+                'name'        => 'Kuncoro',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000009',
+                'position'    => 'Head of PMO',
+                'status'      => 'Active',
+                'division_id' => null,
+                'team_id'     => null,
+                'level'       => null,
+            ]
+        );
+        $pmoHead->syncRoles(['PMO']);
+
+        $pmRizki = User::updateOrCreate(
+            ['email' => 'rizki@ipnetsolusindo.com'],
+            [
+                'name'        => 'Rizki',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000010',
+                'position'    => 'Project Manager',
+                'status'      => 'Active',
+                'division_id' => null,
+                'team_id'     => null,
+                'level'       => null,
+            ]
+        );
+        $pmRizki->syncRoles(['Project Manager']);
 
         // --- DIVISI NETWORK ---
         $tlNet = User::updateOrCreate(

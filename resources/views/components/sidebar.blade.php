@@ -1,18 +1,33 @@
 @php
     $user = auth()->user();
     $currentRoute = request()->route() ? request()->route()->getName() : '';
+    $isPmoUser = $user && $user->hasAnyRole(['PMO', 'Project Manager']);
+    $isDirekturOrGl = $user && $user->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader']);
 
     $navItems = [];
-    if (\App\Helpers\ScopeHelper::isManagerial($user)) {
+    if ($isPmoUser) {
+        $navItems = [
+            ['key' => 'pmo_dashboard', 'label' => 'Dashboard PMO', 'route' => 'pmo.dashboard'],
+            ['key' => 'projects',      'label' => 'Portofolio Proyek', 'route' => 'projects.index'],
+            ['key' => 'tasks',         'label' => 'WBS & Task',    'route' => 'tasks.index'],
+            ['key' => 'schedules',     'label' => 'Jadwal & Tim',  'route' => 'schedules.index'],
+            ['key' => 'timesheets',    'label' => 'Timesheet',     'route' => 'timesheets.index'],
+            ['key' => 'attendance',    'label' => 'Presensi',      'route' => 'attendance.recap'],
+            ['key' => 'users',         'label' => 'Pengguna',      'route' => 'users.index'],
+        ];
+    } elseif (\App\Helpers\ScopeHelper::isManagerial($user)) {
         $navItems = [
             ['key' => 'dashboard',   'label' => 'Dashboard',  'route' => 'dashboard.lead'],
-            ['key' => 'projects',    'label' => 'Project',    'route' => 'projects.index'],
-            ['key' => 'tasks',       'label' => 'Task',       'route' => 'tasks.index'],
-            ['key' => 'schedules',   'label' => 'Jadwal',     'route' => 'schedules.index'],
-            ['key' => 'timesheets',  'label' => 'Timesheet',  'route' => 'timesheets.index'],
-            ['key' => 'attendance',  'label' => 'Presensi',   'route' => 'attendance.recap'],
-            ['key' => 'users',       'label' => 'Pengguna',   'route' => 'users.index'],
         ];
+        if ($isDirekturOrGl) {
+            $navItems[] = ['key' => 'pmo_dashboard', 'label' => 'Dashboard PMO', 'route' => 'pmo.dashboard'];
+        }
+        $navItems[] = ['key' => 'projects',    'label' => 'Project',    'route' => 'projects.index'];
+        $navItems[] = ['key' => 'tasks',       'label' => 'Task',       'route' => 'tasks.index'];
+        $navItems[] = ['key' => 'schedules',   'label' => 'Jadwal',     'route' => 'schedules.index'];
+        $navItems[] = ['key' => 'timesheets',  'label' => 'Timesheet',  'route' => 'timesheets.index'];
+        $navItems[] = ['key' => 'attendance',  'label' => 'Presensi',   'route' => 'attendance.recap'];
+        $navItems[] = ['key' => 'users',       'label' => 'Pengguna',   'route' => 'users.index'];
     } else {
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',  'route' => 'dashboard.engineer'],
@@ -108,6 +123,11 @@
                class="sidebar-nav-item{{ $isActive ? ' sidebar-nav-item-active' : '' }}"
                style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; text-decoration:none; font-size:13.5px; font-weight:{{ $isActive ? '700' : '500' }}; {{ $isActive ? 'background:white; color:#AF1424; box-shadow:0 6px 16px rgba(0,0,0,0.18);' : 'color:rgba(255,255,255,0.72);' }} transition:all 0.15s ease;">
                 @switch($item['key'])
+                    @case('pmo_dashboard')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+                    </svg>
+                    @break
                     @case('dashboard')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>

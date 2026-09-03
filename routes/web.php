@@ -17,6 +17,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\TimesheetController;
+use App\Http\Controllers\PmoController;
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
@@ -39,17 +40,24 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
+    // PMO & Project Management Office Dashboard
+    Route::prefix('pmo')->middleware('role:PMO|Project Manager|Direktur|HD / Direktur|Group Leader')->group(function () {
+        Route::get('/dashboard', [PmoController::class, 'dashboard'])->name('pmo.dashboard');
+        Route::post('/projects/{project}/stage', [PmoController::class, 'updateStage'])->name('pmo.stage.update');
+        Route::post('/projects/{project}/documents', [PmoController::class, 'updateDocuments'])->name('pmo.documents.update');
+    });
+
     // Dashboard
     Route::get('/dashboard/lead', [DashboardController::class, 'lead'])
         ->name('dashboard.lead')
-        ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
+        ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance|PMO|Project Manager');
     
     Route::get('/dashboard/engineer', [DashboardController::class, 'engineer'])
         ->name('dashboard.engineer')
         ->middleware('role:Engineer L1|Engineer L2|Engineer|Maintenance');
 
-    // Projects - Managerial Roles
-    Route::prefix('projects')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance')->group(function () {
+    // Projects - Managerial & PMO Roles
+    Route::prefix('projects')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance|PMO|Project Manager')->group(function () {
         Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
         Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
         Route::put('/{project}', [ProjectController::class, 'update'])->name('projects.update');

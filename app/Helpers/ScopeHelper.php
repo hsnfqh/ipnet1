@@ -64,6 +64,8 @@ class ScopeHelper
             'Direktur',
             'HD / Direktur',
             'Group Leader',
+            'PMO',
+            'Project Manager',
             'Lead Divisi',
             'Team Leader',
             'Lead Maintenance',
@@ -72,25 +74,34 @@ class ScopeHelper
     }
 
     /**
+     * Apakah user adalah PMO atau Project Manager?
+     */
+    public static function isPmo($user): bool
+    {
+        if (!$user) return false;
+        return $user->hasAnyRole(['PMO', 'Project Manager']);
+    }
+
+    /**
      * Apakah user memiliki wewenang operasional untuk membuat project baru?
-     * Hanya Team Leader teknis (Network Leader, Security Leader) dan Lead Engineer.
+     * Hanya Team Leader teknis (Network Leader, Security Leader), PMO, Project Manager, dan Lead Engineer.
      * Lead Maintenance bertindak sebagai Helpdesk / Dispatcher sehingga tidak membuat project baru dari nol.
      */
     public static function canCreateProjects($user): bool
     {
         if (!$user) return false;
         if ($user->hasRole('Lead Maintenance')) return false;
-        return $user->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Engineer']);
+        return $user->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'PMO', 'Project Manager', 'Lead Divisi', 'Team Leader', 'Lead Engineer']);
     }
 
     /**
      * Apakah user memiliki wewenang operasional untuk mengelola task/tiket (buat & edit task)?
-     * Mencakup Team Leader teknis, Lead Maintenance (Helpdesk), dan Lead Engineer.
+     * Mencakup Team Leader teknis, Lead Maintenance (Helpdesk), PMO, Project Manager, dan Lead Engineer.
      */
     public static function canManageTasks($user): bool
     {
         if (!$user) return false;
-        return $user->hasAnyRole(['Direktur', 'Group Leader', 'Team Leader', 'Lead Maintenance', 'Lead Engineer']);
+        return $user->hasAnyRole(['Direktur', 'Group Leader', 'PMO', 'Project Manager', 'Team Leader', 'Lead Maintenance', 'Lead Engineer']);
     }
 
     /**
@@ -230,11 +241,11 @@ class ScopeHelper
         if (!$user) return [];
 
         if ($user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
-            return ['Direktur', 'Group Leader', 'Team Leader', 'Lead Maintenance', 'Engineer', 'Maintenance'];
+            return ['Direktur', 'Group Leader', 'PMO', 'Project Manager', 'Team Leader', 'Lead Maintenance', 'Engineer', 'Maintenance'];
         }
 
         if (self::isGroupLeader($user)) {
-            return ['Team Leader', 'Lead Maintenance', 'Engineer', 'Maintenance'];
+            return ['PMO', 'Project Manager', 'Team Leader', 'Lead Maintenance', 'Engineer', 'Maintenance'];
         }
 
         if (self::isTeamLeader($user)) {
@@ -257,11 +268,11 @@ class ScopeHelper
         if (!$user) return [];
 
         if ($user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
-            return ['Direktur', 'Group Leader', 'Team Leader', 'Engineer L1', 'Engineer L2'];
+            return ['Direktur', 'Group Leader', 'PMO', 'Project Manager', 'Team Leader', 'Engineer L1', 'Engineer L2'];
         }
 
         if (self::isGroupLeader($user)) {
-            return ['Team Leader', 'Engineer L1', 'Engineer L2'];
+            return ['PMO', 'Project Manager', 'Team Leader', 'Engineer L1', 'Engineer L2'];
         }
 
         if (self::isTeamLeader($user)) {

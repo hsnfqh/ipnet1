@@ -56,6 +56,11 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
+        // PMO & Project Manager -> Dashboard PMO
+        if ($user->hasAnyRole(['PMO', 'Project Manager'])) {
+            return route('pmo.dashboard');
+        }
+
         // Level manajerial (Direktur, HD, Group Leader, Lead Divisi, Team Leader, Lead Engineer) -> dashboard manajerial
         if (\App\Helpers\ScopeHelper::isManagerial($user)) {
             return route('dashboard.lead');

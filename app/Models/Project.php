@@ -22,13 +22,18 @@ class Project extends Model
         'start_date',
         'deadline',
         'status',
+        'stage',
+        'process_status',
         'created_by',
+        'pm_id',
         'division_id',
+        'documents_checklist',
     ];
 
     protected $casts = [
-        'start_date' => 'date:Y-m-d',
-        'deadline'   => 'date:Y-m-d',
+        'start_date'          => 'date:Y-m-d',
+        'deadline'            => 'date:Y-m-d',
+        'documents_checklist' => 'array',
     ];
 
     protected $appends = [
@@ -37,6 +42,11 @@ class Project extends Model
     ];
 
     // Relationships
+    public function pm()
+    {
+        return $this->belongsTo(User::class, 'pm_id');
+    }
+
     public function division()
     {
         return $this->belongsTo(Division::class);
