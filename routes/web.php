@@ -18,6 +18,7 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\TimesheetController;
 use App\Http\Controllers\PmoController;
+use App\Http\Controllers\AcquireController;
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
@@ -40,6 +41,15 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
+    // Modul 1: ACQUIRE (Sales Pipeline & Handover 1 to Design)
+    Route::prefix('acquire')->middleware('role:PMO|Project Manager|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance|Lead Engineer')->group(function () {
+        Route::get('/', [AcquireController::class, 'index'])->name('acquire.index');
+        Route::post('/', [AcquireController::class, 'store'])->name('acquire.store');
+        Route::put('/{project}', [AcquireController::class, 'update'])->name('acquire.update');
+        Route::post('/{project}/handover-design', [AcquireController::class, 'handoverToDesign'])->name('acquire.handover.design');
+        Route::delete('/{project}', [AcquireController::class, 'destroy'])->name('acquire.destroy');
+    });
+
     // PMO & Project Management Office Dashboard
     Route::prefix('pmo')->middleware('role:PMO|Project Manager|Direktur|HD / Direktur|Group Leader')->group(function () {
         Route::get('/dashboard', [PmoController::class, 'dashboard'])->name('pmo.dashboard');
