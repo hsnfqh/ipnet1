@@ -226,7 +226,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-[13px] font-semibold text-[#17151C] mb-1.5">Nama Sales / PIC Sales <span class="text-[#C81E2C]">*</span></label>
-                                        <input type="text" x-model="form.sales_name" required class="wms-input" placeholder="Contoh: Riko Wijaya">
+                                        <input type="text" x-model="form.sales_name" required class="wms-input" placeholder="Contoh: Raiza / Ribka / Widodo">
                                     </div>
                                 </div>
 

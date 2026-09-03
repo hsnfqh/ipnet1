@@ -1663,29 +1663,6 @@
                         }
                     });
 
-                    // --- Deadline Project (MERAH TUA) ---
-                    this.calendarProjects.forEach(function(p) {
-                        if (p.deadline === date) {
-                            events.push({
-                                _uid: 'proj-' + p.id,
-                                _type: 'project',
-                                _color: '#991B1B',
-                                _displayTitle: p.name,
-                                _timeLabel: 'Project',
-                                _tooltip: 'Deadline Project: ' + p.name + (p.client ? ' (' + p.client + ')' : ''),
-                                _subLabel: p.client || '',
-                                id: p.id,
-                                title: p.name,
-                                project: { id: p.id, name: p.name },
-                                engineer: null,
-                                start_time: '',
-                                end_time: '',
-                                location: '',
-                                description: ''
-                            });
-                        }
-                    });
-
                     // Urutkan agenda: Day Off paling atas, lalu jam paling pagi ke paling malam (00:00 -> 23:59)
                     events.sort(function(a, b) {
                         // 1. Day Off ditaruh paling atas
