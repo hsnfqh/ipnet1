@@ -40,8 +40,10 @@ class DashboardController extends Controller
         }
         $tasks = $tasksQuery->get();
 
-        // Filter projects sesuai scope role yang login
-        $projectsQuery = Project::with(['tasks', 'creator']);
+        // Filter projects sesuai scope role yang login (kecualikan dummy/internal Day Off)
+        $projectsQuery = Project::with(['tasks', 'creator'])
+            ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+            ->where('client', '!=', 'Internal / Umum');
         if ($scopeIds !== null) {
             $projectIds = $tasks->pluck('project_id')->unique();
             $projectsQuery->where(function($q) use ($projectIds, $user) {

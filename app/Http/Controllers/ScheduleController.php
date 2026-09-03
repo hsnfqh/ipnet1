@@ -195,11 +195,11 @@ class ScheduleController extends Controller
 
             // Kelola category & project 'other' / Day Off
             $data['category'] = $request->input('category', 'Meeting');
-            if ($data['category'] === 'Day Off') {
+            if ($data['category'] === 'Day Off' || in_array(strtoupper(trim($request->input('new_project_name', ''))), ['DAY OFF', 'DAY OFF / CUTI', 'CUTI'])) {
                 $data['project_id'] = null;
             } elseif ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
                 $projectName = trim($request->input('new_project_name'));
-                if (!empty($projectName)) {
+                if (!empty($projectName) && !in_array(strtoupper($projectName), ['DAY OFF', 'DAY OFF / CUTI', 'CUTI'])) {
                     $project = Project::firstOrCreate(
                         ['name' => $projectName],
                         [
@@ -355,11 +355,11 @@ class ScheduleController extends Controller
 
             // Kelola category & project 'other' / Day Off jika diedit
             $data['category'] = $request->input('category', $schedule->category ?? 'Meeting');
-            if ($data['category'] === 'Day Off') {
+            if ($data['category'] === 'Day Off' || in_array(strtoupper(trim($request->input('new_project_name', ''))), ['DAY OFF', 'DAY OFF / CUTI', 'CUTI'])) {
                 $data['project_id'] = null;
             } elseif ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
                 $projectName = trim($request->input('new_project_name'));
-                if (!empty($projectName)) {
+                if (!empty($projectName) && !in_array(strtoupper($projectName), ['DAY OFF', 'DAY OFF / CUTI', 'CUTI'])) {
                     $project = Project::firstOrCreate(
                         ['name' => $projectName],
                         [
