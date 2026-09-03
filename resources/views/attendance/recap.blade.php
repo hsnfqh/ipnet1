@@ -190,7 +190,8 @@
                                             {{-- Engineer Name & Avatar --}}
                                             <td class="py-3.5 px-4 whitespace-nowrap">
                                                 <div class="flex items-center gap-2.5">
-                                                    <div class="w-7 h-7 rounded-full bg-[#FDF1F2] border border-[#FADADF] text-[#C81E2C] text-[10.5px] font-bold flex items-center justify-center flex-shrink-0" 
+                                                    <div class="w-7 h-7 rounded-full text-white text-[10.5px] font-bold flex items-center justify-center flex-shrink-0 shadow-sm" 
+                                                         :style="'background:' + colorFromName(row.name)"
                                                          x-text="initials(row.name)">
                                                     </div>
                                                     <span class="font-semibold text-[#17151C] text-[13.5px]" x-text="row.name"></span>
@@ -312,11 +313,24 @@
                                         $total      = $engRecords->count();
                                         $pct        = $total > 0 ? round($total / 26 * 100) : 0;
                                         $initials   = strtoupper(substr($eng->name, 0, 1)) . strtoupper(substr(explode(' ', $eng->name)[1] ?? '', 0, 1));
+                                        $cleanName  = strtolower(trim($eng->name));
+                                        $pos        = strtolower($eng->position ?? '');
+                                        if (str_contains($pos, 'lead') || str_contains($pos, 'leader') || str_contains($cleanName, 'nugraha') || str_contains($cleanName, 'susanto')) {
+                                            $avatarBg = '#7C3AED';
+                                        } elseif (str_contains($pos, 'l2') || str_contains($pos, 'senior') || in_array($cleanName, ['dedy suryana', 'raihan ghiffary', 'syaiful amin', 'ardiansyah'])) {
+                                            $avatarBg = '#2563EB';
+                                        } elseif (str_contains($pos, 'l1') || str_contains($pos, 'junior') || in_array($cleanName, ['dafa rizqullah', 'helmi shiamsyah', 'panca pangga ramadhan', 'rorik', 'shiamsyah azis'])) {
+                                            $avatarBg = '#059669';
+                                        } elseif (str_contains($pos, 'sales') || in_array($cleanName, ['raiza', 'ribka', 'widodo'])) {
+                                            $avatarBg = '#D97706';
+                                        } else {
+                                            $avatarBg = '#2563EB';
+                                        }
                                     @endphp
                                     <tr class="hover:bg-[#FBFBFA] transition-colors">
                                         <td class="py-3.5 px-4 whitespace-nowrap">
                                             <div class="flex items-center gap-2.5">
-                                                <div class="w-7 h-7 rounded-full bg-[#FDF1F2] border border-[#FADADF] text-[#C81E2C] text-[10.5px] font-bold flex items-center justify-center flex-shrink-0">
+                                                <div class="w-7 h-7 rounded-full text-white text-[10.5px] font-bold flex items-center justify-center flex-shrink-0 shadow-sm" style="background: {{ $avatarBg }};">
                                                     {{ $initials }}
                                                 </div>
                                                 <div>
@@ -401,7 +415,7 @@ document.addEventListener('alpine:init', () => {
         selectedMonth: '{{ $month }}',
         dailyRows:     [],
         loadingDaily:  false,
-        engineers:     @json($engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])),
+        engineers:     @json($engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name, 'position' => $e->position ?? ''])),
 
         get summaryDaily() {
             const total = this.engineers.length;
@@ -467,6 +481,35 @@ document.addEventListener('alpine:init', () => {
             return parts.length >= 2
                 ? (parts[0][0] + parts[1][0]).toUpperCase()
                 : (parts[0][0] || '?').toUpperCase();
+        },
+
+        colorFromName(name) {
+            if (!name || name === '-') return '#64748B';
+            const cleanName = name.trim().toLowerCase();
+            const eng = this.engineers.find(e => e.name && e.name.trim().toLowerCase() === cleanName);
+            const pos = (eng && eng.position) ? eng.position.toLowerCase() : '';
+            
+            // 1. Team Leader / Lead / Direktur -> Purple (#7C3AED)
+            if (pos.includes('leader') || pos.includes('lead') || pos.includes('direktur') || cleanName.includes('nugraha') || cleanName.includes('susanto')) {
+                return '#7C3AED';
+            }
+            // 2. Engineer L2 / Senior -> Deep Blue (#2563EB)
+            if (pos.includes('l2') || pos.includes('senior') || pos.includes('level 2') || ['dedy suryana', 'raihan ghiffary', 'syaiful amin', 'ardiansyah'].includes(cleanName)) {
+                return '#2563EB';
+            }
+            // 3. Engineer L1 / Field Staff -> Emerald Green (#059669)
+            if (pos.includes('l1') || pos.includes('junior') || pos.includes('level 1') || pos.includes('maintenance') || ['dafa rizqullah', 'helmi shiamsyah', 'panca pangga ramadhan', 'rorik', 'shiamsyah azis'].includes(cleanName)) {
+                return '#059669';
+            }
+            // 4. Sales / BusDev -> Amber Orange (#D97706)
+            if (pos.includes('sales') || pos.includes('busdev') || ['raiza', 'ribka', 'widodo'].includes(cleanName)) {
+                return '#D97706';
+            }
+
+            const palette = ['#2563EB', '#059669', '#7C3AED', '#D97706', '#0891B2'];
+            let hash = 0;
+            for (let i = 0; i < cleanName.length; i++) hash = cleanName.charCodeAt(i) + ((hash << 5) - hash);
+            return palette[Math.abs(hash) % palette.length];
         },
     }));
 });
