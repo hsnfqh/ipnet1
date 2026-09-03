@@ -3,26 +3,32 @@
 @section('title', 'Dashboard PMO - Project Control Tower')
 
 @section('content')
-<div x-data="pmoDashboard()" x-cloak class="min-h-screen bg-[#F8F7F6] pb-12">
+<div class="flex h-screen overflow-hidden">
+    @include('components.sidebar')
     
-    {{-- TOPBAR CONTAINER --}}
-    <div class="px-4 sm:px-6 lg:px-8 pt-6 pb-4">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E7E5E3] shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-            <div>
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11.5px] font-bold bg-[#FDF1F2] text-[#C81E2C] border border-[#FCD4D7]">
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#C81E2C] animate-pulse"></span>
-                        PMO & Delivery Control Tower
-                    </span>
-                    <span class="text-[12px] text-[#75727C] font-medium">&bull; Ver. 2.0 Integrated Process</span>
-                </div>
-                <h1 class="text-[20px] sm:text-[24px] font-bold text-[#17151C] tracking-tight">
-                    Pusat Kendali Portofolio Proyek
-                </h1>
-                <p class="text-[13px] sm:text-[13.5px] text-[#75727C] mt-0.5">
-                    Monitoring siklus <span class="font-semibold text-[#17151C]">Acquire &rarr; Design &rarr; Deliver &rarr; Operate</span> dan serah terima dokumen wajib.
-                </p>
-            </div>
+    <div class="flex-1 min-w-0 overflow-y-auto">
+        @include('components.topbar', ['title' => 'Dashboard PMO'])
+        
+        <div class="p-4 sm:p-5 lg:p-[26px] animate-fade-in" x-data="pmoDashboard()" x-cloak>
+            
+            {{-- TOPBAR CONTAINER --}}
+            <div class="mb-5">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-[#E7E5E3] shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11.5px] font-bold bg-[#FDF1F2] text-[#C81E2C] border border-[#FCD4D7]">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#C81E2C] animate-pulse"></span>
+                                PMO & Delivery Control Tower
+                            </span>
+                            <span class="text-[12px] text-[#75727C] font-medium">&bull; Ver. 2.0 Integrated Process</span>
+                        </div>
+                        <h1 class="text-[20px] sm:text-[24px] font-bold text-[#17151C] tracking-tight">
+                            Pusat Kendali Portofolio Proyek
+                        </h1>
+                        <p class="text-[13px] sm:text-[13.5px] text-[#75727C] mt-0.5">
+                            Monitoring siklus <span class="font-semibold text-[#17151C]">Acquire &rarr; Design &rarr; Deliver &rarr; Operate</span> dan serah terima dokumen wajib.
+                        </p>
+                    </div>
 
             {{-- Quick Filter Controls --}}
             <div class="flex items-center gap-2.5 flex-wrap">
@@ -544,6 +550,8 @@
         </div>
     </template>
 
+        </div>
+    </div>
 </div>
 
 @push('scripts')

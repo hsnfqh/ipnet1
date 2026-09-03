@@ -4,37 +4,80 @@
     $isPmoUser = $user && $user->hasAnyRole(['PMO', 'Project Manager']);
     $isDirekturOrGl = $user && $user->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader']);
 
-    $navItems = [];
+    $navSections = [];
+
     if ($isPmoUser) {
-        $navItems = [
-            ['key' => 'pmo_dashboard', 'label' => 'Dashboard PMO', 'route' => 'pmo.dashboard'],
-            ['key' => 'projects',      'label' => 'Portofolio Proyek', 'route' => 'projects.index'],
-            ['key' => 'tasks',         'label' => 'WBS & Task',    'route' => 'tasks.index'],
-            ['key' => 'schedules',     'label' => 'Jadwal & Tim',  'route' => 'schedules.index'],
-            ['key' => 'timesheets',    'label' => 'Timesheet',     'route' => 'timesheets.index'],
-            ['key' => 'attendance',    'label' => 'Presensi',      'route' => 'attendance.recap'],
-            ['key' => 'users',         'label' => 'Pengguna',      'route' => 'users.index'],
+        $navSections = [
+            [
+                'title' => 'PMO & SIKLUS PROSES',
+                'items' => [
+                    ['key' => 'pmo_dashboard', 'label' => 'Dashboard PMO', 'route' => 'pmo.dashboard'],
+                    ['key' => 'projects',      'label' => 'Portofolio Proyek', 'route' => 'projects.index'],
+                ]
+            ],
+            [
+                'title' => 'DELIVERY & TIM',
+                'items' => [
+                    ['key' => 'tasks',         'label' => 'WBS & Task',    'route' => 'tasks.index'],
+                    ['key' => 'schedules',     'label' => 'Jadwal & Tim',  'route' => 'schedules.index'],
+                ]
+            ],
+            [
+                'title' => 'ADMINISTRASI & PRESENSI',
+                'items' => [
+                    ['key' => 'timesheets',    'label' => 'Timesheet',     'route' => 'timesheets.index'],
+                    ['key' => 'attendance',    'label' => 'Presensi',      'route' => 'attendance.recap'],
+                    ['key' => 'users',         'label' => 'Pengguna',      'route' => 'users.index'],
+                ]
+            ]
         ];
     } elseif (\App\Helpers\ScopeHelper::isManagerial($user)) {
-        $navItems = [
+        $coreItems = [
             ['key' => 'dashboard',   'label' => 'Dashboard',  'route' => 'dashboard.lead'],
         ];
         if ($isDirekturOrGl) {
-            $navItems[] = ['key' => 'pmo_dashboard', 'label' => 'Dashboard PMO', 'route' => 'pmo.dashboard'];
+            $coreItems[] = ['key' => 'pmo_dashboard', 'label' => 'Dashboard PMO', 'route' => 'pmo.dashboard'];
         }
-        $navItems[] = ['key' => 'projects',    'label' => 'Project',    'route' => 'projects.index'];
-        $navItems[] = ['key' => 'tasks',       'label' => 'Task',       'route' => 'tasks.index'];
-        $navItems[] = ['key' => 'schedules',   'label' => 'Jadwal',     'route' => 'schedules.index'];
-        $navItems[] = ['key' => 'timesheets',  'label' => 'Timesheet',  'route' => 'timesheets.index'];
-        $navItems[] = ['key' => 'attendance',  'label' => 'Presensi',   'route' => 'attendance.recap'];
-        $navItems[] = ['key' => 'users',       'label' => 'Pengguna',   'route' => 'users.index'];
+        $coreItems[] = ['key' => 'projects', 'label' => 'Project', 'route' => 'projects.index'];
+
+        $navSections = [
+            [
+                'title' => 'MANAJEMEN',
+                'items' => $coreItems
+            ],
+            [
+                'title' => 'OPERASIONAL',
+                'items' => [
+                    ['key' => 'tasks',       'label' => 'Task',       'route' => 'tasks.index'],
+                    ['key' => 'schedules',   'label' => 'Jadwal',     'route' => 'schedules.index'],
+                ]
+            ],
+            [
+                'title' => 'ADMINISTRASI',
+                'items' => [
+                    ['key' => 'timesheets',  'label' => 'Timesheet',  'route' => 'timesheets.index'],
+                    ['key' => 'attendance',  'label' => 'Presensi',   'route' => 'attendance.recap'],
+                    ['key' => 'users',       'label' => 'Pengguna',   'route' => 'users.index'],
+                ]
+            ]
+        ];
     } else {
-        $navItems = [
-            ['key' => 'dashboard',  'label' => 'Dashboard',  'route' => 'dashboard.engineer'],
-            ['key' => 'tasks',      'label' => 'Task Saya',  'route' => 'tasks.index'],
-            ['key' => 'schedules',  'label' => 'Jadwal',     'route' => 'schedules.index'],
-            ['key' => 'timesheets', 'label' => 'Timesheet',  'route' => 'timesheets.index'],
-            ['key' => 'attendance', 'label' => 'Presensi',   'route' => 'attendance.index'],
+        $navSections = [
+            [
+                'title' => 'MENU UTAMA',
+                'items' => [
+                    ['key' => 'dashboard',  'label' => 'Dashboard',  'route' => 'dashboard.engineer'],
+                    ['key' => 'tasks',      'label' => 'Task Saya',  'route' => 'tasks.index'],
+                    ['key' => 'schedules',  'label' => 'Jadwal',     'route' => 'schedules.index'],
+                ]
+            ],
+            [
+                'title' => 'AKTIVITAS KERJA',
+                'items' => [
+                    ['key' => 'timesheets', 'label' => 'Timesheet',  'route' => 'timesheets.index'],
+                    ['key' => 'attendance', 'label' => 'Presensi',   'route' => 'attendance.index'],
+                ]
+            ]
         ];
     }
 @endphp
@@ -112,65 +155,73 @@
     </div>
 
     <!-- NAVIGATION -->
-    <div style="flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:2px; overflow-y:auto;">
-        <div x-show="!collapsed" x-cloak style="font-size:10.5px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.42); padding:0 10px 8px;">MENU UTAMA</div>
+    <div style="flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:14px; overflow-y:auto;">
+        @foreach($navSections as $section)
+            <div>
+                <div x-show="!collapsed" x-cloak style="font-size:10px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.42); padding:0 10px 6px;">
+                    {{ $section['title'] }}
+                </div>
 
-        @foreach($navItems as $item)
-            @php
-                $isActive = $currentRoute === $item['route'];
-            @endphp
-            <a href="{{ route($item['route']) }}"
-               class="sidebar-nav-item{{ $isActive ? ' sidebar-nav-item-active' : '' }}"
-               style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; text-decoration:none; font-size:13.5px; font-weight:{{ $isActive ? '700' : '500' }}; {{ $isActive ? 'background:white; color:#AF1424; box-shadow:0 6px 16px rgba(0,0,0,0.18);' : 'color:rgba(255,255,255,0.72);' }} transition:all 0.15s ease;">
-                @switch($item['key'])
-                    @case('pmo_dashboard')
-                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
-                    </svg>
-                    @break
-                    @case('dashboard')
-                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                    </svg>
-                    @break
-                    @case('projects')
-                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                    </svg>
-                    @break
-                    @case('tasks')
-                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                    </svg>
-                    @break
-                    @case('schedules')
-                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    @break
-                    @case('timesheets')
-                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    @break
-                    @case('attendance')
-                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    @break
-                    @case('users')
-                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                    </svg>
-                    @break
-                    @case('profile')
-                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                    @break
-                @endswitch
-                <span x-show="!collapsed" x-cloak>{{ $item['label'] }}</span>
-            </a>
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                    @foreach($section['items'] as $item)
+                        @php
+                            $isActive = $currentRoute === $item['route'];
+                        @endphp
+                        <a href="{{ route($item['route']) }}"
+                           class="sidebar-nav-item{{ $isActive ? ' sidebar-nav-item-active' : '' }}"
+                           style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; text-decoration:none; font-size:13.5px; font-weight:{{ $isActive ? '700' : '500' }}; {{ $isActive ? 'background:white; color:#AF1424; box-shadow:0 6px 16px rgba(0,0,0,0.18);' : 'color:rgba(255,255,255,0.72);' }} transition:all 0.15s ease;">
+                            @switch($item['key'])
+                                @case('pmo_dashboard')
+                                <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+                                </svg>
+                                @break
+                                @case('dashboard')
+                                <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                                </svg>
+                                @break
+                                @case('projects')
+                                <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                </svg>
+                                @break
+                                @case('tasks')
+                                <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                </svg>
+                                @break
+                                @case('schedules')
+                                <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                @break
+                                @case('timesheets')
+                                <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                @break
+                                @case('attendance')
+                                <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                @break
+                                @case('users')
+                                <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                @break
+                                @case('profile')
+                                <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                @break
+                            @endswitch
+                            <span x-show="!collapsed" x-cloak>{{ $item['label'] }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
         @endforeach
     </div>
 
