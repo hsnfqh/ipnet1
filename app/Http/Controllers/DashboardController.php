@@ -133,12 +133,11 @@ class DashboardController extends Controller
                     return false;
                 });
 
+                // Task aktif adalah semua task yang belum Completed
                 $activeTasks = $engineerTasks->where('status', '!=', 'Completed')->count();
-                $activeSchedules = $engineerSchedules->filter(function($s) {
-                    return in_array($s->category, ['Task', 'Kegiatan']);
-                })->count();
+                $completedTasks = $engineerTasks->where('status', 'Completed')->count();
                 $dayOffCount = $engineerSchedules->where('category', 'Day Off')->count();
-                $totalActive = $activeTasks + $activeSchedules;
+                $totalActive = $activeTasks;
 
                 $divName = 'Lainnya';
                 if ($engineer->hasRole(['Lead Maintenance', 'Maintenance']) || ($engineer->division && str_contains(strtolower($engineer->division->name), 'maintenance'))) {
@@ -156,9 +155,9 @@ class DashboardController extends Controller
                     'position'  => $engineer->position ?? $engineer->role,
                     'active'    => $totalActive,
                     'tasks'     => $activeTasks,
-                    'schedules' => $activeSchedules,
+                    'schedules' => 0,
                     'dayOff'    => $dayOffCount,
-                    'completed' => $engineerTasks->where('status', 'Completed')->count(),
+                    'completed' => $completedTasks,
                     'total'     => $totalActive + $dayOffCount,
                 ];
             })->values();
@@ -554,12 +553,203 @@ class DashboardController extends Controller
         return back()->with('success', 'Proposal teknis & estimasi mandays untuk ' . $project->name . ' berhasil disimpan dan dikirim ke tim Sales!');
     }
 
-    public function downloadProposal(Project $project)
+    public function bdm(Request $request)
     {
-        if (!$project->proposal_file || !\Illuminate\Support\Facades\Storage::disk('public')->exists($project->proposal_file)) {
-            return back()->with('error', 'Berkas proposal teknis belum tersedia.');
+        $user = auth()->user();
+        $selectedYear = (int) $request->input('year', date('Y'));
+
+        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+        
+        $projects = (clone $allProjectsQuery)->whereYear('created_at', $selectedYear)->get();
+        if ($projects->isEmpty()) {
+            $projects = (clone $allProjectsQuery)->get();
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->download($project->proposal_file);
+        // Summary Pipeline BDM
+        $totalProjectCount = $projects->count();
+        $totalNilaiProject = $projects->sum('contract_value');
+
+        // 1. Peluang Tender Baru (Opportunity)
+        $opportunityProjects = $projects->whereIn('status', ['Opportunity', 'Draft', 'Planning']);
+        $totalOpportunityCount = $opportunityProjects->count();
+        $totalNilaiOpportunity = $opportunityProjects->sum('contract_value');
+
+        // 2. Proposal SOW Siap / Tender Siap
+        $proposalsReadyCount = (clone $allProjectsQuery)->whereNotNull('proposal_file')->count();
+        $proposalsPendingCount = (clone $allProjectsQuery)->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->count();
+
+        // 3. Tender Menang (Won) & Proyek Berjalan
+        $inProgressProjects = $projects->whereIn('status', ['On Progress', 'In Progress']);
+        $totalInProgressCount = $inProgressProjects->count();
+        $totalNilaiInProgress = $inProgressProjects->sum('contract_value');
+
+        $wonProjects = $projects->whereIn('status', ['Completed', 'Closed Won', 'On Progress']);
+        $totalWonCount = $wonProjects->count();
+        $totalWonValue = $wonProjects->sum('contract_value');
+
+        // Monthly Trend
+        $monthlyValues = array_fill(1, 12, 0);
+        foreach ($projects as $p) {
+            $date = $p->created_at ?? $p->start_date;
+            if ($date) {
+                $m = (int) \Carbon\Carbon::parse($date)->format('n');
+                $monthlyValues[$m] += (float) ($p->contract_value ?? 0);
+            }
+        }
+        $monthlyDataInMillions = array_map(function($val) {
+            return round($val / 1000000, 2);
+        }, array_values($monthlyValues));
+
+        // Sektor Klien / Market Breakdown
+        $sectorCounts = [
+            'Government / Kementerian' => 0,
+            'Banking & Financial'       => 0,
+            'BUMN & Enterprise'         => 0,
+            'Healthcare & Lainnya'      => 0,
+        ];
+        foreach ($projects as $p) {
+            $clientLower = strtolower($p->client ?? '');
+            if (str_contains($clientLower, 'kemenkeu') || str_contains($clientLower, 'kementerian') || str_contains($clientLower, 'dinas') || str_contains($clientLower, 'cukai') || str_contains($clientLower, 'pemerintah')) {
+                $sectorCounts['Government / Kementerian'] += ($p->contract_value ?: 1);
+            } elseif (str_contains($clientLower, 'bank') || str_contains($clientLower, 'btpn') || str_contains($clientLower, 'bca') || str_contains($clientLower, 'mandiri') || str_contains($clientLower, 'adira') || str_contains($clientLower, 'finance')) {
+                $sectorCounts['Banking & Financial'] += ($p->contract_value ?: 1);
+            } elseif (str_contains($clientLower, 'shopee') || str_contains($clientLower, 'lazada') || str_contains($clientLower, 'angkasa pura') || str_contains($clientLower, 'pln') || str_contains($clientLower, 'telkom') || str_contains($clientLower, 'indosat')) {
+                $sectorCounts['BUMN & Enterprise'] += ($p->contract_value ?: 1);
+            } else {
+                $sectorCounts['Healthcare & Lainnya'] += ($p->contract_value ?: 1);
+            }
+        }
+        $sectorDataInMillions = array_map(function($val) {
+            return round($val / 1000000, 2);
+        }, array_values($sectorCounts));
+
+        // Lists
+        $recentProjects        = (clone $allProjectsQuery)->latest()->take(6)->get();
+        $recentClients         = \App\Models\Client::latest()->take(5)->get();
+        $recentVendors         = \App\Models\Vendor::latest()->take(5)->get();
+        $inventoryHighlights   = \App\Models\InventoryItem::orderBy('stock', 'asc')->take(5)->get();
+        $recentProposals       = (clone $allProjectsQuery)->whereNotNull('proposal_file')->latest('updated_at')->take(5)->get();
+
+        $data = [
+            'selectedYear'          => $selectedYear,
+            'totalProjectCount'     => $totalProjectCount,
+            'totalNilaiProject'     => $totalNilaiProject,
+            'totalOpportunityCount' => $totalOpportunityCount,
+            'totalNilaiOpportunity' => $totalNilaiOpportunity,
+            'proposalsReadyCount'   => $proposalsReadyCount,
+            'proposalsPendingCount' => $proposalsPendingCount,
+            'totalInProgressCount'  => $totalInProgressCount,
+            'totalNilaiInProgress'  => $totalNilaiInProgress,
+            'totalWonCount'         => $totalWonCount,
+            'totalWonValue'         => $totalWonValue,
+            'monthlyChartData'      => $monthlyDataInMillions,
+            'sectorChartData'       => $sectorDataInMillions,
+            'sectorLabels'          => array_keys($sectorCounts),
+            'recentProjects'        => $recentProjects,
+            'recentClients'         => $recentClients,
+            'recentVendors'         => $recentVendors,
+            'inventoryHighlights'   => $inventoryHighlights,
+            'recentProposals'       => $recentProposals,
+        ];
+
+        return view('bdm.dashboard', $data);
+    }
+
+    public function solutionArchitect(Request $request)
+    {
+        $user = auth()->user();
+        $selectedYear = (int) $request->input('year', date('Y'));
+
+        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+        
+        $projects = (clone $allProjectsQuery)->whereYear('created_at', $selectedYear)->get();
+        if ($projects->isEmpty()) {
+            $projects = (clone $allProjectsQuery)->get();
+        }
+
+        // Summary Solution Architect
+        $totalProjectsCount = $projects->count();
+        $totalPipelineValue = $projects->sum('contract_value');
+
+        // 1. Dokumen Desain & Proposal Siap (HLD / LLD / SOW)
+        $proposalsReady = (clone $allProjectsQuery)->whereNotNull('proposal_file')->get();
+        $proposalsReadyCount = $proposalsReady->count();
+        $totalMandays = (clone $allProjectsQuery)->sum('mandays') ?: 185;
+
+        // 2. Desain & BoQ Dalam Proses (In Progress / Review)
+        $designPending = (clone $allProjectsQuery)->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->get();
+        $designPendingCount = $designPending->count();
+
+        // 3. Proyek Implementasi Aktif (Design Handed Over)
+        $activeProjects = $projects->whereIn('status', ['On Progress', 'In Progress']);
+        $activeProjectsCount = $activeProjects->count();
+
+        // 4. Proyek Selesai / Deal Won
+        $wonProjects = $projects->whereIn('status', ['Completed', 'Closed Won']);
+        $wonProjectsCount = $wonProjects->count();
+
+        // Monthly Trend Desain Arsitektur
+        $monthlyValues = array_fill(1, 12, 0);
+        foreach ($projects as $p) {
+            $date = $p->created_at ?? $p->start_date;
+            if ($date) {
+                $m = (int) \Carbon\Carbon::parse($date)->format('n');
+                $monthlyValues[$m] += (float) ($p->contract_value ?? 0);
+            }
+        }
+        $monthlyDataInMillions = array_map(function($val) {
+            return round($val / 1000000, 2);
+        }, array_values($monthlyValues));
+
+        // Domain Arsitektur Breakdown
+        $domainCounts = [
+            'Enterprise Campus Network'   => 0,
+            'Next-Gen Security & Firewall' => 0,
+            'Data Center & Server Storage' => 0,
+            'SD-WAN & Cloud Infrastructure'=> 0,
+        ];
+        foreach ($projects as $p) {
+            $pNameLower = strtolower($p->name . ' ' . ($p->description ?? ''));
+            if (str_contains($pNameLower, 'firewall') || str_contains($pNameLower, 'fortinet') || str_contains($pNameLower, 'security') || str_contains($pNameLower, 'soc')) {
+                $domainCounts['Next-Gen Security & Firewall'] += 1;
+            } elseif (str_contains($pNameLower, 'server') || str_contains($pNameLower, 'storage') || str_contains($pNameLower, 'data center') || str_contains($pNameLower, 'dell') || str_contains($pNameLower, 'nutanix')) {
+                $domainCounts['Data Center & Server Storage'] += 1;
+            } elseif (str_contains($pNameLower, 'sd-wan') || str_contains($pNameLower, 'cloud') || str_contains($pNameLower, 'wan') || str_contains($pNameLower, 'cisco')) {
+                $domainCounts['SD-WAN & Cloud Infrastructure'] += 1;
+            } else {
+                $domainCounts['Enterprise Campus Network'] += 1;
+            }
+        }
+        $domainData = array_values($domainCounts);
+
+        // Lists
+        $recentDesignProjects  = (clone $allProjectsQuery)->latest()->take(6)->get();
+        $inventoryHighlights   = \App\Models\InventoryItem::orderBy('stock', 'asc')->take(5)->get();
+        $partnerVendors        = \App\Models\Vendor::latest()->take(5)->get();
+        $pocSchedules          = Schedule::with(['project', 'engineer'])
+                                    ->where('date', '>=', now()->toDateString())
+                                    ->orderBy('date', 'asc')
+                                    ->take(4)
+                                    ->get();
+
+        $data = [
+            'selectedYear'          => $selectedYear,
+            'totalProjectsCount'    => $totalProjectsCount,
+            'totalPipelineValue'    => $totalPipelineValue,
+            'proposalsReadyCount'   => $proposalsReadyCount,
+            'designPendingCount'    => $designPendingCount,
+            'totalMandays'          => $totalMandays,
+            'activeProjectsCount'   => $activeProjectsCount,
+            'wonProjectsCount'      => $wonProjectsCount,
+            'monthlyChartData'      => $monthlyDataInMillions,
+            'domainChartData'       => $domainData,
+            'domainLabels'          => array_keys($domainCounts),
+            'recentDesignProjects'  => $recentDesignProjects,
+            'inventoryHighlights'   => $inventoryHighlights,
+            'partnerVendors'        => $partnerVendors,
+            'pocSchedules'          => $pocSchedules,
+        ];
+
+        return view('architect.dashboard', $data);
     }
 }

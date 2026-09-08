@@ -458,12 +458,20 @@ class ScheduleController extends Controller
                 $deadlineTime = $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : '23:59:00';
                 $dateStr = $schedule->date ? $schedule->date->format('Y-m-d') : now()->toDateString();
                 
-                $task = Task::firstOrCreate(
-                    [
-                        'title'      => $schedule->title,
-                        'project_id' => $schedule->project_id,
-                    ],
-                    [
+                $task = Task::where('title', $schedule->title)
+                    ->where('project_id', $schedule->project_id)
+                    ->first();
+
+                if ($task) {
+                    $task->update([
+                        'deadline'      => $dateStr . ' ' . $deadlineTime,
+                        'deadline_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : null,
+                        'engineer_id'   => $schedule->engineer_id,
+                    ]);
+                } else {
+                    $task = Task::create([
+                        'title'         => $schedule->title,
+                        'project_id'    => $schedule->project_id,
                         'engineer_id'   => $schedule->engineer_id,
                         'priority'      => $request->input('task_priority', 'High'),
                         'status'        => 'Assigned',
@@ -473,8 +481,9 @@ class ScheduleController extends Controller
                         'deadline_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : null,
                         'description'   => $schedule->description ?: ('Task dibuat dari jadwal: ' . $schedule->title),
                         'created_by'    => auth()->id(),
-                    ]
-                );
+                    ]);
+                }
+
                 if (Schema::hasTable('task_user') && !empty($engineerIdsList)) {
                     $task->engineers()->sync($engineerIdsList);
                 }
