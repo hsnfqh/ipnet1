@@ -166,7 +166,10 @@ class DashboardController extends Controller
 
         // Data Minggu Ini: Task & Jadwal yang jatuh pada rentang pekan ini (Senin - Minggu)
         $weekTasks = $tasks->filter(function($t) use ($startOfWeek, $endOfWeek) {
-            if ($t->status === 'Completed') return false;
+            if ($t->status === 'Completed') {
+                $date = $t->updated_at ?? $t->deadline ?? $t->created_at;
+                return $date && $date >= $startOfWeek && $date <= $endOfWeek;
+            }
             if ($t->deadline) {
                 return $t->deadline >= $startOfWeek && $t->deadline <= $endOfWeek;
             }
@@ -182,7 +185,10 @@ class DashboardController extends Controller
 
         // Data Bulan Ini: Task & Jadwal yang jatuh pada bulan ini (Tanggal 1 - 30/31)
         $monthTasks = $tasks->filter(function($t) use ($startOfMonth, $endOfMonth) {
-            if ($t->status === 'Completed') return false;
+            if ($t->status === 'Completed') {
+                $date = $t->updated_at ?? $t->deadline ?? $t->created_at;
+                return $date && $date >= $startOfMonth && $date <= $endOfMonth;
+            }
             if ($t->deadline) {
                 return $t->deadline >= $startOfMonth && $t->deadline <= $endOfMonth;
             }

@@ -81,10 +81,14 @@
                         <canvas id="engineerLoadChart"></canvas>
                     </div>
                 </div>
-                <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mt-3 text-[11px] text-wms-ink-500">
+                <div class="flex flex-wrap justify-center gap-4 sm:gap-6 mt-3 text-[11px] text-wms-ink-500">
                     <span class="flex items-center gap-1.5">
                         <span style="width:10px; height:10px; border-radius:3px; background:#C81E2C;"></span>
                         Task / Kegiatan Aktif
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <span style="width:10px; height:10px; border-radius:3px; background:#10B981;"></span>
+                        Task Selesai
                     </span>
                 </div>
             </div>
@@ -251,9 +255,9 @@
     function getFilteredEngineerData() {
         const rawData = (currentPeriod === 'week') ? engineerWeekData : engineerMonthData;
         if (currentTeam === 'All') {
-            return rawData.slice().sort((a, b) => b.active - a.active);
+            return rawData.slice().sort((a, b) => (b.active + (b.completed || 0)) - (a.active + (a.completed || 0)));
         }
-        return rawData.filter(d => d.division === currentTeam).sort((a, b) => b.active - a.active);
+        return rawData.filter(d => d.division === currentTeam).sort((a, b) => (b.active + (b.completed || 0)) - (a.active + (a.completed || 0)));
     }
 
     function formatEngineerLabel(d) {
@@ -265,6 +269,9 @@
         const dataToUse = getFilteredEngineerData();
         engineerChart.data.labels = dataToUse.map(formatEngineerLabel);
         engineerChart.data.datasets[0].data = dataToUse.map(d => d.active);
+        if (engineerChart.data.datasets[1]) {
+            engineerChart.data.datasets[1].data = dataToUse.map(d => d.completed || 0);
+        }
         engineerChart.update();
     }
 
@@ -274,7 +281,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Chart Load Pekerjaan Engineer
+        // Chart Load Pekerjaan Engineer & Task Selesai
         const ctx3 = document.getElementById('engineerLoadChart').getContext('2d');
         const initialData = getFilteredEngineerData();
         
@@ -287,7 +294,13 @@
                         label: 'Task & Kegiatan Aktif',
                         data: initialData.map(d => d.active),
                         backgroundColor: '#C81E2C',
-                        borderRadius: 4,
+                        borderRadius: 3,
+                    },
+                    {
+                        label: 'Task Selesai',
+                        data: initialData.map(d => d.completed || 0),
+                        backgroundColor: '#10B981',
+                        borderRadius: 3,
                     }
                 ]
             },
@@ -314,7 +327,7 @@
                 },
                 scales: {
                     x: {
-                        stacked: false,
+                        stacked: true,
                         ticks: {
                             stepSize: 1,
                             font: { size: 10 }
@@ -325,7 +338,7 @@
                         }
                     },
                     y: {
-                        stacked: false,
+                        stacked: true,
                         grid: {
                             display: false
                         },
