@@ -1088,13 +1088,25 @@
 .jkw-avail-head { display:flex !important; align-items:center !important; justify-content:space-between !important; flex-wrap:wrap !important; gap:8px !important; padding:14px 16px !important; border-bottom:1px solid var(--jkw-line) !important; }
 .jkw-eyebrow { font-size:11px !important; font-weight:700 !important; color:var(--jkw-muted) !important; text-transform:uppercase !important; letter-spacing:.4px !important; word-break:break-word !important; }
 .jkw-check { display:flex !important; align-items:center !important; gap:6px !important; font-size:12.5px !important; color:var(--jkw-ink-2) !important; cursor:pointer !important; }
-.jkw-avail-body { display:flex !important; flex-wrap:wrap !important; gap:8px !important; padding:14px 16px !important; }
+.jkw-avail-body {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 14px 16px !important;
+}
 
 .jkw-eng-chip {
     all: unset !important;
-    display:flex !important; align-items:center !important; gap:9px !important; padding:7px 12px 7px 7px !important;
-    border-radius:24px !important; border:1px solid !important; cursor:pointer !important; transition:all .15s ease !important;
-    flex:1 1 220px !important; max-width:280px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 9px !important;
+    padding: 7px 12px 7px 7px !important;
+    border-radius: 24px !important;
+    border: 1px solid !important;
+    cursor: pointer !important;
+    transition: all .15s ease !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 .jkw-eng-chip.is-free { background:var(--jkw-success-soft) !important; border-color:var(--jkw-success-border) !important; }
 .jkw-eng-chip.is-busy { background:var(--jkw-primary-soft) !important; border-color:var(--jkw-primary-border) !important; }
@@ -1330,13 +1342,16 @@
     .jkw-btn {
         flex: 1 1 auto !important;
     }
+    .jkw-avail-body {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
 }
 
 /* Small tablet / large phone */
 @media (max-width: 720px) {
     .jkw-nav { flex-wrap:nowrap !important; padding:10px 10px !important; }
     .jkw-field-row { grid-template-columns:1fr !important; }
-    .jkw-eng-chip { flex:1 1 100% !important; max-width:100% !important; }
+    .jkw-avail-body { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
 
 /* Phone */
@@ -1352,7 +1367,7 @@
     .jkw-nav-btn { padding:5px !important; }
     .jkw-today-btn { padding:3px 7px !important; font-size:10px !important; }
     .jkw-avail-head { padding:12px !important; }
-    .jkw-avail-body { padding:12px !important; }
+    .jkw-avail-body { padding:12px !important; grid-template-columns: 1fr !important; }
     .jkw-eng-chip { padding:6px 10px 6px 6px !important; }
     .jkw-avatar { width:24px !important; height:24px !important; font-size:10px !important; }
     .jkw-day-item { flex-direction:column !important; align-items:flex-start !important; gap:6px !important; padding:10px !important; }
@@ -1618,9 +1633,9 @@
                         });
                         var dayOffCount = engSchedules.filter(function(s){ return s.category === 'Day Off'; }).length;
                         var meetingCount = engSchedules.length - dayOffCount;
-                        var isDayOff = dayOffCount > 0;
+                        var isDayOff = dayOffCount > 0 && meetingCount === 0;
                         var isAvailable = engSchedules.length === 0;
-                        var statusLabel = isAvailable ? 'Tersedia' : (isDayOff && meetingCount === 0 ? 'Day Off' : engSchedules.length + ' jadwal');
+                        var statusLabel = isAvailable ? 'Tersedia' : (isDayOff ? 'Day Off' : engSchedules.length + ' jadwal');
 
                         return { 
                             id: eng.id, 
@@ -1631,12 +1646,23 @@
                             statusLabel: statusLabel
                         };
                     }.bind(this)).sort(function(a, b) {
-                        if (a.available === b.available) return 0;
-                        return a.available ? -1 : 1;
+                        // 1. Tersedia (Available) duluan
+                        if (a.available !== b.available) {
+                            return a.available ? -1 : 1;
+                        }
+                        // 2. Sibuk / Ada jadwal meeting & task duluan (agar 4 orang pas 1 baris)
+                        if (a.isDayOff !== b.isDayOff) {
+                            return a.isDayOff ? 1 : -1;
+                        }
+                        // 3. Urutkan berdasarkan jumlah jadwal terbanyak
+                        return b.scheduleCount - a.scheduleCount;
                     });
                 },
                 get filteredEngineerAvailability() {
-                    return this.showOnlyAvailable ? this.engineerAvailability.filter(function(e) { return e.available; }) : this.engineerAvailability;
+                    var list = this.engineerAvailability.filter(function(e) {
+                        return !e.isDayOff;
+                    });
+                    return this.showOnlyAvailable ? list.filter(function(e) { return e.available; }) : list;
                 },
                 isEngineerBusyOnDate: function(engineerId, date) {
                     if (!date) return false;

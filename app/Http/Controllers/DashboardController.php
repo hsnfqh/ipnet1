@@ -200,6 +200,52 @@ class DashboardController extends Controller
         $clockInCount = $todayAttendances->where('type', 'clock_in')->count();
         $outOfRangeCount = $todayAttendances->where('is_within_range', false)->count();
 
+        // Jadwal Terdekat / Hari Ini untuk Widget Dashboard Lead (Kecualikan Day Off)
+        $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
+        $scheduleRelations = ['project', 'engineer', 'creator'];
+        if ($hasScheduleUser) {
+            $scheduleRelations[] = 'engineers';
+        }
+
+        $upcomingSchedulesQuery = Schedule::with($scheduleRelations)
+            ->where('category', '!=', 'Day Off');
+        if ($scopeIds !== null) {
+            $upcomingSchedulesQuery->where(function($q) use ($scopeIds, $hasScheduleUser, $user) {
+                if (count($scopeIds) === 1) {
+                    $q->where('engineer_id', $scopeIds[0]);
+                    if ($hasScheduleUser) {
+                        $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+                    }
+                } else {
+                    $q->whereIn('engineer_id', $scopeIds);
+                    if ($hasScheduleUser) {
+                        $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                    }
+                }
+                $q->orWhere('created_by', $user->id);
+            });
+        }
+
+        // Ambil jadwal mulai hari ini ke depan (terdekat), jika kurang dari 4 ambil yang terbaru
+        $upcomingSchedules = (clone $upcomingSchedulesQuery)
+            ->where('date', '>=', $today)
+            ->orderBy('date', 'asc')
+            ->orderBy('start_time', 'asc')
+            ->take(4)
+            ->get();
+
+        if ($upcomingSchedules->count() < 4) {
+            $otherRecentSchedules = (clone $upcomingSchedulesQuery)
+                ->whereNotIn('id', $upcomingSchedules->pluck('id'))
+                ->orderByDesc('date')
+                ->orderByDesc('start_time')
+                ->take(4 - $upcomingSchedules->count())
+                ->get();
+            $recentSchedules = $upcomingSchedules->concat($otherRecentSchedules);
+        } else {
+            $recentSchedules = $upcomingSchedules;
+        }
+
         $data = [
             'projectsCount'          => $projects->count(),
             'tasksCount'             => $tasks->count(),
@@ -210,6 +256,7 @@ class DashboardController extends Controller
             'overdueTasksCount'      => $overdueTasksCount,
             'recentProjects'         => $projects->sortByDesc('created_at')->take(4)->values(),
             'recentTasks'            => $tasks->sortByDesc('created_at')->take(4)->values(),
+            'recentSchedules'        => $recentSchedules->values(),
             'projectProgressData'    => $projectProgressData,
             'statusData'             => $statusData,
             'engineerLoadData'       => $engineerLoadMonthData,
@@ -287,5 +334,190 @@ class DashboardController extends Controller
         ];
 
         return view('dashboard.engineer', $data);
+    }
+
+    public function sales(Request $request)
+    {
+        $user = auth()->user();
+        $selectedYear = (int) $request->input('year', date('Y'));
+
+        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+        
+        $projects = (clone $allProjectsQuery)->whereYear('created_at', $selectedYear)->get();
+        if ($projects->isEmpty()) {
+            $projects = (clone $allProjectsQuery)->get();
+        }
+
+        // 1. Total Project
+        $totalProjectCount = $projects->count();
+        $totalNilaiProject = $projects->sum('contract_value');
+
+        // 2. Opportunity (Opportunity, Draft, Planning)
+        $opportunityProjects = $projects->whereIn('status', ['Opportunity', 'Draft', 'Planning']);
+        $totalOpportunityCount = $opportunityProjects->count();
+        $totalNilaiOpportunity = $opportunityProjects->sum('contract_value');
+
+        // 3. In Progress (On Progress, In Progress)
+        $inProgressProjects = $projects->whereIn('status', ['On Progress', 'In Progress']);
+        $totalInProgressCount = $inProgressProjects->count();
+        $totalNilaiInProgress = $inProgressProjects->sum('contract_value');
+
+        // 4. Pending (Pending, Waiting Approval)
+        $pendingProjects = $projects->whereIn('status', ['Pending', 'Waiting Approval']);
+        $totalPendingCount = $pendingProjects->count();
+        $totalNilaiPending = $pendingProjects->sum('contract_value');
+
+        // 5. Complete (Completed, Closed Won)
+        $completeProjects = $projects->whereIn('status', ['Completed', 'Closed Won']);
+        $totalCompleteCount = $completeProjects->count();
+        $totalNilaiComplete = $completeProjects->sum('contract_value');
+
+        // Monthly data for chart (Jan - Dec)
+        $monthlyValues = array_fill(1, 12, 0);
+        foreach ($projects as $p) {
+            $date = $p->created_at ?? $p->start_date;
+            if ($date) {
+                $m = (int) \Carbon\Carbon::parse($date)->format('n');
+                $monthlyValues[$m] += (float) ($p->contract_value ?? 0);
+            }
+        }
+        $monthlyDataInMillions = array_map(function($val) {
+            return round($val / 1000000, 2); // in Millions (Juta)
+        }, array_values($monthlyValues));
+
+        // Additional informative widgets for rich dashboard
+        $recentProjects        = (clone $allProjectsQuery)->latest()->take(6)->get();
+        $recentClients         = \App\Models\Client::latest()->take(5)->get();
+        $recentVendors         = \App\Models\Vendor::latest()->take(5)->get();
+        $inventoryHighlights   = \App\Models\InventoryItem::orderBy('stock', 'asc')->take(5)->get();
+
+        // Presales Proposals connection for Sales team
+        $proposalsReadyCount   = (clone $allProjectsQuery)->whereNotNull('proposal_file')->count();
+        $proposalsPendingCount = (clone $allProjectsQuery)->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->count();
+        $recentProposals       = (clone $allProjectsQuery)->whereNotNull('proposal_file')->latest('updated_at')->take(5)->get();
+
+        $data = [
+            'selectedYear'          => $selectedYear,
+            'totalProjectCount'     => $totalProjectCount,
+            'totalNilaiProject'     => $totalNilaiProject,
+            'totalOpportunityCount' => $totalOpportunityCount,
+            'totalNilaiOpportunity' => $totalNilaiOpportunity,
+            'totalInProgressCount'  => $totalInProgressCount,
+            'totalNilaiInProgress'  => $totalNilaiInProgress,
+            'totalPendingCount'     => $totalPendingCount,
+            'totalNilaiPending'     => $totalNilaiPending,
+            'totalCompleteCount'    => $totalCompleteCount,
+            'totalNilaiComplete'    => $totalNilaiComplete,
+            'proposalsReadyCount'   => $proposalsReadyCount,
+            'proposalsPendingCount' => $proposalsPendingCount,
+            'recentProposals'       => $recentProposals,
+            'monthlyChartData'      => $monthlyDataInMillions,
+            'recentProjects'        => $recentProjects,
+            'recentClients'         => $recentClients,
+            'recentVendors'         => $recentVendors,
+            'inventoryHighlights'   => $inventoryHighlights,
+        ];
+
+        return view('sales.dashboard', $data);
+    }
+
+    public function presales(Request $request)
+    {
+        $user = auth()->user();
+        $selectedYear = (int) $request->input('year', date('Y'));
+
+        // 1. Ambil seluruh data proyek/tender pre-sales
+        $allTendersQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+        $tendersYear = (clone $allTendersQuery)->whereYear('created_at', $selectedYear)->get();
+        if ($tendersYear->isEmpty()) {
+            $tendersYear = (clone $allTendersQuery)->get();
+        }
+
+        // 2. Kategori Status Pre-Sales & Tender
+        $pendingProposalTenders = $tendersYear->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->values();
+        $inReviewTenders        = $tendersYear->whereIn('status', ['Pending', 'Waiting Approval'])->values();
+        $wonTenders             = $tendersYear->whereIn('status', ['On Progress', 'Completed', 'Closed Won'])->values();
+
+        $totalTenderCount        = $tendersYear->count();
+        $totalProposalNeeded     = $pendingProposalTenders->count();
+        $totalPipelineValue      = $pendingProposalTenders->sum('contract_value');
+        $totalReviewValue        = $inReviewTenders->sum('contract_value');
+        $totalWonValue           = $wonTenders->sum('contract_value');
+
+        // Monthly data for chart (Jan - Dec)
+        $monthlyValues = array_fill(1, 12, 0);
+        foreach ($tendersYear as $p) {
+            $date = $p->created_at ?? $p->start_date;
+            if ($date) {
+                $m = (int) \Carbon\Carbon::parse($date)->format('n');
+                $monthlyValues[$m] += (float) ($p->contract_value ?? 0);
+            }
+        }
+        $monthlyDataInMillions = array_map(function($val) {
+            return round($val / 1000000, 2);
+        }, array_values($monthlyValues));
+
+        // Status Distribution data for Doughnut Chart (in Millions)
+        $distributionData = [
+            round($totalPipelineValue / 1000000, 2),
+            round($totalReviewValue / 1000000, 2),
+            round($totalWonValue / 1000000, 2),
+        ];
+
+        // 3. Ringkasan Request Proposal Terbaru (5 items)
+        $recentRequests = $pendingProposalTenders->take(5);
+
+        // 4. Jadwal Demo / POC Terdekat (4 items)
+        $pocSchedules = Schedule::with(['project', 'engineer'])
+            ->where('date', '>=', now()->toDateString())
+            ->orderBy('date', 'asc')
+            ->take(4)
+            ->get();
+
+        $data = [
+            'user'                   => $user,
+            'selectedYear'           => $selectedYear,
+            'totalTenderCount'       => $totalTenderCount,
+            'totalProposalNeeded'    => $totalProposalNeeded,
+            'totalPipelineValue'     => $totalPipelineValue,
+            'totalReviewValue'       => $totalReviewValue,
+            'totalWonValue'          => $totalWonValue,
+            'monthlyChartData'       => $monthlyDataInMillions,
+            'distributionData'       => $distributionData,
+            'recentRequests'         => $recentRequests,
+            'pocSchedules'           => $pocSchedules,
+            'inReviewCount'          => $inReviewTenders->count(),
+            'wonCount'               => $wonTenders->count(),
+        ];
+
+        return view('presales.dashboard', $data);
+    }
+
+    public function uploadProposal(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'proposal_notes' => 'nullable|string',
+            'mandays'        => 'nullable|integer|min:1',
+            'proposal_file'  => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,zip,rar|max:20480',
+        ]);
+
+        if ($request->hasFile('proposal_file')) {
+            $path = $request->file('proposal_file')->store('proposals', 'public');
+            $validated['proposal_file'] = $path;
+        }
+
+        $validated['presales_status'] = 'Submitted';
+        $project->update($validated);
+
+        return back()->with('success', 'Proposal teknis & estimasi mandays untuk ' . $project->name . ' berhasil disimpan dan dikirim ke tim Sales!');
+    }
+
+    public function downloadProposal(Project $project)
+    {
+        if (!$project->proposal_file || !\Illuminate\Support\Facades\Storage::disk('public')->exists($project->proposal_file)) {
+            return back()->with('error', 'Berkas proposal teknis belum tersedia.');
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->download($project->proposal_file);
     }
 }
