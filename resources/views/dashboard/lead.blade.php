@@ -81,14 +81,10 @@
                         <canvas id="engineerLoadChart"></canvas>
                     </div>
                 </div>
-                <div class="flex flex-wrap justify-center gap-4 sm:gap-6 mt-3 text-[11px] text-wms-ink-500">
+                <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mt-3 text-[11px] text-wms-ink-500">
                     <span class="flex items-center gap-1.5">
                         <span style="width:10px; height:10px; border-radius:3px; background:#C81E2C;"></span>
                         Task / Kegiatan Aktif
-                    </span>
-                    <span class="flex items-center gap-1.5">
-                        <span style="width:10px; height:10px; border-radius:3px; background:#64748B;"></span>
-                        Day Off / Cuti
                     </span>
                 </div>
             </div>
@@ -255,9 +251,9 @@
     function getFilteredEngineerData() {
         const rawData = (currentPeriod === 'week') ? engineerWeekData : engineerMonthData;
         if (currentTeam === 'All') {
-            return rawData.slice().sort((a, b) => (b.active + (b.dayOff || 0)) - (a.active + (a.dayOff || 0)));
+            return rawData.slice().sort((a, b) => b.active - a.active);
         }
-        return rawData.filter(d => d.division === currentTeam).sort((a, b) => (b.active + (b.dayOff || 0)) - (a.active + (a.dayOff || 0)));
+        return rawData.filter(d => d.division === currentTeam).sort((a, b) => b.active - a.active);
     }
 
     function formatEngineerLabel(d) {
@@ -269,9 +265,6 @@
         const dataToUse = getFilteredEngineerData();
         engineerChart.data.labels = dataToUse.map(formatEngineerLabel);
         engineerChart.data.datasets[0].data = dataToUse.map(d => d.active);
-        if (engineerChart.data.datasets[1]) {
-            engineerChart.data.datasets[1].data = dataToUse.map(d => d.dayOff || 0);
-        }
         engineerChart.update();
     }
 
@@ -281,7 +274,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Chart Load Pekerjaan Engineer & Cuti
+        // Chart Load Pekerjaan Engineer
         const ctx3 = document.getElementById('engineerLoadChart').getContext('2d');
         const initialData = getFilteredEngineerData();
         
@@ -294,13 +287,7 @@
                         label: 'Task & Kegiatan Aktif',
                         data: initialData.map(d => d.active),
                         backgroundColor: '#C81E2C',
-                        borderRadius: 3,
-                    },
-                    {
-                        label: 'Day Off / Cuti',
-                        data: initialData.map(d => d.dayOff || 0),
-                        backgroundColor: '#64748B',
-                        borderRadius: 3,
+                        borderRadius: 4,
                     }
                 ]
             },
@@ -315,8 +302,7 @@
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                const unit = context.datasetIndex === 1 ? ' hari' : ' task/kegiatan';
-                                return context.dataset.label + ': ' + context.parsed.x + unit;
+                                return context.dataset.label + ': ' + context.parsed.x + ' penugasan';
                             },
                             afterLabel: function(context) {
                                 const dataToUse = getFilteredEngineerData();
@@ -328,7 +314,7 @@
                 },
                 scales: {
                     x: {
-                        stacked: true,
+                        stacked: false,
                         ticks: {
                             stepSize: 1,
                             font: { size: 10 }
@@ -339,7 +325,7 @@
                         }
                     },
                     y: {
-                        stacked: true,
+                        stacked: false,
                         grid: {
                             display: false
                         },
