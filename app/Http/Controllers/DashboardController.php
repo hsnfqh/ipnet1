@@ -173,16 +173,16 @@ class DashboardController extends Controller
             })->values();
         };
 
-        // Data Minggu Ini: Task & Jadwal yang jatuh pada rentang pekan ini (Senin - Minggu)
+        // Data Minggu Ini: Task & Jadwal pada rentang pekan ini (Senin - Minggu)
         $weekTasks = $tasks->filter(function($t) use ($startOfWeek, $endOfWeek) {
             if ($t->status === 'Completed') {
-                $date = $t->updated_at ?? $t->deadline ?? $t->created_at;
-                return $date && $date >= $startOfWeek && $date <= $endOfWeek;
+                $compDate = $t->updated_at ?? $t->deadline;
+                return $compDate && $compDate >= $startOfWeek && $compDate <= $endOfWeek;
             }
             if ($t->deadline) {
-                return $t->deadline >= $startOfWeek && $t->deadline <= $endOfWeek;
+                return $t->deadline <= $endOfWeek;
             }
-            return $t->created_at >= $startOfWeek && $t->created_at <= $endOfWeek;
+            return true;
         });
         $weekSchedules = $schedules->filter(function($s) use ($startOfWeek, $endOfWeek) {
             if ($s->date) {
@@ -192,16 +192,16 @@ class DashboardController extends Controller
         });
         $engineerLoadWeekData = $buildEngineerLoad($weekTasks, $weekSchedules);
 
-        // Data Bulan Ini: Task & Jadwal yang jatuh pada bulan ini (Tanggal 1 - 30/31)
+        // Data Bulan Ini: Task & Jadwal pada rentang bulan ini (Tanggal 1 - 30/31)
         $monthTasks = $tasks->filter(function($t) use ($startOfMonth, $endOfMonth) {
             if ($t->status === 'Completed') {
-                $date = $t->updated_at ?? $t->deadline ?? $t->created_at;
-                return $date && $date >= $startOfMonth && $date <= $endOfMonth;
+                $compDate = $t->updated_at ?? $t->deadline;
+                return $compDate && $compDate >= $startOfMonth && $compDate <= $endOfMonth;
             }
             if ($t->deadline) {
-                return $t->deadline >= $startOfMonth && $t->deadline <= $endOfMonth;
+                return $t->deadline <= $endOfMonth;
             }
-            return $t->created_at >= $startOfMonth && $t->created_at <= $endOfMonth;
+            return true;
         });
         $monthSchedules = $schedules->filter(function($s) use ($startOfMonth, $endOfMonth) {
             if ($s->date) {

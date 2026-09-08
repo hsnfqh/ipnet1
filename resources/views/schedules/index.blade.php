@@ -1726,7 +1726,7 @@
                             var isTaskCat = s.category === 'Task' || s.category === 'Kegiatan';
                             var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
                             var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : 'Jadwal'));
-                            var eventColor = isDayOff ? '#64748B' : (isTaskCat ? (isTaskCompleted ? '#16A34A' : '#C81E2C') : '#2563EB');
+                            var eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
                             
                             var engLabel = '';
                             if (s.engineers && s.engineers.length > 0) {
