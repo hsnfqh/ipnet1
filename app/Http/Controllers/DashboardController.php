@@ -115,8 +115,8 @@ class DashboardController extends Controller
         $startOfMonth = now()->startOfMonth()->startOfDay();
         $endOfMonth   = now()->endOfMonth()->endOfDay();
 
-        $buildEngineerLoad = function($taskList, $scheduleList) use ($engineers, $hasTaskUser, $hasScheduleUser) {
-            return $engineers->map(function($engineer) use ($taskList, $scheduleList, $hasTaskUser, $hasScheduleUser) {
+        $buildEngineerLoad = function($taskList) use ($engineers, $hasTaskUser) {
+            return $engineers->map(function($engineer) use ($taskList, $hasTaskUser) {
                 $engineerTasks = $taskList->filter(function($t) use ($engineer, $hasTaskUser) {
                     if ($t->engineer_id == $engineer->id) return true;
                     if ($hasTaskUser && $t->relationLoaded('engineers') && $t->engineers->contains('id', $engineer->id)) {
@@ -125,29 +125,10 @@ class DashboardController extends Controller
                     return false;
                 });
 
-                $engineerSchedules = $scheduleList->filter(function($s) use ($engineer, $hasScheduleUser) {
-                    if ($s->engineer_id == $engineer->id) return true;
-                    if ($hasScheduleUser && $s->relationLoaded('engineers') && $s->engineers->contains('id', $engineer->id)) {
-                        return true;
-                    }
-                    return false;
-                });
-
-                // Task aktif adalah semua task yang belum Completed
+                // Task aktif & selesai murni dari task & kegiatan
                 $activeTasks = $engineerTasks->where('status', '!=', 'Completed')->count();
                 $completedTasks = $engineerTasks->where('status', 'Completed')->count();
-                $dayOffCount = $engineerSchedules->where('category', 'Day Off')->count();
-                
-                // Kegiatan/Jadwal non-DayOff aktif yang tidak terduplikasi dengan task yang sudah selesai
-                $standaloneSchedules = $engineerSchedules->filter(function($s) use ($engineerTasks) {
-                    if ($s->category === 'Day Off') return false;
-                    $alreadyInTasks = $engineerTasks->some(function($t) use ($s) {
-                        return strtolower(trim($t->title)) === strtolower(trim($s->title));
-                    });
-                    return !$alreadyInTasks;
-                })->count();
-
-                $totalActive = $activeTasks + $standaloneSchedules;
+                $totalActive = $activeTasks;
 
                 $divName = 'Lainnya';
                 if ($engineer->hasRole(['Lead Maintenance', 'Maintenance']) || ($engineer->division && str_contains(strtolower($engineer->division->name), 'maintenance'))) {
@@ -165,51 +146,39 @@ class DashboardController extends Controller
                     'position'  => $engineer->position ?? $engineer->role,
                     'active'    => $totalActive,
                     'tasks'     => $activeTasks,
-                    'schedules' => $standaloneSchedules,
-                    'dayOff'    => $dayOffCount,
+                    'schedules' => 0,
+                    'dayOff'    => 0,
                     'completed' => $completedTasks,
-                    'total'     => $totalActive + $dayOffCount,
+                    'total'     => $totalActive + $completedTasks,
                 ];
             })->values();
         };
 
-        // Data Minggu Ini: Task & Jadwal pada rentang pekan ini (Senin - Minggu)
+        // Data Minggu Ini: Task pada rentang pekan ini (Senin - Minggu)
         $weekTasks = $tasks->filter(function($t) use ($startOfWeek, $endOfWeek) {
             if ($t->status === 'Completed') {
                 $compDate = $t->updated_at ?? $t->deadline;
                 return $compDate && $compDate >= $startOfWeek && $compDate <= $endOfWeek;
             }
             if ($t->deadline) {
-                return $t->deadline <= $endOfWeek;
+                return $t->deadline >= $startOfWeek && $t->deadline <= $endOfWeek;
             }
-            return true;
+            return $t->created_at >= $startOfWeek && $t->created_at <= $endOfWeek;
         });
-        $weekSchedules = $schedules->filter(function($s) use ($startOfWeek, $endOfWeek) {
-            if ($s->date) {
-                return $s->date >= $startOfWeek && $s->date <= $endOfWeek;
-            }
-            return false;
-        });
-        $engineerLoadWeekData = $buildEngineerLoad($weekTasks, $weekSchedules);
+        $engineerLoadWeekData = $buildEngineerLoad($weekTasks);
 
-        // Data Bulan Ini: Task & Jadwal pada rentang bulan ini (Tanggal 1 - 30/31)
+        // Data Bulan Ini: Task pada rentang bulan ini (Tanggal 1 - 30/31)
         $monthTasks = $tasks->filter(function($t) use ($startOfMonth, $endOfMonth) {
             if ($t->status === 'Completed') {
                 $compDate = $t->updated_at ?? $t->deadline;
                 return $compDate && $compDate >= $startOfMonth && $compDate <= $endOfMonth;
             }
             if ($t->deadline) {
-                return $t->deadline <= $endOfMonth;
+                return $t->deadline >= $startOfMonth && $t->deadline <= $endOfMonth;
             }
-            return true;
+            return $t->created_at >= $startOfMonth && $t->created_at <= $endOfMonth;
         });
-        $monthSchedules = $schedules->filter(function($s) use ($startOfMonth, $endOfMonth) {
-            if ($s->date) {
-                return $s->date >= $startOfMonth && $s->date <= $endOfMonth;
-            }
-            return false;
-        });
-        $engineerLoadMonthData = $buildEngineerLoad($monthTasks, $monthSchedules);
+        $engineerLoadMonthData = $buildEngineerLoad($monthTasks);
 
         // Penentuan Filter Tim Default (Doris -> Maintenance, Leader lain -> divisinya, Global -> Semua)
         $canFilterTeams = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasRole('Lead Maintenance');
