@@ -215,7 +215,12 @@ class ScheduleController extends Controller
                     $data['project_id'] = $project->id;
                 }
             }
-            unset($data['new_project_name']);
+            $createTask = ($request->boolean('create_task') || $request->input('create_task') === '1' || $request->input('create_task') === 1 || $request->input('create_task') === true || in_array($data['category'] ?? '', ['Task', 'Kegiatan'])) && (($data['category'] ?? '') !== 'Day Off');
+            $taskPriority = $request->input('task_priority', 'High');
+            if (!in_array($taskPriority, ['Low', 'Medium', 'High', 'Urgent'])) {
+                $taskPriority = 'High';
+            }
+            unset($data['create_task'], $data['task_priority']);
 
             $engineerIds = $request->input('engineer_ids', []);
             if (empty($engineerIds) && !empty($data['engineer_id'])) {
@@ -285,7 +290,48 @@ class ScheduleController extends Controller
                     ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
                     : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
 
-                // Notifikasi ke engineer
+                // Otomatis Buat Task di Menu Task jika opsi dicentang
+                if ($createTask) {
+                    $deadlineTime = $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : '23:59:00';
+                    $dateStr = $schedule->date ? $schedule->date->format('Y-m-d') : now()->toDateString();
+                    
+                    $taskDesc = ($schedule->description ? $schedule->description . "\n\n" : '')
+                        . "[Dibuat otomatis dari Jadwal Kegiatan: " . $schedule->title 
+                        . " | Tanggal: " . ($schedule->date ? $schedule->date->format('d/m/Y') : '-') 
+                        . ($schedule->start_time ? " Pukul " . substr($schedule->start_time, 0, 5) . " WIB" : "")
+                        . ($schedule->location ? " | Lokasi: " . $schedule->location : "") . "]";
+
+                    $task = Task::create([
+                        'title'         => $schedule->title,
+                        'project_id'    => $schedule->project_id,
+                        'engineer_id'   => $schedule->engineer_id,
+                        'priority'      => $taskPriority,
+                        'status'        => 'Assigned',
+                        'progress'      => 0,
+                        'attachments'   => 0,
+                        'deadline'      => $dateStr . ' ' . $deadlineTime,
+                        'deadline_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : null,
+                        'description'   => $taskDesc,
+                        'created_by'    => auth()->id(),
+                    ]);
+
+                    if (Schema::hasTable('task_user') && !empty($engineerIdsList)) {
+                        $task->engineers()->sync($engineerIdsList);
+                    }
+
+                    // Notifikasi Task untuk tim engineer
+                    foreach ($engineerIdsList as $engId) {
+                        \App\Models\Notification::create([
+                            'user_id' => (int) $engId,
+                            'title'   => 'Task Baru dari Jadwal: ' . $schedule->title,
+                            'message' => 'Tiket pekerjaan baru telah dibuat dari jadwal oleh ' . $creatorName . ' (Prioritas: ' . $taskPriority . '). Silakan proses dan selesaikan di menu Task.',
+                            'url'     => route('tasks.index'),
+                            'is_read' => false,
+                        ]);
+                    }
+                }
+
+                // Notifikasi ke engineer untuk jadwal
                 $notifTitle = $schedule->category === 'Day Off' ? 'Jadwal Day Off / Cuti: ' . $schedule->title : 'Agenda Jadwal Baru: ' . $schedule->title;
                 foreach ($engineerIdsList as $engId) {
                     \App\Models\Notification::create([
@@ -406,6 +452,33 @@ class ScheduleController extends Controller
             $engineersList = $hasScheduleUser && $schedule->relationLoaded('engineers')
                 ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
                 : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
+
+            // Sync / Buat Task jika kategori adalah Task/Kegiatan
+            if ((in_array($schedule->category, ['Task', 'Kegiatan']) || $request->boolean('create_task')) && $schedule->category !== 'Day Off') {
+                $deadlineTime = $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : '23:59:00';
+                $dateStr = $schedule->date ? $schedule->date->format('Y-m-d') : now()->toDateString();
+                
+                $task = Task::firstOrCreate(
+                    [
+                        'title'      => $schedule->title,
+                        'project_id' => $schedule->project_id,
+                    ],
+                    [
+                        'engineer_id'   => $schedule->engineer_id,
+                        'priority'      => $request->input('task_priority', 'High'),
+                        'status'        => 'Assigned',
+                        'progress'      => 0,
+                        'attachments'   => 0,
+                        'deadline'      => $dateStr . ' ' . $deadlineTime,
+                        'deadline_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : null,
+                        'description'   => $schedule->description ?: ('Task dibuat dari jadwal: ' . $schedule->title),
+                        'created_by'    => auth()->id(),
+                    ]
+                );
+                if (Schema::hasTable('task_user') && !empty($engineerIdsList)) {
+                    $task->engineers()->sync($engineerIdsList);
+                }
+            }
 
             // Kirim notifikasi ke seluruh engineer jika agenda diperbarui
             $creator = auth()->user();

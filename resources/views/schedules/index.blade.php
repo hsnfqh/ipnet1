@@ -826,9 +826,55 @@
                                                     onmouseover="this.style.background='#EFF6FF'; this.style.borderColor='#3B82F6'; this.style.color='#1D4ED8';"
                                                     onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8'; this.style.color='#2563EB';">
                                                 <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                                <span>+ Tambah Tanggal / Sesi Jadwal</span>
+                                                <span>Tambah Tanggal / Sesi Jadwal</span>
                                             </button>
                                         </template>
+                                    </div>
+
+                                    <!-- Opsi Tambahkan ke Menu Task (Otomatis Buat Tiket Pekerjaan) -->
+                                    <div x-show="!editing && form.category !== 'Day Off'" 
+                                         style="background:#FFF5F5; border:1.5px solid #FCA5A5; border-radius:10px; padding:12px 14px; transition:all 0.15s ease;">
+                                        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+                                            <div style="display:flex; align-items:flex-start; gap:10px; min-width:0; flex:1;">
+                                                <div style="width:32px; height:32px; border-radius:8px; background:#FEE2E2; color:#C81E2C; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px;">
+                                                    <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <label @click="form.create_task = !form.create_task" style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; font-weight:700; color:#991B1B; margin-bottom:2px;">
+                                                        <span>Buat Tiket Task Otomatis di Menu Task</span>
+                                                        <span style="font-size:9.5px; font-weight:800; background:#C81E2C; color:white; padding:1px 6px; border-radius:10px; text-transform:uppercase;">Task Merah</span>
+                                                    </label>
+                                                    <p style="margin:0; font-size:11.5px; color:#7F1D1D; line-height:1.4;">
+                                                        Otomatis membuat tiket pekerjaan di Kanban/Task Board agar engineer yang ditugaskan dapat mengerjakan dan menyelesaikan statusnya (<strong>Completed</strong>).
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer; flex-shrink:0; margin-top:4px;">
+                                                <input type="checkbox" x-model="form.create_task" style="width:20px; height:20px; accent-color:#C81E2C; cursor:pointer;">
+                                            </label>
+                                        </div>
+
+                                        <!-- Pilihan Prioritas Task jika create_task aktif -->
+                                        <div x-show="form.create_task" style="margin-top:10px; padding-top:10px; border-top:1px dashed #FCA5A5; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                                            <div style="font-size:11px; font-weight:700; color:#991B1B; text-transform:uppercase; letter-spacing:0.5px;">
+                                                Prioritas Task:
+                                            </div>
+                                            <div style="display:flex; align-items:center; gap:6px;">
+                                                <template x-for="prio in ['Urgent', 'High', 'Medium', 'Low']" :key="prio">
+                                                    <button type="button" 
+                                                            @click="form.task_priority = prio"
+                                                            style="padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; border:1px solid; transition:all 0.12s ease;"
+                                                            :style="form.task_priority === prio 
+                                                                ? (prio === 'Urgent' ? 'background:#7F1D1D; color:white; border-color:#7F1D1D;' : (prio === 'High' ? 'background:#C81E2C; color:white; border-color:#C81E2C;' : (prio === 'Medium' ? 'background:#D97706; color:white; border-color:#D97706;' : 'background:#2563EB; color:white; border-color:#2563EB;')))
+                                                                : 'background:white; color:#475569; border-color:#CBD5E1;'"
+                                                            x-text="prio">
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div>
@@ -1870,9 +1916,25 @@
                         }
                         this.form.start_time = '';
                         this.form.end_time = '';
+                        this.form.create_task = false;
                         if (this.form.sessions) {
                             this.form.sessions.forEach(function(s) { s.start_time = ''; s.end_time = ''; });
                         }
+                    } else if (cat === 'Task' || cat === 'Kegiatan') {
+                        if (this.form.title === 'Day Off / Cuti' || this.form.title === 'Day Off') {
+                            this.form.title = '';
+                        }
+                        if (!this.form.start_time) {
+                            this.form.start_time = '09:00';
+                        }
+                        if (this.form.sessions) {
+                            this.form.sessions.forEach(function(s) { if (!s.start_time) s.start_time = '09:00'; });
+                        }
+                        if (!this.form.project_id && this.projects.length > 0) {
+                            this.form.project_id = this.projects[0].id;
+                        }
+                        this.form.create_task = true;
+                        if (!this.form.task_priority) this.form.task_priority = 'High';
                     } else {
                         if (this.form.title === 'Day Off / Cuti' || this.form.title === 'Day Off') {
                             this.form.title = '';
@@ -1938,6 +2000,8 @@
                             end_time: schEnd,
                             location: schLoc,
                             description: schedule.description || '',
+                            create_task: false,
+                            task_priority: 'High',
                             send_wa: false,
                             sessions: [
                                 {
@@ -1966,6 +2030,8 @@
                             end_time: '',
                             location: '',
                             description: '',
+                            create_task: false,
+                            task_priority: 'High',
                             sessions: [
                                 {
                                     date: targetDate,

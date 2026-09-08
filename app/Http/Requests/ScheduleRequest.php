@@ -37,6 +37,8 @@ class ScheduleRequest extends FormRequest
             'end_time'         => 'nullable',
             'location'         => 'nullable|string|max:255',
             'description'      => 'nullable|string',
+            'create_task'      => 'nullable|boolean',
+            'task_priority'    => 'nullable|string|in:Low,Medium,High,Urgent',
             'sessions'         => 'nullable|array|min:1',
             'sessions.*.date'  => 'required|date',
             'sessions.*.start_time' => 'nullable',
