@@ -179,7 +179,15 @@
                                 <div class="jkw-day-main">
                                     <div class="jkw-day-title" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
                                         <span x-text="schedule._displayTitle" style="cursor:pointer;" @click="handleEventClick(schedule)"></span>
-                                        <template x-if="schedule._type === 'schedule' || schedule._type === 'day_off' || schedule._type === 'task'">
+                                        <template x-if="schedule._type === 'task'">
+                                            <div style="display:flex; align-items:center; gap:6px;">
+                                                <a href="/tasks" style="background:#FDF1F2; border:1px solid #FCA5A5; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; color:#C81E2C; text-decoration:none; display:inline-flex; align-items:center; gap:4px; flex-shrink:0; transition:all 0.15s ease;" onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='#FDF1F2'" title="Kelola dan selesaikan tiket di menu Task">
+                                                    <svg style="width:11px; height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                                    Kelola di Task
+                                                </a>
+                                            </div>
+                                        </template>
+                                        <template x-if="schedule._type !== 'task'">
                                             @if($isLead)
                                             <div style="display:flex; align-items:center; gap:6px;">
                                                 <template x-if="schedule._type === 'schedule'">
@@ -2018,7 +2026,11 @@
 
                 handleEventClick: function(event) {
                     if (!event) return;
-                    if (event.id && (this.schedules.some(function(s) { return s.id === event.id; }) || event._type === 'schedule' || event._type === 'day_off' || event._type === 'task')) {
+                    if (event._type === 'task' || (event._uid && event._uid.startsWith('task-'))) {
+                        window.location.href = '/tasks';
+                        return;
+                    }
+                    if (event.id && this.schedules.some(function(s) { return s.id === event.id; })) {
                         this.openModal(event);
                     } else {
                         window.location.href = '/tasks';
