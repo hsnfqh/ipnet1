@@ -137,7 +137,17 @@ class DashboardController extends Controller
                 $activeTasks = $engineerTasks->where('status', '!=', 'Completed')->count();
                 $completedTasks = $engineerTasks->where('status', 'Completed')->count();
                 $dayOffCount = $engineerSchedules->where('category', 'Day Off')->count();
-                $totalActive = $activeTasks;
+                
+                // Kegiatan/Jadwal non-DayOff aktif yang tidak terduplikasi dengan task yang sudah selesai
+                $standaloneSchedules = $engineerSchedules->filter(function($s) use ($engineerTasks) {
+                    if ($s->category === 'Day Off') return false;
+                    $alreadyInTasks = $engineerTasks->some(function($t) use ($s) {
+                        return strtolower(trim($t->title)) === strtolower(trim($s->title));
+                    });
+                    return !$alreadyInTasks;
+                })->count();
+
+                $totalActive = $activeTasks + $standaloneSchedules;
 
                 $divName = 'Lainnya';
                 if ($engineer->hasRole(['Lead Maintenance', 'Maintenance']) || ($engineer->division && str_contains(strtolower($engineer->division->name), 'maintenance'))) {
@@ -155,7 +165,7 @@ class DashboardController extends Controller
                     'position'  => $engineer->position ?? $engineer->role,
                     'active'    => $totalActive,
                     'tasks'     => $activeTasks,
-                    'schedules' => 0,
+                    'schedules' => $standaloneSchedules,
                     'dayOff'    => $dayOffCount,
                     'completed' => $completedTasks,
                     'total'     => $totalActive + $dayOffCount,
