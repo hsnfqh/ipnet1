@@ -125,108 +125,112 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <!-- Recent Projects -->
                 <div class="wms-card overflow-hidden flex flex-col">
-                    <div class="flex flex-wrap justify-between items-center gap-2 p-4 pb-0">
+                    <div class="flex justify-between items-center gap-2 p-4 pb-3 border-b border-wms-line2">
                         <h3 class="font-display text-[15px] font-semibold text-wms-ink-900">Project Terbaru</h3>
-                        <a href="{{ route('projects.index') }}" class="text-wms-red-600 text-[12.5px] font-semibold hover:underline">Lihat semua</a>
+                        <a href="{{ route('projects.index') }}" class="text-wms-red-600 text-[12px] font-semibold hover:underline">Lihat semua</a>
                     </div>
-                    <div class="p-2 flex-1">
-                        @forelse($recentProjects as $project)
-                        <div class="flex flex-wrap justify-between items-center gap-2 p-2.5 border-t border-wms-line2">
-                            <div class="min-w-0 flex-1 pr-2">
-                                <div class="text-[13px] font-medium text-wms-ink-900 break-words">{{ $project->name }}</div>
-                                <div class="text-[11.5px] text-wms-ink-500 break-words">{{ $project->client }}</div>
+                    <div class="p-1 flex-1 flex flex-col justify-between">
+                        <div>
+                            @forelse($recentProjects as $project)
+                            <div class="flex items-center justify-between gap-3 p-3 border-t border-wms-line2 first:border-t-0 hover:bg-slate-50/60 transition-colors">
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-[13px] font-semibold text-wms-ink-900 truncate" title="{{ $project->name }}">{{ $project->name }}</div>
+                                    <div class="text-[11.5px] text-wms-ink-500 truncate mt-0.5" title="{{ $project->client }}">{{ $project->client }}</div>
+                                </div>
+                                <div class="shrink-0">
+                                    <x-status-badge status="{{ $project->status }}" />
+                                </div>
                             </div>
-                            <x-status-badge status="{{ $project->status }}" />
+                            @empty
+                            <div class="text-center py-8 text-wms-ink-500">
+                                <p class="text-[13px]">Belum ada project</p>
+                            </div>
+                            @endforelse
                         </div>
-                        @empty
-                        <div class="text-center py-8 text-wms-ink-500">
-                            <p class="text-[13.5px]">Belum ada project</p>
-                        </div>
-                        @endforelse
                     </div>
                 </div>
 
                 <!-- Recent Tasks -->
                 <div class="wms-card overflow-hidden flex flex-col">
-                    <div class="flex flex-wrap justify-between items-center gap-2 p-4 pb-0">
+                    <div class="flex justify-between items-center gap-2 p-4 pb-3 border-b border-wms-line2">
                         <h3 class="font-display text-[15px] font-semibold text-wms-ink-900">Task Terbaru</h3>
-                        <a href="{{ route('tasks.index') }}" class="text-wms-red-600 text-[12.5px] font-semibold hover:underline">Lihat semua</a>
+                        <a href="{{ route('tasks.index') }}" class="text-wms-red-600 text-[12px] font-semibold hover:underline">Lihat semua</a>
                     </div>
-                    <div class="p-2 flex-1">
-                        @forelse($recentTasks as $task)
-                        <div class="flex flex-wrap justify-between items-center gap-2 p-2.5 border-t border-wms-line2">
-                            <div class="min-w-0 flex-1 pr-2">
-                                <div class="text-[13px] font-medium text-wms-ink-900 break-words">{{ $task->title }}</div>
-                                <div class="text-[11.5px] text-wms-ink-500 break-words">{{ $task->engineer?->name ?? 'Unassigned' }}</div>
+                    <div class="p-1 flex-1 flex flex-col justify-between">
+                        <div>
+                            @forelse($recentTasks as $task)
+                            <div class="flex items-center justify-between gap-3 p-3 border-t border-wms-line2 first:border-t-0 hover:bg-slate-50/60 transition-colors">
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-[13px] font-semibold text-wms-ink-900 truncate" title="{{ $task->title }}">{{ $task->title }}</div>
+                                    <div class="text-[11.5px] text-wms-ink-500 truncate mt-0.5" title="{{ $task->engineer?->name ?? 'Unassigned' }} · {{ $task->project?->name ?? '-' }}">
+                                        {{ $task->engineer?->name ?? 'Unassigned' }}
+                                        @if($task->project)
+                                            <span class="text-wms-ink-300">·</span> {{ $task->project->name }}
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="shrink-0">
+                                    <x-status-badge status="{{ $task->status }}" />
+                                </div>
                             </div>
-                            <x-status-badge status="{{ $task->status }}" />
+                            @empty
+                            <div class="text-center py-8 text-wms-ink-500">
+                                <p class="text-[13px]">Belum ada task</p>
+                            </div>
+                            @endforelse
                         </div>
-                        @empty
-                        <div class="text-center py-8 text-wms-ink-500">
-                            <p class="text-[13.5px]">Belum ada task</p>
-                        </div>
-                        @endforelse
                     </div>
                 </div>
 
                 <!-- Jadwal Terdekat / Hari Ini -->
                 <div class="wms-card overflow-hidden flex flex-col">
-                    <div class="flex flex-wrap justify-between items-center gap-2 p-4 pb-0">
+                    <div class="flex justify-between items-center gap-2 p-4 pb-3 border-b border-wms-line2">
                         <h3 class="font-display text-[15px] font-semibold text-wms-ink-900">Jadwal Terdekat</h3>
-                        <a href="{{ route('schedules.index') }}" class="text-wms-red-600 text-[12.5px] font-semibold hover:underline">Lihat semua</a>
+                        <a href="{{ route('schedules.index') }}" class="text-wms-red-600 text-[12px] font-semibold hover:underline">Lihat semua</a>
                     </div>
-                    <div class="p-2 flex-1">
-                        @forelse($recentSchedules as $sch)
-                        @php
-                            $isToday = $sch->date && $sch->date->isToday();
-                            $dateLabel = $sch->date ? ($isToday ? 'Hari ini' : $sch->date->format('d M')) : '-';
-                            $timeLabel = $sch->start_time ? substr($sch->start_time, 0, 5) . ' WIB' : '';
-                            $isDayOff = $sch->category === 'Day Off';
-                            $isTask = $sch->category === 'Task' || $sch->category === 'Kegiatan';
-                            
-                            $engineerNames = '';
-                            if ($sch->relationLoaded('engineers') && $sch->engineers->isNotEmpty()) {
-                                $engineerNames = $sch->engineers->pluck('name')->join(', ');
-                            } elseif ($sch->engineer) {
-                                $engineerNames = $sch->engineer->name;
-                            }
-                        @endphp
-                        <div class="flex flex-wrap justify-between items-center gap-2 p-2.5 border-t border-wms-line2">
-                            <div class="min-w-0 flex-1 pr-2">
-                                <div class="text-[13px] font-medium text-wms-ink-900 break-words flex items-center gap-1.5">
-                                    <span>{{ $sch->title }}</span>
+                    <div class="p-1 flex-1 flex flex-col justify-between">
+                        <div>
+                            @forelse($recentSchedules as $sch)
+                            @php
+                                $isToday = $sch->date && $sch->date->isToday();
+                                $dateLabel = $sch->date ? ($isToday ? 'Hari ini' : $sch->date->format('d M')) : '-';
+                                $timeLabel = $sch->start_time ? substr($sch->start_time, 0, 5) . ' WIB' : '';
+                                $badgeCategory = ($sch->category === 'Task' || $sch->category === 'Kegiatan') ? 'Kegiatan' : ($sch->category ?: 'Meeting');
+                                
+                                $engineerNames = '';
+                                if ($sch->relationLoaded('engineers') && $sch->engineers->isNotEmpty()) {
+                                    $engineerNames = $sch->engineers->pluck('name')->join(', ');
+                                } elseif ($sch->engineer) {
+                                    $engineerNames = $sch->engineer->name;
+                                }
+                            @endphp
+                            <div class="flex items-center justify-between gap-3 p-3 border-t border-wms-line2 first:border-t-0 hover:bg-slate-50/60 transition-colors">
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-[13px] font-semibold text-wms-ink-900 truncate" title="{{ $sch->title }}">
+                                        {{ $sch->title }}
+                                    </div>
+                                    <div class="text-[11.5px] text-wms-ink-500 flex items-center gap-1.5 mt-0.5 min-w-0">
+                                        <span class="shrink-0 whitespace-nowrap {{ $isToday ? 'text-wms-red-600 font-semibold' : 'font-medium' }}">
+                                            {{ $dateLabel }}{{ $timeLabel ? ', ' . $timeLabel : '' }}
+                                        </span>
+                                        @if($engineerNames || $sch->project)
+                                            <span class="text-wms-ink-300 shrink-0">·</span>
+                                            <span class="truncate" title="{{ $engineerNames ?: $sch->project?->name }}">
+                                                {{ $engineerNames ?: $sch->project?->name }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="text-[11.5px] text-wms-ink-500 break-words flex items-center gap-1 mt-0.5">
-                                    <span class="font-medium {{ $isToday ? 'text-wms-red-600 font-semibold' : '' }}">
-                                        {{ $dateLabel }}{{ $timeLabel ? ', ' . $timeLabel : '' }}
-                                    </span>
-                                    @if($engineerNames || $sch->project)
-                                        <span class="text-wms-ink-300">·</span>
-                                        <span class="truncate">{{ $engineerNames ?: $sch->project?->name }}</span>
-                                    @endif
+                                <div class="shrink-0">
+                                    <x-status-badge :status="$badgeCategory" />
                                 </div>
                             </div>
-                            <div>
-                                @if($isDayOff)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                                        Day Off
-                                    </span>
-                                @elseif($isTask)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">
-                                        Kegiatan
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                                        Meeting
-                                    </span>
-                                @endif
+                            @empty
+                            <div class="text-center py-8 text-wms-ink-500">
+                                <p class="text-[13px]">Belum ada jadwal</p>
                             </div>
+                            @endforelse
                         </div>
-                        @empty
-                        <div class="text-center py-8 text-wms-ink-500">
-                            <p class="text-[13.5px]">Belum ada jadwal</p>
-                        </div>
-                        @endforelse
                     </div>
                 </div>
             </div>

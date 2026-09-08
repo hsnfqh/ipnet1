@@ -11,6 +11,10 @@
         'High' => ['bg' => '#FEE2E2', 'fg' => '#991B1B', 'dot' => '#EF4444'],
         'Medium' => ['bg' => '#FEF3C7', 'fg' => '#92400E', 'dot' => '#F59E0B'],
         'Low' => ['bg' => '#E2E8F0', 'fg' => '#475569', 'dot' => '#94A3B8'],
+        'Meeting' => ['bg' => '#EFF6FF', 'fg' => '#1E40AF', 'dot' => '#3B82F6'],
+        'Kegiatan' => ['bg' => '#FDF1F2', 'fg' => '#991B1B', 'dot' => '#C81E2C'],
+        'Task' => ['bg' => '#FDF1F2', 'fg' => '#991B1B', 'dot' => '#C81E2C'],
+        'Day Off' => ['bg' => '#F1F5F9', 'fg' => '#334155', 'dot' => '#64748B'],
     ];
     $s = $styles[$status] ?? ['bg' => '#E2E8F0', 'fg' => '#475569', 'dot' => '#94A3B8'];
 @endphp
