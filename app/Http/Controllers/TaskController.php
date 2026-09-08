@@ -273,13 +273,15 @@ class TaskController extends Controller
         $task->save();
         $task = $task->load(['project', 'engineer', 'engineers', 'creator']);
 
-        // Sinkronkan perubahan tanggal/jam task ke Jadwal jika ada
-        if ($task->deadline && ($task->wasChanged('deadline') || $task->wasChanged('deadline_time'))) {
-            \App\Models\Schedule::where('title', $task->title)
+        // Sinkronkan perubahan judul, tanggal/jam task, dan engineer ke Jadwal jika ada
+        if ($task->deadline) {
+            \App\Models\Schedule::where('title', $task->getOriginal('title') ?: $task->title)
                 ->where('project_id', $task->project_id)
                 ->update([
-                    'date'       => $task->deadline->format('Y-m-d'),
-                    'start_time' => $task->deadline_time ? substr($task->deadline_time, 0, 5) : '09:00',
+                    'title'       => $task->title,
+                    'date'        => $task->deadline->format('Y-m-d'),
+                    'start_time'  => $task->deadline_time ? substr($task->deadline_time, 0, 5) : ($task->deadline->format('H:i') !== '00:00' ? $task->deadline->format('H:i') : '09:00'),
+                    'engineer_id' => $task->engineer_id,
                 ]);
         }
 
@@ -351,6 +353,10 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         abort_unless(ScopeHelper::canManageProjectsAndTasks(auth()->user()), 403, 'Hanya Team Leader yang berhak menghapus task.');
+
+        \App\Models\Schedule::where('title', $task->title)
+            ->where('project_id', $task->project_id)
+            ->delete();
 
         $task->delete();
 

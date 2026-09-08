@@ -26,6 +26,30 @@ class ScheduleController extends Controller
         $scopeIds = ScopeHelper::getScopeUserIds($user);
         $hasScheduleUser = Schema::hasTable('schedule_user');
 
+        // Auto-heal / Sinkronkan semua Jadwal Kegiatan dengan Task deadline agar tanggal selalu 100% konsisten
+        $taskSchedules = Schedule::whereIn('category', ['Task', 'Kegiatan'])->get();
+        foreach ($taskSchedules as $ts) {
+            $matchingTask = Task::where('title', $ts->title)
+                ->where('project_id', $ts->project_id)
+                ->first();
+            if ($matchingTask && $matchingTask->deadline) {
+                $taskDate = $matchingTask->deadline->format('Y-m-d');
+                $taskTime = $matchingTask->deadline_time 
+                    ? substr($matchingTask->deadline_time, 0, 5) 
+                    : ($matchingTask->deadline->format('H:i') !== '00:00' ? $matchingTask->deadline->format('H:i') : ($ts->start_time ? substr($ts->start_time, 0, 5) : '09:00'));
+                
+                $currDate = $ts->date ? $ts->date->format('Y-m-d') : null;
+                $currTime = $ts->start_time ? substr($ts->start_time, 0, 5) : null;
+                
+                if ($currDate !== $taskDate || $currTime !== $taskTime) {
+                    $ts->update([
+                        'date'       => $taskDate,
+                        'start_time' => $taskTime,
+                    ]);
+                }
+            }
+        }
+
         $withRelations = ['project', 'engineer', 'creator'];
         if ($hasScheduleUser) {
             $withRelations[] = 'engineers';
@@ -57,6 +81,16 @@ class ScheduleController extends Controller
                     ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
                     : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
 
+                $taskStatus = null;
+                if (in_array($schedule->category, ['Task', 'Kegiatan'])) {
+                    $matchingTask = Task::where('title', $schedule->title)
+                        ->where('project_id', $schedule->project_id)
+                        ->first();
+                    if ($matchingTask) {
+                        $taskStatus = $matchingTask->status;
+                    }
+                }
+
                 return [
                     'id'          => $schedule->id,
                     'title'       => $schedule->title,
@@ -69,6 +103,8 @@ class ScheduleController extends Controller
                     'end_time'    => $schedule->end_time ? substr($schedule->end_time, 0, 5) : '',
                     'location'    => $schedule->location,
                     'description' => $schedule->description,
+                    'status'      => $taskStatus,
+                    'task_status' => $taskStatus,
                     'project'     => $schedule->project ? [
                         'id'   => $schedule->project->id,
                         'name' => $schedule->project->name,
@@ -550,6 +586,12 @@ class ScheduleController extends Controller
     public function destroy(Schedule $schedule)
     {
         try {
+            if (in_array($schedule->category, ['Task', 'Kegiatan'])) {
+                Task::where('title', $schedule->title)
+                    ->where('project_id', $schedule->project_id)
+                    ->delete();
+            }
+
             $schedule->delete();
 
             if (request()->ajax() || request()->wantsJson()) {

@@ -178,7 +178,15 @@
                                 </div>
                                 <div class="jkw-day-main">
                                     <div class="jkw-day-title" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                                        <span x-text="schedule._displayTitle" style="cursor:pointer;" @click="handleEventClick(schedule)"></span>
+                                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                            <span x-text="schedule._displayTitle" style="cursor:pointer;" @click="handleEventClick(schedule)"></span>
+                                            <template x-if="schedule.status === 'Completed' || schedule.task_status === 'Completed'">
+                                                <span style="background:#DCFCE7; color:#166534; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; border:1px solid #BBF7D0; display:inline-flex; align-items:center; gap:3px;">
+                                                    <svg style="width:11px; height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                    Selesai
+                                                </span>
+                                            </template>
+                                        </div>
                                         <template x-if="schedule._type === 'task'">
                                             <div style="display:flex; align-items:center; gap:6px;">
                                                 <a href="/tasks" style="background:#FDF1F2; border:1px solid #FCA5A5; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; color:#C81E2C; text-decoration:none; display:inline-flex; align-items:center; gap:4px; flex-shrink:0; transition:all 0.15s ease;" onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='#FDF1F2'" title="Kelola dan selesaikan tiket di menu Task">
@@ -1716,8 +1724,9 @@
                             var eTime = s.end_time ? s.end_time.substring(0, 5) : '';
                             var isDayOff = s.category === 'Day Off';
                             var isTaskCat = s.category === 'Task' || s.category === 'Kegiatan';
+                            var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
                             var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : 'Jadwal'));
-                            var eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
+                            var eventColor = isDayOff ? '#64748B' : (isTaskCat ? (isTaskCompleted ? '#16A34A' : '#C81E2C') : '#2563EB');
                             
                             var engLabel = '';
                             if (s.engineers && s.engineers.length > 0) {
@@ -1734,9 +1743,11 @@
                                 _color: eventColor,
                                 _displayTitle: s.title,
                                 _timeLabel: timeLabel,
-                                _tooltip: (isDayOff ? 'Day Off: ' : (isTaskCat ? 'Task/Kegiatan: ' : 'Jadwal: ')) + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + ' • Klik untuk edit',
+                                _tooltip: (isDayOff ? 'Day Off: ' : (isTaskCat ? 'Task/Kegiatan: ' : 'Jadwal: ')) + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + (isTaskCompleted ? ' • (Selesai)' : ' • Klik untuk edit'),
                                 _subLabel: engLabel,
                                 category: s.category || 'Meeting',
+                                status: s.status || s.task_status,
+                                task_status: s.task_status || s.status,
                                 id: s.id,
                                 title: s.title,
                                 project_id: s.project_id,
