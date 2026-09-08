@@ -134,7 +134,9 @@ class DashboardController extends Controller
                 });
 
                 $activeTasks = $engineerTasks->where('status', '!=', 'Completed')->count();
-                $activeSchedules = $engineerSchedules->where('category', '!=', 'Day Off')->count();
+                $activeSchedules = $engineerSchedules->filter(function($s) {
+                    return in_array($s->category, ['Task', 'Kegiatan']);
+                })->count();
                 $dayOffCount = $engineerSchedules->where('category', 'Day Off')->count();
                 $totalActive = $activeTasks + $activeSchedules;
 
