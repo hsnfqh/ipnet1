@@ -135,6 +135,7 @@ class DashboardController extends Controller
 
                 $activeTasks = $engineerTasks->where('status', '!=', 'Completed')->count();
                 $activeSchedules = $engineerSchedules->where('category', '!=', 'Day Off')->count();
+                $dayOffCount = $engineerSchedules->where('category', 'Day Off')->count();
                 $totalActive = $activeTasks + $activeSchedules;
 
                 $divName = 'Lainnya';
@@ -154,8 +155,9 @@ class DashboardController extends Controller
                     'active'    => $totalActive,
                     'tasks'     => $activeTasks,
                     'schedules' => $activeSchedules,
+                    'dayOff'    => $dayOffCount,
                     'completed' => $engineerTasks->where('status', 'Completed')->count(),
-                    'total'     => $totalActive,
+                    'total'     => $totalActive + $dayOffCount,
                 ];
             })->values();
         };
@@ -169,7 +171,6 @@ class DashboardController extends Controller
             return $t->created_at >= $startOfWeek && $t->created_at <= $endOfWeek;
         });
         $weekSchedules = $schedules->filter(function($s) use ($startOfWeek, $endOfWeek) {
-            if ($s->category === 'Day Off') return false;
             if ($s->date) {
                 return $s->date >= $startOfWeek && $s->date <= $endOfWeek;
             }
@@ -186,7 +187,6 @@ class DashboardController extends Controller
             return $t->created_at >= $startOfMonth && $t->created_at <= $endOfMonth;
         });
         $monthSchedules = $schedules->filter(function($s) use ($startOfMonth, $endOfMonth) {
-            if ($s->category === 'Day Off') return false;
             if ($s->date) {
                 return $s->date >= $startOfMonth && $s->date <= $endOfMonth;
             }
