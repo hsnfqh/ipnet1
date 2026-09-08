@@ -110,8 +110,8 @@ class DashboardController extends Controller
         // DATA CHART LOAD PEKERJAAN ENGINEER (Bulan Ini & Minggu Ini)
         // Mendukung Filter Tim Lintas Divisi & Menggabungkan Task + Jadwal Kegiatan
         // ============================================================
-        $startOfWeek  = now()->startOfWeek()->startOfDay();
-        $endOfWeek    = now()->endOfWeek()->endOfDay();
+        $startOfWeek  = now()->startOfWeek(\Carbon\Carbon::MONDAY)->startOfDay();
+        $endOfWeek    = now()->endOfWeek(\Carbon\Carbon::SUNDAY)->endOfDay();
         $startOfMonth = now()->startOfMonth()->startOfDay();
         $endOfMonth   = now()->endOfMonth()->endOfDay();
 
@@ -154,29 +154,17 @@ class DashboardController extends Controller
             })->values();
         };
 
-        // Data Minggu Ini: Task pada rentang pekan ini (Senin - Minggu)
+        // Data Minggu Ini: Berdasarkan tanggal deadline task pada rentang pekan ini (Senin - Minggu)
         $weekTasks = $tasks->filter(function($t) use ($startOfWeek, $endOfWeek) {
-            if ($t->status === 'Completed') {
-                $compDate = $t->updated_at ?? $t->deadline;
-                return $compDate && $compDate >= $startOfWeek && $compDate <= $endOfWeek;
-            }
-            if ($t->deadline) {
-                return $t->deadline >= $startOfWeek && $t->deadline <= $endOfWeek;
-            }
-            return $t->created_at >= $startOfWeek && $t->created_at <= $endOfWeek;
+            $taskDate = $t->deadline ?? $t->created_at;
+            return $taskDate && $taskDate >= $startOfWeek && $taskDate <= $endOfWeek;
         });
         $engineerLoadWeekData = $buildEngineerLoad($weekTasks);
 
-        // Data Bulan Ini: Task pada rentang bulan ini (Tanggal 1 - 30/31)
+        // Data Bulan Ini: Berdasarkan tanggal deadline task pada rentang bulan ini (Tanggal 1 - 30/31)
         $monthTasks = $tasks->filter(function($t) use ($startOfMonth, $endOfMonth) {
-            if ($t->status === 'Completed') {
-                $compDate = $t->updated_at ?? $t->deadline;
-                return $compDate && $compDate >= $startOfMonth && $compDate <= $endOfMonth;
-            }
-            if ($t->deadline) {
-                return $t->deadline >= $startOfMonth && $t->deadline <= $endOfMonth;
-            }
-            return $t->created_at >= $startOfMonth && $t->created_at <= $endOfMonth;
+            $taskDate = $t->deadline ?? $t->created_at;
+            return $taskDate && $taskDate >= $startOfMonth && $taskDate <= $endOfMonth;
         });
         $engineerLoadMonthData = $buildEngineerLoad($monthTasks);
 
