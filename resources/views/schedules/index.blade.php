@@ -1763,6 +1763,12 @@
                         : this.tasks;
                     filteredTasks.forEach(function(t) {
                         if (t.deadline === date) {
+                            // Jangan duplikasi jika kegiatan ini sudah terdaftar di schedules dengan nama yang sama
+                            var alreadyInSchedules = self.schedules.some(function(s) {
+                                return s.title && s.title.trim().toLowerCase() === t.title.trim().toLowerCase() && (s.category === 'Task' || s.category === 'Kegiatan');
+                            });
+                            if (alreadyInSchedules) return;
+
                             var dTime = t.deadline_time ? t.deadline_time.substring(0, 5) : '';
                             var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
 
