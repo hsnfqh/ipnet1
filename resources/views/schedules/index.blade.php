@@ -1659,10 +1659,7 @@
                     });
                 },
                 get filteredEngineerAvailability() {
-                    var list = this.engineerAvailability.filter(function(e) {
-                        return !e.isDayOff;
-                    });
-                    return this.showOnlyAvailable ? list.filter(function(e) { return e.available; }) : list;
+                    return this.showOnlyAvailable ? this.engineerAvailability.filter(function(e) { return e.available; }) : this.engineerAvailability;
                 },
                 isEngineerBusyOnDate: function(engineerId, date) {
                     if (!date) return false;
