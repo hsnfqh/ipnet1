@@ -157,7 +157,6 @@ class ScheduleController extends Controller
                 });
             })
             ->whereNotNull('deadline')
-            ->whereNot('status', 'Completed')
             ->get()
             ->map(function($task) use ($hasTaskUser) {
                 $engineerIds = $hasTaskUser && $task->relationLoaded('engineers') && $task->engineers->isNotEmpty()
