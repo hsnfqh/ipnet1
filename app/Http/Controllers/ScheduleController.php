@@ -123,11 +123,18 @@ class ScheduleController extends Controller
 
         $divisionId = $user->division_id;
         $isGlobal = ScopeHelper::isGlobal($user);
-        $projectsQuery = Project::where('status', '!=', 'Completed');
+        $projectsQuery = Project::query();
         if ($divisionId && !$isGlobal) {
-            $projectsQuery->where(function($q) use ($divisionId) {
+            $projectsQuery->where(function($q) use ($divisionId, $user, $scopeIds) {
                 $q->where('division_id', $divisionId)
-                  ->orWhereNull('division_id');
+                  ->orWhereNull('division_id')
+                  ->orWhere('created_by', $user->id);
+                if (!empty($scopeIds)) {
+                    $teamTaskProjectIds = Task::whereIn('engineer_id', $scopeIds)->pluck('project_id')->filter()->unique();
+                    if ($teamTaskProjectIds->isNotEmpty()) {
+                        $q->orWhereIn('id', $teamTaskProjectIds);
+                    }
+                }
             });
         }
         $projects  = $projectsQuery->orderBy('name')->get();
@@ -184,25 +191,20 @@ class ScheduleController extends Controller
 
         // Projects dengan deadline untuk ditampilkan di kalender
         $calendarProjects = Project::with('creator')
-            ->when($scopeIds !== null, function($query) use ($scopeIds, $hasTaskUser) {
-                // Non-global hanya lihat project yang ada task untuk timnya
-                $projectIdsQuery = Task::query();
-                if (count($scopeIds) === 1) {
-                    $projectIdsQuery->where('engineer_id', $scopeIds[0]);
-                    if ($hasTaskUser) {
-                        $projectIdsQuery->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+            ->when($divisionId && !$isGlobal, function($query) use ($divisionId, $user, $scopeIds) {
+                return $query->where(function($q) use ($divisionId, $user, $scopeIds) {
+                    $q->where('division_id', $divisionId)
+                      ->orWhereNull('division_id')
+                      ->orWhere('created_by', $user->id);
+                    if (!empty($scopeIds)) {
+                        $teamTaskProjectIds = Task::whereIn('engineer_id', $scopeIds)->pluck('project_id')->filter()->unique();
+                        if ($teamTaskProjectIds->isNotEmpty()) {
+                            $q->orWhereIn('id', $teamTaskProjectIds);
+                        }
                     }
-                } else {
-                    $projectIdsQuery->whereIn('engineer_id', $scopeIds);
-                    if ($hasTaskUser) {
-                        $projectIdsQuery->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
-                    }
-                }
-                $projectIds = $projectIdsQuery->pluck('project_id')->unique();
-                return $query->whereIn('id', $projectIds);
+                });
             })
             ->whereNotNull('deadline')
-            ->whereNot('status', 'Completed')
             ->get()
             ->map(function($project) {
                 return [

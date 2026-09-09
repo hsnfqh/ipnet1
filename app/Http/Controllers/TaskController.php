@@ -48,17 +48,27 @@ class TaskController extends Controller
             })
             ->get();
 
-        // Project khusus untuk modal Buat & Assign Task: murni project aktif divisi user
+        // Project khusus untuk modal Buat & Assign Task: semua project yang relevan dengan divisi/scope user
         $divisionId = $user->division_id;
         $isGlobal   = ScopeHelper::isGlobal($user);
 
-        $formProjectsQuery = Project::where('status', '!=', 'Completed');
+        $formProjectsQuery = Project::query();
         if ($divisionId && !$isGlobal) {
-            $formProjectsQuery->where('division_id', $divisionId);
+            $teamUserIds = ScopeHelper::getScopeUserIds($user) ?? [];
+            $projectIdsWithTeamTasks = Task::whereIn('engineer_id', $teamUserIds)->pluck('project_id')->filter()->unique();
+
+            $formProjectsQuery->where(function($q) use ($divisionId, $user, $projectIdsWithTeamTasks) {
+                $q->where('division_id', $divisionId)
+                  ->orWhereNull('division_id')
+                  ->orWhere('created_by', $user->id);
+                if ($projectIdsWithTeamTasks->isNotEmpty()) {
+                    $q->orWhereIn('id', $projectIdsWithTeamTasks);
+                }
+            });
         }
         $formProjects = $formProjectsQuery->orderBy('name')->get();
 
-        // Project untuk filter board (mencakup project aktif divisi + project task yang sedang ada di board)
+        // Project untuk filter board (mencakup project divisi + project task yang sedang ada di board)
         $taskProjectIds = $tasks->pluck('project_id')->filter()->unique();
         $boardProjects = Project::whereIn('id', $taskProjectIds)->get();
         $projects = $formProjects->merge($boardProjects)->unique('id')->values();

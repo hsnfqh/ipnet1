@@ -45,10 +45,19 @@ class DashboardController extends Controller
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
             ->where('client', '!=', 'Internal / Umum');
         if ($scopeIds !== null) {
-            $projectIds = $tasks->pluck('project_id')->unique();
-            $projectsQuery->where(function($q) use ($projectIds, $user) {
-                $q->whereIn('id', $projectIds)
-                  ->orWhere('created_by', $user->id);
+            $projectIds = $tasks->pluck('project_id')->filter()->unique();
+            $divisionId = $user->division_id;
+            $projectsQuery->where(function($q) use ($projectIds, $user, $divisionId) {
+                if ($projectIds->isNotEmpty()) {
+                    $q->whereIn('id', $projectIds);
+                } else {
+                    $q->whereRaw('0 = 1');
+                }
+                $q->orWhere('created_by', $user->id);
+                if ($divisionId) {
+                    $q->orWhere('division_id', $divisionId)
+                      ->orWhereNull('division_id');
+                }
             });
         }
         $projects = $projectsQuery->get();
