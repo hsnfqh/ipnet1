@@ -21,55 +21,119 @@ use Illuminate\Database\Eloquent\Builder;
 class ScopeHelper
 {
     /**
-     * Apakah user memiliki akses ke seluruh tim (Global: Direktur & Group Leader & Lead Engineer lama)?
+     * Apakah user memiliki hak akses Eksekutif Tertinggi (Director & Division Head)?
+     */
+    public static function isExecutive($user): bool
+    {
+        if (!$user) return false;
+        return $user->hasAnyRole([
+            'Director',
+            'Direktur',
+            'HD / Direktur',
+            'Division Head',
+        ]);
+    }
+
+    /**
+     * Apakah user memiliki akses ke seluruh tim (Global: Director, Division Head, Group Leader, PMO, Project Manager)?
      */
     public static function isGlobal($user): bool
     {
         if (!$user) return false;
         return $user->hasAnyRole([
+            'Director',
             'Direktur',
             'HD / Direktur',
+            'Division Head',
             'Group Leader',
+            'Group Leader Commercial & Solution',
+            'Group Leader Delivery & Operation',
             'Lead Divisi',
             'Lead Engineer',
+            'PMO',
+            'Project Manager',
         ]);
     }
 
     /**
-     * Apakah user adalah Group Leader (GL)?
+     * Apakah user adalah Group Leader (GL) atau Division Head?
      */
     public static function isGroupLeader($user): bool
     {
         if (!$user) return false;
-        return $user->hasAnyRole(['Group Leader', 'Lead Divisi']);
+        return $user->hasAnyRole([
+            'Group Leader',
+            'Group Leader Commercial & Solution',
+            'Group Leader Delivery & Operation',
+            'Division Head',
+            'Lead Divisi',
+        ]);
     }
 
     /**
-     * Apakah user adalah Team Leader (TL) / Lead Divisi / Lead Maintenance?
+     * Apakah user adalah Team Leader (TL) / Lead Divisi / Managed Service Coordinator?
      */
     public static function isTeamLeader($user): bool
     {
         if (!$user) return false;
-        return $user->hasAnyRole(['Team Leader', 'Lead Maintenance']);
+        return $user->hasAnyRole([
+            'Team Leader Engineering',
+            'Team Leader',
+            'Lead Divisi',
+            'Lead Engineer',
+            'Lead Maintenance',
+            'Managed Service',
+        ]);
     }
 
     /**
      * Apakah user adalah level manajerial (bisa mengatur/melihat data bawahan)?
-     * Mencakup: Direktur, Group Leader, Team Leader, Lead Maintenance, Lead Engineer
+     * Mencakup: Director, Division Head, Group Leader, PMO, Project Manager, Team Leader, Managed Service
      */
     public static function isManagerial($user): bool
     {
         if (!$user) return false;
         return $user->hasAnyRole([
+            'Director',
             'Direktur',
             'HD / Direktur',
+            'Division Head',
             'Group Leader',
+            'Group Leader Commercial & Solution',
+            'Group Leader Delivery & Operation',
             'PMO',
             'Project Manager',
-            'Lead Divisi',
+            'Team Leader Engineering',
             'Team Leader',
+            'Lead Divisi',
             'Lead Maintenance',
             'Lead Engineer',
+            'Managed Service',
+        ]);
+    }
+
+    /**
+     * Apakah user berada di cabang Commercial & Solution?
+     */
+    public static function isCommercial($user): bool
+    {
+        if (!$user) return false;
+        return $user->hasAnyRole([
+            'Group Leader Commercial & Solution',
+            'Sales',
+            'Account Manager',
+            'BusDev',
+            'BDM',
+            'Business Development',
+            'CRO',
+            'Customer Relation Officer',
+            'Presales',
+            'Pre-Sales',
+            'Solution Architect',
+            'Solutions Architect',
+            'Tech Develop',
+            'Tech.Develp (R&D)',
+            'R&D',
         ]);
     }
 
@@ -84,29 +148,57 @@ class ScopeHelper
 
     /**
      * Apakah user memiliki wewenang operasional untuk membuat project baru?
-     * Hanya Team Leader teknis (Network Leader, Security Leader), PMO, Project Manager, dan Lead Engineer.
-     * Lead Maintenance bertindak sebagai Helpdesk / Dispatcher sehingga tidak membuat project baru dari nol.
      */
     public static function canCreateProjects($user): bool
     {
         if (!$user) return false;
-        if ($user->hasRole('Lead Maintenance')) return false;
-        return $user->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'PMO', 'Project Manager', 'Lead Divisi', 'Team Leader', 'Lead Engineer']);
+        return $user->hasAnyRole([
+            'Director',
+            'Direktur',
+            'HD / Direktur',
+            'Division Head',
+            'Group Leader',
+            'Group Leader Commercial & Solution',
+            'Group Leader Delivery & Operation',
+            'PMO',
+            'Project Manager',
+            'Lead Divisi',
+            'Team Leader Engineering',
+            'Team Leader',
+            'Lead Engineer',
+            'Sales',
+            'Account Manager',
+            'BusDev',
+            'BDM',
+            'Presales',
+            'Solution Architect',
+        ]);
     }
 
     /**
      * Apakah user memiliki wewenang operasional untuk mengelola task/tiket (buat & edit task)?
-     * Mencakup Team Leader teknis, Lead Maintenance (Helpdesk), PMO, Project Manager, dan Lead Engineer.
      */
     public static function canManageTasks($user): bool
     {
         if (!$user) return false;
-        return $user->hasAnyRole(['Direktur', 'Group Leader', 'PMO', 'Project Manager', 'Team Leader', 'Lead Maintenance', 'Lead Engineer']);
+        return $user->hasAnyRole([
+            'Director',
+            'Direktur',
+            'HD / Direktur',
+            'Division Head',
+            'Group Leader',
+            'Group Leader Delivery & Operation',
+            'Team Leader Engineering',
+            'Team Leader',
+            'Lead Divisi',
+            'Lead Maintenance',
+            'Lead Engineer',
+            'Managed Service',
+        ]);
     }
 
     /**
      * Apakah user memiliki wewenang operasional (proyek/task)?
-     * Deprecated: Gunakan canCreateProjects atau canManageTasks untuk pengecekan spesifik.
      */
     public static function canManageProjectsAndTasks($user): bool
     {
@@ -117,23 +209,23 @@ class ScopeHelper
      * Ambil daftar ID user yang berada dalam scope wewenang user yang login.
      * Digunakan untuk query filter task, schedule, presensi, dll.
      *
-     * @return array|null null = akses semua user (Global: Direktur / Group Leader), array = ID user dalam scope
+     * @return array|null null = akses semua user (Global), array = ID user dalam scope
      */
     public static function getScopeUserIds($user): ?array
     {
         if (!$user) return [];
 
-        // 1. Direktur & Group Leader (GL) -> Akses SELURUH tim & seluruh engineer
+        // 1. Director, Division Head, Group Leader, PMO -> Akses SELURUH tim & seluruh engineer
         if (self::isGlobal($user)) {
             return null;
         }
 
-        // 2. Lead Maintenance -> Sebagai Helpdesk/Koordinator, dapat memantau seluruh teknisi & tiket yang didelegasikan
-        if ($user->hasRole('Lead Maintenance')) {
+        // 2. Managed Service Coordinator / Helpdesk -> Pemantauan menyeluruh untuk tiket & dispatch
+        if ($user->hasAnyRole(['Managed Service', 'Lead Maintenance'])) {
             return null;
         }
 
-        // 3. Leader Divisi (Network Leader / Security Leader) -> Akses SEMUA engineer di divisinya
+        // 3. Team Leader (Network Leader / Security Leader) -> Akses SEMUA engineer di divisinya
         if (self::isTeamLeader($user)) {
             if ($user->division_id) {
                 return \App\Models\User::where('division_id', $user->division_id)
@@ -148,17 +240,12 @@ class ScopeHelper
             return [$user->id];
         }
 
-        // 4. Engineer / Maintenance Staff -> Hanya dirinya sendiri
+        // 4. Engineer / Field Staff -> Hanya dirinya sendiri
         return [$user->id];
     }
 
     /**
      * Terapkan scope query berdasarkan kolom user_id/engineer_id.
-     *
-     * @param Builder $query       Query Eloquent
-     * @param mixed   $user        User yang sedang login
-     * @param string  $column      Nama kolom (default: 'user_id')
-     * @return Builder
      */
     public static function applyScope(Builder $query, $user, string $column = 'user_id'): Builder
     {
@@ -178,32 +265,36 @@ class ScopeHelper
 
     /**
      * Ambil daftar engineer/personel teknis lapangan yang bisa dipilih/di-assign task & jadwal.
-     * Mencakup Team Leader (TL), Lead Maintenance, seluruh Engineer & Maintenance lapangan.
-     * Tidak mencakup Direktur dan Kepala Divisi / Group Leader (Susanto Djaya).
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public static function getAssignableEngineers($user)
     {
         $operationalRoles = [
+            'Team Leader Engineering',
             'Team Leader',
             'Lead Maintenance',
             'Lead Engineer',
+            'Network Engineer',
+            'Security Engineer',
+            'Managed Service',
+            'Field Support (EOS)',
+            'Field Support',
             'Engineer',
             'Maintenance',
             'Engineer L1',
             'Engineer L2',
         ];
 
-        // 1. Direktur, Group Leader (GL), DAN Lead Maintenance (Helpdesk Dispatcher)
-        // -> Dapat menugaskan (dispatch) ke SEMUA personel teknis (Network & Security Engineer)
-        if (self::isGlobal($user) || $user->hasRole('Lead Maintenance')) {
+        // 1. Director, Division Head, Group Leader, PMO, Managed Service Coordinator
+        // -> Dapat menugaskan (dispatch) ke SEMUA personel teknis
+        if (self::isGlobal($user) || $user->hasAnyRole(['Managed Service', 'Lead Maintenance'])) {
             return \App\Models\User::whereHas('roles', function($q) use ($operationalRoles) {
                 $q->whereIn('name', $operationalRoles);
             })->active()->get();
         }
 
-        // 2. Leader Divisi Teknis (Network Leader / Security Leader) -> Assign ke personel di divisinya + dirinya sendiri
+        // 2. Leader Divisi Teknis -> Assign ke personel di divisinya + dirinya sendiri
         if (self::isTeamLeader($user)) {
             if ($user->division_id) {
                 return \App\Models\User::whereHas('roles', function($q) use ($operationalRoles) {
@@ -229,8 +320,60 @@ class ScopeHelper
             }
         }
 
-        // 3. Engineer -> Hanya dirinya sendiri
+        // 3. Sales / BDM / Commercial -> Dapat menugaskan jadwal meeting/POC ke Presales, Solution Architect, dan Tim Engineer
+        if ($user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO', 'Customer Relation Officer'])) {
+            $commercialAssignableRoles = array_merge($operationalRoles, [
+                'Presales',
+                'Pre-Sales',
+                'Solution Architect',
+                'Solutions Architect',
+                'Tech Develop',
+                'Tech.Develp (R&D)',
+                'R&D',
+                'Sales',
+                'Account Manager',
+                'BDM',
+            ]);
+            return \App\Models\User::whereHas('roles', function($q) use ($commercialAssignableRoles) {
+                $q->whereIn('name', $commercialAssignableRoles);
+            })->active()->get();
+        }
+
+        // 4. Presales & Engineer -> Hanya dirinya sendiri (read-only)
         return collect([$user]);
+    }
+
+    /**
+     * Apakah user memiliki wewenang untuk membuat, mengedit, atau menghapus jadwal?
+     * (Managerial & Sales/BDM bisa mengatur jadwal dengan Presales/Engineer; Presales & Engineer read-only)
+     */
+    public static function canManageSchedules($user): bool
+    {
+        if (!$user) return false;
+        return $user->hasAnyRole([
+            'Director',
+            'Direktur',
+            'HD / Direktur',
+            'Division Head',
+            'Group Leader',
+            'Group Leader Commercial & Solution',
+            'Group Leader Delivery & Operation',
+            'PMO',
+            'Project Manager',
+            'Lead Divisi',
+            'Team Leader Engineering',
+            'Team Leader',
+            'Lead Maintenance',
+            'Lead Engineer',
+            'Managed Service',
+            'Sales',
+            'Account Manager',
+            'BusDev',
+            'BDM',
+            'Business Development',
+            'CRO',
+            'Customer Relation Officer',
+        ]);
     }
 
     /**
@@ -240,21 +383,27 @@ class ScopeHelper
     {
         if (!$user) return [];
 
-        if ($user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
-            return ['Direktur', 'Group Leader', 'PMO', 'Project Manager', 'Team Leader', 'Lead Maintenance', 'Engineer', 'Maintenance'];
+        if ($user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head'])) {
+            return [
+                'Director', 'Division Head', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation',
+                'PMO', 'Project Manager', 'Sales', 'BusDev', 'CRO', 'Presales', 'Solution Architect', 'Tech Develop',
+                'Team Leader Engineering', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Field Support (EOS)'
+            ];
         }
 
         if (self::isGroupLeader($user)) {
-            return ['PMO', 'Project Manager', 'Team Leader', 'Lead Maintenance', 'Engineer', 'Maintenance'];
+            return [
+                'PMO', 'Project Manager', 'Sales', 'BusDev', 'CRO', 'Presales', 'Solution Architect', 'Tech Develop',
+                'Team Leader Engineering', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Field Support (EOS)'
+            ];
         }
 
         if (self::isTeamLeader($user)) {
-            // Team Leader hanya dapat merekrut/menambah Engineer di divisinya
-            return ['Engineer'];
+            return ['Network Engineer', 'Security Engineer', 'Engineer'];
         }
 
-        if ($user->hasRole('Lead Maintenance')) {
-            return ['Maintenance'];
+        if ($user->hasAnyRole(['Managed Service', 'Lead Maintenance'])) {
+            return ['Field Support (EOS)', 'Maintenance'];
         }
 
         return [];
@@ -267,20 +416,19 @@ class ScopeHelper
     {
         if (!$user) return [];
 
-        if ($user->hasAnyRole(['Direktur', 'HD / Direktur'])) {
-            return ['Direktur', 'Group Leader', 'PMO', 'Project Manager', 'Team Leader', 'Engineer L1', 'Engineer L2'];
-        }
-
-        if (self::isGroupLeader($user)) {
-            return ['PMO', 'Project Manager', 'Team Leader', 'Engineer L1', 'Engineer L2'];
+        if ($user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader'])) {
+            return [
+                'Director', 'Division Head', 'Group Leader', 'PMO', 'Project Manager',
+                'Sales', 'BusDev', 'CRO', 'Presales', 'Solution Architect', 'Tech Develop',
+                'Team Leader Engineering', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Field Support (EOS)'
+            ];
         }
 
         if (self::isTeamLeader($user)) {
-            // Untuk Team Leader: Tim teknis terdiri dari Engineer L1, Engineer L2, dan dirinya sendiri
-            return ['Engineer L1', 'Engineer L2', 'Team Leader'];
+            return ['Network Engineer', 'Security Engineer', 'Team Leader Engineering', 'Engineer L1', 'Engineer L2'];
         }
 
-        return ['Engineer L1', 'Engineer L2'];
+        return ['Network Engineer', 'Security Engineer', 'Field Support (EOS)', 'Engineer L1', 'Engineer L2'];
     }
 
     /**
@@ -295,20 +443,19 @@ class ScopeHelper
             return false;
         }
 
-        // 1. Direktur memiliki wewenang penuh atas semua bawahan
-        if ($authUser->hasAnyRole(['Direktur', 'HD / Direktur'])) {
+        // 1. Director & Division Head memiliki wewenang penuh
+        if ($authUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head'])) {
             return true;
         }
 
-        // Target adalah Direktur -> tidak ada yang boleh mengubah selain sesama Direktur
-        if ($targetUser->hasAnyRole(['Direktur', 'HD / Direktur'])) {
+        // Target adalah Director -> tidak ada yang boleh mengubah selain sesama Director
+        if ($targetUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur'])) {
             return false;
         }
 
-        // 2. Group Leader dapat mengelola Team Leader, Lead Maintenance, Engineer, Maintenance
+        // 2. Group Leader dapat mengelola jajaran di bawahnya
         if (self::isGroupLeader($authUser)) {
-            // Tidak dapat mengelola sesama Group Leader
-            if ($targetUser->hasAnyRole(['Group Leader', 'Lead Divisi'])) {
+            if ($targetUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head'])) {
                 return false;
             }
             return true;
@@ -316,10 +463,9 @@ class ScopeHelper
 
         // 3. Team Leader hanya dapat mengelola Engineer di divisinya sendiri
         if (self::isTeamLeader($authUser)) {
-            if ($targetUser->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'Lead Divisi', 'Team Leader', 'Lead Maintenance', 'Lead Engineer'])) {
+            if ($targetUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Lead Divisi', 'Team Leader', 'PMO'])) {
                 return false;
             }
-            // Harus satu divisi / tim
             if ($authUser->division_id && $targetUser->division_id === $authUser->division_id) {
                 return true;
             }
@@ -329,9 +475,9 @@ class ScopeHelper
             return false;
         }
 
-        // 4. Lead Maintenance hanya dapat mengelola staf Maintenance
-        if ($authUser->hasRole('Lead Maintenance')) {
-            return $targetUser->hasRole('Maintenance');
+        // 4. Managed Service Coordinator hanya dapat mengelola staf Field Support
+        if ($authUser->hasAnyRole(['Managed Service', 'Lead Maintenance'])) {
+            return $targetUser->hasAnyRole(['Field Support (EOS)', 'Field Support', 'Maintenance']);
         }
 
         return false;
