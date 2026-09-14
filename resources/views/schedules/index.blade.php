@@ -1711,6 +1711,7 @@
                 getAllEventsForDay: function(date) {
                     var self = this;
                     var events = [];
+                    var seenKeys = {};
 
                     // --- Jadwal biasa & Day Off ---
                     var filtered = this.engineerFilter
@@ -1730,6 +1731,12 @@
                             var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : 'Jadwal'));
                             var eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
                             
+                            // Cegah duplikasi agenda yang sama persis di hari yang sama
+                            var engKey = (s.engineer_ids || (s.engineers ? s.engineers.map(function(e){ return e.id; }) : [s.engineer_id])).join('-');
+                            var dedupKey = (s.title || '').trim().toLowerCase() + '|' + d + '|' + sTime + '|' + (s.project_id || '') + '|' + engKey;
+                            if (seenKeys[dedupKey]) return;
+                            seenKeys[dedupKey] = true;
+
                             var engLabel = '';
                             if (s.engineers && s.engineers.length > 0) {
                                 engLabel = s.engineers.map(function(e) { return e.name; }).join(', ');
@@ -1776,16 +1783,15 @@
                         : this.tasks;
                     filteredTasks.forEach(function(t) {
                         if (t.deadline === date) {
-                            // Jangan duplikasi jika kegiatan ini sudah terdaftar di schedules pada tanggal yang sama
-                            var alreadyInSchedules = self.schedules.some(function(s) {
-                                var sDate = (s.date || '').split('T')[0];
-                                return sDate === date && s.title && s.title.trim().toLowerCase() === t.title.trim().toLowerCase() && (s.category === 'Task' || s.category === 'Kegiatan');
-                            });
-                            if (alreadyInSchedules) return;
-
                             var dTime = t.deadline_time ? t.deadline_time.substring(0, 5) : '';
-                            var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
+                            var taskEngKey = (t.engineer_ids || (t.engineers ? t.engineers.map(function(e){ return e.id; }) : [t.engineer_id])).join('-');
+                            var taskDedupKey = (t.title || '').trim().toLowerCase() + '|' + date + '|' + dTime + '|' + (t.project_id || '') + '|' + taskEngKey;
+                            
+                            // Jangan tampilkan jika sudah ada di schedules
+                            if (seenKeys[taskDedupKey]) return;
+                            seenKeys[taskDedupKey] = true;
 
+                            var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
                             var taskEngLabel = '';
                             if (t.engineers && t.engineers.length > 0) {
                                 taskEngLabel = t.engineers.map(function(e) { return e.name; }).join(', ');

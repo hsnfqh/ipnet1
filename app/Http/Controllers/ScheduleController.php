@@ -62,6 +62,38 @@ class ScheduleController extends Controller
             }
         }
 
+        // Auto-deduplikasi data ganda di database (judul, project, tanggal, jam, engineer yang sama persis)
+        try {
+            $duplicates = Schedule::select('title', 'project_id', 'date', 'start_time', 'engineer_id')
+                ->whereNotNull('date')
+                ->groupBy('title', 'project_id', 'date', 'start_time', 'engineer_id')
+                ->havingRaw('COUNT(*) > 1')
+                ->get();
+
+            foreach ($duplicates as $dup) {
+                $dupQuery = Schedule::where('title', $dup->title)
+                    ->where('date', $dup->date);
+                if ($dup->project_id) {
+                    $dupQuery->where('project_id', $dup->project_id);
+                } else {
+                    $dupQuery->whereNull('project_id');
+                }
+                if ($dup->start_time) {
+                    $dupQuery->where('start_time', $dup->start_time);
+                }
+                if ($dup->engineer_id) {
+                    $dupQuery->where('engineer_id', $dup->engineer_id);
+                }
+                $dupIds = $dupQuery->orderBy('id', 'asc')->pluck('id');
+                if ($dupIds->count() > 1) {
+                    $deleteIds = $dupIds->slice(1)->all();
+                    Schedule::whereIn('id', $deleteIds)->delete();
+                }
+            }
+        } catch (\Exception $e) {
+            // Abaikan jika query grup gagal
+        }
+
         $withRelations = ['project', 'engineer', 'creator'];
         if ($hasScheduleUser) {
             $withRelations[] = 'engineers';
