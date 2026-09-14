@@ -65,6 +65,7 @@
                         <span>Export PDF</span>
                     </a>
 
+                    @if($canManageSchedule ?? false)
                     <button type="button"
                             @click="openModal()"
                             class="jkw-btn jkw-btn--primary"
@@ -74,6 +75,7 @@
                         </svg>
                         <span>Tambah Jadwal</span>
                     </button>
+                    @endif
                 </div>
             </div>
 
@@ -1485,7 +1487,7 @@
                         return '#059669';
                     }
                     // 4. Sales / BusDev -> Amber Orange (#D97706)
-                    if (pos.includes('sales') || role.includes('sales') || pos.includes('busdev') || ['raiza', 'ribka', 'widodo'].includes(cleanName)) {
+                    if (pos.includes('sales') || role.includes('sales') || pos.includes('busdev') || ['donny burnan', 'erie', 'hendry wibowo', 'nabylla berlianita', 'nelvia nataliandi', 'raiza', 'ribka junita', 'ribka', 'sabar sianturi', 'widodo'].includes(cleanName)) {
                         return '#D97706';
                     }
 
@@ -1774,9 +1776,10 @@
                         : this.tasks;
                     filteredTasks.forEach(function(t) {
                         if (t.deadline === date) {
-                            // Jangan duplikasi jika kegiatan ini sudah terdaftar di schedules dengan nama yang sama
+                            // Jangan duplikasi jika kegiatan ini sudah terdaftar di schedules pada tanggal yang sama
                             var alreadyInSchedules = self.schedules.some(function(s) {
-                                return s.title && s.title.trim().toLowerCase() === t.title.trim().toLowerCase() && (s.category === 'Task' || s.category === 'Kegiatan');
+                                var sDate = (s.date || '').split('T')[0];
+                                return sDate === date && s.title && s.title.trim().toLowerCase() === t.title.trim().toLowerCase() && (s.category === 'Task' || s.category === 'Kegiatan');
                             });
                             if (alreadyInSchedules) return;
 
