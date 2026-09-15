@@ -189,10 +189,10 @@
                         </div>
 
                         <h1 class="text-[18px] sm:text-[21px] font-extrabold text-white tracking-tight leading-tight">
-                            Pusat Kendali Operasional & Penugasan Lapangan
+                            Selamat Datang, {{ auth()->user()->name }}
                         </h1>
                         <p class="mt-0.5 text-[12.5px] text-white/80 leading-relaxed line-clamp-1">
-                            Pemantauan kapasitas kerja teknisi, progres instalasi proyek jaringan, dan jadwal penugasan lapangan.
+                            Pantau kapasitas tim teknisi, progres instalasi proyek jaringan, dan jadwal operasional lapangan.
                         </p>
                     </div>
 
