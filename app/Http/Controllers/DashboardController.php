@@ -789,12 +789,13 @@ class DashboardController extends Controller
 
         // Lists
         $recentDesignProjects  = (clone $allProjectsQuery)->latest()->take(6)->get();
+        $pendingSowProjects    = (clone $allProjectsQuery)->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->latest()->take(6)->get();
         $inventoryHighlights   = \App\Models\InventoryItem::orderBy('stock', 'asc')->take(5)->get();
         $partnerVendors        = \App\Models\Vendor::latest()->take(5)->get();
         $pocSchedules          = Schedule::with(['project', 'engineer'])
                                     ->where('date', '>=', now()->toDateString())
                                     ->orderBy('date', 'asc')
-                                    ->take(4)
+                                    ->take(5)
                                     ->get();
 
         $data = [
@@ -811,6 +812,7 @@ class DashboardController extends Controller
             'domainChartData'       => $domainData,
             'domainLabels'          => array_keys($domainCounts),
             'recentDesignProjects'  => $recentDesignProjects,
+            'pendingSowProjects'    => $pendingSowProjects,
             'inventoryHighlights'   => $inventoryHighlights,
             'partnerVendors'        => $partnerVendors,
             'pocSchedules'          => $pocSchedules,
