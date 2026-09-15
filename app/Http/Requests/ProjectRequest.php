@@ -33,6 +33,8 @@ class ProjectRequest extends FormRequest
             'description'    => 'nullable|string',
             'start_date'     => 'required|date',
             'deadline'       => 'required|date|after_or_equal:start_date',
+            'status'         => 'nullable|string|in:Planning,On Progress,Completed,Pending,Opportunity,Draft',
+            'progress'       => 'nullable|integer|min:0|max:100',
         ];
     }
 }

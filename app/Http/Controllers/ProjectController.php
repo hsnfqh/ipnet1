@@ -20,17 +20,23 @@ class ProjectController extends Controller
 
         $canManage    = \App\Helpers\ScopeHelper::isManagerial($user) || $isSales;
         $canCreate    = \App\Helpers\ScopeHelper::canCreateProjects($user) || $isSales;
+        $canEditProgress = \App\Helpers\ScopeHelper::isTeamLeader($user) || \App\Helpers\ScopeHelper::isManagerial($user);
         $scopeIds     = \App\Helpers\ScopeHelper::getScopeUserIds($user);
+
+        $baseQuery = Project::with(['tasks.engineer:id,name', 'creator:id,name'])
+            ->where(function($q) {
+                $q->whereNull('project_type')->orWhere('project_type', '!=', 'Meeting / Internal');
+            });
 
         if ($isDirektur || $isSupervisor || $isSales || $isPmo) {
             // Direktur, Group Leader, Sales, PMO: Memantau seluruh portofolio proyek
-            $projects = Project::with(['tasks.engineer:id,name', 'creator:id,name'])->get();
+            $projects = $baseQuery->get();
         } elseif ($user->hasRole('Team Leader') && $user->division_id) {
             // Team Leader: Proyek divisi, proyek umum/unassigned, proyek yang dibuatnya, atau yang ada task anggotanya
             $teamUserIds = \App\Helpers\ScopeHelper::getScopeUserIds($user) ?? [];
             $projectIdsWithTeamTasks = \App\Models\Task::whereIn('engineer_id', $teamUserIds)->pluck('project_id')->filter()->unique();
 
-            $projects = Project::with(['tasks.engineer:id,name', 'creator:id,name'])
+            $projects = $baseQuery
                 ->where(function($q) use ($user, $projectIdsWithTeamTasks) {
                     $q->where('division_id', $user->division_id)
                       ->orWhereNull('division_id')
@@ -41,13 +47,13 @@ class ProjectController extends Controller
                 })
                 ->get();
         } elseif ($isLead) {
-            $projects = Project::with(['tasks.engineer:id,name', 'creator:id,name'])->get();
+            $projects = $baseQuery->get();
         } else {
             // Engineer non-lead: Hanya project yang ada task untuk dirinya
             $projectIds = \App\Models\Task::whereIn('engineer_id', $scopeIds)
                 ->pluck('project_id')
                 ->unique();
-            $projects = Project::with(['tasks.engineer:id,name', 'creator:id,name'])
+            $projects = $baseQuery
                 ->where(function($q) use ($projectIds, $user) {
                     $q->whereIn('id', $projectIds)
                       ->orWhere('created_by', $user->id);
@@ -55,7 +61,7 @@ class ProjectController extends Controller
                 ->get();
         }
 
-        return view('projects.index', compact('projects', 'isLead', 'canManage', 'canCreate', 'isDirektur', 'isSupervisor'));
+        return view('projects.index', compact('projects', 'isLead', 'canManage', 'canCreate', 'isDirektur', 'isSupervisor', 'canEditProgress'));
     }
 
     public function store(ProjectRequest $request)
@@ -79,10 +85,13 @@ class ProjectController extends Controller
 
     public function update(ProjectRequest $request, Project $project)
     {
-        $project->update($request->validated());
+        $data = $request->validated();
+        $project->update($data);
 
-        // Recalculate status otomatis berdasarkan tasks
-        $this->recalculateStatus($project);
+        // Jika status tidak diisi secara eksplisit oleh lead engineer, hitung ulang status berdasarkan tasks
+        if (!$request->filled('status')) {
+            $this->recalculateStatus($project);
+        }
 
         if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
             return response()->json($project->fresh()->load(['tasks:id,project_id,progress,status']));
@@ -130,7 +139,11 @@ class ProjectController extends Controller
 
     public function getData()
     {
-        $projects = Project::with(['tasks:id,project_id,progress,status'])->get()->map(function($project) {
+        $projects = Project::with(['tasks:id,project_id,progress,status'])
+            ->where(function($q) {
+                $q->whereNull('project_type')->orWhere('project_type', '!=', 'Meeting / Internal');
+            })
+            ->get()->map(function($project) {
             return [
                 'id'                 => $project->id,
                 'name'               => $project->name,

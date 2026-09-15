@@ -293,26 +293,17 @@ class ScheduleController extends Controller
             $data['created_by'] = auth()->id();
             $hasScheduleUser = Schema::hasTable('schedule_user');
 
-            // Kelola category & project 'other' / Day Off
+            // Kelola category & project 'other' / Day Off / Meeting (Meeting internal tidak dimasukkan ke tabel projects)
             $data['category'] = $request->input('category', 'Meeting');
-            if ($data['category'] === 'Day Off' || in_array(strtoupper(trim($request->input('new_project_name', ''))), ['DAY OFF', 'DAY OFF / CUTI', 'CUTI'])) {
+            if ($data['category'] === 'Day Off' || $data['category'] === 'Meeting' || in_array(strtoupper(trim($request->input('new_project_name', ''))), ['DAY OFF', 'DAY OFF / CUTI', 'CUTI'])) {
                 $data['project_id'] = null;
+                if (!empty($request->input('new_project_name')) && empty($data['title'])) {
+                    $data['title'] = trim($request->input('new_project_name'));
+                }
             } elseif ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
-                $projectName = trim($request->input('new_project_name'));
-                if (!empty($projectName) && !in_array(strtoupper($projectName), ['DAY OFF', 'DAY OFF / CUTI', 'CUTI'])) {
-                    $project = Project::firstOrCreate(
-                        ['name' => $projectName],
-                        [
-                            'client'       => 'Internal / Umum',
-                            'location'     => $request->input('location') ?: 'Kantor / Ruang Meeting',
-                            'start_date'   => $request->input('date') ?: now()->toDateString(),
-                            'deadline'     => $request->input('date') ?: now()->toDateString(),
-                            'status'       => 'On Progress',
-                            'project_type' => 'Meeting / Internal',
-                            'created_by'   => auth()->id(),
-                        ]
-                    );
-                    $data['project_id'] = $project->id;
+                $data['project_id'] = null;
+                if (!empty($request->input('new_project_name')) && empty($data['title'])) {
+                    $data['title'] = trim($request->input('new_project_name'));
                 }
             }
             $createTask = ($request->boolean('create_task') || $request->input('create_task') === '1' || $request->input('create_task') === 1 || $request->input('create_task') === true || in_array($data['category'] ?? '', ['Task', 'Kegiatan'])) && (($data['category'] ?? '') !== 'Day Off');
@@ -500,25 +491,17 @@ class ScheduleController extends Controller
             $hasScheduleUser = Schema::hasTable('schedule_user');
 
             // Kelola category & project 'other' / Day Off jika diedit
+            // Kelola category & project 'other' / Day Off / Meeting (Meeting internal tidak dimasukkan ke tabel projects)
             $data['category'] = $request->input('category', $schedule->category ?? 'Meeting');
-            if ($data['category'] === 'Day Off' || in_array(strtoupper(trim($request->input('new_project_name', ''))), ['DAY OFF', 'DAY OFF / CUTI', 'CUTI'])) {
+            if ($data['category'] === 'Day Off' || $data['category'] === 'Meeting' || in_array(strtoupper(trim($request->input('new_project_name', ''))), ['DAY OFF', 'DAY OFF / CUTI', 'CUTI'])) {
                 $data['project_id'] = null;
+                if (!empty($request->input('new_project_name')) && empty($data['title'])) {
+                    $data['title'] = trim($request->input('new_project_name'));
+                }
             } elseif ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
-                $projectName = trim($request->input('new_project_name'));
-                if (!empty($projectName) && !in_array(strtoupper($projectName), ['DAY OFF', 'DAY OFF / CUTI', 'CUTI'])) {
-                    $project = Project::firstOrCreate(
-                        ['name' => $projectName],
-                        [
-                            'client'       => 'Internal / Umum',
-                            'location'     => $request->input('location') ?: 'Kantor / Ruang Meeting',
-                            'start_date'   => $request->input('date') ?: now()->toDateString(),
-                            'deadline'     => $request->input('date') ?: now()->toDateString(),
-                            'status'       => 'On Progress',
-                            'project_type' => 'Meeting / Internal',
-                            'created_by'   => auth()->id(),
-                        ]
-                    );
-                    $data['project_id'] = $project->id;
+                $data['project_id'] = null;
+                if (!empty($request->input('new_project_name')) && empty($data['title'])) {
+                    $data['title'] = trim($request->input('new_project_name'));
                 }
             }
             unset($data['new_project_name']);

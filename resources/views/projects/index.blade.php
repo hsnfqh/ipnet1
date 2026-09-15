@@ -366,6 +366,62 @@
                                     <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Deskripsi & Catatan SLA</label>
                                     <textarea x-model="form.description" rows="3" class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B] resize-none" placeholder="Deskripsi teknis, ruang lingkup SLA, atau catatan project..."></textarea>
                                 </div>
+
+                                {{-- Status & Progress Control (Khusus Lead Engineer / Team Leader) --}}
+                                @if($canEditProgress ?? true)
+                                <div class="p-4 rounded-xl bg-gradient-to-br from-[#FEF2F2]/60 to-[#F8FAFC] border border-[#FECACA]/80 space-y-3.5 mt-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D] animate-pulse"></span>
+                                            <label class="text-[12px] font-extrabold text-[#8F0A0D] uppercase tracking-wider">
+                                                Status & Progress Bar (Lead Engineer)
+                                            </label>
+                                        </div>
+                                        <span class="text-[10.5px] font-bold text-[#64748B] bg-white px-2 py-0.5 rounded-md border border-[#E2E8F0] shadow-2xs">
+                                            Otoritas Teknis
+                                        </span>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                        {{-- Status Project --}}
+                                        <div>
+                                            <label class="block text-[11.5px] font-bold text-[#475569] mb-1.5">Status Proyek</label>
+                                            <select x-model="form.status" 
+                                                    @change="if(form.status === 'Completed' && form.progress < 100) { form.progress = 100; } else if(form.status === 'Planning' && form.progress > 0) { form.progress = 0; }"
+                                                    class="w-full py-2.5 px-3.5 text-[12.5px] font-bold bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B] cursor-pointer shadow-2xs">
+                                                <option value="Planning">⚪ Planning</option>
+                                                <option value="On Progress">🟡 On Progress</option>
+                                                <option value="Completed">🟢 Completed (Selesai)</option>
+                                            </select>
+                                        </div>
+
+                                        {{-- Progress Bar (%) Input & Slider --}}
+                                        <div>
+                                            <div class="flex items-center justify-between mb-1.5">
+                                                <label class="text-[11.5px] font-bold text-[#475569]">Persentase Progress</label>
+                                                <span class="font-extrabold text-[13px] text-[#8F0A0D]" x-text="(form.progress || 0) + '%'"></span>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <input type="range" min="0" max="100" step="5" x-model.number="form.progress"
+                                                       @input="if(form.progress == 100) { form.status = 'Completed'; } else if(form.progress > 0 && form.status === 'Planning') { form.status = 'On Progress'; } else if(form.progress == 0 && form.status === 'Completed') { form.status = 'Planning'; }"
+                                                       class="w-full h-2 bg-[#E2E8F0] rounded-lg appearance-none cursor-pointer accent-[#8F0A0D]">
+                                                <input type="number" min="0" max="100" x-model.number="form.progress"
+                                                       @input="if(form.progress == 100) { form.status = 'Completed'; } else if(form.progress > 0 && form.status === 'Planning') { form.status = 'On Progress'; } else if(form.progress == 0 && form.status === 'Completed') { form.status = 'Planning'; }"
+                                                       class="w-16 py-1.5 px-2 text-[12.5px] font-bold text-center bg-white border border-[#CBD5E1] rounded-lg focus:outline-none focus:border-[#8F0A0D]">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Live Bar Preview --}}
+                                    <div class="pt-1">
+                                        <div class="w-full bg-[#E2E8F0] rounded-full h-2.5 overflow-hidden">
+                                            <div class="h-full rounded-full transition-all duration-300"
+                                                 style="background: linear-gradient(90deg, #8F0A0D, #D62E3C);"
+                                                 :style="{ width: (form.progress || 0) + '%' }"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
                             </form>
                         </div>
 
@@ -585,12 +641,15 @@
                 location: '',
                 description: '',
                 start_date: '',
-                deadline: ''
+                deadline: '',
+                status: 'Planning',
+                progress: 0
             },
             detailProject: null,
 
             get filteredProjects() {
                 return this.projects.filter(p => {
+                    if (p.project_type === 'Meeting / Internal') return false;
                     const s = this.search.toLowerCase();
                     const matchSearch = (p.name || '').toLowerCase().includes(s) ||
                                        (p.client || '').toLowerCase().includes(s) ||
@@ -661,7 +720,9 @@
                         location: project.location || '',
                         description: project.description || '',
                         start_date: project.start_date ? String(project.start_date).substring(0, 10) : '',
-                        deadline: project.deadline ? String(project.deadline).substring(0, 10) : ''
+                        deadline: project.deadline ? String(project.deadline).substring(0, 10) : '',
+                        status: project.status || 'Planning',
+                        progress: this.getProjectProgress(project)
                     };
                 } else {
                     this.editing = false;
@@ -675,7 +736,9 @@
                         location: '',
                         description: '',
                         start_date: '',
-                        deadline: ''
+                        deadline: '',
+                        status: 'Planning',
+                        progress: 0
                     };
                 }
                 this.modalOpen = true;
@@ -722,7 +785,7 @@
                         if (this.editing) {
                             const index = this.projects.findIndex(p => p.id === this.form.id);
                             if (index !== -1) {
-                                this.projects[index] = { ...this.projects[index], ...data };
+                                this.projects[index] = { ...this.projects[index], ...data, status: this.form.status, progress: this.form.progress };
                             }
                         } else {
                             this.projects.unshift(data);
@@ -788,9 +851,15 @@
 
             getProjectProgress(project) {
                 if (project.status === 'Completed') return 100;
-                if (!project.tasks || project.tasks.length === 0) return 0;
-                const total = project.tasks.reduce((sum, t) => sum + (parseInt(t.progress) || 0), 0);
-                return Math.round(total / project.tasks.length);
+                if (project.progress !== undefined && project.progress !== null && (!project.tasks || project.tasks.length === 0)) {
+                    return parseInt(project.progress) || 0;
+                }
+                if (project.tasks && project.tasks.length > 0) {
+                    const total = project.tasks.reduce((sum, t) => sum + (parseInt(t.progress) || 0), 0);
+                    const avg = Math.round(total / project.tasks.length);
+                    return avg > 0 ? avg : (parseInt(project.progress) || 0);
+                }
+                return parseInt(project.progress) || 0;
             },
 
             showToast(message) {

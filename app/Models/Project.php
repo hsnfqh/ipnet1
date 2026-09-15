@@ -22,6 +22,7 @@ class Project extends Model
         'start_date',
         'deadline',
         'status',
+        'progress',
         'stage',
         'process_status',
         'acquire_status',
@@ -168,20 +169,33 @@ class Project extends Model
     // Accessors
     public function getProgressAttribute()
     {
+        if ($this->status === 'Completed') {
+            return 100;
+        }
+
+        // Jika terdapat manual progress yang ditentukan oleh Lead Engineer
+        if (isset($this->attributes['progress']) && $this->attributes['progress'] !== null && (int)$this->attributes['progress'] > 0) {
+            return (int) $this->attributes['progress'];
+        }
+
         $tasks = $this->tasks;  // gunakan relasi yang sudah di-eager load (tidak ada extra query)
-        $totalTasks = $tasks->count();
+        $totalTasks = $tasks ? $tasks->count() : 0;
         if ($totalTasks === 0) {
             return (int) ($this->attributes['progress'] ?? 0);
         }
 
-        // Hitung rata-rata progress riil dari seluruh task di project ini
+        // Hitung rata-rata progress riil dari seluruh task di project ini jika ada task aktif
         $avgProgress = $tasks->avg('progress');
         if ($avgProgress !== null && $avgProgress > 0) {
             return round($avgProgress);
         }
 
         $completedTasks = $tasks->where('status', 'Completed')->count();
-        return round(($completedTasks / $totalTasks) * 100);
+        if ($completedTasks > 0) {
+            return round(($completedTasks / $totalTasks) * 100);
+        }
+
+        return (int) ($this->attributes['progress'] ?? 0);
     }
 
     public function getTaskCountAttribute()
