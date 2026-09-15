@@ -50,17 +50,62 @@
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto animate-fade-in" x-data="proposalManager()">
             
-            {{-- Header Title Bar --}}
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-1">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-4.5 bg-[#8F0A0D] rounded-full inline-block"></span>
-                        <h1 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Manajemen Desain Arsitektur &amp; SOW</h1>
+            <!-- ========================================================== -->
+            <!-- SECTION HEADER & FILTER CONTROLS                           -->
+            <!-- ========================================================== -->
+            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
+                    <div>
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> MANAJEMEN DESAIN ARSITEKTUR &amp; SOW
+                        </p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Dokumen Desain &amp; SOW Presales</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Kelola ruang lingkup teknis (SOW), estimasi mandays perancangan, dan berkas HLD/LLD proposal</p>
                     </div>
-                    <p class="text-[12.5px] text-[#64748B] mt-0.5 ml-4">
-                        Kelola ruang lingkup teknis (SOW), estimasi mandays perancangan, dan berkas HLD/LLD proposal.
-                    </p>
+
+                    <div class="flex items-center gap-2.5 shrink-0">
+                        <div class="text-[12.5px] text-[#64748B] font-medium px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl whitespace-nowrap">
+                            Total: <span class="text-[#1E293B] font-extrabold">{{ $projects->total() }}</span> Proyek
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Filter Controls -->
+                <form method="GET" action="{{ route('presales.proposals.index') }}" class="flex flex-col sm:flex-row flex-wrap items-center gap-3">
+                    <div class="relative flex-1 min-w-[240px] w-full sm:w-auto">
+                        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request('search') }}"
+                               placeholder="Cari nama project, client, sales, atau lokasi..." 
+                               class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
+                    </div>
+
+                    <select name="tab" onchange="this.form.submit()" 
+                            class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="pending" {{ request('tab', 'pending') == 'pending' ? 'selected' : '' }}>Perlu BoQ ({{ $counts['pending'] }})</option>
+                        <option value="submitted" {{ request('tab') == 'submitted' ? 'selected' : '' }}>Proposal Siap ({{ $counts['submitted'] }})</option>
+                        <option value="won" {{ request('tab') == 'won' ? 'selected' : '' }}>Tender Menang ({{ $counts['won'] }})</option>
+                        <option value="lost" {{ request('tab') == 'lost' ? 'selected' : '' }}>Gagal / Batal ({{ $counts['lost'] }})</option>
+                    </select>
+
+                    <select name="division_id" onchange="this.form.submit()" 
+                            class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="">Semua Divisi</option>
+                        @foreach($divisions as $div)
+                            <option value="{{ $div->id }}" {{ request('division_id') == $div->id ? 'selected' : '' }}>{{ $div->name }}</option>
+                        @endforeach
+                    </select>
+
+                    <select name="per_page" onchange="this.form.submit()" 
+                            class="w-full sm:w-32 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10 / hal</option>
+                        <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20 / hal</option>
+                        <option value="50" {{ request('per_page', 50) == 50 ? 'selected' : '' }}>50 / hal</option>
+                    </select>
+                </form>
             </div>
 
             {{-- Flash Messages --}}
@@ -95,51 +140,6 @@
                     </ul>
                 </div>
             @endif
-
-            {{-- Search & Filter Container --}}
-            <div class="ipnet-card p-4 sm:p-5">
-                <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-                    <form method="GET" action="{{ route('presales.proposals.index') }}" class="flex-1 flex flex-col sm:flex-row items-center gap-2.5">
-                        <div class="relative w-full sm:max-w-sm">
-                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            </div>
-                            <input type="text" 
-                                   name="search" 
-                                   value="{{ request('search') }}"
-                                   placeholder="Cari nama proyek, klien, sales PIC..." 
-                                   class="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] rounded-xl text-xs font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all">
-                        </div>
-
-                        <select name="tab" onchange="this.form.submit()" 
-                                class="w-full sm:w-auto px-3 py-2 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer transition-all">
-                            <option value="pending" {{ request('tab', 'pending') == 'pending' ? 'selected' : '' }}>Perlu BoQ ({{ $counts['pending'] }})</option>
-                            <option value="submitted" {{ request('tab') == 'submitted' ? 'selected' : '' }}>Proposal Siap ({{ $counts['submitted'] }})</option>
-                            <option value="won" {{ request('tab') == 'won' ? 'selected' : '' }}>Tender Menang ({{ $counts['won'] }})</option>
-                            <option value="lost" {{ request('tab') == 'lost' ? 'selected' : '' }}>Gagal / Batal ({{ $counts['lost'] }})</option>
-                        </select>
-
-                        <select name="division_id" onchange="this.form.submit()" 
-                                class="w-full sm:w-auto px-3 py-2 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer transition-all">
-                            <option value="">Semua Divisi</option>
-                            @foreach($divisions as $div)
-                                <option value="{{ $div->id }}" {{ request('division_id') == $div->id ? 'selected' : '' }}>{{ $div->name }}</option>
-                            @endforeach
-                        </select>
-
-                        <select name="per_page" onchange="this.form.submit()" 
-                                class="w-full sm:w-auto px-3 py-2 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer transition-all">
-                            <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10 / hal</option>
-                            <option value="20" {{ request('per_page') == 20 ? 'selected' : '' }}>20 / hal</option>
-                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 / hal</option>
-                        </select>
-                    </form>
-
-                    <div class="text-[12px] text-[#64748B] font-medium whitespace-nowrap self-end md:self-auto">
-                        Total: <span class="text-[#1E293B] font-extrabold">{{ $projects->total() }}</span> Proyek
-                    </div>
-                </div>
-            </div>
 
             {{-- Table Container --}}
             <div class="ipnet-card overflow-hidden">

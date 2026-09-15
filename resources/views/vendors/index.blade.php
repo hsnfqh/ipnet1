@@ -7,6 +7,8 @@
     /* ========================================================
        IPNET Brand Design System
        ======================================================== */
+    [x-cloak] { display: none !important; }
+
     :root {
         --ipnet-primary: #8F0A0D;
         --ipnet-primary-hover: #73080A;
@@ -18,21 +20,45 @@
     .ipnet-card {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
-        border-radius: 16px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 4px 12px rgba(0, 0, 0, 0.015);
-        transition: all 0.2s ease;
+        border-radius: 20px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ipnet-card:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
     }
 
-    .btn-ipnet-primary {
+    .ipnet-badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
         background-color: #8F0A0D;
-        color: #FFFFFF;
-        transition: all 0.2s ease;
+        display: inline-block;
+        margin-right: 8px;
     }
 
-    .btn-ipnet-primary:hover {
-        background-color: #73080A;
-        box-shadow: 0 4px 12px rgba(143, 10, 13, 0.25);
+    .btn-ipnet-gradient {
+        background: linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%);
+        color: #FFFFFF;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
+    .btn-ipnet-gradient:hover {
+        background: linear-gradient(135deg, #991B1B 0%, #7F080A 60%, #5E0305 100%);
+        box-shadow: 0 6px 18px rgba(143, 10, 13, 0.35);
+        transform: translateY(-1px);
+    }
+
+    @keyframes fadeUpStagger {
+        0% { opacity: 0; transform: translateY(16px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .anim-fade-up {
+        animation: fadeUpStagger 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .anim-delay-1 { animation-delay: 0.06s !important; }
+    .anim-delay-2 { animation-delay: 0.12s !important; }
 </style>
 @endpush
 
@@ -45,25 +71,46 @@
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto animate-fade-in" x-data="vendorManager()">
             
-            {{-- Header Title Bar --}}
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-1">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-4.5 bg-[#8F0A0D] rounded-full inline-block"></span>
-                        <h1 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Katalog Mitra Principal &amp; Distributor</h1>
+            <!-- ========================================================== -->
+            <!-- SECTION HEADER & FILTER CONTROLS                           -->
+            <!-- ========================================================== -->
+            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
+                    <div>
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> MITRA &amp; CHANNEL PRINSIPAL
+                        </p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Katalog Mitra Principal &amp; Distributor</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Direktori kontak prinsipal teknologi, distributor resmi, dan channel manager untuk dukungan perancangan solusi &amp; BoQ</p>
                     </div>
-                    <p class="text-[12.5px] text-[#64748B] mt-0.5 ml-4">
-                        Direktori kontak prinsipal teknologi, distributor resmi, dan channel manager untuk dukungan perancangan solusi &amp; BoQ.
-                    </p>
+
+                    <div class="shrink-0">
+                        <button @click="openAddModal()" class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Tambah Principal Baru</span>
+                        </button>
+                    </div>
                 </div>
 
-                <button @click="openAddModal()" 
-                        class="inline-flex items-center gap-1.5 px-4 py-2 btn-ipnet-primary text-xs font-bold rounded-xl shadow-xs transition-all whitespace-nowrap self-start sm:self-auto">
-                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span>Tambah Principal</span>
-                </button>
+                <!-- Filter Controls -->
+                <form method="GET" action="{{ route('vendors.index') }}" class="flex flex-col sm:flex-row flex-wrap items-center justify-between gap-3">
+                    <div class="relative flex-1 min-w-[240px] w-full sm:w-auto">
+                        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request('search') }}"
+                               placeholder="Cari nama principal, distributor, atau kategori..." 
+                               class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
+                    </div>
+
+                    <div class="text-[12.5px] text-[#64748B] font-medium px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl whitespace-nowrap self-end sm:self-auto">
+                        Total: <span class="text-[#1E293B] font-extrabold">{{ $vendors->total() }}</span> Mitra Terdaftar
+                    </div>
+                </form>
             </div>
 
             {{-- Flash Messages --}}
@@ -75,26 +122,6 @@
                     </div>
                 </div>
             @endif
-
-            {{-- Search Bar Container --}}
-            <div class="ipnet-card p-4 sm:p-5">
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                    <form method="GET" action="{{ route('vendors.index') }}" class="w-full sm:max-w-md relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        </div>
-                        <input type="text" 
-                               name="search" 
-                               value="{{ request('search') }}"
-                               placeholder="Cari nama principal, distributor, atau kategori..." 
-                               class="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] rounded-xl text-xs font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all">
-                    </form>
-
-                    <div class="text-[12px] text-[#64748B] font-medium whitespace-nowrap self-end sm:self-auto">
-                        Total: <span class="text-[#1E293B] font-extrabold">{{ $vendors->total() }}</span> Mitra Terdaftar
-                    </div>
-                </div>
-            </div>
 
             {{-- Vendor List Table --}}
             <div class="ipnet-card overflow-hidden">
