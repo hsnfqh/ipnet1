@@ -177,8 +177,11 @@
                                     <tr class="hover:bg-[#F8FAFC] transition-colors">
                                         {{-- Proyek & Klien --}}
                                         <td class="py-3 px-4 sm:px-5">
-                                            <div class="font-semibold text-[#1E293B] text-[12.5px] leading-snug line-clamp-1" title="{{ $p->name }}">
-                                                {{ $p->name }}
+                                            <div @click="openViewModal({{ json_encode($p) }})" 
+                                                 class="font-semibold text-[#1E293B] hover:text-[#8F0A0D] text-[12.5px] leading-snug line-clamp-1 cursor-pointer transition flex items-center gap-1.5" 
+                                                 title="Klik untuk melihat detail & spesifikasi teknis: {{ $p->name }}">
+                                                <span>{{ $p->name }}</span>
+                                                <svg class="w-3.5 h-3.5 text-[#94A3B8] hover:text-[#8F0A0D] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                             </div>
                                             <div class="text-[11px] text-[#64748B] flex items-center gap-1.5 mt-0.5 flex-wrap">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
@@ -236,6 +239,18 @@
                                         {{-- Aksi --}}
                                         <td class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">
                                             <div class="flex items-center justify-end gap-1.5">
+                                                {{-- Tombol Detail / Spesifikasi --}}
+                                                <button type="button" 
+                                                        @click="openViewModal({{ json_encode($p) }})" 
+                                                        title="Lihat Spesifikasi & Detail Kebutuhan Proyek"
+                                                        class="px-2.5 py-1 bg-white hover:bg-[#F8FAFC] text-[#475569] hover:text-[#1E293B] text-[11px] font-semibold rounded-lg border border-[#CBD5E1] hover:border-[#94A3B8] shadow-2xs transition inline-flex items-center gap-1 cursor-pointer">
+                                                    <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                    </svg>
+                                                    <span>Detail</span>
+                                                </button>
+
                                                 @if($p->proposal_file)
                                                     <a href="{{ route('presales.proposals.download', $p->id) }}" 
                                                        title="Unduh Berkas SOW / Proposal"
@@ -247,28 +262,24 @@
 
                                                 @if($canManageProposal)
                                                     <button @click="openUploadModal({{ json_encode($p) }})" 
-                                                            class="px-2.5 py-1 btn-ipnet-primary text-[11px] font-bold rounded-lg shadow-2xs transition inline-flex items-center gap-1">
+                                                            title="{{ $p->proposal_file ? 'Edit SOW & Berkas Proposal' : 'Unggah SOW & Berkas Proposal' }}"
+                                                            class="px-2.5 py-1 btn-ipnet-primary text-[11px] font-bold rounded-lg shadow-2xs transition inline-flex items-center gap-1 cursor-pointer">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                                         </svg>
-                                                        <span>{{ $p->proposal_file ? 'Edit' : 'Unggah' }}</span>
+                                                        <span>{{ $p->proposal_file ? 'Edit SOW' : 'Unggah SOW' }}</span>
                                                     </button>
                                                     
                                                     @if($p->proposal_file)
                                                         <button type="button" 
                                                                 @click="openDeleteModal({{ json_encode($p) }})"
                                                                 title="Hapus / Reset Berkas Proposal" 
-                                                                class="p-1 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                                                class="p-1 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                                             </svg>
                                                         </button>
                                                     @endif
-                                                @else
-                                                    <button @click="openViewModal({{ json_encode($p) }})" 
-                                                            class="px-2.5 py-1 bg-white hover:bg-gray-50 text-gray-700 text-[11px] font-semibold rounded-lg border border-gray-200 shadow-2xs transition">
-                                                        Detail
-                                                    </button>
                                                 @endif
                                             </div>
                                         </td>
@@ -299,7 +310,7 @@
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-[#8F0A0D]">Presales &amp; Solution Architect</span>
                                     <h3 class="text-base font-bold text-[#1E293B]" x-text="activeTender.name || 'Dokumen Proposal Teknis'"></h3>
                                 </div>
-                                <button @click="isUploadModalOpen = false" class="text-gray-400 hover:text-gray-600">
+                                <button @click="isUploadModalOpen = false" class="text-gray-400 hover:text-gray-600 cursor-pointer">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </button>
                             </div>
@@ -332,7 +343,7 @@
                                         </div>
                                         <button type="button" 
                                                 @click="isUploadModalOpen = false; openDeleteModal(activeTender)" 
-                                                class="px-2.5 py-1 text-[11px] font-bold text-red-700 bg-white hover:bg-red-50 border border-red-200 rounded-lg shadow-xs transition">
+                                                class="px-2.5 py-1 text-[11px] font-bold text-red-700 bg-white hover:bg-red-50 border border-red-200 rounded-lg shadow-xs transition cursor-pointer">
                                             Hapus Berkas
                                         </button>
                                     </div>
@@ -360,8 +371,8 @@
                                 </div>
 
                                 <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
-                                    <button type="button" @click="isUploadModalOpen = false" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition">Batal</button>
-                                    <button type="submit" class="px-4 py-2 text-xs font-bold text-white btn-ipnet-primary rounded-xl shadow-xs transition">
+                                    <button type="button" @click="isUploadModalOpen = false" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition cursor-pointer">Batal</button>
+                                    <button type="submit" class="px-4 py-2 text-xs font-bold text-white btn-ipnet-primary rounded-xl shadow-xs transition cursor-pointer">
                                         Simpan &amp; Rilis SOW
                                     </button>
                                 </div>
@@ -390,10 +401,10 @@
                             <form :action="'/presales/proposals/' + deletingTender.id + '/file'" method="POST" class="flex items-center gap-2 pt-2">
                                 @csrf
                                 <input type="hidden" name="_method" value="DELETE">
-                                <button type="button" @click="isDeleteModalOpen = false" class="w-1/2 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                                <button type="button" @click="isDeleteModalOpen = false" class="w-1/2 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition cursor-pointer">
                                     Batal
                                 </button>
-                                <button type="submit" class="w-1/2 py-2 text-xs font-semibold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-lg shadow-xs transition">
+                                <button type="submit" class="w-1/2 py-2 text-xs font-semibold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-lg shadow-xs transition cursor-pointer">
                                     Ya, Hapus
                                 </button>
                             </form>
@@ -402,57 +413,133 @@
                 </template>
             @endif
 
-            {{-- MODAL PREVIEW DETAIL SOW & PROPOSAL --}}
+            {{-- MODAL PREVIEW DETAIL & SPESIFIKASI PROYEK LENGKAP --}}
             <template x-teleport="body">
                 <div x-show="isViewModalOpen" 
                      x-cloak 
-                     class="fixed inset-0 z-50 bg-[#0E0D12]/60 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4" @click.away="isViewModalOpen = false">
-                        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-100 text-[#8F0A0D] flex items-center justify-center">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                     class="fixed inset-0 z-50 bg-[#0E0D12]/60 flex items-center justify-center p-4 overflow-y-auto">
+                    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 my-8 max-h-[90vh] flex flex-col" @click.away="isViewModalOpen = false">
+                        
+                        {{-- Modal Header --}}
+                        <div class="flex items-start justify-between border-b border-gray-100 pb-3 flex-shrink-0">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10.5px] font-bold uppercase tracking-wider text-[#8F0A0D] bg-red-50 border border-red-100 px-2 py-0.5 rounded-md">
+                                        Spesifikasi &amp; Detail Kebutuhan Proyek
+                                    </span>
+                                    <template x-if="viewingTender.proposal_file">
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            HLD/SOW Selesai
+                                        </span>
+                                    </template>
+                                    <template x-if="!viewingTender.proposal_file">
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                                            Perlu BoQ
+                                        </span>
+                                    </template>
                                 </div>
-                                <div>
-                                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#8F0A0D]">Presales &amp; Solution Architect</span>
-                                    <h3 class="text-sm font-bold text-gray-900" x-text="viewingTender.name"></h3>
-                                </div>
+                                <h3 class="text-base font-bold text-[#1E293B] mt-1" x-text="viewingTender.name"></h3>
+                                <p class="text-xs text-[#64748B]" x-text="(viewingTender.client || 'Klien') + ' • ' + (viewingTender.division ? viewingTender.division.name : 'Semua Divisi')"></p>
                             </div>
-                            <button @click="isViewModalOpen = false" class="text-gray-400 hover:text-gray-600">
+                            <button @click="isViewModalOpen = false" class="text-gray-400 hover:text-gray-600 cursor-pointer p-1 rounded-lg hover:bg-gray-100 transition">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
 
-                        <div class="space-y-3 text-xs">
-                            <div class="p-3 bg-gray-50 rounded-xl border border-gray-200/70 space-y-1.5">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-400">Klien / Instansi:</span>
-                                    <span class="font-bold text-gray-800" x-text="viewingTender.client || '—'"></span>
+                        {{-- Modal Content (Scrollable) --}}
+                        <div class="space-y-4 text-xs overflow-y-auto pr-1 flex-1">
+                            
+                            {{-- Grid Parameter & Info Kunci --}}
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                <div class="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                    <span class="text-[10px] uppercase font-bold text-[#94A3B8]">Klien / Instansi</span>
+                                    <div class="font-bold text-[#1E293B] mt-0.5 truncate" x-text="viewingTender.client || '—'"></div>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-400">Estimasi Beban Kerja:</span>
-                                    <span class="font-bold text-gray-900" x-text="(viewingTender.mandays || 10) + ' Mandays Engineer'"></span>
+                                <div class="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                    <span class="text-[10px] uppercase font-bold text-[#94A3B8]">Sales PIC</span>
+                                    <div class="font-bold text-[#8F0A0D] mt-0.5 truncate" x-text="viewingTender.sales_name || 'Tim Sales'"></div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                    <span class="text-[10px] uppercase font-bold text-[#94A3B8]">Estimasi Nilai</span>
+                                    <div class="font-bold text-[#1E293B] mt-0.5 truncate" x-text="formatCurrency(viewingTender.contract_value)"></div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                    <span class="text-[10px] uppercase font-bold text-[#94A3B8]">Beban Mandays</span>
+                                    <div class="font-bold text-[#1E293B] mt-0.5" x-text="(viewingTender.mandays || 10) + ' MD'"></div>
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block font-bold text-gray-700 uppercase mb-1">Ruang Lingkup Teknis / SOW:</label>
-                                <div class="p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-700 whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto" 
-                                     x-text="viewingTender.proposal_notes || viewingTender.description || 'Tidak ada catatan teknis khusus.'"></div>
+                            {{-- Grid Info Tambahan --}}
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11.5px]">
+                                <div class="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                    <span class="text-[10px] uppercase font-bold text-[#94A3B8]">Lokasi Implementasi</span>
+                                    <div class="font-medium text-[#334155] mt-0.5" x-text="viewingTender.location || '—'"></div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                    <span class="text-[10px] uppercase font-bold text-[#94A3B8]">PIC Teknis Klien</span>
+                                    <div class="font-medium text-[#334155] mt-0.5" x-text="viewingTender.customer_pic_technical || '—'"></div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                    <span class="text-[10px] uppercase font-bold text-[#94A3B8]">Target Waktu / Deadline</span>
+                                    <div class="font-medium text-[#334155] mt-0.5" x-text="formatDate(viewingTender.deadline || viewingTender.expected_closing_date)"></div>
+                                </div>
                             </div>
+
+                            {{-- Kebutuhan & Spesifikasi Proyek (Deskripsi dari Sales / Klien) --}}
+                            <div>
+                                <label class="block font-bold text-[#1E293B] uppercase tracking-wider text-[11px] mb-1.5 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span>Kebutuhan &amp; Spesifikasi Teknis Proyek (Permintaan Klien):</span>
+                                </label>
+                                <div class="p-3 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-[#334155] whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto" 
+                                     x-text="viewingTender.initial_requirement || viewingTender.business_need_summary || viewingTender.description || 'Tidak ada deskripsi spesifikasi khusus dari sales.'"></div>
+                            </div>
+
+                            {{-- Ruang Lingkup Teknis / SOW (Catatan Solution Architect) --}}
+                            <div>
+                                <label class="block font-bold text-[#1E293B] uppercase tracking-wider text-[11px] mb-1.5 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                    <span>Ruang Lingkup Teknis / SOW (Catatan Arsitektur Solusi):</span>
+                                </label>
+                                <div class="p-3 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-[#334155] whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto" 
+                                     x-text="viewingTender.proposal_notes || 'Belum ada catatan SOW khusus yang dirilis.'"></div>
+                            </div>
+
+                            {{-- Catatan Khusus & Komitmen SLA jika ada --}}
+                            <template x-if="viewingTender.sla_commitment || viewingTender.special_notes">
+                                <div>
+                                    <label class="block font-bold text-[#1E293B] uppercase tracking-wider text-[11px] mb-1.5 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>Komitmen SLA &amp; Catatan Khusus:</span>
+                                    </label>
+                                    <div class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl text-xs text-indigo-900 leading-relaxed" 
+                                         x-text="(viewingTender.sla_commitment ? 'SLA: ' + viewingTender.sla_commitment + '\n' : '') + (viewingTender.special_notes || '')"></div>
+                                </div>
+                            </template>
                         </div>
 
-                        <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
-                            <button type="button" @click="isViewModalOpen = false" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition">
+                        {{-- Modal Footer Actions --}}
+                        <div class="flex items-center justify-between gap-2 pt-3 border-t border-gray-100 flex-shrink-0">
+                            <button type="button" @click="isViewModalOpen = false" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition cursor-pointer">
                                 Tutup
                             </button>
-                            <template x-if="viewingTender.proposal_file">
-                                <a :href="'/presales/proposals/' + viewingTender.id + '/download'" 
-                                   class="px-4 py-2 text-xs font-bold text-white btn-ipnet-primary rounded-xl shadow-xs transition inline-flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                    Unduh Dokumen Proposal
-                                </a>
-                            </template>
+                            <div class="flex items-center gap-2">
+                                <template x-if="viewingTender.proposal_file">
+                                    <a :href="'/presales/proposals/' + viewingTender.id + '/download'" 
+                                       class="px-4 py-2 text-xs font-bold text-white btn-ipnet-primary rounded-xl shadow-xs transition inline-flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                        Unduh Dokumen SOW
+                                    </a>
+                                </template>
+                                @if($canManageProposal)
+                                    <button type="button" 
+                                            @click="openUploadFromView()" 
+                                            class="px-4 py-2 text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                        <span x-text="viewingTender.proposal_file ? 'Edit SOW' : 'Unggah SOW'"></span>
+                                    </button>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -476,6 +563,19 @@
                 mandays: 10,
             },
 
+            formatCurrency(val) {
+                if (!val || val <= 0) return '—';
+                return 'Rp ' + (val / 1000000).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' Jt';
+            },
+
+            formatDate(dateStr) {
+                if (!dateStr) return '—';
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return dateStr;
+                const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+                return String(d.getUTCDate()).padStart(2,'0') + ' ' + months[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+            },
+
             openUploadModal(tender) {
                 this.activeTender = tender;
                 this.form.proposal_notes = tender.proposal_notes || tender.description || '';
@@ -491,6 +591,12 @@
             openViewModal(tender) {
                 this.viewingTender = tender;
                 this.isViewModalOpen = true;
+            },
+
+            openUploadFromView() {
+                const t = this.viewingTender;
+                this.isViewModalOpen = false;
+                this.openUploadModal(t);
             }
         }
     }
