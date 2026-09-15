@@ -99,24 +99,38 @@ class ScheduleController extends Controller
             $withRelations[] = 'engineers';
         }
 
-        $schedules = Schedule::with($withRelations)
-            ->when($scopeIds !== null, function($query) use ($scopeIds, $user, $hasScheduleUser) {
-                return $query->where(function($q) use ($scopeIds, $user, $hasScheduleUser) {
-                    if (count($scopeIds) === 1) {
-                        $q->where('engineer_id', $scopeIds[0]);
-                        if ($hasScheduleUser) {
-                            $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
-                        }
-                    } else {
-                        $q->whereIn('engineer_id', $scopeIds);
-                        if ($hasScheduleUser) {
-                            $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
-                        }
+        $isArchitect = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
+        $isLead = (ScopeHelper::isManagerial($user) || $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO'])) && !$isArchitect;
+        $canManageSchedule = ScopeHelper::canManageSchedules($user) || $isArchitect;
+
+        $schedulesQuery = Schedule::with($withRelations);
+        if ($isArchitect) {
+            // Solution Architect mengelola jadwal/agenda kerja mandiri (diary SA)
+            $schedulesQuery->where(function($q) use ($user, $hasScheduleUser) {
+                $q->where('created_by', $user->id)
+                  ->orWhere('engineer_id', $user->id);
+                if ($hasScheduleUser) {
+                    $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $user->id));
+                }
+            });
+        } elseif ($scopeIds !== null) {
+            $schedulesQuery->where(function($q) use ($scopeIds, $user, $hasScheduleUser) {
+                if (count($scopeIds) === 1) {
+                    $q->where('engineer_id', $scopeIds[0]);
+                    if ($hasScheduleUser) {
+                        $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
                     }
-                    $q->orWhere('created_by', $user->id);
-                });
-            })
-            ->get()
+                } else {
+                    $q->whereIn('engineer_id', $scopeIds);
+                    if ($hasScheduleUser) {
+                        $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                    }
+                }
+                $q->orWhere('created_by', $user->id);
+            });
+        }
+
+        $schedules = $schedulesQuery->get()
             ->map(function($schedule) use ($hasScheduleUser) {
                 $engineerIds = $hasScheduleUser && $schedule->relationLoaded('engineers')
                     ? $schedule->engineers->pluck('id')->toArray()
@@ -182,7 +196,7 @@ class ScheduleController extends Controller
             });
         }
         $projects  = $projectsQuery->orderBy('name')->get();
-        $engineers = ScopeHelper::getAssignableEngineers($user);
+        $engineers = $isArchitect ? collect([$user]) : ScopeHelper::getAssignableEngineers($user);
 
         $hasTaskUser = Schema::hasTable('task_user');
         $withTaskRelations = ['project', 'engineer'];
@@ -191,47 +205,52 @@ class ScheduleController extends Controller
         }
 
         // Tasks dengan deadline untuk ditampilkan di kalender
-        $tasks = Task::with($withTaskRelations)
-            ->when($scopeIds !== null, function($query) use ($scopeIds, $hasTaskUser) {
-                return $query->where(function($q) use ($scopeIds, $hasTaskUser) {
-                    if (count($scopeIds) === 1) {
-                        $q->where('engineer_id', $scopeIds[0]);
-                        if ($hasTaskUser) {
-                            $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+        if ($isArchitect) {
+            // Solution Architect tidak terbebani task lapangan engineer lain
+            $tasks = collect([]);
+        } else {
+            $tasks = Task::with($withTaskRelations)
+                ->when($scopeIds !== null, function($query) use ($scopeIds, $hasTaskUser) {
+                    return $query->where(function($q) use ($scopeIds, $hasTaskUser) {
+                        if (count($scopeIds) === 1) {
+                            $q->where('engineer_id', $scopeIds[0]);
+                            if ($hasTaskUser) {
+                                $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+                            }
+                        } else {
+                            $q->whereIn('engineer_id', $scopeIds);
+                            if ($hasTaskUser) {
+                                $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                            }
                         }
-                    } else {
-                        $q->whereIn('engineer_id', $scopeIds);
-                        if ($hasTaskUser) {
-                            $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
-                        }
-                    }
-                });
-            })
-            ->whereNotNull('deadline')
-            ->get()
-            ->map(function($task) use ($hasTaskUser) {
-                $engineerIds = $hasTaskUser && $task->relationLoaded('engineers') && $task->engineers->isNotEmpty()
-                    ? $task->engineers->pluck('id')->toArray()
-                    : ($task->engineer_id ? [$task->engineer_id] : []);
-                $engineersList = $hasTaskUser && $task->relationLoaded('engineers') && $task->engineers->isNotEmpty()
-                    ? $task->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
-                    : ($task->engineer ? [['id' => $task->engineer->id, 'name' => $task->engineer->name]] : []);
+                    });
+                })
+                ->whereNotNull('deadline')
+                ->get()
+                ->map(function($task) use ($hasTaskUser) {
+                    $engineerIds = $hasTaskUser && $task->relationLoaded('engineers') && $task->engineers->isNotEmpty()
+                        ? $task->engineers->pluck('id')->toArray()
+                        : ($task->engineer_id ? [$task->engineer_id] : []);
+                    $engineersList = $hasTaskUser && $task->relationLoaded('engineers') && $task->engineers->isNotEmpty()
+                        ? $task->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
+                        : ($task->engineer ? [['id' => $task->engineer->id, 'name' => $task->engineer->name]] : []);
 
-                return [
-                    'id'            => $task->id,
-                    'title'         => $task->title,
-                    'deadline'      => $task->deadline ? $task->deadline->format('Y-m-d') : null,
-                    'deadline_time' => $task->deadline_time ? substr($task->deadline_time, 0, 5) : '',
-                    'priority'      => $task->priority,
-                    'status'        => $task->status,
-                    'engineer_id'   => $task->engineer_id,
-                    'engineer_ids'  => $engineerIds,
-                    'engineers'     => $engineersList,
-                    'project_id'    => $task->project_id,
-                    'project'       => $task->project ? ['id' => $task->project->id, 'name' => $task->project->name] : null,
-                    'engineer'      => $task->engineer ? ['id' => $task->engineer->id, 'name' => $task->engineer->name] : null,
-                ];
-            });
+                    return [
+                        'id'            => $task->id,
+                        'title'         => $task->title,
+                        'deadline'      => $task->deadline ? $task->deadline->format('Y-m-d') : null,
+                        'deadline_time' => $task->deadline_time ? substr($task->deadline_time, 0, 5) : '',
+                        'priority'      => $task->priority,
+                        'status'        => $task->status,
+                        'engineer_id'   => $task->engineer_id,
+                        'engineer_ids'  => $engineerIds,
+                        'engineers'     => $engineersList,
+                        'project_id'    => $task->project_id,
+                        'project'       => $task->project ? ['id' => $task->project->id, 'name' => $task->project->name] : null,
+                        'engineer'      => $task->engineer ? ['id' => $task->engineer->id, 'name' => $task->engineer->name] : null,
+                    ];
+                });
+        }
 
         // Projects dengan deadline untuk ditampilkan di kalender
         $calendarProjects = Project::with('creator')
@@ -259,11 +278,8 @@ class ScheduleController extends Controller
                     'client'   => $project->client,
                 ];
             });
-        
-        $isLead = ScopeHelper::isManagerial($user) || $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO']);
-        $canManageSchedule = ScopeHelper::canManageSchedules($user);
 
-        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule'));
+        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect'));
     }
 
     /**

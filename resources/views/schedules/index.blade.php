@@ -46,11 +46,19 @@
             <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
                     <div>
+                        @if($isArchitect ?? false)
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> AGENDA & JADWAL KERJA MANDIRI
+                        </p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Agenda & Catatan Kerja Solution Architect</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Kelola agenda rancangan solusi, kajian PoC lab, koordinasi vendor, dan catatan kerja harian mandiri</p>
+                        @else
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                             <span class="ipnet-badge-dot"></span> MANAJEMEN PENJADWALAN
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Jadwal Kerja & Penugasan Lapangan</h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5">Atur jadwal inspeksi rutin, instalasi on-site, serta rapat koordinasi teknisi</p>
+                        @endif
                     </div>
 
                     {{-- Segmented View Tabs (Daily / Weekly / Monthly) --}}
@@ -110,11 +118,11 @@
                     <button type="button"
                             @click="openModal()"
                             class="btn-ipnet-gradient px-4 py-2 rounded-xl font-bold text-[12.5px] flex items-center gap-2 cursor-pointer shadow-md"
-                            title="Tambah Jadwal Baru">
+                            title="{{ ($isArchitect ?? false) ? 'Tambah Agenda / Catatan Kerja' : 'Tambah Jadwal Baru' }}">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>
-                        <span>Tambah Jadwal Baru</span>
+                        <span>{{ ($isArchitect ?? false) ? 'Tambah Agenda / Catatan' : 'Tambah Jadwal Baru' }}</span>
                     </button>
                     @endif
                 </div>
@@ -249,7 +257,7 @@
                                             </div>
                                         </template>
                                         <template x-if="schedule._type !== 'task'">
-                                            @if($isLead)
+                                            @if($isLead || ($canManageSchedule ?? false))
                                             <div style="display:flex; align-items:center; gap:6px;">
                                                 <template x-if="schedule._type === 'schedule'">
                                                     <button type="button" @click="shareWhatsApp(schedule)" style="background:#22C55E; color:white; border:none; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0; box-shadow:0 2px 6px rgba(34,197,94,0.25);" title="Bagikan Undangan Meeting ke WhatsApp">
@@ -305,7 +313,7 @@
                             <p style="margin-bottom:20px; font-size:13.5px; color:#75727C;">Tidak ada jadwal atau deadline pada hari ini.</p>
                             <button type="button" @click="openModal()" style="margin-top:20px !important; background:#C81E2C; color:white; border:none; padding:10px 22px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 14px rgba(200,30,44,0.22); transition:all 0.15s ease;">
                                 <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                Tambah Jadwal Hari Ini
+                                <span>Tambah {{ ($isArchitect ?? false) ? 'Agenda' : 'Jadwal' }} Hari Ini</span>
                             </button>
                         </div>
                     </div>
@@ -523,7 +531,7 @@
                                     <th>Tanggal</th>
                                     <th>Waktu</th>
                                     <th>Lokasi</th>
-                                    @if($isLead)
+                                    @if($isLead || ($canManageSchedule ?? false))
                                      <th class="jkw-th-right">Aksi</th>
                                     @endif
                                 </tr>
@@ -535,33 +543,33 @@
                                         <td>
                                             <span style="font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-block;"
                                                   :style="schedule.category === 'Day Off' ? 'background:#F1F5F9; color:#475569; border:1px solid #CBD5E1;' : 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;'"
-                                                  x-text="schedule.category === 'Day Off' ? 'Day Off' : 'Meeting'"></span>
+                                                  x-text="schedule.category === 'Day Off' ? 'Day Off' : (schedule.category || 'Meeting')"></span>
                                         </td>
                                         <td class="jkw-td-wrap" x-text="schedule.category === 'Day Off' ? '-' : (schedule.project?.name || '-')"></td>
                                         <td>
                                             <span class="jkw-eng-cell">
-                                                <template x-if="schedule.engineers && schedule.engineers.length > 0">
-                                                    <span style="display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
-                                                        <template x-for="eng in schedule.engineers" :key="eng.id">
-                                                            <span style="display:inline-flex; align-items:center; gap:4px; background:#F8F7F6; border:1px solid #E7E5E3; padding:2px 7px; border-radius:12px; font-size:11px; font-weight:600; color:#17151C;">
-                                                                <span class="jkw-avatar jkw-avatar--sm" :style="'background:' + colorFromName(eng.name)" x-text="initials(eng.name)"></span>
-                                                                <span x-text="eng.name"></span>
-                                                            </span>
-                                                        </template>
-                                                    </span>
-                                                </template>
-                                                <template x-if="!schedule.engineers || schedule.engineers.length === 0">
-                                                    <span style="display:inline-flex; align-items:center; gap:6px;">
-                                                        <span class="jkw-avatar jkw-avatar--sm" :style="'background:' + colorFromName(schedule.engineer?.name || '-')" x-text="initials(schedule.engineer?.name || '-')"></span>
-                                                        <span x-text="schedule.engineer?.name || '-'"></span>
-                                                    </span>
-                                                </template>
+                                                 <template x-if="schedule.engineers && schedule.engineers.length > 0">
+                                                     <span style="display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
+                                                         <template x-for="eng in schedule.engineers" :key="eng.id">
+                                                             <span style="display:inline-flex; align-items:center; gap:4px; background:#F8F7F6; border:1px solid #E7E5E3; padding:2px 7px; border-radius:12px; font-size:11px; font-weight:600; color:#17151C;">
+                                                                 <span class="jkw-avatar jkw-avatar--sm" :style="'background:' + colorFromName(eng.name)" x-text="initials(eng.name)"></span>
+                                                                 <span x-text="eng.name"></span>
+                                                             </span>
+                                                         </template>
+                                                     </span>
+                                                 </template>
+                                                 <template x-if="!schedule.engineers || schedule.engineers.length === 0">
+                                                     <span style="display:inline-flex; align-items:center; gap:6px;">
+                                                         <span class="jkw-avatar jkw-avatar--sm" :style="'background:' + colorFromName(schedule.engineer?.name || '-')" x-text="initials(schedule.engineer?.name || '-')"></span>
+                                                         <span x-text="schedule.engineer?.name || '-'"></span>
+                                                     </span>
+                                                 </template>
                                             </span>
                                         </td>
                                         <td class="jkw-mono" x-text="schedule.date.split('T')[0]"></td>
                                         <td class="jkw-mono" x-text="schedule.start_time ? (schedule.start_time.substring(0, 5) + ' WIB') : '-'"></td>
                                         <td class="jkw-td-wrap" x-text="schedule.location || '-'"></td>
-                                        @if($isLead)
+                                        @if($isLead || ($canManageSchedule ?? false))
                                         <td>
                                             <div style="display:flex; justify-content:flex-end; gap:4px;">
                                                 <template x-if="schedule.category !== 'Day Off'">
@@ -672,7 +680,13 @@
                                 </div>
                                 <div>
                                     <h3 style="margin:0; font-family:'Inter', sans-serif; font-size:17px; font-weight:700; color:#0F172A;" x-text="modalTitle"></h3>
-                                    <p style="margin:2px 0 0; font-size:12px; color:#64748B;">Kelola jadwal kegiatan, meeting, atau cuti engineer</p>
+                                    <p style="margin:2px 0 0; font-size:12px; color:#64748B;">
+                                        @if($isArchitect ?? false)
+                                        Kelola agenda perancangan solusi, sesi PoC lab, koordinasi vendor, atau catatan mandiri
+                                        @else
+                                        Kelola jadwal kegiatan, meeting, atau cuti engineer
+                                        @endif
+                                    </p>
                                 </div>
                             </div>
                             <button type="button"
@@ -692,8 +706,55 @@
                                     <!-- Pilihan Kategori Jadwal -->
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">
-                                            Kategori Jadwal
+                                            Kategori {{ ($isArchitect ?? false) ? 'Agenda' : 'Jadwal' }}
                                         </label>
+                                        @if($isArchitect ?? false)
+                                        <div style="display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px;">
+                                            <button type="button" 
+                                                    class="jkw-cat-btn jkw-cat-btn--meeting"
+                                                    :class="{ 'is-active': form.category === 'PoC / Lab' || form.category === 'Sesi PoC & Lab' }"
+                                                    @click="setCategory('Sesi PoC & Lab')">
+                                                <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                                </svg>
+                                                <span>PoC & Lab</span>
+                                            </button>
+
+                                            <button type="button" 
+                                                    class="jkw-cat-btn jkw-cat-btn--task"
+                                                    :class="{ 'is-active': form.category === 'Kajian Solusi' || form.category === 'Desain & SOW' }"
+                                                    @click="setCategory('Kajian Solusi')">
+                                                <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                </svg>
+                                                <span>Kajian Solusi</span>
+                                            </button>
+
+                                            <button type="button" 
+                                                    class="jkw-cat-btn jkw-cat-btn--meeting"
+                                                    :class="{ 'is-active': form.category === 'Meeting' || form.category === 'Meeting & Koordinasi' }"
+                                                    @click="setCategory('Meeting')">
+                                                <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                                </svg>
+                                                <span>Meeting</span>
+                                            </button>
+
+                                            <button type="button" 
+                                                    class="jkw-cat-btn jkw-cat-btn--dayoff"
+                                                    :class="{ 'is-active': form.category === 'Day Off' }"
+                                                    @click="setCategory('Day Off')">
+                                                <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <circle cx="12" cy="12" r="5"/>
+                                                    <line x1="12" y1="1" x2="12" y2="3"/>
+                                                    <line x1="12" y1="21" x2="12" y2="23"/>
+                                                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                                </svg>
+                                                <span>Day Off</span>
+                                            </button>
+                                        </div>
+                                        @else
                                         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                                             <button type="button" 
                                                     class="jkw-cat-btn jkw-cat-btn--meeting"
@@ -733,17 +794,18 @@
                                                 <span>Day Off / Cuti</span>
                                             </button>
                                         </div>
+                                        @endif
                                     </div>
 
                                     <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Judul Jadwal</label>
-                                        <input type="text" x-model="form.title" :placeholder="form.category === 'Day Off' ? 'Contoh: Day Off / Cuti Tahunan' : 'Contoh: Meeting Koordinasi Proyek ABC'" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:#FFFFFF; box-sizing:border-box; transition:border-color 0.15s ease;" required>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Judul {{ ($isArchitect ?? false) ? 'Agenda / Catatan' : 'Jadwal' }}</label>
+                                        <input type="text" x-model="form.title" :placeholder="form.category === 'Day Off' ? 'Contoh: Day Off / Cuti' : (isArchitect ? 'Contoh: Kajian Arsitektur Proyek XYZ / Sesi PoC Lab' : 'Contoh: Meeting Koordinasi Proyek ABC')" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:#FFFFFF; box-sizing:border-box; transition:border-color 0.15s ease;" required>
                                     </div>
 
                                     <div x-show="form.category !== 'Day Off'">
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Project Terkait</label>
-                                        <select x-model="form.project_id" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:#FFFFFF; box-sizing:border-box; transition:border-color 0.15s ease;" :required="form.category !== 'Day Off'">
-                                            <option value="">Pilih Project</option>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Project Terkait (Opsional)</label>
+                                        <select x-model="form.project_id" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:#FFFFFF; box-sizing:border-box; transition:border-color 0.15s ease;">
+                                            <option value="">-- Tanpa Project / Internal --</option>
                                             <template x-for="project in projects" :key="project.id">
                                                 <option :value="project.id" x-text="project.name"></option>
                                             </template>
@@ -755,12 +817,12 @@
                                                 Nama Project / Meeting Baru
                                             </label>
                                             <input type="text" x-model="form.new_project_name"
-                                                   placeholder="Masukkan nama project atau meeting..."
-                                                   style="width:100%; padding:9px 12px; border-radius:8px; border:1.5px solid #C81E2C; font-size:13.5px; color:#0F172A; outline:none; background:#FFF5F5; box-sizing:border-box;"
-                                                   :required="form.category !== 'Day Off' && form.project_id === 'other'">
+                                                   placeholder="Masukkan nama project atau topik pembahasan..."
+                                                   style="width:100%; padding:9px 12px; border-radius:8px; border:1.5px solid #C81E2C; font-size:13.5px; color:#0F172A; outline:none; background:#FFF5F5; box-sizing:border-box;">
                                         </div>
                                     </div>
 
+                                    @if(!($isArchitect ?? false))
                                     <div>
                                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                                             <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
@@ -835,6 +897,7 @@
                                             </template>
                                         </div>
                                     </div>
+                                    @endif
 
                                     <!-- Sesi Tanggal & Waktu (Multi-Date / Multi-Session) -->
                                     <div style="margin-bottom:14px;">
@@ -1566,6 +1629,7 @@
                 calendarProjects: @json($calendarProjects),
                 projects: @json($projects),
                 engineers: @json($engineers),
+                isArchitect: @json($isArchitect ?? false),
                 viewMode: 'day',
                 currentDate: new Date(),
                 showAvailability: false,
@@ -2006,6 +2070,9 @@
                 },
 
                 get modalTitle() {
+                    if (this.isArchitect) {
+                        return this.editing ? 'Edit Agenda / Catatan Kerja' : 'Buat Agenda / Catatan Kerja';
+                    }
                     return this.editing ? 'Edit Jadwal' : 'Buat Jadwal';
                 },
 
@@ -2154,17 +2221,16 @@
                                     location: schLoc
                                 }
                             ]
-                        };
-                    } else {
+                           } else {
                         this.editing = false;
                         var todayFormatted = this.formatDate(new Date());
-                        var initialEngIds = this.engineers.length > 0 ? [this.engineers[0].id] : [];
+                        var initialEngIds = this.isArchitect ? [{{ auth()->id() }}] : (this.engineers.length > 0 ? [this.engineers[0].id] : [{{ auth()->id() }}]);
                         var targetDate = this.viewMode === 'day' ? this.currentDateStr : todayFormatted;
                         this.form = {
                             id: null,
                             title: '',
-                            category: 'Meeting',
-                            project_id: this.projects[0] ? this.projects[0].id : null,
+                            category: this.isArchitect ? 'Sesi PoC & Lab' : 'Meeting',
+                            project_id: null,
                             new_project_name: '',
                             engineer_id: initialEngIds[0] || null,
                             engineer_ids: initialEngIds,
@@ -2232,23 +2298,30 @@
 
                 saveSchedule: async function() {
                     try {
-                        if (this.form.category !== 'Day Off') {
-                            if (this.form.project_id === 'other') {
-                                if (!this.form.new_project_name || !this.form.new_project_name.trim()) {
-                                    this.showToast('Silakan masukkan nama project / meeting!');
+                        if (this.isArchitect) {
+                            if (!this.form.engineer_ids || this.form.engineer_ids.length === 0) {
+                                this.form.engineer_ids = [{{ auth()->id() }}];
+                            }
+                            this.form.engineer_id = {{ auth()->id() }};
+                        } else {
+                            if (this.form.category !== 'Day Off') {
+                                if (this.form.project_id === 'other') {
+                                    if (!this.form.new_project_name || !this.form.new_project_name.trim()) {
+                                        this.showToast('Silakan masukkan nama project / meeting!');
+                                        return;
+                                    }
+                                } else if (!this.form.project_id) {
+                                    this.showToast('Silakan pilih project!');
                                     return;
                                 }
-                            } else if (!this.form.project_id) {
-                                this.showToast('Silakan pilih project!');
+                            }
+
+                            if (!this.form.engineer_ids || this.form.engineer_ids.length === 0) {
+                                this.showToast('Pilih minimal 1 orang engineer / peserta!');
                                 return;
                             }
+                            this.form.engineer_id = this.form.engineer_ids[0];
                         }
-
-                        if (!this.form.engineer_ids || this.form.engineer_ids.length === 0) {
-                            this.showToast('Pilih minimal 1 orang engineer / peserta!');
-                            return;
-                        }
-                        this.form.engineer_id = this.form.engineer_ids[0];
 
                         // Sinkronkan sesi pertama dengan form root
                         if (this.form.sessions && this.form.sessions.length > 0) {

@@ -373,6 +373,11 @@ class ScopeHelper
             'Business Development',
             'CRO',
             'Customer Relation Officer',
+            'Solution Architect',
+            'Solutions Architect',
+            'SA',
+            'Presales',
+            'Pre-Sales',
         ]);
     }
 

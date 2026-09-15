@@ -15,6 +15,16 @@ class ScheduleRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (empty($this->engineer_id) && empty($this->engineer_ids)) {
+            $this->merge([
+                'engineer_id' => auth()->id(),
+                'engineer_ids' => [auth()->id()],
+            ]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -26,11 +36,11 @@ class ScheduleRequest extends FormRequest
 
         return [
             'title'            => 'required|string|max:255',
-            'category'         => 'nullable|string|in:Meeting,Task,Kegiatan,Day Off,Lainnya',
+            'category'         => 'nullable|string|max:100',
             'project_id'       => 'nullable',
             'new_project_name' => 'required_if:project_id,other|nullable|string|max:255',
-            'engineer_id'      => 'required_without:engineer_ids|nullable|exists:users,id',
-            'engineer_ids'     => 'required_without:engineer_id|nullable|array|min:1',
+            'engineer_id'      => 'nullable|exists:users,id',
+            'engineer_ids'     => 'nullable|array',
             'engineer_ids.*'   => 'exists:users,id',
             'date'             => 'required_without:sessions|nullable|date',
             'start_time'       => 'nullable',
@@ -49,7 +59,7 @@ class ScheduleRequest extends FormRequest
 
     public function withValidator($validator): void
     {
-        $validator->sometimes('project_id', 'required|exists:projects,id', function ($input) {
+        $validator->sometimes('project_id', 'nullable|exists:projects,id', function ($input) {
             return $input->category !== 'Day Off' && $input->project_id !== 'other';
         });
 
