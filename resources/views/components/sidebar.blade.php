@@ -26,7 +26,7 @@
             ['key' => 'schedules',        'label' => 'Jadwal Kerja',        'route' => 'schedules.index'],
             ['key' => 'timesheets',       'label' => 'Timesheet',           'route' => 'timesheets.index'],
             ['key' => 'attendance',       'label' => 'Presensi',            'route' => 'attendance.recap'],
-            ['key' => 'users',            'label' => 'Manajemen Pengguna',   'route' => 'users.index'],
+            ['key' => 'users',            'label' => 'Pengguna',            'route' => 'users.index'],
         ];
     } elseif ($isAdminSupport) {
         $navItems = [
@@ -62,6 +62,9 @@
             ['key' => 'timesheets',   'label' => 'Timesheet',            'route' => 'timesheets.index'],
             ['key' => 'attendance',   'label' => 'Presensi',             'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
         ];
+        if (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
+            $navItems[] = ['key' => 'users', 'label' => 'Pengguna', 'route' => 'users.index'];
+        }
     } elseif ($isPmoUser) {
         // Project Manager & PMO: Kontrol pengiriman proyek (Deliver)
         $navItems = [
@@ -75,6 +78,7 @@
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.architect'],
             ['key' => 'proposals',  'label' => 'Desain & SOW',       'route' => 'presales.proposals.index'],
+            ['key' => 'vendors',    'label' => 'Mitra Principal',    'route' => 'vendors.index'],
             ['key' => 'schedules',  'label' => 'Jadwal Kerja',       'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',          'route' => 'timesheets.index'],
         ];
@@ -112,6 +116,7 @@
             ['key' => 'schedules',   'label' => 'Jadwal Kerja',      'route' => 'schedules.index'],
             ['key' => 'timesheets',  'label' => 'Timesheet',         'route' => 'timesheets.index'],
             ['key' => 'attendance',  'label' => 'Presensi',          'route' => 'attendance.recap'],
+            ['key' => 'users',       'label' => 'Pengguna',          'route' => 'users.index'],
         ];
     } else {
         $navItems = [

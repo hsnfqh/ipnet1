@@ -1,231 +1,394 @@
 @extends('layouts.app')
 
-@section('title', 'Manajemen Pengguna')
+@section('title', 'Pengguna - PT IP Network Solusindo')
+
+@push('styles')
+<style>
+    [x-cloak] { display: none !important; }
+
+    .ipnet-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 20px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ipnet-badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #8F0A0D;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    @keyframes fadeUpStagger {
+        0% { opacity: 0; transform: translateY(16px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .anim-fade-up {
+        animation: fadeUpStagger 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .anim-delay-1 { animation-delay: 0.06s !important; }
+    .anim-delay-2 { animation-delay: 0.12s !important; }
+
+    .cert-tab-pill {
+        padding: 8px 14px;
+        border-radius: 12px;
+        border: 1px solid #CBD5E1;
+        background: #FFFFFF;
+        color: #334155;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.15s ease;
+    }
+    .cert-tab-pill:hover:not(.active) {
+        background: #F8FAFC;
+        border-color: #94A3B8;
+        color: #0F172A;
+        transform: translateY(-1px);
+    }
+    .cert-tab-pill.active {
+        background: #1E293B;
+        border-color: #1E293B;
+        color: #FFFFFF;
+        box-shadow: 0 4px 12px rgba(30, 41, 59, 0.2);
+    }
+    .cert-status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+</style>
+@endpush
 
 @section('content')
-<style>
-  .pg-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 34px;
-    padding: 0 10px;
-    background: transparent;
-    border: none;
-    font-size: 14px;
-    font-weight: 500;
-    color: #9CA3AF; /* Light grey for Prev */
-    cursor: pointer;
-    white-space: nowrap;
-    line-height: 1;
-    transition: color 0.15s;
-    font-family: inherit;
-  }
-  .pg-btn:hover:not(:disabled) { color: #4B5563; }
-  .pg-btn.next { color: #2563EB; font-weight: 500; }
-  .pg-btn.next:hover:not(:disabled) { color: #1D4ED8; }
-  .pg-btn:disabled { opacity: 0.5; pointer-events: none; }
-  .pg-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border: 1px solid #E5E7EB;
-    background: #ffffff;
-    font-size: 14px;
-    font-weight: 500;
-    color: #374151;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    transition: all 0.15s;
-    font-family: inherit;
-  }
-  .pg-pill.active {
-    background: #C81E2C;
-    color: #ffffff;
-    border-color: #C81E2C;
-    box-shadow: 0 2px 4px rgba(200,30,44,0.2);
-  }
-  .pg-pill:hover:not(.active) { background: #F9FAFB; }
-</style>
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC]">
     @include('components.sidebar')
-    
+
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Manajemen Pengguna'])
-        
-        <div class="p-[26px] animate-fade-in" x-data="usersManager()" x-init="init()">
-            <!-- Filter & Actions -->
-            <div class="flex flex-wrap justify-between items-center gap-2.5 mb-4">
-                <div class="flex flex-wrap gap-2.5">
-                    <div class="relative">
-                        <svg style="width:14px; height:14px; position:absolute; left:10px; top:11px; color:#948F99;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                        <input type="text" 
-                               x-model="search" 
-                               placeholder="Cari nama atau email..." 
-                               style="width:240px; padding:9px 11px 9px 32px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white;">
+        @include('components.topbar', ['title' => 'Pengguna'])
+
+        <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto" x-data="usersManager()" x-init="init()">
+
+            <!-- ========================================================== -->
+            <!-- SECTION HEADER & FILTER CONTROLS (IPNET CARD STYLE)        -->
+            <!-- ========================================================== -->
+            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
+                    <div>
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> MANAJEMEN PENGGUNA
+                        </p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Data Pengguna & Tim Divisi</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Kelola akun pengguna, wewenang hierarki, penempatan divisi teknis, dan verifikasi sertifikasi</p>
                     </div>
-                    <select x-model="roleFilter" style="width:170px; padding:9px 11px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white;">
+
+                    <div class="flex flex-wrap items-center gap-3 shrink-0">
+                        <div class="px-3.5 py-1.5 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] text-[12px] font-bold text-[#1E293B] flex items-center gap-1.5 shadow-xs">
+                            <span class="text-[#64748B]">Total Pengguna:</span>
+                            <span class="text-[#8F0A0D] font-extrabold" x-text="users.length"></span>
+                        </div>
+
+                        @if(\App\Helpers\ScopeHelper::isManagerial(auth()->user()))
+                        <button @click="openModal()"
+                                class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Tambah Pengguna</span>
+                        </button>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Filter Controls matching Tasks Index -->
+                <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3">
+                    {{-- Search Input --}}
+                    <div class="relative w-full sm:w-72">
+                        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text"
+                               x-model="search"
+                               placeholder="Cari nama, email, nomor..."
+                               class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs">
+                    </div>
+
+                    {{-- Role Filter --}}
+                    <select x-model="roleFilter"
+                            class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="Semua">Semua Role</option>
                         @foreach($filterableRoles as $r)
                         <option value="{{ $r }}">{{ $r }}</option>
                         @endforeach
                     </select>
+
+                    {{-- Division Filter --}}
                     @if($isGlobal || count($divisions) > 1)
-                    <select x-model="divisionFilter" style="width:170px; padding:9px 11px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white;">
+                    <select x-model="divisionFilter"
+                            class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="Semua">Semua Divisi</option>
                         @foreach($divisions as $division)
                         <option value="{{ $division->name }}">{{ $division->name }}</option>
                         @endforeach
                     </select>
                     @endif
-                    <select x-model="statusFilter" style="width:150px; padding:9px 11px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white;">
+
+                    {{-- Status Filter --}}
+                    <select x-model="statusFilter"
+                            class="w-full sm:w-40 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="Semua">Semua Status</option>
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
                     </select>
+
+                    {{-- Reset Button --}}
+                    <button type="button"
+                            x-show="search || roleFilter !== 'Semua' || divisionFilter !== 'Semua' || statusFilter !== 'Semua'"
+                            @click="search = ''; roleFilter = 'Semua'; divisionFilter = 'Semua'; statusFilter = 'Semua'; currentPage = 1;"
+                            class="px-3 py-2 text-[12px] font-bold text-[#64748B] hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-[#FEF2F2] border border-[#E2E8F0] hover:border-[#FCA5A5] rounded-xl transition cursor-pointer">
+                        Reset Filter
+                    </button>
                 </div>
-                
-                @if(\App\Helpers\ScopeHelper::isManagerial(auth()->user()))
-                <button @click="openModal()" style="background:#C81E2C; color:white; box-shadow:0 8px 20px rgba(200,30,44,0.24); padding:10px 17px; border-radius:8px; border:none; font-weight:600; font-size:14px; display:flex; align-items:center; gap:6px; cursor:pointer;">
-                    <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Tambah User
-                </button>
-                @endif
             </div>
 
-            <!-- Users Table -->
-            <div style="background:white; border:1px solid #E7E5E3; border-radius:12px; box-shadow:0 1px 2px rgba(14,13,18,0.05); overflow:hidden;">
-                <div style="overflow-x:auto;">
-                    <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+            <!-- ========================================================== -->
+            <!-- 4 METRIC SUMMARY CARDS                                     -->
+            <!-- ========================================================== -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 anim-fade-up anim-delay-1">
+                {{-- Card 1: Total Pengguna --}}
+                <div class="ipnet-card p-5 flex items-center justify-between">
+                    <div>
+                        <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Total Pengguna</p>
+                        <h3 class="text-[22px] font-extrabold text-[#1E293B] mt-1" x-text="users.length">0</h3>
+                        <p class="text-[11.5px] text-[#94A3B8] mt-0.5">Terdaftar di sistem</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#1E293B] shadow-xs">
+                        <svg class="w-5 h-5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                {{-- Card 2: Pengguna Aktif --}}
+                <div class="ipnet-card p-5 flex items-center justify-between">
+                    <div>
+                        <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Pengguna Aktif</p>
+                        <h3 class="text-[22px] font-extrabold text-[#16A34A] mt-1" x-text="users.filter(u => u.status === 'Active').length">0</h3>
+                        <p class="text-[11.5px] text-[#94A3B8] mt-0.5">Status akun aktif</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-center justify-center text-[#16A34A] shadow-xs">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                {{-- Card 3: Tim Teknis & Lapangan --}}
+                <div class="ipnet-card p-5 flex items-center justify-between">
+                    <div>
+                        <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Tim Teknis</p>
+                        <h3 class="text-[22px] font-extrabold text-[#2563EB] mt-1" x-text="users.filter(u => ['Engineer', 'Maintenance', 'Team Leader', 'Lead Maintenance', 'Lead Engineer'].includes(u.role_name)).length">0</h3>
+                        <p class="text-[11.5px] text-[#94A3B8] mt-0.5">Engineer & Maintenance</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#2563EB] shadow-xs">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                {{-- Card 4: Menunggu Verifikasi Sertifikasi --}}
+                <div class="ipnet-card p-5 flex items-center justify-between">
+                    <div>
+                        <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Perlu Verifikasi</p>
+                        <h3 class="text-[22px] font-extrabold mt-1"
+                            :class="users.filter(u => u.has_certification && u.certification_status === 'pending').length > 0 ? 'text-[#D97706]' : 'text-[#1E293B]'"
+                            x-text="users.filter(u => u.has_certification && u.certification_status === 'pending').length">0</h3>
+                        <p class="text-[11.5px] text-[#94A3B8] mt-0.5">Sertifikat menunggu approval</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] flex items-center justify-center text-[#D97706] shadow-xs">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================================== -->
+            <!-- DATA TABLE PENGGUNA                                        -->
+            <!-- ========================================================== -->
+            <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-2">
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-left text-[13px]">
                         <thead>
-                            <tr style="background:#F1F0EE;">
-                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Nama Lengkap</th>
-                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Alamat Email</th>
-                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">No. Telepon</th>
-                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Role</th>
-                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Divisi</th>
-                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Sertifikasi</th>
-                                <th style="text-align:left; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Status</th>
-                                <th style="text-align:right; padding:12px 16px; font-size:11.5px; font-weight:600; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Aksi</th>
+                            <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                                <th class="py-3.5 px-5 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Nama Pengguna</th>
+                                <th class="py-3.5 px-5 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Kontak</th>
+                                <th class="py-3.5 px-5 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Role</th>
+                                <th class="py-3.5 px-5 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Divisi & Level</th>
+                                <th class="py-3.5 px-5 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Sertifikasi</th>
+                                <th class="py-3.5 px-5 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Status</th>
+                                <th class="py-3.5 px-5 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-[#F1F5F9]">
                             <template x-for="user in paginatedUsers" :key="user.id">
-                                <tr style="border-top:1px solid #EFEDEB; transition:background 0.12s ease;" @mouseenter="this.style.background='#F1F0EE'" @mouseleave="this.style.background='transparent'">
-                                    <td style="padding:10px 16px;">
-                                        <div style="display:flex; align-items:center; gap:9px;">
-                                            <div style="width:28px; height:28px; border-radius:50%; background:#C81E2C; color:white; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; flex-shrink:0;">
+                                <tr class="hover:bg-[#F8FAFC]/80 transition-colors duration-100">
+                                    {{-- Nama & Subtitle --}}
+                                    <td class="py-3.5 px-5">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-[11px] flex-shrink-0 text-white shadow-xs"
+                                                 style="background: linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%);">
                                                 <span x-text="user.name ? user.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase() : '?'"></span>
                                             </div>
-                                            <span style="font-weight:500; color:#17151C;" x-text="user.name"></span>
+                                            <div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-bold text-[#1E293B]" x-text="user.name"></span>
+                                                    <template x-if="user.is_self">
+                                                        <span class="text-[9.5px] font-bold px-1.5 py-0.5 rounded-md bg-[#EFF6FF] text-[#1D4ED8] border border-[#DBEAFE]">Anda</span>
+                                                    </template>
+                                                </div>
+                                                <p class="text-[12px] text-[#64748B] mt-0.5" x-text="user.position || user.role_name"></p>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td style="padding:10px 16px; color:#3D3A44;" x-text="user.email"></td>
-                                    <td style="padding:10px 16px; color:#3D3A44; font-family:'IBM Plex Mono',monospace; font-size:12.5px;" x-text="user.phone"></td>
-                                    <td style="padding:10px 16px; white-space:nowrap;">
+
+                                    {{-- Kontak --}}
+                                    <td class="py-3.5 px-5">
+                                        <div class="text-[12px] space-y-0.5">
+                                            <div class="text-[#334155] flex items-center gap-1.5 font-medium">
+                                                <svg class="w-3.5 h-3.5 text-[#94A3B8] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                                </svg>
+                                                <span x-text="user.email"></span>
+                                            </div>
+                                            <div class="text-[#64748B] flex items-center gap-1.5 font-mono text-[11.5px]" x-show="user.phone">
+                                                <svg class="w-3.5 h-3.5 text-[#94A3B8] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                                </svg>
+                                                <span x-text="user.phone"></span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {{-- Role --}}
+                                    <td class="py-3.5 px-5 whitespace-nowrap">
                                         <span x-html="getRoleBadge(user)"></span>
                                     </td>
+
                                     {{-- Divisi & Level --}}
-                                    <td style="padding:10px 16px; white-space:nowrap;">
-                                        <div style="display:flex; align-items:center; gap:6px;">
-                                            <span style="font-size:13px; font-weight:500; color:#17151C;" x-text="user.division_name !== '-' ? user.division_name : '-'"></span>
+                                    <td class="py-3.5 px-5 whitespace-nowrap">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[13px] font-semibold text-[#1E293B]" x-text="user.division_name !== '-' ? user.division_name : '-'"></span>
                                             <template x-if="user.level">
-                                                <span style="font-size:10.5px; font-weight:700; background:#F1F0EE; color:#3D3A44; padding:2px 6px; border-radius:6px; border:1px solid #E7E5E3;" x-text="user.level"></span>
+                                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]" x-text="user.level"></span>
                                             </template>
                                         </div>
                                     </td>
-                                    <!-- Sertifikasi Status -->
-                                    <td style="padding:10px 16px;">
+
+                                    {{-- Sertifikasi Status --}}
+                                    <td class="py-3.5 px-5 whitespace-nowrap">
                                         <template x-if="user.has_certification">
-                                            <div style="display:flex; align-items:center; gap:8px;">
+                                            <div class="flex items-center gap-2">
                                                 <span x-html="getCertificationStatusBadge(user.certification_status)"></span>
                                                 @if(\App\Helpers\ScopeHelper::isManagerial(auth()->user()))
-                                                <button @click="viewCertification(user)" 
-                                                        style="background:none; border:none; cursor:pointer; color:#C81E2C; padding:4px;">
-                                                    <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                <button @click="viewCertification(user)"
+                                                        class="p-1.5 text-[#8F0A0D] hover:bg-[#FEF2F2] rounded-lg transition cursor-pointer"
+                                                        title="Lihat Dokumen Sertifikat">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                                     </svg>
                                                 </button>
                                                 @endif
                                             </div>
                                         </template>
                                         <template x-if="!user.has_certification">
-                                            <span style="color:#948F99; font-size:12px;">Belum diunggah</span>
+                                            <span class="text-[12px] text-[#94A3B8]">Belum ada</span>
                                         </template>
                                     </td>
-                                    <td style="padding:10px 16px;" x-html="getStatusBadge(user.status)"></td>
-                                    <td style="padding:10px 16px;">
-                                        <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px;">
-                                            <template x-if="user.can_manage">
-                                                <div style="display:flex; align-items:center; gap:8px;">
-                                                    <button @click="toggleStatus(user)" 
-                                                            style="background:none; border:none; cursor:pointer; padding:6px; border-radius:8px;"
-                                                            :style="user.status === 'Active' ? 'color:#1B7A46;' : 'color:#948F99;'"
-                                                            title="Ubah Status Aktif/Nonaktif">
-                                                        <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v4m0 4v4m0 4v4"/>
-                                                        </svg>
-                                                    </button>
-                                                    <button @click="editUser(user)" style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:8px;" title="Edit Data User">
-                                                        <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                                        </svg>
-                                                    </button>
-                                                    <button @click="deleteUser(user)" 
-                                                            style="background:none; border:none; cursor:pointer; color:#C81E2C; padding:6px; border-radius:8px;"
-                                                            title="Hapus User">
-                                                        <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </template>
-                                            <template x-if="!user.can_manage">
-                                                <span style="font-size:11.5px; color:#948F99; font-style:italic;" x-text="user.is_self ? 'Akun Anda' : 'Terproteksi'"></span>
-                                            </template>
-                                        </div>
+
+                                    {{-- Status --}}
+                                    <td class="py-3.5 px-5 whitespace-nowrap" x-html="getStatusBadge(user.status)"></td>
+
+                                    {{-- Aksi --}}
+                                    <td class="py-3.5 px-5 text-right whitespace-nowrap">
+                                        <template x-if="user.can_manage">
+                                            <div class="flex items-center justify-end gap-1.5">
+                                                {{-- Toggle Active Status --}}
+                                                <button @click="toggleStatus(user)"
+                                                        class="p-1.5 rounded-lg transition cursor-pointer"
+                                                        :class="user.status === 'Active' ? 'text-[#16A34A] hover:bg-[#F0FDF4]' : 'text-[#94A3B8] hover:bg-[#F1F5F9]'"
+                                                        :title="user.status === 'Active' ? 'Nonaktifkan Akun' : 'Aktifkan Akun'">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v4m0 4v4m0 4v4"/>
+                                                    </svg>
+                                                </button>
+
+                                                {{-- Edit User --}}
+                                                <button @click="editUser(user)"
+                                                        class="p-1.5 rounded-lg text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition cursor-pointer"
+                                                        title="Edit Data User">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                    </svg>
+                                                </button>
+
+                                                {{-- Delete User --}}
+                                                <button @click="deleteUser(user)"
+                                                        class="p-1.5 rounded-lg text-[#8F0A0D] hover:bg-[#FEF2F2] transition cursor-pointer"
+                                                        title="Hapus User">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </template>
+                                        <template x-if="!user.can_manage">
+                                            <span class="text-[11.5px] text-[#94A3B8] italic" x-text="user.is_self ? 'Akun Anda' : 'Terproteksi'"></span>
+                                        </template>
                                     </td>
                                 </tr>
                             </template>
                         </tbody>
                     </table>
+                </div>
+
                 {{-- Empty State --}}
-                <div x-show="filteredUsers.length === 0" style="text-align:center; padding:48px 20px; color:#75727C;">
-                    <div style="width:44px; height:44px; border-radius:10px; background:#F1F0EE; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
-                        <svg style="width:20px; height:20px; opacity:0.6;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                <div x-show="filteredUsers.length === 0" class="text-center py-12 px-4">
+                    <div class="w-12 h-12 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center mx-auto mb-3 text-[#94A3B8]">
+                        <svg class="w-6 h-6 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                         </svg>
                     </div>
-                    <p style="font-size:13.5px; margin:0;">Tidak ada data pengguna yang sesuai dengan filter.</p>
+                    <h4 class="text-[14px] font-bold text-[#1E293B]">Tidak Ada Data Pengguna</h4>
+                    <p class="text-[12.5px] text-[#64748B] mt-1">Tidak ada data pengguna yang sesuai dengan kriteria pencarian dan filter.</p>
                 </div>
 
                 {{-- Pagination Footer --}}
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-top:1px solid #EFEDEB;background:#FFFFFF;flex-wrap:wrap;gap:10px;">
-                    <span style="font-size:12.5px;color:#75727C;">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-3.5 border-t border-[#E2E8F0] bg-[#FFFFFF] gap-3">
+                    <span class="text-[12px] text-[#64748B]">
                         Menampilkan
-                        <strong x-text="filteredUsers.length ? (startIndex + 1) : 0" style="color:#17151C;"></strong> &ndash; <strong x-text="Math.min(endIndex, filteredUsers.length)" style="color:#17151C;"></strong>
-                        dari <strong x-text="filteredUsers.length" style="color:#17151C;"></strong> pengguna
+                        <strong class="text-[#1E293B]" x-text="filteredUsers.length ? (startIndex + 1) : 0"></strong> &ndash;
+                        <strong class="text-[#1E293B]" x-text="Math.min(endIndex, filteredUsers.length)"></strong>
+                        dari <strong class="text-[#1E293B]" x-text="filteredUsers.length"></strong> pengguna
                     </span>
 
-                    <div style="display:flex;align-items:center;gap:4px;" x-show="totalPages > 1">
-                        {{-- Previous Page Button --}}
+                    <div class="flex items-center gap-1.5" x-show="totalPages > 1">
+                        {{-- Previous Button --}}
                         <button type="button"
-                            @click="if(currentPage > 1) currentPage--"
-                            :disabled="currentPage <= 1"
-                            title="Sebelumnya"
-                            style="width: 28px; height: 28px; border-radius: 6px; border: 1px solid #E7E5E3; background: #FFFFFF; color: #3D3A44; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;"
-                            :style="currentPage <= 1 ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-                        >
-                            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                @click="if(currentPage > 1) currentPage--"
+                                :disabled="currentPage <= 1"
+                                class="w-8 h-8 rounded-lg border border-[#CBD5E1] bg-white text-[#334155] flex items-center justify-center text-xs transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC]">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                             </svg>
                         </button>
@@ -233,22 +396,18 @@
                         {{-- Page Number Buttons --}}
                         <template x-for="p in pageNumbers" :key="p">
                             <button type="button"
-                                @click="currentPage = p"
-                                x-text="p"
-                                style="width: 28px; height: 28px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;"
-                                :style="currentPage === p ? 'background: #AF1424; color: #FFFFFF; border: 1px solid #AF1424; font-weight: 700;' : 'background: #FFFFFF; color: #17151C; border: 1px solid #E7E5E3; font-weight: 600;'"
-                            ></button>
+                                    @click="currentPage = p"
+                                    x-text="p"
+                                    class="w-8 h-8 rounded-lg text-xs font-bold flex items-center justify-center transition cursor-pointer"
+                                    :class="currentPage === p ? 'btn-ipnet-gradient shadow-xs' : 'bg-white text-[#1E293B] border border-[#CBD5E1] hover:bg-[#F8FAFC]'"></button>
                         </template>
 
-                        {{-- Next Page Button --}}
+                        {{-- Next Button --}}
                         <button type="button"
-                            @click="if(currentPage < totalPages) currentPage++"
-                            :disabled="currentPage >= totalPages"
-                            title="Berikutnya"
-                            style="width: 28px; height: 28px; border-radius: 6px; border: 1px solid #E7E5E3; background: #FFFFFF; color: #3D3A44; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease;"
-                            :style="currentPage >= totalPages ? 'opacity: 0.35; cursor: not-allowed;' : ''"
-                        >
-                            <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                @click="if(currentPage < totalPages) currentPage++"
+                                :disabled="currentPage >= totalPages"
+                                class="w-8 h-8 rounded-lg border border-[#CBD5E1] bg-white text-[#334155] flex items-center justify-center text-xs transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC]">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                             </svg>
                         </button>
@@ -256,73 +415,78 @@
                 </div>
             </div>
 
-            <!-- Modal Form (Tambah / Edit) -->
+            <!-- ============================================================ -->
+            <!-- MODAL FORM (TAMBAH / EDIT PENGGUNA)                          -->
+            <!-- ============================================================ -->
             <template x-teleport="body">
-                <div x-show="modalOpen" 
-                     x-cloak 
+                <div x-show="modalOpen"
+                     x-cloak
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0"
                      x-transition:enter-end="opacity-100"
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0"
-                     class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+                     class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-xs"
                      @click.self="modalOpen = false">
-                    
-                    <div class="bg-white rounded-2xl w-[560px] max-w-full max-h-[90vh] flex flex-col overflow-hidden shadow-[0_20px_60px_rgba(14,13,18,0.2)] text-left animate-fade-in-up">
-                        
-                        {{-- Modal Header (Fixed, Never Scrolls) --}}
-                        <div class="px-6 py-4 border-b border-[#EFEDEB] flex items-center justify-between bg-[#FBFBFA] flex-shrink-0">
-                            <h3 class="font-display text-[16px] font-bold text-[#17151C] m-0" x-text="modalTitle"></h3>
-                            <button type="button" @click="modalOpen = false" class="text-[#75727C] hover:text-[#17151C] p-1.5 rounded-lg hover:bg-[#F1F0EE] transition cursor-pointer">
+
+                    <div class="bg-white rounded-2xl w-[560px] max-w-full max-h-[90vh] flex flex-col overflow-hidden shadow-[0_20px_60px_rgba(15,23,42,0.25)] text-left animate-fade-in-up border border-[#E2E8F0]">
+
+                        {{-- Modal Header --}}
+                        <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] flex-shrink-0">
+                            <div>
+                                <h3 class="font-display text-[16px] font-bold text-[#1E293B] m-0" x-text="modalTitle"></h3>
+                                <p class="text-[12px] text-[#64748B] mt-0.5">Isi informasi akun pengguna dan divisi teknis terkait.</p>
+                            </div>
+                            <button type="button" @click="modalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
 
-                        {{-- Form Body (Scrollable) --}}
+                        {{-- Form Body --}}
                         <form @submit.prevent="saveUser" class="flex flex-col flex-1 overflow-hidden m-0">
-                            <div class="p-6 overflow-y-auto space-y-4 flex-1 text-[13.5px]">
+                            <div class="p-6 overflow-y-auto space-y-4 flex-1 text-[13px]">
                                 <div>
-                                    <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Nama Lengkap</label>
-                                    <input type="text" x-model="form.name" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]" required>
+                                    <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Nama Lengkap</label>
+                                    <input type="text" x-model="form.name" class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]" placeholder="Contoh: Budi Santoso" required>
                                 </div>
                                 <div>
-                                    <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Email</label>
-                                    <input type="email" x-model="form.email" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]" required>
+                                    <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Email</label>
+                                    <input type="email" x-model="form.email" class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]" placeholder="nama@ipnet.id" required>
                                 </div>
                                 <div>
-                                    <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Nomor Handphone</label>
-                                    <input type="text" x-model="form.phone" placeholder="0812xxxxxxxx" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                                    <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Nomor Handphone</label>
+                                    <input type="text" x-model="form.phone" placeholder="0812xxxxxxxx" class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]">
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                     <div>
-                                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Role</label>
-                                        <select x-model="form.role" @change="autoFillPosition()" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]" required>
+                                        <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Role / Wewenang</label>
+                                        <select x-model="form.role" @change="autoFillPosition()" class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]" required>
                                             @foreach($creatableRoles as $cr)
                                             <option value="{{ $cr }}">{{ $cr === 'Team Leader' ? 'Team Leader (Leader Divisi)' : ($cr === 'Lead Maintenance' ? 'Lead Maintenance / Helpdesk' : ($cr === 'Maintenance' ? 'Maintenance / Helpdesk Staff' : $cr)) }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Status</label>
-                                        <select x-model="form.status" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]" required>
-                                            <option value="Active">Active</option>
-                                            <option value="Inactive">Inactive</option>
+                                        <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Status Akun</label>
+                                        <select x-model="form.status" class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]" required>
+                                            <option value="Active">Active (Dapat Login)</option>
+                                            <option value="Inactive">Inactive (Dinonaktifkan)</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 {{-- Penempatan Divisi & Level --}}
-                                <div class="p-4 bg-[#F8F7F6] border border-[#EFEDEB] rounded-xl space-y-3">
-                                    <p class="m-0 text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Penempatan Divisi & Level</p>
+                                <div class="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-3">
+                                    <p class="m-0 text-[11px] font-bold text-[#475569] uppercase tracking-wider">Penempatan Divisi & Level Teknis</p>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                         <div>
-                                            <label class="block text-[11.5px] font-semibold text-[#75727C] mb-1">Divisi</label>
-                                            <select x-model="form.division_id" 
+                                            <label class="block text-[11.5px] font-semibold text-[#64748B] mb-1">Divisi</label>
+                                            <select x-model="form.division_id"
                                                     @change="filterTeams(); autoFillPosition();"
-                                                    class="w-full py-2 px-3 text-[13px] bg-white border border-[#E7E5E3] rounded-lg focus:outline-none focus:border-[#C81E2C] transition text-[#17151C]"
+                                                    class="w-full py-2 px-3 text-[12.5px] bg-white border border-[#CBD5E1] rounded-lg focus:outline-none focus:border-[#8F0A0D] transition text-[#1E293B]"
                                                     {{ !$isGlobal && count($divisions) === 1 ? 'disabled' : '' }}>
                                                 @if($isGlobal)
                                                 <option value="">-- Tanpa Divisi (Global) --</option>
@@ -333,31 +497,31 @@
                                             </select>
                                         </div>
                                         <div>
-                                            <label class="block text-[11.5px] font-semibold text-[#75727C] mb-1">Level Teknis</label>
-                                            <select x-model="form.level" 
+                                            <label class="block text-[11.5px] font-semibold text-[#64748B] mb-1">Level Teknis</label>
+                                            <select x-model="form.level"
                                                     @change="autoFillPosition()"
-                                                    class="w-full py-2 px-3 text-[13px] bg-white border border-[#E7E5E3] rounded-lg focus:outline-none focus:border-[#C81E2C] transition text-[#17151C]">
+                                                    class="w-full py-2 px-3 text-[12.5px] bg-white border border-[#CBD5E1] rounded-lg focus:outline-none focus:border-[#8F0A0D] transition text-[#1E293B]">
                                                 <option value="">-- Tanpa Level --</option>
-                                                <option value="L1">L1</option>
-                                                <option value="L2">L2</option>
+                                                <option value="L1">L1 (Junior / Implementor)</option>
+                                                <option value="L2">L2 (Senior / Specialist)</option>
                                             </select>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div x-show="!editing || form.password">
-                                    <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">
-                                        Password <span x-show="editing" class="text-[#948F99] font-normal lowercase">(kosongkan jika tidak diubah)</span>
+                                    <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                        Password <span x-show="editing" class="text-[#94A3B8] font-normal lowercase">(kosongkan jika tidak ingin diubah)</span>
                                     </label>
                                     <div class="relative">
-                                        <input :type="showPassword ? 'text' : 'password'" 
-                                               x-model="form.password" 
+                                        <input :type="showPassword ? 'text' : 'password'"
+                                               x-model="form.password"
                                                placeholder="Minimal 6 karakter"
-                                               class="w-full py-2.5 pl-3.5 pr-11 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]" 
+                                               class="w-full py-2.5 pl-3.5 pr-11 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]"
                                                :required="!editing">
-                                        <button type="button" 
+                                        <button type="button"
                                                 @click="showPassword = !showPassword"
-                                                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#948F99] hover:text-[#17151C] transition p-1 cursor-pointer focus:outline-none"
+                                                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#1E293B] transition p-1 cursor-pointer focus:outline-none"
                                                 tabindex="-1"
                                                 :title="showPassword ? 'Sembunyikan password' : 'Lihat password'">
                                             <svg x-show="!showPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -372,13 +536,13 @@
                                 </div>
                             </div>
 
-                            {{-- Modal Footer (Fixed, Never Scrolls) --}}
-                            <div class="px-6 py-3.5 border-t border-[#EFEDEB] bg-[#FBFBFA] flex items-center justify-end gap-3 flex-shrink-0">
-                                <button type="button" @click="modalOpen = false" class="py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                            {{-- Modal Footer --}}
+                            <div class="px-6 py-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-end gap-3 flex-shrink-0">
+                                <button type="button" @click="modalOpen = false" class="py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-[13px] hover:bg-[#F1F5F9] transition cursor-pointer">
                                     Batal
                                 </button>
-                                <button type="submit" class="py-2.5 px-5 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white font-semibold text-[13.5px] transition shadow-sm cursor-pointer">
-                                    Simpan
+                                <button type="submit" class="btn-ipnet-gradient py-2.5 px-5 rounded-xl font-bold text-[13px] transition shadow-md cursor-pointer">
+                                    Simpan Pengguna
                                 </button>
                             </div>
                         </form>
@@ -390,7 +554,7 @@
             <!-- MODAL LIHAT MULTI-SERTIFIKASI                                -->
             <!-- ============================================================ -->
             <template x-teleport="body">
-                <div x-show="viewCertModal" 
+                <div x-show="viewCertModal"
                      x-cloak
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0"
@@ -398,207 +562,195 @@
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0"
-                     class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+                     class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-xs"
                      @click.self="viewCertModal = false">
-                    
-                    <div class="bg-white rounded-2xl w-[720px] max-w-full max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(14,13,18,0.2)] overflow-hidden animate-fade-in-up">
-                    
-                    <!-- Modal Header -->
-                    <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 22px; background:white; border-bottom:1px solid #E7E5E3; flex-shrink:0;">
-                        <div>
-                            <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:17px; font-weight:600; color:#17151C;">
-                                Sertifikasi <span x-text="viewingUser.name" style="color:#C81E2C;"></span>
-                            </h3>
-                            <p style="margin:2px 0 0; font-size:12px; color:#75727C;" x-text="(viewingUser.certifications ? viewingUser.certifications.length : 0) + ' dokumen sertifikat terdaftar'"></p>
-                        </div>
-                        <button @click="viewCertModal = false" style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:8px;">
-                            <svg style="width:20px; height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                    
-                    <!-- Modal Body -->
-                    <div style="padding:22px; overflow-y:auto; flex:1;">
-                        
-                        <!-- TAB PILIHAN SERTIFIKAT -->
-                        <div style="margin-bottom:20px; padding:12px 14px; background:#F8F7F6; border:1px solid #E7E5E3; border-radius:12px;" x-show="viewingUser.certifications && viewingUser.certifications.length > 0">
-                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                                <p style="margin:0; font-size:11.5px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.4px;">
-                                    Pilih Sertifikat untuk Dilihat
-                                </p>
-                                <span style="font-size:11px; font-weight:600; color:#948F99;">
-                                    Klik tombol untuk berpindah dokumen
-                                </span>
-                            </div>
-                            <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                                <template x-for="cert in (viewingUser.certifications || [])" :key="cert.id">
-                                    <button type="button"
-                                            @click="selectCert(cert)"
-                                            class="cert-tab-pill"
-                                            :class="selectedCert && selectedCert.id === cert.id ? 'active' : ''">
-                                        <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                        </svg>
-                                        <span x-text="cert.name"></span>
-                                        <span class="cert-status-dot"
-                                              :style="'background:' + (cert.status === 'approved' ? '#1B7A46' : (cert.status === 'rejected' ? '#C81E2C' : '#E67E22'))"></span>
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
 
+                    <div class="bg-white rounded-2xl w-[720px] max-w-full max-h-[90vh] flex flex-col shadow-[0_20px_60px_rgba(15,23,42,0.25)] overflow-hidden animate-fade-in-up border border-[#E2E8F0]">
 
-                        <!-- DETAIL SERTIFIKAT YANG TERPILIH -->
-                        <template x-if="selectedCert">
+                        <!-- Modal Header -->
+                        <div class="flex items-center justify-between p-5 bg-white border-b border-[#E2E8F0] flex-shrink-0">
                             <div>
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; padding:14px; background:#F8F7F6; border:1px solid #E7E5E3; border-radius:10px;">
-                                    <div>
-                                        <p style="margin:0 0 3px; font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Nama Sertifikasi</p>
-                                        <p style="margin:0; color:#17151C; font-size:14px; font-weight:700;" x-text="selectedCert.name"></p>
-                                    </div>
-                                    <div>
-                                        <p style="margin:0 0 3px; font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Status Verifikasi</p>
-                                        <div x-html="getCertificationStatusBadge(selectedCert.status)"></div>
-                                    </div>
-                                    <div style="grid-column: span 2;">
-                                        <p style="margin:0 0 2px; font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Waktu Upload</p>
-                                        <p style="margin:0; color:#3D3A44; font-size:12.5px;" x-text="selectedCert.uploaded_at || '-'"></p>
-                                    </div>
-                                </div>
+                                <h3 class="m-0 font-display text-[16px] font-bold text-[#1E293B]">
+                                    Dokumen Sertifikasi: <span x-text="viewingUser.name" class="text-[#8F0A0D]"></span>
+                                </h3>
+                                <p class="m-0 text-[12px] text-[#64748B] mt-0.5" x-text="(viewingUser.certifications ? viewingUser.certifications.length : 0) + ' dokumen sertifikat terdaftar'"></p>
+                            </div>
+                            <button @click="viewCertModal = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
 
-                                <div style="margin-bottom:16px;">
-                                    <p style="margin:0 0 8px; font-size:11.5px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Preview Dokumen</p>
-                                    <div style="border:1px solid #E7E5E3; border-radius:12px; padding:14px; background:#F8F7F6; text-align:center; min-height:220px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                                        <template x-if="selectedCert.is_pdf">
-                                            <iframe :src="'/certification-file/' + selectedCert.id"
-                                                    style="width:100%; height:450px; border:none; border-radius:8px; background:white;"></iframe>
-                                        </template>
-                                        <template x-if="!selectedCert.is_pdf">
-                                            <div style="width:100%;">
-                                                <img :src="'/certification-file/' + selectedCert.id"
-                                                     alt="Pratinjau Sertifikasi"
-                                                     x-on:error="certImageError = true"
-                                                     x-show="!certImageError"
-                                                     style="width:100%; max-height:480px; object-fit:contain; border-radius:8px; box-shadow:0 4px 16px rgba(14,13,18,0.08); display:block; margin:0 auto;">
-                                                <div x-show="certImageError" style="color:#75727C; font-size:13px; text-align:center; padding:24px 16px;">
-                                                    <svg style="width:36px; height:36px; color:#C81E2C; margin:0 auto 10px; opacity:0.7;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                                    </svg>
-                                                    <strong style="display:block; font-size:14px; color:#17151C; margin-bottom:4px;">File Tidak Ditemukan</strong>
-                                                    <span>File sertifikasi fisik belum di-upload atau tidak ditemukan di server.</span>
+                        <!-- Modal Body -->
+                        <div class="p-6 overflow-y-auto flex-1 space-y-4">
+
+                            <!-- TAB PILIHAN SERTIFIKAT -->
+                            <div class="p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl" x-show="viewingUser.certifications && viewingUser.certifications.length > 0">
+                                <div class="flex items-center justify-between mb-2.5">
+                                    <p class="m-0 text-[11.5px] font-bold text-[#475569] uppercase tracking-wider">
+                                        Pilih Sertifikat untuk Ditinjau
+                                    </p>
+                                    <span class="text-[11px] font-medium text-[#94A3B8]">
+                                        Klik untuk beralih dokumen
+                                    </span>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="cert in (viewingUser.certifications || [])" :key="cert.id">
+                                        <button type="button"
+                                                @click="selectCert(cert)"
+                                                class="cert-tab-pill"
+                                                :class="selectedCert && selectedCert.id === cert.id ? 'active' : ''">
+                                            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                            <span x-text="cert.name"></span>
+                                            <span class="cert-status-dot"
+                                                  :style="'background:' + (cert.status === 'approved' ? '#16A34A' : (cert.status === 'rejected' ? '#8F0A0D' : '#D97706'))"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- DETAIL SERTIFIKAT YANG TERPILIH -->
+                            <template x-if="selectedCert">
+                                <div>
+                                    <div class="grid grid-cols-2 gap-3 mb-4 p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-[13px]">
+                                        <div>
+                                            <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Nama Sertifikasi</p>
+                                            <p class="font-bold text-[#1E293B]" x-text="selectedCert.name"></p>
+                                        </div>
+                                        <div>
+                                            <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Status Verifikasi</p>
+                                            <div x-html="getCertificationStatusBadge(selectedCert.status)"></div>
+                                        </div>
+                                        <div class="col-span-2 pt-2 border-t border-[#E2E8F0]">
+                                            <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1">Waktu Upload</p>
+                                            <p class="text-[12px] text-[#475569]" x-text="selectedCert.uploaded_at || '-'"></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-2">Pratinjau Dokumen</p>
+                                        <div class="border border-[#CBD5E1] rounded-xl p-3 bg-[#F8FAFC] text-center min-h-[240px] flex items-center justify-center overflow-hidden">
+                                            <template x-if="selectedCert.is_pdf">
+                                                <iframe :src="'/certification-file/' + selectedCert.id"
+                                                        class="w-full h-[450px] border-0 rounded-lg bg-white"></iframe>
+                                            </template>
+                                            <template x-if="!selectedCert.is_pdf">
+                                                <div class="w-full">
+                                                    <img :src="'/certification-file/' + selectedCert.id"
+                                                         alt="Pratinjau Sertifikasi"
+                                                         x-on:error="certImageError = true"
+                                                         x-show="!certImageError"
+                                                         class="w-full max-h-[480px] object-contain rounded-lg shadow-sm mx-auto">
+                                                    <div x-show="certImageError" class="text-[#64748B] text-[13px] text-center py-6 px-4">
+                                                        <svg class="w-8 h-8 text-[#8F0A0D] mx-auto mb-2 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                                        </svg>
+                                                        <strong class="block text-[14px] text-[#1E293B] mb-1">File Tidak Ditemukan</strong>
+                                                        <span class="text-[12px]">File sertifikasi fisik belum diunggah atau tidak ditemukan di server.</span>
+                                                    </div>
                                                 </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <!-- Action Buttons per Selected Certificate -->
+                                    <div class="pt-4 border-t border-[#E2E8F0]">
+                                        {{-- JIKA STATUS MENUNGGU (PENDING) --}}
+                                        <template x-if="selectedCert.status === 'pending'">
+                                            <div>
+                                                {{-- Team Leader: Memiliki Tombol Verifikasi --}}
+                                                <template x-if="canVerify">
+                                                    <div class="flex flex-wrap gap-2.5 w-full">
+                                                        <button @click="approveCertification(selectedCert)"
+                                                                class="flex-1 min-w-[160px] justify-center bg-[#16A34A] hover:bg-[#15803D] text-white py-2.5 px-4 rounded-xl font-bold text-[13px] cursor-pointer flex items-center gap-2 transition shadow-xs">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                                            </svg>
+                                                            Setujui Sertifikat Ini
+                                                        </button>
+                                                        <button @click="rejectCertification(selectedCert)"
+                                                                class="flex-1 min-w-[160px] justify-center btn-ipnet-gradient py-2.5 px-4 rounded-xl font-bold text-[13px] cursor-pointer flex items-center gap-2 transition shadow-xs">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                                            </svg>
+                                                            Tolak & Hapus
+                                                        </button>
+                                                    </div>
+                                                </template>
+
+                                                {{-- Direktur / Group Leader: Mode Lihat / Monitoring Saja --}}
+                                                <template x-if="!canVerify">
+                                                    <div class="flex items-center justify-between p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex-wrap gap-3">
+                                                        <span class="text-[12px] text-[#64748B] flex items-center gap-2">
+                                                            <svg class="w-4 h-4 text-[#64748B] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                            </svg>
+                                                            Verifikasi sertifikat ini dilakukan langsung oleh Team Leader divisi terkait.
+                                                        </span>
+                                                        <a :href="'/certification-file/' + selectedCert.id"
+                                                           download
+                                                           target="_blank"
+                                                           class="inline-flex items-center gap-1.5 bg-[#1E293B] text-white py-2 px-3.5 rounded-xl font-bold text-[12px] text-decoration-none shadow-xs">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                            </svg>
+                                                            Download Dokumen
+                                                        </a>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+
+                                        {{-- JIKA STATUS SUDAH DISETUJUI (APPROVED) --}}
+                                        <template x-if="selectedCert.status === 'approved'">
+                                            <div class="flex flex-wrap gap-2.5 w-full">
+                                                <a :href="'/certification-file/' + selectedCert.id"
+                                                   download
+                                                   target="_blank"
+                                                   class="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 bg-[#1E293B] hover:bg-[#334155] text-white py-2.5 px-4 rounded-xl font-bold text-[13px] text-decoration-none transition shadow-xs">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                    </svg>
+                                                    Download Dokumen
+                                                </a>
+                                                <template x-if="canVerify">
+                                                    <button @click="deleteCertification(selectedCert)"
+                                                            class="flex-1 min-w-[160px] justify-center bg-[#FEF2F2] hover:bg-[#8F0A0D] text-[#8F0A0D] hover:text-white border border-[#FECACA] hover:border-[#8F0A0D] py-2.5 px-4 rounded-xl font-bold text-[13px] cursor-pointer flex items-center gap-2 transition">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                        </svg>
+                                                        Hapus Sertifikat Ini
+                                                    </button>
+                                                </template>
                                             </div>
                                         </template>
                                     </div>
                                 </div>
+                            </template>
 
-                                <!-- Action Buttons per Selected Certificate -->
-                                <div style="margin-top:20px; padding-top:16px; border-top:1px solid #EFEDEB;">
-                                    
-                                    {{-- JIKA STATUS MENUNGGU (PENDING) --}}
-                                    <template x-if="selectedCert.status === 'pending'">
-                                        <div>
-                                            {{-- Team Leader: Memiliki Tombol Verifikasi --}}
-                                            <template x-if="canVerify">
-                                                <div style="display:flex; flex-wrap:wrap; gap:10px; width:100%;">
-                                                    <button @click="approveCertification(selectedCert)" 
-                                                            style="flex:1; min-width:180px; justify-content:center; background:#1B7A46; color:white; padding:11px 16px; border-radius:8px; border:none; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background 0.15s ease;"
-                                                            onmouseover="this.style.background='#145E36'"
-                                                            onmouseout="this.style.background='#1B7A46'">
-                                                        <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                                        </svg>
-                                                        Setujui Sertifikat Ini
-                                                    </button>
-                                                    <button @click="rejectCertification(selectedCert)" 
-                                                            style="flex:1; min-width:180px; justify-content:center; background:#C81E2C; color:white; padding:11px 16px; border-radius:8px; border:none; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background 0.15s ease;"
-                                                            onmouseover="this.style.background='#A31622'"
-                                                            onmouseout="this.style.background='#C81E2C'">
-                                                        <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                        </svg>
-                                                        Tolak & Hapus
-                                                    </button>
-                                                </div>
-                                            </template>
-
-                                            {{-- Direktur / Group Leader: Mode Lihat / Monitoring Saja --}}
-                                            <template x-if="!canVerify">
-                                                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#F8F7F6; border:1px solid #E7E5E3; border-radius:10px; flex-wrap:wrap; gap:10px;">
-                                                    <span style="font-size:12.5px; color:#75727C; display:flex; align-items:center; gap:6px;">
-                                                        <svg style="width:16px; height:16px; color:#75727C; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                                        </svg>
-                                                        Verifikasi sertifikat ini dilakukan langsung oleh Team Leader divisi terkait.
-                                                    </span>
-                                                    <a :href="'/certification-file/' + selectedCert.id"
-                                                       download
-                                                       target="_blank"
-                                                       style="display:inline-flex; align-items:center; gap:6px; background:#17151C; color:white; padding:8px 14px; border-radius:8px; font-weight:600; font-size:12.5px; text-decoration:none;">
-                                                        <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                                                        </svg>
-                                                        Download Dokumen
-                                                    </a>
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </template>
-
-
-                                    {{-- JIKA STATUS SUDAH DISETUJUI (APPROVED) --}}
-                                    <template x-if="selectedCert.status === 'approved'">
-                                        <div style="display:flex; flex-wrap:wrap; gap:10px; width:100%;">
-                                            <a :href="'/certification-file/' + selectedCert.id"
-                                               download
-                                               target="_blank"
-                                               style="flex:1; min-width:180px; display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#17151C; color:white; padding:11px 18px; border-radius:8px; font-weight:600; font-size:13.5px; text-decoration:none; transition:all 0.15s ease;"
-                                               onmouseover="this.style.background='#2C2933';"
-                                               onmouseout="this.style.background='#17151C';">
-                                                <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                                                </svg>
-                                                Download Dokumen
-                                            </a>
-                                            <template x-if="canVerify">
-                                                <button @click="deleteCertification(selectedCert)" 
-                                                        style="flex:1; min-width:180px; justify-content:center; background:#FFF0F0; color:#C81E2C; border:1px solid #F8C8CC; padding:11px 18px; border-radius:8px; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.15s ease;"
-                                                        onmouseover="this.style.background='#C81E2C'; this.style.color='white'; this.style.borderColor='#C81E2C';"
-                                                        onmouseout="this.style.background='#FFF0F0'; this.style.color='#C81E2C'; this.style.borderColor='#F8C8CC';">
-                                                    <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                                    </svg>
-                                                    Hapus Sertifikat Ini
-                                                </button>
-                                            </template>
-                                        </div>
-                                    </template>
-
+                            <template x-if="!selectedCert">
+                                <div class="py-10 px-4 text-center text-[#64748B]">
+                                    <p class="text-[13px] mb-3">Pengguna ini belum memiliki sertifikat yang diunggah.</p>
+                                    <button type="button" @click="viewCertModal = false"
+                                            class="py-2 px-4 rounded-xl border border-[#CBD5E1] bg-white text-[12px] font-bold text-[#1E293B] hover:bg-[#F8FAFC] cursor-pointer">
+                                        Tutup
+                                    </button>
                                 </div>
-                            </div>
-                        </template>
+                            </template>
 
-                        <template x-if="!selectedCert">
-                            <div style="padding:40px 16px; text-align:center; color:#75727C;">
-                                <p style="margin:0 0 16px; font-size:13px;">Pengguna ini belum memiliki sertifikat yang diunggah.</p>
-                                <button type="button" @click="viewCertModal = false"
-                                        style="padding:8px 16px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13px; font-weight:600; cursor:pointer;">
-                                    Tutup
-                                </button>
-                            </div>
-                        </template>
-
+                        </div>
                     </div>
                 </div>
-            </div>
             </template>
 
             <!-- ========================================================== -->
-            <!-- MODAL KONFIRMASI HAPUS (STANDAR TIMESHEET)                 -->
+            <!-- MODAL KONFIRMASI HAPUS                                     -->
             <!-- ========================================================== -->
             <template x-teleport="body">
-                <div x-show="confirmModalOpen" 
+                <div x-show="confirmModalOpen"
                      x-cloak
                      x-transition:enter="transition ease-out duration-200"
                      x-transition:enter-start="opacity-0"
@@ -606,86 +758,39 @@
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0"
-                     class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+                     class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-xs"
                      @click.self="confirmModalOpen = false"
                      @keydown.escape.window="confirmModalOpen = false">
-                    
-                    <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(14,13,18,0.2)] animate-fade-in-up">
-                        <div class="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#C81E2C]">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+
+                    <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] animate-fade-in-up border border-[#E2E8F0]">
+                        <div class="w-12 h-12 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#8F0A0D]">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                             </svg>
                         </div>
-                        
-                        <h3 class="text-center font-display text-[17px] font-bold text-[#17151C] mb-2" x-text="confirmModalData.title || 'Yakin Hapus Pengguna?'"></h3>
-                        <p class="text-center text-[13.5px] text-[#75727C] mb-6 break-words" x-text="confirmModalData.message"></p>
 
-                        <div class="flex gap-3">
-                            <button type="button" 
-                                    @click="if (confirmModalData.onConfirm) { confirmModalData.onConfirm(); } confirmModalOpen = false;" 
-                                    class="flex-1 py-2.5 px-4 rounded-xl bg-[#C81E2C] text-white font-semibold text-[13.5px] hover:bg-[#A31622] transition cursor-pointer">
-                                Hapus
-                            </button>
-                            <button type="button" 
-                                    @click="confirmModalOpen = false" 
-                                    class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                        <h3 class="text-center font-display text-[16px] font-bold text-[#1E293B] mb-1.5" x-text="confirmModalData.title || 'Yakin Hapus Pengguna?'"></h3>
+                        <p class="text-center text-[12.5px] text-[#64748B] mb-6 break-words" x-text="confirmModalData.message"></p>
+
+                        <div class="flex gap-2.5">
+                            <button type="button"
+                                    @click="confirmModalOpen = false"
+                                    class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-[12.5px] hover:bg-[#F8FAFC] transition cursor-pointer">
                                 Batal
+                            </button>
+                            <button type="button"
+                                    @click="if (confirmModalData.onConfirm) { confirmModalData.onConfirm(); } confirmModalOpen = false;"
+                                    class="flex-1 py-2.5 px-4 rounded-xl btn-ipnet-gradient font-bold text-[12.5px] transition cursor-pointer shadow-md">
+                                Hapus
                             </button>
                         </div>
                     </div>
                 </div>
             </template>
-            
+
         </div>
     </div>
 </div>
-
-<style>
-    [x-cloak] { display: none !important; }
-    
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px) scale(0.95); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .cert-tab-pill {
-        padding: 9px 14px;
-        border-radius: 10px;
-        border: 1.5px solid #E7E5E3;
-        background: #ffffff;
-        color: #3D3A44;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.15s ease;
-        box-shadow: 0 1px 3px rgba(14, 13, 18, 0.04);
-    }
-
-    .cert-tab-pill:hover:not(.active) {
-        background: #F1F0EE;
-        border-color: #D3D0CB;
-        color: #17151C;
-        transform: translateY(-1px);
-    }
-
-    .cert-tab-pill.active {
-        background: #17151C;
-        border-color: #17151C;
-        color: #ffffff;
-        box-shadow: 0 4px 12px rgba(23, 21, 28, 0.2);
-    }
-
-    .cert-status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        flex-shrink: 0;
-    }
-</style>
-
 
 @push('scripts')
 <script>
@@ -735,14 +840,15 @@
                 },
 
                 init() {
-                    console.log(' Users Manager initialized!');
+                    console.log('Users Manager initialized!');
                 },
 
                 get filteredUsers() {
                     return this.users.filter(u => {
-                        const matchSearch = u.name.toLowerCase().includes(this.search.toLowerCase()) || 
-                                           u.email.toLowerCase().includes(this.search.toLowerCase());
-                        
+                        const matchSearch = (u.name || '').toLowerCase().includes(this.search.toLowerCase()) ||
+                                            (u.email || '').toLowerCase().includes(this.search.toLowerCase()) ||
+                                            (u.phone || '').toLowerCase().includes(this.search.toLowerCase());
+
                         let matchRole = false;
                         if (this.roleFilter === 'Semua') {
                             matchRole = true;
@@ -864,18 +970,15 @@
 
                 canManageUser(target) {
                     if (!target) return false;
-                    // Direktur can edit/delete anyone
                     if (this.currentUserRole === 'Direktur' || this.currentUserRole === 'HD / Direktur') {
                         return true;
                     }
-                    // Group Leader cannot edit/delete Direktur
                     if (this.currentUserRole === 'Group Leader' || this.currentUserRole === 'Lead Divisi') {
                         if (target.role_name === 'Direktur' || target.role_name === 'HD / Direktur') {
                             return false;
                         }
                         return true;
                     }
-                    // Team Leader & Lead Maintenance can edit themselves and their technical staff (Engineer, Maintenance)
                     if (this.currentUserRole === 'Team Leader' || this.currentUserRole === 'Lead Maintenance' || this.currentUserRole === 'Lead Engineer') {
                         if (target.id === this.currentUserId) {
                             return true;
@@ -890,18 +993,10 @@
                     this.openModal(user);
                 },
 
-                handleFileSelect(event) {
-                    const file = event.target.files[0];
-                    if (file) {
-                        this.form.certification_file = file;
-                        this.form.certification_file_name = file.name;
-                    }
-                },
-
                 async saveUser() {
                     try {
                         const url = this.editing ? `/users/${this.form.id}` : '/users';
-                        
+
                         const formData = new FormData();
                         formData.append('name', this.form.name || '');
                         formData.append('email', this.form.email || '');
@@ -912,11 +1007,11 @@
                         if (this.form.division_id) formData.append('division_id', this.form.division_id);
                         if (this.form.team_id) formData.append('team_id', this.form.team_id);
                         if (this.form.level) formData.append('level', this.form.level);
-                        
+
                         if (this.editing) {
                             formData.append('_method', 'PUT');
                         }
-                        
+
                         if (this.form.password) {
                             formData.append('password', this.form.password);
                         }
@@ -932,13 +1027,14 @@
 
                         if (response.ok) {
                             const data = await response.json();
-                            
+
                             if (this.editing) {
                                 const index = this.users.findIndex(u => u.id === this.form.id);
                                 this.users[index] = data;
                             } else {
                                 this.users.push(data);
                             }
+                            this.users = JSON.parse(JSON.stringify(this.users));
                             this.modalOpen = false;
                             this.showToast('Data pengguna berhasil ' + (this.editing ? 'diperbarui' : 'ditambahkan') + '!');
                         } else {
@@ -956,10 +1052,10 @@
                         this.showToast('Anda tidak dapat menghapus akun Anda sendiri!');
                         return;
                     }
-                    
+
                     this.confirmModalData = {
                         title: 'Yakin Hapus Pengguna?',
-                        message: `Data pengguna "${user.name}" akan dihapus.`,
+                        message: `Data pengguna "${user.name}" akan dihapus secara permanen dari sistem.`,
                         onConfirm: async () => {
                             try {
                                 const response = await fetch(`/users/${user.id}`, {
@@ -999,11 +1095,12 @@
                             const data = await response.json();
                             const index = this.users.findIndex(u => u.id === user.id);
                             this.users[index] = data;
-                            this.showToast(` Status user berhasil diubah menjadi ${data.status}!`);
+                            this.users = JSON.parse(JSON.stringify(this.users));
+                            this.showToast(`Status user berhasil diubah menjadi ${data.status}!`);
                         }
                     } catch (error) {
-                        console.error(' Error toggling user status:', error);
-                        this.showToast(' Terjadi kesalahan saat mengubah status user.');
+                        console.error('Error toggling user status:', error);
+                        this.showToast('Terjadi kesalahan saat mengubah status user.');
                     }
                 },
 
@@ -1042,8 +1139,7 @@
                             if (this.selectedCert && this.selectedCert.id === cert.id) {
                                 this.selectedCert.status = 'approved';
                             }
-                            
-                            // Update data user di list dengan trigger reactivity
+
                             if (data.user) {
                                 const index = this.users.findIndex(u => u.id === data.user.id);
                                 if (index !== -1) {
@@ -1052,7 +1148,7 @@
                                     this.viewingUser = data.user;
                                 }
                             }
-                            
+
                             this.viewCertModal = false;
                             this.showToast(`Sertifikasi "${cert.name}" berhasil disetujui!`);
                         } else {
@@ -1087,8 +1183,7 @@
                             if (this.selectedCert && this.selectedCert.id === cert.id) {
                                 this.selectedCert.status = 'rejected';
                             }
-                            
-                            // Update data user di list dengan trigger reactivity
+
                             if (data.user) {
                                 const index = this.users.findIndex(u => u.id === data.user.id);
                                 if (index !== -1) {
@@ -1097,7 +1192,7 @@
                                     this.viewingUser = data.user;
                                 }
                             }
-                            
+
                             this.viewCertModal = false;
                             this.showToast(`Sertifikasi "${cert.name}" berhasil ditolak dan dihapus!`);
                         } else {
@@ -1114,10 +1209,10 @@
                         this.showToast('Pilih sertifikat terlebih dahulu.');
                         return;
                     }
-                    
+
                     this.confirmModalData = {
                         title: 'Yakin Hapus Sertifikat?',
-                        message: `Dokumen sertifikat "${cert.name}" akan dihapus.`,
+                        message: `Dokumen sertifikat "${cert.name}" akan dihapus secara permanen.`,
                         onConfirm: async () => {
                             try {
                                 const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
@@ -1137,6 +1232,7 @@
                                         const index = this.users.findIndex(u => u.id === data.user.id);
                                         if (index !== -1) {
                                             this.users[index] = data.user;
+                                            this.users = JSON.parse(JSON.stringify(this.users));
                                             this.viewingUser = data.user;
                                             this.selectedCert = null;
                                         }
@@ -1159,17 +1255,20 @@
                     const level = (typeof user === 'object' && user !== null) ? user.level : null;
                     const roleKey = (role === 'Engineer' && level) ? ('Engineer ' + level) : role;
                     const styles = {
-                        'Direktur':         { bg: '#FDF1F2', fg: '#C81E2C', border: '#FADADF', dot: '#C81E2C' },
-                        'HD / Direktur':    { bg: '#FDF1F2', fg: '#C81E2C', border: '#FADADF', dot: '#C81E2C' },
+                        'Direktur':         { bg: '#FEF2F2', fg: '#8F0A0D', border: '#FECACA', dot: '#8F0A0D' },
+                        'HD / Direktur':    { bg: '#FEF2F2', fg: '#8F0A0D', border: '#FECACA', dot: '#8F0A0D' },
                         'Group Leader':     { bg: '#EEF2FF', fg: '#4338CA', border: '#C7D2FE', dot: '#4F46E5' },
                         'Team Leader':      { bg: '#FFFBEB', fg: '#B45309', border: '#FDE68A', dot: '#D97706' },
+                        'Lead Engineer':    { bg: '#FFFBEB', fg: '#B45309', border: '#FDE68A', dot: '#D97706' },
+                        'Lead Maintenance': { bg: '#F0FDFA', fg: '#0F766E', border: '#CCFBF1', dot: '#14B8A6' },
+                        'Maintenance':      { bg: '#F0FDFA', fg: '#0F766E', border: '#CCFBF1', dot: '#14B8A6' },
                         'Engineer':         { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
                         'Engineer L1':      { bg: '#F0FDF4', fg: '#15803D', border: '#BBF7D0', dot: '#16A34A' },
                         'Engineer L2':      { bg: '#ECFDF5', fg: '#047857', border: '#A7F3D0', dot: '#059669' },
                     };
-                    const s = styles[roleKey] || styles[role] || { bg: '#F1F0EE', fg: '#3D3A44', border: '#E7E5E3', dot: '#75727C' };
+                    const s = styles[roleKey] || styles[role] || { bg: '#F1F5F9', fg: '#475569', border: '#E2E8F0', dot: '#64748B' };
                     const label = (role === 'Engineer' && level) ? ('Engineer ' + level) : role;
-                    return `<span style="background: ${s.bg}; color: ${s.fg}; border: 1px solid ${s.border}; font-size: 11.5px; font-weight: 700; padding: 3.5px 10px 3.5px 8px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.1px;">
+                    return `<span style="background: ${s.bg}; color: ${s.fg}; border: 1px solid ${s.border}; font-size: 11.5px; font-weight: 700; padding: 3px 9px 3px 7px; border-radius: 9999px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;">
                                 <span style="width: 6px; height: 6px; border-radius: 50%; background: ${s.dot}; flex-shrink: 0;"></span>
                                 ${label}
                             </span>`;
@@ -1177,11 +1276,11 @@
 
                 getStatusBadge(status) {
                     const styles = {
-                        'Active': { bg: '#E4F3EA', fg: '#1B7A46', dot: '#1B7A46' },
-                        'Inactive': { bg: '#EFEDEC', fg: '#75727C', dot: '#948F99' }
+                        'Active': { bg: '#F0FDF4', fg: '#16A34A', border: '#BBF7D0', dot: '#16A34A' },
+                        'Inactive': { bg: '#F1F5F9', fg: '#64748B', border: '#E2E8F0', dot: '#94A3B8' }
                     };
                     const s = styles[status] || styles['Inactive'];
-                    return `<span style="background: ${s.bg}; color: ${s.fg}; font-size: 11.5px; font-weight: 700; padding: 4px 10px 4px 8px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.1px;">
+                    return `<span style="background: ${s.bg}; color: ${s.fg}; border: 1px solid ${s.border}; font-size: 11.5px; font-weight: 700; padding: 3px 9px 3px 7px; border-radius: 9999px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;">
                                 <span style="width: 6px; height: 6px; border-radius: 50%; background: ${s.dot}; flex-shrink: 0;"></span>
                                 ${status}
                             </span>`;
@@ -1189,12 +1288,12 @@
 
                 getCertificationStatusBadge(status) {
                     const styles = {
-                        'approved': { bg: '#E4F3EA', fg: '#1B7A46', dot: '#1B7A46', text: 'Disetujui' },
-                        'pending': { bg: '#FFF3E0', fg: '#E67E22', dot: '#E67E22', text: 'Menunggu' },
-                        'rejected': { bg: '#FFEBEE', fg: '#C81E2C', dot: '#C81E2C', text: 'Ditolak' }
+                        'approved': { bg: '#F0FDF4', fg: '#16A34A', border: '#BBF7D0', dot: '#16A34A', text: 'Disetujui' },
+                        'pending': { bg: '#FFFBEB', fg: '#D97706', border: '#FDE68A', dot: '#D97706', text: 'Menunggu' },
+                        'rejected': { bg: '#FEF2F2', fg: '#8F0A0D', border: '#FECACA', dot: '#8F0A0D', text: 'Ditolak' }
                     };
                     const s = styles[status] || styles['pending'];
-                    return `<span style="background: ${s.bg}; color: ${s.fg}; font-size: 11.5px; font-weight: 700; padding: 4px 10px 4px 8px; border-radius: 20px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.1px;">
+                    return `<span style="background: ${s.bg}; color: ${s.fg}; border: 1px solid ${s.border}; font-size: 11.5px; font-weight: 700; padding: 3px 9px 3px 7px; border-radius: 9999px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;">
                                 <span style="width: 6px; height: 6px; border-radius: 50%; background: ${s.dot}; flex-shrink: 0;"></span>
                                 ${s.text}
                             </span>`;
@@ -1202,14 +1301,14 @@
 
                 showToast(message) {
                     const toast = document.createElement('div');
-                    toast.style.cssText = 'position:fixed; bottom:16px; right:16px; background:#17151C; color:white; padding:12px 24px; border-radius:8px; box-shadow:0 16px 40px rgba(14,13,18,0.12); font-size:14px; animation:fadeInUp 0.18s ease; z-index:999999;';
-                    toast.textContent = message;
+                    toast.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#1E293B; color:white; padding:12px 20px; border-radius:12px; box-shadow:0 16px 40px rgba(15,23,42,0.25); font-size:13px; font-weight:600; animation:fadeUpStagger 0.25s ease; z-index:999999; display:flex; align-items:center; gap:8px; border:1px solid rgba(255,255,255,0.1);';
+                    toast.innerHTML = `<svg style="width:16px;height:16px;color:#16A34A;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>${message}</span>`;
                     document.body.appendChild(toast);
                     setTimeout(() => {
                         toast.style.opacity = '0';
                         toast.style.transition = 'opacity 0.3s ease';
                         setTimeout(() => toast.remove(), 300);
-                    }, 3000);
+                    }, 3200);
                 }
             };
         });

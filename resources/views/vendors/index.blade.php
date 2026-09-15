@@ -1,89 +1,175 @@
 @extends('layouts.app')
 
-@section('title', 'Vendor - Sales Portal')
+@section('title', 'Mitra Principal & Distributor - PT IP Network Solusindo')
+
+@push('styles')
+<style>
+    /* ========================================================
+       IPNET Brand Design System
+       ======================================================== */
+    :root {
+        --ipnet-primary: #8F0A0D;
+        --ipnet-primary-hover: #73080A;
+        --ipnet-card-bg: #FFFFFF;
+        --ipnet-card-border: #E2E8F0;
+        --ipnet-text-main: #1E293B;
+    }
+
+    .ipnet-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 4px 12px rgba(0, 0, 0, 0.015);
+        transition: all 0.2s ease;
+    }
+
+    .btn-ipnet-primary {
+        background-color: #8F0A0D;
+        color: #FFFFFF;
+        transition: all 0.2s ease;
+    }
+
+    .btn-ipnet-primary:hover {
+        background-color: #73080A;
+        box-shadow: 0 4px 12px rgba(143, 10, 13, 0.25);
+    }
+</style>
+@endpush
 
 @section('content')
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans">
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Vendor'])
+        @include('components.topbar', ['title' => 'Mitra Principal & Distributor'])
         
-        <div class="p-4 sm:p-5 lg:p-[26px] animate-fade-in space-y-6" x-data="vendorManager()">
+        <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto animate-fade-in" x-data="vendorManager()">
             
+            {{-- Header Title Bar --}}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-1">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-4.5 bg-[#8F0A0D] rounded-full inline-block"></span>
+                        <h1 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Katalog Mitra Principal &amp; Distributor</h1>
+                    </div>
+                    <p class="text-[12.5px] text-[#64748B] mt-0.5 ml-4">
+                        Direktori kontak prinsipal teknologi, distributor resmi, dan channel manager untuk dukungan perancangan solusi &amp; BoQ.
+                    </p>
+                </div>
+
+                <button @click="openAddModal()" 
+                        class="inline-flex items-center gap-1.5 px-4 py-2 btn-ipnet-primary text-xs font-bold rounded-xl shadow-xs transition-all whitespace-nowrap self-start sm:self-auto">
+                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Tambah Principal</span>
+                </button>
+            </div>
+
             {{-- Flash Messages --}}
             @if(session('success'))
-                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between text-sm shadow-sm">
+                <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between text-xs font-semibold shadow-xs">
                     <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         <span>{{ session('success') }}</span>
                     </div>
                 </div>
             @endif
 
-            {{-- Search & Action Bar --}}
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                <form method="GET" action="{{ route('vendors.index') }}" class="w-full sm:max-w-md relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </div>
-                    <input type="text" 
-                           name="search" 
-                           value="{{ request('search') }}"
-                           placeholder="Search vendor name, department, product category..." 
-                           class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all">
-                </form>
+            {{-- Search Bar Container --}}
+            <div class="ipnet-card p-4 sm:p-5">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <form method="GET" action="{{ route('vendors.index') }}" class="w-full sm:max-w-md relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request('search') }}"
+                               placeholder="Cari nama principal, distributor, atau kategori..." 
+                               class="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] rounded-xl text-xs font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all">
+                    </form>
 
-                <div class="flex items-center justify-between sm:justify-end gap-4">
-                    <div class="text-xs text-gray-400 font-medium whitespace-nowrap">
-                        Total: <span class="text-gray-700 font-bold">{{ $vendors->total() }}</span> Vendor
+                    <div class="text-[12px] text-[#64748B] font-medium whitespace-nowrap self-end sm:self-auto">
+                        Total: <span class="text-[#1E293B] font-extrabold">{{ $vendors->total() }}</span> Mitra Terdaftar
                     </div>
-
-                    <button @click="openAddModal()" 
-                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#C81E2C] hover:brightness-105 active:translate-y-[1px] text-white text-[13px] font-semibold rounded-lg shadow-[0_8px_20px_rgba(200,30,44,0.24)] transition-all whitespace-nowrap">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        <span>Tambah Vendor</span>
-                    </button>
                 </div>
             </div>
 
             {{-- Vendor List Table --}}
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="ipnet-card overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full text-left border-collapse text-xs">
                         <thead>
-                            <tr class="border-b border-gray-100 bg-gray-50/50 text-[11px] font-bold tracking-wider text-gray-500 uppercase">
-                                <th class="py-4 px-6">NAMA VENDOR <span class="text-gray-400">↑</span></th>
-                                <th class="py-4 px-6">DEPARTEMEN</th>
-                                <th class="py-4 px-6">CHANNEL MANAGER / KONTAK</th>
-                                <th class="py-4 px-6 text-right">AKSI</th>
+                            <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[10.5px] font-bold tracking-wider text-[#64748B] uppercase">
+                                <th class="py-3 px-4 sm:px-5">Nama Principal / Distributor</th>
+                                <th class="py-3 px-3.5">Fokus Brand / Kategori</th>
+                                <th class="py-3 px-3.5">Departemen</th>
+                                <th class="py-3 px-3.5">Channel Manager &amp; Kontak</th>
+                                <th class="py-3 px-4 sm:px-5 text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 text-sm">
+                        <tbody class="divide-y divide-[#F1F5F9] font-medium text-[#1E293B]">
                             @forelse($vendors as $vendor)
-                                <tr class="hover:bg-gray-50/60 transition-colors">
-                                    <td class="py-4 px-6 font-bold text-gray-900">
-                                        {{ $vendor->name }}
+                                <tr class="hover:bg-[#F8FAFC] transition-colors">
+                                    {{-- Nama Vendor --}}
+                                    <td class="py-3 px-4 sm:px-5">
+                                        <div class="font-semibold text-[#1E293B] text-[12.5px] leading-snug">
+                                            {{ $vendor->name }}
+                                        </div>
                                     </td>
-                                    <td class="py-4 px-6 text-gray-600 font-medium">
-                                        {{ $vendor->department ?: 'DEPT01' }}
-                                    </td>
-                                    <td class="py-4 px-6 text-gray-600">
-                                        @if($vendor->channel_manager)
-                                            <div class="font-medium text-gray-800">{{ $vendor->channel_manager }}</div>
+
+                                    {{-- Brand / Category Focus --}}
+                                    <td class="py-3 px-3.5 whitespace-nowrap">
+                                        @if($vendor->product_category)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-red-50 text-[#8F0A0D] text-[11px] font-semibold border border-red-100">
+                                                {{ $vendor->product_category }}
+                                            </span>
+                                        @else
+                                            <span class="text-[11px] text-[#94A3B8]">—</span>
                                         @endif
-                                        <div class="text-xs text-gray-400">{{ $vendor->phone ?: ($vendor->email ?: ($vendor->product_category ?: '—')) }}</div>
                                     </td>
-                                    <td class="py-4 px-6 text-right whitespace-nowrap">
+
+                                    {{-- Departemen --}}
+                                    <td class="py-3 px-3.5 text-[#64748B] text-[11.5px] whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-[#F1F5F9] text-[#1E293B] text-[11px] font-medium border border-[#E2E8F0]">
+                                            {{ $vendor->department ?: 'Principal Partner' }}
+                                        </span>
+                                    </td>
+
+                                    {{-- Channel Manager / Kontak --}}
+                                    <td class="py-3 px-3.5">
+                                        @if($vendor->channel_manager)
+                                            <div class="font-semibold text-[#1E293B] text-[12px]">{{ $vendor->channel_manager }}</div>
+                                        @endif
+                                        <div class="text-[11px] text-[#64748B] flex items-center gap-2 mt-0.5 flex-wrap">
+                                            @if($vendor->phone)
+                                                <span class="inline-flex items-center gap-1">
+                                                    <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                                    <span>{{ $vendor->phone }}</span>
+                                                </span>
+                                            @endif
+                                            @if($vendor->email)
+                                                <span class="inline-flex items-center gap-1 text-[#64748B]">
+                                                    <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                                    <span>{{ $vendor->email }}</span>
+                                                </span>
+                                            @endif
+                                            @if(!$vendor->channel_manager && !$vendor->phone && !$vendor->email)
+                                                <span class="text-[11px] text-[#94A3B8]">Belum ada kontak</span>
+                                            @endif
+                                        </div>
+                                    </td>
+
+                                    {{-- Aksi --}}
+                                    <td class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-1.5">
                                             <button @click="showDetails({{ $vendor->id }})" 
-                                                    class="px-3 py-1 bg-white hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-lg border border-gray-200 shadow-sm transition-all">
+                                                    class="px-2.5 py-1 bg-white hover:bg-[#F8FAFC] text-[#1E293B] text-[11px] font-semibold rounded-lg border border-[#CBD5E1] shadow-2xs transition">
                                                 Detail
                                             </button>
                                             <button @click="confirmDelete({{ $vendor->id }}, '{{ addslashes($vendor->name) }}')"
-                                                    class="px-3 py-1 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-xs font-semibold rounded-lg border border-red-200 shadow-sm transition-all">
+                                                    class="px-2.5 py-1 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-semibold rounded-lg border border-red-200 shadow-2xs transition">
                                                 Hapus
                                             </button>
                                         </div>
@@ -91,8 +177,9 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="py-12 text-center text-gray-400 text-sm">
-                                        Belum ada data vendor atau distributor yang ditemukan.
+                                    <td colspan="5" class="py-14 text-center text-[#64748B]">
+                                        <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                        <p class="font-semibold text-gray-600">Belum ada data principal atau distributor</p>
                                     </td>
                                 </tr>
                             @endforelse
@@ -101,73 +188,77 @@
                 </div>
 
                 @if($vendors->hasPages())
-                    <div class="p-4 border-t border-gray-100">
+                    <div class="p-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC]">
                         {{ $vendors->links() }}
                     </div>
                 @endif
             </div>
 
-            {{-- Modal Add/Edit Vendor --}}
             {{-- Modal Add / Edit Vendor --}}
             <template x-teleport="body">
                 <div x-show="isModalOpen" 
                      x-cloak 
                      class="fixed inset-0 z-50 bg-[#0E0D12]/60 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-[0_20px_50px_rgba(14,13,18,0.25)] space-y-5" @click.away="isModalOpen = false">
+                    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4" @click.away="isModalOpen = false">
                         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                            <h3 class="text-lg font-bold text-gray-900" x-text="editMode ? 'Edit Vendor' : 'Add New Vendor'"></h3>
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-[#8F0A0D]">Data Mitra &amp; Principal</span>
+                                <h3 class="text-base font-bold text-[#1E293B]" x-text="editMode ? 'Edit Data Mitra' : 'Tambah Mitra Principal Baru'"></h3>
+                            </div>
                             <button @click="isModalOpen = false" class="text-gray-400 hover:text-gray-600">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
 
-                        <form :action="editMode ? '/vendors/' + form.id : '{{ route('vendors.store') }}'" method="POST" class="space-y-4">
+                        <form :action="editMode ? '/vendors/' + form.id : '{{ route('vendors.store') }}'" method="POST" class="space-y-3.5 text-xs">
                             @csrf
                             <template x-if="editMode">
                                 <input type="hidden" name="_method" value="PUT">
                             </template>
 
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Vendor / Distributor Name *</label>
-                                <input type="text" name="name" x-model="form.name" required placeholder="Contoh: Exclusive Networks" 
-                                       class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                                <label class="block font-bold text-gray-700 uppercase mb-1">Nama Principal / Distributor *</label>
+                                <input type="text" name="name" x-model="form.name" required placeholder="Contoh: Fortinet Indonesia, Exclusive Networks" 
+                                       class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
                             </div>
 
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Department</label>
-                                    <input type="text" name="department" x-model="form.department" placeholder="Contoh: DEPT01, Extreme" 
-                                       class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                                    <label class="block font-bold text-gray-700 uppercase mb-1">Departemen / Divisi</label>
+                                    <input type="text" name="department" x-model="form.department" placeholder="Contoh: Enterprise Sales, Networking" 
+                                           class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Channel Manager / PIC</label>
-                                    <input type="text" name="channel_manager" x-model="form.channel_manager" placeholder="Nama Channel Manager" 
-                                           class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                                    <label class="block font-bold text-gray-700 uppercase mb-1">Channel Manager / PIC</label>
+                                    <input type="text" name="channel_manager" x-model="form.channel_manager" placeholder="Nama kontak PIC" 
+                                           class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Phone / WA</label>
+                                    <label class="block font-bold text-gray-700 uppercase mb-1">Telepon / WhatsApp</label>
                                     <input type="text" name="phone" x-model="form.phone" placeholder="021-xxxx / 0812-xxxx" 
-                                           class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                                           class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Email</label>
-                                    <input type="email" name="email" x-model="form.email" placeholder="sales@distributor.com" 
-                                           class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                                    <label class="block font-bold text-gray-700 uppercase mb-1">Email</label>
+                                    <input type="email" name="email" x-model="form.email" placeholder="kontak@distributor.com" 
+                                           class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
                                 </div>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Product Category / Brand Focus</label>
-                                <input type="text" name="product_category" x-model="form.product_category" placeholder="Contoh: Fortinet, Palo Alto, Cisco" 
-                                       class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                                <label class="block font-bold text-gray-700 uppercase mb-1">Fokus Brand / Kategori Produk</label>
+                                <input type="text" name="product_category" x-model="form.product_category" placeholder="Contoh: Firewall, Switching, Server, SD-WAN" 
+                                       class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
                             </div>
 
                             <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
-                                <button type="button" @click="isModalOpen = false" class="px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition">Batal</button>
-                                <button type="submit" class="px-5 py-2.5 text-[13px] font-semibold text-white bg-[#C81E2C] hover:brightness-105 active:translate-y-[1px] rounded-lg shadow-[0_8px_20px_rgba(200,30,44,0.24)] transition-all">Simpan Vendor</button>
+                                <button type="button" @click="isModalOpen = false" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition">Batal</button>
+                                <button type="submit" class="px-4 py-2 text-xs font-bold text-white btn-ipnet-primary rounded-xl shadow-xs transition">
+                                    Simpan Mitra
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -179,40 +270,47 @@
                 <div x-show="isDetailOpen" 
                      x-cloak 
                      class="fixed inset-0 z-50 bg-[#0E0D12]/60 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-[0_20px_50px_rgba(14,13,18,0.25)] space-y-4" @click.away="isDetailOpen = false">
+                    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4" @click.away="isDetailOpen = false">
                         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                            <h3 class="text-lg font-bold text-gray-900" x-text="detailVendor.name"></h3>
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-[#8F0A0D]">Profil Mitra Principal</span>
+                                <h3 class="text-base font-bold text-[#1E293B]" x-text="detailVendor.name"></h3>
+                            </div>
                             <button @click="isDetailOpen = false" class="text-gray-400 hover:text-gray-600">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
 
-                        <div class="space-y-3 text-sm">
-                            <div class="flex justify-between py-1.5 border-b border-gray-50">
-                                <span class="text-gray-500">Department</span>
-                                <span class="font-semibold text-gray-800" x-text="detailVendor.department || 'DEPT01'"></span>
+                        <div class="space-y-2.5 text-xs">
+                            <div class="flex justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-500">Departemen</span>
+                                <span class="font-semibold text-gray-800" x-text="detailVendor.department || '—'"></span>
                             </div>
-                            <div class="flex justify-between py-1.5 border-b border-gray-50">
+                            <div class="flex justify-between py-2 border-b border-gray-100">
                                 <span class="text-gray-500">Channel Manager</span>
                                 <span class="font-semibold text-gray-800" x-text="detailVendor.channel_manager || '—'"></span>
                             </div>
-                            <div class="flex justify-between py-1.5 border-b border-gray-50">
-                                <span class="text-gray-500">Product / Brand</span>
-                                <span class="font-semibold text-gray-800" x-text="detailVendor.product_category || '—'"></span>
+                            <div class="flex justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-500">Kategori / Brand Fokus</span>
+                                <span class="font-semibold text-[#8F0A0D]" x-text="detailVendor.product_category || '—'"></span>
                             </div>
-                            <div class="flex justify-between py-1.5 border-b border-gray-50">
-                                <span class="text-gray-500">Phone</span>
+                            <div class="flex justify-between py-2 border-b border-gray-100">
+                                <span class="text-gray-500">Telepon / WhatsApp</span>
                                 <span class="font-semibold text-gray-800" x-text="detailVendor.phone || '—'"></span>
                             </div>
-                            <div class="flex justify-between py-1.5 border-b border-gray-50">
+                            <div class="flex justify-between py-2 border-b border-gray-100">
                                 <span class="text-gray-500">Email</span>
                                 <span class="font-semibold text-gray-800" x-text="detailVendor.email || '—'"></span>
                             </div>
                         </div>
 
                         <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
-                            <button @click="editVendor(detailVendor)" class="px-4 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition">Edit</button>
-                            <button @click="isDetailOpen = false" class="px-4 py-2 text-xs font-semibold text-white bg-gray-800 hover:bg-gray-900 rounded-lg transition">Tutup</button>
+                            <button @click="editVendor(detailVendor)" class="px-3.5 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition">
+                                Edit Data
+                            </button>
+                            <button @click="isDetailOpen = false" class="px-4 py-1.5 text-xs font-bold text-white bg-[#1E293B] hover:bg-[#0F172A] rounded-xl transition">
+                                Tutup
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -239,7 +337,7 @@
 
             openAddModal() {
                 this.editMode = false;
-                this.form = { id: null, name: '', department: 'DEPT01', channel_manager: '', phone: '', email: '', product_category: '', notes: '' };
+                this.form = { id: null, name: '', department: '', channel_manager: '', phone: '', email: '', product_category: '', notes: '' };
                 this.isModalOpen = true;
             },
 
