@@ -1857,7 +1857,8 @@
                     return this.engineers.map(function(eng) {
                         var engSchedules = this.schedules.filter(function(s) {
                             var engIds = s.engineer_ids || (s.engineers ? s.engineers.map(function(e){ return e.id; }) : [s.engineer_id]);
-                            return engIds.some(function(id){ return String(id) === String(eng.id); }) && dates.indexOf(s.date.split('T')[0]) !== -1;
+                            var sDateStr = (s.date || '').split('T')[0];
+                            return engIds.some(function(id){ return String(id) === String(eng.id); }) && dates.indexOf(sDateStr) !== -1;
                         });
                         var dayOffCount = engSchedules.filter(function(s){ return s.category === 'Day Off'; }).length;
                         var meetingCount = engSchedules.length - dayOffCount;
@@ -1892,13 +1893,14 @@
                 isEngineerBusyOnDate: function(engineerId, date) {
                     if (!date) return false;
                     return this.schedules.some(function(s) {
-                        return s.engineer_id === engineerId && s.date.split('T')[0] === date && s.id !== this.form.id;
+                        var sDateStr = (s.date || '').split('T')[0];
+                        return s.engineer_id === engineerId && sDateStr === date && s.id !== this.form.id;
                     }.bind(this));
                 },
 
                 getSchedulesForDay: function(date) {
                     return this.filteredSchedules.filter(function(s) {
-                        var scheduleDate = s.date.split('T')[0];
+                        var scheduleDate = (s.date || '').split('T')[0];
                         return scheduleDate === date;
                     }).map(function(s) {
                         return {

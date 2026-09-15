@@ -25,39 +25,44 @@ class ScheduleController extends Controller
         $user     = auth()->user();
         $scopeIds = ScopeHelper::getScopeUserIds($user);
         $hasScheduleUser = Schema::hasTable('schedule_user');
+        $isArchitect = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
+        $isLead = (ScopeHelper::isManagerial($user) || $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO'])) && !$isArchitect;
+        $canManageSchedule = ScopeHelper::canManageSchedules($user) || $isArchitect;
 
-        // Auto-heal / Sinkronkan semua Task ke Jadwal Kerja agar kalender selalu 100% konsisten per tanggal
-        $allTasks = Task::with('engineers')->whereNotNull('deadline')->get();
-        foreach ($allTasks as $matchingTask) {
-            $taskDate = $matchingTask->deadline->format('Y-m-d');
-            $taskTime = $matchingTask->deadline_time 
-                ? substr($matchingTask->deadline_time, 0, 5) 
-                : ($matchingTask->deadline->format('H:i') !== '00:00' ? $matchingTask->deadline->format('H:i') : '09:00');
+        // Auto-heal / Sinkronkan semua Task ke Jadwal Kerja hanya untuk Lead / Field Engineers
+        if (!$isArchitect) {
+            $allTasks = Task::with('engineers')->whereNotNull('deadline')->get();
+            foreach ($allTasks as $matchingTask) {
+                $taskDate = $matchingTask->deadline->format('Y-m-d');
+                $taskTime = $matchingTask->deadline_time 
+                    ? substr($matchingTask->deadline_time, 0, 5) 
+                    : ($matchingTask->deadline->format('H:i') !== '00:00' ? $matchingTask->deadline->format('H:i') : '09:00');
 
-            $sched = Schedule::firstOrCreate(
-                [
-                    'title'      => $matchingTask->title,
-                    'project_id' => $matchingTask->project_id,
-                    'date'       => $taskDate,
-                    'category'   => 'Task',
-                ],
-                [
-                    'engineer_id' => $matchingTask->engineer_id,
-                    'start_time'  => $taskTime . ':00',
-                    'end_time'    => date('H:i:s', strtotime($taskTime . ' +3 hours')),
-                    'location'    => $matchingTask->project ? ($matchingTask->project->location ?? 'On-Site Client') : 'On-Site Client',
-                    'description' => $matchingTask->description ?? ('Pengerjaan task: ' . $matchingTask->title),
-                    'created_by'  => $matchingTask->created_by ?? $user->id,
-                ]
-            );
+                $sched = Schedule::firstOrCreate(
+                    [
+                        'title'      => $matchingTask->title,
+                        'project_id' => $matchingTask->project_id,
+                        'date'       => $taskDate,
+                        'category'   => 'Task',
+                    ],
+                    [
+                        'engineer_id' => $matchingTask->engineer_id,
+                        'start_time'  => $taskTime . ':00',
+                        'end_time'    => date('H:i:s', strtotime($taskTime . ' +3 hours')),
+                        'location'    => $matchingTask->project ? ($matchingTask->project->location ?? 'On-Site Client') : 'On-Site Client',
+                        'description' => $matchingTask->description ?? ('Pengerjaan task: ' . $matchingTask->title),
+                        'created_by'  => $matchingTask->created_by ?? $user->id,
+                    ]
+                );
 
-            if ($hasScheduleUser) {
-                $engIds = $matchingTask->engineers->pluck('id')->toArray();
-                if (empty($engIds) && $matchingTask->engineer_id) {
-                    $engIds = [$matchingTask->engineer_id];
-                }
-                if (!empty($engIds)) {
-                    $sched->engineers()->sync($engIds);
+                if ($hasScheduleUser) {
+                    $engIds = $matchingTask->engineers->pluck('id')->toArray();
+                    if (empty($engIds) && $matchingTask->engineer_id) {
+                        $engIds = [$matchingTask->engineer_id];
+                    }
+                    if (!empty($engIds)) {
+                        $sched->engineers()->sync($engIds);
+                    }
                 }
             }
         }
@@ -98,10 +103,6 @@ class ScheduleController extends Controller
         if ($hasScheduleUser) {
             $withRelations[] = 'engineers';
         }
-
-        $isArchitect = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
-        $isLead = (ScopeHelper::isManagerial($user) || $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO'])) && !$isArchitect;
-        $canManageSchedule = ScopeHelper::canManageSchedules($user) || $isArchitect;
 
         $schedulesQuery = Schedule::with($withRelations);
         if ($isArchitect) {
