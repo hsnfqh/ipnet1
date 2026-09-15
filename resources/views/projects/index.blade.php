@@ -44,70 +44,9 @@
         <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto">
             
             <!-- ========================================================== -->
-            <!-- 1. STATS METRIC CARDS (IPNET CARD STYLE)                   -->
+            <!-- SECTION HEADER & FILTER CONTROLS                           -->
             <!-- ========================================================== -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 anim-fade-up anim-delay-1">
-                {{-- Card 1: Total Proyek --}}
-                <div class="ipnet-card p-5 flex items-center justify-between">
-                    <div>
-                        <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Total Proyek</p>
-                        <h3 class="text-[22px] font-extrabold text-[#1E293B] mt-1" x-text="projects.length">0</h3>
-                        <p class="text-[11.5px] text-[#94A3B8] mt-0.5">Portofolio aktif & selesai</p>
-                    </div>
-                    <div class="w-11 h-11 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#8F0A0D] shadow-xs">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                        </svg>
-                    </div>
-                </div>
-
-                {{-- Card 2: Proyek Berjalan --}}
-                <div class="ipnet-card p-5 flex items-center justify-between">
-                    <div>
-                        <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Sedang Berjalan</p>
-                        <h3 class="text-[22px] font-extrabold text-[#D97706] mt-1" x-text="projects.filter(p => p.status === 'On Progress').length">0</h3>
-                        <p class="text-[11.5px] text-[#94A3B8] mt-0.5">Status On Progress</p>
-                    </div>
-                    <div class="w-11 h-11 rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] flex items-center justify-center text-[#D97706] shadow-xs">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                </div>
-
-                {{-- Card 3: Proyek Selesai --}}
-                <div class="ipnet-card p-5 flex items-center justify-between">
-                    <div>
-                        <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Proyek Selesai</p>
-                        <h3 class="text-[22px] font-extrabold text-[#16A34A] mt-1" x-text="projects.filter(p => p.status === 'Completed').length">0</h3>
-                        <p class="text-[11.5px] text-[#94A3B8] mt-0.5">Berhasil diserahterimakan</p>
-                    </div>
-                    <div class="w-11 h-11 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-center justify-center text-[#16A34A] shadow-xs">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                </div>
-
-                {{-- Card 4: Planning & Persiapan --}}
-                <div class="ipnet-card p-5 flex items-center justify-between">
-                    <div>
-                        <p class="text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Planning / Persiapan</p>
-                        <h3 class="text-[22px] font-extrabold text-[#2563EB] mt-1" x-text="projects.filter(p => p.status === 'Planning').length">0</h3>
-                        <p class="text-[11.5px] text-[#94A3B8] mt-0.5">Tahap perencanaan awal</p>
-                    </div>
-                    <div class="w-11 h-11 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#2563EB] shadow-xs">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ========================================================== -->
-            <!-- 2. SECTION HEADER & FILTER CONTROLS                        -->
-            <!-- ========================================================== -->
-            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-2">
+            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
