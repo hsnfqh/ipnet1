@@ -20,7 +20,7 @@ class PresalesProposalController extends Controller
         ]);
 
         $search     = $request->input('search');
-        $tab        = $request->input('tab', 'all'); // all, pending, submitted, won
+        $tab        = $request->input('tab', 'pending'); // pending, submitted, won, lost
         $divisionId = $request->input('division_id');
 
         $query = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);

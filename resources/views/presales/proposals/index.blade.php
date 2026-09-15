@@ -113,8 +113,7 @@
 
                         <select name="tab" onchange="this.form.submit()" 
                                 class="w-full sm:w-auto px-3 py-2 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer transition-all">
-                            <option value="all" {{ request('tab', 'all') == 'all' ? 'selected' : '' }}>Semua Status ({{ $counts['all'] }})</option>
-                            <option value="pending" {{ request('tab') == 'pending' ? 'selected' : '' }}>Perlu BoQ ({{ $counts['pending'] }})</option>
+                            <option value="pending" {{ request('tab', 'pending') == 'pending' ? 'selected' : '' }}>Perlu BoQ ({{ $counts['pending'] }})</option>
                             <option value="submitted" {{ request('tab') == 'submitted' ? 'selected' : '' }}>Proposal Siap ({{ $counts['submitted'] }})</option>
                             <option value="won" {{ request('tab') == 'won' ? 'selected' : '' }}>Tender Menang ({{ $counts['won'] }})</option>
                             <option value="lost" {{ request('tab') == 'lost' ? 'selected' : '' }}>Gagal / Batal ({{ $counts['lost'] }})</option>
