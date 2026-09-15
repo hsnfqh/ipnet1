@@ -115,57 +115,57 @@
                     <table class="w-full min-w-[900px] border-collapse text-[13px] text-left">
                         <thead>
                             <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                                <th class="py-3.5 px-4 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Nama Project & Tipe</th>
-                                <th class="py-3.5 px-4 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Client & Sales</th>
-                                <th class="py-3.5 px-4 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Lokasi</th>
-                                <th class="py-3.5 px-4 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Durasi & Deadline</th>
-                                <th class="py-3.5 px-4 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Progress</th>
-                                <th class="py-3.5 px-4 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider">Status</th>
-                                <th class="py-3.5 px-4 text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Nama Project & Tipe</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Client & Sales</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Lokasi</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Durasi & Deadline</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Progress</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Status</th>
+                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#F1F5F9]">
                             <template x-for="project in paginatedProjects" :key="project.id">
                                 <tr class="hover:bg-[#F8FAFC]/80 transition-colors duration-150">
                                     {{-- Nama Project & Tipe --}}
-                                    <td class="py-3.5 px-4">
-                                        <div class="font-bold text-[#1E293B] text-[13.5px] leading-snug" x-text="project.name"></div>
-                                        <div class="flex items-center gap-1.5 mt-1">
+                                    <td class="py-3 px-4">
+                                        <div class="font-medium text-[#1E293B] text-[13px] leading-snug" x-text="project.name"></div>
+                                        <div class="flex items-center gap-1.5 mt-0.5">
                                             <template x-if="project.visit_schedule && project.visit_schedule !== 'None' && project.visit_schedule !== '-'">
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]" title="Proyek dengan jadwal visit berkala">
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]" title="Proyek dengan jadwal visit berkala">
                                                     <svg class="w-3 h-3 text-[#4F46E5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                                     <span x-text="'Visit: ' + project.visit_schedule"></span>
                                                 </span>
                                             </template>
                                             <template x-if="!project.visit_schedule || project.visit_schedule === 'None' || project.visit_schedule === '-'">
-                                                <span class="inline-block text-[11px] font-medium text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded border border-[#E2E8F0]" x-text="project.project_type || 'One-Time Project'"></span>
+                                                <span class="inline-block text-[10.5px] font-normal text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded border border-[#E2E8F0]" x-text="project.project_type || 'One-Time Project'"></span>
                                             </template>
                                         </div>
                                     </td>
 
                                     {{-- Client & Sales --}}
-                                    <td class="py-3.5 px-4">
-                                        <div class="font-bold text-[#1E293B] text-[13px]" x-text="project.client"></div>
+                                    <td class="py-3 px-4">
+                                        <div class="font-medium text-[#334155] text-[13px]" x-text="project.client"></div>
                                         <div class="text-[11.5px] text-[#64748B] flex items-center gap-1.5 mt-0.5">
-                                            <span class="text-[#94A3B8] font-medium">Sales:</span>
-                                            <span class="font-bold text-[#334155]" x-text="project.sales_name || '-'"></span>
+                                            <span class="text-[#94A3B8]">Sales:</span>
+                                            <span class="text-[#475569]" x-text="project.sales_name || '-'"></span>
                                         </div>
                                     </td>
 
                                     {{-- Lokasi --}}
-                                    <td class="py-3.5 px-4 text-[#334155] text-[12.5px]" x-text="project.location"></td>
+                                    <td class="py-3 px-4 text-[#475569] text-[12.5px]" x-text="project.location"></td>
 
                                     {{-- Durasi & Deadline --}}
-                                    <td class="py-3.5 px-4 whitespace-nowrap">
-                                        <div class="font-mono text-[12px] font-bold text-[#1E293B]" x-text="formatDeadline(project.deadline)"></div>
+                                    <td class="py-3 px-4 whitespace-nowrap">
+                                        <div class="font-mono text-[12px] text-[#334155]" x-text="formatDeadline(project.deadline)"></div>
                                         <div class="text-[11px] text-[#64748B] mt-0.5 flex items-center gap-1">
                                             <span>Durasi:</span>
-                                            <span class="font-extrabold text-[#8F0A0D]" x-text="getDurationText(project)"></span>
+                                            <span class="font-medium text-[#8F0A0D]" x-text="getDurationText(project)"></span>
                                         </div>
                                     </td>
 
                                     {{-- Progress --}}
-                                    <td class="py-3.5 px-4 whitespace-nowrap">
+                                    <td class="py-3 px-4 whitespace-nowrap">
                                         <div class="w-28">
                                             <div class="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-full h-2 overflow-hidden mb-1">
                                                 <div class="h-full rounded-full transition-all duration-300"
@@ -173,14 +173,14 @@
                                                      :style="{ width: getProjectProgress(project) + '%' }"></div>
                                             </div>
                                             <div class="flex items-center justify-between text-[10.5px]">
-                                                <span class="font-extrabold text-[#1E293B]" x-text="getProjectProgress(project) + '%'"></span>
+                                                <span class="font-medium text-[#1E293B]" x-text="getProjectProgress(project) + '%'"></span>
                                                 <span class="text-[#94A3B8]" x-text="project.status === 'Completed' ? 'Selesai' : 'Progres'"></span>
                                             </div>
                                         </div>
                                     </td>
 
                                     {{-- Status --}}
-                                    <td class="py-3.5 px-4 whitespace-nowrap">
+                                    <td class="py-3 px-4 whitespace-nowrap">
                                         <span x-html="getStatusBadge(project.status)"></span>
                                     </td>
 
@@ -772,8 +772,8 @@
                     'Completed': { bg: '#F0FDF4', fg: '#16A34A', border: '#BBF7D0', dot: '#16A34A' }
                 };
                 const s = styles[status] || styles['Planning'];
-                return `<span style="background: ${s.bg}; color: ${s.fg}; border: 1px solid ${s.border}; font-size: 11.5px; font-weight: 700; padding: 3.5px 9px 3.5px 7px; border-radius: 9999px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;">
-                            <span style="width: 6px; height: 6px; border-radius: 50%; background: ${s.dot}; flex-shrink: 0;"></span>
+                return `<span style="background: ${s.bg}; color: ${s.fg}; border: 1px solid ${s.border}; font-size: 11px; font-weight: 600; padding: 2.5px 8px 2.5px 6px; border-radius: 9999px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4.5px;">
+                            <span style="width: 5.5px; height: 5.5px; border-radius: 50%; background: ${s.dot}; flex-shrink: 0;"></span>
                             ${status}
                         </span>`;
             },
