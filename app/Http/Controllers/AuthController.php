@@ -56,14 +56,44 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        // Sales & BusDev -> Peluang & Kontrak (Acquire)
-        if ($user->hasAnyRole(['Sales', 'BusDev'])) {
-            return route('acquire.index');
+        // Admin Support / Admin Logistik -> Dashboard Admin Support
+        if ($user->hasAnyRole(['Admin Support', 'Admin Logistik', 'Admin'])) {
+            return route('admin_support.dashboard');
+        }
+
+        // CRO (Customer Relation Officer) -> Dashboard CRO
+        if ($user->hasAnyRole(['CRO', 'Customer Relation Officer', 'Customer Relationship Officer'])) {
+            return route('cro.dashboard');
+        }
+
+        // BDM & BusDev -> Dashboard BDM
+        if ($user->hasAnyRole(['BDM', 'BusDev', 'Business Development'])) {
+            return route('dashboard.bdm');
+        }
+
+        // Solution Architect -> Dashboard Solution Architect
+        if ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA'])) {
+            return route('dashboard.architect');
+        }
+
+        // Presales -> Dashboard Presales
+        if ($user->hasRole('Presales')) {
+            return route('dashboard.presales');
+        }
+
+        // Sales -> Dashboard Sales
+        if ($user->hasRole('Sales')) {
+            return route('dashboard.sales');
         }
 
         // PMO & Project Manager -> Dashboard PMO
         if ($user->hasAnyRole(['PMO', 'Project Manager'])) {
             return route('pmo.dashboard');
+        }
+
+        // Maintenance & Managed Service -> Dashboard Managed Service (Operate)
+        if ($user->hasAnyRole(['Lead Maintenance', 'Maintenance']) || ($user->division && str_contains(strtolower($user->division->name), 'maintenance'))) {
+            return route('ms.dashboard');
         }
 
         // Level manajerial (Direktur, HD, Group Leader, Lead Divisi, Team Leader, Lead Engineer) -> dashboard manajerial

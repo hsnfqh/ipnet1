@@ -1,58 +1,368 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard - Lead Engineer')
+@section('title', 'Dashboard - PT IP Network Solusindo')
+
+@push('styles')
+<style>
+    /* ========================================================
+       IPNET Official Brand Design System (ipnetsolusindo.com)
+       ======================================================== */
+    :root {
+        --ipnet-primary: #8F0A0D;
+        --ipnet-primary-hover: #73080A;
+        --ipnet-card-bg: #FFFFFF;
+        --ipnet-card-border: #E2E8F0;
+        --ipnet-text-main: #1E293B;
+    }
+
+    .ipnet-hero-banner {
+        background: linear-gradient(125deg, #B81525 0%, #9E0E1D 40%, #830B17 75%, #63050F 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ipnet-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .ipnet-card-blush {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .ipnet-card-blush:hover, .ipnet-card:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .ipnet-metric-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        padding: 16px 18px;
+        position: relative;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        transition: all 0.2s ease;
+    }
+
+    .ipnet-metric-card:hover {
+        transform: translateY(-2px);
+        border-color: #CBD5E1;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .ipnet-badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #8F0A0D;
+        display: inline-block;
+        margin-right: 8px;
+    }
+
+    .btn-ipnet-primary {
+        background-color: #8F0A0D;
+        color: #FFFFFF;
+        transition: all 0.2s ease;
+    }
+
+    .btn-ipnet-primary:hover {
+        background-color: #73080A;
+        box-shadow: 0 6px 16px rgba(143, 10, 13, 0.3);
+        transform: translateY(-1px);
+    }
+
+    /* ========================================================
+       Smooth Fluid Entrance Animations
+       ======================================================== */
+    @keyframes heroReveal {
+        0% {
+            opacity: 0;
+            transform: translateY(22px) scale(0.985);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes fadeUpStagger {
+        0% {
+            opacity: 0;
+            transform: translateY(18px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .anim-hero-reveal {
+        animation: heroReveal 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .anim-fade-up {
+        animation: fadeUpStagger 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .anim-delay-1 { animation-delay: 0.08s !important; }
+    .anim-delay-2 { animation-delay: 0.14s !important; }
+    .anim-delay-3 { animation-delay: 0.20s !important; }
+    .anim-delay-4 { animation-delay: 0.26s !important; }
+    .anim-delay-5 { animation-delay: 0.32s !important; }
+    .anim-delay-6 { animation-delay: 0.38s !important; }
+    .anim-delay-7 { animation-delay: 0.44s !important; }
+    .anim-delay-8 { animation-delay: 0.52s !important; }
+</style>
+@endpush
 
 @section('content')
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans">
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Dashboard'])
         
-        <div class="p-4 sm:p-5 lg:p-[26px] animate-fade-in">
-            <!-- Metric Cards -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3.5 mb-4 sm:mb-5">
-                <x-metric-card label="Total Project" value="{{ $projectsCount }}" icon="FolderKanban" :accent="true" href="{{ route('projects.index') }}">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                </x-metric-card>
-                
-                <x-metric-card label="Total Task" value="{{ $tasksCount }}" icon="ListChecks" href="{{ route('tasks.index') }}">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                </x-metric-card>
-                
-                <x-metric-card label="Task Assigned" value="{{ $tasksAssigned }}" icon="Circle" href="{{ route('tasks.index') }}">
-                    <circle cx="12" cy="12" r="10"/>
-                </x-metric-card>
-                
-                <x-metric-card label="Task In Progress" value="{{ $tasksInProgress }}" icon="Clock" href="{{ route('tasks.index') }}">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </x-metric-card>
-                
-                <x-metric-card label="Task Completed" value="{{ $tasksCompleted }}" icon="CheckCircle2" href="{{ route('tasks.index') }}">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </x-metric-card>
-                
-                <x-metric-card label="Deadline Terdekat" value="{{ $upcomingDeadline ? $upcomingDeadline->deadline->format('d M') : '-' }}" icon="AlertTriangle" :accent="true" href="{{ route('tasks.index') }}">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </x-metric-card>
-            </div>
+        <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
+            
+            {{-- ======================================================== --}}
+            {{-- 1. EXECUTIVE HERO BANNER (IPNET OFFICIAL BRAND PATTERN)   --}}
+            {{-- ======================================================== --}}
+            <div class="ipnet-hero-banner rounded-[24px] p-6 sm:p-8 text-white shadow-xl shadow-red-950/20 relative anim-hero-reveal">
+                {{-- Layered Geometric Faceted Red Planes (Matching Official Website Reference) --}}
+                <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
+                    <svg class="w-full h-full object-cover" viewBox="0 0 1440 400" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="redGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#C61828" />
+                                <stop offset="100%" stop-color="#9E0E1D" />
+                            </linearGradient>
+                            <linearGradient id="redGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#B01423" />
+                                <stop offset="100%" stop-color="#7A0813" />
+                            </linearGradient>
+                            <linearGradient id="redGrad3" x1="0%" y1="100%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#940E1B" />
+                                <stop offset="100%" stop-color="#5A040C" />
+                            </linearGradient>
+                            <linearGradient id="redGradHighlight" x1="0%" y1="0%" x2="100%" y2="50%">
+                                <stop offset="0%" stop-color="#FFA8B2" stop-opacity="0.22" />
+                                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+                            </linearGradient>
+                            <filter id="facetDropShadow" x="-10%" y="-10%" width="130%" height="130%">
+                                <feDropShadow dx="-10" dy="14" stdDeviation="18" flood-color="#3A0207" flood-opacity="0.45" />
+                            </filter>
+                        </defs>
 
-            <!-- Load Pekerjaan Engineer / Personil Lapangan -->
-            <div class="wms-card p-4 sm:p-5 mb-4 sm:mb-5">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                    <div>
-                        <h3 class="font-display text-[15px] font-semibold text-wms-ink-900">
-                            Load Pekerjaan Personil
-                        </h3>
-                        <p class="text-[11px] text-wms-ink-500 mt-0.5">
-                            Pantau kapasitas & task aktif personil untuk kemudahan delegasi tugas
+                        <!-- Base Background -->
+                        <rect width="1440" height="400" fill="url(#redGrad1)" />
+
+                        <!-- Top-Left Large Diagonal Angled Plane -->
+                        <polygon points="0,0 650,0 280,400 0,400" fill="url(#redGrad1)" />
+
+                        <!-- Intersecting Broad Diagonal Facet Strip -->
+                        <polygon points="220,0 850,0 1300,400 600,400" fill="url(#redGrad2)" filter="url(#facetDropShadow)" />
+
+                        <!-- Crossing Foreground Diagonal Bright Red Plane -->
+                        <polygon points="0,0 520,0 1080,400 480,400" fill="url(#redGrad1)" opacity="0.9" filter="url(#facetDropShadow)" />
+
+                        <!-- Right Edge Deeper Contrast Facet -->
+                        <polygon points="780,0 1440,0 1440,400 1100,400" fill="url(#redGrad3)" filter="url(#facetDropShadow)" />
+
+                        <!-- Soft Angular Ambient Highlight Overlays -->
+                        <polygon points="0,0 680,0 1120,400 380,400" fill="url(#redGradHighlight)" />
+                    </svg>
+                </div>
+
+                <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                    <div class="max-w-2xl">
+                        {{-- Tag Badge from Official Website (Pure White Dot) --}}
+                        <div class="inline-flex items-center mb-3 px-3.5 py-1.5 text-[11.5px] font-bold text-white bg-white/15 backdrop-blur-md rounded-full border border-white/20 tracking-wider uppercase shadow-xs">
+                            <span class="w-2 h-2 mr-2 bg-white rounded-full inline-block"></span>
+                            PT IP NETWORK SOLUSINDO &bull; DASHBOARD
+                        </div>
+
+                        <h1 class="text-[22px] sm:text-[28px] lg:text-[32px] font-extrabold text-white tracking-tight leading-tight">
+                            Pusat Kendali Operasional &<br class="hidden sm:inline"> Penugasan Lapangan
+                        </h1>
+                        <p class="mt-2 text-[13px] sm:text-[14px] text-white/80 leading-relaxed max-w-xl">
+                            Pemantauan kapasitas kerja teknisi, progres instalasi proyek jaringan, dan jadwal penugasan lapangan secara terpadu.
                         </p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
+
+                    {{-- Quick Action / Live Status Cards --}}
+                    <div class="flex flex-wrap items-center gap-3 shrink-0">
+                        <a href="{{ route('tasks.index') }}" class="px-4 py-2.5 rounded-xl bg-white text-[#8F0A0D] font-bold text-[13px] hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-md flex items-center gap-2">
+                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Delegasi Tugas Baru</span>
+                        </a>
+                        <a href="{{ route('schedules.index') }}" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 hover:scale-[1.02] border border-white/25 text-white font-bold text-[13px] transition-all flex items-center gap-2 backdrop-blur-sm">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Jadwal Kerja Lapangan</span>
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Live Quick Stats Strip --}}
+                <div class="relative z-10 mt-6 pt-5 border-t border-white/15 grid grid-cols-2 sm:grid-cols-4 gap-4 text-white/90">
+                    <div>
+                        <span class="text-[11.5px] text-white/70 block uppercase tracking-wider font-semibold">Total Portofolio</span>
+                        <span class="text-[18px] sm:text-[20px] font-extrabold text-white">{{ $projectsCount }} Proyek</span>
+                    </div>
+                    <div>
+                        <span class="text-[11.5px] text-white/70 block uppercase tracking-wider font-semibold">Tugas Selesai</span>
+                        <span class="text-[18px] sm:text-[20px] font-extrabold text-white">{{ $tasksCompleted }} Selesai</span>
+                    </div>
+                    <div>
+                        <span class="text-[11.5px] text-white/70 block uppercase tracking-wider font-semibold">Tugas Berjalan</span>
+                        <span class="text-[18px] sm:text-[20px] font-extrabold text-white">{{ $tasksInProgress }} In Progress</span>
+                    </div>
+                    <div>
+                        <span class="text-[11.5px] text-white/70 block uppercase tracking-wider font-semibold">Presensi Masuk</span>
+                        <span class="text-[18px] sm:text-[20px] font-extrabold text-white">{{ $clockInCount }} Personil Hadir</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ======================================================== --}}
+            {{-- 2. METRIC SUMMARY CARDS (IPNET BLUSH ACCENTS)             --}}
+            {{-- ======================================================== --}}
+            <div class="anim-fade-up anim-delay-1">
+                <div class="flex items-center justify-between mb-3.5">
+                    <div>
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> RINGKASAN OPERASIONAL
+                        </p>
+                        <h2 class="text-[18px] font-bold text-[#292929] tracking-tight">Status & Distribusi Penugasan</h2>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+                    
+                    {{-- Metric 1: Total Proyek --}}
+                    <a href="{{ route('projects.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-1">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Total Proyek</span>
+                            <div class="w-7 h-7 rounded-lg bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center group-hover:bg-[#8F0A0D] group-hover:text-white transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-[22px] font-extrabold text-[#292929] tracking-tight">{{ $projectsCount }}</div>
+                        <p class="text-[11px] text-[#75727C] mt-0.5">Portofolio aktif</p>
+                    </a>
+
+                    {{-- Metric 2: Total Tugas --}}
+                    <a href="{{ route('tasks.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-2">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Total Tugas</span>
+                            <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-[22px] font-extrabold text-[#292929] tracking-tight">{{ $tasksCount }}</div>
+                        <p class="text-[11px] text-[#75727C] mt-0.5">Seluruh kegiatan</p>
+                    </a>
+
+                    {{-- Metric 3: Ditugaskan --}}
+                    <a href="{{ route('tasks.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Ditugaskan</span>
+                            <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <circle cx="12" cy="12" r="9"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-[22px] font-extrabold text-[#292929] tracking-tight">{{ $tasksAssigned }}</div>
+                        <p class="text-[11px] text-[#75727C] mt-0.5">Menunggu respon</p>
+                    </a>
+
+                    {{-- Metric 4: Dalam Proses --}}
+                    <a href="{{ route('tasks.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Dalam Proses</span>
+                            <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-[22px] font-extrabold text-[#292929] tracking-tight">{{ $tasksInProgress }}</div>
+                        <p class="text-[11px] text-amber-600 font-semibold mt-0.5">Sedang berjalan</p>
+                    </a>
+
+                    {{-- Metric 5: Selesai --}}
+                    <a href="{{ route('tasks.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Selesai</span>
+                            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-[22px] font-extrabold text-emerald-600 tracking-tight">{{ $tasksCompleted }}</div>
+                        <p class="text-[11px] text-[#75727C] mt-0.5">Tuntas diverifikasi</p>
+                    </a>
+
+                    {{-- Metric 6: Tenggat Waktu --}}
+                    <a href="{{ route('tasks.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Tenggat Waktu</span>
+                            <div class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-[20px] font-extrabold text-[#8F0A0D] tracking-tight truncate">
+                            {{ $upcomingDeadline ? $upcomingDeadline->deadline->format('d M') : '-' }}
+                        </div>
+                        <p class="text-[11px] text-[#75727C] mt-0.5 truncate">
+                            {{ $overdueTasksCount > 0 ? $overdueTasksCount . ' tugas terlewat' : 'Jadwal terdekat' }}
+                        </p>
+                    </a>
+
+                </div>
+            </div>
+
+            {{-- ======================================================== --}}
+            {{-- 3. WORKLOAD LOAD CHART PERSONIL LAPANGAN                 --}}
+            {{-- ======================================================== --}}
+            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-3">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5 pb-4 border-b border-[#E2E8F0]">
+                    <div>
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> MANAJEMEN PERSONIL
+                        </p>
+                        <h3 class="text-[18px] font-bold text-[#292929] tracking-tight">
+                            Beban & Kapasitas Penugasan Personil
+                        </h3>
+                        <p class="text-[12.5px] text-[#75727C] mt-0.5">
+                            Pantau perbandingan tugas aktif dan tugas selesai untuk keseimbangan distribusi tim
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5">
                         @if($canFilterTeams)
                         <div class="relative">
                             <select id="engTeamFilter" onchange="filterEngineerTeam(this.value)" 
-                                    class="text-[11.5px] font-semibold px-3 py-1.5 rounded-lg border border-wms-line bg-white text-wms-ink-700 outline-none hover:border-[#C81E2C] transition cursor-pointer shadow-sm">
+                                    class="text-[12px] font-semibold px-3 py-2 rounded-xl border border-[#CBD5E1] bg-white text-[#1E293B] outline-none hover:border-[#8F0A0D] transition cursor-pointer shadow-xs">
                                 <option value="Maintenance" {{ $defaultTeamFilter === 'Maintenance' ? 'selected' : '' }}>Tim Maintenance & Helpdesk</option>
                                 <option value="All" {{ $defaultTeamFilter === 'All' ? 'selected' : '' }}>Semua Tim (Lintas Divisi)</option>
                                 <option value="Network" {{ $defaultTeamFilter === 'Network' ? 'selected' : '' }}>Divisi Network</option>
@@ -60,63 +370,87 @@
                             </select>
                         </div>
                         @endif
-                        <div class="flex gap-1 bg-wms-paper p-0.5 rounded-lg border border-wms-line">
+
+                        {{-- Period Switcher --}}
+                        <div class="flex gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0]">
                             <button onclick="setEngineerPeriod('week')" 
-                                    class="text-[11px] font-semibold px-2.5 py-1 rounded-md transition cursor-pointer" 
-                                    id="engPeriodWeek"
-                                    style="background:transparent; color:#75727C;">
+                                     class="text-[11.5px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer" 
+                                     id="engPeriodWeek"
+                                     style="background:transparent; color:#64748B;">
                                 Minggu Ini
                             </button>
                             <button onclick="setEngineerPeriod('month')" 
-                                    class="text-[11px] font-semibold px-2.5 py-1 rounded-md transition cursor-pointer" 
-                                    id="engPeriodMonth"
-                                    style="background:#C81E2C; color:#FFFFFF;">
+                                     class="text-[11.5px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer shadow-xs" 
+                                     id="engPeriodMonth"
+                                     style="background:linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%); color:#FFFFFF;">
                                 Bulan Ini
                             </button>
                         </div>
                     </div>
                 </div>
+
                 <div class="w-full overflow-x-auto">
-                    <div style="height: 260px; min-width: 320px;">
+                    <div style="height: 270px; min-width: 340px;">
                         <canvas id="engineerLoadChart"></canvas>
                     </div>
                 </div>
-                <div class="flex flex-wrap justify-center gap-4 sm:gap-6 mt-3 text-[11px] text-wms-ink-500">
-                    <span class="flex items-center gap-1.5">
-                        <span style="width:10px; height:10px; border-radius:3px; background:#C81E2C;"></span>
-                        Task / Kegiatan Aktif
+
+                <div class="flex flex-wrap justify-center items-center gap-6 mt-4 pt-3 border-t border-[#F1F5F9] text-[12px] text-[#64748B]">
+                    <span class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded-sm" style="background: linear-gradient(135deg, #D31A2C 0%, #8C0B17 100%);"></span>
+                        <span class="font-semibold text-[#1E293B]">Tugas & Kegiatan Aktif</span>
                     </span>
-                    <span class="flex items-center gap-1.5">
-                        <span style="width:10px; height:10px; border-radius:3px; background:#10B981;"></span>
-                        Task Selesai
+                    <span class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded-sm" style="background: linear-gradient(135deg, #34D399 0%, #059669 100%);"></span>
+                        <span class="font-semibold text-[#1E293B]">Tugas Selesai</span>
                     </span>
                 </div>
             </div>
 
-            <!-- Charts -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 sm:mb-5">
-                <!-- Project Progress Chart -->
-                <div class="lg:col-span-2 wms-card p-4 sm:p-5">
-                    <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
-                        <h3 class="font-display text-[15px] font-semibold text-wms-ink-900">Progress Project Berjalan (5 Terbaru)</h3>
-                        <a href="{{ route('projects.index') }}" class="text-wms-red-600 text-[12.5px] font-semibold hover:underline">Lihat semua</a>
-                    </div>
-                    <div class="w-full overflow-x-auto">
-                        <div style="height: 220px; min-width: 280px;">
-                            <canvas id="projectProgressChart"></canvas>
+            {{-- ======================================================== --}}
+            {{-- 4. CHARTS: PROJECT PROGRESS & STATUS BREAKDOWN           --}}
+            {{-- ======================================================== --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 anim-fade-up anim-delay-4">
+                
+                {{-- Project Progress Chart --}}
+                <div class="lg:col-span-2 ipnet-card p-5 sm:p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex flex-wrap justify-between items-center gap-2 mb-4 pb-3 border-b border-[#E2E8F0]">
+                            <div>
+                                <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                                    <span class="ipnet-badge-dot"></span> PROYEK AKTIF
+                                </p>
+                                <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Progres Pelaksanaan Proyek (5 Terbaru)</h3>
+                            </div>
+                            <a href="{{ route('projects.index') }}" class="text-[#8F0A0D] text-[12.5px] font-bold hover:underline inline-flex items-center gap-1">
+                                <span>Lihat Semua</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </a>
+                        </div>
+                        <div class="w-full overflow-x-auto">
+                            <div style="height: 230px; min-width: 280px;">
+                                <canvas id="projectProgressChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Task Status Pie Chart -->
-                <div class="wms-card p-4 sm:p-5">
-                    <h3 class="font-display text-[15px] font-semibold text-wms-ink-900 mb-4">Task Berdasarkan Status</h3>
-                    <div style="height: 200px;">
-                        <canvas id="taskStatusChart"></canvas>
+                {{-- Task Status Doughnut Chart --}}
+                <div class="ipnet-card p-5 sm:p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="mb-4 pb-3 border-b border-[#E2E8F0]">
+                            <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                                <span class="ipnet-badge-dot"></span> DISTRIBUSI
+                            </p>
+                            <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Distribusi Status Tugas</h3>
+                        </div>
+                        <div style="height: 190px;">
+                            <canvas id="taskStatusChart"></canvas>
+                        </div>
                     </div>
-                    <div class="flex flex-wrap gap-2.5 justify-center mt-3">
+                    <div class="flex flex-wrap gap-2.5 justify-center mt-3 pt-3 border-t border-[#F1F5F9]">
                         @foreach($statusData as $data)
-                        <span class="text-[11.5px] flex items-center gap-1.5 text-wms-ink-500">
+                        <span class="text-[11.5px] font-medium flex items-center gap-1.5 text-[#64748B]">
                             <span style="width: 8px; height: 8px; border-radius: 2px; background: {{ $data['color'] }};"></span>
                             {{ $data['name'] }}
                         </span>
@@ -125,119 +459,127 @@
                 </div>
             </div>
 
-            <!-- Recent Projects, Tasks & Schedules -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <!-- Recent Projects -->
-                <div class="wms-card overflow-hidden flex flex-col">
-                    <div class="flex justify-between items-center gap-2 p-4 pb-3 border-b border-wms-line2">
-                        <h3 class="font-display text-[15px] font-semibold text-wms-ink-900">Project Terbaru</h3>
-                        <a href="{{ route('projects.index') }}" class="text-wms-red-600 text-[12px] font-semibold hover:underline">Lihat semua</a>
-                    </div>
-                    <div class="p-1 flex-1 flex flex-col justify-between">
-                        <div>
-                            @forelse($recentProjects as $project)
-                            <div class="flex items-center justify-between gap-3 p-3 border-t border-wms-line2 first:border-t-0 hover:bg-slate-50/60 transition-colors">
-                                <div class="min-w-0 flex-1">
-                                    <div class="text-[13px] font-semibold text-wms-ink-900 truncate" title="{{ $project->name }}">{{ $project->name }}</div>
-                                    <div class="text-[11.5px] text-wms-ink-500 truncate mt-0.5" title="{{ $project->client }}">{{ $project->client }}</div>
-                                </div>
-                                <div class="shrink-0">
-                                    <x-status-badge status="{{ $project->status }}" />
-                                </div>
-                            </div>
-                            @empty
-                            <div class="text-center py-8 text-wms-ink-500">
-                                <p class="text-[13px]">Belum ada project</p>
-                            </div>
-                            @endforelse
+            {{-- ======================================================== --}}
+            {{-- 5. RECENT ACTIVITY: PROJECTS, TASKS & SCHEDULES           --}}
+            {{-- ======================================================== --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 anim-fade-up anim-delay-5">
+                
+                {{-- Recent Projects --}}
+                <div class="ipnet-card overflow-hidden flex flex-col">
+                    <div class="flex justify-between items-center gap-2 p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-4 bg-[#8F0A0D] rounded-full inline-block"></span>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Proyek Terbaru</h3>
                         </div>
+                        <a href="{{ route('projects.index') }}" class="text-[#8F0A0D] text-[12px] font-bold hover:underline">Lihat semua</a>
+                    </div>
+                    <div class="p-2 divide-y divide-[#F1F5F9] flex-1">
+                        @forelse($recentProjects as $project)
+                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors">
+                            <div class="min-w-0 flex-1">
+                                <div class="text-[13px] font-bold text-[#1E293B] truncate" title="{{ $project->name }}">{{ $project->name }}</div>
+                                <div class="text-[11.5px] text-[#64748B] truncate mt-0.5" title="{{ $project->client }}">{{ $project->client }}</div>
+                            </div>
+                            <div class="shrink-0">
+                                <x-status-badge status="{{ $project->status }}" />
+                            </div>
+                        </div>
+                        @empty
+                        <div class="text-center py-8 text-[#64748B]">
+                            <p class="text-[13px]">Belum ada proyek</p>
+                        </div>
+                        @endforelse
                     </div>
                 </div>
 
-                <!-- Recent Tasks -->
-                <div class="wms-card overflow-hidden flex flex-col">
-                    <div class="flex justify-between items-center gap-2 p-4 pb-3 border-b border-wms-line2">
-                        <h3 class="font-display text-[15px] font-semibold text-wms-ink-900">Task Terbaru</h3>
-                        <a href="{{ route('tasks.index') }}" class="text-wms-red-600 text-[12px] font-semibold hover:underline">Lihat semua</a>
-                    </div>
-                    <div class="p-1 flex-1 flex flex-col justify-between">
-                        <div>
-                            @forelse($recentTasks as $task)
-                            <div class="flex items-center justify-between gap-3 p-3 border-t border-wms-line2 first:border-t-0 hover:bg-slate-50/60 transition-colors">
-                                <div class="min-w-0 flex-1">
-                                    <div class="text-[13px] font-semibold text-wms-ink-900 truncate" title="{{ $task->title }}">{{ $task->title }}</div>
-                                    <div class="text-[11.5px] text-wms-ink-500 truncate mt-0.5" title="{{ $task->engineer?->name ?? 'Unassigned' }} · {{ $task->project?->name ?? '-' }}">
-                                        {{ $task->engineer?->name ?? 'Unassigned' }}
-                                        @if($task->project)
-                                            <span class="text-wms-ink-300">·</span> {{ $task->project->name }}
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="shrink-0">
-                                    <x-status-badge status="{{ $task->status }}" />
-                                </div>
-                            </div>
-                            @empty
-                            <div class="text-center py-8 text-wms-ink-500">
-                                <p class="text-[13px]">Belum ada task</p>
-                            </div>
-                            @endforelse
+                {{-- Recent Tasks --}}
+                <div class="ipnet-card overflow-hidden flex flex-col">
+                    <div class="flex justify-between items-center gap-2 p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-4 bg-blue-600 rounded-full inline-block"></span>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Tugas Terbaru</h3>
                         </div>
+                        <a href="{{ route('tasks.index') }}" class="text-[#8F0A0D] text-[12px] font-bold hover:underline">Lihat semua</a>
+                    </div>
+                    <div class="p-2 divide-y divide-[#F1F5F9] flex-1">
+                        @forelse($recentTasks as $task)
+                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors">
+                            <div class="min-w-0 flex-1">
+                                <div class="text-[13px] font-bold text-[#1E293B] truncate" title="{{ $task->title }}">{{ $task->title }}</div>
+                                <div class="text-[11.5px] text-[#64748B] truncate mt-0.5" title="{{ $task->engineer?->name ?? 'Belum Ditugaskan' }} · {{ $task->project?->name ?? '-' }}">
+                                    {{ $task->engineer?->name ?? 'Belum Ditugaskan' }}
+                                    @if($task->project)
+                                        <span class="text-gray-400">·</span> {{ $task->project->name }}
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="shrink-0">
+                                <x-status-badge status="{{ $task->status }}" />
+                            </div>
+                        </div>
+                        @empty
+                        <div class="text-center py-8 text-[#64748B]">
+                            <p class="text-[13px]">Belum ada tugas</p>
+                        </div>
+                        @endforelse
                     </div>
                 </div>
 
-                <!-- Jadwal Terdekat / Hari Ini -->
-                <div class="wms-card overflow-hidden flex flex-col">
-                    <div class="flex justify-between items-center gap-2 p-4 pb-3 border-b border-wms-line2">
-                        <h3 class="font-display text-[15px] font-semibold text-wms-ink-900">Jadwal Terdekat</h3>
-                        <a href="{{ route('schedules.index') }}" class="text-wms-red-600 text-[12px] font-semibold hover:underline">Lihat semua</a>
+                {{-- Recent Schedules --}}
+                <div class="ipnet-card overflow-hidden flex flex-col">
+                    <div class="flex justify-between items-center gap-2 p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-4 bg-emerald-600 rounded-full inline-block"></span>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Jadwal Terdekat</h3>
+                        </div>
+                        <a href="{{ route('schedules.index') }}" class="text-[#8F0A0D] text-[12px] font-bold hover:underline">Lihat semua</a>
                     </div>
-                    <div class="p-1 flex-1 flex flex-col justify-between">
-                        <div>
-                            @forelse($recentSchedules as $sch)
-                            @php
-                                $isToday = $sch->date && $sch->date->isToday();
-                                $dateLabel = $sch->date ? ($isToday ? 'Hari ini' : $sch->date->format('d M')) : '-';
-                                $timeLabel = $sch->start_time ? substr($sch->start_time, 0, 5) . ' WIB' : '';
-                                $badgeCategory = ($sch->category === 'Task' || $sch->category === 'Kegiatan') ? 'Kegiatan' : ($sch->category ?: 'Meeting');
-                                
-                                $engineerNames = '';
-                                if ($sch->relationLoaded('engineers') && $sch->engineers->isNotEmpty()) {
-                                    $engineerNames = $sch->engineers->pluck('name')->join(', ');
-                                } elseif ($sch->engineer) {
-                                    $engineerNames = $sch->engineer->name;
-                                }
-                            @endphp
-                            <div class="flex items-center justify-between gap-3 p-3 border-t border-wms-line2 first:border-t-0 hover:bg-slate-50/60 transition-colors">
-                                <div class="min-w-0 flex-1">
-                                    <div class="text-[13px] font-semibold text-wms-ink-900 truncate" title="{{ $sch->title }}">
-                                        {{ $sch->title }}
-                                    </div>
-                                    <div class="text-[11.5px] text-wms-ink-500 flex items-center gap-1.5 mt-0.5 min-w-0">
-                                        <span class="shrink-0 whitespace-nowrap {{ $isToday ? 'text-wms-red-600 font-semibold' : 'font-medium' }}">
-                                            {{ $dateLabel }}{{ $timeLabel ? ', ' . $timeLabel : '' }}
+                    <div class="p-2 divide-y divide-[#F1F5F9] flex-1">
+                        @forelse($recentSchedules as $sch)
+                        @php
+                            $isToday = $sch->date && $sch->date->isToday();
+                            $dateLabel = $sch->date ? ($isToday ? 'Hari ini' : $sch->date->format('d M')) : '-';
+                            $timeLabel = $sch->start_time ? substr($sch->start_time, 0, 5) . ' WIB' : '';
+                            $badgeCategory = ($sch->category === 'Task' || $sch->category === 'Kegiatan') ? 'Kegiatan' : ($sch->category ?: 'Meeting');
+                            
+                            $engineerNames = '';
+                            if ($sch->relationLoaded('engineers') && $sch->engineers->isNotEmpty()) {
+                                $engineerNames = $sch->engineers->pluck('name')->join(', ');
+                            } elseif ($sch->engineer) {
+                                $engineerNames = $sch->engineer->name;
+                            }
+                        @endphp
+                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors">
+                            <div class="min-w-0 flex-1">
+                                <div class="text-[13px] font-bold text-[#292929] truncate" title="{{ $sch->title }}">
+                                    {{ $sch->title }}
+                                </div>
+                                <div class="text-[11.5px] text-[#75727C] flex items-center gap-1.5 mt-0.5 min-w-0">
+                                    <span class="shrink-0 whitespace-nowrap {{ $isToday ? 'text-[#8F0A0D] font-bold' : 'font-medium' }}">
+                                        {{ $dateLabel }}{{ $timeLabel ? ', ' . $timeLabel : '' }}
+                                    </span>
+                                    @if($engineerNames || $sch->project)
+                                        <span class="text-gray-400 shrink-0">·</span>
+                                        <span class="truncate" title="{{ $engineerNames ?: $sch->project?->name }}">
+                                             {{ $engineerNames ?: $sch->project?->name }}
                                         </span>
-                                        @if($engineerNames || $sch->project)
-                                            <span class="text-wms-ink-300 shrink-0">·</span>
-                                            <span class="truncate" title="{{ $engineerNames ?: $sch->project?->name }}">
-                                                {{ $engineerNames ?: $sch->project?->name }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="shrink-0">
-                                    <x-status-badge :status="$badgeCategory" />
+                                    @endif
                                 </div>
                             </div>
-                            @empty
-                            <div class="text-center py-8 text-wms-ink-500">
-                                <p class="text-[13px]">Belum ada jadwal</p>
+                            <div class="shrink-0">
+                                <x-status-badge :status="$badgeCategory" />
                             </div>
-                            @endforelse
                         </div>
+                        @empty
+                        <div class="text-center py-8 text-[#75727C]">
+                            <p class="text-[13px]">Belum ada jadwal</p>
+                        </div>
+                        @endforelse
                     </div>
                 </div>
+
             </div>
+
         </div>
     </div>
 </div>
@@ -281,9 +623,24 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Chart Load Pekerjaan Engineer & Task Selesai
+        // Chart Load Pekerjaan Engineer (Rich Red Gradient & Emerald Green)
         const ctx3 = document.getElementById('engineerLoadChart').getContext('2d');
         const initialData = getFilteredEngineerData();
+        
+        // Gradient Merah IPNET Elegan & Seimbang (Tidak terlalu gelap, tidak kemudaan)
+        const activeBarGrad = ctx3.createLinearGradient(0, 0, 500, 0);
+        activeBarGrad.addColorStop(0, '#D31A2C');
+        activeBarGrad.addColorStop(0.55, '#B21322');
+        activeBarGrad.addColorStop(1, '#8C0B17');
+
+        const activeBarHoverGrad = ctx3.createLinearGradient(0, 0, 500, 0);
+        activeBarHoverGrad.addColorStop(0, '#E02336');
+        activeBarHoverGrad.addColorStop(0.55, '#C41829');
+        activeBarHoverGrad.addColorStop(1, '#9E0E1D');
+
+        const completedBarGrad = ctx3.createLinearGradient(0, 0, 500, 0);
+        completedBarGrad.addColorStop(0, '#34D399');
+        completedBarGrad.addColorStop(1, '#059669');
         
         engineerChart = new Chart(ctx3, {
             type: 'bar',
@@ -293,14 +650,16 @@
                     {
                         label: 'Task & Kegiatan Aktif',
                         data: initialData.map(d => d.active),
-                        backgroundColor: '#C81E2C',
-                        borderRadius: 3,
+                        backgroundColor: activeBarGrad,
+                        hoverBackgroundColor: activeBarHoverGrad,
+                        borderRadius: 6,
                     },
                     {
                         label: 'Task Selesai',
                         data: initialData.map(d => d.completed || 0),
-                        backgroundColor: '#10B981',
-                        borderRadius: 3,
+                        backgroundColor: completedBarGrad,
+                        hoverBackgroundColor: '#047857',
+                        borderRadius: 6,
                     }
                 ]
             },
@@ -330,11 +689,11 @@
                         stacked: true,
                         ticks: {
                             stepSize: 1,
-                            font: { size: 10 }
+                            font: { size: 10, family: 'Inter' }
                         },
                         grid: {
                             display: true,
-                            color: '#EFEDEB'
+                            color: '#F0E8E7'
                         }
                     },
                     y: {
@@ -343,21 +702,21 @@
                             display: false
                         },
                         ticks: {
-                            font: { size: 11, weight: '600' }
+                            font: { size: 11.5, weight: '600', family: 'Inter' }
                         }
                     }
                 }
             }
         });
 
-     
+        // Project Progress Chart
         const projectData = @json($projectProgressData);
         const ctx1 = document.getElementById('projectProgressChart').getContext('2d');
         
         const barGradient = ctx1.createLinearGradient(0, 0, 0, 220);
-        barGradient.addColorStop(0, '#EF4444');
-        barGradient.addColorStop(0.5, '#DC2626');
-        barGradient.addColorStop(1, '#991B1B');
+        barGradient.addColorStop(0, '#D31A2C');
+        barGradient.addColorStop(0.55, '#B21322');
+        barGradient.addColorStop(1, '#8C0B17');
         
         new Chart(ctx1, {
             type: 'bar',
@@ -367,7 +726,7 @@
                     label: 'Progress (%)',
                     data: projectData.map(d => d.progress),
                     backgroundColor: barGradient,
-                    borderRadius: 4,
+                    borderRadius: 6,
                 }]
             },
             options: {
@@ -403,19 +762,26 @@
                             stepSize: 20,
                             callback: function(value) {
                                 return value + '%';
-                            }
+                            },
+                            font: { family: 'Inter', size: 10 }
+                        },
+                        grid: {
+                            color: '#F0E8E7'
                         }
                     },
                     x: {
                         grid: {
                             display: false
+                        },
+                        ticks: {
+                            font: { family: 'Inter', size: 11, weight: '500' }
                         }
                     }
                 }
             }
         });
 
-      
+        // Status Breakdown Doughnut Chart
         const statusData = @json($statusData);
         const ctx2 = document.getElementById('taskStatusChart').getContext('2d');
         
@@ -424,8 +790,7 @@
                 gradient: function(ctx) {
                     const g = ctx.createRadialGradient(60, 60, 10, 100, 100, 120);
                     g.addColorStop(0, '#60A5FA');
-                    g.addColorStop(0.7, '#3B82F6');
-                    g.addColorStop(1, '#1D4ED8');
+                    g.addColorStop(1, '#2563EB');
                     return g;
                 }
             },
@@ -433,8 +798,7 @@
                 gradient: function(ctx) {
                     const g = ctx.createRadialGradient(60, 60, 10, 100, 100, 120);
                     g.addColorStop(0, '#FBBF24');
-                    g.addColorStop(0.7, '#F59E0B');
-                    g.addColorStop(1, '#ffae0b');
+                    g.addColorStop(1, '#D97706');
                     return g;
                 }
             },
@@ -442,8 +806,7 @@
                 gradient: function(ctx) {
                     const g = ctx.createRadialGradient(60, 60, 10, 100, 100, 120);
                     g.addColorStop(0, '#A78BFA');
-                    g.addColorStop(0.7, '#8B5CF6');
-                    g.addColorStop(1, '#7c2bff');
+                    g.addColorStop(1, '#7C3AED');
                     return g;
                 }
             },
@@ -451,8 +814,7 @@
                 gradient: function(ctx) {
                     const g = ctx.createRadialGradient(60, 60, 10, 100, 100, 120);
                     g.addColorStop(0, '#34D399');
-                    g.addColorStop(0.7, '#13cf90');
-                    g.addColorStop(1, '#10B981');
+                    g.addColorStop(1, '#059669');
                     return g;
                 }
             }
@@ -476,7 +838,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '60%',
+                cutout: '65%',
                 plugins: {
                     legend: {
                         display: false,
@@ -501,17 +863,22 @@
         const isWeek = period === 'week';
         const weekBtn = document.getElementById('engPeriodWeek');
         const monthBtn = document.getElementById('engPeriodMonth');
+        const activeGradient = 'linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%)';
 
         if (isWeek) {
-            weekBtn.style.background = '#C81E2C';
+            weekBtn.style.background = activeGradient;
             weekBtn.style.color = '#FFFFFF';
+            weekBtn.classList.add('shadow-xs');
             monthBtn.style.background = 'transparent';
-            monthBtn.style.color = '#75727C';
+            monthBtn.style.color = '#64748B';
+            monthBtn.classList.remove('shadow-xs');
         } else {
-            monthBtn.style.background = '#C81E2C';
+            monthBtn.style.background = activeGradient;
             monthBtn.style.color = '#FFFFFF';
+            monthBtn.classList.add('shadow-xs');
             weekBtn.style.background = 'transparent';
-            weekBtn.style.color = '#75727C';
+            weekBtn.style.color = '#64748B';
+            weekBtn.classList.remove('shadow-xs');
         }
         
         updateEngineerChart();

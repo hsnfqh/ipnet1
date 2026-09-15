@@ -19,6 +19,13 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\TimesheetController;
 use App\Http\Controllers\PmoController;
 use App\Http\Controllers\AcquireController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\SalesProjectController;
+use App\Http\Controllers\BdmController;
+use App\Http\Controllers\CroController;
+use App\Http\Controllers\AdminSupportController;
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
@@ -42,7 +49,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     // Modul 1: ACQUIRE (Sales Pipeline & Handover 1 to Design)
-    Route::prefix('acquire')->middleware('role:PMO|Project Manager|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance|Lead Engineer|Sales|BusDev')->group(function () {
+    Route::prefix('acquire')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Sales|Account Manager|BusDev|BDM|Business Development|CRO|Customer Relation Officer|Presales|Pre-Sales|Solution Architect|Solutions Architect')->group(function () {
         Route::get('/', [AcquireController::class, 'index'])->name('acquire.index');
         Route::post('/', [AcquireController::class, 'store'])->name('acquire.store');
         Route::put('/{project}', [AcquireController::class, 'update'])->name('acquire.update');
@@ -50,24 +57,223 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{project}', [AcquireController::class, 'destroy'])->name('acquire.destroy');
     });
 
-    // PMO & Project Management Office Dashboard
-    Route::prefix('pmo')->middleware('role:PMO|Project Manager|Direktur|HD / Direktur|Group Leader')->group(function () {
+    // PMO & Project Management Office Dashboard (Dashboard 1)
+    Route::prefix('pmo')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager')->group(function () {
         Route::get('/dashboard', [PmoController::class, 'dashboard'])->name('pmo.dashboard');
         Route::post('/projects/{project}/stage', [PmoController::class, 'updateStage'])->name('pmo.stage.update');
         Route::post('/projects/{project}/documents', [PmoController::class, 'updateDocuments'])->name('pmo.documents.update');
+        Route::post('/projects/{project}/handover-approve', [PmoController::class, 'approveHandover'])->name('pmo.handover.approve');
+        Route::post('/projects/{project}/handover-conditional', [PmoController::class, 'conditionalHandover'])->name('pmo.handover.conditional');
     });
 
-    // Dashboard
+    // Lead & Executive Dashboard (Dashboard 2)
     Route::get('/dashboard/lead', [DashboardController::class, 'lead'])
         ->name('dashboard.lead')
-        ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance|PMO|Project Manager');
+        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service|PMO|Project Manager');
     
+    // Field Engineer & Technical Staff Dashboard (Dashboard 7)
     Route::get('/dashboard/engineer', [DashboardController::class, 'engineer'])
         ->name('dashboard.engineer')
-        ->middleware('role:Engineer L1|Engineer L2|Engineer|Maintenance');
+        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance');
 
-    // Projects - Managerial, PMO & Sales Roles
-    Route::prefix('projects')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance|PMO|Project Manager|Sales|BusDev')->group(function () {
+    // BDM & Business Development (Dashboard + Dedicated Sub-Menus)
+    Route::prefix('bdm')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|BusDev|BDM|Business Development|Sales|Account Manager|Presales|Pre-Sales|Solution Architect|PMO|Project Manager')->group(function () {
+        Route::get('/dashboard', [BdmController::class, 'dashboard'])->name('dashboard.bdm');
+        
+        // Dedicated Menu 1: Inisiasi Peluang & Handover
+        Route::get('/opportunities', [BdmController::class, 'opportunities'])->name('bdm.opportunities.index');
+        Route::post('/opportunities', [BdmController::class, 'storeOpportunity'])->name('bdm.opportunity.store');
+        Route::post('/opportunities/create', [BdmController::class, 'storeOpportunity'])->name('bdm.opportunities.store');
+        Route::put('/opportunities/{project}', [BdmController::class, 'updateOpportunity'])->name('bdm.opportunity.update');
+        Route::delete('/opportunities/{project}', [BdmController::class, 'destroyOpportunity'])->name('bdm.opportunity.destroy');
+        Route::post('/opportunities/{project}/handover', [BdmController::class, 'handoverToSales'])->name('bdm.opportunity.handover');
+
+        // Dedicated Menu 2: Market Intelligence
+        Route::get('/intelligence', [BdmController::class, 'intelligence'])->name('bdm.intelligence.index');
+        Route::post('/intelligence', [BdmController::class, 'storeIntelligence'])->name('bdm.intelligence.store');
+        Route::delete('/intelligence/{intelligence}', [BdmController::class, 'destroyIntelligence'])->name('bdm.intelligence.destroy');
+
+        // Dedicated Menu 3: Kemitraan & Channel Prinsipal
+        Route::get('/partnerships', [BdmController::class, 'partnerships'])->name('bdm.partnerships.index');
+        Route::post('/partnerships', [BdmController::class, 'storePartnership'])->name('bdm.partnership.store');
+        Route::post('/partnerships/create', [BdmController::class, 'storePartnership'])->name('bdm.partnerships.store');
+        Route::delete('/partnerships/{partnership}', [BdmController::class, 'destroyPartnership'])->name('bdm.partnership.destroy');
+    });
+
+    // Fallback alias for /dashboard/bdm
+    Route::get('/dashboard/bdm', [BdmController::class, 'dashboard'])
+        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|BusDev|BDM|Business Development|Sales|Account Manager|Presales|Pre-Sales|Solution Architect|PMO|Project Manager');
+
+    // Dashboard Sales & Account Manager (Dashboard 3)
+    Route::get('/dashboard/sales', [DashboardController::class, 'sales'])
+        ->name('dashboard.sales')
+        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Sales|Account Manager|BusDev|BDM|Business Development|CRO|Customer Relation Officer|Presales|Pre-Sales|Solution Architect|PMO|Project Manager');
+
+    // Modul 2: SALES / CRM (Pipeline, Activities, Commercial Handover)
+    Route::prefix('sales')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Sales|Account Manager|BusDev|BDM|Business Development|CRO|Customer Relation Officer|Presales|Pre-Sales|Solution Architect|PMO|Project Manager')->group(function () {
+        // Dedicated Menu 1: Pipeline & Opportunity Register
+        Route::get('/pipeline', [\App\Http\Controllers\SalesCrmController::class, 'pipeline'])->name('sales.pipeline.index');
+        Route::post('/pipeline/create', [\App\Http\Controllers\SalesCrmController::class, 'storeOpportunity'])->name('sales.pipeline.store');
+        Route::post('/pipeline/{project}/stage', [\App\Http\Controllers\SalesCrmController::class, 'updateStage'])->name('sales.pipeline.update');
+
+        // Dedicated Menu 2: Sales Activity Log (CRM)
+        Route::get('/activities', [\App\Http\Controllers\SalesCrmController::class, 'activities'])->name('sales.activities.index');
+        Route::post('/activities', [\App\Http\Controllers\SalesCrmController::class, 'storeActivity'])->name('sales.activities.store');
+
+        // Dedicated Menu 3: Commercial Handover to Delivery/PMO
+        Route::get('/handover', [\App\Http\Controllers\SalesCrmController::class, 'commercialHandoverIndex'])->name('sales.handover.index');
+        Route::post('/handover/{project}/submit', [\App\Http\Controllers\SalesCrmController::class, 'submitCommercialHandover'])->name('sales.handover.submit');
+    });
+
+    // Dashboard Solution Architect & R&D (Dashboard 6)
+    Route::get('/dashboard/solution-architect', [DashboardController::class, 'solutionArchitect'])
+        ->name('dashboard.architect')
+        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Solution Architect|Solutions Architect|Tech Develop|Tech.Develp (R&D)|R&D|Presales|Pre-Sales|Sales|Account Manager|PMO|Project Manager');
+
+    // Dashboard Presales Engineering (Dashboard 5)
+    Route::get('/dashboard/presales', [DashboardController::class, 'presales'])
+        ->name('dashboard.presales')
+        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Presales|Pre-Sales|Solution Architect|Solutions Architect|Sales|Account Manager|BusDev|BDM|PMO|Project Manager');
+
+    // Modul Presales: Proposal & SOW
+    Route::prefix('presales')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Presales|Pre-Sales|Solution Architect|Solutions Architect|Sales|Account Manager|BusDev|BDM|PMO|Project Manager')->group(function () {
+        Route::get('/proposals', [\App\Http\Controllers\PresalesProposalController::class, 'index'])->name('presales.proposals.index');
+        Route::post('/proposals/{project}', [\App\Http\Controllers\PresalesProposalController::class, 'store'])->name('presales.proposals.store');
+        Route::delete('/proposals/{project}/file', [\App\Http\Controllers\PresalesProposalController::class, 'destroyFile'])->name('presales.proposals.file.delete');
+        Route::get('/proposals/{project}/download', [\App\Http\Controllers\PresalesProposalController::class, 'download'])->name('presales.proposals.download');
+    });
+
+    // Modul 4: MANAGED SERVICE (SERVICE DELIVERY - OPERATE & MAINTAIN)
+    Route::prefix('managed-service')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Group Leader Commercial & Solution|Lead Maintenance|Maintenance|PMO|Project Manager|Lead Engineer|Lead Divisi|Team Leader Engineering|Team Leader|Sales|Account Manager|BusDev|BDM')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ManagedServiceController::class, 'dashboard'])->name('ms.dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\ManagedServiceController::class, 'dashboard'])->name('ms.dashboard.alias');
+        
+        // CI Assets
+        Route::get('/assets', [\App\Http\Controllers\ManagedServiceController::class, 'assets'])->name('ms.assets.index');
+        Route::post('/assets', [\App\Http\Controllers\ManagedServiceController::class, 'storeAsset'])->name('ms.assets.store');
+        Route::put('/assets/{asset}', [\App\Http\Controllers\ManagedServiceController::class, 'updateAsset'])->name('ms.assets.update');
+        Route::delete('/assets/{asset}', [\App\Http\Controllers\ManagedServiceController::class, 'destroyAsset'])->name('ms.assets.destroy');
+
+        // Incident & Service Request Tickets
+        Route::get('/tickets', [\App\Http\Controllers\ManagedServiceController::class, 'tickets'])->name('ms.tickets.index');
+        Route::post('/tickets', [\App\Http\Controllers\ManagedServiceController::class, 'storeTicket'])->name('ms.tickets.store');
+        Route::put('/tickets/{ticket}', [\App\Http\Controllers\ManagedServiceController::class, 'updateTicket'])->name('ms.tickets.update');
+
+        // Preventive Maintenance
+        Route::get('/maintenance', [\App\Http\Controllers\ManagedServiceController::class, 'maintenance'])->name('ms.maintenance.index');
+
+        // Reports
+        Route::get('/reports', [\App\Http\Controllers\ManagedServiceController::class, 'reports'])->name('ms.reports.index');
+        Route::post('/reports', [\App\Http\Controllers\ManagedServiceController::class, 'storeReport'])->name('ms.reports.store');
+    });
+
+    // Fallback direct route
+    Route::get('/dashboard/managed-service', [\App\Http\Controllers\ManagedServiceController::class, 'dashboard'])
+        ->name('dashboard.ms');
+
+    // Modul 7: CUSTOMER MANAGEMENT / CRO (Customer Relationship Officer)
+    Route::prefix('cro')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|CRO|Customer Relation Officer|Sales|Account Manager|BusDev|BDM|Business Development|PMO|Project Manager|Lead Maintenance|Maintenance|Lead Engineer|Lead Divisi|Team Leader Engineering|Team Leader')->group(function () {
+        Route::get('/', [CroController::class, 'dashboard'])->name('cro.dashboard');
+        Route::get('/dashboard', [CroController::class, 'dashboard'])->name('cro.dashboard.alias');
+
+        // Sub-Halaman 1: Engagements & Relationship
+        Route::get('/engagements', [CroController::class, 'engagements'])->name('cro.engagements.index');
+        Route::post('/engagements', [CroController::class, 'storeEngagement'])->name('cro.engagements.store');
+        Route::delete('/engagements/{engagement}', [CroController::class, 'destroyEngagement'])->name('cro.engagements.destroy');
+
+        // Sub-Halaman 2: Satisfaction & CSAT
+        Route::get('/satisfaction', [CroController::class, 'satisfaction'])->name('cro.satisfaction.index');
+        Route::post('/satisfaction', [CroController::class, 'storeCsat'])->name('cro.satisfaction.store');
+        Route::delete('/satisfaction/{csat}', [CroController::class, 'destroyCsat'])->name('cro.satisfaction.destroy');
+
+        // Sub-Halaman 3: Concerns & Escalation Orchestration
+        Route::get('/concerns', [CroController::class, 'concerns'])->name('cro.concerns.index');
+        Route::post('/concerns', [CroController::class, 'storeConcern'])->name('cro.concerns.store');
+        Route::post('/concerns/{concern}/dispatch', [CroController::class, 'dispatchConcern'])->name('cro.concerns.dispatch');
+        Route::post('/concerns/{concern}/resolve', [CroController::class, 'resolveConcern'])->name('cro.concerns.resolve');
+        Route::post('/concerns/{concern}/confirm', [CroController::class, 'confirmConcern'])->name('cro.concerns.confirm');
+        Route::delete('/concerns/{concern}', [CroController::class, 'destroyConcern'])->name('cro.concerns.destroy');
+
+        // Sub-Halaman 4: Retention & Account Health
+        Route::get('/retention', [CroController::class, 'retention'])->name('cro.retention.index');
+        Route::post('/retention', [CroController::class, 'storeAccountHealth'])->name('cro.retention.store');
+
+        // Sub-Halaman 5: Account Development & Opportunity Bridge
+        Route::get('/opportunities', [CroController::class, 'opportunities'])->name('cro.opportunities.index');
+        Route::post('/opportunities', [CroController::class, 'storeOpportunity'])->name('cro.opportunities.store');
+        Route::post('/opportunities/{opportunity}/handover', [CroController::class, 'handoverOpportunity'])->name('cro.opportunities.handover');
+        Route::delete('/opportunities/{opportunity}', [CroController::class, 'destroyOpportunity'])->name('cro.opportunities.destroy');
+    });
+
+    Route::get('/dashboard/cro', [CroController::class, 'dashboard'])
+        ->name('dashboard.cro');
+
+    // Modul 8: ADMIN SUPPORT (Horizontal Governance & Gatekeeper Layer)
+    Route::prefix('admin-support')->group(function () {
+        Route::get('/', [AdminSupportController::class, 'index'])->name('admin_support.dashboard');
+        Route::get('/dashboard', [AdminSupportController::class, 'index'])->name('admin_support.dashboard.alias');
+
+        // Central Document Register
+        Route::get('/documents', [AdminSupportController::class, 'documentsIndex'])->name('admin_support.documents.index');
+        Route::post('/documents', [AdminSupportController::class, 'documentsStore'])->name('admin_support.documents.store');
+        Route::post('/documents/{id}/verify', [AdminSupportController::class, 'documentsVerify'])->name('admin_support.documents.verify');
+        Route::post('/documents/{id}/reject-clarify', [AdminSupportController::class, 'documentsRejectClarify'])->name('admin_support.documents.reject-clarify');
+
+        // Document Checklists (Gatekeeper Matrix)
+        Route::get('/checklists', [AdminSupportController::class, 'checklistsIndex'])->name('admin_support.checklists.index');
+        Route::post('/checklists/{id}', [AdminSupportController::class, 'checklistsUpdate'])->name('admin_support.checklists.update');
+
+        // Logistics & Delivery Instructions (Surat Jalan)
+        Route::get('/logistics', [AdminSupportController::class, 'logisticsIndex'])->name('admin_support.logistics.index');
+        Route::post('/logistics', [AdminSupportController::class, 'logisticsStore'])->name('admin_support.logistics.store');
+        Route::post('/logistics/{id}/status', [AdminSupportController::class, 'logisticsUpdateStatus'])->name('admin_support.logistics.status');
+
+        // Serial Number Registry (SN Tracking)
+        Route::get('/inventory', [AdminSupportController::class, 'inventoryIndex'])->name('admin_support.inventory.index');
+        Route::post('/inventory/sn', [AdminSupportController::class, 'inventoryStoreSN'])->name('admin_support.inventory.sn.store');
+
+        // Operational Tool Assets & Equipment
+        Route::get('/assets', [AdminSupportController::class, 'assetsIndex'])->name('admin_support.assets.index');
+        Route::post('/assets', [AdminSupportController::class, 'assetsStore'])->name('admin_support.assets.store');
+        Route::post('/assets/{id}/borrow-return', [AdminSupportController::class, 'assetsBorrowReturn'])->name('admin_support.assets.borrow-return');
+
+        // Handover Records & Repository Archive
+        Route::get('/handovers', [AdminSupportController::class, 'handoversIndex'])->name('admin_support.handovers.index');
+        Route::post('/handovers', [AdminSupportController::class, 'handoversStore'])->name('admin_support.handovers.store');
+    });
+
+    Route::get('/dashboard/admin-support', [AdminSupportController::class, 'index'])
+        ->name('dashboard.admin_support');
+
+    Route::get('/projects/{project}/proposal/download', [\App\Http\Controllers\PresalesProposalController::class, 'download'])
+        ->name('projects.proposal.download');
+
+    // Sales Projects Pipeline
+    Route::prefix('sales-projects')->group(function () {
+        Route::get('/', [SalesProjectController::class, 'index'])->name('sales.projects.index');
+        Route::post('/', [SalesProjectController::class, 'store'])->name('sales.projects.store');
+        Route::put('/{project}', [SalesProjectController::class, 'update'])->name('sales.projects.update');
+        Route::delete('/{project}', [SalesProjectController::class, 'destroy'])->name('sales.projects.destroy');
+    });
+
+    // Clients
+    Route::resource('clients', ClientController::class);
+
+    // Vendors
+    Route::resource('vendors', VendorController::class);
+
+    // Inventory
+    Route::prefix('inventory')->group(function () {
+        Route::get('/', [InventoryController::class, 'index'])->name('inventory.index');
+        Route::post('/', [InventoryController::class, 'store'])->name('inventory.store');
+        Route::put('/{item}', [InventoryController::class, 'update'])->name('inventory.update');
+        Route::delete('/{item}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
+        Route::post('/stock-in', [InventoryController::class, 'stockIn'])->name('inventory.stock-in');
+        Route::post('/stock-out', [InventoryController::class, 'stockOut'])->name('inventory.stock-out');
+    });
+
+    // Projects - Managerial, PMO, Sales, Presales, Solution Architect & Engineers
+    Route::prefix('projects')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Sales|Account Manager|BusDev|BDM|Presales|Pre-Sales|Solution Architect|Solutions Architect|Network Engineer|Security Engineer|Managed Service|Field Support (EOS)|Field Support|Engineer|Engineer L1|Engineer L2|Maintenance')->group(function () {
         Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
         Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
         Route::put('/{project}', [ProjectController::class, 'update'])->name('projects.update');
@@ -80,10 +286,10 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('tasks')->group(function () {
         Route::get('/', [TaskController::class, 'index'])->name('tasks.index');
         Route::post('/', [TaskController::class, 'store'])->name('tasks.store')
-            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
+            ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service');
         Route::put('/{task}', [TaskController::class, 'update'])->name('tasks.update');
         Route::delete('/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy')
-            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
+            ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service');
         Route::get('/kanban-data', [TaskController::class, 'getKanbanData'])->name('tasks.kanban');
     });
 
@@ -93,11 +299,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/export', [ScheduleController::class, 'exportExcel'])->name('schedules.export');
         Route::get('/export/pdf', [ScheduleController::class, 'exportPdf'])->name('schedules.export.pdf');
         Route::post('/', [ScheduleController::class, 'store'])->name('schedules.store')
-            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
+            ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service|Sales|Account Manager|BusDev|BDM|Business Development|CRO|Customer Relation Officer');
         Route::put('/{schedule}', [ScheduleController::class, 'update'])->name('schedules.update')
-            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
+            ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service|Sales|Account Manager|BusDev|BDM|Business Development|CRO|Customer Relation Officer');
         Route::delete('/{schedule}', [ScheduleController::class, 'destroy'])->name('schedules.destroy')
-            ->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
+            ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service|Sales|Account Manager|BusDev|BDM|Business Development|CRO|Customer Relation Officer');
         Route::get('/calendar-data', [ScheduleController::class, 'getCalendarData'])->name('schedules.calendar');
     });
 
@@ -109,9 +315,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clock-out');
 
         // Managerial: rekap presensi & export
-        Route::get('/recap',       [AttendanceController::class, 'recap'])->name('attendance.recap')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
-        Route::get('/daily-data',  [AttendanceController::class, 'dailyData'])->name('attendance.daily-data')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
-        Route::get('/export/pdf',  [AttendanceController::class, 'exportPdf'])->name('attendance.export.pdf')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
+        Route::get('/recap',       [AttendanceController::class, 'recap'])->name('attendance.recap')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service');
+        Route::get('/daily-data',  [AttendanceController::class, 'dailyData'])->name('attendance.daily-data')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service');
+        Route::get('/export/pdf',  [AttendanceController::class, 'exportPdf'])->name('attendance.export.pdf')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service');
     });
 
     // ─── TIMESHEET ────────────────────────────────────────────────────────
@@ -125,7 +331,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ─── PENGGUNA ─────────────────────────────────────────────────────────
-    Route::prefix('users')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance')->group(function () {
+    Route::prefix('users')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('users.index');
         Route::post('/', [UserController::class, 'store'])->name('users.store');
         Route::put('/{user}', [UserController::class, 'update'])->name('users.update');
@@ -136,11 +342,9 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Certifications Approval & Deletion (Managerial Roles)
-    Route::post('/certifications/{certification}/approve', [UserController::class, 'approveCertification'])->name('certifications.approve')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
-    Route::post('/certifications/{certification}/reject', [UserController::class, 'rejectCertification'])->name('certifications.reject')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
-    Route::delete('/certifications/{certification}', [UserController::class, 'rejectCertification'])->name('certifications.destroy')->middleware('role:Lead Engineer|Direktur|HD / Direktur|Group Leader|Lead Divisi|Team Leader|Lead Maintenance');
-
-
+    Route::post('/certifications/{certification}/approve', [UserController::class, 'approveCertification'])->name('certifications.approve')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service');
+    Route::post('/certifications/{certification}/reject', [UserController::class, 'rejectCertification'])->name('certifications.reject')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service');
+    Route::delete('/certifications/{certification}', [UserController::class, 'rejectCertification'])->name('certifications.destroy')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service');
 
     // Search 
     Route::get('/search', [SearchController::class, 'index'])->name('search');
@@ -174,13 +378,9 @@ Route::middleware(['auth'])->group(function () {
         $targetUser = $certification->user;
 
         // Kontrol Hak Akses:
-        // 1. Pemilik file selalu boleh lihat
-        // 2. Direktur & Group Leader boleh lihat semua
-        // 3. Team Leader (Lead Network / Lead Security) boleh lihat anggota divisinya
-        // 4. Engineer biasa TIDAK BISA melihat file milik engineer lain
         if ($authUser->id !== $certification->user_id) {
-            $isTopMgmt = $authUser->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'Lead Divisi']);
-            $isLeader = $authUser->hasAnyRole(['Team Leader', 'Lead Engineer']) && (
+            $isTopMgmt = $authUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Lead Divisi']);
+            $isLeader = $authUser->hasAnyRole(['Team Leader Engineering', 'Team Leader', 'Lead Engineer', 'Managed Service']) && (
                 $authUser->division_id === null || 
                 ($targetUser && $authUser->division_id === $targetUser->division_id)
             );
@@ -222,6 +422,21 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/', function () {
     if (auth()->check()) {
         $user = auth()->user();
+        if ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D'])) {
+            return redirect()->route('dashboard.architect');
+        }
+        if ($user->hasAnyRole(['Presales', 'Pre-Sales'])) {
+            return redirect()->route('dashboard.presales');
+        }
+        if ($user->hasAnyRole(['BusDev', 'BDM', 'Business Development'])) {
+            return redirect()->route('dashboard.bdm');
+        }
+        if ($user->hasAnyRole(['Sales', 'Account Manager', 'CRO', 'Customer Relation Officer', 'Group Leader Commercial & Solution'])) {
+            return redirect()->route('dashboard.sales');
+        }
+        if ($user->hasAnyRole(['PMO', 'Project Manager'])) {
+            return redirect()->route('pmo.dashboard');
+        }
         if (\App\Helpers\ScopeHelper::isManagerial($user)) {
             return redirect()->route('dashboard.lead');
         }
@@ -414,6 +629,10 @@ Route::get('/run-migration', function () {
         Artisan::call('db:seed', ['--class' => 'DummyUserSeeder', '--force' => true]);
         $outputs[] = "Artisan db:seed DummyUserSeeder: OK (Semua proyek, task, dan tim resmi diisi)";
 
+        // 3. Jalankan seeder sales & inventory lengkap
+        Artisan::call('db:seed', ['--class' => 'SalesInitialSeeder', '--force' => true]);
+        $outputs[] = "Artisan db:seed SalesInitialSeeder: OK (Data dummy sales, klien, vendor, inventory diisi)";
+
         Artisan::call('view:clear');
         $outputs[] = "Artisan view:clear: OK";
 
@@ -427,18 +646,24 @@ Route::get('/run-migration', function () {
             'status' => 'success',
             'message' => 'Database hosting berhasil dibersihkan total & diisi data tim resmi!',
             'team_members' => [
-                'Direktur'                  => 'hariyadi@ipnetsolusindo.com (password: password123)',
-                'Group Leader'              => 'susanto@ipnetsolusindo.com (password: password123)',
-                'Team Leader Network'       => 'nugraha@ipnetsolusindo.com (password: password123)',
-                'Team Leader Security'      => 'ignatius@ipnetsolusindo.com (password: password123)',
-                'Lead Maintenance'          => 'doris@ipnetsolusindo.com (password: password123)',
-                'Engineer Network (L1)'     => 'rorik@ipnetsolusindo.com (password: password123)',
-                'Engineer Network (L1)'     => 'shiamsyah@ipnetsolusindo.com (password: password123)',
-                'Engineer Network (L2)'     => 'dedy@ipnetsolusindo.com (password: password123)',
-                'Engineer Network (L2)'     => 'syaiful@ipnetsolusindo.com (password: password123)',
-                'Engineer Security (L1)'    => 'eka@ipnetsolusindo.com (password: password123)',
-                'Staff Maintenance'         => 'mario@ipnetsolusindo.com (password: password123)',
-                'Staff Maintenance '        => 'eris@ipnetsolusindo.com (password: password123)',
+                'Director'                          => 'hariyadi@ipnetsolusindo.com (password: password123)',
+                'Division Head & GL Delivery'       => 'susanto@ipnetsolusindo.com (password: password123)',
+                'Group Leader Commercial'           => 'gl.commercial@ipnetsolusindo.com (password: password123)',
+                'PMO Head'                          => 'kuncoro@ipnetsolusindo.com (password: password123)',
+                'Project Manager'                   => 'rizki@ipnetsolusindo.com (password: password123)',
+                'BusDev (BD)'                       => 'erie@ipnetsolusindo.com (password: password123)',
+                'Sales (Account Manager)'           => 'raiza@ipnetsolusindo.com (password: password123)',
+                'Customer Relation Officer (CRO)'   => 'cro@ipnetsolusindo.com (password: password123)',
+                'Pre-Sales'                         => 'akbar@ipnetsolusindo.com (password: password123)',
+                'Solution Architect (Expert)'       => 'aris@ipnetsolusindo.com (password: password123)',
+                'Tech Develop (R&D)'                => 'techdev@ipnetsolusindo.com (password: password123)',
+                'Team Leader Network Engineering'   => 'nugraha@ipnetsolusindo.com (password: password123)',
+                'Team Leader Security Engineering'  => 'ignatius@ipnetsolusindo.com (password: password123)',
+                'Managed Service Coordinator'       => 'doris@ipnetsolusindo.com (password: password123)',
+                'Field Support Engineer (EOS)'      => 'mario@ipnetsolusindo.com (password: password123)',
+                'Network Engineer (L1)'             => 'rorik@ipnetsolusindo.com (password: password123)',
+                'Network Engineer (L2)'             => 'dedy@ipnetsolusindo.com (password: password123)',
+                'Security Engineer (L1)'            => 'eka@ipnetsolusindo.com (password: password123)',
             ],
             'details' => $outputs,
         ]);

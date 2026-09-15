@@ -1,119 +1,354 @@
 @extends('layouts.app')
 
-@section('title', 'Login - Field System Management')
+@section('title', 'Login - Field Service Management - PT IP Network Solusindo')
+
+@push('styles')
+<style>
+    /* ========================================================
+       Smooth Fluid Entrance & Micro-Animations
+       ======================================================== */
+    @keyframes heroReveal {
+        0% { opacity: 0; transform: translateY(24px) scale(0.98); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes fadeUpStagger {
+        0% { opacity: 0; transform: translateY(18px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes logoFloat {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-7px) rotate(0.5deg); }
+    }
+
+    @keyframes pulseGlow {
+        0%, 100% { opacity: 0.35; transform: scale(1); }
+        50% { opacity: 0.65; transform: scale(1.1); }
+    }
+
+    @keyframes cardEntrance {
+        0% { opacity: 0; transform: translateY(20px) scale(0.98); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Flowing Red Rim Beam Animation at Top of Card */
+    @keyframes rimShimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+
+    .card-top-rim {
+        background: linear-gradient(90deg, transparent 0%, #8F0A0D 20%, #C61828 45%, #FFA8B2 50%, #C61828 55%, #8F0A0D 80%, transparent 100%);
+        background-size: 200% 100%;
+        animation: rimShimmer 3.5s linear infinite;
+    }
+
+    .anim-hero-reveal {
+        animation: heroReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .anim-fade-up {
+        animation: fadeUpStagger 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .anim-card-enter {
+        animation: cardEntrance 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+    }
+
+    .anim-delay-1 { animation-delay: 0.08s !important; }
+    .anim-delay-2 { animation-delay: 0.16s !important; }
+    .anim-delay-3 { animation-delay: 0.24s !important; }
+    .anim-delay-4 { animation-delay: 0.32s !important; }
+
+    .animate-logo-float {
+        animation: logoFloat 4.5s ease-in-out infinite;
+    }
+
+    .animate-pulse-glow {
+        animation: pulseGlow 6s ease-in-out infinite;
+    }
+
+    /* Primary Action Button Animation */
+    .ipnet-login-btn {
+        background: linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%);
+        background-size: 200% auto;
+        box-shadow: 0 4px 16px rgba(143, 10, 13, 0.28);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ipnet-login-btn:hover {
+        background-position: right center;
+        box-shadow: 0 8px 26px rgba(143, 10, 13, 0.38);
+        transform: translateY(-2px);
+    }
+    .ipnet-login-btn:active {
+        transform: translateY(0) scale(0.99);
+    }
+
+    /* Form Input Micro-Interactions */
+    .ipnet-input {
+        background-color: #FFFFFF;
+        border: 1.5px solid #CBD5E1;
+        border-radius: 14px;
+        color: #1E293B;
+        font-size: 13.5px;
+        font-weight: 500;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        outline: none;
+    }
+    .ipnet-input:hover {
+        border-color: #94A3B8;
+    }
+    .ipnet-input:focus {
+        border-color: #8F0A0D;
+        box-shadow: 0 0 0 3.5px rgba(143, 10, 13, 0.12);
+        background-color: #FFFFFF;
+        transform: translateY(-1px);
+    }
+</style>
+@endpush
 
 @section('content')
-<div class="min-h-screen bg-[#F7F6F5] flex items-center justify-center p-4 sm:p-5">
-    <div class="flex flex-col lg:flex-row w-full max-w-[900px] rounded-xl sm:rounded-2xl overflow-hidden border border-[#E7E5E3] shadow-[0_16px_40px_rgba(14,13,18,0.12)]">
+<div class="min-h-screen w-full flex flex-col lg:flex-row bg-[#F8FAFC] overflow-x-hidden font-sans">
 
-        {{-- ====================== --}}
-        {{-- Left Panel - Branding  --}}
-        {{-- ====================== --}}
-        <div class="flex-1 p-7 sm:p-10 lg:p-[46px] flex flex-col justify-center lg:min-h-[500px] bg-gradient-to-br from-[#AF1424] via-[#96101F] to-[#5C0A13] relative overflow-hidden">
-            <div class="absolute inset-0 wms-signature opacity-50"></div>
-            <div class="absolute -top-[60px] -right-[60px] w-[220px] h-[220px] rounded-full bg-[radial-gradient(circle,#AF1424_0%,transparent_70%)] opacity-50"></div>
+    {{-- ======================================================== --}}
+    {{-- Left Half - Faceted Brand Panel (Matching Dashboard Style)--}}
+    {{-- ======================================================== --}}
+    <div id="brand-left-panel" class="lg:w-1/2 min-h-[480px] lg:min-h-screen relative flex flex-col justify-between p-8 sm:p-12 lg:p-16 text-white overflow-hidden select-none bg-[#750608]">
+        
+        {{-- Layered Geometric Faceted Red Planes (Identical to Dashboard Hero Banner) --}}
+        <div class="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
+            <svg class="w-full h-full object-cover" viewBox="0 0 1000 1000" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="facetGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#C61828" />
+                        <stop offset="50%" stop-color="#9E0E1D" />
+                        <stop offset="100%" stop-color="#7A0813" />
+                    </linearGradient>
+                    <linearGradient id="facetGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#B01423" />
+                        <stop offset="100%" stop-color="#5A040C" />
+                    </linearGradient>
+                    <linearGradient id="facetGrad3" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#830B17" />
+                        <stop offset="100%" stop-color="#420207" />
+                    </linearGradient>
+                    <linearGradient id="facetHighlight" x1="0%" y1="0%" x2="100%" y2="50%">
+                        <stop offset="0%" stop-color="#FFA8B2" stop-opacity="0.25" />
+                        <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+                    </linearGradient>
+                    <filter id="loginFacetShadow" x="-10%" y="-10%" width="130%" height="130%">
+                        <feDropShadow dx="-8" dy="12" stdDeviation="16" flood-color="#2A0205" flood-opacity="0.5" />
+                    </filter>
+                    <pattern id="login-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                        <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                    </pattern>
+                </defs>
 
-            <div class="relative z-10 text-center">
-                {{-- Logo --}}
-                <div class="flex flex-col items-center justify-center gap-2.5 sm:gap-3">
-                    <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0" style="background:transparent;">
-                        <img src="{{ asset('images/ipnet1.png') }}" alt="IP Network Solusindo" style="width:100%; height:100%; object-fit:contain;">
-                    </div>
-                    <div>
-                        <h1 class="font-display font-bold text-[19px] sm:text-[24px] text-white leading-tight tracking-[-0.3px] text-center">
-                            IP Network Solusindo
-                        </h1>
-                        <p class="text-white/50 text-[10px] sm:text-[11px] font-medium tracking-[2px] uppercase text-center">
-                            Field System Management
-                        </p>
-                    </div>
-                </div>
+                <!-- Base Geometric Background -->
+                <rect width="1000" height="1000" fill="url(#facetGrad1)" />
 
-                {{-- Deskripsi --}}
-                <div class="hidden sm:block mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-white/10">
-                    <p class="text-white/70 text-[12px] leading-relaxed" style="text-align:center;">
-                        Selamat datang di sistem manajemen tenaga kerja IP NET 1.
-                        Kelola proyek, jadwal, dan penugasan teknisi lapangan secara terpusat
-                        dalam satu platform terintegrasi.
-                    </p>
-                </div>
+                <!-- Grid Texture Overlay -->
+                <rect width="1000" height="1000" fill="url(#login-grid)" />
+
+                <!-- Large Diagonal Angled Planes -->
+                <polygon points="0,0 600,0 200,1000 0,1000" fill="url(#facetGrad2)" opacity="0.95" />
+                <polygon points="180,0 820,0 1000,1000 450,1000" fill="url(#facetGrad1)" filter="url(#loginFacetShadow)" />
+                <polygon points="520,0 1000,0 1000,1000 780,1000" fill="url(#facetGrad3)" filter="url(#loginFacetShadow)" />
+
+                <!-- Ambient Angular Highlights -->
+                <polygon points="0,0 520,0 900,1000 280,1000" fill="url(#facetHighlight)" />
+            </svg>
+        </div>
+
+        {{-- Dynamic Interactive Mouse Spotlight Follower --}}
+        <div id="spotlight-glow" class="absolute w-[520px] h-[520px] rounded-full bg-white/10 blur-3xl pointer-events-none transition-all duration-300 -translate-x-1/2 -translate-y-1/2 opacity-60 hidden lg:block" style="top: 50%; left: 50%;"></div>
+
+        {{-- Dynamic Ambient Light Orbs --}}
+        <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-rose-400/20 blur-3xl pointer-events-none animate-pulse-glow"></div>
+        <div class="absolute bottom-10 right-0 w-80 h-80 rounded-full bg-black/40 blur-3xl pointer-events-none"></div>
+
+        {{-- Top Brand Indicator --}}
+        <div class="relative z-10 flex items-center anim-fade-up">
+            <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold tracking-wider uppercase shadow-sm transition-transform hover:scale-105">
+                <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                <span>Enterprise Platform</span>
             </div>
         </div>
 
-        {{-- ======================== --}}
-        {{-- Right Panel - Login Form --}}
-        {{-- ======================== --}}
-        <div class="flex-1 bg-white p-7 sm:p-10 lg:p-[46px] flex flex-col justify-center lg:min-h-[500px]">
-            <h2 class="font-display text-[19px] sm:text-[22px] font-semibold text-[#17151C] mb-1.5 tracking-[-0.2px]">Masuk ke Akun</h2>
-            <p class="text-[12.5px] sm:text-[13px] text-[#75727C] mb-5 sm:mb-[22px]">Masukkan kredensial Anda untuk melanjutkan</p>
+        {{-- Center Branding Content --}}
+        <div class="relative z-10 my-auto py-8 flex flex-col items-center text-center max-w-md mx-auto">
+            
+            {{-- Floating Logo in Premium Glass Ring --}}
+            <div class="relative mb-6 anim-hero-reveal">
+                <div class="absolute inset-0 bg-white/20 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="relative w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white/10 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-[0_16px_36px_rgba(0,0,0,0.3)] animate-logo-float transition-transform hover:scale-110 cursor-pointer">
+                    <img src="{{ asset('images/ipnet1.png') }}" alt="IP Network Solusindo" class="h-16 sm:h-20 w-auto object-contain drop-shadow-md">
+                </div>
+            </div>
 
-            {{-- Status Notif --}}
+            {{-- Title & Subtitle --}}
+            <h1 class="font-display font-black text-[28px] sm:text-[36px] text-white tracking-tight leading-tight drop-shadow-sm anim-fade-up anim-delay-1">
+                IP Network Solusindo
+            </h1>
+            <div class="inline-flex items-center gap-2 mt-2 mb-4 anim-fade-up anim-delay-2">
+                <span class="h-[1px] w-6 bg-white/40"></span>
+                <p class="text-rose-100 text-[11.5px] sm:text-[12.5px] font-bold tracking-[2.5px] uppercase">
+                    Field Service Management
+                </p>
+                <span class="h-[1px] w-6 bg-white/40"></span>
+            </div>
+
+            <p class="text-white/85 text-[13.5px] sm:text-[14.5px] leading-relaxed font-normal max-w-sm drop-shadow-xs anim-fade-up anim-delay-3">
+                Platform terpusat untuk monitoring proyek, agenda kerja, penugasan teknisi, serta pelaporan operasional lapangan secara terintegrasi.
+            </p>
+        </div>
+
+        {{-- Bottom Copyright Note --}}
+        <div class="relative z-10 text-center text-white/60 text-[11.5px] font-medium tracking-wide anim-fade-up anim-delay-4">
+            PT IP Network Solusindo &bull; Field Service Management
+        </div>
+    </div>
+
+    {{-- ======================================================== --}}
+    {{-- Right Half - Modern SaaS Authentication Card              --}}
+    {{-- ======================================================== --}}
+    <div class="lg:w-1/2 min-h-[500px] lg:min-h-screen flex items-center justify-center p-6 sm:p-10 lg:p-14 relative bg-[#F8FAFC]">
+        
+        {{-- Modern Geometric Dot Matrix & Subtle Grid on Right Side --}}
+        <div class="absolute inset-0 pointer-events-none select-none opacity-60">
+            <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="right-dot-pattern" width="24" height="24" patternUnits="userSpaceOnUse">
+                        <circle cx="2" cy="2" r="1" fill="#CBD5E1" />
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#right-dot-pattern)" />
+            </svg>
+        </div>
+
+        {{-- Soft Ambient Radial Lights --}}
+        <div class="absolute top-10 right-10 w-96 h-96 rounded-full bg-red-600/5 blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-10 left-10 w-96 h-96 rounded-full bg-blue-600/5 blur-3xl pointer-events-none"></div>
+
+        {{-- Executive Form Card --}}
+        <div class="w-full max-w-[440px] bg-white border border-[#E2E8F0] rounded-[24px] p-7 sm:p-9 shadow-[0_20px_50px_-15px_rgba(15,23,42,0.08),0_1px_3px_rgba(0,0,0,0.03)] relative z-10 anim-card-enter overflow-hidden">
+            
+            {{-- Flowing Red Shimmer Rim Beam (At Top of Card) --}}
+            <div class="absolute top-0 left-0 right-0 h-[3.5px] card-top-rim"></div>
+
+            {{-- Top Badge Indicator --}}
+            <div class="flex items-center mb-4">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#8F0A0D]/10 text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                    <span>Portal Otentikasi</span>
+                </div>
+            </div>
+
+            {{-- Status Notification --}}
             @if (session('status'))
-                <div style="background:#E4F3EA; border:1px solid #A3D9B5; border-radius:10px; padding:12px 16px; margin-bottom:18px; display:flex; align-items:flex-start; gap:10px;">
-                    <svg style="width:18px; height:18px; color:#1B7A46; flex-shrink:0; margin-top:1px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 mb-5 flex items-start gap-2.5 anim-fade-up">
+                    <svg class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <p style="font-size:13px; color:#1B7A46; margin:0; line-height:1.5;">{{ session('status') }}</p>
+                    <p class="text-[12.5px] text-emerald-800 leading-normal font-medium">{{ session('status') }}</p>
                 </div>
             @endif
 
-            <form action="{{ route('login') }}" method="POST">
+            {{-- Header --}}
+            <div class="mb-6">
+                <h2 class="font-display text-[22px] sm:text-[25px] font-bold text-[#1E293B] tracking-tight">
+                    Masuk ke Akun
+                </h2>
+                <p class="text-[12.5px] text-[#64748B] mt-1 leading-normal">
+                    Silakan masukkan email dan kata sandi Anda untuk melanjutkan ke dashboard.
+                </p>
+            </div>
+
+            <form action="{{ route('login') }}" method="POST" class="space-y-4">
                 @csrf
-                {{-- Field role tersembunyi — nilai default, tidak wajib tampil --}}
+                {{-- Field role default --}}
                 <input type="hidden" name="role" value="direktur">
 
-                {{-- Email --}}
-                <div class="mb-3.5">
-                    <label class="block text-[11.5px] sm:text-[12px] font-bold text-[#75727C] mb-1.5 uppercase tracking-[0.3px]">Email</label>
-                    <input type="email"
-                           name="email"
-                           value="{{ old('email') }}"
-                           autofocus
-                           class="w-full px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[14px] text-[#17151C] outline-none focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all @error('email') border-red-500 @enderror"
-                           placeholder="nama@ipnetwork.co.id">
+                {{-- Email Input --}}
+                <div>
+                    <label class="block text-[11.5px] font-bold text-[#475569] mb-1.5 uppercase tracking-[0.4px]">
+                        Email Perusahaan
+                    </label>
+                    <div class="relative group">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-[#94A3B8] group-focus-within:text-[#8F0A0D] transition-colors duration-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </span>
+                        <input type="email"
+                               name="email"
+                               value="{{ old('email') }}"
+                               autofocus
+                               class="w-full pl-10 pr-3.5 py-2.5 ipnet-input @error('email') border-red-500 @enderror"
+                               placeholder="nama@ipnetwork.co.id"
+                               required>
+                    </div>
                     @error('email')
-                    <p class="text-[12px] text-red-500 mt-1">{{ $message }}</p>
+                    <p class="text-[11.5px] text-red-600 mt-1 font-semibold">{{ $message }}</p>
                     @enderror
                 </div>
 
-                {{-- Password --}}
-                <div class="mb-3.5">
-                    <label class="block text-[11.5px] sm:text-[12px] font-bold text-[#75727C] mb-1.5 uppercase tracking-[0.3px]">Kata Sandi</label>
-                    <div class="relative">
+                {{-- Password Input --}}
+                <div>
+                    <label class="block text-[11.5px] font-bold text-[#475569] mb-1.5 uppercase tracking-[0.4px]">
+                        Kata Sandi
+                    </label>
+                    <div class="relative group">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-[#94A3B8] group-focus-within:text-[#8F0A0D] transition-colors duration-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                        </span>
                         <input type="password"
                                id="password-input"
                                name="password"
-                               class="w-full px-[11px] py-[9px] pr-[40px] rounded-lg border border-[#E7E5E3] text-[14px] text-[#17151C] outline-none focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all @error('password') border-red-500 @enderror"
-                               placeholder="Masukkan password">
+                               class="w-full pl-10 pr-10 py-2.5 ipnet-input @error('password') border-red-500 @enderror"
+                               placeholder="Masukkan kata sandi akun"
+                               required>
                         <button type="button"
                                 onclick="togglePassword()"
-                                style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#948F99; padding:4px;">
-                            <svg id="eye-icon" style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#1E293B] hover:scale-110 active:scale-95 transition-all duration-150 p-1 focus:outline-none"
+                                title="Lihat kata sandi">
+                            <svg id="eye-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                             </svg>
                         </button>
                     </div>
                     @error('password')
-                    <p class="text-[12px] text-red-500 mt-1">{{ $message }}</p>
+                    <p class="text-[11.5px] text-red-600 mt-1 font-semibold">{{ $message }}</p>
                     @enderror
                 </div>
 
                 {{-- Remember & Lupa Password --}}
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
-                    <label class="flex items-center gap-2 text-[12.5px] sm:text-[13px] text-[#3D3A44] cursor-pointer">
-                        <input type="checkbox" name="remember" class="w-4 h-4 rounded border-[#E7E5E3] text-[#C81E2C] focus:ring-[#C81E2C]" checked>
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-1 pb-1">
+                    <label class="flex items-center gap-2 text-[12px] text-[#475569] cursor-pointer select-none font-medium transition-colors hover:text-[#1E293B]">
+                        <input type="checkbox" name="remember" class="w-4 h-4 rounded border-[#CBD5E1] text-[#8F0A0D] focus:ring-[#8F0A0D]" checked>
                         Ingat saya
                     </label>
-                    <a href="{{ route('password.request') }}" class="text-[12.5px] sm:text-[13px] text-[#C81E2C] hover:underline">Lupa password?</a>
+                    <a href="{{ route('password.request') }}" class="text-[12px] text-[#8F0A0D] hover:underline font-bold transition-all hover:text-[#73080A]">Lupa password?</a>
                 </div>
 
-                {{-- Submit --}}
+                {{-- Submit Button with Interactive Micro-Animations --}}
                 <button type="submit"
-                        class="w-full py-[10px] px-[17px] rounded-lg bg-[#C81E2C] text-white font-semibold text-[13.5px] sm:text-[14px] shadow-[0_8px_20px_rgba(200,30,44,0.24)] hover:brightness-105 active:translate-y-[1px] transition-all flex items-center justify-center gap-1.5 wms-btn">
-                    Masuk
+                        class="w-full py-3 px-5 rounded-xl text-white font-bold text-[13.5px] ipnet-login-btn flex items-center justify-center gap-2 cursor-pointer group mt-2">
+                    <span>Masuk ke Dashboard</span>
+                    <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
                 </button>
             </form>
+
+            {{-- Footer --}}
+            <div class="mt-6 pt-5 border-t border-[#E2E8F0] text-center text-[11.5px] text-[#94A3B8]">
+                <span>&copy; {{ date('Y') }} PT IP Network Solusindo</span>
+            </div>
         </div>
     </div>
 </div>
@@ -131,6 +366,23 @@
             icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
         }
     }
+
+    // Interactive mouse spotlight tracking on left branding panel
+    document.addEventListener('DOMContentLoaded', () => {
+        const leftPanel = document.getElementById('brand-left-panel');
+        const spotlight = document.getElementById('spotlight-glow');
+
+        if (leftPanel && spotlight && window.innerWidth >= 1024) {
+            leftPanel.addEventListener('mousemove', (e) => {
+                const rect = leftPanel.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                spotlight.style.left = `${x}px`;
+                spotlight.style.top = `${y}px`;
+            });
+        }
+    });
 </script>
 @endpush
 @endsection

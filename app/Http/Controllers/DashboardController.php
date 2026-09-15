@@ -117,6 +117,8 @@ class DashboardController extends Controller
 
         // ============================================================
         // DATA CHART LOAD PEKERJAAN ENGINEER (Bulan Ini & Minggu Ini)
+        // ============================================================
+        // DATA CHART LOAD PEKERJAAN ENGINEER (Bulan Ini & Minggu Ini)
         // Mendukung Filter Tim Lintas Divisi & Menggabungkan Task + Jadwal Kegiatan
         // ============================================================
         $startOfWeek  = now()->startOfWeek(\Carbon\Carbon::MONDAY)->startOfDay();
@@ -124,8 +126,10 @@ class DashboardController extends Controller
         $startOfMonth = now()->startOfMonth()->startOfDay();
         $endOfMonth   = now()->endOfMonth()->endOfDay();
 
-        $buildEngineerLoad = function($taskList) use ($engineers, $hasTaskUser) {
-            return $engineers->map(function($engineer) use ($taskList, $hasTaskUser) {
+        $activeSchedulesAll = $schedules->where('category', '!=', 'Day Off');
+
+        $buildEngineerLoad = function($taskList, $scheduleList) use ($engineers, $hasTaskUser, $hasScheduleUser) {
+            return $engineers->map(function($engineer) use ($taskList, $scheduleList, $hasTaskUser, $hasScheduleUser) {
                 $engineerTasks = $taskList->filter(function($t) use ($engineer, $hasTaskUser) {
                     if ($t->engineer_id == $engineer->id) return true;
                     if ($hasTaskUser && $t->relationLoaded('engineers') && $t->engineers->contains('id', $engineer->id)) {
@@ -134,10 +138,19 @@ class DashboardController extends Controller
                     return false;
                 });
 
-                // Task aktif & selesai murni dari task & kegiatan
+                $engineerSchedules = $scheduleList->filter(function($s) use ($engineer, $hasScheduleUser) {
+                    if ($s->engineer_id == $engineer->id) return true;
+                    if ($hasScheduleUser && $s->relationLoaded('engineers') && $s->engineers->contains('id', $engineer->id)) {
+                        return true;
+                    }
+                    return false;
+                });
+
+                // Task aktif & kegiatan aktif
                 $activeTasks = $engineerTasks->where('status', '!=', 'Completed')->count();
                 $completedTasks = $engineerTasks->where('status', 'Completed')->count();
-                $totalActive = $activeTasks;
+                $activeSchedules = $engineerSchedules->count();
+                $totalActive = $activeTasks + $activeSchedules;
 
                 $divName = 'Lainnya';
                 if ($engineer->hasRole(['Lead Maintenance', 'Maintenance']) || ($engineer->division && str_contains(strtolower($engineer->division->name), 'maintenance'))) {
@@ -155,7 +168,7 @@ class DashboardController extends Controller
                     'position'  => $engineer->position ?? $engineer->role,
                     'active'    => $totalActive,
                     'tasks'     => $activeTasks,
-                    'schedules' => 0,
+                    'schedules' => $activeSchedules,
                     'dayOff'    => 0,
                     'completed' => $completedTasks,
                     'total'     => $totalActive + $completedTasks,
@@ -163,19 +176,27 @@ class DashboardController extends Controller
             })->values();
         };
 
-        // Data Minggu Ini: Berdasarkan tanggal deadline task pada rentang pekan ini (Senin - Minggu)
+        // Data Minggu Ini: Task & Jadwal pada rentang pekan ini (Senin - Minggu)
         $weekTasks = $tasks->filter(function($t) use ($startOfWeek, $endOfWeek) {
             $taskDate = $t->deadline ?? $t->created_at;
             return $taskDate && $taskDate >= $startOfWeek && $taskDate <= $endOfWeek;
         });
-        $engineerLoadWeekData = $buildEngineerLoad($weekTasks);
+        $weekSchedules = $activeSchedulesAll->filter(function($s) use ($startOfWeek, $endOfWeek) {
+            $schDate = $s->date ? \Carbon\Carbon::parse($s->date) : null;
+            return $schDate && $schDate >= $startOfWeek && $schDate <= $endOfWeek;
+        });
+        $engineerLoadWeekData = $buildEngineerLoad($weekTasks, $weekSchedules);
 
-        // Data Bulan Ini: Berdasarkan tanggal deadline task pada rentang bulan ini (Tanggal 1 - 30/31)
+        // Data Bulan Ini: Task & Jadwal pada rentang bulan ini (Tanggal 1 - 30/31)
         $monthTasks = $tasks->filter(function($t) use ($startOfMonth, $endOfMonth) {
             $taskDate = $t->deadline ?? $t->created_at;
             return $taskDate && $taskDate >= $startOfMonth && $taskDate <= $endOfMonth;
         });
-        $engineerLoadMonthData = $buildEngineerLoad($monthTasks);
+        $monthSchedules = $activeSchedulesAll->filter(function($s) use ($startOfMonth, $endOfMonth) {
+            $schDate = $s->date ? \Carbon\Carbon::parse($s->date) : null;
+            return $schDate && $schDate >= $startOfMonth && $schDate <= $endOfMonth;
+        });
+        $engineerLoadMonthData = $buildEngineerLoad($monthTasks, $monthSchedules);
 
         // Penentuan Filter Tim Default (Doris -> Maintenance, Leader lain -> divisinya, Global -> Semua)
         $canFilterTeams = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasRole('Lead Maintenance');
@@ -357,82 +378,145 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $selectedYear = (int) $request->input('year', date('Y'));
+        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager']);
 
-        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->with(['bdm', 'creator', 'salesActivities']);
         
+        if (!$isManagerial) {
+            $allProjectsQuery->where(function($q) use ($user) {
+                $q->where('sales_name', $user->name)
+                  ->orWhere('created_by', $user->id);
+            });
+        }
+
         $projects = (clone $allProjectsQuery)->whereYear('created_at', $selectedYear)->get();
         if ($projects->isEmpty()) {
             $projects = (clone $allProjectsQuery)->get();
         }
 
-        // 1. Total Project
-        $totalProjectCount = $projects->count();
-        $totalNilaiProject = $projects->sum('contract_value');
+        // 1. Total Pipeline Value (Active Non Won/Lost)
+        $activePipelineProjects = $projects->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost']);
+        $totalPipelineCount = $activePipelineProjects->count();
+        $totalPipelineValue = $activePipelineProjects->sum('contract_value');
 
-        // 2. Opportunity (Opportunity, Draft, Planning)
-        $opportunityProjects = $projects->whereIn('status', ['Opportunity', 'Draft', 'Planning']);
-        $totalOpportunityCount = $opportunityProjects->count();
-        $totalNilaiOpportunity = $opportunityProjects->sum('contract_value');
+        // 2. Weighted Forecast Value (Nilai Tertimbang Probabilitas)
+        $totalWeightedForecast = $activePipelineProjects->sum(function($p) {
+            $prob = $p->win_probability ?? 10;
+            return ($p->contract_value ?? 0) * ($prob / 100);
+        });
 
-        // 3. In Progress (On Progress, In Progress)
-        $inProgressProjects = $projects->whereIn('status', ['On Progress', 'In Progress']);
-        $totalInProgressCount = $inProgressProjects->count();
-        $totalNilaiInProgress = $inProgressProjects->sum('contract_value');
+        // 3. Deals in Negotiation / Approval (Closing Horizon)
+        $negotiationProjects = $projects->whereIn('sales_stage', ['Negotiation', 'Approval', 'Contract / PO / SPK']);
+        $totalNegotiationCount = $negotiationProjects->count();
+        $totalNegotiationValue = $negotiationProjects->sum('contract_value');
 
-        // 4. Pending (Pending, Waiting Approval)
-        $pendingProjects = $projects->whereIn('status', ['Pending', 'Waiting Approval']);
-        $totalPendingCount = $pendingProjects->count();
-        $totalNilaiPending = $pendingProjects->sum('contract_value');
+        // 4. Closed Won YTD
+        $wonProjects = $projects->where('sales_stage', 'Closed Won');
+        $totalWonCount = $wonProjects->count();
+        $totalWonValue = $wonProjects->sum('contract_value');
 
-        // 5. Complete (Completed, Closed Won)
-        $completeProjects = $projects->whereIn('status', ['Completed', 'Closed Won']);
-        $totalCompleteCount = $completeProjects->count();
-        $totalNilaiComplete = $completeProjects->sum('contract_value');
+        // 5. Total Closed Lost & Win Rate Calculation
+        $lostProjects = $projects->where('sales_stage', 'Closed Lost');
+        $totalLostCount = $lostProjects->count();
+        $totalClosedDeals = $totalWonCount + $totalLostCount;
+        $winRate = $totalClosedDeals > 0 ? round(($totalWonCount / $totalClosedDeals) * 100, 1) : ($totalWonCount > 0 ? 100 : 0);
 
-        // Monthly data for chart (Jan - Dec)
-        $monthlyValues = array_fill(1, 12, 0);
+        // 6. CRM Activities Count this Month
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+        $crmActivitiesQuery = \App\Models\SalesActivity::whereBetween('activity_date', [$startOfMonth, $endOfMonth]);
+        $recentActivitiesQuery = \App\Models\SalesActivity::with(['project', 'sales'])->latest('activity_date');
+        
+        if (!$isManagerial) {
+            $crmActivitiesQuery->where(function($q) use ($user) {
+                $q->where('sales_id', $user->id)
+                  ->orWhereHas('project', fn($pq) => $pq->where('sales_name', $user->name)->orWhere('created_by', $user->id));
+            });
+            $recentActivitiesQuery->where(function($q) use ($user) {
+                $q->where('sales_id', $user->id)
+                  ->orWhereHas('project', fn($pq) => $pq->where('sales_name', $user->name)->orWhere('created_by', $user->id));
+            });
+        }
+
+        $crmActivitiesCount = $crmActivitiesQuery->count();
+        $recentActivities = $recentActivitiesQuery->take(6)->get();
+
+        // 7. 8-Stage Funnel Breakdown
+        $stages = \App\Http\Controllers\SalesCrmController::$stages;
+        $stageFunnel = [];
+        foreach ($stages as $stageKey => $meta) {
+            $stageProjects = $projects->where('sales_stage', $stageKey);
+            $stageFunnel[$stageKey] = [
+                'label'          => $meta['label'],
+                'color'          => $meta['color'],
+                'bg'             => $meta['bg'],
+                'default_prob'   => $meta['default_prob'],
+                'count'          => $stageProjects->count(),
+                'value'          => $stageProjects->sum('contract_value'),
+                'weighted_value' => $stageProjects->sum(fn($p) => ($p->contract_value ?? 0) * (($p->win_probability ?? $meta['default_prob']) / 100)),
+            ];
+        }
+
+        // 8. Monthly Forecast vs Actual Trend (Jan - Dec)
+        $monthlyForecast = array_fill(1, 12, 0);
+        $monthlyActual = array_fill(1, 12, 0);
+
         foreach ($projects as $p) {
             $date = $p->created_at ?? $p->start_date;
             if ($date) {
                 $m = (int) \Carbon\Carbon::parse($date)->format('n');
-                $monthlyValues[$m] += (float) ($p->contract_value ?? 0);
+                $val = (float) ($p->contract_value ?? 0);
+                $prob = ($p->win_probability ?? 10) / 100;
+                $monthlyForecast[$m] += ($val * $prob);
+                if ($p->sales_stage === 'Closed Won') {
+                    $monthlyActual[$m] += $val;
+                }
             }
         }
-        $monthlyDataInMillions = array_map(function($val) {
-            return round($val / 1000000, 2); // in Millions (Juta)
-        }, array_values($monthlyValues));
 
-        // Additional informative widgets for rich dashboard
-        $recentProjects        = (clone $allProjectsQuery)->latest()->take(6)->get();
-        $recentClients         = \App\Models\Client::latest()->take(5)->get();
-        $recentVendors         = \App\Models\Vendor::latest()->take(5)->get();
-        $inventoryHighlights   = \App\Models\InventoryItem::orderBy('stock', 'asc')->take(5)->get();
+        $monthlyForecastInMillions = array_map(function($val) {
+            return round($val / 1000000, 2);
+        }, array_values($monthlyForecast));
 
-        // Presales Proposals connection for Sales team
-        $proposalsReadyCount   = (clone $allProjectsQuery)->whereNotNull('proposal_file')->count();
-        $proposalsPendingCount = (clone $allProjectsQuery)->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->count();
-        $recentProposals       = (clone $allProjectsQuery)->whereNotNull('proposal_file')->latest('updated_at')->take(5)->get();
+        $monthlyActualInMillions = array_map(function($val) {
+            return round($val / 1000000, 2);
+        }, array_values($monthlyActual));
+
+        // 9. Priority Deals (High Value & Active in Pipeline)
+        $priorityDeals = (clone $allProjectsQuery)
+            ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
+            ->orderByDesc('contract_value')
+            ->take(6)
+            ->get();
+
+        // 10. Commercial Handover Pending Count
+        $pendingHandoverCount = (clone $allProjectsQuery)
+            ->whereIn('sales_stage', ['Contract / PO / SPK', 'Closed Won'])
+            ->where('commercial_handover_status', 'Draft')
+            ->count();
 
         $data = [
-            'selectedYear'          => $selectedYear,
-            'totalProjectCount'     => $totalProjectCount,
-            'totalNilaiProject'     => $totalNilaiProject,
-            'totalOpportunityCount' => $totalOpportunityCount,
-            'totalNilaiOpportunity' => $totalNilaiOpportunity,
-            'totalInProgressCount'  => $totalInProgressCount,
-            'totalNilaiInProgress'  => $totalNilaiInProgress,
-            'totalPendingCount'     => $totalPendingCount,
-            'totalNilaiPending'     => $totalNilaiPending,
-            'totalCompleteCount'    => $totalCompleteCount,
-            'totalNilaiComplete'    => $totalNilaiComplete,
-            'proposalsReadyCount'   => $proposalsReadyCount,
-            'proposalsPendingCount' => $proposalsPendingCount,
-            'recentProposals'       => $recentProposals,
-            'monthlyChartData'      => $monthlyDataInMillions,
-            'recentProjects'        => $recentProjects,
-            'recentClients'         => $recentClients,
-            'recentVendors'         => $recentVendors,
-            'inventoryHighlights'   => $inventoryHighlights,
+            'selectedYear'               => $selectedYear,
+            'totalPipelineCount'         => $totalPipelineCount,
+            'totalPipelineValue'         => $totalPipelineValue,
+            'totalWeightedForecast'      => $totalWeightedForecast,
+            'totalNegotiationCount'      => $totalNegotiationCount,
+            'totalNegotiationValue'      => $totalNegotiationValue,
+            'totalWonCount'              => $totalWonCount,
+            'totalWonValue'              => $totalWonValue,
+            'totalLostCount'             => $totalLostCount,
+            'winRate'                    => $winRate,
+            'crmActivitiesCount'         => $crmActivitiesCount,
+            'recentActivities'           => $recentActivities,
+            'stageFunnel'                => $stageFunnel,
+            'monthlyForecastChart'       => $monthlyForecastInMillions,
+            'monthlyActualChart'         => $monthlyActualInMillions,
+            'priorityDeals'              => $priorityDeals,
+            'pendingHandoverCount'       => $pendingHandoverCount,
+            'salesTeam'                  => \App\Http\Controllers\BdmController::$salesTeam,
+            'stages'                     => $stages,
+            'isManagerial'               => $isManagerial,
         ];
 
         return view('sales.dashboard', $data);
@@ -444,7 +528,8 @@ class DashboardController extends Controller
         $selectedYear = (int) $request->input('year', date('Y'));
 
         // 1. Ambil seluruh data proyek/tender pre-sales
-        $allTendersQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+        $allTendersQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->with(['division', 'creator']);
         $tendersYear = (clone $allTendersQuery)->whereYear('created_at', $selectedYear)->get();
         if ($tendersYear->isEmpty()) {
             $tendersYear = (clone $allTendersQuery)->get();
@@ -456,10 +541,20 @@ class DashboardController extends Controller
         $wonTenders             = $tendersYear->whereIn('status', ['On Progress', 'Completed', 'Closed Won'])->values();
 
         $totalTenderCount        = $tendersYear->count();
-        $totalProposalNeeded     = $pendingProposalTenders->count();
+        $totalProposalNeeded     = $tendersYear->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->count();
+        $proposalsReadyCount     = $tendersYear->whereNotNull('proposal_file')->count();
         $totalPipelineValue      = $pendingProposalTenders->sum('contract_value');
         $totalReviewValue        = $inReviewTenders->sum('contract_value');
         $totalWonValue           = $wonTenders->sum('contract_value');
+        $technicalWinRate        = $totalTenderCount > 0 ? round(($wonTenders->count() / $totalTenderCount) * 100, 1) : 0;
+
+        // Lifecycle Stages Breakdown
+        $lifecycleStats = [
+            'requirement' => $tendersYear->whereIn('status', ['Opportunity', 'Draft'])->count(),
+            'sizing'      => $tendersYear->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->count(),
+            'proposal'    => $proposalsReadyCount,
+            'handover'    => $wonTenders->count(),
+        ];
 
         // Monthly data for chart (Jan - Dec)
         $monthlyValues = array_fill(1, 12, 0);
@@ -481,8 +576,8 @@ class DashboardController extends Controller
             round($totalWonValue / 1000000, 2),
         ];
 
-        // 3. Ringkasan Request Proposal Terbaru (5 items)
-        $recentRequests = $pendingProposalTenders->take(5);
+        // 3. Ringkasan Request Proposal Terbaru (6 items)
+        $recentRequests = $tendersYear->sortByDesc('updated_at')->take(6)->values();
 
         // 4. Jadwal Demo / POC Terdekat (4 items)
         $pocSchedules = Schedule::with(['project', 'engineer'])
@@ -496,9 +591,12 @@ class DashboardController extends Controller
             'selectedYear'           => $selectedYear,
             'totalTenderCount'       => $totalTenderCount,
             'totalProposalNeeded'    => $totalProposalNeeded,
+            'proposalsReadyCount'    => $proposalsReadyCount,
             'totalPipelineValue'     => $totalPipelineValue,
             'totalReviewValue'       => $totalReviewValue,
             'totalWonValue'          => $totalWonValue,
+            'technicalWinRate'       => $technicalWinRate,
+            'lifecycleStats'         => $lifecycleStats,
             'monthlyChartData'       => $monthlyDataInMillions,
             'distributionData'       => $distributionData,
             'recentRequests'         => $recentRequests,
@@ -636,7 +734,8 @@ class DashboardController extends Controller
         $user = auth()->user();
         $selectedYear = (int) $request->input('year', date('Y'));
 
-        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->with(['division', 'creator']);
         
         $projects = (clone $allProjectsQuery)->whereYear('created_at', $selectedYear)->get();
         if ($projects->isEmpty()) {
@@ -664,6 +763,16 @@ class DashboardController extends Controller
         $wonProjects = $projects->whereIn('status', ['Completed', 'Closed Won']);
         $wonProjectsCount = $wonProjects->count();
 
+        // 5. Technical Handover 6 Pillars Validation
+        $handoverPillars = [
+            'approved_solution' => $proposalsReadyCount,
+            'hld_lld_design'    => $proposalsReadyCount,
+            'boq_bom_specs'     => $projects->where('contract_value', '>', 0)->count(),
+            'feasibility_risk'  => $totalProjectsCount,
+            'assumptions'       => $proposalsReadyCount,
+            'exclusions'        => $proposalsReadyCount,
+        ];
+
         // Monthly Trend Desain Arsitektur
         $monthlyValues = array_fill(1, 12, 0);
         foreach ($projects as $p) {
@@ -679,19 +788,19 @@ class DashboardController extends Controller
 
         // Domain Arsitektur Breakdown
         $domainCounts = [
-            'Enterprise Campus Network'   => 0,
-            'Next-Gen Security & Firewall' => 0,
+            'Enterprise Campus Network'    => 0,
+            'Next-Gen Security & SOC'      => 0,
             'Data Center & Server Storage' => 0,
-            'SD-WAN & Cloud Infrastructure'=> 0,
+            'SD-WAN & Cloud Infra'         => 0,
         ];
         foreach ($projects as $p) {
             $pNameLower = strtolower($p->name . ' ' . ($p->description ?? ''));
             if (str_contains($pNameLower, 'firewall') || str_contains($pNameLower, 'fortinet') || str_contains($pNameLower, 'security') || str_contains($pNameLower, 'soc')) {
-                $domainCounts['Next-Gen Security & Firewall'] += 1;
+                $domainCounts['Next-Gen Security & SOC'] += 1;
             } elseif (str_contains($pNameLower, 'server') || str_contains($pNameLower, 'storage') || str_contains($pNameLower, 'data center') || str_contains($pNameLower, 'dell') || str_contains($pNameLower, 'nutanix')) {
                 $domainCounts['Data Center & Server Storage'] += 1;
             } elseif (str_contains($pNameLower, 'sd-wan') || str_contains($pNameLower, 'cloud') || str_contains($pNameLower, 'wan') || str_contains($pNameLower, 'cisco')) {
-                $domainCounts['SD-WAN & Cloud Infrastructure'] += 1;
+                $domainCounts['SD-WAN & Cloud Infra'] += 1;
             } else {
                 $domainCounts['Enterprise Campus Network'] += 1;
             }
@@ -717,6 +826,7 @@ class DashboardController extends Controller
             'totalMandays'          => $totalMandays,
             'activeProjectsCount'   => $activeProjectsCount,
             'wonProjectsCount'      => $wonProjectsCount,
+            'handoverPillars'       => $handoverPillars,
             'monthlyChartData'      => $monthlyDataInMillions,
             'domainChartData'       => $domainData,
             'domainLabels'          => array_keys($domainCounts),

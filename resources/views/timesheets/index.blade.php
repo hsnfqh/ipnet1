@@ -1,19 +1,63 @@
 @extends('layouts.app')
 
-@section('title', 'Timesheet & Log Aktivitas')
+@section('title', 'Timesheet & Log Aktivitas - PT IP Network Solusindo')
+
+@push('styles')
+<style>
+    .ipnet-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ipnet-metric-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        padding: 16px 18px;
+        position: relative;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        transition: all 0.2s ease;
+    }
+    .ipnet-metric-card:hover {
+        transform: translateY(-2px);
+        border-color: #CBD5E1;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+    .ipnet-badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #8F0A0D;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    @keyframes fadeUpStagger {
+        0% { opacity: 0; transform: translateY(14px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .anim-fade-up {
+        animation: fadeUpStagger 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .anim-delay-1 { animation-delay: 0.06s !important; }
+    .anim-delay-2 { animation-delay: 0.12s !important; }
+    .anim-delay-3 { animation-delay: 0.18s !important; }
+</style>
+@endpush
 
 @section('content')
-<div class="flex h-screen overflow-hidden" x-data="timesheetApp()">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" x-data="timesheetApp()">
     @include('components.sidebar')
 
     <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Timesheet & Log Aktivitas'])
 
-        <div class="p-4 sm:p-5 lg:p-[26px] animate-fade-in space-y-4">
+        <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto">
             
             {{-- Toast Feedback Alerts --}}
             @if(session('success'))
-                <div class="p-3.5 px-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] flex items-center justify-between shadow-sm animate-fade-in">
+                <div class="p-3.5 px-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] flex items-center justify-between shadow-sm anim-fade-up">
                     <div class="flex items-center gap-2.5">
                         <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -24,7 +68,7 @@
             @endif
 
             @if(session('error'))
-                <div class="p-3.5 px-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-[13px] flex items-center justify-between shadow-sm animate-fade-in">
+                <div class="p-3.5 px-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-[13px] flex items-center justify-between shadow-sm anim-fade-up">
                     <div class="flex items-center gap-2.5">
                         <svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -35,79 +79,70 @@
             @endif
 
             <!-- 1. STATS METRIC CARDS -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 anim-fade-up anim-delay-1">
                 {{-- Card 1: Jam Minggu Ini --}}
-                <div class="wms-card p-4 sm:p-5 relative overflow-hidden bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
-                    <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#C81E2C] to-[#991B1B]"></div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">
+                <div class="ipnet-metric-card group block">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">
                             {{ $isLead ? 'Jam Kerja Tim (Minggu Ini)' : 'Jam Kerja (Minggu Ini)' }}
                         </span>
-                        <div class="w-8 h-8 rounded-lg bg-[#FDF1F2] flex items-center justify-center text-[#C81E2C]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <div class="w-7 h-7 rounded-lg bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center group-hover:bg-[#8F0A0D] group-hover:text-white transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-baseline gap-1.5">
-                        <span class="font-display text-[28px] sm:text-[32px] font-bold text-[#17151C] leading-none tracking-tight">{{ $totalWeekHours }}</span>
-                        <span class="text-[13px] font-semibold text-[#75727C]">Jam</span>
-                    </div>
+                    <div class="text-[24px] font-extrabold text-[#292929] tracking-tight">{{ $totalWeekHours }} <span class="text-[12.5px] font-semibold text-[#75727C]">Jam</span></div>
+                    <p class="text-[11px] text-[#75727C] mt-0.5">Akumulasi pekan berjalan</p>
                 </div>
 
                 {{-- Card 2: Jam Bulan Ini --}}
-                <div class="wms-card p-4 sm:p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">
+                <div class="ipnet-metric-card group block">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">
                             {{ $isLead ? 'Jam Kerja Tim (Bulan Ini)' : 'Jam Kerja (Bulan Ini)' }}
                         </span>
-                        <div class="w-8 h-8 rounded-lg bg-[#F1F0EE] flex items-center justify-center text-[#3D3A44]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-baseline gap-1.5">
-                        <span class="font-display text-[28px] sm:text-[32px] font-bold text-[#17151C] leading-none tracking-tight">{{ $totalMonthHours }}</span>
-                        <span class="text-[13px] font-semibold text-[#75727C]">Jam</span>
-                    </div>
+                    <div class="text-[24px] font-extrabold text-[#292929] tracking-tight">{{ $totalMonthHours }} <span class="text-[12.5px] font-semibold text-[#75727C]">Jam</span></div>
+                    <p class="text-[11px] text-[#75727C] mt-0.5">Total jam kerja bulanan</p>
                 </div>
 
                 {{-- Card 3: Total Log Aktivitas --}}
-                <div class="wms-card p-4 sm:p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">Total Log Aktivitas</span>
-                        <div class="w-8 h-8 rounded-lg bg-[#F1F0EE] flex items-center justify-center text-[#3D3A44]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <div class="ipnet-metric-card group block">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Total Log Aktivitas</span>
+                        <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-baseline gap-1.5">
-                        <span class="font-display text-[28px] sm:text-[32px] font-bold text-[#17151C] leading-none tracking-tight">{{ $totalLogsCount }}</span>
-                        <span class="text-[13px] font-semibold text-[#75727C]">Log</span>
-                    </div>
+                    <div class="text-[24px] font-extrabold text-[#292929] tracking-tight">{{ $totalLogsCount }} <span class="text-[12.5px] font-semibold text-[#75727C]">Log</span></div>
+                    <p class="text-[11px] text-[#75727C] mt-0.5">Catatan aktivitas terdaftar</p>
                 </div>
 
                 {{-- Card 4: Total Jam Lembur --}}
-                <div class="wms-card p-4 sm:p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">Total Jam Lembur</span>
-                        <div class="w-8 h-8 rounded-lg bg-[#FEF3C7] flex items-center justify-center text-[#B45309]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <div class="ipnet-metric-card group block">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Total Jam Lembur</span>
+                        <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                             </svg>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-baseline gap-1.5">
-                        <span class="font-display text-[28px] sm:text-[32px] font-bold text-[#B45309] leading-none tracking-tight">{{ $totalOvertimeHours }}</span>
-                        <span class="text-[13px] font-semibold text-[#75727C]">Jam</span>
-                    </div>
+                    <div class="text-[24px] font-extrabold text-amber-600 tracking-tight">{{ $totalOvertimeHours }} <span class="text-[12.5px] font-semibold text-[#75727C]">Jam</span></div>
+                    <p class="text-[11px] text-[#75727C] mt-0.5">Waktu lembur tervalidasi</p>
                 </div>
             </div>
 
-            <!-- 2. UNIFIED ACTION & FILTER BAR (Clean, Proportional, No Floating Buttons) -->
-            <div class="wms-card p-4 sm:p-5 bg-white space-y-3.5">
+            <!-- 2. UNIFIED ACTION & FILTER BAR -->
+            <div class="ipnet-card p-5 sm:p-6 space-y-4 anim-fade-up anim-delay-2">
                 
                 {{-- Form Filter Terpadu --}}
                 <form method="GET" action="{{ route('timesheets.index') }}" id="timesheetFilterForm" class="space-y-3.5">
@@ -172,12 +207,11 @@
                             </div>
                             @endif
 
-                            {{-- Tombol Tambah Log (Disembunyikan untuk Direktur & Group Leader) --}}
                             @if(!auth()->user()->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'Lead Divisi']))
                             <button type="button" 
                                     @click="openAddModal()"
-                                    class="px-4 py-2.5 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white text-[13px] font-semibold transition flex items-center gap-2 shadow-[0_4px_14px_rgba(200,30,44,0.25)] cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    class="btn-ipnet-gradient px-4 py-2.5 rounded-xl text-[13px] font-bold transition flex items-center gap-2 shadow-md cursor-pointer">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                                 </svg>
                                 Catat Log Kerja
@@ -188,13 +222,13 @@
                     </div>
 
                     {{-- Row 2: Filter Selectors & Date Range Bar --}}
-                    <div class="pt-3 border-t border-[#EFEDEB] flex flex-wrap items-center justify-between gap-3">
+                    <div class="pt-3 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3">
                         
                         <div class="flex flex-wrap items-center gap-2.5 flex-1">
                             {{-- Filter Engineer (Hanya Lead Engineer) --}}
                             @if($isLead)
                                 <div class="min-w-[150px] flex-1 sm:flex-initial">
-                                    <select name="engineer_id" onchange="this.form.submit()" class="w-full py-2 px-3 text-[12.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C] cursor-pointer">
+                                    <select name="engineer_id" onchange="this.form.submit()" class="w-full py-2 px-3 text-[12.5px] bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B] cursor-pointer">
                                         <option value="">Semua Engineer</option>
                                         @foreach($engineers as $eng)
                                             <option value="{{ $eng->id }}" {{ request('engineer_id') == $eng->id ? 'selected' : '' }}>
@@ -207,7 +241,7 @@
 
                             {{-- Filter Project --}}
                             <div class="min-w-[150px] flex-1 sm:flex-initial">
-                                <select name="project_id" onchange="this.form.submit()" class="w-full py-2 px-3 text-[12.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C] cursor-pointer">
+                                <select name="project_id" onchange="this.form.submit()" class="w-full py-2 px-3 text-[12.5px] bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B] cursor-pointer">
                                     <option value="">Semua Project</option>
                                     @foreach($projects as $p)
                                         <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>
@@ -219,44 +253,44 @@
 
                             {{-- Filter Kategori --}}
                             <div class="min-w-[140px] flex-1 sm:flex-initial">
-                                <select name="category" onchange="this.form.submit()" class="w-full py-2 px-3 text-[12.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C] cursor-pointer">
+                                <select name="category" onchange="this.form.submit()" class="w-full py-2 px-3 text-[12.5px] bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B] cursor-pointer">
                                     <option value="">Semua Kategori</option>
                                     <option value="On-Site" {{ request('category') == 'On-Site' ? 'selected' : '' }}>On-Site</option>
                                     <option value="Remote" {{ request('category') == 'Remote' ? 'selected' : '' }}>Remote</option>
-                                    <option value="Overtime" {{ request('category') == 'Overtime' ? 'selected' : '' }}>Lembur</option>
                                     <option value="Maintenance" {{ request('category') == 'Maintenance' ? 'selected' : '' }}>Maintenance</option>
+                                    <option value="Meeting" {{ request('category') == 'Meeting' ? 'selected' : '' }}>Meeting</option>
                                 </select>
                             </div>
 
                             {{-- Rentang Tanggal --}}
-                            <div class="flex items-center gap-1.5 bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl px-3 py-1.5">
-                                <svg class="w-3.5 h-3.5 text-[#75727C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="flex items-center gap-1.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl px-3 py-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
                                 <input type="date" 
                                        name="date_start" 
                                        value="{{ request('date_start') }}" 
                                        title="Dari Tanggal"
-                                       class="py-0.5 px-1 text-[12.5px] bg-transparent border-none focus:outline-none text-[#17151C] cursor-pointer">
-                                <span class="text-[#948F99] text-[12px]">s/d</span>
+                                       class="py-0.5 px-1 text-[12.5px] bg-transparent border-none focus:outline-none text-[#1E293B] cursor-pointer">
+                                <span class="text-[#94A3B8] text-[12px]">s/d</span>
                                 <input type="date" 
                                        name="date_end" 
                                        value="{{ request('date_end') }}" 
                                        title="Sampai Tanggal"
-                                       class="py-0.5 px-1 text-[12.5px] bg-transparent border-none focus:outline-none text-[#17151C] cursor-pointer">
+                                       class="py-0.5 px-1 text-[12.5px] bg-transparent border-none focus:outline-none text-[#1E293B] cursor-pointer">
                             </div>
                         </div>
 
                         {{-- Tombol Terapkan Tanggal & Reset --}}
                         <div class="flex items-center gap-2">
                             <button type="submit" 
-                                    class="px-3.5 py-2 rounded-xl bg-[#3D3A44] hover:bg-[#17151C] text-white text-[12.5px] font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                                    class="px-3.5 py-2 rounded-xl bg-[#1E293B] hover:bg-[#0F172A] text-white text-[12.5px] font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
                                 Terapkan
                             </button>
 
                             @if(request()->hasAny(['search', 'engineer_id', 'project_id', 'category', 'date_start', 'date_end']))
                                 <a href="{{ route('timesheets.index') }}" 
-                                   class="px-3 py-2 rounded-xl bg-[#F1F0EE] hover:bg-[#E7E5E3] text-[#75727C] hover:text-[#17151C] text-[12.5px] font-medium transition"
+                                   class="px-3 py-2 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] hover:text-[#1E293B] text-[12.5px] font-medium transition"
                                    title="Reset Semua Filter">
                                     Reset
                                 </a>
@@ -269,11 +303,11 @@
             </div>
 
             <!-- 3. TIMESHEET TABLE (Clean, Spacious, Indonesian Days) -->
-            <div class="wms-card overflow-hidden bg-white shadow-sm border border-[#E7E5E3]">
+            <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-3">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="border-b border-[#EFEDEB] bg-[#F8F7F6] text-[11px] font-bold text-[#75727C] uppercase tracking-wider">
+                            <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11.5px] font-bold text-[#475569] uppercase tracking-wider">
                                 <th class="py-3.5 px-4 text-center w-12">No</th>
                                 <th class="py-3.5 px-4 w-36">Tanggal</th>
                                 @if($isLead)
@@ -287,7 +321,7 @@
                                 <th class="py-3.5 px-4 text-center w-20">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-[#EFEDEB] text-[13px]">
+                        <tbody class="divide-y divide-[#F1F5F9] text-[13px]">
                             @php
                                 $daysIndo = [
                                     'Sunday'    => 'Minggu',
@@ -417,57 +451,9 @@
                 </div>
 
                 {{-- Pagination --}}
-                @if($timesheets->hasPages() || $timesheets->total() > 0)
-                    <div class="p-3.5 sm:px-5 sm:py-3.5 border-t border-[#EFEDEB] flex flex-col sm:flex-row items-center justify-between gap-3 text-[12.5px] text-[#75727C] bg-white">
-                        <div class="text-center sm:text-left">
-                            Menampilkan <span class="font-medium text-[#17151C]">{{ $timesheets->firstItem() ?? 0 }}</span> &ndash; <span class="font-medium text-[#17151C]">{{ $timesheets->lastItem() ?? 0 }}</span> dari <span class="font-medium text-[#17151C]">{{ $timesheets->total() }}</span> log
-                        </div>
-                        @if($timesheets->hasPages())
-                            <div class="flex items-center gap-1">
-                                {{-- Previous Page Link --}}
-                                @if ($timesheets->onFirstPage())
-                                    <button disabled class="w-7 h-7 rounded-md border border-[#E7E5E3] text-[#3D3A44] opacity-30 cursor-not-allowed flex items-center justify-center">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-                                        </svg>
-                                    </button>
-                                @else
-                                    <a href="{{ $timesheets->previousPageUrl() }}" class="w-7 h-7 rounded-md border border-[#E7E5E3] hover:bg-[#F1F0EE] text-[#3D3A44] flex items-center justify-center transition">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-                                        </svg>
-                                    </a>
-                                @endif
-
-                                {{-- Pagination Elements --}}
-                                @foreach ($timesheets->getUrlRange(1, $timesheets->lastPage()) as $page => $url)
-                                    @if ($page == $timesheets->currentPage())
-                                        <span class="w-7 h-7 rounded-md bg-[#AF1424] text-white border border-[#AF1424] text-[12px] font-bold flex items-center justify-center">
-                                            {{ $page }}
-                                        </span>
-                                    @else
-                                        <a href="{{ $url }}" class="w-7 h-7 rounded-md border border-[#E7E5E3] hover:bg-[#F1F0EE] text-[#17151C] text-[12px] font-medium flex items-center justify-center transition">
-                                            {{ $page }}
-                                        </a>
-                                    @endif
-                                @endforeach
-
-                                {{-- Next Page Link --}}
-                                @if ($timesheets->hasMorePages())
-                                    <a href="{{ $timesheets->nextPageUrl() }}" class="w-7 h-7 rounded-md border border-[#E7E5E3] hover:bg-[#F1F0EE] text-[#3D3A44] flex items-center justify-center transition">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                    </a>
-                                @else
-                                    <button disabled class="w-7 h-7 rounded-md border border-[#E7E5E3] text-[#3D3A44] opacity-30 cursor-not-allowed flex items-center justify-center">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                    </button>
-                                @endif
-                            </div>
-                        @endif
+                @if($timesheets->hasPages())
+                    <div class="p-3.5 sm:px-5 sm:py-3.5 border-t border-[#EFEDEB] bg-white">
+                        {{ $timesheets->links() }}
                     </div>
                 @endif
             </div>
@@ -572,9 +558,9 @@
             <div class="bg-white rounded-2xl w-[560px] max-w-full overflow-hidden shadow-[0_20px_60px_rgba(14,13,18,0.2)] text-left animate-fade-in-up">
                 
                 {{-- Modal Header --}}
-                <div class="px-6 py-4 border-b border-[#EFEDEB] flex items-center justify-between bg-[#FBFBFA]">
-                    <h3 class="font-display text-[16px] font-bold text-[#17151C]" x-text="isEditing ? 'Edit Log Aktivitas Kerja' : 'Catat Log Aktivitas Kerja Baru'"></h3>
-                    <button type="button" @click="formModalOpen = false" class="text-[#75727C] hover:text-[#17151C] p-1 rounded-lg hover:bg-[#F1F0EE] transition cursor-pointer">
+                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC]">
+                    <h3 class="text-[16px] font-bold text-[#1E293B]" x-text="isEditing ? 'Edit Log Aktivitas Kerja' : 'Catat Log Aktivitas Kerja Baru'"></h3>
+                    <button type="button" @click="formModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -582,7 +568,7 @@
                 </div>
 
                 {{-- Form Body --}}
-                <form :action="isEditing ? `/timesheets/${formData.id}` : '{{ route('timesheets.store') }}'" method="POST" class="p-6 space-y-4">
+                <form :action="isEditing ? `/timesheets/${formData.id}` : '{{ route('timesheets.store') }}'" method="POST" class="p-6 flex flex-col gap-4">
                     @csrf
                     <template x-if="isEditing">
                         <input type="hidden" name="_method" value="PUT">
@@ -591,8 +577,8 @@
                     {{-- Engineer Selector (Lead Only) --}}
                     @if($isLead)
                         <div>
-                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Engineer Pelaksana</label>
-                            <select name="engineer_id" x-model="formData.engineer_id" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                            <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Engineer Pelaksana</label>
+                            <select name="engineer_id" x-model="formData.engineer_id" class="w-full py-2.5 px-3.5 text-[13.5px] font-semibold bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B]">
                                 @foreach($engineers as $eng)
                                     <option value="{{ $eng->id }}">{{ $eng->name }} ({{ $eng->role_label }})</option>
                                 @endforeach
@@ -603,8 +589,8 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {{-- Project --}}
                         <div>
-                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Project Terkait</label>
-                            <select name="project_id" x-model="formData.project_id" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                            <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Project Terkait</label>
+                            <select name="project_id" x-model="formData.project_id" class="w-full py-2.5 px-3.5 text-[13.5px] font-semibold bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B]">
                                 <option value="">-- Tanpa Project / Rutin --</option>
                                 @foreach($projects as $p)
                                     <option value="{{ $p->id }}">{{ $p->name }}</option>
@@ -614,8 +600,8 @@
 
                         {{-- Task --}}
                         <div>
-                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Task Spesifik (Opsional)</label>
-                            <select name="task_id" x-model="formData.task_id" class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                            <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Task Spesifik (Opsional)</label>
+                            <select name="task_id" x-model="formData.task_id" class="w-full py-2.5 px-3.5 text-[13.5px] font-semibold bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B]">
                                 <option value="">-- Pilih Task (Bila ada) --</option>
                                 @foreach($myTasks as $task)
                                     <option value="{{ $task->id }}">{{ $task->title }}</option>
@@ -627,23 +613,23 @@
                     {{-- Tanggal, Jam Mulai & Jam Selesai --}}
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Tanggal</label>
-                            <input type="date" name="date" x-model="formData.date" required class="w-full py-2.5 px-3 text-[13px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                            <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Tanggal</label>
+                            <input type="date" name="date" x-model="formData.date" required class="w-full py-2.5 px-3 text-[13px] font-semibold bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B]">
                         </div>
                         <div>
-                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Jam Mulai</label>
-                            <input type="time" name="start_time" x-model="formData.start_time" required class="w-full py-2.5 px-3 text-[13px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                            <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Jam Mulai</label>
+                            <input type="time" name="start_time" x-model="formData.start_time" required class="w-full py-2.5 px-3 text-[13px] font-semibold bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B]">
                         </div>
                         <div>
-                            <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Jam Selesai</label>
-                            <input type="time" name="end_time" x-model="formData.end_time" required class="w-full py-2.5 px-3 text-[13px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                            <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Jam Selesai</label>
+                            <input type="time" name="end_time" x-model="formData.end_time" required class="w-full py-2.5 px-3 text-[13px] font-semibold bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B]">
                         </div>
                     </div>
 
                     {{-- Kategori Pekerjaan --}}
                     <div>
-                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Kategori Pekerjaan</label>
-                        <select name="category" x-model="formData.category" required class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                        <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Kategori Pekerjaan</label>
+                        <select name="category" x-model="formData.category" required class="w-full py-2.5 px-3.5 text-[13.5px] font-semibold bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B]">
                             <option value="On-Site">On-Site / Lapangan</option>
                             <option value="Remote">Remote / Konfigurasi</option>
                             <option value="Overtime">Lembur / Overtime</option>
@@ -653,31 +639,31 @@
 
                     {{-- Uraian Aktivitas --}}
                     <div>
-                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Uraian Aktivitas Pekerjaan *</label>
+                        <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Uraian Aktivitas Pekerjaan *</label>
                         <textarea name="activity" 
                                   x-model="formData.activity" 
                                   rows="3" 
                                   required 
                                   placeholder="Jelaskan secara ringkas pekerjaan yang Anda kerjakan..."
-                                  class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]"></textarea>
+                                  class="w-full py-2.5 px-3.5 text-[13.5px] bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B]"></textarea>
                     </div>
 
                     {{-- Catatan / Kendala --}}
                     <div>
-                        <label class="block text-[12px] font-bold text-[#75727C] uppercase tracking-wider mb-1.5">Catatan Tambahan / Kendala (Opsional)</label>
+                        <label class="block text-[11.5px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5">Catatan Tambahan / Kendala (Opsional)</label>
                         <input type="text" 
                                name="notes" 
                                x-model="formData.notes" 
                                placeholder="Contoh: Menunggu material fiber optik tambahan, konfigurasi switch selesai..."
-                               class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]">
+                               class="w-full py-2.5 px-3.5 text-[13.5px] bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B]">
                     </div>
 
                     {{-- Actions --}}
-                    <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#EFEDEB]">
-                        <button type="button" @click="formModalOpen = false" class="py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                    <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0]">
+                        <button type="button" @click="formModalOpen = false" class="py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-semibold text-[13.5px] hover:bg-[#F8FAFC] transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="py-2.5 px-5 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white font-semibold text-[13.5px] transition shadow-sm cursor-pointer">
+                        <button type="submit" class="btn-ipnet-gradient py-2.5 px-5 rounded-xl font-bold text-[13.5px] transition shadow-md cursor-pointer">
                             Simpan Log
                         </button>
                     </div>

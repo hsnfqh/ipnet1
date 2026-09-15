@@ -52,7 +52,7 @@
                                 {{ $user->initials }}
                             </div>
                             <div style="min-width:0; flex:1;">
-                                <h2 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:#17151C; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $user->name }}</h2>
+                                <h2 style="margin:0; font-family:'Inter',sans-serif; font-size:18px; font-weight:700; color:#17151C; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $user->name }}</h2>
                                 <p style="margin:2px 0 6px; font-size:13px; color:#75727C;">{{ $user->position ?? $user->role_label }}</p>
                                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                     <span style="font-size:11px; font-weight:700; background:#F1F0EE; color:#3D3A44; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.4px; display:inline-block;">
@@ -140,7 +140,7 @@
                         {{-- Header Kartu --}}
                         <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding-bottom:16px; margin-bottom:20px; border-bottom:1px solid #EFEDEB;">
                             <div>
-                                <h3 style="margin:0 0 3px; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:700; color:#17151C;">Keamanan & Ubah Password</h3>
+                                <h3 style="margin:0 0 3px; font-family:'Inter',sans-serif; font-size:17px; font-weight:700; color:#17151C;">Keamanan & Ubah Password</h3>
                                 <p style="margin:0; font-size:12.5px; color:#75727C;">Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan data.</p>
                             </div>
                             <div style="width:36px; height:36px; border-radius:50%; background:#F1F0EE; color:#17151C; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
@@ -219,7 +219,7 @@
                     {{-- Header Kartu --}}
                     <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding-bottom:16px; margin-bottom:20px; border-bottom:1px solid #EFEDEB;">
                         <div>
-                            <h3 style="margin:0 0 3px; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:700; color:#17151C;">Sertifikasi Keahlian</h3>
+                            <h3 style="margin:0 0 3px; font-family:'Inter',sans-serif; font-size:17px; font-weight:700; color:#17151C;">Sertifikasi Keahlian</h3>
                             <p style="margin:0; font-size:12.5px; color:#75727C;">Upload dokumen sertifikat keahlian Anda untuk diverifikasi oleh Team Leader divisi Anda</p>
                         </div>
                         <span style="background:#FDF1F2; color:#C81E2C; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; flex-shrink:0;">
@@ -428,7 +428,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
             </div>
-            <h3 style="margin:0 0 6px; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:700; color:#17151C;">Yakin Hapus Sertifikasi?</h3>
+            <h3 style="margin:0 0 6px; font-family:'Inter',sans-serif; font-size:17px; font-weight:700; color:#17151C;">Yakin Hapus Sertifikasi?</h3>
             <p style="margin:0 0 20px; font-size:13px; color:#75727C; line-height:1.5;" x-text="'Sertifikat &quot;' + deletingCertName + '&quot; akan dihapus.'"></p>
             <div style="display:flex; gap:10px;">
                 <form :action="'/profile/certification/' + deletingCertId" method="POST" style="flex:1; margin:0;">

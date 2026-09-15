@@ -406,7 +406,7 @@
                     <!-- Modal Header -->
                     <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 22px; background:white; border-bottom:1px solid #E7E5E3; flex-shrink:0;">
                         <div>
-                            <h3 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:600; color:#17151C;">
+                            <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:17px; font-weight:600; color:#17151C;">
                                 Sertifikasi <span x-text="viewingUser.name" style="color:#C81E2C;"></span>
                             </h3>
                             <p style="margin:2px 0 0; font-size:12px; color:#75727C;" x-text="(viewingUser.certifications ? viewingUser.certifications.length : 0) + ' dokumen sertifikat terdaftar'"></p>

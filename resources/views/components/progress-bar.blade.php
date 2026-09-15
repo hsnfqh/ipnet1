@@ -1,10 +1,11 @@
 @php
     $progress = min(100, max(0, $value));
     $gradient = $progress === 100 
-        ? '#1B7A46' 
-        : 'linear-gradient(90deg, #AF1424, #D62E3C)';
+        ? 'linear-gradient(90deg, #10B981, #059669)' 
+        : 'linear-gradient(90deg, #C81E2C, #E14B54)';
 @endphp
 
-<div style="width: 100%; background: #EFEDEB; border-radius: 20px; height: 6px; overflow: hidden;">
-    <div style="width: {{ $progress }}%; height: 100%; border-radius: 20px; background: {{ $gradient }}; transition: width .25s ease;"></div>
+<div class="w-full bg-[#EAE8E5] rounded-full h-1.5 sm:h-2 overflow-hidden relative shadow-inner">
+    <div class="h-full rounded-full transition-all duration-1000 ease-out"
+         style="width: {{ $progress }}%; background: {{ $gradient }}; transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);"></div>
 </div>

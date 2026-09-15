@@ -19,7 +19,13 @@ class AttendanceController extends Controller
     // ─── Engineer: halaman Clock In / Out ───────────────────────────────────
     public function index()
     {
-        $user  = auth()->user();
+        $user = auth()->user();
+
+        // Direktur, Group Leader, dan PMO tidak melakukan presensi mandiri (langsung ke Rekap Presensi)
+        if ($user && $user->hasAnyRole(['Direktur', 'HD / Direktur', 'Group Leader', 'PMO', 'Project Manager'])) {
+            return redirect()->route('attendance.recap');
+        }
+
         $today = Carbon::today()->toDateString();
 
         // Data presensi hari ini milik user

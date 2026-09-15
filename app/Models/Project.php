@@ -28,6 +28,52 @@ class Project extends Model
         'contract_value',
         'po_number',
         'po_file',
+        'proposal_file',
+        'proposal_notes',
+        'mandays',
+        'presales_status',
+        'handover_status',
+        'handover_data',
+        'special_notes',
+        'handover_conditional_notes',
+        'handover_conditional_deadline',
+        'handover_submitted_at',
+        'handover_approved_at',
+        'handover_approved_by',
+        'customer_pic_technical',
+        'customer_pic_business',
+        'customer_pic_finance',
+        'bdm_id',
+        'opportunity_source',
+        'business_need_summary',
+        'stakeholders_data',
+        'initial_requirement',
+        'target_timeline_type',
+        'competitor_analysis',
+        'partner_alignment',
+        'bd_assessment_score',
+        'bdm_handover_status',
+        'bdm_handover_at',
+        'handover_document_file',
+        'sales_stage',
+        'win_probability',
+        'expected_closing_date',
+        'quotation_number',
+        'quotation_amount',
+        'quotation_file',
+        'po_spk_number',
+        'po_spk_date',
+        'po_spk_file',
+        'billing_terms',
+        'commercial_terms',
+        'sla_commitment',
+        'special_commitment',
+        'exclusions',
+        'commercial_handover_status',
+        'commercial_handover_at',
+        'commercial_handover_by',
+        'lost_reason',
+        'lost_competitor',
         'created_by',
         'pm_id',
         'division_id',
@@ -35,17 +81,49 @@ class Project extends Model
     ];
 
     protected $casts = [
-        'start_date'          => 'date:Y-m-d',
-        'deadline'            => 'date:Y-m-d',
-        'documents_checklist' => 'array',
+        'start_date'                    => 'date:Y-m-d',
+        'deadline'                      => 'date:Y-m-d',
+        'expected_closing_date'         => 'date:Y-m-d',
+        'po_spk_date'                   => 'date:Y-m-d',
+        'handover_conditional_deadline' => 'datetime',
+        'handover_submitted_at'         => 'datetime',
+        'handover_approved_at'          => 'datetime',
+        'bdm_handover_at'               => 'datetime',
+        'commercial_handover_at'        => 'datetime',
+        'documents_checklist'           => 'array',
+        'handover_data'                 => 'array',
+        'stakeholders_data'             => 'array',
     ];
 
     protected $appends = [
         'duration_days',
         'is_recurring',
+        'weighted_forecast_value',
     ];
 
+    public function getWeightedForecastValueAttribute()
+    {
+        $value = (float) ($this->contract_value ?? $this->quotation_amount ?? 0);
+        $prob = (int) ($this->win_probability ?? 10);
+        return round($value * ($prob / 100), 2);
+    }
+
     // Relationships
+    public function salesActivities()
+    {
+        return $this->hasMany(SalesActivity::class)->orderByDesc('activity_date');
+    }
+
+    public function commercialHandoverBy()
+    {
+        return $this->belongsTo(User::class, 'commercial_handover_by');
+    }
+
+    public function bdm()
+    {
+        return $this->belongsTo(User::class, 'bdm_id');
+    }
+
     public function pm()
     {
         return $this->belongsTo(User::class, 'pm_id');

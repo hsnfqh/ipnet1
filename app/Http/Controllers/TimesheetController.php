@@ -150,6 +150,32 @@ class TimesheetController extends Controller
             'notes'            => $validated['notes'] ?? null,
         ]);
 
+        // Kirim notifikasi Timesheet
+        if ($isLead && $assignedUserId != $user->id) {
+            // Notifikasi ke engineer jika dibuatkan oleh lead
+            \App\Models\Notification::create([
+                'user_id' => (int) $assignedUserId,
+                'title'   => 'Log Timesheet Dicatat oleh ' . $user->name,
+                'message' => 'Aktivitas "' . $validated['activity'] . '" telah dicatat untuk Anda pada tanggal ' . $validated['date'] . ' (Kategori: ' . $validated['category'] . ').',
+                'url'     => route('timesheets.index'),
+                'is_read' => false,
+            ]);
+        } elseif (!$isLead) {
+            // Notifikasi ke Lead Engineer jika dicatat oleh engineer biasa
+            $leads = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Direktur', 'Lead Engineer', 'Lead Divisi', 'Team Leader', 'Group Leader']))->get();
+            foreach ($leads as $lead) {
+                if ($lead->id !== $user->id) {
+                    \App\Models\Notification::create([
+                        'user_id' => $lead->id,
+                        'title'   => 'Log Timesheet Baru: ' . $user->name,
+                        'message' => 'Engineer ' . $user->name . ' telah mencatat aktivitas "' . $validated['activity'] . '" (' . round($durationMinutes / 60, 1) . ' jam) pada tanggal ' . $validated['date'] . '.',
+                        'url'     => route('timesheets.index', ['engineer_id' => $user->id]),
+                        'is_read' => false,
+                    ]);
+                }
+            }
+        }
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,

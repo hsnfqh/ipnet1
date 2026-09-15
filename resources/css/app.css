@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 @config "../../tailwind.config.js";
 
@@ -6,20 +6,25 @@
   * {
     box-sizing: border-box;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   body {
-    @apply bg-wms-paper;
+    @apply bg-wms-paper text-wms-ink-900;
   }
   
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-thumb {
-    background: #D9D6D1;
-    border-radius: 4px;
+    background: #D5D2CD;
+    border-radius: 999px;
+    transition: background 0.2s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #A3A09A;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
@@ -29,41 +34,42 @@
   input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: #C81E2C !important;
-    box-shadow: 0 0 0 3px #FDF1F2 !important;
+    box-shadow: 0 0 0 3.5px rgba(200, 30, 44, 0.1) !important;
   }
 }
 
 @layer components {
   /* Card components */
   .wms-card {
-    @apply transition-all duration-200 ease-in-out bg-white border border-wms-line rounded-xl shadow-wms-sm;
+    @apply transition-all duration-300 ease-out bg-white border border-wms-line rounded-2xl shadow-wms-sm;
   }
   .wms-card:hover {
-    @apply shadow-wms-md border-wms-line;
+    @apply shadow-wms-md border-[#DDD9D5];
   }
   .wms-card-hover:hover {
-    @apply -translate-y-0.5 shadow-wms-lg;
+    @apply -translate-y-1 shadow-wms-lg;
   }
   
   /* Button components */
   .wms-btn {
-    @apply transition-all duration-150 ease-in-out;
+    @apply transition-all duration-200 ease-out inline-flex items-center justify-center;
   }
   .wms-btn:hover {
     filter: brightness(1.06);
+    transform: translateY(-1px);
   }
   .wms-btn:active {
-    transform: translateY(1px);
+    transform: translateY(1px) scale(0.99);
   }
   
   /* Navigation items */
   .wms-navitem {
-    @apply transition-all duration-200 ease-in-out;
+    @apply transition-all duration-200 ease-out;
   }
   
   /* Icon buttons */
   .wms-iconbtn {
-    @apply transition-all duration-200 ease-in-out rounded-lg;
+    @apply transition-all duration-200 ease-out rounded-xl;
   }
   .wms-iconbtn:hover {
     @apply bg-wms-paper-dim text-wms-ink-900;
@@ -71,18 +77,18 @@
   
   /* Table rows */
   .wms-row {
-    @apply transition-all duration-150 ease-in-out;
+    @apply transition-all duration-200 ease-out;
   }
   .wms-row:hover {
-    @apply bg-wms-paper-dim;
+    @apply bg-wms-paper-dim/60;
   }
   
   /* Input style */
   .wms-input {
-    @apply w-full px-[11px] py-[9px] rounded-lg border border-wms-line text-sm text-wms-ink-900 outline-none bg-white transition-all duration-200 ease-in-out;
+    @apply w-full px-[12px] py-[9.5px] rounded-xl border border-wms-line text-sm text-wms-ink-900 outline-none bg-white transition-all duration-200 ease-out;
   }
   .wms-input:focus {
-    @apply border-wms-red-600 shadow-[0_0_0_3px_#FDF1F2];
+    @apply border-wms-red-600 shadow-[0_0_0_3.5px_rgba(200,30,44,0.1)];
   }
 }
 

@@ -75,8 +75,10 @@ class TaskController extends Controller
 
         $engineers = ScopeHelper::getAssignableEngineers($user);
         $currentUserId = $user->id;
+        $isPmo = ScopeHelper::isPmo($user);
+        $isEngineer = $user->hasAnyRole(['Network Engineer', 'Security Engineer', 'Field Support (EOS)', 'Field Support', 'Engineer', 'Maintenance', 'Engineer L1', 'Engineer L2']);
 
-        return view('tasks.index', compact('tasks', 'projects', 'formProjects', 'engineers', 'currentUserId', 'isLead', 'canManage', 'isDirektur', 'isSupervisor'));
+        return view('tasks.index', compact('tasks', 'projects', 'formProjects', 'engineers', 'currentUserId', 'isLead', 'canManage', 'isDirektur', 'isSupervisor', 'isPmo', 'isEngineer'));
     }
 
     public function store(TaskRequest $request)
@@ -154,6 +156,35 @@ class TaskController extends Controller
                 'url'     => route('tasks.index'),
                 'is_read' => false,
             ]);
+        }
+
+        // Otomatis sinkronkan Task baru ke Jadwal Kerja (Schedule)
+        if ($task->deadline) {
+            $taskDate = $task->deadline->format('Y-m-d');
+            $taskTime = $task->deadline_time 
+                ? substr($task->deadline_time, 0, 5) 
+                : ($task->deadline->format('H:i') !== '00:00' ? $task->deadline->format('H:i') : '09:00');
+
+            $newSchedule = \App\Models\Schedule::updateOrCreate(
+                [
+                    'title'      => $task->title,
+                    'project_id' => $task->project_id,
+                    'category'   => 'Task',
+                ],
+                [
+                    'engineer_id' => $task->engineer_id,
+                    'date'        => $taskDate,
+                    'start_time'  => $taskTime . ':00',
+                    'end_time'    => date('H:i:s', strtotime($taskTime . ' +3 hours')),
+                    'location'    => $task->project ? ($task->project->location ?? 'On-Site Client') : 'On-Site Client',
+                    'description' => $task->description ?? ('Pengerjaan task: ' . $task->title),
+                    'created_by'  => $task->created_by ?? auth()->id(),
+                ]
+            );
+
+            if (Schema::hasTable('schedule_user') && !empty($engineerIds)) {
+                $newSchedule->engineers()->sync($engineerIds);
+            }
         }
 
         if ($request->wantsJson() || $request->isJson() || $request->ajax()) {

@@ -2,19 +2,58 @@
 
 @section('title', 'Presensi')
 
-@section('content')
+@push('styles')
 <style>
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .anim-fade-up {
+    animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .anim-delay-1 { animation-delay: 0.06s; opacity: 0; }
+  .anim-delay-2 { animation-delay: 0.12s; opacity: 0; }
+  .anim-delay-3 { animation-delay: 0.18s; opacity: 0; }
+
+  .ipnet-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .ipnet-metric-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .ipnet-metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    border-color: #CBD5E1;
+  }
+  .ipnet-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background-color: #8F0A0D;
+    display: inline-block;
+  }
+
   .pg-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 34px;
+    height: 32px;
     padding: 0 10px;
     background: transparent;
     border: none;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
-    color: #9CA3AF; /* Light grey for Prev */
+    color: #9CA3AF;
     cursor: pointer;
     white-space: nowrap;
     line-height: 1;
@@ -22,18 +61,18 @@
     font-family: inherit;
   }
   .pg-btn:hover:not(:disabled) { color: #4B5563; }
-  .pg-btn.next { color: #2563EB; font-weight: 500; }
-  .pg-btn.next:hover:not(:disabled) { color: #1D4ED8; }
-  .pg-btn:disabled { opacity: 0.5; pointer-events: none; }
+  .pg-btn.next { color: #8F0A0D; font-weight: 600; }
+  .pg-btn.next:hover:not(:disabled) { color: #6D0709; }
+  .pg-btn:disabled { opacity: 0.4; pointer-events: none; }
   .pg-pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border: 1px solid #E5E7EB;
     background: #ffffff;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: #374151;
     cursor: pointer;
@@ -41,15 +80,17 @@
     line-height: 1;
     transition: all 0.15s;
     font-family: inherit;
+    border-radius: 8px;
   }
   .pg-pill.active {
-    background: #C81E2C;
+    background: #8F0A0D;
     color: #ffffff;
-    border-color: #C81E2C;
-    box-shadow: 0 2px 4px rgba(200,30,44,0.2);
+    border-color: #8F0A0D;
+    box-shadow: 0 2px 6px rgba(143,10,13,0.25);
   }
-  .pg-pill:hover:not(.active) { background: #F9FAFB; }
+  .pg-pill:hover:not(.active) { background: #FFF7F6; border-color: #F8D7DA; color: #8F0A0D; }
 </style>
+@endpush
 @php
     $daysMap = [
         'Sunday'    => 'Minggu',
@@ -122,71 +163,75 @@
     })() : null;
 @endphp
 
-<div class="flex h-screen overflow-hidden">
+@section('content')
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC]">
     @include('components.sidebar')
 
     <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Presensi Harian'])
 
-        <div class="p-4 sm:p-5 lg:p-[26px] animate-fade-in space-y-4" x-data="attendanceManager({{ Js::from($historyRows) }})" x-init="init()">
+        <div class="p-4 sm:p-5 lg:p-6 space-y-4 max-w-7xl mx-auto" x-data="attendanceManager({{ Js::from($historyRows) }})" x-init="init()">
 
             {{-- ── 0. INFO BAR: LOKASI RESMI & WAKTU REAL-TIME (WIB) ──────────────── --}}
-            <div class="p-3.5 sm:p-4 rounded-2xl bg-[#FAF9F8] border border-[#E7E5E3] flex flex-col md:flex-row md:items-center justify-between gap-3 text-[13px]">
-                <div class="flex items-start sm:items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-[#C81E2C]/10 text-[#C81E2C] flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <div class="p-4 sm:p-5 ipnet-card anim-fade-up flex flex-col md:flex-row md:items-center justify-between gap-3.5 text-[13px]">
+                <div class="flex items-start sm:items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                     </div>
                     <div>
-                        <div class="font-bold text-[#17151C] flex items-center gap-1.5 flex-wrap">
-                            <span>PT IP Network Solusindo</span>
-                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[#F1F0EE] text-[#75727C]">Radius 500m</span>
+                        <div class="font-bold text-[#17151C] flex items-center gap-2 flex-wrap">
+                            <span class="text-[14px]">PT IP Network Solusindo</span>
+                            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#8F0A0D]/10 text-[#8F0A0D]">Radius 500m</span>
                         </div>
-                        <p class="text-[12px] text-[#75727C] leading-snug">Jl. Majapahit No.26P, Petojo Sel., Kecamatan Gambir, Kota Jakarta Pusat, DKI Jakarta 10160</p>
+                        <p class="text-[12.5px] text-[#75727C] leading-snug mt-0.5">Jl. Majapahit No.26P, Petojo Sel., Kecamatan Gambir, Kota Jakarta Pusat, DKI Jakarta 10160</p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2.5 self-start md:self-auto flex-wrap">
                     @if(\App\Helpers\ScopeHelper::isManagerial(auth()->user()))
                     <a href="{{ route('attendance.recap') }}" 
-                       class="px-3.5 py-2 rounded-xl bg-white border border-[#E7E5E3] hover:border-[#C81E2C] hover:bg-[#FDF1F2] text-[#17151C] hover:text-[#C81E2C] text-[12px] font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                       class="px-4 py-2.5 rounded-xl bg-white border border-[#E7E5E3] hover:border-[#8F0A0D] hover:bg-[#FFF7F6] text-[#17151C] hover:text-[#8F0A0D] text-[12.5px] font-semibold transition-all flex items-center gap-2 shadow-sm cursor-pointer"
                        title="Buka Rekap Presensi Tim">
-                        <svg class="w-3.5 h-3.5 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                         Rekap Tim
                     </a>
                     @endif
 
-                    <div class="flex items-center gap-3 bg-white px-3.5 py-2 rounded-xl border border-[#E7E5E3] shadow-sm">
-                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></div>
+                    <div class="flex items-center gap-3 bg-[#FAF9F8] px-4 py-2 rounded-xl border border-[#ECEAE8]">
+                        <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
                         <div>
-                            <div class="text-[11px] font-bold uppercase tracking-wider text-[#75727C]" x-text="liveDateWib">Memuat tanggal...</div>
+                            <div class="text-[10.5px] font-bold uppercase tracking-wider text-[#75727C]" x-text="liveDateWib">Memuat tanggal...</div>
                             <div class="font-mono font-bold text-[14px] text-[#17151C]" x-text="liveTimeWib">--:--:-- WIB</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- ── 1. STATUS CARDS (Clean, Professional White Cards) ────────────────── --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+            {{-- ── 1. STATUS CARDS ────────────────── --}}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 anim-fade-up anim-delay-1">
                 
                 {{-- Card 1: Clock In --}}
-                <div class="wms-card p-4 sm:p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow border border-[#E7E5E3]">
+                <div class="ipnet-metric-card flex flex-col justify-between">
                     <div class="flex items-center justify-between">
-                        <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">Clock In (Masuk)</span>
+                        <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            Clock In (Masuk)
+                        </span>
                         <div class="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
-                             :class="clockIn ? (clockIn.is_within_range ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600') : 'bg-[#F1F0EE] text-[#75727C]'">
+                             :class="clockIn ? (clockIn.is_within_range ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-amber-50 text-amber-600 border border-amber-200') : 'bg-[#F1F0EE] text-[#75727C]'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                             </svg>
                         </div>
                     </div>
-                    <div class="mt-2.5">
+                    <div class="mt-3">
                         <div class="font-display text-[28px] sm:text-[32px] font-bold text-[#17151C] leading-none tracking-tight font-mono" x-text="clockIn ? clockIn.time : '--:--'">--:--</div>
-                        <div class="mt-2 flex flex-col gap-1.5">
+                        <div class="mt-2.5 flex flex-col gap-1.5">
                             <div class="flex items-center gap-2">
                                 <template x-if="clockIn">
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold rounded-md"
@@ -221,19 +266,22 @@
                 </div>
 
                 {{-- Card 2: Clock Out --}}
-                <div class="wms-card p-4 sm:p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow border border-[#E7E5E3]">
+                <div class="ipnet-metric-card flex flex-col justify-between">
                     <div class="flex items-center justify-between">
-                        <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">Clock Out (Pulang)</span>
+                        <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            Clock Out (Pulang)
+                        </span>
                         <div class="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
-                             :class="clockOut ? 'bg-emerald-50 text-emerald-600' : 'bg-[#F1F0EE] text-[#75727C]'">
+                             :class="clockOut ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-[#F1F0EE] text-[#75727C]'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                             </svg>
                         </div>
                     </div>
-                    <div class="mt-2.5">
+                    <div class="mt-3">
                         <div class="font-display text-[28px] sm:text-[32px] font-bold text-[#17151C] leading-none tracking-tight font-mono" x-text="clockOut ? clockOut.time : '--:--'">--:--</div>
-                        <div class="mt-2 flex flex-col gap-1.5">
+                        <div class="mt-2.5 flex flex-col gap-1.5">
                             <div class="flex items-center gap-2">
                                 <template x-if="clockOut">
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -276,7 +324,7 @@
                 </div>
 
                 {{-- Card 3: Lokasi & GPS --}}
-                <div class="wms-card p-4 sm:p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow border border-[#E7E5E3]">
+                <div class="ipnet-metric-card flex flex-col justify-between">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-1.5">
                             <span class="text-[11px] sm:text-[11.5px] text-[#75727C] font-bold uppercase tracking-wider">Lokasi & GPS Real-Time</span>
@@ -286,14 +334,14 @@
                             </span>
                         </div>
                         <div class="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
-                             :class="currentDistance !== null ? (withinRange ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600') : 'bg-blue-50 text-blue-600'">
+                             :class="currentDistance !== null ? (withinRange ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-amber-50 text-amber-600 border border-amber-200') : 'bg-blue-50 text-blue-600 border border-blue-200'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                             </svg>
                         </div>
                     </div>
-                    <div class="mt-2.5">
+                    <div class="mt-3">
                         <div class="flex items-baseline gap-1.5 leading-none">
                             <template x-if="currentDistance !== null">
                                 <div class="flex items-baseline gap-1.5">
@@ -310,7 +358,7 @@
                             </template>
                         </div>
 
-                        <div class="mt-2 flex flex-col gap-1.5">
+                        <div class="mt-2.5 flex flex-col gap-1.5">
                             <div class="flex items-center gap-2">
                                 <template x-if="currentLat">
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold rounded-md"
@@ -327,7 +375,6 @@
                                 </template>
                             </div>
 
-                            {{-- Tampilan Alamat Terdeteksi Real-Time (Rapi, Elegan, Tanpa Kotak Kasar) --}}
                             <div class="text-[11.5px] text-[#4A4753] flex items-center gap-1.5 min-w-0 pt-0.5">
                                 <template x-if="currentAddress">
                                     <div class="flex items-center gap-1.5 min-w-0 truncate" :title="currentAddress">
@@ -355,7 +402,7 @@
             </div>
 
             {{-- ── 2. ACTION CONTROLS & CAMERA PANEL ──────────────────────────────── --}}
-            <div class="wms-card p-5 bg-white border border-[#E7E5E3] shadow-sm space-y-4">
+            <div class="ipnet-card p-5 space-y-4 anim-fade-up anim-delay-2">
                 
                 {{-- Tombol Aksi Utama --}}
                 <div class="flex flex-wrap items-center justify-between gap-3">
@@ -366,7 +413,7 @@
                             <button type="button" 
                                     @click="handleAction('clock_in')"
                                     :disabled="loading || !currentLat"
-                                    class="px-5 py-3 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white font-semibold text-[13.5px] transition shadow-[0_4px_14px_rgba(200,30,44,0.25)] flex items-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                                    class="px-5 py-3 rounded-xl bg-[#8F0A0D] hover:bg-[#72080A] text-white font-semibold text-[13.5px] transition shadow-[0_4px_14px_rgba(143,10,13,0.25)] flex items-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                                 <template x-if="loading && actionType === 'clock_in'">
                                     <svg class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -418,7 +465,7 @@
                             <button type="button" 
                                     @click="toggleCamera()"
                                     class="px-4 py-3 rounded-xl border border-[#E7E5E3] bg-white hover:bg-[#F8F7F6] text-[#17151C] font-semibold text-[13px] transition flex items-center gap-2 shadow-sm cursor-pointer"
-                                    :class="cameraOpen ? 'border-[#C81E2C] text-[#C81E2C] bg-[#FDF1F2]' : ''">
+                                    :class="cameraOpen ? 'border-[#8F0A0D] text-[#8F0A0D] bg-[#FFF7F6]' : ''">
                                 <svg class="w-4 h-4 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -437,12 +484,12 @@
                             </svg>
                             Mencari koordinat GPS...
                         </div>
-                        <div x-show="gpsError" x-cloak class="text-[#C81E2C] font-medium" x-text="gpsError"></div>
+                        <div x-show="gpsError" x-cloak class="text-[#8F0A0D] font-medium" x-text="gpsError"></div>
                     </div>
                 </div>
 
                 {{-- Viewfinder Kamera Selfie & Note (Expandable) --}}
-                <div x-show="cameraOpen" x-cloak class="pt-4 border-t border-[#EFEDEB] space-y-3.5 animate-fade-in">
+                <div x-show="cameraOpen" x-cloak class="pt-4 border-t border-[#EFEDEB] space-y-3.5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {{-- Video / Photo Box --}}
                         <div class="bg-[#17151C] rounded-2xl p-3 overflow-hidden flex flex-col items-center justify-center max-w-sm border border-black/10">
@@ -483,7 +530,7 @@
                                         </button>
                                         <button type="button" 
                                                 @click="$refs.fileInput.click()" 
-                                                class="px-3 py-1.5 bg-[#C81E2C] hover:bg-[#A31622] text-white text-[11px] font-semibold rounded-lg transition flex items-center gap-1 cursor-pointer">
+                                                class="px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#72080A] text-white text-[11px] font-semibold rounded-lg transition flex items-center gap-1 cursor-pointer">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                             </svg>
@@ -508,7 +555,7 @@
                                         @click="capturePhoto()" 
                                         x-show="!capturedPhoto && !cameraError"
                                         :disabled="cameraLoading"
-                                        class="w-full py-2.5 px-4 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white text-[13px] font-semibold transition flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(200,30,44,0.35)] cursor-pointer disabled:opacity-50">
+                                        class="w-full py-2.5 px-4 rounded-xl bg-[#8F0A0D] hover:bg-[#72080A] text-white text-[13px] font-semibold transition flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(143,10,13,0.35)] cursor-pointer disabled:opacity-50">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <circle cx="12" cy="12" r="3"></circle>
@@ -563,7 +610,7 @@
                             <textarea x-model="note" 
                                       rows="5" 
                                       placeholder="Contoh: Kunjungan on-site maintenance router di gedung klien..."
-                                      class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#C81E2C] focus:bg-white transition text-[#17151C]"></textarea>
+                                      class="w-full py-2.5 px-3.5 text-[13.5px] bg-[#FBFBFA] border border-[#E7E5E3] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:bg-white transition text-[#17151C]"></textarea>
                         </div>
                     </div>
                 </div>
@@ -571,9 +618,12 @@
             </div>
 
             {{-- ── 3. RIWAYAT PRESENSI ────────────────────────────── --}}
-            <div class="wms-card overflow-hidden bg-white shadow-sm border border-[#E7E5E3]">
-                <div class="px-5 py-3.5 border-b border-[#EFEDEB] bg-[#F8F7F6] flex items-center justify-between">
-                    <span class="text-[11.5px] font-bold text-[#75727C] uppercase tracking-wider">Riwayat Presensi (7 Hari Terakhir)</span>
+            <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-3">
+                <div class="px-5 py-3.5 border-b border-[#EFEDEB] bg-[#FAF9F8] flex items-center justify-between">
+                    <span class="text-[12px] font-bold text-[#17151C] uppercase tracking-wider flex items-center gap-2">
+                        <span class="ipnet-badge-dot"></span>
+                        Riwayat Presensi (7 Hari Terakhir)
+                    </span>
                     <span class="text-[12px] font-medium text-[#948F99]">Otomatis tersimpan realtime</span>
                 </div>
 
@@ -592,18 +642,18 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-[13px]">
                             <thead>
-                                <tr class="border-b border-[#EFEDEB] bg-[#FAF9F8] text-[11px] font-bold text-[#75727C] uppercase tracking-wider">
-                                    <th class="py-3 px-4 w-40">Tanggal &amp; Hari</th>
-                                    <th class="py-3 px-4 text-center w-36">Clock In</th>
-                                    <th class="py-3 px-4 text-center w-36">Clock Out</th>
-                                    <th class="py-3 px-4 text-center w-28">Durasi</th>
-                                    <th class="py-3 px-4 text-center w-40">Status Presensi</th>
-                                    <th class="py-3 px-4 min-w-[200px]">Catatan</th>
+                                <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold text-[#475569] uppercase tracking-wider">
+                                    <th class="py-3.5 px-4 w-40">Tanggal &amp; Hari</th>
+                                    <th class="py-3.5 px-4 text-center w-36">Clock In</th>
+                                    <th class="py-3.5 px-4 text-center w-36">Clock Out</th>
+                                    <th class="py-3.5 px-4 text-center w-28">Durasi</th>
+                                    <th class="py-3.5 px-4 text-center w-40">Status Presensi</th>
+                                    <th class="py-3.5 px-4 min-w-[200px]">Catatan</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-[#EFEDEB]">
+                            <tbody class="divide-y divide-[#F1F5F9]">
                                 <template x-for="row in paginatedHistory" :key="row.date">
-                                    <tr :class="row.isToday ? 'bg-red-50/20' : ''" class="hover:bg-[#FBFBFA] transition-colors">
+                                    <tr :class="row.isToday ? 'bg-[#8F0A0D]/[0.03]' : ''" class="hover:bg-[#F8FAFC] transition-colors">
                                         {{-- Tanggal & Hari --}}
                                         <td class="py-3.5 px-4 whitespace-nowrap">
                                             <div class="flex items-center gap-2">
@@ -612,7 +662,7 @@
                                                     <div class="text-[11.5px] font-medium text-[#75727C]" x-text="row.day"></div>
                                                 </div>
                                                 <template x-if="row.isToday">
-                                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-[#C81E2C] text-white">Hari Ini</span>
+                                                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-[#8F0A0D] text-white">Hari Ini</span>
                                                 </template>
                                             </div>
                                         </td>
@@ -659,7 +709,7 @@
                                             {{-- Subtext Alamat Terdeteksi --}}
                                             <template x-if="row.address">
                                                 <div class="text-[10.5px] text-[#75727C] font-normal mt-1 flex items-center justify-center gap-1 max-w-[210px] mx-auto truncate" :title="row.address">
-                                                    <svg class="w-3 h-3 text-[#C81E2C] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <svg class="w-3 h-3 text-[#8F0A0D] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                     </svg>
@@ -773,7 +823,7 @@
                             {{-- Alamat Terdeteksi di Modal --}}
                             <div class="p-3.5 bg-[#FAF9F8] border border-[#E7E5E3] rounded-xl text-left">
                                 <div class="text-[11px] font-bold uppercase tracking-wider text-[#75727C] flex items-center gap-1.5 mb-1">
-                                    <svg class="w-3.5 h-3.5 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
@@ -790,7 +840,7 @@
                                 <input type="text" 
                                        x-model="note" 
                                        placeholder="Contoh: Langsung ke lokasi klien RS Siloam, macet di jalan, dinas luar..."
-                                       class="w-full px-3.5 py-2.5 rounded-xl border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none focus:border-[#C81E2C] transition bg-white placeholder-[#948F99]">
+                                       class="w-full px-3.5 py-2.5 rounded-xl border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none focus:border-[#8F0A0D] transition bg-white placeholder-[#948F99]">
                             </div>
 
                             {{-- Input Foto Bukti Lapangan --}}
@@ -818,7 +868,7 @@
                                     <div class="grid grid-cols-2 gap-2">
                                         {{-- Tombol Buka Kamera Langsung (Kamera HP) --}}
                                         <label class="px-3 py-2.5 rounded-xl border border-[#E7E5E3] bg-white hover:bg-[#F8F7F6] text-[#17151C] text-[12px] font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-sm">
-                                            <svg class="w-4 h-4 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                                             </svg>
@@ -853,7 +903,7 @@
                             <button type="button" 
                                     @click="confirmProceed()"
                                     :disabled="loading"
-                                    class="px-5 py-2 rounded-xl bg-[#C81E2C] hover:bg-[#A31622] text-white font-semibold text-[13px] transition shadow-[0_4px_12px_rgba(200,30,44,0.25)] flex items-center gap-2 cursor-pointer">
+                                    class="px-5 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#72080A] text-white font-semibold text-[13px] transition shadow-[0_4px_12px_rgba(143,10,13,0.25)] flex items-center gap-2 cursor-pointer">
                                 <span x-text="loading ? 'Memproses...' : 'Ya, Tetap Absen'"></span>
                             </button>
                         </div>
@@ -929,6 +979,7 @@
         </div>
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
@@ -1382,4 +1433,3 @@ document.addEventListener('alpine:init', () => {
 });
 </script>
 @endpush
-@endsection

@@ -1,41 +1,88 @@
 @extends('layouts.app')
 
-@section('title', 'Task Management')
+@section('title', 'Penugasan Tim & Daftar Tugas - PT IP Network Solusindo')
+
+@push('styles')
+<style>
+    .ipnet-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 20px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ipnet-badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #8F0A0D;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    @keyframes fadeUpStagger {
+        0% { opacity: 0; transform: translateY(16px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .anim-fade-up {
+        animation: fadeUpStagger 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .anim-delay-1 { animation-delay: 0.06s !important; }
+    .anim-delay-2 { animation-delay: 0.12s !important; }
+</style>
+@endpush
 
 @section('content')
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC]">
     @include('components.sidebar')
 
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Task Management'])
+        @include('components.topbar', ['title' => 'Penugasan Tim'])
 
-        <div class="p-4 sm:p-[26px] animate-fade-in"
-             x-data="tasksManager()"
-             x-init="init()"
-             data-current-user-id="{{ $currentUserId }}"
-             data-is-lead="{{ $isLead ? 'true' : 'false' }}">
+        <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto" x-data="tasksManager()" x-init="init()">
 
             <!-- ========================================================== -->
-            <!-- HEADER - FILTER (WRAP DI LAYAR SEMPIT) -->
+            <!-- SECTION HEADER & FILTER CONTROLS                           -->
             <!-- ========================================================== -->
-            <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
-                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                    <p style="font-size:13px; font-weight:600; color:#3D3A44; margin:0; white-space:nowrap;">
-                        Total: <span x-text="tasks.length" style="color:#C81E2C;"></span> task
-                    </p>
+            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
+                    <div>
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> MANAJEMEN PENUGASAN
+                        </p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Penugasan & Aktivitas Lapangan</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Pantau status pengerjaan tugas, delegasi teknisi, dan verifikasi penyelesaian kegiatan</p>
+                    </div>
 
-                    <div class="hidden sm:block" style="width:1px; height:24px; background:#E7E5E3;"></div>
+                    <div class="flex flex-wrap items-center gap-3 shrink-0">
+                        <div class="px-3.5 py-1.5 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] text-[12px] font-bold text-[#1E293B] flex items-center gap-1.5 shadow-xs">
+                            <span class="text-[#64748B]">Total Penugasan:</span>
+                            <span class="text-[#8F0A0D] font-extrabold" x-text="tasks.length"></span>
+                        </div>
 
-                    <select x-model="filterProject" class="filter-select"
-                            onfocus="this.style.borderColor='#C81E2C'" onblur="this.style.borderColor='#E7E5E3'">
+                        @if($canManage)
+                        <button @click="openModal()"
+                                class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Buat & Delegasikan Tugas</span>
+                        </button>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Filter Controls -->
+                <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3">
+                    <select x-model="filterProject" 
+                            class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="">Semua Project</option>
                         <template x-for="project in projects" :key="project.id">
                             <option :value="project.id" x-text="project.name"></option>
                         </template>
                     </select>
 
-                    <select x-model="filterPriority" class="filter-select"
-                            onfocus="this.style.borderColor='#C81E2C'" onblur="this.style.borderColor='#E7E5E3'">
+                    <select x-model="filterPriority" 
+                            class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="">Semua Priority</option>
                         <option value="High">High</option>
                         <option value="Medium">Medium</option>
@@ -43,8 +90,8 @@
                     </select>
 
                     @if($isLead)
-                    <select x-model="filterEngineer" class="filter-select"
-                            onfocus="this.style.borderColor='#C81E2C'" onblur="this.style.borderColor='#E7E5E3'">
+                    <select x-model="filterEngineer" 
+                            class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="">Semua Engineer</option>
                         <template x-for="engineer in engineers" :key="engineer.id">
                             <option :value="engineer.id" x-text="engineer.name"></option>
@@ -52,104 +99,87 @@
                     </select>
                     @endif
                 </div>
-
-                @if($canManage)
-                <button @click="openModal()"
-                        class="w-full sm:w-auto"
-                        style="background:#C81E2C; color:white; box-shadow:0 8px 20px rgba(200,30,44,0.24); padding:9px 18px; border-radius:8px; border:none; font-weight:600; font-size:13px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; transition:all 0.15s ease;"
-                        onmouseover="this.style.filter='brightness(1.05)'"
-                        onmouseout="this.style.filter='brightness(1)'">
-                    <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Buat & Assign Task
-                </button>
-                @endif
             </div>
 
             <!-- ========================================================== -->
-            <!-- KANBAN BOARD - RESPONSIVE (4 kolom desktop, 2 kolom tablet, scroll-snap di HP) -->
+            <!-- KANBAN BOARD - RESPONSIVE (4 kolom desktop)                 -->
             <!-- ========================================================== -->
-            <div class="kanban-board">
+            <div class="kanban-board anim-fade-up anim-delay-2">
                 <template x-for="column in ['Assigned', 'In Progress', 'Waiting Review', 'Completed']" :key="column">
                     <div class="kanban-col">
                         <div class="kanban-col-head">
-                            <span style="font-size:12px; font-weight:700; color:#3D3A44; text-transform:uppercase; letter-spacing:0.5px;" x-text="column"></span>
-                            <span style="font-size:11px; background:#F1F0EE; color:#75727C; padding:1px 8px; border-radius:12px; font-weight:600;"
+                            <span class="text-[12px] font-bold text-[#334155] uppercase tracking-wider" x-text="column"></span>
+                            <span class="text-[11px] font-bold bg-[#E2E8F0] text-[#475569] px-2 py-0.5 rounded-full"
                                   x-text="getFilteredTasksByStatus(column).length"></span>
                         </div>
                         <div class="kanban-col-body">
                             <template x-for="task in getFilteredTasksByStatus(column)" :key="task.id">
-                                <div style="background:white; border:1px solid #E7E5E3; border-radius:12px; padding:14px; box-shadow:0 1px 2px rgba(14,13,18,0.05); transition:all 0.15s ease;"
-                                     onmouseenter="this.style.boxShadow='0 4px 16px rgba(14,13,18,0.06)'"
-                                     onmouseleave="this.style.boxShadow='0 1px 2px rgba(14,13,18,0.05)'">
+                                <div class="bg-white border border-[#E2E8F0] rounded-xl p-3.5 shadow-xs hover:shadow-md transition-all">
 
-                                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; gap:8px;">
+                                    <div class="flex justify-between items-start mb-2 gap-2">
                                         <span x-html="getPriorityFlag(task.priority)"></span>
                                     </div>
 
-                                    <div style="font-size:13px; font-weight:600; color:#17151C; margin-bottom:4px; word-break:break-word;" x-text="task.title"></div>
-                                    <div style="font-size:11.5px; color:#75727C; margin-bottom:10px; word-break:break-word;" x-text="task.project?.name"></div>
+                                    <div class="text-[13.5px] font-bold text-[#1E293B] mb-1 break-words line-clamp-2" x-text="task.title"></div>
+                                    <div class="text-[12px] font-medium text-[#64748B] mb-2.5 break-words line-clamp-1" x-text="task.project?.name"></div>
 
-                                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; flex-wrap:wrap;">
-                                        <div style="display:flex; align-items:center; gap:6px; min-width:0;">
+                                    <div class="flex items-center justify-between mb-2.5 gap-2 flex-wrap">
+                                        <div class="flex items-center gap-1.5 min-w-0">
                                             <!-- Stacked avatars jika ditugaskan ke tim (multi-assignee) -->
-                                            <div style="display:flex; align-items:center; margin-right:2px;">
+                                            <div class="flex items-center mr-0.5">
                                                 <template x-for="(eng, idx) in (task.engineers && task.engineers.length > 0 ? task.engineers.slice(0, 2) : (task.engineer ? [task.engineer] : []))" :key="eng.id">
-                                                    <div style="width:22px; height:22px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0; border:1.5px solid white;"
-                                                         :style="{ background: idx === 0 ? '#C81E2C' : '#2563EB', marginLeft: idx > 0 ? '-6px' : '0' }"
+                                                    <div class="w-5.5 h-5.5 rounded-full text-white flex items-center justify-center text-[9px] font-bold shrink-0 border-2 border-white shadow-xs"
+                                                         :style="{ background: idx === 0 ? '#8F0A0D' : '#2563EB', marginLeft: idx > 0 ? '-6px' : '0' }"
                                                          :title="eng.name + (idx === 0 ? ' (PIC Utama)' : ' (Pendamping Lapangan)')">
                                                         <span x-text="eng.name ? eng.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase() : '?'"></span>
                                                     </div>
                                                 </template>
                                                 <template x-if="task.engineers && task.engineers.length > 2">
-                                                    <div style="width:20px; height:20px; border-radius:50%; background:#75727C; color:white; display:flex; align-items:center; justify-content:center; font-size:8.5px; font-weight:700; flex-shrink:0; border:1.5px solid white; margin-left:-6px;"
+                                                    <div class="w-5 h-5 rounded-full bg-[#64748B] text-white flex items-center justify-center text-[8.5px] font-bold shrink-0 border-2 border-white -ml-1.5"
                                                          :title="task.engineers.map(e => e.name).join(', ')">
                                                         <span x-text="'+' + (task.engineers.length - 2)"></span>
                                                     </div>
                                                 </template>
                                             </div>
 
-                                            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; color:#3D3A44; font-weight:500;">
+                                            <div class="truncate text-[11.5px] text-[#334155] font-medium">
                                                 <span x-text="task.engineer?.name || 'Belum diassign'"></span>
                                                 <template x-if="task.engineers && task.engineers.length > 1">
-                                                    <span style="font-size:9.5px; font-weight:700; color:#1D4ED8; background:#EFF6FF; padding:1px 5px; border-radius:8px; margin-left:3px;"
+                                                    <span class="text-[9.5px] font-bold text-[#1D4ED8] bg-[#EFF6FF] border border-[#DBEAFE] px-1.5 py-0.5 rounded-md ml-1"
                                                           x-text="'+' + (task.engineers.length - 1) + ' tim'"></span>
                                                 </template>
                                             </div>
                                         </div>
-                                        <span style="font-size:10px; font-family:'IBM Plex Mono',monospace; color:#75727C; white-space:nowrap;" x-text="formatDeadline(task.deadline, task.deadline_time)"></span>
+                                        <span class="text-[10.5px] font-mono text-[#64748B] whitespace-nowrap" x-text="formatDeadline(task.deadline, task.deadline_time)"></span>
                                     </div>
 
-                                    <div style="width:100%; background:#EFEDEB; border-radius:20px; height:5px; overflow:hidden;">
-                                        <div style="height:100%; border-radius:20px; background:linear-gradient(90deg, #AF1424, #D62E3C); transition:width .3s ease;" :style="{ width: (task.progress || 0) + '%' }"></div>
+                                    <div class="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-full h-1.5 overflow-hidden">
+                                        <div class="h-full rounded-full bg-linear-to-r from-[#8F0A0D] to-[#DC2626] transition-all duration-300" :style="{ width: (task.progress || 0) + '%' }"></div>
                                     </div>
 
-                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px; font-size:10.5px; color:#75727C;">
-                                        <span>Progress: <strong style="color:#C81E2C;" x-text="(task.progress || 0) + '%'"></strong></span>
+                                    <div class="flex justify-between items-center mt-1.5 text-[11px] text-[#64748B]">
+                                        <span>Progress: <strong class="text-[#8F0A0D] font-bold" x-text="(task.progress || 0) + '%'"></strong></span>
                                         <template x-if="task.doc_file || task.attachments > 0">
-                                            <span style="display:inline-flex; align-items:center; gap:3px; color:#1B7A46; font-weight:600; cursor:pointer;" @click="openDetailModal(task)">
-                                                <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                            <span class="inline-flex items-center gap-1 text-[#15803D] font-semibold cursor-pointer hover:underline" @click="openDetailModal(task)">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                                                 Foto/Dokumen
                                             </span>
                                         </template>
                                     </div>
 
                                     @if($canManage)
-                                    <div style="display:flex; gap:6px; margin-top:10px;">
+                                    <div class="flex items-center gap-1.5 mt-3">
                                         <button @click="openDetailModal(task)"
-                                                style="flex:1; padding:6px 0; border-radius:6px; border:1px solid #E7E5E3; background:#F8F7F6; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.15s ease; font-size:11px; font-weight:600; color:#3D3A44;"
-                                                onmouseover="this.style.background='#EFEDEB'" onmouseout="this.style.background='#F8F7F6'">
-                                            <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                class="flex-1 py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] text-[11px] font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                             </svg>
                                             Detail
                                         </button>
                                         <button @click="editTask(task)"
-                                                style="flex:1; padding:6px 0; border-radius:6px; border:1px solid #E7E5E3; background:white; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.15s ease; font-size:11px; font-weight:600; color:#3D3A44;"
-                                                onmouseover="this.style.background='#F1F0EE'" onmouseout="this.style.background='white'">
-                                            <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                class="flex-1 py-1.5 rounded-lg border border-[#CBD5E1] bg-white hover:bg-[#F8FAFC] text-[#334155] text-[11px] font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                             </svg>
                                             Edit
@@ -157,54 +187,61 @@
                                         <template x-if="task.status !== 'Completed' || task.progress < 100">
                                             <button type="button" 
                                                     @click="quickCompleteTask(task)"
-                                                    style="width:32px; flex-shrink:0; padding:6px 0; border-radius:6px; border:1px solid #BBF7D0; background:#F0FDF4; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s ease; color:#16A34A;"
-                                                    onmouseover="this.style.background='#DCFCE7'; this.style.borderColor='#86EFAC';"
-                                                    onmouseout="this.style.background='#F0FDF4'; this.style.borderColor='#BBF7D0';"
+                                                    class="w-8 shrink-0 py-1.5 rounded-lg border border-[#86EFAC] bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#16A34A] flex items-center justify-center transition-all cursor-pointer"
                                                     title="Tandai Selesai Langsung (100% Completed)">
-                                                <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                                 </svg>
                                             </button>
                                         </template>
                                         <button @click="confirmDelete(task)"
-                                                style="width:32px; flex-shrink:0; padding:6px 0; border-radius:6px; border:1px solid #E7E5E3; background:white; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s ease; color:#C81E2C;"
-                                                onmouseover="this.style.background='#FDF1F2'" onmouseout="this.style.background='white'">
-                                            <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                class="w-8 shrink-0 py-1.5 rounded-lg border border-[#FECACA] bg-white hover:bg-[#FEF2F2] text-[#DC2626] flex items-center justify-center transition-all cursor-pointer"
+                                                title="Hapus Task">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                             </svg>
                                         </button>
                                     </div>
-                                    @else
-                                    <div style="display:flex; gap:6px; margin-top:10px;">
+                                    @elseif($isEngineer)
+                                    <div class="flex items-center gap-1.5 mt-3">
                                         <button @click="openDetailModal(task)"
-                                                style="flex:1; padding:7px 0; border-radius:6px; border:1px solid #E7E5E3; background:#F8F7F6; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; transition:all 0.15s ease; font-size:12px; font-weight:600; color:#3D3A44;"
-                                                onmouseover="this.style.background='#EFEDEB'" onmouseout="this.style.background='#F8F7F6'">
-                                            <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                class="flex-1 py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                             </svg>
                                             Detail Task
                                         </button>
-                                        <template x-if="task.status !== 'Completed' || task.progress < 100">
+                                        <template x-if="(task.status !== 'Completed' || task.progress < 100) && (task.engineer_id == {{ $currentUserId }} || (task.engineers && task.engineers.some(e => e.id == {{ $currentUserId }})))">
                                             <button type="button" 
-                                                    @click="quickCompleteTask(task)"
-                                                    style="padding:7px 12px; border-radius:6px; border:1px solid #BBF7D0; background:#F0FDF4; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; transition:all 0.15s ease; color:#16A34A; font-size:12px; font-weight:700;"
-                                                    onmouseover="this.style.background='#DCFCE7'; this.style.borderColor='#86EFAC';"
-                                                    onmouseout="this.style.background='#F0FDF4'; this.style.borderColor='#BBF7D0';"
-                                                    title="Tandai Selesai (100% Completed)">
-                                                <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                                    @click="openProgressModal(task)"
+                                                    class="py-1.5 px-3 rounded-lg border border-[#86EFAC] bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#16A34A] text-[11px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                                                    title="Update Progress & Dokumentasi">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                                 </svg>
-                                                Selesai
+                                                Update
                                             </button>
                                         </template>
+                                    </div>
+                                    @else
+                                    {{-- READ-ONLY / PMO / VIEWERS: HANYA LIHAT DETAIL TASK --}}
+                                    <div class="flex items-center gap-1.5 mt-3">
+                                        <button @click="openDetailModal(task)"
+                                                class="w-full py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            Detail Task
+                                        </button>
                                     </div>
                                     @endif
                                 </div>
                             </template>
 
                             <div x-show="getFilteredTasksByStatus(column).length === 0"
-                                 style="font-size:12px; color:#B7B3BB; padding:20px 4px; text-align:center;">
+                                 class="text-[12.5px] font-medium text-[#94A3B8] py-8 px-2 text-center">
                                 Tidak ada task.
                             </div>
                         </div>
@@ -224,7 +261,7 @@
                     <div style="background:white; border-radius:16px; width:640px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(14,13,18,0.15); margin:auto; position:relative; animation:fadeInUp 0.2s ease;">
 
                         <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px; position:sticky; top:0; background:white; border-bottom:1px solid #E7E5E3; border-radius:16px 16px 0 0;">
-                            <h3 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:600; color:#17151C;" x-text="editing ? 'Edit Task' : 'Buat & Assign Task'"></h3>
+                            <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:16px; font-weight:600; color:#17151C;" x-text="editing ? 'Edit Task' : 'Buat & Assign Task'"></h3>
                             <button @click="modalOpen = false" style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:8px; transition:all 0.15s ease; flex-shrink:0;" onmouseover="this.style.background='#F1F0EE'" onmouseout="this.style.background='transparent'">
                                 <svg style="width:20px; height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -363,9 +400,8 @@
                                 </div>
                                 <div style="display:flex; gap:10px; margin-top:16px; padding-top:16px; border-top:1px solid #EFEDEB; flex-wrap:wrap;">
                                     <button type="submit"
-                                            style="flex:1 1 140px; justify-content:center; background:#C81E2C; color:white; box-shadow:0 8px 20px rgba(200,30,44,0.24); padding:10px 17px; border-radius:8px; border:none; font-weight:600; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.15s ease;"
-                                            onmouseover="this.style.filter='brightness(1.05)'"
-                                            onmouseout="this.style.filter='brightness(1)'">
+                                            class="btn-ipnet-gradient"
+                                            style="flex:1 1 140px; justify-content:center; padding:10px 17px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:7px;">
                                         <span x-text="editing ? 'Simpan Perubahan' : 'Simpan Task'"></span>
                                     </button>
                                     <button type="button" @click="modalOpen = false"
@@ -393,7 +429,7 @@
                     <div style="background:white; border-radius:16px; width:460px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(14,13,18,0.15); margin:auto; position:relative; animation:fadeInUp 0.2s ease;">
 
                         <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px; position:sticky; top:0; background:white; border-bottom:1px solid #E7E5E3; border-radius:16px 16px 0 0;">
-                            <h3 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:600; color:#17151C;">Update Progress</h3>
+                            <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:16px; font-weight:600; color:#17151C;">Update Progress</h3>
                             <button @click="progressModalOpen = false" style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:8px; transition:all 0.15s ease; flex-shrink:0;" onmouseover="this.style.background='#F1F0EE'" onmouseout="this.style.background='transparent'">
                                 <svg style="width:20px; height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -428,9 +464,8 @@
                             
                             <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
                                 <button @click="saveProgress()"
-                                        style="flex:1 1 140px; justify-content:center; background:#C81E2C; color:white; box-shadow:0 8px 20px rgba(200,30,44,0.24); padding:10px 17px; border-radius:8px; border:none; font-weight:600; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.15s ease;"
-                                        onmouseover="this.style.filter='brightness(1.05)'"
-                                        onmouseout="this.style.filter='brightness(1)'">
+                                        class="btn-ipnet-gradient"
+                                        style="flex:1 1 140px; justify-content:center; padding:10px 17px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:7px;">
                                     Simpan Progress
                                 </button>
                                 <button type="button" @click="progressModalOpen = false"
@@ -495,7 +530,7 @@
                     <div style="background:white; border-radius:16px; width:520px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(14,13,18,0.15); margin:auto; position:relative; animation:fadeInUp 0.2s ease;">
 
                         <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px; position:sticky; top:0; background:white; border-bottom:1px solid #E7E5E3; border-radius:16px 16px 0 0;">
-                            <h3 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:600; color:#17151C;">Detail & Dokumentasi Task</h3>
+                            <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:16px; font-weight:600; color:#17151C;">Detail & Dokumentasi Task</h3>
                             <button @click="detailModalOpen = false" style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:8px; transition:all 0.15s ease;" onmouseover="this.style.background='#F1F0EE'" onmouseout="this.style.background='transparent'">
                                 <svg style="width:20px; height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -592,6 +627,7 @@
 
                             <!-- Detail Modal Footer Actions -->
                             <div style="margin-top:20px; padding-top:16px; border-top:1px solid #E7E5E3; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                                @if($canManage)
                                 <template x-if="selectedTask?.status !== 'Completed' || selectedTask?.progress < 100">
                                     <button type="button" 
                                             @click="quickCompleteTask(selectedTask); detailModalOpen = false;"
@@ -602,6 +638,7 @@
                                         Tandai Selesai (100% Completed)
                                     </button>
                                 </template>
+                                @endif
                                 <button type="button" @click="detailModalOpen = false" style="padding:9px 18px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13px; font-weight:600; color:#3D3A44; cursor:pointer; margin-left:auto;">
                                     Tutup
                                 </button>
@@ -648,50 +685,52 @@
     }
 
     .kanban-col {
-        background: #F8F7F6;
-        border-radius: 12px;
-        border: 1px solid #EFEDEB;
+        background: #F8FAFC;
+        border-radius: 16px;
+        border: 1px solid #E2E8F0;
         display: flex;
         flex-direction: column;
         max-height: calc(100vh - 200px);
         min-height: 200px;
         overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
     }
 
     .kanban-col-head {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 8px;
-        padding: 12px 12px 10px;
+        padding: 13px 14px 11px;
         flex-shrink: 0;
-        background: #F8F7F6;
-        border-bottom: 1px solid #EFEDEB;
-        border-radius: 12px 12px 0 0;
+        background: #F1F5F9;
+        border-bottom: 1px solid #E2E8F0;
+        border-radius: 16px 16px 0 0;
     }
 
     .kanban-col-body {
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        padding: 10px 10px 12px;
+        gap: 12px;
+        padding: 12px;
         overflow-y: auto;
         flex: 1;
         scrollbar-width: thin;
-        scrollbar-color: #E7E5E3 transparent;
+        scrollbar-color: #CBD5E1 transparent;
     }
 
     .kanban-col-body::-webkit-scrollbar {
-        width: 4px;
+        width: 5px;
     }
     .kanban-col-body::-webkit-scrollbar-track {
         background: transparent;
     }
     .kanban-col-body::-webkit-scrollbar-thumb {
-        background: #E7E5E3;
+        background: #CBD5E1;
         border-radius: 99px;
     }
     .kanban-col-body::-webkit-scrollbar-thumb:hover {
-        background: #C7C4CD;
+        background: #94A3B8;
     }
 
     /* Tablet: 2 kolom */
@@ -739,8 +778,8 @@
                 projects: @json($projects),
                 formProjects: @json($formProjects ?? $projects),
                 engineers: @json($engineers),
-                currentUserId: parseInt(document.querySelector('[data-current-user-id]')?.dataset?.currentUserId || '0'),
-                isLead: document.querySelector('[data-is-lead]')?.dataset?.isLead === 'true',
+                currentUserId: {{ (int) $currentUserId }},
+                isLead: {{ $isLead ? 'true' : 'false' }},
                 modalOpen: false,
                 progressModalOpen: false,
                 detailModalOpen: false,
@@ -1180,13 +1219,13 @@
 
                 getPriorityFlag: function(level) {
                     var colors = {
-                        'High': '#C81E2C',
-                        'Medium': '#9A6206',
-                        'Low': '#75727C'
+                        'High': '#DC2626',
+                        'Medium': '#D97706',
+                        'Low': '#64748B'
                     };
-                    var color = colors[level] || '#75727C';
-                    var rail = level === 'High' ? '<span style="display:inline-block; width:14px; height:6px; border-radius:2px; background-image:linear-gradient(135deg, #E14B54 0%, #AF1424 55%, #5C0A13 100%); margin-left:2px;"></span>' : '';
-                    return '<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:' + color + '; text-transform:uppercase; letter-spacing:0.3px;">' +
+                    var color = colors[level] || '#64748B';
+                    var rail = level === 'High' ? '<span style="display:inline-block; width:12px; height:5px; border-radius:2px; background:linear-gradient(135deg, #EF4444, #8F0A0D); margin-left:2px;"></span>' : '';
+                    return '<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:800; color:' + color + '; text-transform:uppercase; letter-spacing:0.4px;">' +
                                 '<svg style="width:12px; height:12px;" viewBox="0 0 24 24" fill="' + color + '" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
                                     '<path d="M4 21V3M4 7l16-3v12l-16 3Z"/>' +
                                 '</svg>' +

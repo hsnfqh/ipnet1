@@ -119,7 +119,13 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        return response()->json($project->load(['tasks', 'creator']));
+        $project->load(['tasks.engineer', 'creator', 'division', 'pm', 'bdm']);
+
+        if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
+            return response()->json($project);
+        }
+
+        return view('projects.show', compact('project'));
     }
 
     public function getData()

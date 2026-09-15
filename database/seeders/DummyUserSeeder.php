@@ -24,18 +24,41 @@ class DummyUserSeeder extends Seeder
             ->delete();
 
         // 1. Pastikan roles tersedia
+        // 1. Pastikan roles lengkap tersedia
         $roles = [
+            'Director',
             'Direktur',
             'HD / Direktur',
+            'Division Head',
             'Group Leader',
+            'Group Leader Commercial & Solution',
+            'Group Leader Delivery & Operation',
             'PMO',
             'Project Manager',
             'Sales',
+            'Account Manager',
             'BusDev',
-            'Lead Divisi',
+            'BDM',
+            'Business Development',
+            'CRO',
+            'Customer Relation Officer',
+            'Presales',
+            'Pre-Sales',
+            'Solution Architect',
+            'Solutions Architect',
+            'Tech Develop',
+            'Tech.Develp (R&D)',
+            'R&D',
+            'Team Leader Engineering',
             'Team Leader',
+            'Lead Divisi',
             'Lead Maintenance',
             'Lead Engineer',
+            'Network Engineer',
+            'Security Engineer',
+            'Managed Service',
+            'Field Support (EOS)',
+            'Field Support',
             'Engineer',
             'Maintenance',
             'Engineer L1',
@@ -74,39 +97,56 @@ class DummyUserSeeder extends Seeder
         );
 
         // ============================================================
-        // 4. SEED USERS RESMI IP-NET (MANAGERIAL, PMO & 3 DIVISI)
+        // 4. SEED USERS RESMI IP-NET SESUAI STRUKTUR ORGANISASI
         // ============================================================
+        // --- 1. EXECUTIVE & DIVISION HEAD ---
         $direktur = User::updateOrCreate(
             ['email' => 'hariyadi@ipnetsolusindo.com'],
             [
                 'name'        => 'Hariyadi',
                 'password'    => Hash::make('password123'),
                 'phone'       => '08111000001',
-                'position'    => 'Direktur Utama',
+                'position'    => 'Director',
                 'status'      => 'Active',
                 'division_id' => null,
                 'team_id'     => null,
                 'level'       => null,
             ]
         );
-        $direktur->syncRoles(['Direktur']);
+        $direktur->syncRoles(['Director', 'Direktur']);
 
-        $gl = User::updateOrCreate(
+        $divHead = User::updateOrCreate(
             ['email' => 'susanto@ipnetsolusindo.com'],
             [
                 'name'        => 'Susanto Djaya',
                 'password'    => Hash::make('password123'),
                 'phone'       => '08111000002',
-                'position'    => 'Group Leader',
+                'position'    => 'Division Head & Group Leader (Delivery & Operation)',
                 'status'      => 'Active',
                 'division_id' => null,
                 'team_id'     => null,
                 'level'       => null,
             ]
         );
-        $gl->syncRoles(['Group Leader']);
+        $divHead->syncRoles(['Division Head', 'Group Leader Delivery & Operation', 'Group Leader']);
 
-        // --- PMO (PROJECT MANAGEMENT OFFICE) ---
+        // Group Leader Commercial & Solution
+        $glCommercial = User::updateOrCreate(
+            ['email' => 'gl.commercial@ipnetsolusindo.com'],
+            [
+                'name'        => 'Farhan Ramadhan',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000003',
+                'position'    => 'Group Leader Commercial & Solution',
+                'status'      => 'Active',
+                'division_id' => null,
+                'team_id'     => null,
+                'level'       => null,
+            ]
+        );
+        $glCommercial->syncRoles(['Group Leader Commercial & Solution', 'Group Leader']);
+
+        // --- 2. PMO & PROJECT MANAGER (GOVERNANCE) ---
         $pmoHead = User::updateOrCreate(
             ['email' => 'kuncoro@ipnetsolusindo.com'],
             [
@@ -135,71 +175,286 @@ class DummyUserSeeder extends Seeder
                 'level'       => null,
             ]
         );
-        $pmRizki->syncRoles(['Project Manager']);
+        $pmRizki->syncRoles(['Project Manager', 'PMO']);
 
-        // --- TIM SALES & BUSDEV (TAHAP 1: ACQUIRE) ---
-        $salesRaiza = User::updateOrCreate(
-            ['email' => 'raiza@ipnetsolusindo.com'],
+        // --- 3. CABANG COMMERCIAL & SOLUTION (9 SALES / ACCOUNT MANAGERS) ---
+        $salesListOfficial = [
             [
-                'name'        => 'Raiza',
+                'name'     => 'Donny Burnan',
+                'email'    => 'donny.burnan@ipnetsolusindo.com',
+                'phone'    => '08111000021',
+                'position' => 'Sales (Account Manager)',
+                'roles'    => ['Sales', 'Account Manager'],
+            ],
+            [
+                'name'     => 'Erie',
+                'email'    => 'erie@ipnetsolusindo.com',
+                'phone'    => '08111000020',
+                'position' => 'Sales (Account Manager)',
+                'roles'    => ['Sales', 'Account Manager'],
+            ],
+            [
+                'name'     => 'Hendry Wibowo',
+                'email'    => 'hendry.wibowo@ipnetsolusindo.com',
+                'phone'    => '08111000022',
+                'position' => 'Sales (Account Manager)',
+                'roles'    => ['Sales', 'Account Manager'],
+            ],
+            [
+                'name'     => 'Nabylla Berlianita',
+                'email'    => 'nabylla.berlianita@ipnetsolusindo.com',
+                'phone'    => '08111000023',
+                'position' => 'Sales (Account Manager)',
+                'roles'    => ['Sales', 'Account Manager'],
+            ],
+            [
+                'name'     => 'Nelvia Nataliandi',
+                'email'    => 'nelvia.nataliandi@ipnetsolusindo.com',
+                'phone'    => '08111000024',
+                'position' => 'Sales (Account Manager)',
+                'roles'    => ['Sales', 'Account Manager'],
+            ],
+            [
+                'name'     => 'Raiza',
+                'email'    => 'raiza@ipnetsolusindo.com',
+                'phone'    => '08111000025',
+                'position' => 'Sales (Account Manager)',
+                'roles'    => ['Sales', 'Account Manager'],
+            ],
+            [
+                'name'     => 'Ribka Junita',
+                'email'    => 'ribka.junita@ipnetsolusindo.com',
+                'phone'    => '08111000026',
+                'position' => 'Senior Sales & Account Manager',
+                'roles'    => ['Sales', 'Account Manager'],
+            ],
+            [
+                'name'     => 'Sabar Sianturi',
+                'email'    => 'sabar.sianturi@ipnetsolusindo.com',
+                'phone'    => '08111000027',
+                'position' => 'Sales (Account Manager)',
+                'roles'    => ['Sales', 'Account Manager'],
+            ],
+            [
+                'name'     => 'Widodo',
+                'email'    => 'widodo@ipnetsolusindo.com',
+                'phone'    => '08111000028',
+                'position' => 'Sales (Account Manager)',
+                'roles'    => ['Sales', 'Account Manager'],
+            ],
+        ];
+
+        foreach ($salesListOfficial as $s) {
+            $u = User::updateOrCreate(
+                ['email' => $s['email']],
+                [
+                    'name'        => $s['name'],
+                    'password'    => Hash::make('password123'),
+                    'phone'       => $s['phone'],
+                    'position'    => $s['position'],
+                    'status'      => 'Active',
+                    'division_id' => null,
+                    'team_id'     => null,
+                    'level'       => 'Senior',
+                ]
+            );
+            $u->syncRoles($s['roles']);
+        }
+
+        // --- 4. BUSINESS DEVELOPMENT MANAGERS (5 BDM RESMI) ---
+        $bdmListOfficial = [
+            [
+                'name'     => 'Kurnijanto Edy',
+                'email'    => 'kurnijanto.edy@ipnetsolusindo.com',
+                'phone'    => '08111000031',
+                'position' => 'Business Development Manager (BDM)',
+                'roles'    => ['BDM', 'BusDev', 'Business Development'],
+            ],
+            [
+                'name'     => 'Novan Pudjirachmanto',
+                'email'    => 'novan.pudjirachmanto@ipnetsolusindo.com',
+                'phone'    => '08111000032',
+                'position' => 'Business Development Manager (BDM)',
+                'roles'    => ['BDM', 'BusDev', 'Business Development'],
+            ],
+            [
+                'name'     => 'M. Kipsriyanto',
+                'email'    => 'kripsiyanto@ipnetsolusindo.com',
+                'phone'    => '08111000033',
+                'position' => 'Business Development Manager (BDM)',
+                'roles'    => ['BDM', 'BusDev', 'Business Development'],
+            ],
+            [
+                'name'     => 'Armen Yuldi',
+                'email'    => 'armen.yuldi@ipnetsolusindo.com',
+                'phone'    => '08111000034',
+                'position' => 'Business Development Manager (BDM)',
+                'roles'    => ['BDM', 'BusDev', 'Business Development'],
+            ],
+            [
+                'name'     => 'Antonius Dony',
+                'email'    => 'antonius.dony@ipnetsolusindo.com',
+                'phone'    => '08111000035',
+                'position' => 'Business Development Manager (BDM)',
+                'roles'    => ['BDM', 'BusDev', 'Business Development'],
+            ],
+        ];
+
+        foreach ($bdmListOfficial as $b) {
+            $u = User::updateOrCreate(
+                ['email' => $b['email']],
+                [
+                    'name'        => $b['name'],
+                    'password'    => Hash::make('password123'),
+                    'phone'       => $b['phone'],
+                    'position'    => $b['position'],
+                    'status'      => 'Active',
+                    'division_id' => null,
+                    'team_id'     => null,
+                    'level'       => 'Senior',
+                ]
+            );
+            $u->syncRoles($b['roles']);
+        }
+
+        // CRO (Customer Relation Officer)
+        $croUser = User::updateOrCreate(
+            ['email' => 'daisy@ipnetsolusindo.com'],
+            [
+                'name'        => 'Daisy',
                 'password'    => Hash::make('password123'),
-                'phone'       => '08111000021',
-                'position'    => 'Account Executive & Sales',
+                'phone'       => '08111000024',
+                'position'    => 'Customer Relation Officer (CRO)',
                 'status'      => 'Active',
                 'division_id' => null,
                 'team_id'     => null,
                 'level'       => 'Senior',
             ]
         );
-        $salesRaiza->syncRoles(['Sales']);
+        $croUser->syncRoles(['CRO', 'Customer Relation Officer']);
 
-        $salesRibka = User::updateOrCreate(
-            ['email' => 'ribka@ipnetsolusindo.com'],
+        // CRO Alternate / Alias Email
+        $croUserOld = User::updateOrCreate(
+            ['email' => 'cro@ipnetsolusindo.com'],
             [
-                'name'        => 'Ribka',
+                'name'        => 'Daisy',
                 'password'    => Hash::make('password123'),
-                'phone'       => '08111000022',
-                'position'    => 'Senior Sales & BusDev',
+                'phone'       => '08111000024',
+                'position'    => 'Customer Relation Officer (CRO)',
                 'status'      => 'Active',
                 'division_id' => null,
                 'team_id'     => null,
                 'level'       => 'Senior',
             ]
         );
-        $salesRibka->syncRoles(['Sales']);
+        $croUserOld->syncRoles(['CRO', 'Customer Relation Officer']);
 
-        $salesWidodo = User::updateOrCreate(
-            ['email' => 'widodo@ipnetsolusindo.com'],
+        // ADMIN SUPPORT & LOGISTICS (Rina)
+        $adminSupportEmails = [
+            'admin.support@ipnetsolusindo.com',
+            'admin@ipnetsolusindo.com',
+            'rina@ipnetsolusindo.com',
+        ];
+        foreach ($adminSupportEmails as $aEmail) {
+            $adm = User::updateOrCreate(
+                ['email' => $aEmail],
+                [
+                    'name'        => 'Rina',
+                    'password'    => Hash::make('password123'),
+                    'phone'       => '08111000030',
+                    'position'    => 'Head of Admin Support & Logistics',
+                    'status'      => 'Active',
+                    'division_id' => null,
+                    'team_id'     => null,
+                    'level'       => 'Senior',
+                ]
+            );
+            $adm->syncRoles(['Admin Support', 'Admin']);
+        }
+
+        // PRE-SALES
+        $presalesAkbar = User::updateOrCreate(
+            ['email' => 'akbar@ipnetsolusindo.com'],
             [
-                'name'        => 'Widodo',
+                'name'        => 'Akbar',
                 'password'    => Hash::make('password123'),
-                'phone'       => '08111000023',
-                'position'    => 'Sales Executive',
+                'phone'       => '08111000025',
+                'position'    => 'Pre-Sales Specialist',
                 'status'      => 'Active',
                 'division_id' => null,
                 'team_id'     => null,
                 'level'       => 'Senior',
             ]
         );
-        $salesWidodo->syncRoles(['Sales']);
+        $presalesAkbar->syncRoles(['Presales', 'Pre-Sales']);
 
-        // --- DIVISI NETWORK ---
+        // SOLUTION ARCHITECT (EXPERT)
+        $saAris = User::updateOrCreate(
+            ['email' => 'aris@ipnetsolusindo.com'],
+            [
+                'name'        => 'Aris Sadewo',
+                'password'    => Hash::make('password123'),
+                'phone'       => '081288776543',
+                'position'    => 'Solution Architect (Expert)',
+                'status'      => 'Active',
+                'division_id' => null,
+                'team_id'     => null,
+                'level'       => 'Senior',
+            ]
+        );
+        $saAris->syncRoles(['Solution Architect']);
+
+        // TECH DEVELOP (R&D)
+        $techDevUser = User::updateOrCreate(
+            ['email' => 'techdev@ipnetsolusindo.com'],
+            [
+                'name'        => 'Bagas Pratama',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000026',
+                'position'    => 'Technical Development (R&D) Expert',
+                'status'      => 'Active',
+                'division_id' => null,
+                'team_id'     => null,
+                'level'       => 'Senior',
+            ]
+        );
+        $techDevUser->syncRoles(['Tech Develop', 'Tech.Develp (R&D)', 'R&D']);
+
+        // --- 4. CABANG DELIVERY & OPERATION ---
+        // A. TECHNICAL ENGINEERING (LEADERS)
         $tlNet = User::updateOrCreate(
             ['email' => 'nugraha@ipnetsolusindo.com'],
             [
                 'name'        => 'Nugraha Pratama',
                 'password'    => Hash::make('password123'),
                 'phone'       => '08111000003',
-                'position'    => 'Network Leader',
+                'position'    => 'Team Leader Network Engineering',
                 'status'      => 'Active',
                 'division_id' => $divNet->id,
                 'team_id'     => $teamNet->id,
                 'level'       => null,
             ]
         );
-        $tlNet->syncRoles(['Team Leader']);
+        $tlNet->syncRoles(['Team Leader Engineering', 'Team Leader']);
         $teamNet->update(['leader_id' => $tlNet->id]);
 
+        $tlSec = User::updateOrCreate(
+            ['email' => 'ignatius@ipnetsolusindo.com'],
+            [
+                'name'        => 'Ignatius Rizky',
+                'password'    => Hash::make('password123'),
+                'phone'       => '08111000004',
+                'position'    => 'Team Leader Security Engineering',
+                'status'      => 'Active',
+                'division_id' => $divSec->id,
+                'team_id'     => $teamSec->id,
+                'level'       => null,
+            ]
+        );
+        $tlSec->syncRoles(['Team Leader Engineering', 'Team Leader']);
+        $teamSec->update(['leader_id' => $tlSec->id]);
+
+        // B. NETWORK ENGINEERS
         $engNet1 = User::updateOrCreate(
             ['email' => 'rorik@ipnetsolusindo.com'],
             [
@@ -213,7 +468,7 @@ class DummyUserSeeder extends Seeder
                 'level'       => 'L1',
             ]
         );
-        $engNet1->syncRoles(['Engineer']);
+        $engNet1->syncRoles(['Network Engineer', 'Engineer']);
 
         $engNet2 = User::updateOrCreate(
             ['email' => 'shiamsyah@ipnetsolusindo.com'],
@@ -228,7 +483,7 @@ class DummyUserSeeder extends Seeder
                 'level'       => 'L1',
             ]
         );
-        $engNet2->syncRoles(['Engineer']);
+        $engNet2->syncRoles(['Network Engineer', 'Engineer']);
 
         $engNet3 = User::updateOrCreate(
             ['email' => 'dedy@ipnetsolusindo.com'],
@@ -243,7 +498,7 @@ class DummyUserSeeder extends Seeder
                 'level'       => 'L2',
             ]
         );
-        $engNet3->syncRoles(['Engineer']);
+        $engNet3->syncRoles(['Network Engineer', 'Engineer']);
 
         $engNet4 = User::updateOrCreate(
             ['email' => 'syaiful@ipnetsolusindo.com'],
@@ -258,25 +513,9 @@ class DummyUserSeeder extends Seeder
                 'level'       => 'L2',
             ]
         );
-        $engNet4->syncRoles(['Engineer']);
+        $engNet4->syncRoles(['Network Engineer', 'Engineer']);
 
-        // --- DIVISI SECURITY ---
-        $tlSec = User::updateOrCreate(
-            ['email' => 'ignatius@ipnetsolusindo.com'],
-            [
-                'name'        => 'Ignatius Rizky',
-                'password'    => Hash::make('password123'),
-                'phone'       => '08111000004',
-                'position'    => 'Security Leader',
-                'status'      => 'Active',
-                'division_id' => $divSec->id,
-                'team_id'     => $teamSec->id,
-                'level'       => null,
-            ]
-        );
-        $tlSec->syncRoles(['Team Leader']);
-        $teamSec->update(['leader_id' => $tlSec->id]);
-
+        // C. SECURITY ENGINEERS
         $engSec1 = User::updateOrCreate(
             ['email' => 'eka@ipnetsolusindo.com'],
             [
@@ -290,23 +529,23 @@ class DummyUserSeeder extends Seeder
                 'level'       => 'L1',
             ]
         );
-        $engSec1->syncRoles(['Engineer']);
+        $engSec1->syncRoles(['Security Engineer', 'Engineer']);
 
-        // --- DIVISI MAINTENANCE & HELPDESK (DORIS, MARIO, ERIS) ---
+        // D. MANAGED SERVICE & FIELD SUPPORT (EOS)
         $tlMnt = User::updateOrCreate(
             ['email' => 'doris@ipnetsolusindo.com'],
             [
                 'name'        => 'Doris',
                 'password'    => Hash::make('password123'),
                 'phone'       => '08111000010',
-                'position'    => 'Lead Maintenance & Helpdesk Coordinator',
+                'position'    => 'Managed Service Coordinator',
                 'status'      => 'Active',
                 'division_id' => $divMnt->id,
                 'team_id'     => $teamMnt->id,
                 'level'       => null,
             ]
         );
-        $tlMnt->syncRoles(['Lead Maintenance']);
+        $tlMnt->syncRoles(['Managed Service', 'Lead Maintenance', 'Team Leader']);
         $teamMnt->update(['leader_id' => $tlMnt->id]);
 
         $engMnt1 = User::updateOrCreate(
@@ -315,14 +554,14 @@ class DummyUserSeeder extends Seeder
                 'name'        => 'Mario',
                 'password'    => Hash::make('password123'),
                 'phone'       => '08111000011',
-                'position'    => 'Helpdesk & Maintenance Staff',
+                'position'    => 'Field Support Engineer (EOS)',
                 'status'      => 'Active',
                 'division_id' => $divMnt->id,
                 'team_id'     => $teamMnt->id,
                 'level'       => null,
             ]
         );
-        $engMnt1->syncRoles(['Maintenance']);
+        $engMnt1->syncRoles(['Field Support (EOS)', 'Field Support', 'Maintenance']);
 
         $engMnt2 = User::updateOrCreate(
             ['email' => 'eris@ipnetsolusindo.com'],
@@ -330,14 +569,14 @@ class DummyUserSeeder extends Seeder
                 'name'        => 'Eris',
                 'password'    => Hash::make('password123'),
                 'phone'       => '08111000012',
-                'position'    => 'Helpdesk & Maintenance Staff',
+                'position'    => 'Field Support Engineer (EOS)',
                 'status'      => 'Active',
                 'division_id' => $divMnt->id,
                 'team_id'     => $teamMnt->id,
                 'level'       => null,
             ]
         );
-        $engMnt2->syncRoles(['Maintenance']);
+        $engMnt2->syncRoles(['Field Support (EOS)', 'Field Support', 'Maintenance']);
 
         // ============================================================
         // 5. SEED 20 PROYEK LENGKAP & SEMUA MEMILIKI SALES RESMI
@@ -670,11 +909,24 @@ class DummyUserSeeder extends Seeder
             ],
         ];
 
+        $sampleFile = 'proposals/EcW3J8dl2cSjn5zLG2BzqThC5gjZmueZUIPFW5X5.pdf';
+        $mandaysArr = [8, 10, 12, 14, 15, 18, 20];
+
         $projects = [];
-        foreach ($projectsData as $pData) {
+        foreach ($projectsData as $idx => $pData) {
+            $isWon = in_array($pData['status'] ?? '', ['On Progress', 'Completed', 'Closed Won']);
+            $mDays = $isWon ? ($mandaysArr[$idx % count($mandaysArr)]) : null;
+            
+            $mergedData = array_merge([
+                'mandays'         => $mDays,
+                'proposal_file'   => $isWon ? $sampleFile : null,
+                'presales_status' => $isWon ? 'Submitted' : 'Pending',
+                'proposal_notes'  => $isWon ? "Ruang lingkup teknis (SOW) telah selesai disusun oleh tim Presales Engineer: Alokasi {$mDays} Mandays Engineer." : null,
+            ], $pData);
+
             $p = Project::updateOrCreate(
                 ['name' => $pData['name']],
-                $pData
+                $mergedData
             );
             $projects[] = $p;
         }

@@ -11,6 +11,15 @@ class Schedule extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function booted()
+    {
+        static::creating(function ($schedule) {
+            if (empty($schedule->created_by)) {
+                $schedule->created_by = auth()->id() ?? 1;
+            }
+        });
+    }
+
     protected $fillable = [
         'title',
         'category',
@@ -44,6 +53,11 @@ class Schedule extends Model
     public function engineers()
     {
         return $this->belongsToMany(User::class, 'schedule_user')->withTimestamps();
+    }
+
+    public function users()
+    {
+        return $this->engineers();
     }
 
     public function creator()

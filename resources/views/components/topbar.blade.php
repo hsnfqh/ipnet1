@@ -15,23 +15,26 @@
     }
 @endphp
 
-<div class="flex items-center justify-between gap-3 px-4 py-3 sm:px-[28px] sm:py-[18px] border-b border-wms-line bg-white sticky top-0 z-10">
+<div class="flex items-center justify-between gap-3 px-4 py-3 sm:px-[28px] sm:py-[15px] border-b border-[#EAE8E5] bg-white/90 backdrop-blur-md sticky top-0 z-30 transition-all duration-200">
 
     <!-- Judul: menyusut & terpotong dengan elipsis kalau kepanjangan -->
-    <div class="min-w-0">
-        <h1 class="font-display text-[18px] sm:text-[21px] font-semibold text-wms-ink-900 tracking-[-0.2px] truncate">{{ $title }}</h1>
+    <div class="min-w-0 flex items-center gap-2">
+        <h1 class="font-display text-[18px] sm:text-[21px] font-bold text-[#17151C] tracking-[-0.3px] truncate">{{ $title }}</h1>
     </div>
 
     <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
 
         <!-- Notifications Dropdown -->
         <div class="relative" x-data="notificationDropdown()" x-init="init()">
-            <button @click="toggleDropdown()" class="wms-iconbtn p-2 text-wms-ink-700 relative inline-flex focus:outline-none" title="Pemberitahuan">
+            <button @click="toggleDropdown()" class="w-9 h-9 rounded-xl flex items-center justify-center text-[#57545F] hover:text-[#C81E2C] hover:bg-[#FDF1F2] border border-transparent hover:border-[#FADADF] transition-all duration-200 relative focus:outline-none" title="Pemberitahuan">
                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
                 <template x-if="unreadCount > 0">
-                    <span class="absolute top-1.5 right-1.5 w-[8px] h-[8px] rounded-full bg-red-600 border-2 border-white animate-pulse"></span>
+                    <span class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C81E2C] border-2 border-white"></span>
+                    </span>
                 </template>
             </button>
 
@@ -39,25 +42,30 @@
             <div x-show="open" 
                  x-cloak
                  @click.outside="open = false"
-                 class="absolute right-0 mt-2 w-[320px] sm:w-[360px] bg-white border border-wms-line rounded-xl shadow-lg z-50 overflow-hidden"
+                 class="absolute right-0 mt-2.5 w-[320px] sm:w-[370px] bg-white border border-[#EAE8E5] rounded-2xl shadow-[0_16px_36px_-4px_rgba(14,13,18,0.15)] z-50 overflow-hidden"
                  style="display: none;"
-                 x-transition:enter="transition ease-out duration-100"
-                 x-transition:enter-start="transform opacity-0 scale-95"
-                 x-transition:enter-end="transform opacity-100 scale-100"
-                 x-transition:leave="transition ease-in duration-75"
-                 x-transition:leave-start="transform opacity-100 scale-100"
-                 x-transition:leave-end="transform opacity-0 scale-95">
+                 x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-250"
+                 x-transition:enter-start="opacity-0 transform scale-95 -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 transform scale-100"
+                 x-transition:leave-end="opacity-0 transform scale-95">
                  
-                <div class="px-4 py-3 border-b border-wms-line bg-gray-50 flex items-center justify-between gap-2">
-                    <span class="text-[13px] font-bold text-wms-ink-900">Notifikasi</span>
+                <div class="px-4 py-3.5 border-b border-[#EAE8E5] bg-[#FAF9F8] flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[13px] font-bold text-[#17151C]">Notifikasi</span>
+                        <template x-if="unreadCount > 0">
+                            <span class="px-2 py-0.5 text-[10.5px] font-bold rounded-full bg-[#C81E2C] text-white" x-text="unreadCount"></span>
+                        </template>
+                    </div>
                     <div class="flex items-center gap-2">
                         <template x-if="unreadCount > 0">
-                            <button @click="markAllRead()" class="text-[11px] font-semibold text-red-600 hover:underline">
+                            <button @click="markAllRead()" class="text-[11px] font-bold text-[#C81E2C] hover:underline">
                                 Tandai dibaca
                             </button>
                         </template>
                         <template x-if="notifications.length > 0">
-                            <button @click="promptDeleteAll()" class="text-[11px] font-semibold text-wms-ink-500 hover:text-red-600 flex items-center gap-1 transition-colors" title="Hapus semua notifikasi">
+                            <button @click="promptDeleteAll()" class="text-[11px] font-semibold text-[#75727C] hover:text-[#C81E2C] flex items-center gap-1 transition-colors" title="Hapus semua notifikasi">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
@@ -67,28 +75,31 @@
                     </div>
                 </div>
 
-                <div class="max-h-[280px] overflow-y-auto divide-y divide-gray-100">
+                <div class="max-h-[290px] overflow-y-auto divide-y divide-gray-100">
                     <template x-if="notifications.length === 0">
-                        <div class="px-4 py-6 text-center text-[12.5px] text-wms-ink-500">
+                        <div class="px-4 py-8 text-center text-[12.5px] text-[#75727C]">
+                            <svg class="w-8 h-8 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
                             Tidak ada notifikasi baru.
                         </div>
                     </template>
                     <template x-for="notif in notifications" :key="notif.id">
-                        <div class="relative group flex items-center justify-between px-4 py-3 hover:bg-gray-50/80 transition-colors cursor-pointer"
-                             :class="!notif.is_read ? 'bg-red-50/20' : ''"
+                        <div class="relative group flex items-center justify-between px-4 py-3 hover:bg-red-50/20 transition-colors cursor-pointer"
+                             :class="!notif.is_read ? 'bg-red-50/40' : ''"
                              @click="goToNotif(notif)">
                             <div class="flex-1 min-w-0 pr-2">
-                                <div class="flex gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" :class="!notif.is_read ? 'bg-red-600' : 'bg-transparent'"></span>
+                                <div class="flex gap-2.5 items-start">
+                                    <span class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" :class="!notif.is_read ? 'bg-[#C81E2C] ring-2 ring-red-200' : 'bg-transparent'"></span>
                                     <div class="flex-1 min-w-0">
-                                        <div class="text-[12.5px] font-semibold text-wms-ink-900 leading-snug" x-text="notif.title"></div>
-                                        <div class="text-[11.5px] text-wms-ink-500 mt-0.5" x-text="notif.message"></div>
-                                        <div class="text-[10.5px] text-wms-ink-400 mt-1" x-text="notif.time_ago"></div>
+                                        <div class="text-[12.5px] font-semibold text-[#17151C] leading-snug" x-text="notif.title"></div>
+                                        <div class="text-[11.5px] text-[#57545F] mt-0.5 line-clamp-2" x-text="notif.message"></div>
+                                        <div class="text-[10.5px] text-[#948F99] mt-1 font-medium" x-text="notif.time_ago"></div>
                                     </div>
                                 </div>
                             </div>
                             <button @click.stop.prevent="promptDeleteNotification(notif.id, notif.title)" 
-                                    class="opacity-60 hover:opacity-100 text-wms-ink-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-all flex-shrink-0"
+                                    class="opacity-40 group-hover:opacity-100 text-[#75727C] hover:text-[#C81E2C] p-1.5 rounded-lg hover:bg-white transition-all flex-shrink-0"
                                     title="Hapus notifikasi ini">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -98,9 +109,9 @@
                     </template>
                 </div>
 
-                <div class="border-t border-wms-line bg-gray-50 text-center">
-                    <a href="{{ route('notifications.index') }}" class="block py-2 text-[12px] font-semibold text-wms-ink-700 hover:text-red-600 transition-colors">
-                        Lihat Semua Notifikasi
+                <div class="border-t border-[#EAE8E5] bg-[#FAF9F8] text-center">
+                    <a href="{{ route('notifications.index') }}" class="block py-2.5 text-[12px] font-bold text-[#57545F] hover:text-[#C81E2C] transition-colors">
+                        Lihat Semua Notifikasi &rarr;
                     </a>
                 </div>
             </div>
@@ -108,16 +119,16 @@
             <!-- Topbar Confirmation Delete Modal (Centered Popup) -->
             <div x-show="confirmModalOpen" 
                  x-cloak
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
+                 x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-250"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
                  x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
                  class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
                  @click.self="confirmModalOpen = false"
                  style="display: none;">
-                <div class="bg-white rounded-2xl w-[420px] max-w-full overflow-y-auto animate-fade-in-up shadow-[0_20px_60px_rgba(14,13,18,0.2)] text-left">
+                <div class="bg-white rounded-2xl w-[420px] max-w-full overflow-y-auto shadow-[0_24px_64px_rgba(14,13,18,0.25)] text-left border border-[#EAE8E5]">
                     <div class="p-5 sm:p-6">
                         <!-- Icon -->
                         <div class="flex justify-center mb-4">

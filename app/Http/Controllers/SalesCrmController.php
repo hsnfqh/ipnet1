@@ -1,0 +1,471 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Project;
+use App\Models\SalesActivity;
+use App\Models\User;
+use App\Models\Client;
+use App\Models\Notification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
+
+class SalesCrmController extends Controller
+{
+    /**
+     * 8 Tahapan Siklus Penjualan Standar SOP (Sales Lifecycle)
+     */
+    public static $stages = [
+        'Qualification'         => ['label' => '1. Qualification',          'default_prob' => 10,  'color' => '#6B7280', 'bg' => '#F3F4F6'],
+        'Qualified Opportunity' => ['label' => '2. Qualified Opportunity',  'default_prob' => 25,  'color' => '#3B82F6', 'bg' => '#EFF6FF'],
+        'Proposal Request'      => ['label' => '3. Proposal Request',       'default_prob' => 50,  'color' => '#8B5CF6', 'bg' => '#F5F3FF'],
+        'Quotation'             => ['label' => '4. Quotation Submitted',    'default_prob' => 70,  'color' => '#EAB308', 'bg' => '#FEFCE8'],
+        'Negotiation'           => ['label' => '5. Negotiation',            'default_prob' => 85,  'color' => '#F97316', 'bg' => '#FFF7ED'],
+        'Approval'              => ['label' => '6. Internal Approval',      'default_prob' => 95,  'color' => '#06B6D4', 'bg' => '#ECFEFF'],
+        'Contract / PO / SPK'   => ['label' => '7. Contract / PO / SPK',    'default_prob' => 98,  'color' => '#10B981', 'bg' => '#ECFDF5'],
+        'Closed Won'            => ['label' => '8. Closed Won (Handover)',  'default_prob' => 100, 'color' => '#16A34A', 'bg' => '#F0FDF4'],
+        'Closed Lost'           => ['label' => 'Closed Lost / Drop',        'default_prob' => 0,   'color' => '#DC2626', 'bg' => '#FEF2F2'],
+    ];
+
+    /**
+     * Tipe Aktivitas CRM
+     */
+    public static $activityTypes = [
+        'Meeting'              => 'Meeting / Client Visit',
+        'Phone Call'           => 'Telepon / WhatsApp Call',
+        'Email'                => 'Email / Correspondence',
+        'Demo / Presentation'  => 'Product Demo / Presentation',
+        'Quotation Submission' => 'Pengiriman Penawaran / Quotation',
+        'Negotiation'          => 'Klarifikasi & Negosiasi Harga',
+        'Follow Up'            => 'Follow-up Prospek',
+        'Contract Signing'     => 'Tanda Tangan Kontrak / PO',
+    ];
+
+    /**
+     * 1. Halaman Dedicated: Sales Pipeline & Opportunity Register
+     */
+    public function pipeline(Request $request)
+    {
+        $user = auth()->user();
+        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager']);
+
+        $search = $request->input('search');
+        $filterStage = $request->input('stage');
+        $filterSales = $request->input('sales');
+        $viewMode = $request->input('view', 'table'); // table or kanban
+
+        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->with(['bdm', 'creator', 'salesActivities']);
+
+        if (!$isManagerial) {
+            $allProjectsQuery->where(function($q) use ($user) {
+                $q->where('sales_name', $user->name)
+                  ->orWhere('created_by', $user->id);
+            });
+        }
+
+        // Base Query
+        $query = (clone $allProjectsQuery);
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('client', 'like', "%{$search}%")
+                  ->orWhere('sales_name', 'like', "%{$search}%")
+                  ->orWhere('quotation_number', 'like', "%{$search}%");
+            });
+        }
+
+        if ($filterStage) {
+            $query->where('sales_stage', $filterStage);
+        }
+
+        if ($filterSales && $isManagerial) {
+            $query->where('sales_name', $filterSales);
+        }
+
+        // Summary Stage Statistics for Pipeline Funnel Bar
+        $allStageProjects = (clone $allProjectsQuery)->get();
+        $stageSummary = [];
+        foreach (self::$stages as $stageKey => $meta) {
+            $stageProjects = $allStageProjects->where('sales_stage', $stageKey);
+            $stageCount = $stageProjects->count();
+            $stageValue = $stageProjects->sum('contract_value');
+            $weightedValue = $stageProjects->sum(fn($p) => ($p->contract_value ?? 0) * (($p->win_probability ?? $meta['default_prob']) / 100));
+
+            $stageSummary[$stageKey] = [
+                'label'          => $meta['label'],
+                'color'          => $meta['color'],
+                'bg'             => $meta['bg'],
+                'count'          => $stageCount,
+                'total_value'    => $stageValue,
+                'weighted_value' => $weightedValue,
+            ];
+        }
+
+        $totalPipelineValue = $allStageProjects->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])->sum('contract_value');
+        $totalWeightedForecast = $allStageProjects->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])->sum(fn($p) => ($p->contract_value ?? 0) * (($p->win_probability ?? 10) / 100));
+        $totalWonValue = $allStageProjects->where('sales_stage', 'Closed Won')->sum('contract_value');
+
+        // Data List
+        $projects = $query->latest('updated_at')->paginate(10)->withQueryString();
+
+        $salesTeam = BdmController::$salesTeam;
+        $stages = self::$stages;
+
+        return view('sales.pipeline.index', compact(
+            'projects',
+            'stageSummary',
+            'totalPipelineValue',
+            'totalWeightedForecast',
+            'totalWonValue',
+            'search',
+            'filterStage',
+            'filterSales',
+            'viewMode',
+            'salesTeam',
+            'stages',
+            'isManagerial'
+        ));
+    }
+
+    /**
+     * Store New Sales Opportunity (Self-Sourced by Sales Rep)
+     */
+    public function storeOpportunity(Request $request)
+    {
+        $validated = $request->validate([
+            'name'                  => 'required|string|max:255',
+            'client'                => 'required|string|max:255',
+            'contract_value'        => 'required|numeric|min:0',
+            'sales_stage'           => 'nullable|string',
+            'win_probability'       => 'nullable|integer|min:0|max:100',
+            'expected_closing_date' => 'nullable|date',
+            'opportunity_source'    => 'nullable|string|max:255',
+            'sales_notes'           => 'nullable|string',
+        ]);
+
+        $user = auth()->user();
+        $stage = $validated['sales_stage'] ?? 'Qualification';
+        $defaultProb = self::$stages[$stage]['default_prob'] ?? 10;
+        $prob = isset($validated['win_probability']) && $validated['win_probability'] !== '' ? (int) $validated['win_probability'] : $defaultProb;
+        $closingDate = !empty($validated['expected_closing_date']) ? $validated['expected_closing_date'] : now()->addMonths(1)->toDateString();
+
+        $project = Project::create([
+            'name'                  => $validated['name'],
+            'client'                => $validated['client'],
+            'contract_value'        => $validated['contract_value'],
+            'sales_stage'           => $stage,
+            'win_probability'       => $prob,
+            'expected_closing_date' => $closingDate,
+            'opportunity_source'    => $validated['opportunity_source'] ?? 'Direct Sales Prospecting',
+            'sales_name'            => $user->name,
+            'created_by'            => $user->id,
+            'sales_notes'           => $validated['sales_notes'] ?? null,
+            'status'                => 'Opportunity',
+            'stage'                 => 'Acquire',
+            'acquire_status'        => 'Prospecting',
+            'bdm_handover_status'   => 'Self-Sourced Sales',
+            'start_date'            => now(),
+            'deadline'              => $closingDate,
+        ]);
+
+        // Auto add Client if not exists
+        if (!Client::where('company_name', $validated['client'])->exists()) {
+            Client::create([
+                'company_name' => $validated['client'],
+                'client_code'  => 'CLI-' . strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $validated['client']), 0, 4)) . '-' . rand(100, 999),
+                'status'       => 'Prospect',
+            ]);
+        }
+
+        // Auto record initial Sales Activity log
+        SalesActivity::create([
+            'project_id'     => $project->id,
+            'user_id'        => $user->id,
+            'activity_type'  => 'Follow Up',
+            'activity_date'  => now()->toDateString(),
+            'activity_time'  => now()->format('H:i'),
+            'contact_person' => 'PIC Prospek',
+            'summary'        => 'Inisiasi peluang baru oleh Sales: ' . $project->name,
+            'outcome'        => 'Peluang masuk pipeline tahap ' . ($stage),
+            'next_action'    => 'Klarifikasi kebutuhan spesifikasi & jadwalkan pertemuan',
+        ]);
+
+        return redirect()->route('sales.pipeline.index')
+            ->with('success', "Peluang baru '{$project->name}' berhasil ditambahkan ke pipeline Anda.");
+    }
+
+    /**
+     * Update Sales Lifecycle Stage & Forecast Information
+     */
+    public function updateStage(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'sales_stage'           => 'required|string',
+            'win_probability'       => 'required|integer|min:0|max:100',
+            'expected_closing_date' => 'nullable|date',
+            'contract_value'        => 'nullable|numeric|min:0',
+            'quotation_number'      => 'nullable|string|max:255',
+            'quotation_amount'      => 'nullable|numeric|min:0',
+            'quotation_file'        => 'nullable|file|mimes:pdf,docx,xlsx,zip|max:20480',
+            'sales_notes'           => 'nullable|string',
+            'lost_reason'           => 'nullable|string',
+            'lost_competitor'       => 'nullable|string',
+        ]);
+
+        $oldStage = $project->sales_stage;
+        $quotationFilePath = $project->quotation_file;
+
+        if ($request->hasFile('quotation_file')) {
+            $quotationFilePath = $request->file('quotation_file')->store('sales_quotations', 'public');
+        }
+
+        $updateData = [
+            'sales_stage'           => $validated['sales_stage'],
+            'win_probability'       => $validated['win_probability'],
+            'expected_closing_date' => $validated['expected_closing_date'] ?? $project->expected_closing_date,
+            'quotation_number'      => $validated['quotation_number'] ?? $project->quotation_number,
+            'quotation_amount'      => $validated['quotation_amount'] ?? $project->quotation_amount,
+            'quotation_file'        => $quotationFilePath,
+            'lost_reason'           => $validated['lost_reason'] ?? $project->lost_reason,
+            'lost_competitor'       => $validated['lost_competitor'] ?? $project->lost_competitor,
+        ];
+
+        if (!empty($validated['contract_value'])) {
+            $updateData['contract_value'] = $validated['contract_value'];
+        }
+
+        // Automatic Status Adjustment
+        if ($validated['sales_stage'] === 'Closed Won') {
+            $updateData['status'] = 'Completed';
+            $updateData['win_probability'] = 100;
+        } elseif ($validated['sales_stage'] === 'Closed Lost') {
+            $updateData['status'] = 'Cancelled';
+            $updateData['win_probability'] = 0;
+        } else {
+            $updateData['status'] = 'Opportunity';
+        }
+
+        $project->update($updateData);
+
+        // Record CRM Activity Log
+        $activityNotes = "Stage diubah dari '{$oldStage}' menjadi '{$validated['sales_stage']}' dengan probabilitas closing {$validated['win_probability']}%.";
+        if (!empty($validated['sales_notes'])) {
+            $activityNotes .= " Catatan: " . $validated['sales_notes'];
+        }
+
+        SalesActivity::create([
+            'project_id'    => $project->id,
+            'sales_id'      => auth()->id(),
+            'activity_type' => $validated['sales_stage'] === 'Quotation' ? 'Quotation Submission' : ($validated['sales_stage'] === 'Negotiation' ? 'Negotiation' : 'Follow Up'),
+            'subject'       => "Update Lifecycle: {$validated['sales_stage']}",
+            'activity_date' => now(),
+            'notes'         => $activityNotes,
+            'status'        => 'Completed',
+        ]);
+
+        return redirect()->back()
+            ->with('success', "Status peluang '{$project->name}' berhasil diperbarui ke tahap {$validated['sales_stage']}.");
+    }
+
+    /**
+     * 2. Halaman Dedicated: Sales CRM Activity Log
+     */
+    public function activities(Request $request)
+    {
+        $user = auth()->user();
+        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager']);
+
+        $search = $request->input('search');
+        $filterType = $request->input('type');
+        $filterProject = $request->input('project_id');
+
+        $query = SalesActivity::with(['project', 'sales'])->latest('activity_date');
+
+        if (!$isManagerial) {
+            $query->where(function($q) use ($user) {
+                $q->where('sales_id', $user->id)
+                  ->orWhereHas('project', fn($pq) => $pq->where('sales_name', $user->name)->orWhere('created_by', $user->id));
+            });
+        }
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('subject', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhereHas('project', fn($pq) => $pq->where('name', 'like', "%{$search}%")->orWhere('client', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($filterType) {
+            $query->where('activity_type', $filterType);
+        }
+
+        if ($filterProject) {
+            $query->where('project_id', $filterProject);
+        }
+
+        $activities = $query->paginate(12)->withQueryString();
+
+        $activeProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+        if (!$isManagerial) {
+            $activeProjectsQuery->where(function($q) use ($user) {
+                $q->where('sales_name', $user->name)
+                  ->orWhere('created_by', $user->id);
+            });
+        }
+        $activeProjects = $activeProjectsQuery->orderBy('name')->get(['id', 'name', 'client', 'sales_name']);
+
+        $activityTypes = self::$activityTypes;
+
+        return view('sales.activities.index', compact(
+            'activities',
+            'activeProjects',
+            'activityTypes',
+            'search',
+            'filterType',
+            'filterProject',
+            'isManagerial'
+        ));
+    }
+
+    /**
+     * Store New CRM Activity
+     */
+    public function storeActivity(Request $request)
+    {
+        $validated = $request->validate([
+            'project_id'       => 'required|exists:projects,id',
+            'activity_type'    => 'required|string',
+            'subject'          => 'required|string|max:255',
+            'activity_date'    => 'required|date',
+            'notes'            => 'nullable|string',
+            'next_action'      => 'nullable|string',
+            'next_action_date' => 'nullable|date',
+            'status'           => 'nullable|string',
+        ]);
+
+        $activity = SalesActivity::create([
+            'project_id'       => $validated['project_id'],
+            'sales_id'         => auth()->id(),
+            'activity_type'    => $validated['activity_type'],
+            'subject'          => $validated['subject'],
+            'activity_date'    => $validated['activity_date'],
+            'notes'            => $validated['notes'] ?? null,
+            'next_action'      => $validated['next_action'] ?? null,
+            'next_action_date' => $validated['next_action_date'] ?? null,
+            'status'           => $validated['status'] ?? 'Completed',
+        ]);
+
+        return redirect()->back()
+            ->with('success', "Aktivitas CRM '{$activity->subject}' berhasil dicatat.");
+    }
+
+    /**
+     * 3. Halaman Dedicated: Commercial Handover to Project (Delivery/PMO)
+     */
+    public function commercialHandoverIndex(Request $request)
+    {
+        $user = auth()->user();
+        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager']);
+
+        $search = $request->input('search');
+        $filterStatus = $request->input('status');
+
+        $query = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where(function($q) {
+                $q->whereIn('sales_stage', ['Contract / PO / SPK', 'Closed Won', 'Approval', 'Negotiation'])
+                  ->orWhereNotNull('po_spk_number')
+                  ->orWhere('commercial_handover_status', '!=', 'Draft');
+            })
+            ->with(['creator', 'pm', 'commercialHandoverBy']);
+
+        if (!$isManagerial) {
+            $query->where(function($q) use ($user) {
+                $q->where('sales_name', $user->name)
+                  ->orWhere('commercial_handover_by', $user->id)
+                  ->orWhere('created_by', $user->id);
+            });
+        }
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('client', 'like', "%{$search}%")
+                  ->orWhere('po_spk_number', 'like', "%{$search}%");
+            });
+        }
+
+        if ($filterStatus) {
+            $query->where('commercial_handover_status', $filterStatus);
+        }
+
+        $handoverProjects = $query->latest('updated_at')->paginate(10)->withQueryString();
+
+        return view('sales.handover.index', compact('handoverProjects', 'search', 'filterStatus', 'isManagerial'));
+    }
+
+    /**
+     * Process Official Commercial Handover to Delivery/PMO
+     */
+    public function submitCommercialHandover(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'po_spk_number'      => 'required|string|max:255',
+            'po_spk_date'        => 'required|date',
+            'contract_value'     => 'required|numeric|min:0',
+            'po_spk_file'        => 'nullable|file|mimes:pdf,docx,xlsx,zip,rar|max:25600',
+            'billing_terms'      => 'required|string',
+            'commercial_terms'   => 'nullable|string',
+            'sla_commitment'     => 'nullable|string',
+            'special_commitment' => 'nullable|string',
+            'exclusions'         => 'nullable|string',
+            'description'        => 'nullable|string',
+        ]);
+
+        $poFilePath = $project->po_spk_file;
+        if ($request->hasFile('po_spk_file')) {
+            $poFilePath = $request->file('po_spk_file')->store('commercial_contracts', 'public');
+        }
+
+        $project->update([
+            'po_spk_number'              => $validated['po_spk_number'],
+            'po_spk_date'                => $validated['po_spk_date'],
+            'contract_value'             => $validated['contract_value'],
+            'po_spk_file'                => $poFilePath,
+            'billing_terms'              => $validated['billing_terms'],
+            'commercial_terms'           => $validated['commercial_terms'] ?? 'Standar Garansi Resmi & Franco Jakarta',
+            'sla_commitment'             => $validated['sla_commitment'] ?? 'Standar SLA Jam Kerja (8x5) Response Time 4 Jam',
+            'special_commitment'         => $validated['special_commitment'] ?? 'Tidak ada komitmen khusus di luar TOR',
+            'exclusions'                 => $validated['exclusions'] ?? 'Pengadaan di luar BOM terlampir dikenakan PO terpisah',
+            'description'                => $validated['description'] ?? $project->description,
+            'sales_stage'                => 'Closed Won',
+            'win_probability'            => 100,
+            'commercial_handover_status' => 'Submitted',
+            'commercial_handover_at'     => now(),
+            'commercial_handover_by'     => auth()->id(),
+            'stage'                      => 'Deliver',
+            'status'                     => 'In Progress',
+        ]);
+
+        // Notify PMO / Directors
+        $pmoUsers = User::whereHas('roles', function($q) {
+            $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Engineer', 'Director', 'Direktur']);
+        })->get();
+
+        foreach ($pmoUsers as $pmo) {
+            Notification::create([
+                'user_id' => $pmo->id,
+                'title'   => 'Commercial Handover Baru dari Sales',
+                'message' => "Proyek '{$project->name}' ({$project->client}) telah Closed Won dan diserahkan ke Tim Delivery.",
+                'type'    => 'commercial_handover',
+                'is_read' => false,
+            ]);
+        }
+
+        return redirect()->back()
+            ->with('success', "Berkas Commercial Handover untuk proyek '{$project->name}' berhasil dikirim ke Tim Delivery & PMO.");
+    }
+}

@@ -13,19 +13,50 @@ class RoleSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Standard 4-Tier Roles + Legacy Roles for backward compatibility
+        // Roles based on Organization Structure & Process Flow
         $roles = [
+            // Executive & Division Head
+            'Director',
             'Direktur',
             'HD / Direktur',
+            'Division Head',
             'Group Leader',
+            'Group Leader Commercial & Solution',
+            'Group Leader Delivery & Operation',
+
+            // Governance & Project Management
             'PMO',
             'Project Manager',
-            'Lead Divisi',
+
+            // Commercial & Solution Branch
+            'Sales',
+            'Account Manager',
+            'BusDev',
+            'BDM',
+            'Business Development',
+            'CRO',
+            'Customer Relation Officer',
+            'Presales',
+            'Pre-Sales',
+            'Solution Architect',
+            'Solutions Architect',
+            'Tech Develop',
+            'Tech.Develp (R&D)',
+            'R&D',
+
+            // Delivery & Operation Branch
+            'Team Leader Engineering',
             'Team Leader',
-            'Lead Maintenance',
+            'Lead Divisi',
             'Lead Engineer',
-            'Engineer',
+            'Network Engineer',
+            'Security Engineer',
+            'Managed Service',
+            'Lead Maintenance',
             'Maintenance',
+            'Field Support (EOS)',
+            'Field Support',
+            'Engineer',
             'Engineer L1',
             'Engineer L2',
         ];

@@ -11,9 +11,19 @@ use Illuminate\Support\Facades\Storage;
 class AcquireController extends Controller
 {
     /**
-     * Sales names options (excluding Riko Wijaya per user request)
+     * Sales names options (9 official sales members)
      */
-    protected array $salesTeam = ['Ribka', 'Widodo', 'Raiza'];
+    protected array $salesTeam = [
+        'Donny Burnan',
+        'Erie',
+        'Hendry Wibowo',
+        'Nabylla Berlianita',
+        'Nelvia Nataliandi',
+        'Raiza',
+        'Ribka Junita',
+        'Sabar Sianturi',
+        'Widodo'
+    ];
 
     public function index(Request $request)
     {
@@ -49,6 +59,14 @@ class AcquireController extends Controller
                 'division_name'   => $p->division?->name ?? 'Lintas Divisi',
                 'description'     => $p->description,
                 'is_ready_handover' => in_array($p->acquire_status, ['Deal / PO Terbit', 'Handover to Design']) || !empty($p->po_number),
+                'handover_status' => $p->handover_status ?: 'Draft',
+                'handover_data'   => is_array($p->handover_data) ? $p->handover_data : [],
+                'special_notes'   => $p->special_notes ?: '',
+                'handover_conditional_notes' => $p->handover_conditional_notes ?: '',
+                'handover_conditional_deadline' => $p->handover_conditional_deadline ? $p->handover_conditional_deadline->format('d M Y H:i') : null,
+                'customer_pic_technical' => $p->customer_pic_technical ?: '',
+                'customer_pic_business'  => $p->customer_pic_business ?: '',
+                'customer_pic_finance'   => $p->customer_pic_finance ?: '',
             ];
         });
 
@@ -139,6 +157,11 @@ class AcquireController extends Controller
             $validated['po_file'] = $request->file('po_file')->store('po_documents', 'public');
         }
 
+        if (($validated['acquire_status'] ?? '') === 'Handover to Design') {
+            $validated['stage'] = 'Design';
+            $validated['process_status'] = 'In Progress';
+        }
+
         $project->update($validated);
 
         if ($request->wantsJson()) {
@@ -154,21 +177,62 @@ class AcquireController extends Controller
 
     public function handoverToDesign(Request $request, Project $project)
     {
-        $project->update([
-            'stage'          => 'Design',
-            'acquire_status' => 'Handover to Design',
-            'process_status' => 'In Progress',
+        $validated = $request->validate([
+            'customer_pic_technical' => 'nullable|string|max:255',
+            'customer_pic_business'  => 'nullable|string|max:255',
+            'customer_pic_finance'   => 'nullable|string|max:255',
+            'special_notes'          => 'nullable|string',
+            'handover_checklist'     => 'nullable|array',
         ]);
+
+        $defaultChecklist = [
+            'contract_signed'      => true,
+            'bom_proposal'         => true,
+            'negotiation_addendum' => false,
+            'sow_document'         => true,
+            'urs_requirement'      => true,
+            'mockup_wireframe'     => false,
+            'maintenance_contract' => false,
+            'dp_payment_proof'     => true,
+            'billing_milestone'    => true,
+        ];
+
+        $checklist = array_merge($defaultChecklist, $validated['handover_checklist'] ?? []);
+
+        $project->update([
+            'stage'                  => 'Design',
+            'acquire_status'         => 'Handover to Design',
+            'handover_status'        => 'Submitted',
+            'handover_submitted_at'  => now(),
+            'customer_pic_technical' => $validated['customer_pic_technical'] ?? $project->customer_pic_technical,
+            'customer_pic_business'  => $validated['customer_pic_business'] ?? $project->customer_pic_business,
+            'customer_pic_finance'   => $validated['customer_pic_finance'] ?? $project->customer_pic_finance,
+            'special_notes'          => $validated['special_notes'] ?? $project->special_notes,
+            'handover_data'          => $checklist,
+            'process_status'         => 'Menunggu Handover',
+        ]);
+
+        // Kirim Notifikasi ke Seluruh PMO & Project Manager
+        $pmoUsers = \App\Models\User::role(['PMO', 'Project Manager'])->get();
+        foreach ($pmoUsers as $pmo) {
+            \App\Models\Notification::create([
+                'user_id' => $pmo->id,
+                'title'   => 'Permintaan Serah Terima Internal: ' . $project->name,
+                'message' => 'Tim Commercial (' . ($project->sales_name ?: 'Sales') . ') telah mengajukan Formulir Serah Terima Proyek "' . $project->name . '" (Klien: ' . $project->client . '). Silakan lakukan verifikasi teknis & kepatuhan.',
+                'url'     => route('pmo.dashboard'),
+                'is_read' => false,
+            ]);
+        }
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Handover 1 Berhasil: Proyek resmi diserahkan ke Tim Design (Pre-Sales & Solution Architect).',
+                'message' => 'Formulir Serah Terima Proyek (Internal Handover) berhasil diajukan ke Tim PMO & Delivery!',
                 'project' => $project,
             ]);
         }
 
-        return redirect()->route('acquire.index')->with('success', 'Handover 1 Berhasil: Proyek resmi diserahkan ke Tim Design.');
+        return redirect()->route('acquire.index')->with('success', 'Formulir Serah Terima Proyek berhasil diajukan ke Tim PMO & Delivery!');
     }
 
     public function destroy(Project $project)

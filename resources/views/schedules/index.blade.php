@@ -1,79 +1,120 @@
 @extends('layouts.app')
 
-@section('title', 'Jadwal Kerja')
+@section('title', 'Jadwal Kerja & Agenda Lapangan - PT IP Network Solusindo')
+
+@push('styles')
+<style>
+    .ipnet-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 20px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .ipnet-badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #8F0A0D;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    @keyframes fadeUpStagger {
+        0% { opacity: 0; transform: translateY(16px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .anim-fade-up {
+        animation: fadeUpStagger 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .anim-delay-1 { animation-delay: 0.06s !important; }
+    .anim-delay-2 { animation-delay: 0.12s !important; }
+</style>
+@endpush
 
 @section('content')
-<div class="flex h-screen overflow-hidden">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans">
     @include('components.sidebar')
 
     <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Jadwal Kerja'])
 
-        <div class="jkw p-[26px] animate-fade-in" x-data="schedulesManager()" x-init="init()">
+        <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto" x-data="schedulesManager()" x-init="init()" x-cloak>
             
+            <!-- ========================================================== -->
+            <!-- SECTION HEADER & CONTROLS TOOLBAR                          -->
+            <!-- ========================================================== -->
+            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
+                    <div>
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> MANAJEMEN PENJADWALAN
+                        </p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Jadwal Kerja & Penugasan Lapangan</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Atur jadwal inspeksi rutin, instalasi on-site, serta rapat koordinasi teknisi</p>
+                    </div>
 
-            {{-- HEADER --}}
-            <div class="jkw-header">
-                <div class="jkw-tabs" role="tablist">
-                    <template x-for="mode in [
-                        {key:'day', label:'Daily', sub:'Harian'},
-                        {key:'week', label:'Weekly', sub:'Mingguan'},
-                        {key:'month', label:'Monthly', sub:'Bulanan'}
-                    ]" :key="mode.key">
-                        <button type="button"
-                                class="jkw-tab"
-                                :class="{ 'is-active': viewMode === mode.key }"
-                                @click="viewMode = mode.key">
-                            <span class="jkw-tab-main" x-text="mode.label"></span>
-                            <span class="jkw-tab-sub" x-text="'(' + mode.sub + ')'"></span>
-                        </button>
-                    </template>
+                    {{-- Segmented View Tabs (Daily / Weekly / Monthly) --}}
+                    <div class="flex items-center p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] self-start lg:self-auto">
+                        <template x-for="mode in [
+                            {key:'day', label:'Daily', sub:'Harian'},
+                            {key:'week', label:'Weekly', sub:'Mingguan'},
+                            {key:'month', label:'Monthly', sub:'Bulanan'}
+                        ]" :key="mode.key">
+                            <button type="button"
+                                    class="px-4 py-2 rounded-lg text-[12.5px] font-bold transition-all duration-200 cursor-pointer flex items-center gap-1"
+                                    :class="viewMode === mode.key ? 'btn-ipnet-gradient shadow-sm' : 'text-[#64748B] hover:text-[#1E293B]'"
+                                    @click="viewMode = mode.key">
+                                <span x-text="mode.label"></span>
+                                <span class="text-[10.5px] opacity-80" x-text="'(' + mode.sub + ')'"></span>
+                            </button>
+                        </template>
+                    </div>
                 </div>
 
-                <div class="jkw-actions">
-                    @if($isLead)
-                    <div class="jkw-select-wrap">
-                        <svg class="jkw-select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4"/>
-                        </svg>
-                        <select class="jkw-select" x-model="engineerFilter">
-                            <option value="">Semua Engineer</option>
-                            <template x-for="engineer in engineers" :key="engineer.id">
-                                <option :value="engineer.id" x-text="engineer.name"></option>
-                            </template>
-                        </select>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        @if($isLead)
+                        <div class="relative">
+                            <select class="px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer" 
+                                    x-model="engineerFilter">
+                                <option value="">Semua Engineer</option>
+                                <template x-for="engineer in engineers" :key="engineer.id">
+                                    <option :value="engineer.id" x-text="engineer.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                        @endif
+
+                        <a :href="'{{ route('schedules.export') }}' + (engineerFilter ? '?engineer_id=' + engineerFilter : '')"
+                           class="px-3.5 py-2 rounded-xl border border-[#CBD5E1] bg-white text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#94A3B8] font-bold text-[12.5px] transition-all shadow-xs flex items-center gap-2"
+                           title="Export Excel Data Jadwal">
+                            <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span>Export Excel</span>
+                        </a>
+
+                        <a :href="'{{ route('schedules.export.pdf') }}' + (engineerFilter ? '?engineer_id=' + engineerFilter : '')"
+                           target="_blank"
+                           class="px-3.5 py-2 rounded-xl border border-[#CBD5E1] bg-white text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#94A3B8] font-bold text-[12.5px] transition-all shadow-xs flex items-center gap-2"
+                           title="Export PDF Laporan Resmi Jadwal Kerja">
+                            <svg class="w-4 h-4 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 9h1m-1 4h6m-6 4h4"/>
+                            </svg>
+                            <span>Export PDF</span>
+                        </a>
                     </div>
-                    @endif
-
-                    <a :href="'{{ route('schedules.export') }}' + (engineerFilter ? '?engineer_id=' + engineerFilter : '')"
-                       class="jkw-btn jkw-btn--ghost jkw-btn--excel"
-                       title="Export Excel Data Jadwal">
-                        <svg class="jkw-icon jkw-icon--excel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                        <span>Export Excel</span>
-                    </a>
-
-                    <a :href="'{{ route('schedules.export.pdf') }}' + (engineerFilter ? '?engineer_id=' + engineerFilter : '')"
-                       target="_blank"
-                       class="jkw-btn jkw-btn--ghost jkw-btn--pdf"
-                       title="Export PDF Laporan Resmi Jadwal Kerja">
-                        <svg class="jkw-icon jkw-icon--pdf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 9h1m-1 4h6m-6 4h4"/>
-                        </svg>
-                        <span>Export PDF</span>
-                    </a>
 
                     @if($canManageSchedule ?? false)
                     <button type="button"
                             @click="openModal()"
-                            class="jkw-btn jkw-btn--primary"
+                            class="btn-ipnet-gradient px-4 py-2 rounded-xl font-bold text-[12.5px] flex items-center gap-2 cursor-pointer shadow-md"
                             title="Tambah Jadwal Baru">
-                        <svg class="jkw-icon" style="color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                         </svg>
-                        <span>Tambah Jadwal</span>
+                        <span>Tambah Jadwal Baru</span>
                     </button>
                     @endif
                 </div>
@@ -81,7 +122,7 @@
 
             {{-- PANEL KETERSEDIAAN ENGINEER — Hanya Managerial/Lead --}}
             @if($isLead)
-            <div class="jkw-card jkw-avail"
+            <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2"
                  x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-avail-head">
                     <span class="jkw-eyebrow">Ketersediaan Engineer — <span x-text="periodLabel"></span></span>
@@ -92,16 +133,26 @@
                 </div>
                 <div class="jkw-avail-body">
                     <template x-for="eng in filteredEngineerAvailability" :key="eng.id">
-                        <button type="button" class="jkw-eng-chip" :class="eng.available ? 'is-free' : (eng.isDayOff ? 'is-dayoff' : 'is-busy')" @click="engineerFilter = (engineerFilter == eng.id ? '' : eng.id)">
-                            <span class="jkw-avatar" :style="'background:' + colorFromName(eng.name)" x-text="initials(eng.name)"></span>
+                        <button type="button" 
+                                class="jkw-eng-chip" 
+                                :class="{
+                                    'is-free': eng.available,
+                                    'is-single': !eng.available && !eng.isDayOff && eng.scheduleCount === 1,
+                                    'is-busy': !eng.available && !eng.isDayOff && eng.scheduleCount > 1,
+                                    'is-dayoff': eng.isDayOff,
+                                    'is-selected': engineerFilter == eng.id
+                                }" 
+                                @click="engineerFilter = (engineerFilter == eng.id ? '' : eng.id)"
+                                :title="eng.name + ' (' + eng.statusLabel + ') - Klik untuk filter jadwal'">
+                            <span class="jkw-avatar shadow-xs" :style="'background:' + colorFromName(eng.name)" x-text="initials(eng.name)"></span>
                             <span class="jkw-eng-info">
                                 <span class="jkw-eng-name" x-text="eng.name"></span>
                                 <span class="jkw-eng-status" x-text="eng.statusLabel"></span>
                             </span>
-                            <span class="jkw-dot" :class="eng.available ? 'is-free' : (eng.isDayOff ? 'is-dayoff' : 'is-busy')"></span>
+                            <span class="jkw-dot"></span>
                         </button>
                     </template>
-                    <div class="jkw-empty-inline" x-show="filteredEngineerAvailability.length === 0">
+                    <div class="jkw-empty-inline" x-show="filteredEngineerAvailability.length === 0" x-cloak>
                         Tidak ada engineer pada periode ini.
                     </div>
                 </div>
@@ -130,7 +181,7 @@
             </template>
 
             {{-- DAY VIEW --}}
-            <div x-show="viewMode === 'day'" x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
+            <div x-show="viewMode === 'day'" x-cloak x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-card">
                     <div class="jkw-nav" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
                         <div style="display:flex; align-items:center; gap:8px;">
@@ -302,7 +353,7 @@
             </div>
 
             {{-- WEEK VIEW --}}
-            <div x-show="viewMode === 'week'" x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
+            <div x-show="viewMode === 'week'" x-cloak x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-card">
                     <div class="jkw-nav" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
                         <div style="display:flex; align-items:center; gap:8px;">
@@ -373,7 +424,7 @@
             </div>
 
             {{-- MONTH VIEW --}}
-            <div x-show="viewMode === 'month'" x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
+            <div x-show="viewMode === 'month'" x-cloak x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-card">
                     <div class="jkw-nav" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
                         <div style="display:flex; align-items:center; gap:8px;">
@@ -459,7 +510,7 @@
             </div>
 
             {{-- TABLE VIEW --}}
-            <div x-show="viewMode === 'table'" x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
+            <div x-show="viewMode === 'table'" x-cloak x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-card">
                     <div class="jkw-table-scroll">
                         <table class="jkw-table">
@@ -550,7 +601,7 @@
                         </table>
                     </div>
 
-                    <div class="jkw-empty" x-show="filteredSchedules.length === 0">
+                    <div class="jkw-empty" x-show="filteredSchedules.length === 0" x-cloak>
                         <div class="jkw-empty-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
@@ -620,7 +671,7 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 style="margin:0; font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:700; color:#0F172A;" x-text="modalTitle"></h3>
+                                    <h3 style="margin:0; font-family:'Inter', sans-serif; font-size:17px; font-weight:700; color:#0F172A;" x-text="modalTitle"></h3>
                                     <p style="margin:2px 0 0; font-size:12px; color:#64748B;">Kelola jadwal kegiatan, meeting, atau cuti engineer</p>
                                 </div>
                             </div>
@@ -857,9 +908,8 @@
 
                                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px; padding-top:18px; border-top:1px solid #E2E8F0;">
                                     <button type="submit" 
-                                            style="width:100%; justify-content:center; background:#C81E2C; color:white; box-shadow:0 4px 14px rgba(200,30,44,0.25); padding:11px 18px; border-radius:9px; border:none; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease; box-sizing:border-box;"
-                                            onmouseover="this.style.filter='brightness(1.08)'; this.style.transform='translateY(-1px)';"
-                                            onmouseout="this.style.filter='brightness(1)'; this.style.transform='translateY(0)';">
+                                            class="btn-ipnet-gradient"
+                                            style="width:100%; justify-content:center; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; box-sizing:border-box;">
                                         Simpan Jadwal
                                     </button>
                                     <template x-if="editing">
@@ -906,7 +956,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                             </svg>
                         </div>
-                        <h3 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:18px; font-weight:700; color:#0F172A;">Hapus Jadwal?</h3>
+                        <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:18px; font-weight:700; color:#0F172A;">Hapus Jadwal?</h3>
                         <p style="margin:8px 0 0; font-size:13px; color:#64748B; line-height:1.5;">
                             Apakah Anda yakin ingin menghapus jadwal <strong style="color:#0F172A;" x-text="scheduleToDelete?.title || scheduleToDelete?._displayTitle || 'ini'"></strong>? Tindakan ini tidak dapat dibatalkan.
                         </p>
@@ -1117,26 +1167,122 @@
     all: unset !important;
     display: flex !important;
     align-items: center !important;
-    gap: 9px !important;
-    padding: 7px 12px 7px 7px !important;
-    border-radius: 24px !important;
-    border: 1px solid !important;
+    gap: 10px !important;
+    padding: 8px 14px 8px 8px !important;
+    border-radius: 9999px !important;
+    border: 1px solid #E2E8F0 !important;
+    background: #FFFFFF !important;
     cursor: pointer !important;
-    transition: all .15s ease !important;
+    transition: all .2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     width: 100% !important;
     box-sizing: border-box !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
 }
-.jkw-eng-chip.is-free { background:var(--jkw-success-soft) !important; border-color:var(--jkw-success-border) !important; }
-.jkw-eng-chip.is-busy { background:var(--jkw-primary-soft) !important; border-color:var(--jkw-primary-border) !important; }
-.jkw-eng-chip.is-dayoff { background:#F1F5F9 !important; border-color:#CBD5E1 !important; }
-.jkw-eng-chip:hover { filter:brightness(0.97) !important; }
+
+/* 1. Tersedia (Free): Hijau Segar */
+.jkw-eng-chip.is-free {
+    background: #F0FDF4 !important;
+    border-color: #86EFAC !important;
+}
+.jkw-eng-chip.is-free:hover {
+    background: #DCFCE7 !important;
+    border-color: #4ADE80 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15) !important;
+}
+.jkw-eng-chip.is-free .jkw-eng-name {
+    color: #0F172A !important;
+    font-weight: 700 !important;
+}
+.jkw-eng-chip.is-free .jkw-eng-status {
+    color: #15803D !important;
+    font-weight: 700 !important;
+}
+.jkw-eng-chip.is-free .jkw-dot {
+    background: #16A34A !important;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25) !important;
+}
+
+/* 2. 1 Jadwal (Scheduled): Biru Modern */
+.jkw-eng-chip.is-single {
+    background: #EFF6FF !important;
+    border-color: #93C5FD !important;
+}
+.jkw-eng-chip.is-single:hover {
+    background: #DBEAFE !important;
+    border-color: #60A5FA !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15) !important;
+}
+.jkw-eng-chip.is-single .jkw-eng-name {
+    color: #0F172A !important;
+    font-weight: 700 !important;
+}
+.jkw-eng-chip.is-single .jkw-eng-status {
+    color: #2563EB !important;
+    font-weight: 700 !important;
+}
+.jkw-eng-chip.is-single .jkw-dot {
+    background: #2563EB !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25) !important;
+}
+
+/* 3. >= 2 Jadwal (Busy / Padat): Merah Tegas */
+.jkw-eng-chip.is-busy {
+    background: #FEF2F2 !important;
+    border-color: #FECACA !important;
+}
+.jkw-eng-chip.is-busy:hover {
+    background: #FEE2E2 !important;
+    border-color: #F87171 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15) !important;
+}
+.jkw-eng-chip.is-busy .jkw-eng-name {
+    color: #0F172A !important;
+    font-weight: 700 !important;
+}
+.jkw-eng-chip.is-busy .jkw-eng-status {
+    color: #DC2626 !important;
+    font-weight: 700 !important;
+}
+.jkw-eng-chip.is-busy .jkw-dot {
+    background: #DC2626 !important;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25) !important;
+}
+
+/* 4. Day Off / Cuti: Abu-abu Soft Netral */
+.jkw-eng-chip.is-dayoff {
+    background: #F8FAFC !important;
+    border-color: #CBD5E1 !important;
+}
+.jkw-eng-chip.is-dayoff:hover {
+    background: #F1F5F9 !important;
+    border-color: #94A3B8 !important;
+}
+.jkw-eng-chip.is-dayoff .jkw-eng-name {
+    color: #64748B !important;
+    font-weight: 600 !important;
+}
+.jkw-eng-chip.is-dayoff .jkw-eng-status {
+    color: #64748B !important;
+    font-weight: 600 !important;
+}
+.jkw-eng-chip.is-dayoff .jkw-dot {
+    background: #94A3B8 !important;
+}
+
+/* Selected State */
+.jkw-eng-chip.is-selected {
+    outline: 2px solid #8F0A0D !important;
+    outline-offset: 1px !important;
+    box-shadow: 0 4px 14px rgba(143, 10, 13, 0.2) !important;
+}
+
 .jkw-eng-info { display:flex !important; flex-direction:column !important; line-height:1.25 !important; min-width:0 !important; }
-.jkw-eng-name { font-size:12.5px !important; font-weight:700 !important; color:var(--jkw-ink) !important; overflow:hidden !important; text-overflow:ellipsis !important; white-space:nowrap !important; }
-.jkw-eng-status { font-size:11px !important; color:var(--jkw-muted) !important; }
-.jkw-dot { width:7px !important; height:7px !important; border-radius:50% !important; flex-shrink:0 !important; margin-left:auto !important; }
-.jkw-dot.is-free { background:var(--jkw-success) !important; }
-.jkw-dot.is-busy { background:var(--jkw-primary) !important; }
-.jkw-dot.is-dayoff { background:#64748B !important; }
+.jkw-eng-name { font-size:12.5px !important; font-weight:700 !important; overflow:hidden !important; text-overflow:ellipsis !important; white-space:nowrap !important; }
+.jkw-eng-status { font-size:11px !important; }
+.jkw-dot { width:8px !important; height:8px !important; border-radius:50% !important; flex-shrink:0 !important; margin-left:auto !important; }
 
 .jkw-avatar { width:26px !important; height:26px !important; border-radius:50% !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; color:#fff !important; font-size:11px !important; font-weight:700 !important; flex-shrink:0 !important; }
 .jkw-avatar--sm { width:20px !important; height:20px !important; font-size:9.5px !important; }
@@ -1237,7 +1383,7 @@
 .jkw-modal-overlay { position:fixed !important; inset:0 !important; background:rgba(14,13,18,.6) !important; z-index:99999 !important; display:flex !important; align-items:center !important; justify-content:center !important; padding:16px !important; backdrop-filter:blur(2px) !important; }
 .jkw-modal { background:var(--jkw-surface) !important; border-radius:16px !important; width:640px !important; max-width:100% !important; max-height:90vh !important; overflow-y:auto !important; animation:jkwFadeUp .18s ease !important; box-shadow:0 16px 40px rgba(14,13,18,.16) !important; margin:auto !important; }
 .jkw-modal-head { display:flex !important; align-items:center !important; justify-content:space-between !important; padding:16px 18px !important; position:sticky !important; top:0 !important; background:var(--jkw-surface) !important; border-bottom:1px solid var(--jkw-line) !important; z-index:1 !important; border-radius:16px 16px 0 0 !important; gap:12px !important; }
-.jkw-modal-head h3 { margin:0 !important; font-family:'Space Grotesk', sans-serif !important; font-size:17px !important; font-weight:700 !important; color:var(--jkw-ink) !important; word-break:break-word !important; }
+.jkw-modal-head h3 { margin:0 !important; font-family:'Inter', sans-serif !important; font-size:17px !important; font-weight:700 !important; color:var(--jkw-ink) !important; word-break:break-word !important; }
 .jkw-modal-body { padding:18px !important; }
 .jkw-form-grid { display:flex !important; flex-direction:column !important; gap:14px !important; }
 .jkw-field-row { display:grid !important; grid-template-columns:1fr 1fr !important; gap:12px !important; }
@@ -1708,9 +1854,9 @@
                     });
                 },
 
-                getAllEventsForDay: function(date) {
+                get eventsByDate() {
                     var self = this;
-                    var events = [];
+                    var map = {};
                     var seenKeys = {};
 
                     // --- Jadwal biasa & Day Off ---
@@ -1720,58 +1866,60 @@
                             return engIds.some(function(id) { return String(id) === String(self.engineerFilter); });
                         })
                         : this.schedules;
+
                     filtered.forEach(function(s) {
                         var d = (s.date || '').split('T')[0];
-                        if (d === date) {
-                            var sTime = s.start_time ? s.start_time.substring(0, 5) : '';
-                            var eTime = s.end_time ? s.end_time.substring(0, 5) : '';
-                            var isDayOff = s.category === 'Day Off';
-                            var isTaskCat = s.category === 'Task' || s.category === 'Kegiatan';
-                            var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
-                            var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : 'Jadwal'));
-                            var eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
-                            
-                            // Cegah duplikasi agenda yang sama persis di hari yang sama
-                            var engKey = (s.engineer_ids || (s.engineers ? s.engineers.map(function(e){ return e.id; }) : [s.engineer_id])).join('-');
-                            var dedupKey = (s.title || '').trim().toLowerCase() + '|' + d + '|' + sTime + '|' + (s.project_id || '') + '|' + engKey;
-                            if (seenKeys[dedupKey]) return;
-                            seenKeys[dedupKey] = true;
+                        if (!d) return;
+                        if (!map[d]) map[d] = [];
 
-                            var engLabel = '';
-                            if (s.engineers && s.engineers.length > 0) {
-                                engLabel = s.engineers.map(function(e) { return e.name; }).join(', ');
-                            } else if (s.engineer && s.engineer.name) {
-                                engLabel = s.engineer.name;
-                            } else if (s.project && s.project.name) {
-                                engLabel = s.project.name;
-                            }
+                        var sTime = s.start_time ? s.start_time.substring(0, 5) : '';
+                        var eTime = s.end_time ? s.end_time.substring(0, 5) : '';
+                        var isDayOff = s.category === 'Day Off';
+                        var isTaskCat = s.category === 'Task' || s.category === 'Kegiatan';
+                        var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
+                        var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : 'Jadwal'));
+                        var eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
+                        
+                        // Cegah duplikasi agenda yang sama persis di hari yang sama
+                        var engKey = (s.engineer_ids || (s.engineers ? s.engineers.map(function(e){ return e.id; }) : [s.engineer_id])).join('-');
+                        var dedupKey = (s.title || '').trim().toLowerCase() + '|' + d + '|' + sTime + '|' + (s.project_id || '') + '|' + engKey;
+                        if (seenKeys[dedupKey]) return;
+                        seenKeys[dedupKey] = true;
 
-                            events.push({
-                                _uid: 'sch-' + s.id,
-                                _type: isDayOff ? 'day_off' : (isTaskCat ? 'task' : 'schedule'),
-                                _color: eventColor,
-                                _displayTitle: s.title,
-                                _timeLabel: timeLabel,
-                                _tooltip: (isDayOff ? 'Day Off: ' : (isTaskCat ? 'Task/Kegiatan: ' : 'Jadwal: ')) + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + (isTaskCompleted ? ' • (Selesai)' : ' • Klik untuk edit'),
-                                _subLabel: engLabel,
-                                category: s.category || 'Meeting',
-                                status: s.status || s.task_status,
-                                task_status: s.task_status || s.status,
-                                id: s.id,
-                                title: s.title,
-                                project_id: s.project_id,
-                                engineer_id: s.engineer_id,
-                                engineer_ids: s.engineer_ids || [],
-                                date: s.date,
-                                start_time: sTime,
-                                end_time: eTime,
-                                location: s.location,
-                                description: s.description,
-                                project: s.project,
-                                engineer: s.engineer,
-                                engineers: s.engineers || []
-                            });
+                        var engLabel = '';
+                        if (s.engineers && s.engineers.length > 0) {
+                            engLabel = s.engineers.map(function(e) { return e.name; }).join(', ');
+                        } else if (s.engineer && s.engineer.name) {
+                            engLabel = s.engineer.name;
+                        } else if (s.project && s.project.name) {
+                            engLabel = s.project.name;
                         }
+
+                        map[d].push({
+                            _uid: 'sch-' + s.id,
+                            _type: isDayOff ? 'day_off' : (isTaskCat ? 'task' : 'schedule'),
+                            _color: eventColor,
+                            _displayTitle: s.title,
+                            _timeLabel: timeLabel,
+                            _tooltip: (isDayOff ? 'Day Off: ' : (isTaskCat ? 'Task/Kegiatan: ' : 'Jadwal: ')) + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + (isTaskCompleted ? ' • (Selesai)' : ' • Klik untuk edit'),
+                            _subLabel: engLabel,
+                            category: s.category || 'Meeting',
+                            status: s.status || s.task_status,
+                            task_status: s.task_status || s.status,
+                            id: s.id,
+                            title: s.title,
+                            project_id: s.project_id,
+                            engineer_id: s.engineer_id,
+                            engineer_ids: s.engineer_ids || [],
+                            date: s.date,
+                            start_time: sTime,
+                            end_time: eTime,
+                            location: s.location,
+                            description: s.description,
+                            project: s.project,
+                            engineer: s.engineer,
+                            engineers: s.engineers || []
+                        });
                     });
 
                     // --- Deadline Task (MERAH) ---
@@ -1781,73 +1929,80 @@
                             return engIds.some(function(id) { return String(id) === String(self.engineerFilter); });
                         })
                         : this.tasks;
-                    filteredTasks.forEach(function(t) {
-                        if (t.deadline === date) {
-                            var dTime = t.deadline_time ? t.deadline_time.substring(0, 5) : '';
-                            var taskEngKey = (t.engineer_ids || (t.engineers ? t.engineers.map(function(e){ return e.id; }) : [t.engineer_id])).join('-');
-                            var taskDedupKey = (t.title || '').trim().toLowerCase() + '|' + date + '|' + dTime + '|' + (t.project_id || '') + '|' + taskEngKey;
-                            
-                            // Jangan tampilkan jika sudah ada di schedules
-                            if (seenKeys[taskDedupKey]) return;
-                            seenKeys[taskDedupKey] = true;
 
-                            var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
-                            var taskEngLabel = '';
-                            if (t.engineers && t.engineers.length > 0) {
-                                taskEngLabel = t.engineers.map(function(e) { return e.name; }).join(', ');
-                            } else if (t.engineer && t.engineer.name) {
-                                taskEngLabel = t.engineer.name;
-                            } else if (t.project && t.project.name) {
-                                taskEngLabel = t.project.name;
+                    filteredTasks.forEach(function(t) {
+                        var d = (t.deadline || '').split('T')[0];
+                        if (!d) return;
+                        if (!map[d]) map[d] = [];
+
+                        var dTime = t.deadline_time ? t.deadline_time.substring(0, 5) : '';
+                        var taskEngKey = (t.engineer_ids || (t.engineers ? t.engineers.map(function(e){ return e.id; }) : [t.engineer_id])).join('-');
+                        var taskDedupKey = (t.title || '').trim().toLowerCase() + '|' + d + '|' + dTime + '|' + (t.project_id || '') + '|' + taskEngKey;
+                        
+                        // Jangan tampilkan jika sudah ada di schedules
+                        if (seenKeys[taskDedupKey]) return;
+                        seenKeys[taskDedupKey] = true;
+
+                        var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
+                        var taskEngLabel = '';
+                        if (t.engineers && t.engineers.length > 0) {
+                            taskEngLabel = t.engineers.map(function(e) { return e.name; }).join(', ');
+                        } else if (t.engineer && t.engineer.name) {
+                            taskEngLabel = t.engineer.name;
+                        } else if (t.project && t.project.name) {
+                            taskEngLabel = t.project.name;
+                        }
+
+                        map[d].push({
+                            _uid: 'task-' + t.id,
+                            _type: 'task',
+                            _color: '#C81E2C',
+                            _displayTitle: t.title,
+                            _timeLabel: taskTimeLabel,
+                            _tooltip: 'Jadwal Kegiatan: ' + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (taskEngLabel ? '\nEngineer: ' + taskEngLabel : ''),
+                            _subLabel: taskEngLabel,
+                            id: t.id,
+                            title: t.title,
+                            project: t.project,
+                            engineer: t.engineer,
+                            engineers: t.engineers || [],
+                            priority: t.priority,
+                            status: t.status,
+                            deadline: t.deadline,
+                            deadline_time: dTime,
+                            start_time: dTime,
+                            end_time: '',
+                            location: '',
+                            description: ''
+                        });
+                    });
+
+                    // Urutkan agenda tiap tanggal: Day Off paling atas, lalu jam paling pagi ke paling malam
+                    Object.keys(map).forEach(function(key) {
+                        map[key].sort(function(a, b) {
+                            var isDayOffA = a._type === 'day_off';
+                            var isDayOffB = b._type === 'day_off';
+                            if (isDayOffA && !isDayOffB) return -1;
+                            if (!isDayOffA && isDayOffB) return 1;
+
+                            var timeA = (a.start_time || a.deadline_time || '99:99').trim().substring(0, 5);
+                            var timeB = (b.start_time || b.deadline_time || '99:99').trim().substring(0, 5);
+
+                            if (timeA !== timeB) {
+                                return timeA.localeCompare(timeB);
                             }
 
-                            events.push({
-                                _uid: 'task-' + t.id,
-                                _type: 'task',
-                                _color: '#C81E2C',
-                                _displayTitle: t.title,
-                                _timeLabel: taskTimeLabel,
-                                _tooltip: 'Jadwal Kegiatan: ' + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (taskEngLabel ? '\nEngineer: ' + taskEngLabel : ''),
-                                _subLabel: taskEngLabel,
-                                id: t.id,
-                                title: t.title,
-                                project: t.project,
-                                engineer: t.engineer,
-                                engineers: t.engineers || [],
-                                priority: t.priority,
-                                status: t.status,
-                                deadline: t.deadline,
-                                deadline_time: dTime,
-                                start_time: dTime,
-                                end_time: '',
-                                location: '',
-                                description: ''
-                            });
-                        }
+                            var titleA = a.title || a._displayTitle || '';
+                            var titleB = b.title || b._displayTitle || '';
+                            return titleA.localeCompare(titleB);
+                        });
                     });
 
-                    // Urutkan agenda: Day Off paling atas, lalu jam paling pagi ke paling malam (00:00 -> 23:59)
-                    events.sort(function(a, b) {
-                        // 1. Day Off ditaruh paling atas
-                        var isDayOffA = a._type === 'day_off';
-                        var isDayOffB = b._type === 'day_off';
-                        if (isDayOffA && !isDayOffB) return -1;
-                        if (!isDayOffA && isDayOffB) return 1;
+                    return map;
+                },
 
-                        // 2. Jika keduanya sama-sama Day Off atau sama-sama jadwal, urutkan jam paling awal
-                        var timeA = (a.start_time || a.deadline_time || '99:99').trim().substring(0, 5);
-                        var timeB = (b.start_time || b.deadline_time || '99:99').trim().substring(0, 5);
-
-                        if (timeA !== timeB) {
-                            return timeA.localeCompare(timeB);
-                        }
-
-                        var titleA = a.title || a._displayTitle || '';
-                        var titleB = b.title || b._displayTitle || '';
-                        return titleA.localeCompare(titleB);
-                    });
-
-                    return events;
+                getAllEventsForDay: function(date) {
+                    return (this.eventsByDate && this.eventsByDate[date]) ? this.eventsByDate[date] : [];
                 },
 
                 get modalTitle() {
