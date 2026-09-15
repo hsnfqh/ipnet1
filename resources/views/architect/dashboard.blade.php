@@ -380,9 +380,10 @@
                     </div>
                     <div class="p-2 divide-y divide-[#F1F5F9] flex-1">
                         @forelse($recentDesignProjects as $project)
-                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors">
+                        <div @click="openSpecModal({{ json_encode($project) }})" 
+                             class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors cursor-pointer group">
                             <div class="min-w-0 flex-1">
-                                <div class="text-[13px] font-bold text-[#1E293B] truncate" title="{{ $project->name }}">{{ $project->name }}</div>
+                                <div class="text-[13px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D] transition-colors truncate" title="{{ $project->name }}">{{ $project->name }}</div>
                                 <div class="text-[11.5px] text-[#64748B] truncate mt-0.5" title="{{ $project->client }}">
                                     {{ $project->client ?: 'Prospek Umum' }}
                                     @if($project->division)
@@ -413,9 +414,10 @@
                     </div>
                     <div class="p-2 divide-y divide-[#F1F5F9] flex-1">
                         @forelse($pendingSowProjects as $pTask)
-                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors">
+                        <div @click="openSpecModal({{ json_encode($pTask) }})"
+                             class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors cursor-pointer group">
                             <div class="min-w-0 flex-1">
-                                <div class="text-[13px] font-bold text-[#1E293B] truncate" title="{{ $pTask->name }}">{{ $pTask->name }}</div>
+                                <div class="text-[13px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D] transition-colors truncate" title="{{ $pTask->name }}">{{ $pTask->name }}</div>
                                 <div class="text-[11.5px] text-[#64748B] truncate mt-0.5">
                                     {{ $pTask->sales_name ? 'PIC: ' . $pTask->sales_name : ($pTask->client ?: 'Prospek Baru') }}
                                     @if($pTask->contract_value)
@@ -462,9 +464,9 @@
                                 $engineerNames = $sch->engineer->name;
                             }
                         @endphp
-                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors">
+                        <a href="{{ route('schedules.index') }}" class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors group">
                             <div class="min-w-0 flex-1">
-                                <div class="text-[13px] font-bold text-[#292929] truncate" title="{{ $sch->title }}">
+                                <div class="text-[13px] font-bold text-[#292929] group-hover:text-[#8F0A0D] transition-colors truncate" title="{{ $sch->title }}">
                                     {{ $sch->title }}
                                 </div>
                                 <div class="text-[11.5px] text-[#75727C] flex items-center gap-1.5 mt-0.5 min-w-0">
@@ -482,7 +484,7 @@
                             <div class="shrink-0">
                                 <x-status-badge :status="$badgeCategory" />
                             </div>
-                        </div>
+                        </a>
                         @empty
                         <div class="text-center py-8 text-[#75727C]">
                             <p class="text-[13px]">Belum ada jadwal PoC</p>
@@ -493,111 +495,9 @@
 
             </div>
 
-            {{-- ======================================================== --}}
-            {{-- 5. WORKSPACE DETAIL: TABEL DOKUMEN DESAIN & SOW          --}}
-            {{-- ======================================================== --}}
-            <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-5">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-5 border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-2.5 h-4.5 bg-[#8F0A0D] rounded-full inline-block"></span>
-                        <div>
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Ringkasan Portofolio Desain &amp; SOW</h3>
-                            <p class="text-[11.5px] text-[#64748B]">Daftar proyek yang sedang dalam kalkulasi BoQ maupun yang berkas HLD/LLD sudah diterbitkan</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <a href="{{ route('presales.proposals.index') }}" class="px-3.5 py-1.5 text-xs font-bold text-[#8F0A0D] bg-white border border-[#CBD5E1] rounded-xl hover:bg-[#FFF7F6] hover:border-[#8F0A0D] transition shadow-2xs inline-flex items-center gap-1.5">
-                            <span>Buka Manajemen SOW</span>
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-[#F8FAFC] text-[#64748B] uppercase text-[11px] font-bold border-b border-[#E2E8F0]">
-                            <tr>
-                                <th class="py-3 px-4">Proyek &amp; Divisi</th>
-                                <th class="py-3 px-4">Klien</th>
-                                <th class="py-3 px-4">Sales PIC</th>
-                                <th class="py-3 px-4 text-right">Nilai Estimasi</th>
-                                <th class="py-3 px-4 text-center">Status Desain</th>
-                                <th class="py-3 px-4 text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-[#F1F5F9] font-medium text-[#1E293B]">
-                            @forelse($recentDesignProjects as $rp)
-                                <tr class="hover:bg-[#F8FAFC] transition-colors">
-                                    <td class="py-3.5 px-4">
-                                        <button type="button" 
-                                                @click="openSpecModal({{ json_encode($rp) }})"
-                                                class="font-bold text-[#1E293B] hover:text-[#8F0A0D] text-[13px] text-left line-clamp-1 transition-colors cursor-pointer group flex items-center gap-1.5">
-                                            <span>{{ $rp->name }}</span>
-                                            <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-[#8F0A0D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                        </button>
-                                        <div class="text-[11px] text-[#64748B] mt-0.5">
-                                            {{ $rp->project_code ? $rp->project_code . ' • ' : '' }}{{ $rp->division ? $rp->division->name : ($rp->project_type ?: 'Network & Security') }}
-                                        </div>
-                                    </td>
-                                    <td class="py-3.5 px-4 whitespace-nowrap">
-                                        <div class="font-semibold text-[#1E293B] text-[12px]">{{ $rp->client ?: 'Prospek Umum' }}</div>
-                                    </td>
-                                    <td class="py-3.5 px-4 whitespace-nowrap">
-                                        <div class="text-[#64748B] text-[11.5px]">{{ $rp->sales_name ?: '-' }}</div>
-                                    </td>
-                                    <td class="py-3.5 px-4 text-right whitespace-nowrap font-extrabold text-[#1E293B]">
-                                        Rp {{ number_format($rp->contract_value ?? 0, 0, ',', '.') }}
-                                    </td>
-                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                        @if($rp->proposal_file)
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                SOW/HLD Siap
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                                Perlu BoQ
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                        <div class="flex items-center justify-center gap-1.5">
-                                            <button type="button" 
-                                                    @click="openSpecModal({{ json_encode($rp) }})"
-                                                    title="Lihat Spesifikasi Proyek"
-                                                    class="p-1.5 rounded-lg text-gray-500 hover:text-[#8F0A0D] hover:bg-gray-100 border border-gray-200 transition-colors cursor-pointer">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            </button>
-                                            @if($rp->proposal_file)
-                                                <a href="{{ route('presales.proposals.download', $rp->id) }}" 
-                                                   title="Unduh Berkas SOW/HLD"
-                                                   class="p-1.5 rounded-lg text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 border border-emerald-200 transition-colors">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                </a>
-                                            @endif
-                                            <a href="{{ route('projects.show', $rp->id) }}" 
-                                               title="Buka Halaman Proyek"
-                                               class="p-1.5 rounded-lg text-[#1E293B] hover:text-[#8F0A0D] hover:bg-gray-100 border border-gray-200 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="py-10 text-center text-[#64748B]">
-                                        <p class="text-[12.5px] font-semibold">Belum ada data proyek perancangan arsitektur</p>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
         </div>
     </div>
+</div>
 
     {{-- MODAL SPESIFIKASI PROYEK SOLUTION ARCHITECT --}}
     <template x-teleport="body">
@@ -658,7 +558,6 @@
             </div>
         </div>
     </template>
-</div>
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
