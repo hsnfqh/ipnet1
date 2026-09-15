@@ -133,12 +133,12 @@
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
             
             {{-- ======================================================== --}}
-            {{-- 1. EXECUTIVE HERO BANNER (IPNET OFFICIAL BRAND PATTERN)   --}}
+            {{-- 1. EXECUTIVE HERO BANNER (COMPACT IPNET BRAND PATTERN)   --}}
             {{-- ======================================================== --}}
-            <div class="ipnet-hero-banner rounded-[24px] p-6 sm:p-8 text-white shadow-xl shadow-red-950/20 relative anim-hero-reveal">
-                {{-- Layered Geometric Faceted Red Planes (Matching Official Website Reference) --}}
+            <div class="ipnet-hero-banner rounded-2xl px-5 py-4 sm:px-6 sm:py-4.5 text-white shadow-md shadow-red-950/15 relative anim-hero-reveal">
+                {{-- Layered Geometric Faceted Red Planes --}}
                 <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
-                    <svg class="w-full h-full object-cover" viewBox="0 0 1440 400" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="w-full h-full object-cover" viewBox="0 0 1440 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="redGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" stop-color="#C61828" />
@@ -153,84 +153,63 @@
                                 <stop offset="100%" stop-color="#5A040C" />
                             </linearGradient>
                             <linearGradient id="redGradHighlight" x1="0%" y1="0%" x2="100%" y2="50%">
-                                <stop offset="0%" stop-color="#FFA8B2" stop-opacity="0.22" />
+                                <stop offset="0%" stop-color="#FFA8B2" stop-opacity="0.20" />
                                 <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
                             </linearGradient>
                             <filter id="facetDropShadow" x="-10%" y="-10%" width="130%" height="130%">
-                                <feDropShadow dx="-10" dy="14" stdDeviation="18" flood-color="#3A0207" flood-opacity="0.45" />
+                                <feDropShadow dx="-8" dy="10" stdDeviation="14" flood-color="#3A0207" flood-opacity="0.4" />
                             </filter>
                         </defs>
 
                         <!-- Base Background -->
-                        <rect width="1440" height="400" fill="url(#redGrad1)" />
+                        <rect width="1440" height="200" fill="url(#redGrad1)" />
 
                         <!-- Top-Left Large Diagonal Angled Plane -->
-                        <polygon points="0,0 650,0 280,400 0,400" fill="url(#redGrad1)" />
+                        <polygon points="0,0 650,0 280,200 0,200" fill="url(#redGrad1)" />
 
                         <!-- Intersecting Broad Diagonal Facet Strip -->
-                        <polygon points="220,0 850,0 1300,400 600,400" fill="url(#redGrad2)" filter="url(#facetDropShadow)" />
+                        <polygon points="220,0 850,0 1300,200 600,200" fill="url(#redGrad2)" filter="url(#facetDropShadow)" />
 
                         <!-- Crossing Foreground Diagonal Bright Red Plane -->
-                        <polygon points="0,0 520,0 1080,400 480,400" fill="url(#redGrad1)" opacity="0.9" filter="url(#facetDropShadow)" />
+                        <polygon points="0,0 520,0 1080,200 480,200" fill="url(#redGrad1)" opacity="0.9" filter="url(#facetDropShadow)" />
 
                         <!-- Right Edge Deeper Contrast Facet -->
-                        <polygon points="780,0 1440,0 1440,400 1100,400" fill="url(#redGrad3)" filter="url(#facetDropShadow)" />
+                        <polygon points="780,0 1440,0 1440,200 1100,200" fill="url(#redGrad3)" filter="url(#facetDropShadow)" />
 
                         <!-- Soft Angular Ambient Highlight Overlays -->
-                        <polygon points="0,0 680,0 1120,400 380,400" fill="url(#redGradHighlight)" />
+                        <polygon points="0,0 680,0 1120,200 380,200" fill="url(#redGradHighlight)" />
                     </svg>
                 </div>
 
-                <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                    <div class="max-w-2xl">
-                        {{-- Tag Badge from Official Website (Pure White Dot) --}}
-                        <div class="inline-flex items-center mb-3 px-3.5 py-1.5 text-[11.5px] font-bold text-white bg-white/15 backdrop-blur-md rounded-full border border-white/20 tracking-wider uppercase shadow-xs">
-                            <span class="w-2 h-2 mr-2 bg-white rounded-full inline-block"></span>
+                <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="max-w-xl">
+                        <div class="inline-flex items-center mb-1.5 px-2.5 py-0.5 text-[10.5px] font-bold text-white bg-white/15 backdrop-blur-md rounded-full border border-white/20 tracking-wider uppercase">
+                            <span class="w-1.5 h-1.5 mr-1.5 bg-white rounded-full inline-block"></span>
                             PT IP NETWORK SOLUSINDO &bull; DASHBOARD
                         </div>
 
-                        <h1 class="text-[22px] sm:text-[28px] lg:text-[32px] font-extrabold text-white tracking-tight leading-tight">
-                            Pusat Kendali Operasional &<br class="hidden sm:inline"> Penugasan Lapangan
+                        <h1 class="text-[18px] sm:text-[21px] font-extrabold text-white tracking-tight leading-tight">
+                            Pusat Kendali Operasional & Penugasan Lapangan
                         </h1>
-                        <p class="mt-2 text-[13px] sm:text-[14px] text-white/80 leading-relaxed max-w-xl">
-                            Pemantauan kapasitas kerja teknisi, progres instalasi proyek jaringan, dan jadwal penugasan lapangan secara terpadu.
+                        <p class="mt-0.5 text-[12.5px] text-white/80 leading-relaxed line-clamp-1">
+                            Pemantauan kapasitas kerja teknisi, progres instalasi proyek jaringan, dan jadwal penugasan lapangan.
                         </p>
                     </div>
 
-                    {{-- Quick Action / Live Status Cards --}}
-                    <div class="flex flex-wrap items-center gap-3 shrink-0">
-                        <a href="{{ route('tasks.index') }}" class="px-4 py-2.5 rounded-xl bg-white text-[#8F0A0D] font-bold text-[13px] hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-md flex items-center gap-2">
-                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    {{-- Quick Action Buttons --}}
+                    <div class="flex items-center gap-2.5 shrink-0">
+                        <a href="{{ route('tasks.index') }}" class="px-3.5 py-2 rounded-xl bg-white text-[#8F0A0D] font-bold text-[12.5px] hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
                             <span>Delegasi Tugas Baru</span>
                         </a>
-                        <a href="{{ route('schedules.index') }}" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 hover:scale-[1.02] border border-white/25 text-white font-bold text-[13px] transition-all flex items-center gap-2 backdrop-blur-sm">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <a href="{{ route('schedules.index') }}" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 hover:scale-[1.02] border border-white/25 text-white font-bold text-[12.5px] transition-all flex items-center gap-1.5 backdrop-blur-sm">
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
-                            <span>Jadwal Kerja Lapangan</span>
+                            <span>Jadwal Kerja</span>
                         </a>
-                    </div>
-                </div>
-
-                {{-- Live Quick Stats Strip --}}
-                <div class="relative z-10 mt-6 pt-5 border-t border-white/15 grid grid-cols-2 sm:grid-cols-4 gap-4 text-white/90">
-                    <div>
-                        <span class="text-[11.5px] text-white/70 block uppercase tracking-wider font-semibold">Total Portofolio</span>
-                        <span class="text-[18px] sm:text-[20px] font-extrabold text-white">{{ $projectsCount }} Proyek</span>
-                    </div>
-                    <div>
-                        <span class="text-[11.5px] text-white/70 block uppercase tracking-wider font-semibold">Tugas Selesai</span>
-                        <span class="text-[18px] sm:text-[20px] font-extrabold text-white">{{ $tasksCompleted }} Selesai</span>
-                    </div>
-                    <div>
-                        <span class="text-[11.5px] text-white/70 block uppercase tracking-wider font-semibold">Tugas Berjalan</span>
-                        <span class="text-[18px] sm:text-[20px] font-extrabold text-white">{{ $tasksInProgress }} In Progress</span>
-                    </div>
-                    <div>
-                        <span class="text-[11.5px] text-white/70 block uppercase tracking-wider font-semibold">Presensi Masuk</span>
-                        <span class="text-[18px] sm:text-[20px] font-extrabold text-white">{{ $clockInCount }} Personil Hadir</span>
                     </div>
                 </div>
             </div>
