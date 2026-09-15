@@ -100,7 +100,7 @@
             <div class="ipnet-card p-4 sm:p-5">
                 <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
                     <form method="GET" action="{{ route('presales.proposals.index') }}" class="flex-1 flex flex-col sm:flex-row items-center gap-2.5">
-                        <div class="relative w-full sm:max-w-sm">
+                        <div class="relative w-full sm:max-w-md">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             </div>
@@ -110,15 +110,6 @@
                                    placeholder="Cari nama proyek, klien, sales PIC..." 
                                    class="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] rounded-xl text-xs font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all">
                         </div>
-
-                        <select name="tab" onchange="this.form.submit()" 
-                                class="w-full sm:w-auto px-3 py-2 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer transition-all">
-                            <option value="all" {{ request('tab', 'all') == 'all' ? 'selected' : '' }}>Semua Status ({{ $counts['all'] }})</option>
-                            <option value="pending" {{ request('tab') == 'pending' ? 'selected' : '' }}>Perlu BoQ ({{ $counts['pending'] }})</option>
-                            <option value="submitted" {{ request('tab') == 'submitted' ? 'selected' : '' }}>Proposal Siap ({{ $counts['submitted'] }})</option>
-                            <option value="won" {{ request('tab') == 'won' ? 'selected' : '' }}>Tender Menang ({{ $counts['won'] }})</option>
-                            <option value="lost" {{ request('tab') == 'lost' ? 'selected' : '' }}>Gagal / Batal ({{ $counts['lost'] }})</option>
-                        </select>
 
                         <select name="division_id" onchange="this.form.submit()" 
                                 class="w-full sm:w-auto px-3 py-2 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer transition-all">
