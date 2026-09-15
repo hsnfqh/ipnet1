@@ -1621,10 +1621,9 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('alpine:init', function() {
-        Alpine.data('schedulesManager', function() {
-            return {
-                schedules: @json($schedules),
+    function schedulesManager() {
+        return {
+            schedules: @json($schedules),
                 tasks: @json($tasks),
                 calendarProjects: @json($calendarProjects),
                 projects: @json($projects),
@@ -2223,7 +2222,8 @@
                                     location: schLoc
                                 }
                             ]
-                           } else {
+                        };
+                    } else {
                         this.editing = false;
                         var todayFormatted = this.formatDate(new Date());
                         var initialEngIds = this.isArchitect ? [{{ auth()->id() }}] : (this.engineers.length > 0 ? [this.engineers[0].id] : [{{ auth()->id() }}]);
@@ -2531,8 +2531,15 @@
                     }, 3000);
                 }
             };
+    }
+
+    if (window.Alpine) {
+        Alpine.data('schedulesManager', schedulesManager);
+    } else {
+        document.addEventListener('alpine:init', function() {
+            Alpine.data('schedulesManager', schedulesManager);
         });
-    });
+    }
 </script>
 @endpush
 @endsection
