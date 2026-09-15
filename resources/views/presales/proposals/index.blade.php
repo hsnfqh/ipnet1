@@ -126,6 +126,13 @@
                                 <option value="{{ $div->id }}" {{ request('division_id') == $div->id ? 'selected' : '' }}>{{ $div->name }}</option>
                             @endforeach
                         </select>
+
+                        <select name="per_page" onchange="this.form.submit()" 
+                                class="w-full sm:w-auto px-3 py-2 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer transition-all">
+                            <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10 / hal</option>
+                            <option value="20" {{ request('per_page') == 20 ? 'selected' : '' }}>20 / hal</option>
+                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 / hal</option>
+                        </select>
                     </form>
 
                     <div class="text-[12px] text-[#64748B] font-medium whitespace-nowrap self-end md:self-auto">
@@ -304,11 +311,26 @@
                         </table>
                     </div>
 
-                    @if($projects->hasPages())
-                        <div class="p-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC]">
+                    <div class="p-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC]">
+                        @if($projects->hasPages())
                             {{ $projects->links() }}
-                        </div>
-                    @endif
+                        @else
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-[12.5px] text-[#75727C] w-full">
+                                <div class="text-center sm:text-left">
+                                    Menampilkan 
+                                    <span class="font-medium text-[#17151C]">{{ $projects->firstItem() ?? 0 }}</span> 
+                                    &ndash; 
+                                    <span class="font-medium text-[#17151C]">{{ $projects->lastItem() ?? 0 }}</span> 
+                                    dari 
+                                    <span class="font-medium text-[#17151C]">{{ $projects->total() }}</span> 
+                                    data
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="w-7 h-7 rounded-md bg-[#AF1424] text-white border border-[#AF1424] text-[12px] font-bold flex items-center justify-center select-none shadow-sm">1</span>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 @endif
             </div>
 

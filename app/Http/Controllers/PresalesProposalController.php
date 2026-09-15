@@ -62,7 +62,12 @@ class PresalesProposalController extends Controller
             });
         }
 
-        $projects = $query->latest()->paginate(15)->withQueryString();
+        $perPage = (int) $request->input('per_page', 10);
+        if ($perPage <= 0) {
+            $perPage = 10;
+        }
+
+        $projects = $query->latest()->paginate($perPage)->withQueryString();
 
         // Counter stats
         $baseQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
