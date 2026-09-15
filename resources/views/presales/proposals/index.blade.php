@@ -12,6 +12,8 @@
     /* ========================================================
        IPNET Brand Design System
        ======================================================== */
+    [x-cloak] { display: none !important; }
+
     :root {
         --ipnet-primary: #8F0A0D;
         --ipnet-primary-hover: #73080A;
@@ -23,9 +25,23 @@
     .ipnet-card {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
-        border-radius: 16px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 4px 12px rgba(0, 0, 0, 0.015);
-        transition: all 0.2s ease;
+        border-radius: 20px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .ipnet-card:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .ipnet-badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #8F0A0D;
+        display: inline-block;
+        margin-right: 8px;
     }
 
     .btn-ipnet-primary {
@@ -38,6 +54,33 @@
         background-color: #73080A;
         box-shadow: 0 4px 12px rgba(143, 10, 13, 0.25);
     }
+
+    .btn-ipnet-gradient {
+        background: linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%);
+        color: #FFFFFF;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-ipnet-gradient:hover {
+        background: linear-gradient(135deg, #991B1B 0%, #7F080A 60%, #5E0305 100%);
+        box-shadow: 0 6px 18px rgba(143, 10, 13, 0.35);
+        transform: translateY(-1px);
+    }
+
+    /* Fluid Entrance Animations */
+    @keyframes fadeUpStagger {
+        0% { opacity: 0; transform: translateY(18px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .anim-fade-up {
+        animation: fadeUpStagger 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .anim-delay-1 { animation-delay: 0.08s !important; }
+    .anim-delay-2 { animation-delay: 0.16s !important; }
+    .anim-delay-3 { animation-delay: 0.24s !important; }
+    .anim-delay-4 { animation-delay: 0.32s !important; }
 </style>
 @endpush
 
@@ -142,7 +185,7 @@
             @endif
 
             {{-- Table Container --}}
-            <div class="ipnet-card overflow-hidden">
+            <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-2">
                 @if($projects->isEmpty())
                     <div class="py-16 text-center space-y-2.5">
                         <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 mx-auto">

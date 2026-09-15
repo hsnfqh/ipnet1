@@ -124,7 +124,7 @@
             @endif
 
             {{-- Vendor List Table --}}
-            <div class="ipnet-card overflow-hidden">
+            <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-2">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
