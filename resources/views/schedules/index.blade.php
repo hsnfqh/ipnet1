@@ -169,46 +169,46 @@
 
             {{-- LEGEND -- hanya tampil di view selain rekap --}}
             <template x-if="viewMode !== 'table'">
-                <div style="display:flex; align-items:center; gap:14px; flex-wrap:nowrap; margin-bottom:12px; padding:8px 16px; background:var(--jkw-surface); border:1px solid var(--jkw-line); border-radius:10px; overflow-x:auto;">
-                    <span style="font-size:11px; font-weight:700; color:var(--jkw-muted); text-transform:uppercase; letter-spacing:.3px; white-space:nowrap; flex-shrink:0;">Keterangan:</span>
+                <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:14px; padding:2px 4px; overflow-x:auto;">
+                    <span style="font-size:11.5px; font-weight:800; color:#1E293B; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; flex-shrink:0;">KETERANGAN:</span>
                     <template x-if="isArchitect">
-                        <div style="display:flex; align-items:center; gap:14px; flex-wrap:nowrap;">
-                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                                <span style="width:10px; height:10px; border-radius:2px; background:#10B981; flex-shrink:0; display:inline-block;"></span>
-                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Sesi PoC &amp; Lab</span>
+                        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#10B981; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Sesi PoC &amp; Lab</span>
                             </span>
-                            <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
-                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                                <span style="width:10px; height:10px; border-radius:2px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
-                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Review Desain &amp; SOW</span>
+                            <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Review Desain &amp; SOW</span>
                             </span>
-                            <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
-                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                                <span style="width:10px; height:10px; border-radius:2px; background:#8B5CF6; flex-shrink:0; display:inline-block;"></span>
-                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Meeting Klien / Principal</span>
+                            <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#8B5CF6; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Meeting Klien / Principal</span>
                             </span>
-                            <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
-                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                                <span style="width:10px; height:10px; border-radius:2px; background:#64748B; flex-shrink:0; display:inline-block;"></span>
-                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Day Off / Cuti</span>
+                            <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#64748B; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Day Off / Cuti</span>
                             </span>
                         </div>
                     </template>
                     <template x-if="!isArchitect">
-                        <div style="display:flex; align-items:center; gap:14px; flex-wrap:nowrap;">
-                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                                <span style="width:10px; height:10px; border-radius:2px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
-                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Jadwal Meeting</span>
+                        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Jadwal Meeting</span>
                             </span>
-                            <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
-                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                                <span style="width:10px; height:10px; border-radius:2px; background:#C81E2C; flex-shrink:0; display:inline-block;"></span>
-                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Jadwal Task / Kegiatan</span>
+                            <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#C81E2C; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Jadwal Task / Kegiatan</span>
                             </span>
-                            <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
-                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                                <span style="width:10px; height:10px; border-radius:2px; background:#64748B; flex-shrink:0; display:inline-block;"></span>
-                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Day Off / Cuti</span>
+                            <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#64748B; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Day Off / Cuti</span>
                             </span>
                         </div>
                     </template>
@@ -260,76 +260,89 @@
                     <div class="jkw-day-list">
                         <template x-for="schedule in paginatedDaySchedules" :key="schedule._uid">
                             <div class="jkw-day-item" :class="'jkw-day-item--' + schedule._type">
-                                <div class="jkw-time" style="display:flex; align-items:center; gap:5px;">
-                                    <svg style="width:13px; height:13px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
-                                    <span x-text="schedule._timeLabel"></span>
-                                </div>
-                                <div class="jkw-day-main">
-                                    <div class="jkw-day-title" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                            <span x-text="schedule._displayTitle" style="cursor:pointer;" @click="handleEventClick(schedule)"></span>
-                                            <template x-if="schedule.status === 'Completed' || schedule.task_status === 'Completed'">
-                                                <span style="background:#DCFCE7; color:#166534; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; border:1px solid #BBF7D0; display:inline-flex; align-items:center; gap:3px;">
-                                                    <svg style="width:11px; height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                    Selesai
-                                                </span>
-                                            </template>
+                                <div class="jkw-day-content-left">
+                                    <div class="jkw-day-header-line">
+                                        <div class="jkw-time">
+                                            <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/>
+                                            </svg>
+                                            <span x-text="schedule._timeLabel"></span>
                                         </div>
-                                        <template x-if="schedule._type === 'task'">
-                                            <div style="display:flex; align-items:center; gap:6px;">
-                                                <a href="/tasks" style="background:#FDF1F2; border:1px solid #FCA5A5; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; color:#C81E2C; text-decoration:none; display:inline-flex; align-items:center; gap:4px; flex-shrink:0; transition:all 0.15s ease;" onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='#FDF1F2'" title="Kelola dan selesaikan tiket di menu Task">
-                                                    <svg style="width:11px; height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                                    Kelola di Task
-                                                </a>
-                                            </div>
-                                        </template>
-                                        <template x-if="schedule._type !== 'task'">
-                                            @if($isLead || ($canManageSchedule ?? false))
-                                            <div style="display:flex; align-items:center; gap:6px;">
-                                                <template x-if="schedule._type === 'schedule'">
-                                                    <button type="button" @click="shareWhatsApp(schedule)" style="background:#22C55E; color:white; border:none; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0; box-shadow:0 2px 6px rgba(34,197,94,0.25);" title="Bagikan Undangan Meeting ke WhatsApp">
-                                                        <svg style="width:12px; height:12px;" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                                                        Kirim ke WA
-                                                    </button>
-                                                </template>
-                                                <button type="button" @click="handleEventClick(schedule)" style="background:#F8F7F6; border:1px solid #E7E5E3; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:600; color:#3D3A44; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;" title="Edit / Detail Jadwal">
-                                                    <svg style="width:11px; height:11px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                                    Edit
-                                                </button>
-                                                <button type="button" @click="deleteSchedule(schedule)" style="background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:600; color:#DC2626; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;" title="Hapus Jadwal">
-                                                    <svg style="width:11px; height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                    Hapus
-                                                </button>
-                                            </div>
-                                            @endif
+                                        <span class="jkw-day-title-text" x-text="schedule._displayTitle" @click="handleEventClick(schedule)" title="Klik untuk detail / edit"></span>
+                                        <template x-if="schedule.status === 'Completed' || schedule.task_status === 'Completed'">
+                                            <span style="background:#DCFCE7; color:#166534; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; border:1px solid #BBF7D0; display:inline-flex; align-items:center; gap:3px;">
+                                                <svg style="width:11px; height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                Selesai
+                                            </span>
                                         </template>
                                     </div>
+
                                     <div class="jkw-day-meta">
+                                        <!-- Engineers / PIC Avatar Chips -->
                                         <template x-if="schedule.engineers && schedule.engineers.length > 0">
                                             <span style="display:inline-flex; align-items:center; gap:5px; flex-wrap:wrap;">
                                                 <template x-for="eng in schedule.engineers" :key="eng.id">
-                                                    <span style="display:inline-flex; align-items:center; gap:4px; background:#FFFFFF; border:1px solid #E7E5E3; padding:1px 6px; border-radius:12px; font-size:11px; font-weight:600; color:#17151C;">
+                                                    <span class="jkw-meta-chip">
                                                         <span class="jkw-avatar jkw-avatar--sm" :style="'background:' + colorFromName(eng.name)" x-text="initials(eng.name)"></span>
                                                         <span x-text="eng.name"></span>
                                                     </span>
                                                 </template>
                                             </span>
                                         </template>
-                                        <template x-if="!schedule.engineers || schedule.engineers.length === 0">
-                                            <span style="display:inline-flex; align-items:center; gap:5px;">
-                                                <span class="jkw-avatar jkw-avatar--sm" :style="'background:' + colorFromName(schedule.engineer?.name || '-')" x-text="initials(schedule.engineer?.name || '-')"></span>
-                                                <span x-text="schedule.engineer?.name || '-'"></span>
+                                        <template x-if="(!schedule.engineers || schedule.engineers.length === 0) && schedule.engineer && schedule.engineer.name && schedule.engineer.name !== '-'">
+                                            <span class="jkw-meta-chip">
+                                                <span class="jkw-avatar jkw-avatar--sm" :style="'background:' + colorFromName(schedule.engineer.name)" x-text="initials(schedule.engineer.name)"></span>
+                                                <span x-text="schedule.engineer.name"></span>
                                             </span>
                                         </template>
-                                        <span class="jkw-sep">·</span>
-                                        <span x-text="schedule.project?.name || '-'"></span>
-                                        <template x-if="schedule.location">
-                                            <span>
+
+                                        <!-- Project Name -->
+                                        <template x-if="schedule.project && schedule.project.name && schedule.project.name !== '-'">
+                                            <span style="display:inline-flex; align-items:center; gap:6px;">
                                                 <span class="jkw-sep">·</span>
-                                                <span x-text="schedule.location"></span>
+                                                <span style="color:#475569; font-weight:500;" x-text="schedule.project.name"></span>
+                                            </span>
+                                        </template>
+
+                                        <!-- Location -->
+                                        <template x-if="schedule.location && schedule.location !== '-'">
+                                            <span style="display:inline-flex; align-items:center; gap:6px;">
+                                                <span class="jkw-sep">·</span>
+                                                <span style="color:#64748B;" x-text="schedule.location"></span>
                                             </span>
                                         </template>
                                     </div>
+                                </div>
+
+                                <!-- Actions (Right) -->
+                                <div class="jkw-day-actions">
+                                    <template x-if="schedule._type === 'task'">
+                                        <a href="/tasks" class="jkw-btn-task-action" title="Kelola tiket di menu Task">
+                                            <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                            <span>Kelola di Task</span>
+                                        </a>
+                                    </template>
+                                    <template x-if="schedule._type !== 'task'">
+                                        @if($isLead || ($canManageSchedule ?? false))
+                                        <div style="display:flex; align-items:center; gap:6px;">
+                                            <template x-if="['schedule', 'poc', 'design', 'meeting'].includes(schedule._type)">
+                                                <button type="button" @click="shareWhatsApp(schedule)" class="jkw-btn-wa" title="Bagikan Undangan ke WhatsApp">
+                                                    <svg style="width:12px; height:12px;" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                                                    <span>Kirim ke WA</span>
+                                                </button>
+                                            </template>
+                                            <button type="button" @click="handleEventClick(schedule)" class="jkw-btn-edit" title="Edit Jadwal">
+                                                <svg style="width:12px; height:12px; color:#64748B;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                <span>Edit</span>
+                                            </button>
+                                            <button type="button" @click="deleteSchedule(schedule)" class="jkw-btn-delete" title="Hapus Jadwal">
+                                                <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                <span>Hapus</span>
+                                            </button>
+                                        </div>
+                                        @endif
+                                    </template>
                                 </div>
                             </div>
                         </template>
@@ -337,7 +350,7 @@
                             <div class="jkw-empty-icon" style="margin-bottom:12px;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
-                            <p style="margin-bottom:20px; font-size:13.5px; color:#75727C;">Tidak ada jadwal atau deadline pada hari ini.</p>
+                            <p style="margin-bottom:20px; font-size:13.5px; color:#75727C;">Tidak ada jadwal atau agenda pada hari ini.</p>
                             <button type="button" @click="openModal()" style="margin-top:20px !important; background:#C81E2C; color:white; border:none; padding:10px 22px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 14px rgba(200,30,44,0.22); transition:all 0.15s ease;">
                                 <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 <span>Tambah {{ ($isArchitect ?? false) ? 'Agenda' : 'Jadwal' }} Hari Ini</span>
@@ -738,7 +751,7 @@
                                         @if($isArchitect ?? false)
                                         <div style="display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px;">
                                             <button type="button" 
-                                                    class="jkw-cat-btn jkw-cat-btn--meeting"
+                                                    class="jkw-cat-btn jkw-cat-btn--poc"
                                                     :class="{ 'is-active': form.category === 'PoC / Lab' || form.category === 'Sesi PoC & Lab' }"
                                                     @click="setCategory('Sesi PoC & Lab')">
                                                 <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -748,7 +761,7 @@
                                             </button>
 
                                             <button type="button" 
-                                                    class="jkw-cat-btn jkw-cat-btn--task"
+                                                    class="jkw-cat-btn jkw-cat-btn--design"
                                                     :class="{ 'is-active': form.category === 'Review Desain & SOW' || form.category === 'Desain & SOW' || form.category === 'Kajian Solusi' }"
                                                     @click="setCategory('Review Desain & SOW')">
                                                 <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -758,13 +771,13 @@
                                             </button>
 
                                             <button type="button" 
-                                                    class="jkw-cat-btn jkw-cat-btn--meeting"
+                                                    class="jkw-cat-btn jkw-cat-btn--meeting-sa"
                                                     :class="{ 'is-active': form.category === 'Meeting Klien / Principal' || form.category === 'Meeting' }"
                                                     @click="setCategory('Meeting Klien / Principal')">
                                                 <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                                 </svg>
-                                                <span>Klien / Principal</span>
+                                                <span>Klien/Principal</span>
                                             </button>
 
                                             <button type="button" 
@@ -1390,25 +1403,203 @@
 .jkw-mono { font-family:'IBM Plex Mono', monospace !important; }
 
 /* ---------- day view ---------- */
-.jkw-day-list { padding:14px 14px !important; display:flex !important; flex-direction:column !important; gap:8px !important; }
-.jkw-day-item { display:flex !important; align-items:flex-start !important; gap:12px !important; padding:12px 16px !important; border-radius:8px !important; flex-wrap:wrap !important; transition:all 0.15s ease !important; }
-.jkw-day-item--schedule { background:rgba(37,99,235,0.13) !important; border-left:4px solid #2563EB !important; }
-.jkw-day-item--schedule .jkw-time { color:#1D4ED8 !important; }
-.jkw-day-item--schedule .jkw-time svg { color:#2563EB !important; }
-.jkw-day-item--day_off { background:rgba(100,116,139,0.20) !important; border-left:4px solid #475569 !important; }
-.jkw-day-item--day_off .jkw-time { color:#334155 !important; font-weight:800 !important; }
-.jkw-day-item--day_off .jkw-time svg { color:#475569 !important; }
-.jkw-day-item--task { background:#FDF1F2 !important; border-left:4px solid #C81E2C !important; }
-.jkw-day-item--task .jkw-time { color:#991B1B !important; }
-.jkw-day-item--task .jkw-time svg { color:#C81E2C !important; }
-.jkw-day-item--project { background:#FEF2F2 !important; border-left:4px solid #991B1B !important; }
-.jkw-day-item--project .jkw-time { color:#7F1D1D !important; }
-.jkw-day-item--project .jkw-time svg { color:#991B1B !important; }
-.jkw-time { font-family:'IBM Plex Mono', monospace !important; font-size:12px !important; font-weight:700 !important; white-space:nowrap !important; }
-.jkw-day-main { flex:1 1 160px !important; min-width:0 !important; }
-.jkw-day-title { font-size:13.5px !important; font-weight:700 !important; color:var(--jkw-ink) !important; margin-bottom:3px !important; word-break:break-word !important; }
-.jkw-day-meta { display:flex !important; align-items:center !important; gap:6px !important; font-size:11.5px !important; color:var(--jkw-muted) !important; flex-wrap:wrap !important; }
-.jkw-sep { color:var(--jkw-line) !important; }
+.jkw-day-list { padding:14px 16px !important; display:flex !important; flex-direction:column !important; gap:10px !important; }
+.jkw-day-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    padding: 12px 18px !important;
+    border-radius: 10px !important;
+    transition: all 0.15s ease !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+.jkw-day-content-left {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+.jkw-day-header-line {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+}
+.jkw-day-title-text {
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    color: #1E293B !important;
+    cursor: pointer !important;
+    line-height: 1.35 !important;
+    word-break: break-word !important;
+    transition: color 0.15s ease !important;
+}
+.jkw-day-title-text:hover {
+    color: #8F0A0D !important;
+}
+.jkw-meta-chip {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    background: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    padding: 1.5px 8px 1.5px 4px !important;
+    border-radius: 9999px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #1E293B !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+.jkw-day-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+}
+.jkw-btn-wa {
+    background: #22C55E !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.25) !important;
+    transition: all 0.15s ease !important;
+}
+.jkw-btn-wa:hover {
+    background: #16A34A !important;
+}
+.jkw-btn-edit {
+    background: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: all 0.15s ease !important;
+}
+.jkw-btn-edit:hover {
+    background: #F8FAFC !important;
+    border-color: #94A3B8 !important;
+}
+.jkw-btn-delete {
+    background: #FEF2F2 !important;
+    border: 1px solid #FECACA !important;
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: #DC2626 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: all 0.15s ease !important;
+}
+.jkw-btn-delete:hover {
+    background: #FEE2E2 !important;
+}
+.jkw-btn-task-action {
+    background: #FDF1F2 !important;
+    border: 1px solid #FCA5A5 !important;
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    color: #C81E2C !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    transition: all 0.15s ease !important;
+}
+
+/* Day Item Color Variants */
+.jkw-day-item--schedule, .jkw-day-item--design {
+    background: rgba(37, 99, 235, 0.08) !important;
+    border-left: 4px solid #2563EB !important;
+}
+.jkw-day-item--schedule .jkw-time, .jkw-day-item--design .jkw-time {
+    color: #1D4ED8 !important;
+}
+.jkw-day-item--schedule .jkw-time svg, .jkw-day-item--design .jkw-time svg {
+    color: #2563EB !important;
+}
+
+.jkw-day-item--poc {
+    background: rgba(16, 185, 129, 0.08) !important;
+    border-left: 4px solid #10B981 !important;
+}
+.jkw-day-item--poc .jkw-time {
+    color: #047857 !important;
+}
+.jkw-day-item--poc .jkw-time svg {
+    color: #10B981 !important;
+}
+
+.jkw-day-item--meeting {
+    background: rgba(139, 92, 246, 0.08) !important;
+    border-left: 4px solid #8B5CF6 !important;
+}
+.jkw-day-item--meeting .jkw-time {
+    color: #6D28D9 !important;
+}
+.jkw-day-item--meeting .jkw-time svg {
+    color: #8B5CF6 !important;
+}
+
+.jkw-day-item--day_off {
+    background: rgba(100, 116, 139, 0.12) !important;
+    border-left: 4px solid #475569 !important;
+}
+.jkw-day-item--day_off .jkw-time {
+    color: #334155 !important;
+    font-weight: 800 !important;
+}
+.jkw-day-item--day_off .jkw-time svg {
+    color: #475569 !important;
+}
+
+.jkw-day-item--task {
+    background: #FDF1F2 !important;
+    border-left: 4px solid #C81E2C !important;
+}
+.jkw-day-item--task .jkw-time {
+    color: #991B1B !important;
+}
+.jkw-day-item--task .jkw-time svg {
+    color: #C81E2C !important;
+}
+
+.jkw-day-item--project {
+    background: #FEF2F2 !important;
+    border-left: 4px solid #991B1B !important;
+}
+.jkw-day-item--project .jkw-time {
+    color: #7F1D1D !important;
+}
+.jkw-day-item--project .jkw-time svg {
+    color: #991B1B !important;
+}
+
+.jkw-time { font-family:'IBM Plex Mono', monospace !important; font-size:12px !important; font-weight:700 !important; white-space:nowrap !important; display:inline-flex !important; align-items:center !important; gap:5px !important; }
+.jkw-day-meta { display:flex !important; align-items:center !important; gap:6px !important; font-size:11.5px !important; color:var(--jkw-muted) !important; flex-wrap:wrap !important; margin-top:3px !important; }
+.jkw-sep { color:#CBD5E1 !important; }
 
 .jkw-empty { text-align:center !important; padding:48px 16px 56px !important; color:var(--jkw-muted) !important; }
 .jkw-empty-icon { width:44px !important; height:44px !important; border-radius:10px !important; background:var(--jkw-bg-soft) !important; display:flex !important; align-items:center !important; justify-content:center !important; margin:0 auto 14px !important; }
@@ -1425,8 +1616,10 @@
 .jkw-week-col-head { font-size:11px !important; color:var(--jkw-muted) !important; font-weight:700 !important; margin-bottom:10px !important; display:flex !important; align-items:center !important; gap:5px !important; }
 .jkw-week-col-body { display:flex !important; flex-direction:column !important; gap:6px !important; }
 .jkw-mini-card { border-radius:6px !important; padding:6px 9px !important; }
-.jkw-mini-card--schedule { background:rgba(37,99,235,0.13) !important; }
-.jkw-mini-card--day_off { background:rgba(100,116,139,0.20) !important; }
+.jkw-mini-card--schedule, .jkw-mini-card--design { background:rgba(37,99,235,0.12) !important; }
+.jkw-mini-card--poc { background:rgba(16,185,129,0.12) !important; }
+.jkw-mini-card--meeting { background:rgba(139,92,246,0.12) !important; }
+.jkw-mini-card--day_off { background:rgba(100,116,139,0.18) !important; }
 .jkw-mini-card--task { background:rgba(200,30,44,0.08) !important; }
 .jkw-mini-card--project { background:rgba(153,27,27,0.08) !important; }
 .jkw-mini-time { font-family:'IBM Plex Mono', monospace !important; font-size:10px !important; font-weight:700 !important; }
@@ -1530,6 +1723,66 @@
     box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
 }
 .jkw-cat-btn--meeting.is-active svg {
+    color: #FFFFFF !important;
+}
+
+.jkw-cat-btn--poc {
+    background: #FFFFFF !important;
+    color: #10B981 !important;
+    border: 1.5px solid #A7F3D0 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+}
+.jkw-cat-btn--poc:hover {
+    background: #ECFDF5 !important;
+    border-color: #6EE7B7 !important;
+}
+.jkw-cat-btn--poc.is-active {
+    background: #10B981 !important;
+    color: #FFFFFF !important;
+    border-color: #10B981 !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+}
+.jkw-cat-btn--poc.is-active svg {
+    color: #FFFFFF !important;
+}
+
+.jkw-cat-btn--design {
+    background: #FFFFFF !important;
+    color: #2563EB !important;
+    border: 1.5px solid #BFDBFE !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+}
+.jkw-cat-btn--design:hover {
+    background: #EFF6FF !important;
+    border-color: #93C5FD !important;
+}
+.jkw-cat-btn--design.is-active {
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+    border-color: #2563EB !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+}
+.jkw-cat-btn--design.is-active svg {
+    color: #FFFFFF !important;
+}
+
+.jkw-cat-btn--meeting-sa {
+    background: #FFFFFF !important;
+    color: #8B5CF6 !important;
+    border: 1.5px solid #DDD6FE !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+}
+.jkw-cat-btn--meeting-sa:hover {
+    background: #F5F3FF !important;
+    border-color: #C4B5FD !important;
+}
+.jkw-cat-btn--meeting-sa.is-active {
+    background: #8B5CF6 !important;
+    color: #FFFFFF !important;
+    border-color: #8B5CF6 !important;
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35) !important;
+}
+.jkw-cat-btn--meeting-sa.is-active svg {
     color: #FFFFFF !important;
 }
 
@@ -1969,10 +2222,12 @@
                         var isDayOff = s.category === 'Day Off';
                         var isTaskCat = s.category === 'Task' || s.category === 'Kegiatan';
                         var isPoc = (s.category || '').toLowerCase().includes('poc') || (s.category || '').toLowerCase().includes('lab');
-                        var isMeet = (s.category || '').toLowerCase().includes('meeting') || (s.category || '').toLowerCase().includes('principal');
+                        var isMeet = (s.category || '').toLowerCase().includes('meeting') || (s.category || '').toLowerCase().includes('principal') || (s.category || '').toLowerCase().includes('klien');
+                        var isDesign = (s.category || '').toLowerCase().includes('desain') || (s.category || '').toLowerCase().includes('sow') || (s.category || '').toLowerCase().includes('review');
                         var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
                         var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : (s.category || 'Jadwal')));
-                        var eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isMeet ? '#8B5CF6' : (isTaskCat ? '#C81E2C' : '#2563EB')));
+                        var eventType = isDayOff ? 'day_off' : (isPoc ? 'poc' : (isMeet ? 'meeting' : (isDesign ? 'design' : (isTaskCat ? 'task' : 'schedule'))));
+                        var eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isMeet ? '#8B5CF6' : (isDesign ? '#2563EB' : (isTaskCat ? '#C81E2C' : '#2563EB'))));
                         
                         // Cegah duplikasi agenda yang sama persis di hari yang sama
                         var engKey = (s.engineer_ids || (s.engineers ? s.engineers.map(function(e){ return e.id; }) : [s.engineer_id])).join('-');
@@ -1991,7 +2246,7 @@
 
                         map[d].push({
                             _uid: 'sch-' + s.id,
-                            _type: isDayOff ? 'day_off' : (isTaskCat ? 'task' : 'schedule'),
+                            _type: eventType,
                             _color: eventColor,
                             _displayTitle: s.title,
                             _timeLabel: timeLabel,
