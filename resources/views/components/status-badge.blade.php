@@ -15,6 +15,10 @@
         'Kegiatan'       => ['bg' => '#FDF1F2', 'fg' => '#991B1B', 'dot' => '#C81E2C', 'pulse' => false],
         'Task'           => ['bg' => '#FDF1F2', 'fg' => '#991B1B', 'dot' => '#C81E2C', 'pulse' => false],
         'Day Off'        => ['bg' => '#F1F5F9', 'fg' => '#334155', 'dot' => '#64748B', 'pulse' => false],
+        'Sesi PoC & Lab' => ['bg' => '#ECFDF5', 'fg' => '#065F46', 'dot' => '#10B981', 'pulse' => true],
+        'Review Desain & SOW' => ['bg' => '#EFF6FF', 'fg' => '#1E40AF', 'dot' => '#3B82F6', 'pulse' => false],
+        'Meeting Klien / Principal' => ['bg' => '#F5F3FF', 'fg' => '#5B21B6', 'dot' => '#8B5CF6', 'pulse' => false],
+        'Kalkulasi BoQ'  => ['bg' => '#FFFBEB', 'fg' => '#92400E', 'dot' => '#F59E0B', 'pulse' => false],
     ];
     $s = $styles[$status] ?? ['bg' => '#F1F5F9', 'fg' => '#475569', 'dot' => '#94A3B8', 'pulse' => false];
 @endphp

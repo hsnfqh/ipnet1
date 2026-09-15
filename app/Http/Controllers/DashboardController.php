@@ -791,12 +791,32 @@ class DashboardController extends Controller
         $recentDesignProjects  = (clone $allProjectsQuery)->latest()->take(6)->get();
         $pendingSowProjects    = (clone $allProjectsQuery)->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->latest()->take(6)->get();
         $inventoryHighlights   = \App\Models\InventoryItem::orderBy('stock', 'asc')->take(5)->get();
-        $partnerVendors        = \App\Models\Vendor::latest()->take(5)->get();
-        $pocSchedules          = Schedule::with(['project', 'engineer'])
-                                    ->where('date', '>=', now()->toDateString())
-                                    ->orderBy('date', 'asc')
-                                    ->take(5)
-                                    ->get();
+        $user = auth()->user();
+        $pocSchedules = Schedule::with(['project', 'engineer', 'engineers'])
+            ->where(function($q) use ($user) {
+                $q->where('engineer_id', $user->id)
+                  ->orWhere('created_by', $user->id)
+                  ->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $user->id));
+            })
+            ->where('date', '>=', now()->toDateString())
+            ->orderBy('date', 'asc')
+            ->take(5)
+            ->get();
+
+        if ($pocSchedules->isEmpty()) {
+            $pocSchedules = Schedule::with(['project', 'engineer', 'engineers'])
+                ->where(function($q) {
+                    $q->where('category', 'like', '%PoC%')
+                      ->orWhere('category', 'like', '%Lab%')
+                      ->orWhere('category', 'like', '%Desain%')
+                      ->orWhere('category', 'like', '%SOW%')
+                      ->orWhere('category', 'like', '%Review%');
+                })
+                ->where('date', '>=', now()->toDateString())
+                ->orderBy('date', 'asc')
+                ->take(5)
+                ->get();
+        }
 
         $data = [
             'selectedYear'          => $selectedYear,

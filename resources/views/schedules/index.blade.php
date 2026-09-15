@@ -171,20 +171,47 @@
             <template x-if="viewMode !== 'table'">
                 <div style="display:flex; align-items:center; gap:14px; flex-wrap:nowrap; margin-bottom:12px; padding:8px 16px; background:var(--jkw-surface); border:1px solid var(--jkw-line); border-radius:10px; overflow-x:auto;">
                     <span style="font-size:11px; font-weight:700; color:var(--jkw-muted); text-transform:uppercase; letter-spacing:.3px; white-space:nowrap; flex-shrink:0;">Keterangan:</span>
-                    <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        <span style="width:10px; height:10px; border-radius:2px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
-                        <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Jadwal Meeting</span>
-                    </span>
-                    <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
-                    <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        <span style="width:10px; height:10px; border-radius:2px; background:#C81E2C; flex-shrink:0; display:inline-block;"></span>
-                        <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Jadwal Task / Kegiatan</span>
-                    </span>
-                    <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
-                    <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                        <span style="width:10px; height:10px; border-radius:2px; background:#64748B; flex-shrink:0; display:inline-block;"></span>
-                        <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Day Off / Cuti</span>
-                    </span>
+                    <template x-if="isArchitect">
+                        <div style="display:flex; align-items:center; gap:14px; flex-wrap:nowrap;">
+                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:2px; background:#10B981; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Sesi PoC &amp; Lab</span>
+                            </span>
+                            <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:2px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Review Desain &amp; SOW</span>
+                            </span>
+                            <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:2px; background:#8B5CF6; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Meeting Klien / Principal</span>
+                            </span>
+                            <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:2px; background:#64748B; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Day Off / Cuti</span>
+                            </span>
+                        </div>
+                    </template>
+                    <template x-if="!isArchitect">
+                        <div style="display:flex; align-items:center; gap:14px; flex-wrap:nowrap;">
+                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:2px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Jadwal Meeting</span>
+                            </span>
+                            <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:2px; background:#C81E2C; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Jadwal Task / Kegiatan</span>
+                            </span>
+                            <span style="color:var(--jkw-line); flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:2px; background:#64748B; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12px; color:var(--jkw-ink-2); white-space:nowrap;">Day Off / Cuti</span>
+                            </span>
+                        </div>
+                    </template>
                 </div>
             </template>
 
@@ -722,22 +749,22 @@
 
                                             <button type="button" 
                                                     class="jkw-cat-btn jkw-cat-btn--task"
-                                                    :class="{ 'is-active': form.category === 'Kajian Solusi' || form.category === 'Desain & SOW' }"
-                                                    @click="setCategory('Kajian Solusi')">
+                                                    :class="{ 'is-active': form.category === 'Review Desain & SOW' || form.category === 'Desain & SOW' || form.category === 'Kajian Solusi' }"
+                                                    @click="setCategory('Review Desain & SOW')">
                                                 <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                 </svg>
-                                                <span>Kajian Solusi</span>
+                                                <span>Desain & SOW</span>
                                             </button>
 
                                             <button type="button" 
                                                     class="jkw-cat-btn jkw-cat-btn--meeting"
-                                                    :class="{ 'is-active': form.category === 'Meeting' || form.category === 'Meeting & Koordinasi' }"
-                                                    @click="setCategory('Meeting')">
+                                                    :class="{ 'is-active': form.category === 'Meeting Klien / Principal' || form.category === 'Meeting' }"
+                                                    @click="setCategory('Meeting Klien / Principal')">
                                                 <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                                 </svg>
-                                                <span>Meeting</span>
+                                                <span>Klien / Principal</span>
                                             </button>
 
                                             <button type="button" 
@@ -1941,9 +1968,11 @@
                         var eTime = s.end_time ? s.end_time.substring(0, 5) : '';
                         var isDayOff = s.category === 'Day Off';
                         var isTaskCat = s.category === 'Task' || s.category === 'Kegiatan';
+                        var isPoc = (s.category || '').toLowerCase().includes('poc') || (s.category || '').toLowerCase().includes('lab');
+                        var isMeet = (s.category || '').toLowerCase().includes('meeting') || (s.category || '').toLowerCase().includes('principal');
                         var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
-                        var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : 'Jadwal'));
-                        var eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
+                        var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : (s.category || 'Jadwal')));
+                        var eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isMeet ? '#8B5CF6' : (isTaskCat ? '#C81E2C' : '#2563EB')));
                         
                         // Cegah duplikasi agenda yang sama persis di hari yang sama
                         var engKey = (s.engineer_ids || (s.engineers ? s.engineers.map(function(e){ return e.id; }) : [s.engineer_id])).join('-');

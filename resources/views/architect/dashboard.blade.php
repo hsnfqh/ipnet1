@@ -455,7 +455,7 @@
                             $isToday = $sch->date && $sch->date->isToday();
                             $dateLabel = $sch->date ? ($isToday ? 'Hari ini' : $sch->date->format('d M')) : '-';
                             $timeLabel = $sch->start_time ? substr($sch->start_time, 0, 5) . ' WIB' : '';
-                            $badgeCategory = ($sch->category === 'Task' || $sch->category === 'Kegiatan') ? 'Kegiatan' : ($sch->category ?: 'Meeting');
+                            $badgeCategory = $sch->category ?: 'Sesi PoC & Lab';
                             
                             $engineerNames = '';
                             if ($sch->relationLoaded('engineers') && $sch->engineers->isNotEmpty()) {
