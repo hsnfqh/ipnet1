@@ -198,6 +198,7 @@ class ManagedServiceController extends Controller
             'upcomingPmSchedules',
             'maintenanceLoadMonthData',
             'maintenanceLoadWeekData',
+            'totalPmSchedulesCount',
             'ticketTypeData',
             'clientSlaData',
             'selectedYear',

@@ -290,7 +290,7 @@
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-extrabold text-amber-600 tracking-tight">{{ $totalPmSchedulesCount }}</div>
+                        <div class="text-[22px] font-extrabold text-amber-600 tracking-tight">{{ $totalPmSchedulesCount ?? 0 }}</div>
                         <p class="text-[11px] text-[#75727C] mt-0.5">Kunjungan bulan ini</p>
                     </a>
 
