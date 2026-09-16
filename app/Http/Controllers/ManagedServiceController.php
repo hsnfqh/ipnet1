@@ -80,10 +80,20 @@ class ManagedServiceController extends Controller
         $slaScore        = $totalSlaChecked > 0 ? round(($slaMetCount / $totalSlaChecked) * 100, 1) : 99.8;
 
         // Proyek di Tahap Operate / Managed Service
-        $operateProjects = Project::where(function($q) {
-            $q->where('stage', 'Operate')
-              ->orWhere('project_type', 'like', '%Maintenance%')
-              ->orWhere('project_type', 'like', '%Managed%');
+        $hasStage = Schema::hasColumn('projects', 'stage');
+        $hasProjectType = Schema::hasColumn('projects', 'project_type');
+
+        $operateProjects = Project::where(function($q) use ($hasStage, $hasProjectType) {
+            if ($hasStage) {
+                $q->where('stage', 'Operate');
+            }
+            if ($hasProjectType) {
+                $q->orWhere('project_type', 'like', '%Maintenance%')
+                  ->orWhere('project_type', 'like', '%Managed%');
+            }
+            if (!$hasStage && !$hasProjectType) {
+                $q->whereRaw('1=1');
+            }
         })->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])->get();
 
         // SLA Tier counts
@@ -556,10 +566,20 @@ class ManagedServiceController extends Controller
     {
         $this->ensureTablesExist();
 
-        $projects = Project::where(function($q) {
-            $q->where('stage', 'Operate')
-              ->orWhere('project_type', 'like', '%Maintenance%')
-              ->orWhere('project_type', 'like', '%Managed%');
+        $hasStage = Schema::hasColumn('projects', 'stage');
+        $hasProjectType = Schema::hasColumn('projects', 'project_type');
+
+        $projects = Project::where(function($q) use ($hasStage, $hasProjectType) {
+            if ($hasStage) {
+                $q->where('stage', 'Operate');
+            }
+            if ($hasProjectType) {
+                $q->orWhere('project_type', 'like', '%Maintenance%')
+                  ->orWhere('project_type', 'like', '%Managed%');
+            }
+            if (!$hasStage && !$hasProjectType) {
+                $q->whereRaw('1=1');
+            }
         })->whereNotIn('name', ['DAY OFF', 'Day Off'])->get();
 
         $assets = Schema::hasTable('managed_service_assets') ? ManagedServiceAsset::all() : collect([]);
