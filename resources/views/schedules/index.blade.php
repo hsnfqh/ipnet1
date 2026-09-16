@@ -202,6 +202,11 @@
                             </span>
                             <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#D97706; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Jadwal Maintenance</span>
+                            </span>
+                            <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
                                 <span style="width:10px; height:10px; border-radius:3px; background:#C81E2C; flex-shrink:0; display:inline-block;"></span>
                                 <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Jadwal Task / Kegiatan</span>
                             </span>
@@ -807,22 +812,35 @@
                                             </button>
                                         </div>
                                         @else
-                                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                                        <div style="display:grid; grid-template-columns:repeat({{ ($isMaintenance ?? false) ? 4 : 3 }}, minmax(0, 1fr)); gap:6px;">
                                             <button type="button" 
                                                     class="jkw-cat-btn jkw-cat-btn--meeting"
                                                     :class="{ 'is-active': form.category === 'Meeting' }"
                                                     @click="setCategory('Meeting')">
-                                                <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                                 </svg>
                                                 <span>Meeting</span>
                                             </button>
 
+                                            @if($isMaintenance ?? false)
+                                            <button type="button" 
+                                                    class="jkw-cat-btn jkw-cat-btn--maintenance"
+                                                    :class="{ 'is-active': form.category === 'Maintenance' }"
+                                                    @click="setCategory('Maintenance')">
+                                                <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                </svg>
+                                                <span>Maintenance</span>
+                                            </button>
+                                            @endif
+
                                             <button type="button" 
                                                     class="jkw-cat-btn jkw-cat-btn--task"
                                                     :class="{ 'is-active': form.category === 'Task' || form.category === 'Kegiatan' }"
                                                     @click="setCategory('Task')">
-                                                <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                                                 </svg>
                                                 <span>Task / Kegiatan</span>
@@ -832,18 +850,14 @@
                                                     class="jkw-cat-btn jkw-cat-btn--dayoff"
                                                     :class="{ 'is-active': form.category === 'Day Off' }"
                                                     @click="setCategory('Day Off')">
-                                                <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <circle cx="12" cy="12" r="5"/>
                                                     <line x1="12" y1="1" x2="12" y2="3"/>
                                                     <line x1="12" y1="21" x2="12" y2="23"/>
                                                     <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
                                                     <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                                                    <line x1="1" y1="12" x2="3" y2="12"/>
-                                                    <line x1="21" y1="12" x2="23" y2="12"/>
-                                                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                                                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                                                 </svg>
-                                                <span>Day Off / Cuti</span>
+                                                <span>Day Off</span>
                                             </button>
                                         </div>
                                         @endif
@@ -916,7 +930,7 @@
 
                                         <!-- Checklist engineer -->
                                         <div style="max-height:160px; overflow-y:auto; border:1.5px solid #E2E8F0; border-radius:9px; background:white; padding:4px;">
-                                            <template x-for="engineer in engineers" :key="engineer.id">
+                                            <template x-for="engineer in availableFormEngineers" :key="engineer.id">
                                                 <div @click="toggleEngineer(engineer.id)" 
                                                      style="display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:7px; cursor:pointer; font-size:12.5px; transition:all 0.12s ease; margin-bottom:2px;"
                                                      :style="{ 
@@ -1577,6 +1591,17 @@
     color: #2563EB !important;
 }
 
+.jkw-day-item--maintenance {
+    background: #FEFCE8 !important;
+    border-left: 4px solid #D97706 !important;
+}
+.jkw-day-item--maintenance .jkw-time {
+    color: #B45309 !important;
+}
+.jkw-day-item--maintenance .jkw-time svg {
+    color: #D97706 !important;
+}
+
 .jkw-day-item--day_off {
     background: rgba(100, 116, 139, 0.12) !important;
     border-left: 4px solid #475569 !important;
@@ -1631,6 +1656,7 @@
 .jkw-week-col-body { display:flex !important; flex-direction:column !important; gap:6px !important; }
 .jkw-mini-card { border-radius:6px !important; padding:6px 9px !important; }
 .jkw-mini-card--schedule, .jkw-mini-card--design, .jkw-mini-card--meeting { background:rgba(37,99,235,0.09) !important; }
+.jkw-mini-card--maintenance { background:rgba(217,119,6,0.12) !important; }
 .jkw-mini-card--poc { background:rgba(16,185,129,0.10) !important; }
 .jkw-mini-card--day_off { background:rgba(100,116,139,0.12) !important; }
 .jkw-mini-card--task { background:rgba(200,30,44,0.08) !important; }
@@ -1796,6 +1822,26 @@
     box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35) !important;
 }
 .jkw-cat-btn--meeting-sa.is-active svg {
+    color: #FFFFFF !important;
+}
+
+.jkw-cat-btn--maintenance {
+    background: #FFFFFF !important;
+    color: #D97706 !important;
+    border: 1.5px solid #FDE68A !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+}
+.jkw-cat-btn--maintenance:hover {
+    background: #FFFBEB !important;
+    border-color: #FCD34D !important;
+}
+.jkw-cat-btn--maintenance.is-active {
+    background: #D97706 !important;
+    color: #FFFFFF !important;
+    border-color: #D97706 !important;
+    box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35) !important;
+}
+.jkw-cat-btn--maintenance.is-active svg {
     color: #FFFFFF !important;
 }
 
@@ -2237,19 +2283,31 @@
                         var eTime = s.end_time ? s.end_time.substring(0, 5) : '';
                         var isDayOff = s.category === 'Day Off';
                         var isTaskCat = s.category === 'Task' || s.category === 'Kegiatan';
+                        var isMaint = (s.category || '').toLowerCase().includes('maintenance') || (s.category || '').toLowerCase().includes('preventive') || (s.title || '').toLowerCase().startsWith('pm ') || (s.title || '').toLowerCase().includes('pm bri');
                         var isPoc = (s.category || '').toLowerCase().includes('poc') || (s.category || '').toLowerCase().includes('lab');
                         var isMeet = (s.category || '').toLowerCase().includes('meeting') || (s.category || '').toLowerCase().includes('principal') || (s.category || '').toLowerCase().includes('klien');
                         var isDesign = (s.category || '').toLowerCase().includes('desain') || (s.category || '').toLowerCase().includes('sow') || (s.category || '').toLowerCase().includes('review');
                         var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
-                        var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : (s.category || 'Jadwal')));
+                        var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isMaint ? 'Maintenance' : (isTaskCat ? 'Kegiatan' : (s.category || 'Jadwal'))));
                         var eventType;
                         var eventColor;
                         if (self.isArchitect) {
                             eventType = isDayOff ? 'day_off' : (isPoc ? 'poc' : (isMeet ? 'meeting' : (isDesign ? 'design' : 'schedule')));
                             eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isMeet ? '#8B5CF6' : (isDesign ? '#2563EB' : '#2563EB')));
                         } else {
-                            eventType = isDayOff ? 'day_off' : (isTaskCat ? 'task' : 'meeting');
-                            eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
+                            if (isDayOff) {
+                                eventType = 'day_off';
+                                eventColor = '#64748B';
+                            } else if (isMaint) {
+                                eventType = 'maintenance';
+                                eventColor = '#D97706';
+                            } else if (isTaskCat) {
+                                eventType = 'task';
+                                eventColor = '#C81E2C';
+                            } else {
+                                eventType = 'meeting';
+                                eventColor = '#2563EB';
+                            }
                         }
                         
                         // Cegah duplikasi agenda yang sama persis di hari yang sama
@@ -2411,8 +2469,19 @@
                     });
                 },
 
+                get availableFormEngineers() {
+                    if (!this.isMaintenance) {
+                        return this.engineers.filter(function(e) { return !e.is_maintenance; });
+                    }
+                    if (this.form.category === 'Maintenance') {
+                        return this.engineers;
+                    } else {
+                        return this.engineers.filter(function(e) { return e.is_maintenance; });
+                    }
+                },
+
                 selectAllEngineers: function() {
-                    this.form.engineer_ids = this.engineers.map(function(e) { return e.id; });
+                    this.form.engineer_ids = this.availableFormEngineers.map(function(e) { return e.id; });
                     this.form.engineer_id = this.form.engineer_ids[0] || null;
                 },
 
@@ -2428,8 +2497,15 @@
 
                 setCategory: function(cat) {
                     this.form.category = cat;
+                    var allowedIds = this.availableFormEngineers.map(function(e) { return e.id; });
+                    if (this.form.engineer_ids) {
+                        this.form.engineer_ids = this.form.engineer_ids.filter(function(id) { return allowedIds.includes(id); });
+                        if (this.form.engineer_ids.length === 0 && allowedIds.length > 0) {
+                            this.form.engineer_ids = [allowedIds[0]];
+                        }
+                    }
                     if (cat === 'Day Off') {
-                        if (!this.form.title || this.form.title === '' || this.form.title.toLowerCase().includes('meeting') || this.form.title.toLowerCase().includes('task')) {
+                        if (!this.form.title || this.form.title === '' || this.form.title.toLowerCase().includes('meeting') || this.form.title.toLowerCase().includes('task') || this.form.title.toLowerCase().includes('maintenance')) {
                             this.form.title = 'Day Off / Cuti';
                         }
                         this.form.start_time = '';
@@ -2438,6 +2514,17 @@
                         if (this.form.sessions) {
                             this.form.sessions.forEach(function(s) { s.start_time = ''; s.end_time = ''; });
                         }
+                    } else if (cat === 'Maintenance') {
+                        if (this.form.title === 'Day Off / Cuti' || this.form.title === 'Day Off') {
+                            this.form.title = '';
+                        }
+                        if (!this.form.start_time) {
+                            this.form.start_time = '09:00';
+                        }
+                        if (this.form.sessions) {
+                            this.form.sessions.forEach(function(s) { if (!s.start_time) s.start_time = '09:00'; });
+                        }
+                        this.form.create_task = true;
                     } else if (cat === 'Task' || cat === 'Kegiatan') {
                         if (this.form.title === 'Day Off / Cuti' || this.form.title === 'Day Off') {
                             this.form.title = '';

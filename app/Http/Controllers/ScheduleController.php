@@ -203,8 +203,16 @@ class ScheduleController extends Controller
                 }
             });
         }
-        $projects  = $projectsQuery->orderBy('name')->get();
-        $engineers = $isArchitect ? collect([$user]) : ScopeHelper::getAssignableEngineers($user);
+        $rawEngineers = $isArchitect ? collect([$user]) : ScopeHelper::getAssignableEngineers($user);
+        $engineers = $rawEngineers->map(function($e) {
+            $isMaint = ($e->division_id == 3) || (method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)']));
+            return [
+                'id' => $e->id,
+                'name' => $e->name,
+                'division_id' => $e->division_id,
+                'is_maintenance' => (bool)$isMaint,
+            ];
+        });
 
         $hasTaskUser = Schema::hasTable('task_user');
         $withTaskRelations = ['project', 'engineer'];
