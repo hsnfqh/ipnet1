@@ -2,44 +2,72 @@
 
 @section('title', 'Tiket Insiden & SLA - Managed Service')
 
+@push('styles')
+<style>
+    :root {
+        --ipnet-primary: #8F0A0D;
+        --ipnet-primary-hover: #73080A;
+    }
+    .ipnet-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-ipnet-gradient {
+        background: linear-gradient(135deg, #8F0A0D 0%, #B81525 100%);
+        color: #FFFFFF;
+        transition: all 0.2s ease;
+    }
+    .btn-ipnet-gradient:hover {
+        background: linear-gradient(135deg, #7A080B 0%, #9E0E1D 100%);
+        box-shadow: 0 6px 16px rgba(143, 10, 13, 0.25);
+        transform: translateY(-1px);
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="flex h-screen overflow-hidden" x-data="ticketManager()" x-cloak>
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" x-data="ticketManager()" x-cloak>
     @include('components.sidebar')
     
-    <div class="flex-1 min-w-0 overflow-y-auto bg-[#FAF9F8]">
+    <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Tiket Insiden & Layanan SLA'])
         
-        <div class="p-4 sm:p-5 lg:p-[26px] animate-fade-in space-y-6">
+        <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
             
             {{-- Flash Messages --}}
             @if(session('success'))
-                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between text-sm shadow-sm">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between text-[13px] font-semibold shadow-xs">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        </div>
                         <span>{{ session('success') }}</span>
                     </div>
                 </div>
             @endif
 
             {{-- Top Action Bar & Filter --}}
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div class="ipnet-card p-4 sm:p-5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
                 <form method="GET" action="{{ route('ms.tickets.index') }}" class="flex-1 flex flex-col sm:flex-row items-center gap-3">
                     <div class="relative w-full sm:max-w-xs">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari No. Tiket, Judul, Klien, Pelapor..." 
-                               class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
+                               class="w-full pl-10 pr-4 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
                     </div>
 
-                    <select name="type" onchange="this.form.submit()" class="w-full sm:w-auto px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700">
+                    <select name="type" onchange="this.form.submit()" class="w-full sm:w-auto px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-[#334155] cursor-pointer">
                         <option value="all">Semua Tipe</option>
                         <option value="Incident" {{ request('type') == 'Incident' ? 'selected' : '' }}>Incident</option>
                         <option value="Service Request" {{ request('type') == 'Service Request' ? 'selected' : '' }}>Service Request</option>
                         <option value="Change Request" {{ request('type') == 'Change Request' ? 'selected' : '' }}>Change Request</option>
                     </select>
 
-                    <select name="status" onchange="this.form.submit()" class="w-full sm:w-auto px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700">
+                    <select name="status" onchange="this.form.submit()" class="w-full sm:w-auto px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-[#334155] cursor-pointer">
                         <option value="all">Semua Status</option>
                         <option value="Open" {{ request('status') == 'Open' ? 'selected' : '' }}>Open</option>
                         <option value="In Progress" {{ request('status') == 'In Progress' ? 'selected' : '' }}>In Progress</option>
@@ -49,39 +77,39 @@
                 </form>
 
                 <div class="flex items-center gap-3">
-                    <button @click="openCreateModal()" class="px-4 py-2 bg-[#C81E2C] hover:brightness-105 active:translate-y-[1px] text-white text-xs font-bold rounded-xl shadow-[0_4px_12px_rgba(200,30,44,0.2)] transition inline-flex items-center gap-1.5 whitespace-nowrap">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        Buat Tiket Baru
+                    <button @click="openCreateModal()" class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[12.5px] flex items-center gap-2 cursor-pointer shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        <span>Buat Tiket Baru</span>
                     </button>
                 </div>
             </div>
 
             {{-- Tickets Table --}}
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="ipnet-card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="border-b border-gray-100 bg-gray-50/50 text-[11px] font-bold tracking-wider text-gray-500 uppercase">
-                                <th class="py-4 px-6">NO. TIKET & KLIEN</th>
-                                <th class="py-4 px-6">JUDUL & RINGKASAN MASALAH</th>
-                                <th class="py-4 px-6">PRIORITAS & TIPE</th>
-                                <th class="py-4 px-6">ENGINEER PIC</th>
-                                <th class="py-4 px-6">SLA DEADLINE</th>
-                                <th class="py-4 px-6 text-right">STATUS / AKSI</th>
+                            <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-extrabold tracking-wider text-[#64748B] uppercase">
+                                <th class="py-3.5 px-5">NO. TIKET & KLIEN</th>
+                                <th class="py-3.5 px-5">JUDUL & RINGKASAN MASALAH</th>
+                                <th class="py-3.5 px-5">PRIORITAS & TIPE</th>
+                                <th class="py-3.5 px-5">ENGINEER PIC</th>
+                                <th class="py-3.5 px-5">SLA DEADLINE</th>
+                                <th class="py-3.5 px-5 text-right">STATUS / AKSI</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 text-sm">
+                        <tbody class="divide-y divide-[#F1F5F9] text-[13px]">
                             @forelse($tickets as $t)
-                                <tr class="hover:bg-gray-50/60 transition-colors">
-                                    <td class="py-4 px-6 whitespace-nowrap">
-                                        <div class="font-mono font-extrabold text-gray-900">{{ $t->ticket_number }}</div>
-                                        <div class="text-xs text-gray-500 font-medium">{{ $t->client_name }}</div>
+                                <tr class="hover:bg-[#F8FAFC] transition-colors">
+                                    <td class="py-4 px-5 whitespace-nowrap">
+                                        <div class="font-mono font-extrabold text-[#1E293B]">{{ $t->ticket_number }}</div>
+                                        <div class="text-[12px] text-[#64748B] font-semibold">{{ $t->client_name }}</div>
                                     </td>
-                                    <td class="py-4 px-6">
-                                        <div class="font-bold text-gray-900">{{ $t->title }}</div>
-                                        <div class="text-xs text-gray-400 line-clamp-1 mt-0.5">{{ $t->description ?: 'Tidak ada deskripsi tambahan.' }}</div>
+                                    <td class="py-4 px-5">
+                                        <div class="font-bold text-[#1E293B]">{{ $t->title }}</div>
+                                        <div class="text-[11.5px] text-[#64748B] line-clamp-1 mt-0.5">{{ $t->description ?: 'Tidak ada deskripsi tambahan.' }}</div>
                                     </td>
-                                    <td class="py-4 px-6 whitespace-nowrap space-y-1">
+                                    <td class="py-4 px-5 whitespace-nowrap space-y-1">
                                         <div>
                                             <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold 
                                                 {{ $t->type === 'Incident' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-blue-50 text-blue-700 border border-blue-200' }}">
@@ -90,42 +118,37 @@
                                         </div>
                                         <div>
                                             <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold 
-                                                {{ str_contains($t->priority, 'P1') ? 'bg-rose-100 text-rose-800' : (str_contains($t->priority, 'P2') ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-700') }}">
+                                                {{ str_contains($t->priority, 'P1') ? 'bg-rose-100 text-rose-800 border border-rose-200' : (str_contains($t->priority, 'P2') ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]') }}">
                                                 {{ $t->priority }}
                                             </span>
                                         </div>
                                     </td>
-                                    <td class="py-4 px-6 whitespace-nowrap text-xs">
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-[#AF1424] font-semibold">
+                                    <td class="py-4 px-5 whitespace-nowrap text-[12px]">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FEF2F2] text-[#8F0A0D] font-bold border border-[#FECACA]">
                                             {{ $t->assignedEngineer?->name ?: 'Belum Ditugaskan' }}
                                         </span>
                                     </td>
-                                    <td class="py-4 px-6 whitespace-nowrap text-xs">
-                                        @if($t->status === 'Resolved' || $t->status === 'Closed')
-                                            <div class="text-emerald-700 font-bold flex items-center gap-1">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                <span>{{ $t->resolved_at ? $t->resolved_at->format('d M, H:i') : 'Selesai' }}</span>
-                                            </div>
-                                            <div class="text-[10.5px] text-gray-400">SLA: {{ $t->sla_met ? 'Tepat Waktu' : 'Terlewati' }}</div>
-                                        @else
-                                            <div class="font-bold {{ $t->sla_deadline && now()->gt($t->sla_deadline) ? 'text-red-600' : 'text-gray-800' }}">
-                                                {{ $t->sla_deadline ? $t->sla_deadline->format('d M, H:i') : '—' }}
-                                            </div>
-                                            <div class="text-[10.5px] {{ $t->sla_deadline && now()->gt($t->sla_deadline) ? 'text-red-500 font-semibold' : 'text-gray-400' }}">
-                                                {{ $t->sla_deadline && now()->gt($t->sla_deadline) ? 'SLA Terlewati' : 'Target SLA' }}
-                                            </div>
-                                        @endif
+                                    <td class="py-4 px-5 whitespace-nowrap text-[12px]">
+                                        <div class="font-extrabold {{ $t->sla_deadline && now()->gt($t->sla_deadline) && !in_array($t->status, ['Resolved', 'Closed']) ? 'text-red-600' : 'text-[#1E293B]' }}">
+                                            {{ $t->sla_deadline ? $t->sla_deadline->format('d M Y, H:i') : '—' }}
+                                        </div>
                                     </td>
-                                    <td class="py-4 px-6 text-right whitespace-nowrap">
-                                        <button @click="openUpdateModal({{ json_encode($t) }})" class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-800 text-xs font-bold rounded-lg border border-gray-200 transition">
-                                            {{ $t->status }} &rarr;
-                                        </button>
+                                    <td class="py-4 px-5 text-right whitespace-nowrap">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold
+                                                {{ $t->status === 'Resolved' || $t->status === 'Closed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
+                                                {{ $t->status }}
+                                            </span>
+                                            <button @click="openUpdateModal({{ $t }})" class="px-3 py-1 bg-white hover:bg-[#F8FAFC] border border-[#CBD5E1] text-[#1E293B] font-bold text-[12px] rounded-lg transition shadow-2xs cursor-pointer">
+                                                Update
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="py-12 text-center text-gray-400 text-xs">
-                                        Tidak ada tiket yang ditemukan pada filter ini.
+                                    <td colspan="6" class="py-12 text-center text-[#64748B] text-[13px]">
+                                        Tidak ada data tiket insiden yang sesuai kriteria.
                                     </td>
                                 </tr>
                             @endforelse
@@ -133,8 +156,8 @@
                     </table>
                 </div>
 
-                @if($tickets->hasPages())
-                    <div class="p-4 border-t border-gray-100">
+                @if($tickets instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                    <div class="p-4 border-t border-[#E2E8F0] bg-white">
                         {{ $tickets->links() }}
                     </div>
                 @endif
@@ -145,41 +168,46 @@
 
     {{-- MODAL CREATE TICKET --}}
     <template x-teleport="body">
-        <div x-show="isCreateModalOpen" class="fixed inset-0 z-50 bg-[#0E0D12]/60 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4" @click.away="isCreateModalOpen = false">
-                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                    <h3 class="text-base font-bold text-gray-900">Buat Tiket Insiden / Request Baru</h3>
-                    <button @click="isCreateModalOpen = false" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <div x-show="isCreateModalOpen" 
+             x-cloak 
+             class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4 max-h-[90vh] overflow-y-auto" @click.away="isCreateModalOpen = false">
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3.5">
+                    <div>
+                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">Tiket Baru</p>
+                        <h3 class="text-[16px] font-bold text-[#1E293B]">Buat Tiket Insiden / Request Baru</h3>
+                    </div>
+                    <button @click="isCreateModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <form action="{{ route('ms.tickets.store') }}" method="POST" class="space-y-3 text-xs">
+                <form action="{{ route('ms.tickets.store') }}" method="POST" class="space-y-3.5 text-[12.5px]">
                     @csrf
                     <div>
-                        <label class="block font-bold text-gray-700 uppercase mb-1">Nama Instansi / Klien *</label>
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Nama Instansi / Klien <span class="text-[#8F0A0D]">*</span></label>
                         <input type="text" name="client_name" required placeholder="Contoh: Bank Mandiri, PT Telkom"
-                               class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                               class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
                     </div>
 
                     <div>
-                        <label class="block font-bold text-gray-700 uppercase mb-1">Judul Tiket / Insiden *</label>
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Judul Tiket / Insiden <span class="text-[#8F0A0D]">*</span></label>
                         <input type="text" name="title" required placeholder="Contoh: Flapping Link SFP Port 24"
-                               class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-red-500/20">
+                               class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
-                            <label class="block font-bold text-gray-700 uppercase mb-1">Tipe Layanan *</label>
-                            <select name="type" class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs">
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Tipe Layanan <span class="text-[#8F0A0D]">*</span></label>
+                            <select name="type" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
                                 <option value="Incident">Incident (Gangguan)</option>
                                 <option value="Service Request">Service Request (Permintaan)</option>
                                 <option value="Change Request">Change Request (Perubahan)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block font-bold text-gray-700 uppercase mb-1">Tingkat Prioritas (SLA) *</label>
-                            <select name="priority" class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs">
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Tingkat Prioritas (SLA) <span class="text-[#8F0A0D]">*</span></label>
+                            <select name="priority" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
                                 <option value="P1 - Critical">P1 - Critical (SLA 1 Jam)</option>
                                 <option value="P2 - Major" selected>P2 - Major (SLA 4 Jam)</option>
                                 <option value="P3 - Minor">P3 - Minor (SLA 8 Jam)</option>
@@ -189,8 +217,8 @@
                     </div>
 
                     <div>
-                        <label class="block font-bold text-gray-700 uppercase mb-1">Perangkat CI Terkait (Opsional)</label>
-                        <select name="asset_id" class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs">
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Perangkat CI Terkait (Opsional)</label>
+                        <select name="asset_id" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
                             <option value="">-- Pilih Perangkat (Opsional) --</option>
                             @foreach($assets as $a)
                                 <option value="{{ $a->id }}">{{ $a->device_name }} ({{ $a->client_name }})</option>
@@ -198,22 +226,22 @@
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
-                            <label class="block font-bold text-gray-700 uppercase mb-1">Nama Pelapor</label>
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Nama Pelapor</label>
                             <input type="text" name="reported_by" placeholder="Bpk. Hendra (IT Ops)"
-                                   class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs">
+                                   class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
                         </div>
                         <div>
-                            <label class="block font-bold text-gray-700 uppercase mb-1">No. Kontak / WA</label>
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">No. Kontak / WA</label>
                             <input type="text" name="contact_phone" placeholder="0812-xxxx-xxxx"
-                                   class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs">
+                                   class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block font-bold text-gray-700 uppercase mb-1">Tugaskan ke Engineer PIC</label>
-                        <select name="assigned_to" class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs">
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Tugaskan ke Engineer PIC</label>
+                        <select name="assigned_to" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
                             <option value="">-- Pilih Teknisi (Opsional) --</option>
                             @foreach($engineers as $eng)
                                 <option value="{{ $eng->id }}">{{ $eng->name }} ({{ $eng->roles->pluck('name')->first() }})</option>
@@ -222,14 +250,16 @@
                     </div>
 
                     <div>
-                        <label class="block font-bold text-gray-700 uppercase mb-1">Rincian Deskripsi Masalah</label>
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Rincian Deskripsi Masalah</label>
                         <textarea name="description" rows="3" placeholder="Jelaskan kronologi kendala atau permintaan..."
-                                  class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs"></textarea>
+                                  class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"></textarea>
                     </div>
 
-                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
-                        <button type="button" @click="isCreateModalOpen = false" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition">Batal</button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-[#C81E2C] hover:brightness-105 rounded-xl shadow-sm transition">
+                    <div class="flex items-center justify-end gap-2.5 pt-3.5 border-t border-[#E2E8F0]">
+                        <button type="button" @click="isCreateModalOpen = false" class="px-4 py-2.5 text-[12.5px] font-bold text-[#475569] hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-xl transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn-ipnet-gradient px-5 py-2.5 text-[12.5px] font-bold rounded-xl shadow-md cursor-pointer">
                             Terbitkan Tiket
                         </button>
                     </div>
@@ -240,25 +270,27 @@
 
     {{-- MODAL UPDATE STATUS & RESOLUSI TIKET --}}
     <template x-teleport="body">
-        <div x-show="isUpdateModalOpen" class="fixed inset-0 z-50 bg-[#0E0D12]/60 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4" @click.away="isUpdateModalOpen = false">
-                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+        <div x-show="isUpdateModalOpen" 
+             x-cloak 
+             class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4 max-h-[90vh] overflow-y-auto" @click.away="isUpdateModalOpen = false">
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3.5">
                     <div>
-                        <span class="text-[10.5px] font-bold uppercase tracking-wider text-[#AF1424]">Tiket Service Update</span>
-                        <h3 class="text-base font-bold text-gray-900" x-text="activeTicket.ticket_number + ' - ' + activeTicket.title"></h3>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-[#8F0A0D]">Tiket Service Update</span>
+                        <h3 class="text-[16px] font-bold text-[#1E293B]" x-text="activeTicket.ticket_number + ' - ' + activeTicket.title"></h3>
                     </div>
-                    <button @click="isUpdateModalOpen = false" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button @click="isUpdateModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <form :action="'/managed-service/tickets/' + activeTicket.id" method="POST" class="space-y-3 text-xs">
+                <form :action="'/managed-service/tickets/' + activeTicket.id" method="POST" class="space-y-3.5 text-[12.5px]">
                     @csrf
                     @method('PUT')
 
                     <div>
-                        <label class="block font-bold text-gray-700 uppercase mb-1">Status Tiket *</label>
-                        <select name="status" x-model="activeTicket.status" class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs">
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Status Tiket <span class="text-[#8F0A0D]">*</span></label>
+                        <select name="status" x-model="activeTicket.status" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
                             <option value="Open">Open</option>
                             <option value="In Progress">In Progress</option>
                             <option value="Pending Vendor">Pending Vendor / Sparepart</option>
@@ -268,8 +300,8 @@
                     </div>
 
                     <div>
-                        <label class="block font-bold text-gray-700 uppercase mb-1">Tugaskan ke Engineer PIC</label>
-                        <select name="assigned_to" x-model="activeTicket.assigned_to" class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs">
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Tugaskan ke Engineer PIC</label>
+                        <select name="assigned_to" x-model="activeTicket.assigned_to" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
                             <option value="">-- Pilih Teknisi --</option>
                             @foreach($engineers as $eng)
                                 <option value="{{ $eng->id }}">{{ $eng->name }}</option>
@@ -278,20 +310,22 @@
                     </div>
 
                     <div>
-                        <label class="block font-bold text-gray-700 uppercase mb-1">Akar Masalah (Root Cause Analysis)</label>
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Akar Masalah (Root Cause Analysis)</label>
                         <input type="text" name="root_cause" x-model="activeTicket.root_cause" placeholder="Contoh: Kabel fiber optic tertekuk, Memory leak modul X"
-                               class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs">
+                               class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
                     </div>
 
                     <div>
-                        <label class="block font-bold text-gray-700 uppercase mb-1">Catatan Tindakan & Resolusi</label>
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Catatan Tindakan & Resolusi</label>
                         <textarea name="resolution_notes" x-model="activeTicket.resolution_notes" rows="3" placeholder="Tuliskan tindakan teknis yang telah diambil..."
-                                  class="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs"></textarea>
+                                  class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"></textarea>
                     </div>
 
-                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
-                        <button type="button" @click="isUpdateModalOpen = false" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition">Batal</button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-[#C81E2C] hover:brightness-105 rounded-xl shadow-sm transition">
+                    <div class="flex items-center justify-end gap-2.5 pt-3.5 border-t border-[#E2E8F0]">
+                        <button type="button" @click="isUpdateModalOpen = false" class="px-4 py-2.5 text-[12.5px] font-bold text-[#475569] hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-xl transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn-ipnet-gradient px-5 py-2.5 text-[12.5px] font-bold rounded-xl shadow-md cursor-pointer">
                             Simpan Pembaruan
                         </button>
                     </div>
