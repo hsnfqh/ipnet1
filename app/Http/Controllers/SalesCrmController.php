@@ -364,6 +364,49 @@ class SalesCrmController extends Controller
     }
 
     /**
+     * Update Existing CRM Activity
+     */
+    public function updateActivity(Request $request, SalesActivity $activity)
+    {
+        $validated = $request->validate([
+            'project_id'       => 'required|exists:projects,id',
+            'activity_type'    => 'required|string',
+            'subject'          => 'required|string|max:255',
+            'activity_date'    => 'required|date',
+            'notes'            => 'nullable|string',
+            'next_action'      => 'nullable|string',
+            'next_action_date' => 'nullable|date',
+            'status'           => 'nullable|string',
+        ]);
+
+        $activity->update([
+            'project_id'       => $validated['project_id'],
+            'activity_type'    => $validated['activity_type'],
+            'subject'          => $validated['subject'],
+            'activity_date'    => $validated['activity_date'],
+            'notes'            => $validated['notes'] ?? null,
+            'next_action'      => $validated['next_action'] ?? null,
+            'next_action_date' => $validated['next_action_date'] ?? null,
+            'status'           => $validated['status'] ?? $activity->status,
+        ]);
+
+        return redirect()->back()
+            ->with('success', "Aktivitas CRM '{$activity->subject}' berhasil diperbarui.");
+    }
+
+    /**
+     * Delete CRM Activity
+     */
+    public function destroyActivity(SalesActivity $activity)
+    {
+        $subject = $activity->subject;
+        $activity->delete();
+
+        return redirect()->back()
+            ->with('success', "Aktivitas CRM '{$subject}' berhasil dihapus.");
+    }
+
+    /**
      * 3. Halaman Dedicated: Commercial Handover to Project (Delivery/PMO)
      */
     public function commercialHandoverIndex(Request $request)
@@ -376,9 +419,13 @@ class SalesCrmController extends Controller
 
         $query = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
             ->where(function($q) {
-                $q->whereIn('sales_stage', ['Contract / PO / SPK', 'Closed Won', 'Approval', 'Negotiation'])
+                // Hanya proyek yang sudah DEAL / Closed Won / Terbit Kontrak PO yang masuk ke Handover
+                $q->whereIn('sales_stage', ['Closed Won', 'Contract / PO / SPK'])
                   ->orWhereNotNull('po_spk_number')
-                  ->orWhere('commercial_handover_status', '!=', 'Draft');
+                  ->orWhere(function($sub) {
+                      $sub->whereNotNull('commercial_handover_status')
+                          ->where('commercial_handover_status', '!=', 'Draft');
+                  });
             })
             ->with(['creator', 'pm', 'commercialHandoverBy']);
 

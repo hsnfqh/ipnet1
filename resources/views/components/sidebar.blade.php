@@ -99,13 +99,13 @@
         ];
     } elseif ($isSales) {
         $navItems = [
-            ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.sales'],
-            ['key' => 'pipeline',   'label' => 'Peluang & Pipeline',  'route' => 'sales.pipeline.index'],
-            ['key' => 'activities', 'label' => 'Aktivitas Sales',     'route' => 'sales.activities.index'],
-            ['key' => 'handover',   'label' => 'Commercial Handover', 'route' => 'sales.handover.index'],
-            ['key' => 'proposals',  'label' => 'Proposal & SOW',      'route' => 'presales.proposals.index'],
-            ['key' => 'clients',    'label' => 'Database Klien',      'route' => 'clients.index'],
-            ['key' => 'timesheets', 'label' => 'Timesheet',           'route' => 'timesheets.index'],
+            ['key' => 'dashboard',  'label' => 'Dashboard',           'route' => 'dashboard.sales'],
+            ['key' => 'pipeline',   'label' => 'Peluang & Pipeline',   'route' => 'sales.pipeline.index'],
+            ['key' => 'activities', 'label' => 'Aktivitas Sales',      'route' => 'sales.activities.index'],
+            ['key' => 'handover',   'label' => 'Serah Terima Proyek',  'route' => 'sales.handover.index'],
+            ['key' => 'proposals',  'label' => 'Proposal & SOW',       'route' => 'presales.proposals.index'],
+            ['key' => 'clients',    'label' => 'Database Klien',       'route' => 'clients.index'],
+            ['key' => 'timesheets', 'label' => 'Timesheet',            'route' => 'timesheets.index'],
         ];
     } elseif (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
         $navItems = [

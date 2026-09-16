@@ -85,24 +85,12 @@ class ManagedServiceController extends Controller
 
         $totalSlaChecked = $tickets->whereNotNull('resolved_at')->count();
         $slaMetCount     = $tickets->where('sla_met', true)->whereNotNull('resolved_at')->count();
-        $slaScore        = $totalSlaChecked > 0 ? round(($slaMetCount / $totalSlaChecked) * 100, 1) : 99.8;
+        $slaScore        = $totalSlaChecked > 0 ? round(($slaMetCount / $totalSlaChecked) * 100, 1) : 0;
 
-        // Proyek di Tahap Operate / Managed Service
-        $hasStage = Schema::hasColumn('projects', 'stage');
-        $hasProjectType = Schema::hasColumn('projects', 'project_type');
-
-        $operateProjects = Project::where(function($q) use ($hasStage, $hasProjectType) {
-            if ($hasStage) {
-                $q->where('stage', 'Operate');
-            }
-            if ($hasProjectType) {
-                $q->orWhere('project_type', 'like', '%Maintenance%')
-                  ->orWhere('project_type', 'like', '%Managed%');
-            }
-            if (!$hasStage && !$hasProjectType) {
-                $q->whereRaw('1=1');
-            }
-        })->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])->get();
+        // Proyek di Tahap Operate / Managed Service (Selesai Serah Terima)
+        $operateProjects = Project::where('stage', 'Operate')
+            ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->get();
 
         // SLA Tier counts
         $tierCounts = [
@@ -171,31 +159,24 @@ class ManagedServiceController extends Controller
 
         // Ticket Type & Distribution Data for Doughnut Chart
         $ticketTypeData = [
-            ['name' => 'Incident', 'count' => $tickets->where('type', 'Incident')->count() ?: 1, 'color' => '#EF4444'],
-            ['name' => 'Service Request', 'count' => $tickets->where('type', 'Service Request')->count() ?: 1, 'color' => '#3B82F6'],
-            ['name' => 'Change Request', 'count' => $tickets->where('type', 'Change Request')->count() ?: 1, 'color' => '#8B5CF6'],
-            ['name' => 'Preventive Maint', 'count' => $totalPmSchedulesCount ?: 2, 'color' => '#10B981'],
+            ['name' => 'Incident / CM', 'count' => $tickets->whereIn('type', ['Incident', 'Corrective Maintenance', 'Corrective'])->count(), 'color' => '#EF4444'],
+            ['name' => 'Preventive (PM)', 'count' => $tickets->whereIn('type', ['Preventive Maintenance', 'Preventive'])->count() ?: $totalPmSchedulesCount, 'color' => '#3B82F6'],
         ];
 
         // SLA Compliance Scores per Client (Top 5)
-        $clientSlaData = $operateProjects->take(5)->map(function($p) {
+        $clientSlaData = $operateProjects->take(5)->map(function($p) use ($tickets) {
+            $clientTickets = $tickets->filter(fn($t) => ($t->project_id && $t->project_id == $p->id) || (stripos($t->client_name, $p->client) !== false));
+            $resolvedCount = $clientTickets->whereNotNull('resolved_at')->count();
+            $metCount = $clientTickets->where('sla_met', true)->whereNotNull('resolved_at')->count();
+            $score = $resolvedCount > 0 ? round(($metCount / $resolvedCount) * 100, 1) : 0;
+
             return [
                 'name'     => \Illuminate\Support\Str::limit($p->client ?: $p->name, 16),
                 'fullName' => $p->client ?: $p->name,
-                'score'    => 99.8,
+                'score'    => $score,
                 'tier'     => $p->sla_tier ?: 'Gold',
             ];
         });
-
-        if ($clientSlaData->isEmpty()) {
-            $clientSlaData = collect([
-                ['name' => 'Bank Mandiri', 'fullName' => 'Bank Mandiri (Persero) Tbk', 'score' => 99.9, 'tier' => 'Platinum'],
-                ['name' => 'PT Telkom', 'fullName' => 'PT Telkom Indonesia', 'score' => 99.5, 'tier' => 'Platinum'],
-                ['name' => 'Kemenkeu RI', 'fullName' => 'Kementerian Keuangan RI', 'score' => 99.2, 'tier' => 'Gold'],
-                ['name' => 'PT Astra Int', 'fullName' => 'PT Astra International Tbk', 'score' => 98.8, 'tier' => 'Gold'],
-                ['name' => 'BCA Syariah', 'fullName' => 'PT Bank BCA Syariah', 'score' => 99.4, 'tier' => 'Silver'],
-            ]);
-        }
 
         return view('managed_service.dashboard', compact(
             'assets',
@@ -209,6 +190,7 @@ class ManagedServiceController extends Controller
             'criticalTickets',
             'resolvedTickets',
             'slaScore',
+            'totalSlaChecked',
             'operateProjects',
             'tierCounts',
             'clients',
@@ -216,7 +198,6 @@ class ManagedServiceController extends Controller
             'upcomingPmSchedules',
             'maintenanceLoadMonthData',
             'maintenanceLoadWeekData',
-            'totalPmSchedulesCount',
             'ticketTypeData',
             'clientSlaData',
             'selectedYear',

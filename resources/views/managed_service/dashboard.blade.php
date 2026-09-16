@@ -220,29 +220,35 @@
                     <div class="ipnet-metric-card group block anim-fade-up anim-delay-1">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Kepatuhan SLA</span>
-                            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                            <div class="w-7 h-7 rounded-lg {{ $slaScore > 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-100 text-slate-500' }} flex items-center justify-center">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-extrabold text-emerald-600 tracking-tight">{{ $slaScore }}%</div>
-                        <p class="text-[11px] text-[#75727C] mt-0.5">Target SLA 99.5%</p>
+                        <div class="text-[22px] font-extrabold {{ $slaScore > 0 ? 'text-emerald-600' : 'text-slate-400' }} tracking-tight">{{ $slaScore > 0 ? $slaScore . '%' : '0%' }}</div>
+                        <p class="text-[11px] text-[#75727C] mt-0.5">{{ ($totalSlaChecked ?? 0) > 0 ? 'Target SLA 99.5%' : 'Belum ada tiket selesai' }}</p>
                     </div>
 
                     {{-- Metric 2: Total Tiket Aktif --}}
                     <a href="{{ route('ms.tickets.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-2">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Tiket Aktif</span>
-                            <div class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                            <div class="w-7 h-7 rounded-lg {{ $openTickets > 0 ? 'bg-rose-500/10 text-rose-600' : 'bg-slate-100 text-slate-500' }} flex items-center justify-center group-hover:bg-[#8F0A0D] group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                 </svg>
                             </div>
                         </div>
                         <div class="text-[22px] font-extrabold text-[#292929] tracking-tight">{{ $openTickets }}</div>
-                        <p class="text-[11px] text-rose-600 font-semibold mt-0.5">
-                            {{ $criticalTickets > 0 ? $criticalTickets . ' P1 Critical' : '0 P1 Critical' }}
+                        <p class="text-[11px] font-semibold mt-0.5 {{ $criticalTickets > 0 ? 'text-rose-600' : 'text-[#75727C]' }}">
+                            @if($criticalTickets > 0)
+                                {{ $criticalTickets }} Tiket Kritis (P1)
+                            @elseif($openTickets > 0)
+                                Semua tiket normal
+                            @else
+                                Tidak ada antrean tiket
+                            @endif
                         </p>
                     </a>
 
