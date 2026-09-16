@@ -27,6 +27,12 @@ class ManagedServiceController extends Controller
                 Log::warning('Auto migrate managed service tables: ' . $e->getMessage());
             }
         }
+    private function getClients()
+    {
+        if (Schema::hasTable('clients')) {
+            return Client::orderBy('name')->get();
+        }
+        return collect([]);
     }
 
     /**
@@ -117,7 +123,7 @@ class ManagedServiceController extends Controller
             ->get();
 
         // List Clients for filter
-        $clients = Client::orderBy('name')->get();
+        $clients = $this->getClients();
         $maintenanceEngineers = User::where(function($q) {
             $q->where('division_id', 3)
               ->orWhereHas('roles', fn($r) => $r->whereIn('name', ['Lead Maintenance', 'Maintenance']));
@@ -223,7 +229,7 @@ class ManagedServiceController extends Controller
 
         if (!Schema::hasTable('managed_service_assets')) {
             $assets = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
-            $clients = Client::orderBy('name')->get();
+            $clients = $this->getClients();
             $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
             return view('managed_service.assets', compact('assets', 'clients', 'projects'));
         }
@@ -250,7 +256,7 @@ class ManagedServiceController extends Controller
         }
 
         $assets = $query->latest()->paginate(15)->withQueryString();
-        $clients = Client::orderBy('name')->get();
+        $clients = $this->getClients();
         $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
 
         return view('managed_service.assets', compact('assets', 'clients', 'projects'));
@@ -328,7 +334,7 @@ class ManagedServiceController extends Controller
 
         if (!Schema::hasTable('managed_service_tickets')) {
             $tickets = collect([]);
-            $clients = Client::orderBy('name')->get();
+            $clients = $this->getClients();
             $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
             $assets = collect([]);
             $engineers = User::all();
@@ -611,7 +617,7 @@ class ManagedServiceController extends Controller
         $this->ensureTablesExist();
 
         $reports = Schema::hasTable('managed_service_reports') ? ManagedServiceReport::latest()->paginate(15) : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
-        $clients = Client::orderBy('name')->get();
+        $clients = $this->getClients();
         $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->get();
 
         return view('managed_service.reports', compact('reports', 'clients', 'projects'));
