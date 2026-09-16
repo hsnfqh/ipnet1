@@ -551,25 +551,6 @@
                                 
                                 <input type="range" min="0" max="100" step="5" x-model="progressForm.progress" 
                                        class="w-full accent-[#8F0A0D] cursor-pointer">
-
-                                {{-- Quick percentage pills --}}
-                                <div class="flex items-center gap-1.5 pt-1 flex-wrap">
-                                    <button type="button" @click="progressForm.progress = 0" 
-                                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition cursor-pointer"
-                                            :class="progressForm.progress == 0 ? 'bg-[#8F0A0D] text-white border-[#8F0A0D]' : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200'">0%</button>
-                                    <button type="button" @click="progressForm.progress = 25" 
-                                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition cursor-pointer"
-                                            :class="progressForm.progress == 25 ? 'bg-[#8F0A0D] text-white border-[#8F0A0D]' : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200'">25%</button>
-                                    <button type="button" @click="progressForm.progress = 50" 
-                                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition cursor-pointer"
-                                            :class="progressForm.progress == 50 ? 'bg-[#8F0A0D] text-white border-[#8F0A0D]' : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200'">50% (On-Progress)</button>
-                                    <button type="button" @click="progressForm.progress = 75" 
-                                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition cursor-pointer"
-                                            :class="progressForm.progress == 75 ? 'bg-[#8F0A0D] text-white border-[#8F0A0D]' : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200'">75%</button>
-                                    <button type="button" @click="progressForm.progress = 100" 
-                                            class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition cursor-pointer"
-                                            :class="progressForm.progress == 100 ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'">✓ 100% Selesai</button>
-                                </div>
                             </div>
 
                             {{-- File Upload --}}

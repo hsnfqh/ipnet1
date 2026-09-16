@@ -199,13 +199,17 @@ class TaskController extends Controller
                 ? substr($task->deadline_time, 0, 5) 
                 : ($task->deadline->format('H:i') !== '00:00' ? $task->deadline->format('H:i') : '09:00');
 
+            $schedCategory = (ScopeHelper::isMaintenance(auth()->user()) || preg_match('/^\[(PM|CM|INC|REQ|CR|TCK)-[0-9\-]+\]/', $task->title)) 
+                ? 'Preventive Maintenance' 
+                : 'Task';
+
             $newSchedule = \App\Models\Schedule::updateOrCreate(
                 [
-                    'title'      => $task->title,
-                    'project_id' => $task->project_id,
-                    'category'   => 'Task',
+                    'title' => $task->title,
                 ],
                 [
+                    'project_id'  => $task->project_id,
+                    'category'    => $schedCategory,
                     'engineer_id' => $task->engineer_id,
                     'date'        => $taskDate,
                     'start_time'  => $taskTime . ':00',

@@ -45,22 +45,36 @@ class ScheduleController extends Controller
                     ? substr($matchingTask->deadline_time, 0, 5) 
                     : ($matchingTask->deadline->format('H:i') !== '00:00' ? $matchingTask->deadline->format('H:i') : '09:00');
 
-                $sched = Schedule::firstOrCreate(
-                    [
-                        'title'      => $matchingTask->title,
-                        'project_id' => $matchingTask->project_id,
-                        'date'       => $taskDate,
-                        'category'   => 'Task',
-                    ],
-                    [
-                        'engineer_id' => $matchingTask->engineer_id,
-                        'start_time'  => $taskTime . ':00',
-                        'end_time'    => date('H:i:s', strtotime($taskTime . ' +3 hours')),
-                        'location'    => $matchingTask->project ? ($matchingTask->project->location ?? 'On-Site Client') : 'On-Site Client',
-                        'description' => $matchingTask->description ?? ('Pengerjaan task: ' . $matchingTask->title),
-                        'created_by'  => $matchingTask->created_by ?? $user->id,
-                    ]
-                );
+                $existingSched = Schedule::where('title', $matchingTask->title)->first();
+                if ($existingSched) {
+                    if ($hasScheduleUser) {
+                        $engIds = $matchingTask->engineers->pluck('id')->toArray();
+                        if (empty($engIds) && $matchingTask->engineer_id) {
+                            $engIds = [$matchingTask->engineer_id];
+                        }
+                        if (!empty($engIds) && $existingSched->engineers()->count() === 0) {
+                            $existingSched->engineers()->sync($engIds);
+                        }
+                    }
+                    continue;
+                }
+
+                $schedCategory = preg_match('/^\[(PM|CM|INC|REQ|CR|TCK)-[0-9\-]+\]/', $matchingTask->title) 
+                    ? 'Preventive Maintenance' 
+                    : 'Task';
+
+                $sched = Schedule::create([
+                    'title'       => $matchingTask->title,
+                    'project_id'  => $matchingTask->project_id,
+                    'date'        => $taskDate,
+                    'category'    => $schedCategory,
+                    'engineer_id' => $matchingTask->engineer_id,
+                    'start_time'  => $taskTime . ':00',
+                    'end_time'    => date('H:i:s', strtotime($taskTime . ' +3 hours')),
+                    'location'    => $matchingTask->project ? ($matchingTask->project->location ?? 'On-Site Client') : 'On-Site Client',
+                    'description' => $matchingTask->description ?? ('Pengerjaan task: ' . $matchingTask->title),
+                    'created_by'  => $matchingTask->created_by ?? $user->id,
+                ]);
 
                 if ($hasScheduleUser) {
                     $engIds = $matchingTask->engineers->pluck('id')->toArray();
@@ -74,31 +88,21 @@ class ScheduleController extends Controller
             }
         }
 
-        // Auto-deduplikasi data ganda di database (judul, project, tanggal, jam, engineer yang sama persis)
+        // Auto-deduplikasi data ganda di database berdasarkan judul yang sama
         try {
-            $duplicates = Schedule::select('title', 'project_id', 'date', 'start_time', 'engineer_id')
-                ->whereNotNull('date')
-                ->groupBy('title', 'project_id', 'date', 'start_time', 'engineer_id')
+            $duplicates = Schedule::select('title')
+                ->whereNotNull('title')
+                ->groupBy('title')
                 ->havingRaw('COUNT(*) > 1')
                 ->get();
 
             foreach ($duplicates as $dup) {
-                $dupQuery = Schedule::where('title', $dup->title)
-                    ->where('date', $dup->date);
-                if ($dup->project_id) {
-                    $dupQuery->where('project_id', $dup->project_id);
-                } else {
-                    $dupQuery->whereNull('project_id');
-                }
-                if ($dup->start_time) {
-                    $dupQuery->where('start_time', $dup->start_time);
-                }
-                if ($dup->engineer_id) {
-                    $dupQuery->where('engineer_id', $dup->engineer_id);
-                }
-                $dupIds = $dupQuery->orderBy('id', 'asc')->pluck('id');
-                if ($dupIds->count() > 1) {
-                    $deleteIds = $dupIds->slice(1)->all();
+                $dupRecords = Schedule::where('title', $dup->title)->orderBy('id', 'asc')->get();
+                if ($dupRecords->count() > 1) {
+                    // Jika ada jadwal tiket berlabel Preventive Maintenance, prioritaskan simpan jadwal tersebut
+                    $pmMatch = $dupRecords->firstWhere('category', 'Preventive Maintenance');
+                    $keepId = $pmMatch ? $pmMatch->id : $dupRecords->first()->id;
+                    $deleteIds = $dupRecords->where('id', '!=', $keepId)->pluck('id')->all();
                     Schedule::whereIn('id', $deleteIds)->delete();
                 }
             }
