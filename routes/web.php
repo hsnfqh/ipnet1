@@ -597,6 +597,17 @@ Route::get('/clear-dummy-data', function () {
     }
 });
 
+// Route aman untuk menjalankan migration saja tanpa mereset data
+Route::get('/migrate-only', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return response('<div style="background:#0F172A;color:#10B981;padding:24px;border-radius:12px;font-family:sans-serif;max-width:700px;margin:40px auto;box-shadow:0 20px 40px rgba(0,0,0,0.3);"><h2 style="margin-top:0;color:#34D399;">✓ Database Migration Berhasil Dijalankan!</h2><p style="color:#CBD5E1;font-size:13.5px;">Tabel database Managed Service dan modul lainnya telah berhasil dibuat dan diperbarui di hosting.</p><pre style="background:#1E293B;padding:16px;border-radius:8px;color:#F8FAFC;font-size:13px;overflow-x:auto;">' . htmlspecialchars($output ?: 'Nothing to migrate (Semua tabel database sudah up to date).') . '</pre><br><a href="/managed-service" style="display:inline-block;padding:10px 20px;background:#8F0A0D;color:white;text-decoration:none;border-radius:8px;font-weight:bold;">&larr; Buka Menu Managed Service</a></div>');
+    } catch (\Throwable $e) {
+        return response('<div style="background:#0F172A;color:#EF4444;padding:24px;border-radius:12px;font-family:sans-serif;max-width:700px;margin:40px auto;"><h2 style="margin-top:0;">✗ Error Migration:</h2><pre style="background:#1E293B;padding:16px;border-radius:8px;color:#FCA5A5;font-size:13px;">' . htmlspecialchars($e->getMessage()) . '</pre></div>', 500);
+    }
+});
+
 // Utility route untuk migrate database & seed user resmi & clear cache dari browser di cPanel
 Route::get('/run-migration', function () {
     $outputs = [];

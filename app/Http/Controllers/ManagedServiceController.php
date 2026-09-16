@@ -13,33 +13,57 @@ use App\Models\Client;
 use App\Models\Task;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 class ManagedServiceController extends Controller
 {
+    private function ensureTablesExist(): void
+    {
+        if (!Schema::hasTable('managed_service_assets') || !Schema::hasTable('managed_service_tickets') || !Schema::hasTable('managed_service_reports')) {
+            try {
+                Artisan::call('migrate', ['--force' => true]);
+            } catch (\Throwable $e) {
+                Log::warning('Auto migrate managed service tables: ' . $e->getMessage());
+            }
+        }
+    }
+
     /**
      * Managed Service Main Dashboard & Operate Control Tower
      */
     public function dashboard(Request $request)
     {
+        $this->ensureTablesExist();
+
         $selectedYear = $request->input('year', 2026);
         $selectedClient = $request->input('client');
 
         // Assets query
-        $assetsQuery = ManagedServiceAsset::with('project');
-        if ($selectedClient) {
-            $assetsQuery->where('client_name', 'like', "%{$selectedClient}%");
+        $assets = collect([]);
+        if (Schema::hasTable('managed_service_assets')) {
+            $assetsQuery = ManagedServiceAsset::with('project');
+            if ($selectedClient) {
+                $assetsQuery->where('client_name', 'like', "%{$selectedClient}%");
+            }
+            $assets = $assetsQuery->latest()->get();
         }
-        $assets = $assetsQuery->latest()->get();
 
         // Tickets query
-        $ticketsQuery = ManagedServiceTicket::with(['assignedEngineer', 'asset.project', 'project']);
-        if ($selectedClient) {
-            $ticketsQuery->where('client_name', 'like', "%{$selectedClient}%");
+        $tickets = collect([]);
+        if (Schema::hasTable('managed_service_tickets')) {
+            $ticketsQuery = ManagedServiceTicket::with(['assignedEngineer', 'asset.project', 'project']);
+            if ($selectedClient) {
+                $ticketsQuery->where('client_name', 'like', "%{$selectedClient}%");
+            }
+            $tickets = $ticketsQuery->latest()->get();
         }
-        $tickets = $ticketsQuery->latest()->get();
 
         // Reports query
-        $reports = ManagedServiceReport::latest()->take(5)->get();
+        $reports = collect([]);
+        if (Schema::hasTable('managed_service_reports')) {
+            $reports = ManagedServiceReport::latest()->take(5)->get();
+        }
 
         // Metric calculations
         $totalAssets     = $assets->count();
@@ -185,6 +209,15 @@ class ManagedServiceController extends Controller
      */
     public function assets(Request $request)
     {
+        $this->ensureTablesExist();
+
+        if (!Schema::hasTable('managed_service_assets')) {
+            $assets = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
+            $clients = Client::orderBy('name')->get();
+            $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
+            return view('managed_service.assets', compact('assets', 'clients', 'projects'));
+        }
+
         $query = ManagedServiceAsset::query();
 
         if ($request->filled('search')) {
@@ -281,6 +314,17 @@ class ManagedServiceController extends Controller
      */
     public function tickets(Request $request)
     {
+        $this->ensureTablesExist();
+
+        if (!Schema::hasTable('managed_service_tickets')) {
+            $tickets = collect([]);
+            $clients = Client::orderBy('name')->get();
+            $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
+            $assets = collect([]);
+            $engineers = User::all();
+            return view('managed_service.tickets', compact('tickets', 'clients', 'projects', 'assets', 'engineers'));
+        }
+
         $query = ManagedServiceTicket::with(['assignedEngineer', 'asset.project', 'project']);
 
         if ($request->filled('search')) {
@@ -510,13 +554,15 @@ class ManagedServiceController extends Controller
      */
     public function maintenance(Request $request)
     {
+        $this->ensureTablesExist();
+
         $projects = Project::where(function($q) {
             $q->where('stage', 'Operate')
               ->orWhere('project_type', 'like', '%Maintenance%')
               ->orWhere('project_type', 'like', '%Managed%');
         })->whereNotIn('name', ['DAY OFF', 'Day Off'])->get();
 
-        $assets = ManagedServiceAsset::all();
+        $assets = Schema::hasTable('managed_service_assets') ? ManagedServiceAsset::all() : collect([]);
         $schedules = Schedule::with(['project', 'users'])
             ->where(function($q) {
                 $q->where('title', 'like', '%Maintenance%')
@@ -542,7 +588,9 @@ class ManagedServiceController extends Controller
      */
     public function reports(Request $request)
     {
-        $reports = ManagedServiceReport::latest()->paginate(15);
+        $this->ensureTablesExist();
+
+        $reports = Schema::hasTable('managed_service_reports') ? ManagedServiceReport::latest()->paginate(15) : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
         $clients = Client::orderBy('name')->get();
         $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->get();
 
