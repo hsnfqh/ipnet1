@@ -29,6 +29,7 @@ class ProjectRequest extends FormRequest
             'sales_name'     => 'required|string|max:255',
             'location'       => 'required|string|max:255',
             'project_type'   => 'required|string|max:100',
+            'sla_tier'       => 'nullable|string|in:Platinum,Gold,Silver,Bronze',
             'visit_schedule' => 'nullable|string|max:100',
             'description'    => 'nullable|string',
             'start_date'     => 'required|date',

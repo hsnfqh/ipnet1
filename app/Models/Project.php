@@ -17,6 +17,7 @@ class Project extends Model
         'sales_name',
         'location',
         'project_type',
+        'sla_tier',
         'visit_schedule',
         'description',
         'start_date',
@@ -101,6 +102,7 @@ class Project extends Model
         'duration_days',
         'is_recurring',
         'weighted_forecast_value',
+        'sla_tier_info',
     ];
 
     public function getWeightedForecastValueAttribute()
@@ -234,6 +236,62 @@ class Project extends Model
     public function getIsRecurringAttribute(): bool
     {
         return !empty($this->visit_schedule) && $this->visit_schedule !== 'None' && $this->visit_schedule !== '-';
+    }
+
+    public function getSlaTierInfoAttribute(): ?array
+    {
+        if (!$this->sla_tier) {
+            return null;
+        }
+
+        $tiers = [
+            'Platinum' => [
+                'tier'              => 'Platinum',
+                'icon'              => '💎',
+                'bg'                => 'bg-purple-50',
+                'border'            => 'border-purple-200',
+                'text'              => 'text-purple-700',
+                'visits_per_year'   => 12,
+                'visit_frequency'   => 'Bulanan (12x/Tahun)',
+                'response_time_p1'  => '< 1 Jam (24x7)',
+                'uptime_target'     => '99.9%',
+            ],
+            'Gold' => [
+                'tier'              => 'Gold',
+                'icon'              => '🥇',
+                'bg'                => 'bg-amber-50',
+                'border'            => 'border-amber-200',
+                'text'              => 'text-amber-700',
+                'visits_per_year'   => 4,
+                'visit_frequency'   => 'Triwulan / Quarterly (4x/Tahun)',
+                'response_time_p1'  => '< 2 Jam (24x7 / 8x5)',
+                'uptime_target'     => '99.5%',
+            ],
+            'Silver' => [
+                'tier'              => 'Silver',
+                'icon'              => '🥈',
+                'bg'                => 'bg-slate-100',
+                'border'            => 'border-slate-300',
+                'text'              => 'text-slate-700',
+                'visits_per_year'   => 2,
+                'visit_frequency'   => 'Semester / Biannual (2x/Tahun)',
+                'response_time_p1'  => '< 4 Jam (8x5)',
+                'uptime_target'     => '99.0%',
+            ],
+            'Bronze' => [
+                'tier'              => 'Bronze',
+                'icon'              => '🥉',
+                'bg'                => 'bg-orange-50',
+                'border'            => 'border-orange-200',
+                'text'              => 'text-orange-700',
+                'visits_per_year'   => 1,
+                'visit_frequency'   => 'Tahunan / Annual (1x/Tahun)',
+                'response_time_p1'  => '< 8 Jam (8x5)',
+                'uptime_target'     => '98.0%',
+            ],
+        ];
+
+        return $tiers[$this->sla_tier] ?? null;
     }
 
     // Helpers

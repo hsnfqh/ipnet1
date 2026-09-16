@@ -129,7 +129,21 @@
                                 <tr class="hover:bg-[#F8FAFC]/80 transition-colors duration-150">
                                     {{-- Nama Project & Tipe --}}
                                     <td class="py-3 px-4">
-                                        <div class="font-medium text-[#1E293B] text-[13px] leading-snug" x-text="project.name"></div>
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="font-medium text-[#1E293B] text-[13px] leading-snug" x-text="project.name"></span>
+                                            <template x-if="project.sla_tier">
+                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold border"
+                                                      :class="{
+                                                          'bg-purple-50 text-purple-700 border-purple-200': project.sla_tier === 'Platinum',
+                                                          'bg-amber-50 text-amber-700 border-amber-200': project.sla_tier === 'Gold',
+                                                          'bg-slate-100 text-slate-700 border-slate-300': project.sla_tier === 'Silver',
+                                                          'bg-orange-50 text-orange-700 border-orange-200': project.sla_tier === 'Bronze'
+                                                      }">
+                                                    <span x-text="project.sla_tier === 'Platinum' ? '💎' : (project.sla_tier === 'Gold' ? '🥇' : (project.sla_tier === 'Silver' ? '🥈' : '🥉'))"></span>
+                                                    <span x-text="project.sla_tier"></span>
+                                                </span>
+                                            </template>
+                                        </div>
                                         <div class="flex items-center gap-1.5 mt-0.5">
                                             <template x-if="project.visit_schedule && project.visit_schedule !== 'None' && project.visit_schedule !== '-'">
                                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]" title="Proyek dengan jadwal visit berkala">
@@ -317,7 +331,7 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                                     <div>
                                         <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Tipe Proyek <span class="text-[#8F0A0D]">*</span></label>
                                         <select x-model="form.project_type" class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]">
@@ -327,9 +341,21 @@
                                         </select>
                                     </div>
                                     <div>
+                                        <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Tier SLA / Paket</label>
+                                        <select x-model="form.sla_tier" 
+                                                @change="if(form.sla_tier === 'Platinum') { form.visit_schedule = 'Bulanan (Monthly)'; } else if(form.sla_tier === 'Gold') { form.visit_schedule = 'Triwulanan (Quarterly)'; } else if(form.sla_tier === 'Silver') { form.visit_schedule = 'Semesteran (Semi-Annual)'; } else if(form.sla_tier === 'Bronze') { form.visit_schedule = 'On-Call (Incidental)'; }"
+                                                class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]">
+                                            <option value="">-- Tanpa Tier SLA --</option>
+                                            <option value="Platinum">💎 Platinum (12x/Thn)</option>
+                                            <option value="Gold">🥇 Gold (4x/Thn)</option>
+                                            <option value="Silver">🥈 Silver (2x/Thn)</option>
+                                            <option value="Bronze">🥉 Bronze (1x/Thn)</option>
+                                        </select>
+                                    </div>
+                                    <div>
                                         <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Jadwal Visit Berkala</label>
                                         <select x-model="form.visit_schedule" class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]">
-                                            <option value="None">None (Tidak Ada Jadwal Visit Rutin)</option>
+                                            <option value="None">None (Tidak Ada Visit Rutin)</option>
                                             <option value="Mingguan (Weekly)">Mingguan (Weekly Visit)</option>
                                             <option value="Bulanan (Monthly)">Bulanan (Monthly SLA Visit)</option>
                                             <option value="Triwulanan (Quarterly)">Triwulanan (Quarterly Check)</option>
@@ -716,6 +742,7 @@
                         client: project.client || '',
                         sales_name: project.sales_name || '',
                         project_type: project.project_type || 'One-Time Project',
+                        sla_tier: project.sla_tier || '',
                         visit_schedule: project.visit_schedule || 'None',
                         location: project.location || '',
                         description: project.description || '',
@@ -732,6 +759,7 @@
                         client: '',
                         sales_name: '',
                         project_type: 'One-Time Project',
+                        sla_tier: '',
                         visit_schedule: 'None',
                         location: '',
                         description: '',
