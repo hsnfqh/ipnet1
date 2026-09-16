@@ -230,19 +230,17 @@ class ScopeHelper
             return null;
         }
 
-        // 2. Team Leader (Lead Network, Lead Security, Lead Maintenance) -> Akses SEMUA engineer di divisinya sendiri
+        // 2. Team Leader / Lead Engineer / Lead Maintenance -> Akses seluruh engineer & staf maintenance operasional (Divisi 1, 2, 3)
         if (self::isTeamLeader($user)) {
-            if ($user->division_id) {
-                return \App\Models\User::where('division_id', $user->division_id)
-                    ->pluck('id')
-                    ->toArray();
-            }
-            if ($user->team_id) {
-                return \App\Models\User::where('team_id', $user->team_id)
-                    ->pluck('id')
-                    ->toArray();
-            }
-            return [$user->id];
+            return \App\Models\User::where(function($q) {
+                $q->whereIn('division_id', [1, 2, 3])
+                  ->orWhereHas('roles', function($rq) {
+                      $rq->whereIn('name', [
+                          'Lead Engineer', 'Lead Maintenance', 'Team Leader', 'Team Leader Engineering',
+                          'Engineer', 'Maintenance', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Field Support', 'Field Support (EOS)'
+                      ]);
+                  });
+            })->pluck('id')->toArray();
         }
 
         // 3. Engineer / Field Staff / Maintenance Staff -> Hanya dirinya sendiri

@@ -127,10 +127,11 @@ class ManagedServiceController extends Controller
         // List Clients for filter
         $clients = $this->getClients();
         $maintenanceEngineers = User::where(function($q) {
-            $q->where('division_id', 3)
-              ->orWhereHas('roles', fn($r) => $r->whereIn('name', ['Lead Maintenance', 'Maintenance']));
-        })->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Lead Engineer', 'Team Leader']))
-          ->get(['id', 'name']);
+            $q->whereIn('division_id', [1, 2, 3])
+              ->orWhereHas('roles', fn($r) => $r->whereIn('name', [
+                  'Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)', 'Engineer', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Team Leader', 'Team Leader Engineering'
+              ]));
+        })->get(['id', 'name']);
 
         // Maintenance Workload Distribution Data for Chart.js (Week & Month support)
         $startOfWeek  = now()->startOfWeek(\Carbon\Carbon::MONDAY)->startOfDay();
@@ -371,10 +372,11 @@ class ManagedServiceController extends Controller
         $assets  = ManagedServiceAsset::orderBy('device_name')->get();
         $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
         $engineers = User::where(function($q) {
-            $q->where('division_id', 3)
-              ->orWhereHas('roles', fn($r) => $r->whereIn('name', ['Lead Maintenance', 'Maintenance']));
-        })->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Lead Engineer', 'Team Leader']))
-          ->get(['id', 'name']);
+            $q->whereIn('division_id', [1, 2, 3])
+              ->orWhereHas('roles', fn($r) => $r->whereIn('name', [
+                  'Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)', 'Engineer', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Team Leader', 'Team Leader Engineering'
+              ]));
+        })->orderBy('name')->get(['id', 'name']);
 
         return view('managed_service.tickets', compact('tickets', 'assets', 'projects', 'engineers'));
     }
@@ -603,10 +605,11 @@ class ManagedServiceController extends Controller
             ->get();
 
         $engineers = User::where(function($q) {
-            $q->where('division_id', 3)
-              ->orWhereHas('roles', fn($r) => $r->whereIn('name', ['Lead Maintenance', 'Maintenance']));
-        })->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Lead Engineer', 'Team Leader']))
-          ->get(['id', 'name']);
+            $q->whereIn('division_id', [1, 2, 3])
+              ->orWhereHas('roles', fn($r) => $r->whereIn('name', [
+                  'Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)', 'Engineer', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Team Leader', 'Team Leader Engineering'
+              ]));
+        })->orderBy('name')->get(['id', 'name']);
 
         return view('managed_service.maintenance', compact('projects', 'assets', 'schedules', 'engineers'));
     }
