@@ -46,6 +46,25 @@ Route::middleware('guest')->group(function () {
 // Auth Routes
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Auto Migrate & Cache Clear Helper for Production Deployment
+Route::get('/auto-migrate-system-2026', function () {
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+        $output = Artisan::output();
+        Artisan::call('optimize:clear');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Semua database migrations berhasil dijalankan!',
+            'migration_output' => $output
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     // Modul 1: ACQUIRE (Sales Pipeline & Handover 1 to Design)

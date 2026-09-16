@@ -27,6 +27,8 @@ class ManagedServiceController extends Controller
                 Log::warning('Auto migrate managed service tables: ' . $e->getMessage());
             }
         }
+    }
+
     private function getClients()
     {
         if (Schema::hasTable('clients')) {
