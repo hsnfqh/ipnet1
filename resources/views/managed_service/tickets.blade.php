@@ -96,13 +96,12 @@
                                class="w-full pl-10 pr-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-medium text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs">
                     </div>
 
-                    <select name="type" onchange="this.form.submit()" class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="all">Semua Tipe</option>
-                        <option value="Incident" {{ request('type') == 'Incident' ? 'selected' : '' }}>Incident</option>
-                        <option value="Service Request" {{ request('type') == 'Service Request' ? 'selected' : '' }}>Service Request</option>
-                        <option value="Change Request" {{ request('type') == 'Change Request' ? 'selected' : '' }}>Change Request</option>
+                    <select name="type" onchange="this.form.submit()" class="w-full sm:w-56 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="all">Semua Tipe Layanan</option>
+                        <option value="Preventive Maintenance" {{ in_array(request('type'), ['Preventive Maintenance', 'Preventive']) ? 'selected' : '' }}>Preventive Maintenance (PM)</option>
+                        <option value="Corrective Maintenance" {{ in_array(request('type'), ['Corrective Maintenance', 'Corrective', 'Incident']) ? 'selected' : '' }}>Corrective Maintenance (CM)</option>
                     </select>
-
+                    
                     <select name="status" onchange="this.form.submit()" class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="all">Semua Status</option>
                         <option value="Open" {{ request('status') == 'Open' ? 'selected' : '' }}>Open</option>
@@ -148,10 +147,19 @@
                                         <div class="text-[11.5px] text-[#64748B] line-clamp-1 mt-0.5">{{ $t->description ?: 'Tidak ada deskripsi tambahan.' }}</div>
                                     </td>
                                     <td class="py-4 px-5 whitespace-nowrap">
-                                        <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold 
-                                            {{ $t->type === 'Incident' ? 'bg-red-50 text-red-700 border border-red-200' : ($t->type === 'Service Request' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-purple-50 text-purple-700 border border-purple-200') }}">
-                                            {{ $t->type }}
-                                        </span>
+                                        @if(in_array($t->type, ['Preventive Maintenance', 'Preventive']))
+                                            <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                Preventive (PM)
+                                            </span>
+                                        @elseif(in_array($t->type, ['Corrective Maintenance', 'Corrective', 'Incident']))
+                                            <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
+                                                Corrective (CM)
+                                            </span>
+                                        @else
+                                            <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                {{ $t->type }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="py-4 px-5 whitespace-nowrap">
                                         @if($t->assignedEngineer)
@@ -254,8 +262,8 @@
                 <!-- Fixed Header -->
                 <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
                     <div>
-                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">Tiket Baru</p>
-                        <h3 class="text-[16px] font-bold text-[#1E293B]">Buat Tiket Insiden / Request Baru</h3>
+                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">Tiket Maintenance Baru</p>
+                        <h3 class="text-[16px] font-bold text-[#1E293B]">Buat Tiket Maintenance (PM / CM)</h3>
                     </div>
                     <button @click="isCreateModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -273,8 +281,8 @@
                         </div>
 
                         <div>
-                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Judul Tiket / Insiden <span class="text-[#8F0A0D]">*</span></label>
-                            <input type="text" name="title" required placeholder="Contoh: Flapping Link SFP Port 24"
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Judul Tiket / Permasalahan <span class="text-[#8F0A0D]">*</span></label>
+                            <input type="text" name="title" required placeholder="Contoh: Flapping Link SFP Port 24 / Jadwal PM Q3"
                                    class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
                         </div>
 
@@ -299,9 +307,8 @@
                             <div>
                                 <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Tipe Layanan <span class="text-[#8F0A0D]">*</span></label>
                                 <select name="type" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                                    <option value="Incident">Incident (Gangguan)</option>
-                                    <option value="Service Request">Service Request (Permintaan)</option>
-                                    <option value="Change Request">Change Request (Perubahan)</option>
+                                    <option value="Preventive Maintenance">Preventive Maintenance (PM)</option>
+                                    <option value="Corrective Maintenance" selected>Corrective Maintenance (CM)</option>
                                 </select>
                             </div>
                             <div>

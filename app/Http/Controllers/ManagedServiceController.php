@@ -358,7 +358,13 @@ class ManagedServiceController extends Controller
         }
 
         if ($request->filled('type') && $request->type !== 'all') {
-            $query->where('type', $request->type);
+            if (in_array($request->type, ['Preventive Maintenance', 'Preventive'])) {
+                $query->whereIn('type', ['Preventive Maintenance', 'Preventive']);
+            } elseif (in_array($request->type, ['Corrective Maintenance', 'Corrective', 'Incident'])) {
+                $query->whereIn('type', ['Corrective Maintenance', 'Corrective', 'Incident']);
+            } else {
+                $query->where('type', $request->type);
+            }
         }
 
         if ($request->filled('status') && $request->status !== 'all') {
@@ -389,7 +395,7 @@ class ManagedServiceController extends Controller
             'client_name'   => 'required|string|max:255',
             'title'         => 'required|string|max:255',
             'description'   => 'nullable|string',
-            'type'          => 'required|string|in:Incident,Service Request,Change Request',
+            'type'          => 'required|string|in:Preventive Maintenance,Corrective Maintenance,Preventive,Corrective,Incident,Service Request,Change Request',
             'priority'      => 'nullable|string|in:Platinum,Gold,Silver,Bronze,P1 - Critical,P2 - Major,P3 - Minor,P4 - Low',
             'created_at'    => 'nullable|date',
             'reported_by'   => 'nullable|string|max:255',
@@ -407,7 +413,8 @@ class ManagedServiceController extends Controller
 
         // Generate Ticket Number
         $prefix = match($validated['type']) {
-            'Incident'        => 'INC',
+            'Preventive Maintenance', 'Preventive' => 'PM',
+            'Corrective Maintenance', 'Corrective', 'Incident' => 'CM',
             'Service Request' => 'REQ',
             'Change Request'  => 'CR',
             default           => 'TCK',
