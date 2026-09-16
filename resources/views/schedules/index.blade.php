@@ -1909,7 +1909,7 @@
                 projects: @json($projects),
                 engineers: @json($engineers),
                 isArchitect: @json($isArchitect ?? false),
-                viewMode: 'day',
+                viewMode: 'week',
                 currentDate: new Date(),
                 showAvailability: false,
                 showOnlyAvailable: false,
