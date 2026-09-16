@@ -1567,14 +1567,14 @@
 }
 
 .jkw-day-item--meeting {
-    background: rgba(139, 92, 246, 0.08) !important;
-    border-left: 4px solid #8B5CF6 !important;
+    background: rgba(37, 99, 235, 0.08) !important;
+    border-left: 4px solid #2563EB !important;
 }
 .jkw-day-item--meeting .jkw-time {
-    color: #6D28D9 !important;
+    color: #1D4ED8 !important;
 }
 .jkw-day-item--meeting .jkw-time svg {
-    color: #8B5CF6 !important;
+    color: #2563EB !important;
 }
 
 .jkw-day-item--day_off {
@@ -1630,10 +1630,9 @@
 .jkw-week-col-head { font-size:11px !important; color:var(--jkw-muted) !important; font-weight:700 !important; margin-bottom:10px !important; display:flex !important; align-items:center !important; gap:5px !important; }
 .jkw-week-col-body { display:flex !important; flex-direction:column !important; gap:6px !important; }
 .jkw-mini-card { border-radius:6px !important; padding:6px 9px !important; }
-.jkw-mini-card--schedule, .jkw-mini-card--design { background:rgba(37,99,235,0.12) !important; }
-.jkw-mini-card--poc { background:rgba(16,185,129,0.12) !important; }
-.jkw-mini-card--meeting { background:rgba(139,92,246,0.12) !important; }
-.jkw-mini-card--day_off { background:rgba(100,116,139,0.18) !important; }
+.jkw-mini-card--schedule, .jkw-mini-card--design, .jkw-mini-card--meeting { background:rgba(37,99,235,0.09) !important; }
+.jkw-mini-card--poc { background:rgba(16,185,129,0.10) !important; }
+.jkw-mini-card--day_off { background:rgba(100,116,139,0.12) !important; }
 .jkw-mini-card--task { background:rgba(200,30,44,0.08) !important; }
 .jkw-mini-card--project { background:rgba(153,27,27,0.08) !important; }
 .jkw-mini-time { font-family:'IBM Plex Mono', monospace !important; font-size:10px !important; font-weight:700 !important; }
@@ -2243,8 +2242,15 @@
                         var isDesign = (s.category || '').toLowerCase().includes('desain') || (s.category || '').toLowerCase().includes('sow') || (s.category || '').toLowerCase().includes('review');
                         var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
                         var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : (s.category || 'Jadwal')));
-                        var eventType = isDayOff ? 'day_off' : (isPoc ? 'poc' : (isMeet ? 'meeting' : (isDesign ? 'design' : (isTaskCat ? 'task' : 'schedule'))));
-                        var eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isMeet ? '#8B5CF6' : (isDesign ? '#2563EB' : (isTaskCat ? '#C81E2C' : '#2563EB'))));
+                        var eventType;
+                        var eventColor;
+                        if (self.isArchitect) {
+                            eventType = isDayOff ? 'day_off' : (isPoc ? 'poc' : (isMeet ? 'meeting' : (isDesign ? 'design' : 'schedule')));
+                            eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isMeet ? '#8B5CF6' : (isDesign ? '#2563EB' : '#2563EB')));
+                        } else {
+                            eventType = isDayOff ? 'day_off' : (isTaskCat ? 'task' : 'meeting');
+                            eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
+                        }
                         
                         // Cegah duplikasi agenda yang sama persis di hari yang sama
                         var engKey = (s.engineer_ids || (s.engineers ? s.engineers.map(function(e){ return e.id; }) : [s.engineer_id])).join('-');
