@@ -203,6 +203,10 @@ class ScheduleController extends Controller
                 }
             });
         }
+        $projects = $projectsQuery
+            ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->orderBy('name')
+            ->get();
         $rawEngineers = $isArchitect ? collect([$user]) : ScopeHelper::getAssignableEngineers($user);
         $engineers = $rawEngineers->map(function($e) {
             $isMaint = ($e->division_id == 3) || (method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)']));
