@@ -2008,15 +2008,15 @@
                     var role = (eng && eng.role) ? eng.role.toLowerCase() : '';
                     
                     // 1. Team Leader / Lead / Direktur -> Purple (#7C3AED)
-                    if (pos.includes('leader') || pos.includes('lead') || role.includes('lead') || role.includes('direktur') || cleanName.includes('nugraha') || cleanName.includes('susanto')) {
+                    if (pos.includes('leader') || pos.includes('lead') || role.includes('lead') || role.includes('direktur') || cleanName.includes('nugraha') || cleanName.includes('susanto') || cleanName.includes('doris')) {
                         return '#7C3AED';
                     }
                     // 2. Engineer L2 / Senior -> Deep Blue (#2563EB)
                     if (pos.includes('l2') || pos.includes('senior') || pos.includes('level 2') || role.includes('l2') || ['dedy suryana', 'raihan ghiffary', 'syaiful amin', 'ardiansyah'].includes(cleanName)) {
                         return '#2563EB';
                     }
-                    // 3. Engineer L1 / Field Staff -> Emerald Green (#059669)
-                    if (pos.includes('l1') || pos.includes('junior') || pos.includes('level 1') || pos.includes('maintenance') || role.includes('l1') || ['dafa rizqullah', 'helmi shiamsyah', 'panca pangga ramadhan', 'rorik', 'shiamsyah azis'].includes(cleanName)) {
+                    // 3. Engineer L1 / Field Staff / Maintenance Staff -> Emerald Green (#059669)
+                    if (pos.includes('l1') || pos.includes('junior') || pos.includes('level 1') || pos.includes('maintenance') || pos.includes('helpdesk') || role.includes('l1') || role.includes('maintenance') || ['dafa rizqullah', 'helmi shiamsyah', 'panca pangga ramadhan', 'rorik', 'shiamsyah azis', 'mario', 'eris'].includes(cleanName)) {
                         return '#059669';
                     }
                     // 4. Sales / BusDev -> Amber Orange (#D97706)
