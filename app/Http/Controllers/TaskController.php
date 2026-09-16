@@ -29,76 +29,14 @@ class TaskController extends Controller
             $withRelations[] = 'engineers';
         }
 
-        // Auto-sinkronkan Tiket SLA / Insiden Maintenance ke Daftar Tugas
+        // Auto-sinkronkan Tiket SLA / Insiden Maintenance ke Daftar Tugas secara satu pintu
         if (ScopeHelper::isMaintenance($user) || $isSupervisor || $isDirektur) {
             $activeTickets = \App\Models\ManagedServiceTicket::with(['assignedEngineer', 'asset', 'project'])
                 ->whereIn('status', ['Open', 'In Progress', 'Pending Vendor', 'Resolved', 'Closed'])
                 ->get();
 
             foreach ($activeTickets as $ticket) {
-                $taskTitle = '[' . $ticket->ticket_number . '] ' . $ticket->title;
-                $taskStatus = match($ticket->status) {
-                    'Open' => 'Assigned',
-                    'In Progress', 'Pending Vendor' => 'In Progress',
-                    'Resolved' => 'Waiting Review',
-                    'Closed' => 'Completed',
-                    default => 'Assigned',
-                };
-
-                $p = strtolower($ticket->priority ?? '');
-                $taskPriority = 'Medium';
-                if (str_contains($p, 'critical') || str_contains($p, 'p1') || str_contains($p, 'high')) {
-                    $taskPriority = 'High';
-                } elseif (str_contains($p, 'major') || str_contains($p, 'p2')) {
-                    $taskPriority = 'High';
-                } elseif (str_contains($p, 'minor') || str_contains($p, 'p3')) {
-                    $taskPriority = 'Medium';
-                } elseif (str_contains($p, 'low') || str_contains($p, 'p4')) {
-                    $taskPriority = 'Low';
-                }
-
-                $projectId = $ticket->project_id;
-                if (!$projectId) {
-                    $clientName = $ticket->client_name ?: ($ticket->asset?->client_name ?: 'Layanan Managed Service');
-                    $proj = Project::firstOrCreate(
-                        ['name' => 'SLA ' . $clientName],
-                        [
-                            'client'       => $clientName,
-                            'location'     => $ticket->asset?->location ?? 'On-Site Klien',
-                            'start_date'   => now()->toDateString(),
-                            'deadline'     => $ticket->sla_deadline ? $ticket->sla_deadline->format('Y-m-d') : now()->addMonth()->toDateString(),
-                            'status'       => 'In Progress',
-                            'project_type' => 'Maintenance SLA',
-                            'division_id'  => 3,
-                            'created_by'   => $user->id,
-                        ]
-                    );
-                    $projectId = $proj->id;
-                }
-
-                $deadlineDate = $ticket->sla_deadline ? $ticket->sla_deadline->format('Y-m-d') : now()->toDateString();
-                $deadlineTime = $ticket->sla_deadline ? $ticket->sla_deadline->format('H:i:00') : '10:00:00';
-
-                $syncedTask = Task::updateOrCreate(
-                    [
-                        'title'      => $taskTitle,
-                        'project_id' => $projectId,
-                    ],
-                    [
-                        'engineer_id'   => $ticket->assigned_to ?: $user->id,
-                        'priority'      => $taskPriority,
-                        'status'        => $taskStatus,
-                        'progress'      => $taskStatus === 'Completed' ? 100 : ($taskStatus === 'Waiting Review' ? 90 : ($taskStatus === 'In Progress' ? 50 : 0)),
-                        'deadline'      => $deadlineDate . ' ' . $deadlineTime,
-                        'deadline_time' => $deadlineTime,
-                        'description'   => "Nomor Tiket: {$ticket->ticket_number}\nPelapor: " . ($ticket->reported_by ?: '-') . " (" . ($ticket->contact_phone ?: '-') . ")\nPerangkat: " . ($ticket->asset ? $ticket->asset->name . ' (' . $ticket->asset->serial_number . ')' : '-') . "\n\nDeskripsi Masalah:\n" . ($ticket->description ?: '-'),
-                        'created_by'    => $ticket->created_by ?: $user->id,
-                    ]
-                );
-
-                if ($syncedTask->engineer_id && $hasTaskUser) {
-                    $syncedTask->engineers()->sync([$syncedTask->engineer_id]);
-                }
+                \App\Http\Controllers\ManagedServiceController::syncTicketToTaskAndSchedule($ticket);
             }
         }
 
@@ -420,7 +358,7 @@ class TaskController extends Controller
 
         // Sinkronkan perubahan judul, tanggal/jam task, dan engineer ke Jadwal jika ada
         if ($task->deadline) {
-            $schedCategory = (ScopeHelper::isMaintenance(auth()->user()) || preg_match('/^\[(INC|REQ|CR|TCK)-[0-9\-]+\]/', $task->title)) 
+            $schedCategory = (ScopeHelper::isMaintenance(auth()->user()) || preg_match('/^\[(PM|CM|INC|REQ|CR|TCK)-[0-9\-]+\]/', $task->title)) 
                 ? 'Preventive Maintenance' 
                 : 'Task';
             
@@ -446,8 +384,8 @@ class TaskController extends Controller
             }
         }
 
-        // Sinkronkan kembali ke Tiket SLA jika task berasal dari tiket
-        if (preg_match('/^\[(INC|REQ|CR|TCK)-[0-9\-]+\]/', $task->title, $matches)) {
+        // Sinkronkan kembali ke Tiket SLA jika task berasal dari tiket (termasuk PM dan CM)
+        if (preg_match('/^\[(PM|CM|INC|REQ|CR|TCK)-[0-9\-]+\]/', $task->title, $matches)) {
             $ticketNum = trim($matches[0], '[]');
             $ticket = \App\Models\ManagedServiceTicket::where('ticket_number', $ticketNum)->first();
             if ($ticket) {
