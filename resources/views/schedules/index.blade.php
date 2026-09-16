@@ -2264,7 +2264,7 @@
                         var sTime = s.start_time ? s.start_time.substring(0, 5) : '';
                         var eTime = s.end_time ? s.end_time.substring(0, 5) : '';
                         var isDayOff = s.category === 'Day Off';
-                        var isTaskCat = s.category === 'Task' || s.category === 'Kegiatan';
+                        var isTaskCat = s.category === 'Task' || s.category === 'Kegiatan' || s.category === 'Preventive Maintenance' || (s.category || '').toLowerCase().includes('maintenance') || (s.category || '').toLowerCase().includes('tiket') || (s.category || '').toLowerCase().includes('task');
                         var isPoc = (s.category || '').toLowerCase().includes('poc') || (s.category || '').toLowerCase().includes('lab');
                         var isMeet = (s.category || '').toLowerCase().includes('meeting') || (s.category || '').toLowerCase().includes('principal') || (s.category || '').toLowerCase().includes('klien');
                         var isDesign = (s.category || '').toLowerCase().includes('desain') || (s.category || '').toLowerCase().includes('sow') || (s.category || '').toLowerCase().includes('review');
@@ -2280,11 +2280,12 @@
                             eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
                         }
                         
-                        // Cegah duplikasi agenda yang sama persis di hari yang sama
-                        var engKey = (s.engineer_ids || (s.engineers ? s.engineers.map(function(e){ return e.id; }) : [s.engineer_id])).join('-');
-                        var dedupKey = (s.title || '').trim().toLowerCase() + '|' + d + '|' + sTime + '|' + (s.project_id || '') + '|' + engKey;
-                        if (seenKeys[dedupKey]) return;
+                        // Cegah duplikasi agenda yang sama persis
+                        var cleanTitle = (s.title || '').trim().toLowerCase();
+                        var dedupKey = cleanTitle + '|' + d;
+                        if (seenKeys[dedupKey] || (cleanTitle && seenKeys[cleanTitle])) return;
                         seenKeys[dedupKey] = true;
+                        if (cleanTitle) seenKeys[cleanTitle] = true;
 
                         var engLabel = '';
                         if (s.engineers && s.engineers.length > 0) {
@@ -2335,13 +2336,13 @@
                         if (!d) return;
                         if (!map[d]) map[d] = [];
 
-                        var dTime = t.deadline_time ? t.deadline_time.substring(0, 5) : '';
-                        var taskEngKey = (t.engineer_ids || (t.engineers ? t.engineers.map(function(e){ return e.id; }) : [t.engineer_id])).join('-');
-                        var taskDedupKey = (t.title || '').trim().toLowerCase() + '|' + d + '|' + dTime + '|' + (t.project_id || '') + '|' + taskEngKey;
+                        var cleanTaskTitle = (t.title || '').trim().toLowerCase();
+                        var taskDedupKey = cleanTaskTitle + '|' + d;
                         
                         // Jangan tampilkan jika sudah ada di schedules
-                        if (seenKeys[taskDedupKey]) return;
+                        if (seenKeys[taskDedupKey] || (cleanTaskTitle && seenKeys[cleanTaskTitle])) return;
                         seenKeys[taskDedupKey] = true;
+                        if (cleanTaskTitle) seenKeys[cleanTaskTitle] = true;
 
                         var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
                         var taskEngLabel = '';

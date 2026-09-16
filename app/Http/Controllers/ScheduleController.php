@@ -236,6 +236,7 @@ class ScheduleController extends Controller
             // Solution Architect tidak terbebani task lapangan engineer lain
             $tasks = collect([]);
         } else {
+            $existingScheduleTitles = Schedule::pluck('title')->map(fn($t) => strtolower(trim($t)))->toArray();
             $tasks = Task::with($withTaskRelations)
                 ->when($scopeIds !== null, function($query) use ($scopeIds, $hasTaskUser) {
                     return $query->where(function($q) use ($scopeIds, $hasTaskUser) {
@@ -254,6 +255,10 @@ class ScheduleController extends Controller
                 })
                 ->whereNotNull('deadline')
                 ->get()
+                ->filter(function($task) use ($existingScheduleTitles) {
+                    return !in_array(strtolower(trim($task->title)), $existingScheduleTitles);
+                })
+                ->values()
                 ->map(function($task) use ($hasTaskUser) {
                     $engineerIds = $hasTaskUser && $task->relationLoaded('engineers') && $task->engineers->isNotEmpty()
                         ? $task->engineers->pluck('id')->toArray()

@@ -537,16 +537,17 @@ class ManagedServiceController extends Controller
             $task->engineers()->sync([$assignedUserId]);
         }
 
-        // Sinkronisasi ke Schedule (Jadwal Kerja) - Kategori Maintenance (Bukan Proyek Delivery)
-        $scheduleDate = $ticket->created_at ? $ticket->created_at->format('Y-m-d') : now()->format('Y-m-d');
+        // Sinkronisasi ke Schedule (Jadwal Kerja)
+        $scheduleDate = $deadlineDate ?: ($ticket->created_at ? $ticket->created_at->format('Y-m-d') : now()->format('Y-m-d'));
+        $scheduleStartTime = $deadlineTime ?: '09:00:00';
         $schedule = Schedule::updateOrCreate(
             [
                 'title'      => $taskTitle,
             ],
             [
                 'date'        => $scheduleDate,
-                'start_time'  => '09:00:00',
-                'end_time'    => '17:00:00',
+                'start_time'  => $scheduleStartTime,
+                'end_time'    => date('H:i:s', strtotime($scheduleStartTime . ' +3 hours')),
                 'category'    => 'Preventive Maintenance',
                 'status'      => $taskStatus === 'Completed' ? 'Completed' : ($taskStatus === 'In Progress' ? 'In Progress' : 'Pending'),
                 'description' => "Penanganan Tiket SLA {$ticket->ticket_number} - {$ticket->client_name}\nStatus: {$ticket->status}",
