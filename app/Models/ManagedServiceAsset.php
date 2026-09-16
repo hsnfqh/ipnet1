@@ -44,4 +44,24 @@ class ManagedServiceAsset extends Model
     {
         return $this->hasMany(ManagedServiceTicket::class, 'asset_id');
     }
+
+    public function getSlaTierInfoAttribute(): ?array
+    {
+        if ($this->project && $this->project->sla_tier_info) {
+            return $this->project->sla_tier_info;
+        }
+
+        if ($this->client_name) {
+            $matched = Project::where(function($q) {
+                $q->where('client', 'like', "%{$this->client_name}%")
+                  ->orWhere('name', 'like', "%{$this->client_name}%");
+            })->whereNotNull('sla_tier')->first();
+
+            if ($matched && $matched->sla_tier_info) {
+                return $matched->sla_tier_info;
+            }
+        }
+
+        return Project::getSlaTierDetails('Gold');
+    }
 }

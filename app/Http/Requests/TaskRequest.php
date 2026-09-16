@@ -24,8 +24,8 @@ class TaskRequest extends FormRequest
     {
         return [
             'title'            => 'required|string|max:255',
-            'project_id'       => 'required',
-            'new_project_name' => 'required_if:project_id,other|nullable|string|max:255',
+            'project_id'       => 'nullable',
+            'new_project_name' => 'nullable|string|max:255',
             'engineer_id'      => 'required_without:engineer_ids|nullable|exists:users,id',
             'engineer_ids'     => 'required_without:engineer_id|nullable|array|min:1',
             'engineer_ids.*'   => 'exists:users,id',
@@ -40,7 +40,7 @@ class TaskRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->sometimes('project_id', 'exists:projects,id', function ($input) {
-            return $input->project_id !== 'other';
+            return !empty($input->project_id) && $input->project_id !== 'other';
         });
     }
 }

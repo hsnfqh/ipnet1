@@ -48,8 +48,6 @@ class ScopeHelper
             'Group Leader',
             'Group Leader Commercial & Solution',
             'Group Leader Delivery & Operation',
-            'Lead Divisi',
-            'Lead Engineer',
             'PMO',
             'Project Manager',
         ]);
@@ -84,6 +82,18 @@ class ScopeHelper
             'Lead Maintenance',
             'Managed Service',
         ]);
+    }
+
+    /**
+     * Apakah user adalah divisi Maintenance / Lead Maintenance?
+     */
+    public static function isMaintenance($user): bool
+    {
+        if (!$user) return false;
+        if ($user->division_id == 3) return true;
+        if ($user->hasAnyRole(['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)'])) return true;
+        if (isset($user->division) && stripos($user->division->name ?? '', 'maintenance') !== false) return true;
+        return false;
     }
 
     /**
@@ -220,12 +230,7 @@ class ScopeHelper
             return null;
         }
 
-        // 2. Managed Service Coordinator / Helpdesk -> Pemantauan menyeluruh untuk tiket & dispatch
-        if ($user->hasAnyRole(['Managed Service', 'Lead Maintenance'])) {
-            return null;
-        }
-
-        // 3. Team Leader (Network Leader / Security Leader) -> Akses SEMUA engineer di divisinya
+        // 2. Team Leader (Lead Network, Lead Security, Lead Maintenance) -> Akses SEMUA engineer di divisinya sendiri
         if (self::isTeamLeader($user)) {
             if ($user->division_id) {
                 return \App\Models\User::where('division_id', $user->division_id)
@@ -240,7 +245,7 @@ class ScopeHelper
             return [$user->id];
         }
 
-        // 4. Engineer / Field Staff -> Hanya dirinya sendiri
+        // 3. Engineer / Field Staff / Maintenance Staff -> Hanya dirinya sendiri
         return [$user->id];
     }
 
@@ -286,15 +291,34 @@ class ScopeHelper
             'Engineer L2',
         ];
 
-        // 1. Director, Division Head, Group Leader, PMO, Managed Service Coordinator
+        // 1. Director, Division Head, Group Leader, PMO
         // -> Dapat menugaskan (dispatch) ke SEMUA personel teknis
-        if (self::isGlobal($user) || $user->hasAnyRole(['Managed Service', 'Lead Maintenance'])) {
+        if (self::isGlobal($user)) {
             return \App\Models\User::whereHas('roles', function($q) use ($operationalRoles) {
                 $q->whereIn('name', $operationalRoles);
             })->active()->get();
         }
 
-        // 2. Leader Divisi Teknis -> Assign ke personel di divisinya + dirinya sendiri
+        // 2. Lead Maintenance -> Dapat menugaskan staf maintenance serta engineer lapangan pendamping
+        if (self::isMaintenance($user)) {
+            $maintenanceAssignableRoles = [
+                'Lead Maintenance',
+                'Maintenance',
+                'Managed Service',
+                'Field Support',
+                'Field Support (EOS)',
+                'Engineer',
+                'Network Engineer',
+                'Security Engineer',
+                'Engineer L1',
+                'Engineer L2',
+            ];
+            return \App\Models\User::whereHas('roles', function($q) use ($maintenanceAssignableRoles) {
+                $q->whereIn('name', $maintenanceAssignableRoles);
+            })->active()->orderBy('name')->get();
+        }
+
+        // 3. Leader Divisi Teknis (Lead Engineer / Team Leader) -> Assign ke personel di divisinya sendiri + dirinya sendiri
         if (self::isTeamLeader($user)) {
             if ($user->division_id) {
                 return \App\Models\User::whereHas('roles', function($q) use ($operationalRoles) {
@@ -318,6 +342,7 @@ class ScopeHelper
                     })
                     ->get();
             }
+            return collect([$user]);
         }
 
         // 3. Sales / BDM / Commercial -> Dapat menugaskan jadwal meeting/POC ke Presales, Solution Architect, dan Tim Engineer

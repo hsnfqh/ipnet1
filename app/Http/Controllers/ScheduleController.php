@@ -29,9 +29,16 @@ class ScheduleController extends Controller
         $isLead = (ScopeHelper::isManagerial($user) || $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO'])) && !$isArchitect;
         $canManageSchedule = ScopeHelper::canManageSchedules($user) || $isArchitect;
 
-        // Auto-heal / Sinkronkan semua Task ke Jadwal Kerja hanya untuk Lead / Field Engineers
+        // Auto-heal / Sinkronkan Task ke Jadwal Kerja sesuai scope divisi user
         if (!$isArchitect) {
-            $allTasks = Task::with('engineers')->whereNotNull('deadline')->get();
+            $taskQuery = Task::with('engineers')->whereNotNull('deadline');
+            if ($scopeIds !== null) {
+                $taskQuery->where(function($q) use ($scopeIds) {
+                    $q->whereIn('engineer_id', $scopeIds)
+                      ->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                });
+            }
+            $allTasks = $taskQuery->get();
             foreach ($allTasks as $matchingTask) {
                 $taskDate = $matchingTask->deadline->format('Y-m-d');
                 $taskTime = $matchingTask->deadline_time 
@@ -280,7 +287,16 @@ class ScheduleController extends Controller
                 ];
             });
 
-        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect'));
+        $isMaintenance = ScopeHelper::isMaintenance($user);
+        $msTickets = collect([]);
+        if ($isMaintenance || ScopeHelper::isGlobal($user)) {
+            $msTickets = \App\Models\ManagedServiceTicket::with(['assignedEngineer', 'asset', 'project'])
+                ->whereIn('status', ['Open', 'In Progress', 'Pending Vendor'])
+                ->latest()
+                ->get();
+        }
+
+        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect', 'isMaintenance', 'msTickets'));
     }
 
     /**

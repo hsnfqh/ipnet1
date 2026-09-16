@@ -743,6 +743,18 @@
                         <div style="padding:22px;">
                             <form @submit.prevent="saveSchedule">
                                 <div style="display:flex; flex-direction:column; gap:16px;">
+                                    @if($isMaintenance ?? false)
+                                    <div x-show="!editing && msTickets && msTickets.length > 0">
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Pilih Tiket SLA (Opsional)</label>
+                                        <select x-model="selectedTicketId" @change="applyTicketScheduleAutoFill($event.target.value)"
+                                                style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:#FFFFFF; box-sizing:border-box; transition:border-color 0.15s ease; cursor:pointer;">
+                                            <option value="">-- Pilih Tiket SLA --</option>
+                                            <template x-for="t in msTickets" :key="t.id">
+                                                <option :value="t.id" x-text="'[' + t.ticket_number + '] ' + (t.client_name || (t.project ? t.project.name : '')) + ' - ' + t.title + ' (' + (t.priority || 'Medium') + ')'"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    @endif
                                     <!-- Pilihan Kategori Jadwal -->
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">
@@ -842,6 +854,7 @@
                                         <input type="text" x-model="form.title" :placeholder="form.category === 'Day Off' ? 'Contoh: Day Off / Cuti' : (isArchitect ? 'Contoh: Kajian Arsitektur Proyek XYZ / Sesi PoC Lab' : 'Contoh: Meeting Koordinasi Proyek ABC')" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:#FFFFFF; box-sizing:border-box; transition:border-color 0.15s ease;" required>
                                     </div>
 
+                                    @if(!($isMaintenance ?? false))
                                     <div x-show="form.category !== 'Day Off'">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Project Terkait (Opsional)</label>
                                         <select x-model="form.project_id" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:#FFFFFF; box-sizing:border-box; transition:border-color 0.15s ease;">
@@ -861,6 +874,7 @@
                                                    style="width:100%; padding:9px 12px; border-radius:8px; border:1.5px solid #C81E2C; font-size:13.5px; color:#0F172A; outline:none; background:#FFF5F5; box-sizing:border-box;">
                                         </div>
                                     </div>
+                                    @endif
 
                                     @if(!($isArchitect ?? false))
                                     <div>
@@ -1908,6 +1922,9 @@
                 calendarProjects: @json($calendarProjects),
                 projects: @json($projects),
                 engineers: @json($engineers),
+                msTickets: @json($msTickets ?? []),
+                isMaintenance: @json($isMaintenance ?? false),
+                selectedTicketId: '',
                 isArchitect: @json($isArchitect ?? false),
                 viewMode: 'week',
                 currentDate: new Date(),
@@ -2509,6 +2526,7 @@
                         };
                     } else {
                         this.editing = false;
+                        this.selectedTicketId = '';
                         var todayFormatted = this.formatDate(new Date());
                         var initialEngIds = this.isArchitect ? [{{ auth()->id() }}] : (this.engineers.length > 0 ? [this.engineers[0].id] : [{{ auth()->id() }}]);
                         var targetDate = this.viewMode === 'day' ? this.currentDateStr : todayFormatted;
@@ -2538,6 +2556,87 @@
                         };
                     }
                     this.modalOpen = true;
+                },
+
+                applyTicketScheduleAutoFill: function(ticketId) {
+                    if (!ticketId) return;
+                    var ticket = this.msTickets.find(function(t) { return String(t.id) === String(ticketId); });
+                    if (!ticket) return;
+
+                    this.setCategory('Task');
+                    this.form.title = '[' + ticket.ticket_number + '] ' + ticket.title;
+
+                    // Match project
+                    if (ticket.project_id) {
+                        this.form.project_id = ticket.project_id;
+                        this.form.new_project_name = '';
+                    } else {
+                        var clientName = ticket.client_name || (ticket.asset ? ticket.asset.client_name : '');
+                        var matchedProject = this.projects.find(function(p) {
+                            return clientName && (p.name.toLowerCase().includes(clientName.toLowerCase()) || (p.client && p.client.toLowerCase().includes(clientName.toLowerCase())));
+                        });
+                        if (matchedProject) {
+                            this.form.project_id = matchedProject.id;
+                            this.form.new_project_name = '';
+                        } else if (clientName) {
+                            this.form.project_id = 'other';
+                            this.form.new_project_name = clientName;
+                        } else {
+                            this.form.project_id = null;
+                        }
+                    }
+
+                    // Sessions / Date / Time / Location
+                    var dateStr = '';
+                    var timeStr = '09:00';
+                    if (ticket.sla_deadline) {
+                        var parts = ticket.sla_deadline.split('T');
+                        dateStr = parts[0];
+                        if (parts[1]) {
+                            timeStr = parts[1].substring(0, 5);
+                        }
+                    } else {
+                        var today = new Date();
+                        dateStr = this.formatDate(today);
+                    }
+
+                    var locationStr = (ticket.asset ? (ticket.asset.location || '') : '') || (ticket.project ? (ticket.project.location || '') : '') || 'On-Site Klien';
+
+                    this.form.date = dateStr;
+                    this.form.start_time = timeStr;
+                    this.form.location = locationStr;
+                    this.form.sessions = [{
+                        date: dateStr,
+                        start_time: timeStr,
+                        end_time: '',
+                        location: locationStr
+                    }];
+
+                    // Assigned technician
+                    if (ticket.assigned_to) {
+                        var engId = parseInt(ticket.assigned_to, 10);
+                        if (this.engineers.some(function(e) { return parseInt(e.id, 10) === engId; })) {
+                            this.form.engineer_ids = [engId];
+                            this.form.engineer_id = engId;
+                        }
+                    }
+
+                    // Priority mapping
+                    var p = (ticket.priority || '').toLowerCase();
+                    if (p === 'critical' || p === 'high') {
+                        this.form.task_priority = 'High';
+                    } else if (p === 'major' || p === 'medium') {
+                        this.form.task_priority = 'Medium';
+                    } else {
+                        this.form.task_priority = 'Low';
+                    }
+
+                    // Description
+                    var desc = 'Nomor Tiket: ' + ticket.ticket_number + '\n' +
+                               'Pelapor: ' + (ticket.reported_by || '-') + (ticket.contact_phone ? ' (' + ticket.contact_phone + ')' : '') + '\n' +
+                               'Perangkat: ' + (ticket.asset ? (ticket.asset.name + ' - ' + ticket.asset.serial_number) : '-') + '\n\n' +
+                               'Deskripsi Kendala:\n' + (ticket.description || '-');
+                    this.form.description = desc;
                 },
 
                 editSchedule: function(schedule) {

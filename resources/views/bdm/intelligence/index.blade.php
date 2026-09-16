@@ -2,6 +2,7 @@
 
 @section('title', 'Market Intelligence - BDM Portal')
 
+@section('content')
 <div class="flex h-screen overflow-hidden" x-data="{ 
     isIntelModalOpen: false, 
     isDetailModalOpen: false, 

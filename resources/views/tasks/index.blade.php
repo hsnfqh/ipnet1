@@ -73,6 +73,7 @@
 
                 <!-- Filter Controls -->
                 <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3">
+                    @if(!($isMaintenance ?? false))
                     <select x-model="filterProject" 
                             class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="">Semua Project</option>
@@ -80,6 +81,7 @@
                             <option :value="project.id" x-text="project.name"></option>
                         </template>
                     </select>
+                    @endif
 
                     <select x-model="filterPriority" 
                             class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
@@ -255,159 +257,237 @@
             <template x-teleport="body">
                 <div x-show="modalOpen"
                      x-cloak
-                     style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
+                     style="position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(3px);"
                      @click.self="modalOpen = false">
 
-                    <div style="background:white; border-radius:16px; width:640px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(14,13,18,0.15); margin:auto; position:relative; animation:fadeInUp 0.2s ease;">
+                    <div style="background:white; border-radius:20px; width:660px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 60px rgba(15,23,42,0.22); margin:auto; position:relative; border:1px solid #E2E8F0; animation:fadeInUp 0.2s ease;">
 
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px; position:sticky; top:0; background:white; border-bottom:1px solid #E7E5E3; border-radius:16px 16px 0 0;">
-                            <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:16px; font-weight:600; color:#17151C;" x-text="editing ? 'Edit Task' : 'Buat & Assign Task'"></h3>
-                            <button @click="modalOpen = false" style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:8px; transition:all 0.15s ease; flex-shrink:0;" onmouseover="this.style.background='#F1F0EE'" onmouseout="this.style.background='transparent'">
-                                <svg style="width:20px; height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <!-- Modal Header -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 24px; position:sticky; top:0; background:white; border-bottom:1px solid #E2E8F0; border-radius:20px 20px 0 0; z-index:10;">
+                            <div>
+                                <div style="display:inline-flex; align-items:center; gap:6px; background:#FEF2F2; border:1px solid #FECACA; padding:2px 8px; border-radius:6px; margin-bottom:4px;">
+                                    <span style="width:6px; height:6px; border-radius:50%; background:#8F0A0D;"></span>
+                                    <span style="font-size:10.5px; font-weight:700; color:#8F0A0D; text-transform:uppercase; letter-spacing:0.5px;" x-text="isMaintenance ? 'TUGAS MAINTENANCE & SLA' : 'MANAJEMEN PENUGASAN'"></span>
+                                </div>
+                                <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:17px; font-weight:800; color:#0F172A;" x-text="editing ? 'Edit Penugasan Task' : (isMaintenance ? 'Buat & Delegasikan Tugas Maintenance' : 'Buat & Assign Task')"></h3>
+                            </div>
+                            <button @click="modalOpen = false" style="background:#F8FAFC; border:1px solid #E2E8F0; cursor:pointer; color:#64748B; padding:7px; border-radius:10px; transition:all 0.15s ease; flex-shrink:0; display:flex; align-items:center; justify-content:center;" onmouseover="this.style.background='#F1F5F9'; this.style.color='#0F172A'; this.style.borderColor='#CBD5E1'" onmouseout="this.style.background='#F8FAFC'; this.style.color='#64748B'; this.style.borderColor='#E2E8F0'">
+                                <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
 
-                        <div style="padding:18px;">
+                        <!-- Modal Body -->
+                        <div style="padding:24px;">
                             <form @submit.prevent="saveTask">
-                                <div style="display:flex; flex-direction:column; gap:14px;">
+                                <div style="display:flex; flex-direction:column; gap:18px;">
+                                    @if($isMaintenance ?? false)
+                                    <div x-show="!editing && msTickets && msTickets.length > 0" style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:12px; padding:14px;">
+                                        <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                            <svg style="width:15px; height:15px; color:#8F0A0D;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                                            </svg>
+                                            <label style="font-size:11.5px; font-weight:700; color:#1E293B; text-transform:uppercase; letter-spacing:0.4px;">Pilih Tiket SLA / Insiden (Auto-Fill)</label>
+                                        </div>
+                                        <select x-model="selectedTicketId" @change="applyTicketAutoFill($event.target.value)"
+                                                style="width:100%; padding:10px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box; cursor:pointer;">
+                                            <option value="">-- Pilih Tiket SLA untuk Mengisi Form Otomatis --</option>
+                                            <template x-for="t in msTickets" :key="t.id">
+                                                <option :value="t.id" x-text="'[' + t.ticket_number + '] ' + (t.client_name || (t.project ? t.project.name : '')) + ' - ' + t.title + ' (' + (t.priority || 'Medium') + ')'"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    @endif
+
                                     <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Judul Task</label>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Judul Task <span style="color:#8F0A0D;">*</span></label>
                                         <input type="text" x-model="form.title"
-                                               style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;"
+                                               placeholder="{{ ($isMaintenance ?? false) ? 'Contoh: [INC-2026-001] Penanganan Switch Flapping Sentul...' : 'Contoh: Setup Konfigurasi Routing...' }}"
+                                               style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:all 0.15s ease; box-sizing:border-box;"
+                                               onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
+                                               onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'"
                                                required>
                                     </div>
+
+                                    @if(!($isMaintenance ?? false))
                                     <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Project</label>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Project <span style="color:#8F0A0D;">*</span></label>
                                         <select x-model="form.project_id"
-                                                style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;"
+                                                style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:all 0.15s ease; box-sizing:border-box; cursor:pointer;"
+                                                onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
+                                                onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'"
                                                 required>
                                             <option value="">Pilih Project</option>
                                             <template x-for="project in modalProjects" :key="project.id">
                                                 <option :value="project.id" x-text="project.name"></option>
                                             </template>
-                                            <option value="other" style="font-weight:600; color:#C81E2C;">Other</option>
+                                            <option value="other" style="font-weight:600; color:#8F0A0D;">+ Input Project Lainnya (Other)</option>
                                         </select>
                                         <!-- Input nama project jika memilih 'other' -->
                                         <div x-show="form.project_id === 'other'" style="margin-top:8px; animation:fadeInUp 0.2s ease;">
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#C81E2C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">
-                                                Nama Project
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#8F0A0D; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">
+                                                Nama Project Baru
                                             </label>
                                             <input type="text" x-model="form.new_project_name"
                                                    placeholder="Masukkan nama project..."
-                                                   style="width:100%; padding:9px 12px; border-radius:8px; border:1.5px solid #C81E2C; font-size:14px; color:#17151C; outline:none; background:#FFF5F5; box-sizing:border-box;"
+                                                   style="width:100%; padding:10px 14px; border-radius:10px; border:1.5px solid #8F0A0D; font-size:13.5px; color:#0F172A; outline:none; background:#FFF5F5; box-sizing:border-box;"
                                                    :required="form.project_id === 'other'">
                                         </div>
                                     </div>
+                                    @endif
+
+                                    <!-- TIM PELAKSANA & PENDAMPING LAPANGAN -->
                                     <div>
-                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                            <label style="font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                            <label style="font-size:11.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">
                                                 Tim Pelaksana & Pendamping Lapangan
                                             </label>
-                                            <span style="font-size:11px; color:#C81E2C; font-weight:600;" x-text="(form.engineer_ids?.length || 0) + ' Teknisi Dipilih'"></span>
+                                            <span style="font-size:11.5px; color:#8F0A0D; font-weight:700; background:#FEF2F2; padding:2px 10px; border-radius:12px; border:1px solid #FECACA;" x-text="(form.engineer_ids?.length || 0) + ' Teknisi Terpilih'"></span>
                                         </div>
 
                                         <!-- Chip tag teknisi terpilih -->
-                                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; min-height:36px; padding:6px; background:#F8F7F6; border:1px solid #E7E5E3; border-radius:8px; align-items:center;">
+                                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; min-height:42px; padding:6px 10px; background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:12px; align-items:center;">
                                             <template x-for="(engId, idx) in form.engineer_ids" :key="engId">
-                                                <div style="display:inline-flex; align-items:center; gap:5px; background:white; border:1px solid #E7E5E3; padding:3px 8px; border-radius:20px; font-size:11.5px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
-                                                    <span style="width:6px; height:6px; border-radius:50%;" :style="{ background: idx === 0 ? '#C81E2C' : '#2563EB' }"></span>
-                                                    <span style="font-weight:600; color:#17151C;" x-text="getEngineerName(engId)"></span>
-                                                    <span style="font-size:9.5px; font-weight:700; padding:1px 5px; border-radius:10px;" :style="{ background: idx === 0 ? '#FDF1F2' : '#EFF6FF', color: idx === 0 ? '#C81E2C' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC' : 'Pendamping'"></span>
-                                                    <button type="button" @click="toggleEngineer(engId)" style="background:none; border:none; color:#75727C; cursor:pointer; padding:0; display:flex; align-items:center;" title="Hapus">
-                                                        <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                <div style="display:inline-flex; align-items:center; gap:6px; background:white; border:1px solid #CBD5E1; padding:4px 10px 4px 6px; border-radius:20px; font-size:12px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                                                    <span style="width:7px; height:7px; border-radius:50%;" :style="{ background: idx === 0 ? '#8F0A0D' : '#2563EB' }"></span>
+                                                    <span style="font-weight:700; color:#0F172A;" x-text="getEngineerName(engId)"></span>
+                                                    <span style="font-size:9.5px; font-weight:800; padding:1.5px 7px; border-radius:10px;" :style="{ background: idx === 0 ? '#FEF2F2' : '#EFF6FF', color: idx === 0 ? '#8F0A0D' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC Utama' : 'Pendamping'"></span>
+                                                    <button type="button" @click="toggleEngineer(engId)" style="background:none; border:none; color:#94A3B8; cursor:pointer; padding:0; display:flex; align-items:center; transition:color 0.15s;" onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='#94A3B8'" title="Hapus">
+                                                        <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                                                     </button>
                                                 </div>
                                             </template>
-                                            <span x-show="!form.engineer_ids || form.engineer_ids.length === 0" style="font-size:12px; color:#948F99; margin-left:4px;">Pilih minimal 1 teknisi dari daftar di bawah...</span>
+                                            <span x-show="!form.engineer_ids || form.engineer_ids.length === 0" style="font-size:12px; color:#94A3B8; margin-left:4px;">Klik nama teknisi di bawah untuk menambahkan...</span>
                                         </div>
 
-                                        <!-- Checklist teknisi (dengan tinggi lega 210px agar nyaman dan tidak terpotong) -->
-                                        <div style="max-height:210px; overflow-y:auto; border:1px solid #E7E5E3; border-radius:8px; background:white; padding:4px;">
-                                            <template x-for="engineer in engineers" :key="engineer.id">
+                                        <!-- Filter Pencarian Teknisi / Engineer -->
+                                        <div style="margin-bottom:8px; position:relative;">
+                                            <input type="text" x-model="engineerSearch"
+                                                   placeholder="Cari nama teknisi / divisi..."
+                                                   style="width:100%; padding:8px 12px 8px 32px; border-radius:8px; border:1px solid #E2E8F0; font-size:12px; color:#0F172A; outline:none; background:#FFFFFF; box-sizing:border-box;">
+                                            <svg style="width:14px; height:14px; color:#94A3B8; position:absolute; left:10px; top:50%; transform:translateY(-50%); pointer-events:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                            </svg>
+                                        </div>
+
+                                        <!-- Checklist teknisi (dengan avatar & role tag rapi) -->
+                                        <div style="max-height:220px; overflow-y:auto; border:1.5px solid #E2E8F0; border-radius:12px; background:white; padding:6px; scrollbar-width:thin;">
+                                            <template x-for="engineer in engineers.filter(e => !engineerSearch || e.name.toLowerCase().includes(engineerSearch.toLowerCase()) || (e.position && e.position.toLowerCase().includes(engineerSearch.toLowerCase())))" :key="engineer.id">
                                                 <div @click="toggleEngineer(engineer.id)" 
-                                                     style="display:flex; align-items:center; justify-content:space-between; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; transition:all 0.1s ease;"
-                                                     :style="{ background: isEngineerSelected(engineer.id) ? '#FDF1F2' : 'transparent' }">
-                                                    <div style="display:flex; align-items:center; gap:8px;">
-                                                        <input type="checkbox" :checked="isEngineerSelected(engineer.id)" style="accent-color:#C81E2C; cursor:pointer; pointer-events:none;">
+                                                     style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:12.5px; transition:all 0.12s ease; margin-bottom:2px;"
+                                                     :style="{ background: isEngineerSelected(engineer.id) ? '#FEF2F2' : 'transparent' }"
+                                                     onmouseover="if(!isEngineerSelected(engineer.id)) this.style.background='#F8FAFC'"
+                                                     onmouseout="if(!isEngineerSelected(engineer.id)) this.style.background='transparent'">
+                                                    <div style="display:flex; align-items:center; gap:10px;">
+                                                        <input type="checkbox" :checked="isEngineerSelected(engineer.id)" style="accent-color:#8F0A0D; cursor:pointer; pointer-events:none; width:15px; height:15px;">
+                                                        <div style="width:28px; height:28px; border-radius:50%; color:#334155; font-size:10.5px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s ease;"
+                                                             :style="{ background: isEngineerSelected(engineer.id) ? '#8F0A0D' : '#F1F5F9', color: isEngineerSelected(engineer.id) ? 'white' : '#475569', border: isEngineerSelected(engineer.id) ? 'none' : '1px solid #CBD5E1' }">
+                                                            <span x-text="engineer.name ? engineer.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase() : '?'"></span>
+                                                        </div>
                                                         <div>
-                                                            <div style="font-weight:600; color:#17151C;" x-text="engineer.name"></div>
-                                                            <div style="font-size:10.5px; color:#75727C;" x-text="engineer.position || engineer.role"></div>
+                                                            <div style="font-weight:700; color:#0F172A;" x-text="engineer.name"></div>
+                                                            <div style="font-size:11px; color:#64748B;" x-text="engineer.position || (engineer.roles && engineer.roles[0] ? engineer.roles[0].name : 'Teknisi / Engineer Lapangan')"></div>
                                                         </div>
                                                     </div>
                                                     <template x-if="isEngineerSelected(engineer.id)">
-                                                        <span style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:10px;" 
-                                                              :style="{ background: (form.engineer_ids && parseInt(form.engineer_ids[0], 10) === parseInt(engineer.id, 10)) ? '#FDF1F2' : '#EFF6FF', color: (form.engineer_ids && parseInt(form.engineer_ids[0], 10) === parseInt(engineer.id, 10)) ? '#C81E2C' : '#1D4ED8' }"
+                                                        <span style="font-size:10px; font-weight:800; padding:2px 8px; border-radius:12px; border:1px solid transparent;" 
+                                                              :style="{ background: (form.engineer_ids && parseInt(form.engineer_ids[0], 10) === parseInt(engineer.id, 10)) ? '#FEE2E2' : '#DBEAFE', color: (form.engineer_ids && parseInt(form.engineer_ids[0], 10) === parseInt(engineer.id, 10)) ? '#991B1B' : '#1E40AF', borderColor: (form.engineer_ids && parseInt(form.engineer_ids[0], 10) === parseInt(engineer.id, 10)) ? '#FCA5A5' : '#BFDBFE' }"
                                                               x-text="(form.engineer_ids && parseInt(form.engineer_ids[0], 10) === parseInt(engineer.id, 10)) ? 'PIC Utama' : 'Pendamping'"></span>
                                                     </template>
                                                 </div>
                                             </template>
                                         </div>
                                     </div>
+
+                                    <!-- PRIORITY & TANGGAL KEGIATAN -->
                                     <div class="modal-grid-2">
                                         <div>
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Priority</label>
-                                            <select x-model="form.priority" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;">
-                                                <option value="High">High</option>
-                                                <option value="Medium">Medium</option>
-                                                <option value="Low">Low</option>
+                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Priority <span style="color:#8F0A0D;">*</span></label>
+                                            <select x-model="form.priority" style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box; cursor:pointer;"
+                                                    onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
+                                                    onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'">
+                                                <option value="High">High (Prioritas Tinggi)</option>
+                                                <option value="Medium">Medium (Standar)</option>
+                                                <option value="Low">Low (Rendah)</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Tanggal Kegiatan</label>
+                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Kegiatan <span style="color:#8F0A0D;">*</span></label>
                                             <input type="date" x-model="form.deadline"
-                                                   style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;"
+                                                   style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box; cursor:pointer;"
+                                                   onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
+                                                   onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'"
                                                    required>
                                         </div>
                                     </div>
+
+                                    <!-- JAM KEGIATAN -->
                                     <div>
-                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                                            <label style="font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                            <label style="font-size:11.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">
                                                 Jam Kegiatan
                                             </label>
-                                            <span style="font-size:10.5px; color:#948F99; font-weight:500;">(Opsional)</span>
+                                            <span style="font-size:11px; color:#94A3B8; font-weight:500;">(Opsional)</span>
                                         </div>
                                         <div style="display:flex; align-items:center; gap:8px;">
                                             <input type="time" x-model="form.deadline_time"
-                                                   style="flex:1; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;">
+                                                   style="flex:1; padding:10px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;"
+                                                   onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
+                                                   onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'">
                                             <button type="button" x-show="form.deadline_time" @click="form.deadline_time = ''" 
-                                                    style="background:#F1F0EE; border:none; padding:9px 12px; border-radius:8px; font-size:11.5px; color:#75727C; cursor:pointer;"
+                                                    style="background:#F1F5F9; border:1px solid #CBD5E1; padding:10px 14px; border-radius:10px; font-size:12px; font-weight:700; color:#475569; cursor:pointer; transition:all 0.15s;"
+                                                    onmouseover="this.style.background='#E2E8F0'" onmouseout="this.style.background='#F1F5F9'"
                                                     title="Hapus jam">Reset Jam</button>
                                         </div>
                                     </div>
-                                    <div x-show="editing" class="modal-grid-2">
+
+                                    <!-- STATUS & PROGRESS (KHUSUS EDIT) -->
+                                    <div x-show="editing" class="modal-grid-2" style="background:#F8FAFC; padding:14px; border-radius:12px; border:1.5px solid #E2E8F0;">
                                         <div>
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Status</label>
-                                            <select x-model="form.status" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box;">
-                                                <option value="Assigned">Assigned</option>
-                                                <option value="In Progress">In Progress</option>
-                                                <option value="Waiting Review">Waiting Review</option>
-                                                <option value="Completed">Completed</option>
+                                            <label style="display:block; font-size:11px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Status Pengerjaan</label>
+                                            <select x-model="form.status" style="width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box; cursor:pointer;">
+                                                <option value="Assigned">Assigned (Belum Dikerjakan)</option>
+                                                <option value="In Progress">In Progress (Sedang Dikerjakan)</option>
+                                                <option value="Waiting Review">Waiting Review (Menunggu Verifikasi)</option>
+                                                <option value="Completed">Completed (Selesai)</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Progress (<span x-text="form.progress"></span>%)</label>
-                                            <input type="range" min="0" max="100" x-model="form.progress" style="width:100%; margin-top:8px; accent-color:#C81E2C;">
+                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                                <label style="font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">Progress</label>
+                                                <span style="font-size:12.5px; font-weight:800; color:#8F0A0D;" x-text="form.progress + '%'"></span>
+                                            </div>
+                                            <input type="range" min="0" max="100" x-model="form.progress" style="width:100%; margin-top:6px; accent-color:#8F0A0D;">
                                         </div>
                                     </div>
+
+                                    <!-- DESKRIPSI -->
                                     <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Deskripsi</label>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Deskripsi / Catatan Tugas</label>
                                         <textarea x-model="form.description"
-                                                  style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; min-height:70px; transition:border 0.15s ease; box-sizing:border-box;"
+                                                  placeholder="Tuliskan catatan teknis atau instruksi pengerjaan..."
+                                                  style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; min-height:85px; transition:border 0.15s ease; box-sizing:border-box; resize:none;"
+                                                  onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
+                                                  onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'"
                                                   rows="3"></textarea>
                                     </div>
                                 </div>
-                                <div style="display:flex; gap:10px; margin-top:16px; padding-top:16px; border-top:1px solid #EFEDEB; flex-wrap:wrap;">
+
+                                <!-- Footer Buttons -->
+                                <div style="display:flex; gap:12px; margin-top:24px; padding-top:18px; border-top:1px solid #E2E8F0; flex-wrap:wrap;">
                                     <button type="submit"
                                             class="btn-ipnet-gradient"
-                                            style="flex:1 1 140px; justify-content:center; padding:10px 17px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:7px;">
-                                        <span x-text="editing ? 'Simpan Perubahan' : 'Simpan Task'"></span>
+                                            style="flex:1 1 160px; justify-content:center; padding:12px 22px; border-radius:12px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(143,10,13,0.25);">
+                                        <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span x-text="editing ? 'Simpan Perubahan' : 'Tugaskan & Simpan Task'"></span>
                                     </button>
                                     <button type="button" @click="modalOpen = false"
-                                            style="flex:1 1 140px; justify-content:center; background:white; color:#3D3A44; border:1px solid #E7E5E3; padding:10px 17px; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.15s ease;"
-                                            onmouseover="this.style.background='#F8F7F6'"
-                                            onmouseout="this.style.background='white'">
+                                            style="flex:1 1 120px; justify-content:center; background:white; color:#334155; border:1.5px solid #CBD5E1; padding:12px 20px; border-radius:12px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:all 0.15s ease;"
+                                            onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8'"
+                                            onmouseout="this.style.background='white'; this.style.borderColor='#CBD5E1'">
                                         Batal
                                     </button>
                                 </div>
@@ -423,54 +503,66 @@
             <template x-teleport="body">
                 <div x-show="progressModalOpen"
                      x-cloak
-                     style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
+                     style="position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(3px);"
                      @click.self="progressModalOpen = false">
 
-                    <div style="background:white; border-radius:16px; width:460px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(14,13,18,0.15); margin:auto; position:relative; animation:fadeInUp 0.2s ease;">
+                    <div style="background:white; border-radius:20px; width:500px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 60px rgba(15,23,42,0.22); margin:auto; position:relative; border:1px solid #E2E8F0; animation:fadeInUp 0.2s ease;">
 
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px; position:sticky; top:0; background:white; border-bottom:1px solid #E7E5E3; border-radius:16px 16px 0 0;">
-                            <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:16px; font-weight:600; color:#17151C;">Update Progress</h3>
-                            <button @click="progressModalOpen = false" style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:8px; transition:all 0.15s ease; flex-shrink:0;" onmouseover="this.style.background='#F1F0EE'" onmouseout="this.style.background='transparent'">
-                                <svg style="width:20px; height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 24px; position:sticky; top:0; background:white; border-bottom:1px solid #E2E8F0; border-radius:20px 20px 0 0;">
+                            <div>
+                                <div style="display:inline-flex; align-items:center; gap:6px; background:#FEF2F2; border:1px solid #FECACA; padding:2px 8px; border-radius:6px; margin-bottom:4px;">
+                                    <span style="width:6px; height:6px; border-radius:50%; background:#8F0A0D;"></span>
+                                    <span style="font-size:10.5px; font-weight:700; color:#8F0A0D; text-transform:uppercase; letter-spacing:0.5px;">PROGRES PEKERJAAN</span>
+                                </div>
+                                <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:17px; font-weight:800; color:#0F172A;">Update Progres Pekerjaan</h3>
+                            </div>
+                            <button @click="progressModalOpen = false" style="background:#F8FAFC; border:1px solid #E2E8F0; cursor:pointer; color:#64748B; padding:7px; border-radius:10px; transition:all 0.15s ease; flex-shrink:0;" onmouseover="this.style.background='#F1F5F9'; this.style.color='#0F172A'" onmouseout="this.style.background='#F8FAFC'; this.style.color='#64748B'">
+                                <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
 
-                        <div style="padding:18px;">
-                            <div style="margin-bottom:16px;">
-                                <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">
-                                    Progress (<span x-text="progressForm.progress"></span>%)
-                                </label>
-                                <input type="range" min="0" max="100" x-model="progressForm.progress" style="width:100%; accent-color:#C81E2C;">
+                        <div style="padding:24px;">
+                            <div style="margin-bottom:18px; background:#F8FAFC; padding:14px; border-radius:12px; border:1.5px solid #E2E8F0;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <label style="font-size:11.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">
+                                        Progres Pengerjaan
+                                    </label>
+                                    <span style="font-size:14px; font-weight:800; color:#8F0A0D;" x-text="progressForm.progress + '%'"></span>
+                                </div>
+                                <input type="range" min="0" max="100" x-model="progressForm.progress" style="width:100%; accent-color:#8F0A0D;">
                             </div>
-                            <div>
-                                <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Upload Dokumentasi</label>
-                                <label style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:13px; color:#75727C; background:white; display:flex; align-items:center; gap:8px; cursor:pointer; transition:border 0.15s ease; box-sizing:border-box;" onmouseover="this.style.borderColor='#C81E2C'" onmouseout="this.style.borderColor='#E7E5E3'">
-                                    <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <div style="margin-bottom:18px;">
+                                <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Upload Bukti / Foto Dokumentasi</label>
+                                <label style="width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13px; color:#64748B; background:#F8FAFC; display:flex; align-items:center; gap:10px; cursor:pointer; transition:all 0.15s ease; box-sizing:border-box;" onmouseover="this.style.borderColor='#8F0A0D'; this.style.background='white';" onmouseout="this.style.borderColor='#CBD5E1'; this.style.background='#F8FAFC';">
+                                    <svg style="width:18px; height:18px; color:#8F0A0D; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                     </svg>
-                                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="progressForm.fileName || 'Pilih file foto/dokumen pekerjaan...'"></span>
+                                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;" x-text="progressForm.fileName || 'Pilih file foto/dokumen pekerjaan...'"></span>
                                     <input type="file" id="doc_file_input" accept="image/*,.pdf,.doc,.docx" style="display:none;" @change="handleFileChange($event)">
                                 </label>
-                                <p x-show="progressForm.fileName" style="font-size:10.5px; color:#1B7A46; margin-top:4px; margin-bottom:0;">File siap diunggah</p>
+                                <p x-show="progressForm.fileName" style="font-size:11.5px; font-weight:700; color:#16A34A; margin-top:6px; margin-bottom:0; display:flex; align-items:center; gap:4px;">
+                                    <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    File siap diunggah
+                                </p>
                             </div>
-                            <div style="margin-bottom:16px;">
-                                <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.3px;">Keterangan / Hasil Pekerjaan</label>
+                            <div style="margin-bottom:20px;">
+                                <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Catatan Hasil Tindakan Teknis</label>
                                 <textarea x-model="progressForm.description"
-                                          style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid #E7E5E3; font-size:14px; color:#17151C; outline:none; background:white; min-height:70px; transition:border 0.15s ease; box-sizing:border-box;"
-                                          placeholder="Tuliskan keterangan update progress..."></textarea>
+                                          style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; min-height:85px; transition:border 0.15s ease; box-sizing:border-box; resize:none;"
+                                          placeholder="Tuliskan tindakan dan hasil penanganan teknis di lapangan..."></textarea>
                             </div>
                             
-                            <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+                            <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
                                 <button @click="saveProgress()"
                                         class="btn-ipnet-gradient"
-                                        style="flex:1 1 140px; justify-content:center; padding:10px 17px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:7px;">
+                                        style="flex:1 1 140px; justify-content:center; padding:12px 20px; border-radius:12px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(143,10,13,0.25);">
                                     Simpan Progress
                                 </button>
                                 <button type="button" @click="progressModalOpen = false"
-                                        style="flex:1 1 140px; justify-content:center; background:white; color:#3D3A44; border:1px solid #E7E5E3; padding:10px 17px; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:7px; transition:all 0.15s ease;"
-                                        onmouseover="this.style.background='#F8F7F6'"
+                                        style="flex:1 1 100px; justify-content:center; background:white; color:#334155; border:1.5px solid #CBD5E1; padding:12px 20px; border-radius:12px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:all 0.15s ease;"
+                                        onmouseover="this.style.background='#F8FAFC'"
                                         onmouseout="this.style.background='white'">
                                     Batal
                                 </button>
@@ -492,26 +584,26 @@
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100"
                      x-transition:leave-end="opacity-0"
-                     class="fixed inset-0 bg-[#0E0D12]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm"
+                     class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-xs"
                      @click.self="confirmOpen = false"
                      @keydown.escape.window="confirmOpen = false">
 
-                    <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(14,13,18,0.2)] animate-fade-in-up">
-                        <div class="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#C81E2C]">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] animate-fade-in-up">
+                        <div class="w-12 h-12 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#8F0A0D]">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                             </svg>
                         </div>
                         
-                        <h3 class="text-center font-display text-[17px] font-bold text-[#17151C] mb-2">Yakin Hapus Task?</h3>
-                        <p class="text-center text-[13.5px] text-[#75727C] mb-6 break-words" x-text="'Task &quot;' + (confirmData?.title || '') + '&quot; akan dihapus.'"></p>
+                        <h3 class="text-center font-display text-[16px] font-bold text-[#1E293B] mb-1.5">Yakin Hapus Task?</h3>
+                        <p class="text-center text-[12.5px] text-[#64748B] mb-6 break-words" x-text="'Task &quot;' + (confirmData?.title || '') + '&quot; akan dihapus secara permanen.'"></p>
 
-                        <div class="flex gap-3">
-                            <button type="button" @click="deleteTask()" class="flex-1 py-2.5 px-4 rounded-xl bg-[#C81E2C] text-white font-semibold text-[13.5px] hover:bg-[#A31622] transition cursor-pointer">
-                                Hapus
-                            </button>
-                            <button type="button" @click="confirmOpen = false" class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#3D3A44] border border-[#E7E5E3] font-semibold text-[13.5px] hover:bg-[#F8F7F6] transition cursor-pointer">
+                        <div class="flex gap-2.5">
+                            <button type="button" @click="confirmOpen = false" class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-[12.5px] hover:bg-[#F8FAFC] transition cursor-pointer text-center">
                                 Batal
+                            </button>
+                            <button type="button" @click="deleteTask()" class="flex-1 py-2.5 px-4 rounded-xl btn-ipnet-gradient font-bold text-[12.5px] transition cursor-pointer shadow-md text-white text-center">
+                                Ya, Hapus
                             </button>
                         </div>
                     </div>
@@ -519,119 +611,135 @@
             </template>
 
             <!-- ========================================================== -->
-            <!-- TASK DETAIL & DOCUMENTATION MODAL -->
+            <!-- DETAIL & DOKUMENTASI TASK MODAL -->
             <!-- ========================================================== -->
             <template x-teleport="body">
                 <div x-show="detailModalOpen"
                      x-cloak
-                     style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
+                     style="position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(3px);"
                      @click.self="detailModalOpen = false">
 
-                    <div style="background:white; border-radius:16px; width:520px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(14,13,18,0.15); margin:auto; position:relative; animation:fadeInUp 0.2s ease;">
+                    <div style="background:white; border-radius:20px; width:580px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 60px rgba(15,23,42,0.22); margin:auto; position:relative; border:1px solid #E2E8F0; animation:fadeInUp 0.2s ease;">
 
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px; position:sticky; top:0; background:white; border-bottom:1px solid #E7E5E3; border-radius:16px 16px 0 0;">
-                            <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:16px; font-weight:600; color:#17151C;">Detail & Dokumentasi Task</h3>
-                            <button @click="detailModalOpen = false" style="background:none; border:none; cursor:pointer; color:#75727C; padding:6px; border-radius:8px; transition:all 0.15s ease;" onmouseover="this.style.background='#F1F0EE'" onmouseout="this.style.background='transparent'">
-                                <svg style="width:20px; height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <!-- Modal Header -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 24px; position:sticky; top:0; background:white; border-bottom:1px solid #E2E8F0; border-radius:20px 20px 0 0; z-index:10;">
+                            <div>
+                                <div style="display:inline-flex; align-items:center; gap:6px; background:#FEF2F2; border:1px solid #FECACA; padding:2px 8px; border-radius:6px; margin-bottom:4px;">
+                                    <span style="width:6px; height:6px; border-radius:50%; background:#8F0A0D;"></span>
+                                    <span style="font-size:10.5px; font-weight:700; color:#8F0A0D; text-transform:uppercase; letter-spacing:0.5px;">DETAIL PENUGASAN</span>
+                                </div>
+                                <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:17px; font-weight:800; color:#0F172A;">Detail & Dokumentasi Task</h3>
+                            </div>
+                            <button @click="detailModalOpen = false" style="background:#F8FAFC; border:1px solid #E2E8F0; cursor:pointer; color:#64748B; padding:7px; border-radius:10px; transition:all 0.15s ease; flex-shrink:0;" onmouseover="this.style.background='#F1F5F9'; this.style.color='#0F172A'" onmouseout="this.style.background='#F8FAFC'; this.style.color='#64748B'">
+                                <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
 
-                        <div style="padding:18px;" x-show="selectedTask">
-                            <h4 style="margin:0 0 4px; font-size:15px; font-weight:600; color:#17151C;" x-text="selectedTask?.title"></h4>
-                            <p style="margin:0 0 14px; font-size:12px; color:#75727C;" x-text="selectedTask?.project?.name"></p>
+                        <!-- Modal Content -->
+                        <div style="padding:24px;" x-show="selectedTask">
+                            <!-- Judul & Project Card Banner -->
+                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px; padding:14px 16px; margin-bottom:16px;">
+                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                                    <span style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px; background:white; border:1px solid #CBD5E1; border-radius:6px; font-size:11px; font-weight:700; color:#475569;" x-text="selectedTask?.project?.name || 'Layanan SLA & Maintenance Support'"></span>
+                                </div>
+                                <h4 style="margin:0; font-size:16px; font-weight:800; color:#0F172A; line-height:1.4;" x-text="selectedTask?.title"></h4>
+                            </div>
 
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; background:#F8F7F6; padding:12px; border-radius:8px; font-size:12px;">
-                                <div style="grid-column: 1 / -1; background:white; border:1px solid #E7E5E3; border-radius:8px; padding:10px 12px;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                        <span style="font-size:11px; font-weight:700; color:#75727C; text-transform:uppercase; letter-spacing:0.3px;">Tim Pelaksana & Pendamping Lapangan</span>
-                                        <span style="font-size:11px; font-weight:600; color:#C81E2C;" x-text="(selectedTask?.engineers?.length || (selectedTask?.engineer ? 1 : 0)) + ' Personil'"></span>
-                                    </div>
-                                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                                        <template x-for="(eng, idx) in (selectedTask?.engineers && selectedTask.engineers.length > 0 ? selectedTask.engineers : (selectedTask?.engineer ? [selectedTask.engineer] : []))" :key="eng.id">
-                                            <div style="display:inline-flex; align-items:center; gap:6px; background:#F8F7F6; border:1px solid #E7E5E3; padding:4px 10px 4px 6px; border-radius:20px; font-size:11.5px;">
-                                                <div style="width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:white;" :style="{ background: idx === 0 ? '#C81E2C' : '#2563EB' }">
-                                                    <span x-text="eng.name ? eng.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase() : '?'"></span>
-                                                </div>
-                                                <div>
-                                                    <span style="font-weight:600; color:#17151C;" x-text="eng.name"></span>
-                                                    <span x-show="eng.position" style="font-size:10px; color:#75727C; margin-left:2px;" x-text="'(' + eng.position + ')'"></span>
-                                                </div>
-                                                <span style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:10px;" :style="{ background: idx === 0 ? '#FDF1F2' : '#EFF6FF', color: idx === 0 ? '#C81E2C' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC Utama' : 'Pendamping'"></span>
+                            <!-- Tim Pelaksana Card -->
+                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px; padding:14px 16px; margin-bottom:16px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <span style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">TIM PELAKSANA & PENDAMPING LAPANGAN</span>
+                                    <span style="font-size:11px; font-weight:700; color:#8F0A0D; background:#FEF2F2; padding:2px 8px; border-radius:12px; border:1px solid #FECACA;" x-text="(selectedTask?.engineers?.length || (selectedTask?.engineer ? 1 : 0)) + ' Personil'"></span>
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                                    <template x-for="(eng, idx) in (selectedTask?.engineers && selectedTask.engineers.length > 0 ? selectedTask.engineers : (selectedTask?.engineer ? [selectedTask.engineer] : []))" :key="eng.id">
+                                        <div style="display:inline-flex; align-items:center; gap:8px; background:white; border:1px solid #CBD5E1; padding:4px 12px 4px 6px; border-radius:20px; font-size:12px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                                            <div style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:white;" :style="{ background: idx === 0 ? '#8F0A0D' : '#2563EB' }">
+                                                <span x-text="eng.name ? eng.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase() : '?'"></span>
                                             </div>
-                                        </template>
-                                    </div>
+                                            <div>
+                                                <span style="font-weight:700; color:#0F172A;" x-text="eng.name"></span>
+                                                <span x-show="eng.position" style="font-size:11px; color:#64748B; margin-left:3px;" x-text="'(' + eng.position + ')'"></span>
+                                            </div>
+                                            <span style="font-size:9.5px; font-weight:800; padding:1.5px 7px; border-radius:10px;" :style="{ background: idx === 0 ? '#FEF2F2' : '#EFF6FF', color: idx === 0 ? '#8F0A0D' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC Utama' : 'Pendamping'"></span>
+                                        </div>
+                                    </template>
                                 </div>
-                                <div>
-                                    <span style="color:#75727C; font-weight:500;">Priority:</span>
-                                    <span style="display:block;" x-html="getPriorityFlag(selectedTask?.priority)"></span>
+                            </div>
+
+                            <!-- 3 Kolom Info: Priority, Status, Tanggal -->
+                            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:16px;">
+                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px;">
+                                    <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.4px;">PRIORITY</span>
+                                    <div x-html="getPriorityFlag(selectedTask?.priority)"></div>
                                 </div>
-                                <div>
-                                    <span style="color:#75727C; font-weight:500;">Status:</span>
-                                    <strong style="color:#C81E2C; display:block;" x-text="selectedTask?.status"></strong>
+                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px;">
+                                    <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.4px;">STATUS</span>
+                                    <strong style="font-size:13px; color:#8F0A0D; display:block;" x-text="selectedTask?.status"></strong>
                                 </div>
-                                <div>
-                                    <span style="color:#75727C; font-weight:500;">Tanggal Kegiatan:</span>
-                                    <strong style="color:#17151C; display:block;" x-text="formatDeadline(selectedTask?.deadline, selectedTask?.deadline_time)"></strong>
+                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px;">
+                                    <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.4px;">TANGGAL KEGIATAN</span>
+                                    <strong style="font-size:12.5px; color:#0F172A; display:block;" x-text="formatDeadline(selectedTask?.deadline, selectedTask?.deadline_time)"></strong>
                                 </div>
                             </div>
 
                             <!-- Progress Bar -->
-                            <div style="margin-bottom:16px;">
-                                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-                                    <span style="font-weight:600; color:#3D3A44;">Progress Pengerjaan</span>
-                                    <span style="font-weight:700; color:#C81E2C;" x-text="(selectedTask?.progress || 0) + '%'"></span>
+                            <div style="margin-bottom:16px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 16px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; margin-bottom:8px;">
+                                    <span style="font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.4px; font-size:11px;">Progress Pengerjaan</span>
+                                    <span style="font-weight:800; color:#8F0A0D; font-size:13.5px;" x-text="(selectedTask?.progress || 0) + '%'"></span>
                                 </div>
-                                <div style="width:100%; background:#EFEDEB; border-radius:20px; height:8px; overflow:hidden;">
-                                    <div style="height:100%; border-radius:20px; background:linear-gradient(90deg, #AF1424, #D62E3C); transition:width .3s ease;" :style="{ width: (selectedTask?.progress || 0) + '%' }"></div>
+                                <div style="width:100%; background:#E2E8F0; border-radius:20px; height:8px; overflow:hidden;">
+                                    <div style="height:100%; border-radius:20px; background:linear-gradient(90deg, #8F0A0D, #DC2626); transition:width .3s ease;" :style="{ width: (selectedTask?.progress || 0) + '%' }"></div>
                                 </div>
                             </div>
 
                             <!-- Description -->
                             <div style="margin-bottom:16px;" x-show="selectedTask?.description">
-                                <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:4px; text-transform:uppercase;">Deskripsi</label>
-                                <p style="margin:0; font-size:13px; color:#3D3A44; background:#F9F9F8; padding:10px; border-radius:8px; white-space:pre-line;" x-text="selectedTask?.description"></p>
+                                <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">DESKRIPSI & RINCIAN MASALAH</label>
+                                <div style="font-size:13px; color:#334155; background:#F8FAFC; padding:14px 16px; border-radius:12px; border:1px solid #E2E8F0; border-left:4px solid #8F0A0D; white-space:pre-line; line-height:1.6;" x-text="selectedTask?.description"></div>
                             </div>
 
                             <!-- Uploaded Proof / Photo Documentation -->
-                            <div style="margin-bottom:14px;">
-                                <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase;">Dokumentasi Foto / File Upload</label>
+                            <div style="margin-bottom:16px;">
+                                <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">DOKUMENTASI FOTO / FILE UPLOAD</label>
 
                                 <template x-if="selectedTask?.doc_file">
                                     <div>
                                         <!-- Image Preview if image -->
-                                        <div x-show="selectedTask.doc_file.match(/\.(jpg|jpeg|png|gif|webp)$/i)" style="margin-bottom:10px; border-radius:8px; overflow:hidden; border:1px solid #E7E5E3; background:#17151C; text-align:center;">
-                                            <img :src="'/storage/' + selectedTask.doc_file" style="max-width:100%; max-height:300px; object-fit:contain; margin:auto; display:block;" alt="Dokumentasi Pekerjaan">
+                                        <div x-show="selectedTask.doc_file.match(/\.(jpg|jpeg|png|gif|webp)$/i)" style="margin-bottom:10px; border-radius:12px; overflow:hidden; border:1px solid #CBD5E1; background:#0F172A; text-align:center;">
+                                            <img :src="'/storage/' + selectedTask.doc_file" style="max-width:100%; max-height:280px; object-fit:contain; margin:auto; display:block;" alt="Dokumentasi Pekerjaan">
                                         </div>
 
-                                        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#E4F3EA; border-radius:8px; gap:8px;">
-                                            <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
-                                                <svg style="width:18px; height:18px; color:#1B7A46; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                <span style="font-size:12px; font-weight:600; color:#1B7A46; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="selectedTask.doc_file.split('/').pop()"></span>
+                                        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#ECFDF5; border:1px solid #A7F3D0; border-radius:12px; gap:10px;">
+                                            <div style="display:flex; align-items:center; gap:10px; overflow:hidden;">
+                                                <svg style="width:20px; height:20px; color:#059669; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                <span style="font-size:13px; font-weight:700; color:#065F46; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="selectedTask.doc_file.split('/').pop()"></span>
                                             </div>
-                                            <a :href="'/storage/' + selectedTask.doc_file" target="_blank" download style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#1B7A46; background:white; padding:5px 12px; border-radius:6px; border:1px solid #1B7A46; text-decoration:none; flex-shrink:0;">
-                                                <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                Buka / Unduh
+                                            <a :href="'/storage/' + selectedTask.doc_file" target="_blank" download style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#065F46; background:white; padding:7px 14px; border-radius:8px; border:1px solid #6EE7B7; text-decoration:none; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                                                <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                Unduh File
                                             </a>
                                         </div>
                                     </div>
                                 </template>
 
                                 <template x-if="!selectedTask?.doc_file">
-                                    <div style="padding:16px; border:1px dashed #E7E5E3; border-radius:8px; text-align:center; color:#948F99; font-size:12px;">
+                                    <div style="padding:20px; border:1.5px dashed #CBD5E1; border-radius:12px; text-align:center; color:#94A3B8; font-size:13px; background:#F8FAFC;">
                                         Belum ada dokumentasi foto/file yang diupload untuk task ini.
                                     </div>
                                 </template>
                             </div>
 
                             <!-- Detail Modal Footer Actions -->
-                            <div style="margin-top:20px; padding-top:16px; border-top:1px solid #E7E5E3; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                            <div style="margin-top:24px; padding-top:18px; border-top:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
                                 @if($canManage)
                                 <template x-if="selectedTask?.status !== 'Completed' || selectedTask?.progress < 100">
                                     <button type="button" 
                                             @click="quickCompleteTask(selectedTask); detailModalOpen = false;"
-                                            style="padding:9px 18px; border-radius:8px; border:none; background:#16A34A; color:white; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(22,163,74,0.25); transition:all 0.15s ease;"
+                                            style="padding:11px 22px; border-radius:12px; border:none; background:#16A34A; color:white; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(22,163,74,0.25); transition:all 0.15s ease;"
                                             onmouseover="this.style.background='#15803D'"
                                             onmouseout="this.style.background='#16A34A'">
                                         <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
@@ -639,7 +747,7 @@
                                     </button>
                                 </template>
                                 @endif
-                                <button type="button" @click="detailModalOpen = false" style="padding:9px 18px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13px; font-weight:600; color:#3D3A44; cursor:pointer; margin-left:auto;">
+                                <button type="button" @click="detailModalOpen = false" style="padding:11px 24px; border-radius:12px; border:1.5px solid #CBD5E1; background:white; font-size:13px; font-weight:700; color:#334155; cursor:pointer; margin-left:auto; transition:all 0.15s ease;" onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8'" onmouseout="this.style.background='white'; this.style.borderColor='#CBD5E1'">
                                     Tutup
                                 </button>
                             </div>
@@ -778,6 +886,9 @@
                 projects: @json($projects),
                 formProjects: @json($formProjects ?? $projects),
                 engineers: @json($engineers),
+                msTickets: @json($msTickets ?? []),
+                isMaintenance: {{ ($isMaintenance ?? false) ? 'true' : 'false' }},
+                selectedTicketId: '',
                 currentUserId: {{ (int) $currentUserId }},
                 isLead: {{ $isLead ? 'true' : 'false' }},
                 modalOpen: false,
@@ -886,6 +997,7 @@
 
                 openModal: function() {
                     this.editing = false;
+                    this.selectedTicketId = '';
                     this.engineerDropdownOpen = false;
                     this.engineerSearch = '';
                     var initialEngId = this.engineers[0]?.id || null;
@@ -904,6 +1016,73 @@
                         description: ''
                     };
                     this.modalOpen = true;
+                },
+
+                applyTicketAutoFill: function(ticketId) {
+                    if (!ticketId) return;
+                    var ticket = this.msTickets.find(function(t) { return String(t.id) === String(ticketId); });
+                    if (!ticket) return;
+
+                    this.form.title = '[' + ticket.ticket_number + '] ' + ticket.title;
+
+                    // Match project
+                    if (ticket.project_id) {
+                        this.form.project_id = ticket.project_id;
+                        this.form.new_project_name = '';
+                    } else {
+                        var clientName = ticket.client_name || (ticket.asset ? ticket.asset.client_name : '');
+                        var matchedProject = this.projects.find(function(p) {
+                            return clientName && (p.name.toLowerCase().includes(clientName.toLowerCase()) || (p.client && p.client.toLowerCase().includes(clientName.toLowerCase())));
+                        });
+                        if (matchedProject) {
+                            this.form.project_id = matchedProject.id;
+                            this.form.new_project_name = '';
+                        } else if (clientName) {
+                            this.form.project_id = 'other';
+                            this.form.new_project_name = clientName;
+                        } else {
+                            this.form.project_id = this.projects[0]?.id || null;
+                        }
+                    }
+
+                    // Priority mapping
+                    var p = (ticket.priority || '').toLowerCase();
+                    if (p === 'critical' || p === 'high') {
+                        this.form.priority = 'High';
+                    } else if (p === 'major' || p === 'medium') {
+                        this.form.priority = 'Medium';
+                    } else {
+                        this.form.priority = 'Low';
+                    }
+
+                    // Deadline date & time
+                    if (ticket.sla_deadline) {
+                        var parts = ticket.sla_deadline.split('T');
+                        this.form.deadline = parts[0];
+                        if (parts[1]) {
+                            this.form.deadline_time = parts[1].substring(0, 5);
+                        }
+                    } else {
+                        var today = new Date();
+                        this.form.deadline = today.toISOString().split('T')[0];
+                        this.form.deadline_time = '10:00';
+                    }
+
+                    // Assigned technician
+                    if (ticket.assigned_to) {
+                        var engId = parseInt(ticket.assigned_to, 10);
+                        if (this.engineers.some(function(e) { return parseInt(e.id, 10) === engId; })) {
+                            this.form.engineer_ids = [engId];
+                            this.form.engineer_id = engId;
+                        }
+                    }
+
+                    // Description
+                    var desc = 'Nomor Tiket: ' + ticket.ticket_number + '\n' +
+                               'Pelapor: ' + (ticket.reported_by || '-') + (ticket.contact_phone ? ' (' + ticket.contact_phone + ')' : '') + '\n' +
+                               'Perangkat: ' + (ticket.asset ? (ticket.asset.name + ' - ' + ticket.asset.serial_number) : '-') + '\n\n' +
+                               'Deskripsi Kendala:\n' + (ticket.description || '-');
+                    this.form.description = desc;
                 },
 
                 editTask: function(task) {
@@ -980,14 +1159,16 @@
 
                 saveTask: async function() {
                     try {
-                        if (this.form.project_id === 'other') {
-                            if (!this.form.new_project_name || !this.form.new_project_name.trim()) {
-                                this.showToast('Silakan masukkan nama project!');
+                        if (!this.isMaintenance) {
+                            if (this.form.project_id === 'other') {
+                                if (!this.form.new_project_name || !this.form.new_project_name.trim()) {
+                                    this.showToast('Silakan masukkan nama project!');
+                                    return;
+                                }
+                            } else if (!this.form.project_id) {
+                                this.showToast('Silakan pilih project!');
                                 return;
                             }
-                        } else if (!this.form.project_id) {
-                            this.showToast('Silakan pilih project!');
-                            return;
                         }
 
                         if (!this.form.engineer_ids || this.form.engineer_ids.length === 0) {

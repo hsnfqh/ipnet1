@@ -151,13 +151,16 @@ Route::middleware(['auth'])->group(function () {
         // CI Assets
         Route::get('/assets', [\App\Http\Controllers\ManagedServiceController::class, 'assets'])->name('ms.assets.index');
         Route::post('/assets', [\App\Http\Controllers\ManagedServiceController::class, 'storeAsset'])->name('ms.assets.store');
+        Route::get('/assets/{asset}', fn() => redirect()->route('ms.assets.index'));
         Route::put('/assets/{asset}', [\App\Http\Controllers\ManagedServiceController::class, 'updateAsset'])->name('ms.assets.update');
         Route::delete('/assets/{asset}', [\App\Http\Controllers\ManagedServiceController::class, 'destroyAsset'])->name('ms.assets.destroy');
 
         // Incident & Service Request Tickets
         Route::get('/tickets', [\App\Http\Controllers\ManagedServiceController::class, 'tickets'])->name('ms.tickets.index');
         Route::post('/tickets', [\App\Http\Controllers\ManagedServiceController::class, 'storeTicket'])->name('ms.tickets.store');
+        Route::get('/tickets/{ticket}', fn() => redirect()->route('ms.tickets.index'));
         Route::put('/tickets/{ticket}', [\App\Http\Controllers\ManagedServiceController::class, 'updateTicket'])->name('ms.tickets.update');
+        Route::delete('/tickets/{ticket}', [\App\Http\Controllers\ManagedServiceController::class, 'destroyTicket'])->name('ms.tickets.destroy');
 
         // Preventive Maintenance
         Route::get('/maintenance', [\App\Http\Controllers\ManagedServiceController::class, 'maintenance'])->name('ms.maintenance.index');

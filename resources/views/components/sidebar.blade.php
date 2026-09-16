@@ -56,7 +56,6 @@
             ['key' => 'ms_dashboard', 'label' => 'Dashboard',         'route' => 'ms.dashboard'],
             ['key' => 'ms_tickets',   'label' => 'Tiket & SLA',          'route' => 'ms.tickets.index'],
             ['key' => 'ms_assets',    'label' => 'Aset Perangkat',       'route' => 'ms.assets.index'],
-            ['key' => 'ms_pm',        'label' => 'Maintenance Berkala', 'route' => 'ms.maintenance.index'],
             ['key' => 'tasks',        'label' => 'Daftar Tugas',         'route' => 'tasks.index'],
             ['key' => 'schedules',    'label' => 'Jadwal Kerja',         'route' => 'schedules.index'],
             ['key' => 'timesheets',   'label' => 'Timesheet',            'route' => 'timesheets.index'],

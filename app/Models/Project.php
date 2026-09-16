@@ -238,16 +238,16 @@ class Project extends Model
         return !empty($this->visit_schedule) && $this->visit_schedule !== 'None' && $this->visit_schedule !== '-';
     }
 
-    public function getSlaTierInfoAttribute(): ?array
+    public static function getSlaTierDetails(?string $tier): ?array
     {
-        if (!$this->sla_tier) {
+        if (!$tier) {
             return null;
         }
 
         $tiers = [
             'Platinum' => [
                 'tier'              => 'Platinum',
-                'icon'              => '💎',
+                'icon'              => '',
                 'bg'                => 'bg-purple-50',
                 'border'            => 'border-purple-200',
                 'text'              => 'text-purple-700',
@@ -258,7 +258,7 @@ class Project extends Model
             ],
             'Gold' => [
                 'tier'              => 'Gold',
-                'icon'              => '🥇',
+                'icon'              => '',
                 'bg'                => 'bg-amber-50',
                 'border'            => 'border-amber-200',
                 'text'              => 'text-amber-700',
@@ -269,7 +269,7 @@ class Project extends Model
             ],
             'Silver' => [
                 'tier'              => 'Silver',
-                'icon'              => '🥈',
+                'icon'              => '',
                 'bg'                => 'bg-slate-100',
                 'border'            => 'border-slate-300',
                 'text'              => 'text-slate-700',
@@ -280,7 +280,7 @@ class Project extends Model
             ],
             'Bronze' => [
                 'tier'              => 'Bronze',
-                'icon'              => '🥉',
+                'icon'              => '',
                 'bg'                => 'bg-orange-50',
                 'border'            => 'border-orange-200',
                 'text'              => 'text-orange-700',
@@ -291,7 +291,12 @@ class Project extends Model
             ],
         ];
 
-        return $tiers[$this->sla_tier] ?? null;
+        return $tiers[$tier] ?? null;
+    }
+
+    public function getSlaTierInfoAttribute(): ?array
+    {
+        return static::getSlaTierDetails($this->sla_tier);
     }
 
     // Helpers

@@ -93,4 +93,24 @@ class Schedule extends Model
     {
         return $this->date->isToday();
     }
+
+    public function getSlaTierInfoAttribute(): ?array
+    {
+        if ($this->project && $this->project->sla_tier_info) {
+            return $this->project->sla_tier_info;
+        }
+
+        if ($this->title) {
+            $matched = Project::where(function($q) {
+                $q->where('name', 'like', "%{$this->title}%")
+                  ->orWhere('client', 'like', "%{$this->title}%");
+            })->whereNotNull('sla_tier')->first();
+
+            if ($matched && $matched->sla_tier_info) {
+                return $matched->sla_tier_info;
+            }
+        }
+
+        return Project::getSlaTierDetails('Gold');
+    }
 }

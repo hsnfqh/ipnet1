@@ -25,6 +25,17 @@
         box-shadow: 0 6px 16px rgba(143, 10, 13, 0.25);
         transform: translateY(-1px);
     }
+    @keyframes fadeUpStagger {
+        0% { opacity: 0; transform: translateY(16px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .anim-fade-up {
+        animation: fadeUpStagger 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .anim-delay-1 { animation-delay: 0.06s !important; }
+    .anim-delay-2 { animation-delay: 0.12s !important; }
+    .anim-delay-3 { animation-delay: 0.18s !important; }
+    .anim-delay-4 { animation-delay: 0.24s !important; }
 </style>
 @endpush
 
@@ -38,23 +49,25 @@
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
             
             {{-- Top Action Bar & Filter --}}
-            <div class="ipnet-card p-5 sm:p-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div class="ipnet-card p-5 sm:p-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 anim-fade-up anim-delay-1">
                 <div>
-                    <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">Pemeliharaan Berkala</p>
-                    <h3 class="font-bold text-[#1E293B] text-[16px] mt-0.5">Jadwal Pemeliharaan Berkala (Preventive Maintenance)</h3>
-                    <p class="text-[12.5px] text-[#64748B] mt-0.5">Inspeksi fisik, pembersihan filter, backup konfigurasi, & uji redundansi perangkat</p>
+                    <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> PEMELIHARAAN BERKALA
+                    </p>
+                    <h3 class="font-bold text-[#1E293B] text-[20px] tracking-tight mt-0.5">Jadwal Pemeliharaan Berkala (Preventive Maintenance)</h3>
+                    <p class="text-[13px] text-[#64748B] mt-0.5">Inspeksi fisik, pembersihan filter, backup konfigurasi, & uji redundansi perangkat</p>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('schedules.index') }}" class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[12.5px] flex items-center gap-2 cursor-pointer shadow-md">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <div class="flex items-center gap-2.5 shrink-0">
+                    <a href="{{ route('schedules.index') }}" class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                         <span>Buat Jadwal Kunjungan</span>
                     </a>
                 </div>
             </div>
 
             {{-- Checklist Standar PM Card & Schedules Grid --}}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 anim-fade-up anim-delay-2">
                 
                 {{-- Left 2 Cols: Jadwal Kunjungan & History --}}
                 <div class="lg:col-span-2 space-y-4">
@@ -68,9 +81,17 @@
 
                         <div class="divide-y divide-[#F1F5F9]">
                             @forelse($schedules as $sch)
+                                @php $mTier = $sch->sla_tier_info; @endphp
                                 <div class="p-4 sm:p-5 hover:bg-[#F8FAFC] transition flex items-start justify-between gap-4 text-[12.5px]">
                                     <div class="space-y-1.5 flex-1 min-w-0">
-                                        <div class="font-bold text-[#1E293B] text-[14px]">{{ $sch->title }}</div>
+                                        <div class="font-bold text-[#1E293B] text-[14px] flex items-center gap-2 flex-wrap">
+                                            <span>{{ $sch->title }}</span>
+                                            @if($mTier)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-[#8F0A0D] text-white shadow-2xs">
+                                                    <span>{{ $mTier['tier'] }} ({{ $mTier['visits_per_year'] }}x/Thn)</span>
+                                                </span>
+                                            @endif
+                                        </div>
                                         <div class="text-[#64748B] font-semibold flex items-center gap-2 flex-wrap">
                                             <span class="text-[#334155]">{{ $sch->project ? $sch->project->name : ($sch->client_name ?: 'Klien Regular') }}</span>
                                             <span>&bull; Lokasi: <strong class="text-[#334155]">{{ $sch->location ?: 'On-Site' }}</strong></span>
