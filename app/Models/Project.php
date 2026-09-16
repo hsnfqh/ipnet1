@@ -82,6 +82,7 @@ class Project extends Model
     ];
 
     protected $casts = [
+        'progress'                      => 'integer',
         'start_date'                    => 'date:Y-m-d',
         'deadline'                      => 'date:Y-m-d',
         'expected_closing_date'         => 'date:Y-m-d',
@@ -173,8 +174,14 @@ class Project extends Model
             return 100;
         }
 
+        if ($this->status === 'Planning') {
+            return (isset($this->attributes['progress']) && $this->attributes['progress'] !== null) 
+                ? (int) $this->attributes['progress'] 
+                : 0;
+        }
+
         // Jika terdapat manual progress yang ditentukan oleh Lead Engineer
-        if (isset($this->attributes['progress']) && $this->attributes['progress'] !== null && (int)$this->attributes['progress'] > 0) {
+        if (isset($this->attributes['progress']) && $this->attributes['progress'] !== null) {
             return (int) $this->attributes['progress'];
         }
 
@@ -186,7 +193,7 @@ class Project extends Model
 
         // Hitung rata-rata progress riil dari seluruh task di project ini jika ada task aktif
         $avgProgress = $tasks->avg('progress');
-        if ($avgProgress !== null && $avgProgress > 0) {
+        if ($avgProgress !== null) {
             return round($avgProgress);
         }
 

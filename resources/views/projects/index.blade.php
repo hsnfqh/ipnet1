@@ -851,15 +851,19 @@
 
             getProjectProgress(project) {
                 if (project.status === 'Completed') return 100;
-                if (project.progress !== undefined && project.progress !== null && (!project.tasks || project.tasks.length === 0)) {
-                    return parseInt(project.progress) || 0;
+                if (project.status === 'Planning') {
+                    return (project.progress !== undefined && project.progress !== null) ? (parseInt(project.progress) || 0) : 0;
+                }
+                if (project.progress !== undefined && project.progress !== null) {
+                    const p = parseInt(project.progress);
+                    if (!isNaN(p)) return p;
                 }
                 if (project.tasks && project.tasks.length > 0) {
                     const total = project.tasks.reduce((sum, t) => sum + (parseInt(t.progress) || 0), 0);
                     const avg = Math.round(total / project.tasks.length);
-                    return avg > 0 ? avg : (parseInt(project.progress) || 0);
+                    return avg;
                 }
-                return parseInt(project.progress) || 0;
+                return 0;
             },
 
             showToast(message) {
