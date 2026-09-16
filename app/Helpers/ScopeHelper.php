@@ -230,17 +230,19 @@ class ScopeHelper
             return null;
         }
 
-        // 2. Team Leader / Lead Engineer / Lead Maintenance -> Akses seluruh engineer & staf maintenance operasional (Divisi 1, 2, 3)
+        // 2. Team Leader (Lead Network, Lead Security, Lead Maintenance, Lead Engineer) -> Akses hanya divisi sendiri
         if (self::isTeamLeader($user)) {
-            return \App\Models\User::where(function($q) {
-                $q->whereIn('division_id', [1, 2, 3])
-                  ->orWhereHas('roles', function($rq) {
-                      $rq->whereIn('name', [
-                          'Lead Engineer', 'Lead Maintenance', 'Team Leader', 'Team Leader Engineering',
-                          'Engineer', 'Maintenance', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Field Support', 'Field Support (EOS)'
-                      ]);
-                  });
-            })->pluck('id')->toArray();
+            if ($user->division_id) {
+                return \App\Models\User::where('division_id', $user->division_id)
+                    ->pluck('id')
+                    ->toArray();
+            }
+            if ($user->team_id) {
+                return \App\Models\User::where('team_id', $user->team_id)
+                    ->pluck('id')
+                    ->toArray();
+            }
+            return [$user->id];
         }
 
         // 3. Engineer / Field Staff / Maintenance Staff -> Hanya dirinya sendiri
@@ -276,43 +278,26 @@ class ScopeHelper
         $operationalRoles = [
             'Team Leader Engineering',
             'Team Leader',
-            'Lead Maintenance',
             'Lead Engineer',
             'Network Engineer',
             'Security Engineer',
-            'Managed Service',
-            'Field Support (EOS)',
-            'Field Support',
             'Engineer',
-            'Maintenance',
             'Engineer L1',
             'Engineer L2',
         ];
 
-        // 1. Director, Division Head, Group Leader, PMO
-        // -> Dapat menugaskan (dispatch) ke SEMUA personel teknis
+        // 1. Director, Division Head, Group Leader, PMO -> Akses Global
         if (self::isGlobal($user)) {
             return \App\Models\User::whereHas('roles', function($q) use ($operationalRoles) {
-                $q->whereIn('name', $operationalRoles);
+                $q->whereIn('name', array_merge($operationalRoles, ['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support']));
             })->active()->get();
         }
 
-        // 2. Lead Maintenance -> Dapat menugaskan staf maintenance serta engineer lapangan pendamping
+        // 2. Lead Maintenance -> Hanya staf tim maintenance sendiri (Divisi 3)
         if (self::isMaintenance($user)) {
-            $maintenanceAssignableRoles = [
-                'Lead Maintenance',
-                'Maintenance',
-                'Managed Service',
-                'Field Support',
-                'Field Support (EOS)',
-                'Engineer',
-                'Network Engineer',
-                'Security Engineer',
-                'Engineer L1',
-                'Engineer L2',
-            ];
-            return \App\Models\User::whereHas('roles', function($q) use ($maintenanceAssignableRoles) {
-                $q->whereIn('name', $maintenanceAssignableRoles);
+            return \App\Models\User::where(function($q) {
+                $q->where('division_id', 3)
+                  ->orWhereHas('roles', fn($rq) => $rq->whereIn('name', ['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)']));
             })->active()->orderBy('name')->get();
         }
 
