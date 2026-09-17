@@ -1454,6 +1454,6 @@ class DummyUserSeeder extends Seeder
             );
         }
 
-        $this->command->info('✅ Seluruh 25 Proyek Berhasil Di-Update Lengkap dengan Sales Resmi!');
+        $this->command?->info('✅ Seluruh 25 Proyek Berhasil Di-Update Lengkap dengan Sales Resmi!');
     }
 }
