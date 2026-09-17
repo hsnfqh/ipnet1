@@ -27,6 +27,9 @@ class RoleSeeder extends Seeder
             // Governance & Project Management
             'PMO',
             'Project Manager',
+            'Admin',
+            'Admin Support',
+            'Admin Logistik',
 
             // Commercial & Solution Branch
             'Sales',

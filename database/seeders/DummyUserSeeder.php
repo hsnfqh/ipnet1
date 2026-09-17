@@ -63,6 +63,9 @@ class DummyUserSeeder extends Seeder
             'Maintenance',
             'Engineer L1',
             'Engineer L2',
+            'Admin',
+            'Admin Support',
+            'Admin Logistik',
         ];
         foreach ($roles as $r) {
             Role::firstOrCreate(['name' => $r]);
