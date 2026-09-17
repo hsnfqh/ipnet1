@@ -60,11 +60,12 @@ Route::get('/setup-hosting-database-2026', function () {
         // Auto-sinkronisasi proyek yang sudah di fase Deliver/Selesai agar sales_stage menjadi Closed Won (bukan Qualification 10%)
         \App\Models\Project::where(function($q) {
             $q->where('stage', 'Deliver')
-              ->orWhereIn('status', ['On Progress', 'Completed', 'Maintenance', 'Active']);
-        })->where(function($q) {
-            $q->where('sales_stage', 'Qualification')
-              ->orWhereNull('sales_stage');
+              ->orWhereIn('status', ['On Progress', 'Completed', 'Maintenance', 'Active'])
+              ->orWhere('name', 'like', '%On Going Project%')
+              ->orWhere('name', 'like', '%Closed Project%')
+              ->orWhere('name', 'like', '%Preventive Maintenance%');
         })->update([
+            'stage' => 'Deliver',
             'sales_stage' => 'Closed Won',
             'win_probability' => 100,
         ]);

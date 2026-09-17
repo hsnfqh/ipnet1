@@ -48,13 +48,23 @@ class PresalesProposalController extends Controller
         if ($tab === 'pending') {
             $query->whereNull('proposal_file')
                   ->whereIn('status', ['Opportunity', 'Draft', 'Planning'])
-                  ->where('sales_stage', '!=', 'Closed Lost');
+                  ->where('stage', '!=', 'Deliver')
+                  ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
+                  ->where('name', 'not like', '%On Going Project%')
+                  ->where('name', 'not like', '%Closed Project%')
+                  ->where('name', 'not like', '%Preventive Maintenance%');
         } elseif ($tab === 'submitted') {
             $query->whereNotNull('proposal_file')
                   ->where('sales_stage', '!=', 'Closed Lost');
         } elseif ($tab === 'won') {
-            $query->whereIn('status', ['On Progress', 'Completed', 'Closed Won'])
-                  ->where('sales_stage', '!=', 'Closed Lost');
+            $query->where(function ($q) {
+                $q->where('stage', 'Deliver')
+                  ->orWhereIn('status', ['On Progress', 'Completed', 'Closed Won'])
+                  ->orWhere('sales_stage', 'Closed Won')
+                  ->orWhere('name', 'like', '%On Going Project%')
+                  ->orWhere('name', 'like', '%Closed Project%')
+                  ->orWhere('name', 'like', '%Preventive Maintenance%');
+            })->where('sales_stage', '!=', 'Closed Lost');
         } elseif ($tab === 'lost') {
             $query->where(function ($q) {
                 $q->where('sales_stage', 'Closed Lost')
@@ -80,9 +90,23 @@ class PresalesProposalController extends Controller
 
         $counts = [
             'all'       => (clone $baseQuery)->count(),
-            'pending'   => (clone $baseQuery)->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->where('sales_stage', '!=', 'Closed Lost')->count(),
+            'pending'   => (clone $baseQuery)->whereNull('proposal_file')
+                                             ->whereIn('status', ['Opportunity', 'Draft', 'Planning'])
+                                             ->where('stage', '!=', 'Deliver')
+                                             ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
+                                             ->where('name', 'not like', '%On Going Project%')
+                                             ->where('name', 'not like', '%Closed Project%')
+                                             ->where('name', 'not like', '%Preventive Maintenance%')
+                                             ->count(),
             'submitted' => (clone $baseQuery)->whereNotNull('proposal_file')->where('sales_stage', '!=', 'Closed Lost')->count(),
-            'won'       => (clone $baseQuery)->whereIn('status', ['On Progress', 'Completed', 'Closed Won'])->where('sales_stage', '!=', 'Closed Lost')->count(),
+            'won'       => (clone $baseQuery)->where(function ($q) {
+                                $q->where('stage', 'Deliver')
+                                  ->orWhereIn('status', ['On Progress', 'Completed', 'Closed Won'])
+                                  ->orWhere('sales_stage', 'Closed Won')
+                                  ->orWhere('name', 'like', '%On Going Project%')
+                                  ->orWhere('name', 'like', '%Closed Project%')
+                                  ->orWhere('name', 'like', '%Preventive Maintenance%');
+                            })->where('sales_stage', '!=', 'Closed Lost')->count(),
             'lost'      => (clone $baseQuery)->where(function ($q) {
                 $q->where('sales_stage', 'Closed Lost')
                   ->orWhereIn('status', ['Cancelled', 'Rejected', 'Closed Lost', 'Lost', 'Drop']);

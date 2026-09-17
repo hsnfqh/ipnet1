@@ -528,12 +528,23 @@ class DashboardController extends Controller
         }
 
         // 2. Kategori Status Pre-Sales & Tender
-        $pendingProposalTenders = $tendersYear->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->values();
+        $pendingProposalTenders = $tendersYear->whereIn('status', ['Opportunity', 'Draft', 'Planning'])
+            ->where('stage', '!=', 'Deliver')
+            ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
+            ->filter(fn($p) => !str_contains($p->name, 'On Going Project') && !str_contains($p->name, 'Closed Project') && !str_contains($p->name, 'Preventive Maintenance'))
+            ->values();
         $inReviewTenders        = $tendersYear->whereIn('status', ['Pending', 'Waiting Approval'])->values();
-        $wonTenders             = $tendersYear->whereIn('status', ['On Progress', 'Completed', 'Closed Won'])->values();
+        $wonTenders             = $tendersYear->filter(function($p) {
+            return $p->stage === 'Deliver' 
+                || in_array($p->status, ['On Progress', 'Completed', 'Closed Won']) 
+                || $p->sales_stage === 'Closed Won'
+                || str_contains($p->name, 'On Going Project')
+                || str_contains($p->name, 'Closed Project')
+                || str_contains($p->name, 'Preventive Maintenance');
+        })->values();
 
         $totalTenderCount        = $tendersYear->count();
-        $totalProposalNeeded     = $tendersYear->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->count();
+        $totalProposalNeeded     = $pendingProposalTenders->whereNull('proposal_file')->count();
         $proposalsReadyCount     = $tendersYear->whereNotNull('proposal_file')->count();
         $totalPipelineValue      = $pendingProposalTenders->sum('contract_value');
         $totalReviewValue        = $inReviewTenders->sum('contract_value');
