@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Http\Requests\TaskRequest;
 use App\Helpers\ScopeHelper;
+use App\Helpers\FileUploadHelper;
 
 class TaskController extends Controller
 {
@@ -324,7 +325,7 @@ class TaskController extends Controller
             if ($task->doc_file && Storage::disk('public')->exists($task->doc_file)) {
                 Storage::disk('public')->delete($task->doc_file);
             }
-            $path = $request->file('doc_file')->store('task-docs', 'public');
+            $path = FileUploadHelper::storePublicly($request->file('doc_file'), 'task-docs');
             $task->doc_file = $path;
             $task->attachments = ($task->attachments ?? 0) + 1;
         }

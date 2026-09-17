@@ -11,6 +11,7 @@ use App\Models\Vendor;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FileUploadHelper;
 use Carbon\Carbon;
 
 class BdmController extends Controller
@@ -426,9 +427,9 @@ class BdmController extends Controller
 
         $filePath = $project->handover_document_file;
         if ($request->hasFile('handover_document_file')) {
-            $filePath = $request->file('handover_document_file')->store('bdm_handovers', 'public');
+            $filePath = FileUploadHelper::storePublicly($request->file('handover_document_file'), 'bdm_handovers');
         } elseif ($request->hasFile('attachment_file')) {
-            $filePath = $request->file('attachment_file')->store('bdm_handovers', 'public');
+            $filePath = FileUploadHelper::storePublicly($request->file('attachment_file'), 'bdm_handovers');
         }
 
         $existingStakeholders = is_array($project->stakeholders_data) ? $project->stakeholders_data : [];

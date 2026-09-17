@@ -103,7 +103,7 @@
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Dashboard Business Development'])
+        @include('components.topbar', ['title' => 'Dashboard'])
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
 

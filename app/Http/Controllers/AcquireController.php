@@ -7,6 +7,7 @@ use App\Models\Division;
 use App\Helpers\ScopeHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FileUploadHelper;
 
 class AcquireController extends Controller
 {
@@ -97,12 +98,12 @@ class AcquireController extends Controller
             'deadline'       => 'nullable|date|after_or_equal:start_date',
             'division_id'    => 'nullable|exists:divisions,id',
             'description'    => 'nullable|string',
-            'po_file'        => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'po_file'        => 'nullable|file|max:10240',
         ]);
 
         $filePath = null;
         if ($request->hasFile('po_file')) {
-            $filePath = $request->file('po_file')->store('po_documents', 'public');
+            $filePath = FileUploadHelper::storePublicly($request->file('po_file'), 'po_documents');
         }
 
         $project = Project::create([
@@ -147,14 +148,14 @@ class AcquireController extends Controller
             'deadline'       => 'nullable|date|after_or_equal:start_date',
             'division_id'    => 'nullable|exists:divisions,id',
             'description'    => 'nullable|string',
-            'po_file'        => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'po_file'        => 'nullable|file|max:10240',
         ]);
 
         if ($request->hasFile('po_file')) {
             if ($project->po_file && Storage::disk('public')->exists($project->po_file)) {
                 Storage::disk('public')->delete($project->po_file);
             }
-            $validated['po_file'] = $request->file('po_file')->store('po_documents', 'public');
+            $validated['po_file'] = FileUploadHelper::storePublicly($request->file('po_file'), 'po_documents');
         }
 
         if (($validated['acquire_status'] ?? '') === 'Handover to Design') {

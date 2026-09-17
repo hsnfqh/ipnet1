@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Division;
 use App\Models\Client;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FileUploadHelper;
 
 class PresalesProposalController extends Controller
 {
@@ -154,7 +155,7 @@ class PresalesProposalController extends Controller
             if ($project->proposal_file && Storage::disk('public')->exists($project->proposal_file)) {
                 Storage::disk('public')->delete($project->proposal_file);
             }
-            $path = $request->file('proposal_file')->store('proposals', 'public');
+            $path = FileUploadHelper::storePublicly($request->file('proposal_file'), 'proposals');
             $validated['proposal_file'] = $path;
         }
 

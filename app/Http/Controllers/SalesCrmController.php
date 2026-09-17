@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FileUploadHelper;
 use Carbon\Carbon;
 
 class SalesCrmController extends Controller
@@ -225,7 +226,7 @@ class SalesCrmController extends Controller
         $quotationFilePath = $project->quotation_file;
 
         if ($request->hasFile('quotation_file')) {
-            $quotationFilePath = $request->file('quotation_file')->store('sales_quotations', 'public');
+            $quotationFilePath = FileUploadHelper::storePublicly($request->file('quotation_file'), 'sales_quotations');
         }
 
         $updateData = [
@@ -480,7 +481,7 @@ class SalesCrmController extends Controller
 
         $poFilePath = $project->po_spk_file;
         if ($request->hasFile('po_spk_file')) {
-            $poFilePath = $request->file('po_spk_file')->store('commercial_contracts', 'public');
+            $poFilePath = FileUploadHelper::storePublicly($request->file('po_spk_file'), 'commercial_contracts');
         }
 
         $project->update([

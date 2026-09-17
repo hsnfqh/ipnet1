@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\Schedule;
 use App\Models\User;
+use App\Helpers\FileUploadHelper;
 
 class DashboardController extends Controller
 {
@@ -616,11 +617,11 @@ class DashboardController extends Controller
         $validated = $request->validate([
             'proposal_notes' => 'nullable|string',
             'mandays'        => 'nullable|integer|min:1',
-            'proposal_file'  => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,zip,rar|max:20480',
+            'proposal_file'  => 'nullable|file|max:20480',
         ]);
 
         if ($request->hasFile('proposal_file')) {
-            $path = $request->file('proposal_file')->store('proposals', 'public');
+            $path = FileUploadHelper::storePublicly($request->file('proposal_file'), 'proposals');
             $validated['proposal_file'] = $path;
         }
 
