@@ -55,6 +55,14 @@ class SalesCrmController extends Controller
         $viewMode = $request->input('view', 'table'); // table or kanban
 
         $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where(function($q) {
+                $q->where('stage', 'Acquire')
+                  ->orWhere('status', 'Opportunity')
+                  ->orWhere(function($sub) {
+                      $sub->whereNotNull('sales_stage')
+                          ->where('stage', '!=', 'Deliver');
+                  });
+            })
             ->with(['bdm', 'creator', 'salesActivities']);
 
         if (!$isManagerial) {

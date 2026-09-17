@@ -361,6 +361,14 @@ class DashboardController extends Controller
         $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager']);
 
         $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where(function($q) {
+                $q->where('stage', 'Acquire')
+                  ->orWhere('status', 'Opportunity')
+                  ->orWhere(function($sub) {
+                      $sub->whereNotNull('sales_stage')
+                          ->where('stage', '!=', 'Deliver');
+                  });
+            })
             ->with(['bdm', 'creator', 'salesActivities']);
         
         if (!$isManagerial) {
