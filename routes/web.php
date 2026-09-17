@@ -65,6 +65,25 @@ Route::get('/auto-migrate-system-2026', function () {
     }
 });
 
+// Auto Seed Accounts & Roles Helper for Production Deployment
+Route::get('/seed-dummy-accounts-2026', function () {
+    try {
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        Artisan::call('db:seed', ['--class' => 'RoleSeeder', '--force' => true]);
+        Artisan::call('db:seed', ['--class' => 'DummyUserSeeder', '--force' => true]);
+        Artisan::call('optimize:clear');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Seluruh akun resmi (Akbar Presales, Aris Solution Architect, 9 Sales, 5 BDM, PMO, Direktur) dan role Spatie berhasil di-seed!',
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     // Modul 1: ACQUIRE (Sales Pipeline & Handover 1 to Design)

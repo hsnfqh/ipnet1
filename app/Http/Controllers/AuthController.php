@@ -36,7 +36,7 @@ class AuthController extends Controller
             
             $user->update(['last_login_at' => now()]);
 
-            return redirect()->intended($this->redirectTo());
+            return redirect($this->redirectTo());
         }
 
         return back()->withErrors([
@@ -77,12 +77,12 @@ class AuthController extends Controller
         }
 
         // Presales -> Dashboard Presales
-        if ($user->hasRole('Presales')) {
+        if ($user->hasAnyRole(['Presales', 'Pre-Sales'])) {
             return route('dashboard.presales');
         }
 
-        // Sales -> Dashboard Sales
-        if ($user->hasRole('Sales')) {
+        // Sales & Account Manager -> Dashboard Sales
+        if ($user->hasAnyRole(['Sales', 'Account Manager'])) {
             return route('dashboard.sales');
         }
 
