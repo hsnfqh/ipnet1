@@ -47,6 +47,31 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Auto Migrate & Cache Clear Helper for Production Deployment
+// 1-Click Master Setup Helper for Production Deployment (Migrate + Seed All Official Accounts)
+Route::get('/setup-hosting-database-2026', function () {
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+        $migrationOutput = Artisan::output();
+        
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        Artisan::call('db:seed', ['--class' => 'RoleSeeder', '--force' => true]);
+        Artisan::call('db:seed', ['--class' => 'DummyUserSeeder', '--force' => true]);
+        Artisan::call('optimize:clear');
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Luar biasa! Seluruh migrasi database (kolom contract_value, sales_stage, dsb.) dan seluruh akun resmi (Akbar Presales, Aris SA, 9 Sales, 5 BDM, Rangga Lead Engineer, PMO, Direktur) BERHASIL dibuat & siap digunakan!',
+            'migration_output' => $migrationOutput
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
+// Auto Migrate & Cache Clear Helper for Production Deployment
 Route::get('/auto-migrate-system-2026', function () {
     try {
         Artisan::call('migrate', ['--force' => true]);
