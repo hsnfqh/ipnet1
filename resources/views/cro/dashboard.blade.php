@@ -7,7 +7,7 @@
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto bg-[#FAF9F8]">
-        @include('components.topbar', ['title' => 'Customer Management / CRO'])
+        @include('components.topbar', ['title' => 'Dashboard'])
         
         <div class="p-4 sm:p-5 lg:p-[26px] animate-fade-in space-y-6 max-w-[1600px] mx-auto">
             
