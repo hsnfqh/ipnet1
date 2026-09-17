@@ -152,8 +152,8 @@ class AcquireController extends Controller
         ]);
 
         if ($request->hasFile('po_file')) {
-            if ($project->po_file && Storage::disk('public')->exists($project->po_file)) {
-                Storage::disk('public')->delete($project->po_file);
+            if ($project->po_file) {
+                FileUploadHelper::delete($project->po_file);
             }
             $validated['po_file'] = FileUploadHelper::storePublicly($request->file('po_file'), 'po_documents');
         }

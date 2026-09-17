@@ -11,6 +11,7 @@ use App\Helpers\ScopeHelper;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use App\Helpers\FileUploadHelper;
 
 class UserController extends Controller
 {
@@ -385,8 +386,8 @@ class UserController extends Controller
                 // Hapus semua sertifikat pending milik user
                 $certs = \App\Models\Certification::where('user_id', $user->id)->get();
                 foreach ($certs as $c) {
-                    if ($c->file_path && Storage::disk('public')->exists($c->file_path)) {
-                        Storage::disk('public')->delete($c->file_path);
+                    if ($c->file_path) {
+                        FileUploadHelper::delete($c->file_path);
                     }
                     $c->delete();
                 }
@@ -417,8 +418,8 @@ class UserController extends Controller
         $certName = $certification->name;
 
         // Hapus file fisik jika ada
-        if ($certification->file_path && Storage::disk('public')->exists($certification->file_path)) {
-            Storage::disk('public')->delete($certification->file_path);
+        if ($certification->file_path) {
+            FileUploadHelper::delete($certification->file_path);
         }
 
         // Hapus record sertifikasi dari database

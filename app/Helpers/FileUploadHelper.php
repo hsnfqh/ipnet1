@@ -61,4 +61,61 @@ class FileUploadHelper
 
         return $folder . '/' . $fileName;
     }
+
+    /**
+     * Get public URL for a stored file without triggering Flysystem / finfo.
+     */
+    public static function url(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+        return asset('storage/' . ltrim($path, '/\\'));
+    }
+
+    /**
+     * Check if a stored file exists without triggering Flysystem / finfo.
+     */
+    public static function exists(?string $path): bool
+    {
+        if (!$path) {
+            return false;
+        }
+        $relPath = ltrim($path, '/\\');
+        return file_exists(storage_path('app/public/' . $relPath))
+            || file_exists(public_path('storage/' . $relPath))
+            || (is_dir(base_path('../public_html')) && file_exists(base_path('../public_html/storage/' . $relPath)));
+    }
+
+    /**
+     * Safely delete a file from all storage locations.
+     */
+    public static function delete(?string $path): bool
+    {
+        if (!$path) {
+            return false;
+        }
+        $relPath = ltrim($path, '/\\');
+        $deleted = false;
+
+        $p1 = storage_path('app/public/' . $relPath);
+        if (file_exists($p1)) {
+            @unlink($p1);
+            $deleted = true;
+        }
+
+        $p2 = public_path('storage/' . $relPath);
+        if (file_exists($p2) && realpath($p2) !== realpath($p1)) {
+            @unlink($p2);
+            $deleted = true;
+        }
+
+        $p3 = base_path('../public_html/storage/' . $relPath);
+        if (is_dir(base_path('../public_html')) && file_exists($p3)) {
+            @unlink($p3);
+            $deleted = true;
+        }
+
+        return $deleted;
+    }
 }

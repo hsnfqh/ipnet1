@@ -70,7 +70,7 @@
                     </span>
 
                     @if($project->handover_document_file)
-                        <a href="{{ Storage::url($project->handover_document_file) }}" target="_blank" 
+                        <a href="{{ asset('storage/' . $project->handover_document_file) }}" target="_blank" 
                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[12px] font-bold rounded-xl shadow-xs transition hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             <span>Unduh Berkas TOR / KAK</span>
@@ -273,7 +273,7 @@
                                         <div>
                                             <span class="text-[#64748B] text-[11px] block mb-1">Berkas TOR / KAK:</span>
                                             @if($project->handover_document_file)
-                                                <a href="{{ Storage::url($project->handover_document_file) }}" target="_blank" 
+                                                <a href="{{ asset('storage/' . $project->handover_document_file) }}" target="_blank" 
                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#CBD5E1] text-[#8F0A0D] rounded-xl font-bold text-[11.5px] hover:bg-red-50 transition hover:border-[#8F0A0D]/40 shadow-2xs">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                     <span>Unduh Dokumen</span>

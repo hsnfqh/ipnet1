@@ -152,8 +152,8 @@ class PresalesProposalController extends Controller
 
         if ($request->hasFile('proposal_file')) {
             // Hapus file lama jika ada
-            if ($project->proposal_file && Storage::disk('public')->exists($project->proposal_file)) {
-                Storage::disk('public')->delete($project->proposal_file);
+            if ($project->proposal_file) {
+                FileUploadHelper::delete($project->proposal_file);
             }
             $path = FileUploadHelper::storePublicly($request->file('proposal_file'), 'proposals');
             $validated['proposal_file'] = $path;
@@ -167,11 +167,20 @@ class PresalesProposalController extends Controller
 
     public function download(Project $project)
     {
-        if (!$project->proposal_file || !Storage::disk('public')->exists($project->proposal_file)) {
+        if (!$project->proposal_file) {
             return back()->with('error', 'Berkas proposal teknis belum tersedia.');
         }
 
-        return Storage::disk('public')->download($project->proposal_file);
+        $filePath = storage_path('app/public/' . $project->proposal_file);
+        if (!file_exists($filePath)) {
+            $filePath = public_path('storage/' . $project->proposal_file);
+        }
+
+        if (!file_exists($filePath)) {
+            return back()->with('error', 'Berkas proposal teknis tidak ditemukan di server.');
+        }
+
+        return response()->download($filePath);
     }
 
     public function destroyFile(Project $project)
@@ -181,8 +190,8 @@ class PresalesProposalController extends Controller
             return back()->with('error', 'Akses Dibatasi: Hanya tim Presales Engineering yang dapat menghapus berkas proposal teknis.');
         }
 
-        if ($project->proposal_file && Storage::disk('public')->exists($project->proposal_file)) {
-            Storage::disk('public')->delete($project->proposal_file);
+        if ($project->proposal_file) {
+            FileUploadHelper::delete($project->proposal_file);
         }
 
         $project->update([

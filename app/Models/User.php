@@ -119,8 +119,8 @@ class User extends Authenticatable
     // Accessors
     public function getAvatarUrlAttribute()
     {
-        if ($this->avatar && Storage::disk('public')->exists('avatars/' . $this->avatar)) {
-            return Storage::url('avatars/' . $this->avatar);
+        if ($this->avatar && \App\Helpers\FileUploadHelper::exists('avatars/' . $this->avatar)) {
+            return \App\Helpers\FileUploadHelper::url('avatars/' . $this->avatar);
         }
         
         $initials = strtoupper(collect(explode(' ', $this->name))

@@ -322,8 +322,8 @@ class TaskController extends Controller
 
         // Handle file upload dokumentasi
         if ($request->hasFile('doc_file')) {
-            if ($task->doc_file && Storage::disk('public')->exists($task->doc_file)) {
-                Storage::disk('public')->delete($task->doc_file);
+            if ($task->doc_file) {
+                FileUploadHelper::delete($task->doc_file);
             }
             $path = FileUploadHelper::storePublicly($request->file('doc_file'), 'task-docs');
             $task->doc_file = $path;
