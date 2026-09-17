@@ -2216,14 +2216,14 @@
                 isEngineerBusyOnDate: function(engineerId, date) {
                     if (!date) return false;
                     return this.schedules.some(function(s) {
-                        var sDateStr = (s.date || '').split('T')[0];
+                        var sDateStr = (s.date ? String(s.date).split('T')[0].split(' ')[0] : '');
                         return s.engineer_id === engineerId && sDateStr === date && s.id !== this.form.id;
                     }.bind(this));
                 },
 
                 getSchedulesForDay: function(date) {
                     return this.filteredSchedules.filter(function(s) {
-                        var scheduleDate = (s.date || '').split('T')[0];
+                        var scheduleDate = (s.date ? String(s.date).split('T')[0].split(' ')[0] : '');
                         return scheduleDate === date;
                     }).map(function(s) {
                         return {
@@ -2248,6 +2248,14 @@
                     var map = {};
                     var seenKeys = {};
 
+                    var parseDateKey = function(val) {
+                        if (!val) return '';
+                        var str = String(val).trim();
+                        if (str.indexOf('T') !== -1) str = str.split('T')[0];
+                        if (str.indexOf(' ') !== -1) str = str.split(' ')[0];
+                        return str;
+                    };
+
                     // --- Jadwal biasa & Day Off ---
                     var filtered = this.engineerFilter
                         ? this.schedules.filter(function(s) { 
@@ -2257,7 +2265,7 @@
                         : this.schedules;
 
                     filtered.forEach(function(s) {
-                        var d = (s.date || '').split('T')[0];
+                        var d = parseDateKey(s.date);
                         if (!d) return;
                         if (!map[d]) map[d] = [];
 
@@ -2280,12 +2288,13 @@
                             eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
                         }
                         
-                        // Cegah duplikasi agenda yang sama persis
+                        // Cegah duplikasi agenda yang sama persis di tanggal yang sama
                         var cleanTitle = (s.title || '').trim().toLowerCase();
-                        var dedupKey = cleanTitle + '|' + d;
-                        if (seenKeys[dedupKey] || (cleanTitle && seenKeys[cleanTitle])) return;
+                        var dedupKey = 'sch-' + s.id + '|' + d;
+                        var titleDedupKey = cleanTitle + '|' + d;
+                        if (seenKeys[dedupKey] || (cleanTitle && seenKeys[titleDedupKey])) return;
                         seenKeys[dedupKey] = true;
-                        if (cleanTitle) seenKeys[cleanTitle] = true;
+                        if (cleanTitle) seenKeys[titleDedupKey] = true;
 
                         var engLabel = '';
                         if (s.engineers && s.engineers.length > 0) {
@@ -2332,17 +2341,26 @@
                         : this.tasks;
 
                     filteredTasks.forEach(function(t) {
-                        var d = (t.deadline || '').split('T')[0];
+                        var d = parseDateKey(t.deadline);
                         if (!d) return;
                         if (!map[d]) map[d] = [];
 
                         var cleanTaskTitle = (t.title || '').trim().toLowerCase();
-                        var taskDedupKey = cleanTaskTitle + '|' + d;
+                        var taskDedupKey = 'task-' + t.id + '|' + d;
+                        var taskTitleDedupKey = cleanTaskTitle + '|' + d;
                         
-                        // Jangan tampilkan jika sudah ada di schedules
-                        if (seenKeys[taskDedupKey] || (cleanTaskTitle && seenKeys[cleanTaskTitle])) return;
+                        // Jangan tampilkan jika sudah ada di tanggal yang sama
+                        if (seenKeys[taskDedupKey] || (cleanTaskTitle && seenKeys[taskTitleDedupKey])) return;
                         seenKeys[taskDedupKey] = true;
-                        if (cleanTaskTitle) seenKeys[cleanTaskTitle] = true;
+                        if (cleanTaskTitle) seenKeys[taskTitleDedupKey] = true;
+
+                        var dTime = t.deadline_time 
+                            ? t.deadline_time.substring(0, 5) 
+                            : (t.deadline && String(t.deadline).indexOf('T') !== -1 && String(t.deadline).split('T')[1] 
+                                ? String(t.deadline).split('T')[1].substring(0, 5) 
+                                : (t.deadline && String(t.deadline).indexOf(' ') !== -1 && String(t.deadline).split(' ')[1] 
+                                    ? String(t.deadline).split(' ')[1].substring(0, 5) 
+                                    : ''));
 
                         var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
                         var taskEngLabel = '';
