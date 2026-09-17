@@ -222,7 +222,15 @@
                                     {{-- Sales PIC & BDM --}}
                                     <td class="py-3.5 px-4 whitespace-nowrap">
                                         <div class="font-bold text-gray-900">{{ $p->sales_name ?: 'Belum Assign' }}</div>
-                                        <div class="text-[11px] text-gray-400">BDM: {{ $p->bdm->name ?? ($p->creator->name ?? 'BDM') }}</div>
+                                        @php
+                                            $bdmName = 'Direct Sales';
+                                            if ($p->bdm) {
+                                                $bdmName = $p->bdm->name;
+                                            } elseif ($p->creator && ($p->creator->hasAnyRole(['BDM', 'BusDev', 'Business Development']) || str_contains(strtolower($p->creator->position ?? ''), 'bdm'))) {
+                                                $bdmName = $p->creator->name;
+                                            }
+                                        @endphp
+                                        <div class="text-[11px] text-gray-400">BDM: {{ $bdmName }}</div>
                                     </td>
 
                                     {{-- Nilai & Quotation --}}

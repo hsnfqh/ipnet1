@@ -401,8 +401,16 @@
                                                 <span class="font-semibold text-gray-800">{{ $deal->sales_name ?: 'Belum Assign' }}</span>
                                             </td>
                                         @else
+                                            @php
+                                                $bdmName = 'Direct Sales';
+                                                if ($deal->bdm) {
+                                                    $bdmName = $deal->bdm->name;
+                                                } elseif ($deal->creator && ($deal->creator->hasAnyRole(['BDM', 'BusDev', 'Business Development']) || str_contains(strtolower($deal->creator->position ?? ''), 'bdm'))) {
+                                                    $bdmName = $deal->creator->name;
+                                                }
+                                            @endphp
                                             <td class="py-3.5 px-3.5 whitespace-nowrap">
-                                                <span class="font-semibold text-gray-800">{{ $deal->bdm->name ?? ($deal->creator->name ?? 'BDM') }}</span>
+                                                <span class="font-semibold text-gray-800">{{ $bdmName }}</span>
                                             </td>
                                         @endif
                                         <td class="py-3.5 px-3.5 text-right whitespace-nowrap font-bold text-gray-900">

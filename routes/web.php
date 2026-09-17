@@ -56,6 +56,19 @@ Route::get('/setup-hosting-database-2026', function () {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         Artisan::call('db:seed', ['--class' => 'RoleSeeder', '--force' => true]);
         Artisan::call('db:seed', ['--class' => 'DummyUserSeeder', '--force' => true]);
+
+        // Auto-sinkronisasi proyek yang sudah di fase Deliver/Selesai agar sales_stage menjadi Closed Won (bukan Qualification 10%)
+        \App\Models\Project::where(function($q) {
+            $q->where('stage', 'Deliver')
+              ->orWhereIn('status', ['On Progress', 'Completed', 'Maintenance', 'Active']);
+        })->where(function($q) {
+            $q->where('sales_stage', 'Qualification')
+              ->orWhereNull('sales_stage');
+        })->update([
+            'sales_stage' => 'Closed Won',
+            'win_probability' => 100,
+        ]);
+
         Artisan::call('optimize:clear');
         
         return response()->json([

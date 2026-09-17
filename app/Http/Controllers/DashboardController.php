@@ -376,7 +376,9 @@ class DashboardController extends Controller
         }
 
         // 1. Total Pipeline Value (Active Non Won/Lost)
-        $activePipelineProjects = $projects->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost']);
+        $activePipelineProjects = $projects->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
+            ->where('stage', '!=', 'Deliver')
+            ->whereNotIn('status', ['Completed', 'Cancelled']);
         $totalPipelineCount = $activePipelineProjects->count();
         $totalPipelineValue = $activePipelineProjects->sum('contract_value');
 
@@ -466,6 +468,8 @@ class DashboardController extends Controller
         // 9. Priority Deals (High Value & Active in Pipeline)
         $priorityDeals = (clone $allProjectsQuery)
             ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
+            ->where('stage', '!=', 'Deliver')
+            ->whereNotIn('status', ['Completed', 'Cancelled'])
             ->orderByDesc('contract_value')
             ->take(6)
             ->get();
