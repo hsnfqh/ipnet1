@@ -17,15 +17,14 @@ class SalesCrmController extends Controller
      * 8 Tahapan Siklus Penjualan Standar SOP (Sales Lifecycle)
      */
     public static $stages = [
-        'Qualification'         => ['label' => '1. Qualification',          'default_prob' => 10,  'color' => '#6B7280', 'bg' => '#F3F4F6'],
-        'Qualified Opportunity' => ['label' => '2. Qualified Opportunity',  'default_prob' => 25,  'color' => '#3B82F6', 'bg' => '#EFF6FF'],
-        'Proposal Request'      => ['label' => '3. Proposal Request',       'default_prob' => 50,  'color' => '#8B5CF6', 'bg' => '#F5F3FF'],
-        'Quotation'             => ['label' => '4. Quotation Submitted',    'default_prob' => 70,  'color' => '#EAB308', 'bg' => '#FEFCE8'],
-        'Negotiation'           => ['label' => '5. Negotiation',            'default_prob' => 85,  'color' => '#F97316', 'bg' => '#FFF7ED'],
-        'Approval'              => ['label' => '6. Internal Approval',      'default_prob' => 95,  'color' => '#06B6D4', 'bg' => '#ECFEFF'],
-        'Contract / PO / SPK'   => ['label' => '7. Contract / PO / SPK',    'default_prob' => 98,  'color' => '#10B981', 'bg' => '#ECFDF5'],
-        'Closed Won'            => ['label' => '8. Closed Won (Handover)',  'default_prob' => 100, 'color' => '#16A34A', 'bg' => '#F0FDF4'],
-        'Closed Lost'           => ['label' => 'Closed Lost / Drop',        'default_prob' => 0,   'color' => '#DC2626', 'bg' => '#FEF2F2'],
+        'Qualification'         => ['label' => 'Qualification',          'default_prob' => 10,  'color' => '#6B7280', 'bg' => '#F3F4F6'],
+        'Qualified Opportunity' => ['label' => 'Qualified Opportunity',  'default_prob' => 25,  'color' => '#3B82F6', 'bg' => '#EFF6FF'],
+        'Proposal Request'      => ['label' => 'Proposal Request',       'default_prob' => 50,  'color' => '#8B5CF6', 'bg' => '#F5F3FF'],
+        'Quotation'             => ['label' => 'Quotation Submitted',    'default_prob' => 70,  'color' => '#EAB308', 'bg' => '#FEFCE8'],
+        'Negotiation'           => ['label' => 'Negotiation',            'default_prob' => 85,  'color' => '#F97316', 'bg' => '#FFF7ED'],
+        'Approval'              => ['label' => 'Internal Approval',      'default_prob' => 95,  'color' => '#06B6D4', 'bg' => '#ECFEFF'],
+        'Contract / PO / SPK'   => ['label' => 'Contract / PO / SPK',    'default_prob' => 98,  'color' => '#10B981', 'bg' => '#ECFDF5'],
+        'Closed Won'            => ['label' => 'Closed Won (Handover)',  'default_prob' => 100, 'color' => '#16A34A', 'bg' => '#F0FDF4'],
     ];
 
     /**
@@ -172,11 +171,10 @@ class SalesCrmController extends Controller
         ]);
 
         // Auto add Client if not exists
-        if (!Client::where('company_name', $validated['client'])->exists()) {
+        if (!Client::where('name', $validated['client'])->exists()) {
             Client::create([
-                'company_name' => $validated['client'],
-                'client_code'  => 'CLI-' . strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $validated['client']), 0, 4)) . '-' . rand(100, 999),
-                'status'       => 'Prospect',
+                'name'       => $validated['client'],
+                'created_by' => $user->id,
             ]);
         }
 

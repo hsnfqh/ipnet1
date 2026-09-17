@@ -326,11 +326,10 @@ class BdmController extends Controller
         ]);
 
         // Auto add client if not exists
-        if (!Client::where('company_name', $validated['client'])->exists()) {
+        if (!Client::where('name', $validated['client'])->exists()) {
             Client::create([
-                'company_name' => $validated['client'],
-                'client_code'  => 'CLI-' . strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $validated['client']), 0, 4)) . '-' . rand(100, 999),
-                'status'       => 'Prospect',
+                'name'       => $validated['client'],
+                'created_by' => $user->id,
             ]);
         }
 
@@ -371,11 +370,10 @@ class BdmController extends Controller
         ]);
 
         // Auto add client if not exists
-        if (!Client::where('company_name', $validated['client'])->exists()) {
+        if (!Client::where('name', $validated['client'])->exists()) {
             Client::create([
-                'company_name' => $validated['client'],
-                'client_code'  => 'CLI-' . strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $validated['client']), 0, 4)) . '-' . rand(100, 999),
-                'status'       => 'Prospect',
+                'name'       => $validated['client'],
+                'created_by' => $user->id,
             ]);
         }
 
@@ -403,43 +401,57 @@ class BdmController extends Controller
     /**
      * Official BDM -> Sales Handover Package (11 Elements)
      */
+    /**
+     * Official BDM -> Sales Handover Package (11 Elements)
+     */
     public function handoverToSales(Request $request, Project $project)
     {
         $validated = $request->validate([
             'sales_name'             => 'required|string',
             'business_need_summary'  => 'required|string',
-            'target_timeline_type'   => 'required|string',
+            'target_timeline_type'   => 'nullable|string',
             'competitor_analysis'    => 'nullable|string',
             'partner_alignment'      => 'nullable|string',
-            'bd_assessment_score'    => 'required|integer|min:1|max:100',
+            'recommended_partner'    => 'nullable|string',
+            'bd_assessment_score'    => 'nullable|integer|min:1|max:100',
             'initial_requirement'    => 'nullable|string',
             'pic_name'               => 'nullable|string',
             'pic_role'               => 'nullable|string',
             'pic_phone'              => 'nullable|string',
-            'pic_email'              => 'nullable|email',
-            'handover_document_file' => 'nullable|file|mimes:pdf,docx,xlsx,zip,rar|max:20480',
+            'pic_email'              => 'nullable|string',
+            'handover_document_file' => 'nullable|file|max:20480',
+            'attachment_file'        => 'nullable|file|max:20480',
+            'notes'                  => 'nullable|string',
         ]);
 
         $filePath = $project->handover_document_file;
         if ($request->hasFile('handover_document_file')) {
             $filePath = $request->file('handover_document_file')->store('bdm_handovers', 'public');
+        } elseif ($request->hasFile('attachment_file')) {
+            $filePath = $request->file('attachment_file')->store('bdm_handovers', 'public');
         }
 
+        $existingStakeholders = is_array($project->stakeholders_data) ? $project->stakeholders_data : [];
         $stakeholders = [
-            'pic_name'  => $validated['pic_name'] ?? '-',
-            'pic_role'  => $validated['pic_role'] ?? '-',
-            'pic_phone' => $validated['pic_phone'] ?? '-',
-            'pic_email' => $validated['pic_email'] ?? '-',
+            'pic_name'  => $request->input('pic_name') ?: ($existingStakeholders['pic_name'] ?? '-'),
+            'pic_role'  => $request->input('pic_role') ?: ($existingStakeholders['pic_role'] ?? '-'),
+            'pic_phone' => $request->input('pic_phone') ?: ($existingStakeholders['pic_phone'] ?? '-'),
+            'pic_email' => $request->input('pic_email') ?: ($existingStakeholders['pic_email'] ?? '-'),
         ];
+
+        $targetTimeline = $request->input('target_timeline_type') ?: ($project->target_timeline_type ?: 'Q3 2026');
+        $partnerAlignment = $request->input('partner_alignment') ?: ($request->input('recommended_partner') ?: ($project->partner_alignment ?: 'Direct / Multi-vendor'));
+        $bdScore = $request->filled('bd_assessment_score') ? (int)$request->input('bd_assessment_score') : ($project->bd_assessment_score ?: 80);
 
         $project->update([
             'sales_name'             => $validated['sales_name'],
             'business_need_summary'  => $validated['business_need_summary'],
-            'target_timeline_type'   => $validated['target_timeline_type'],
-            'competitor_analysis'    => $validated['competitor_analysis'] ?? 'Belum teridentifikasi',
-            'partner_alignment'      => $validated['partner_alignment'] ?? 'Direct / Multi-vendor',
-            'bd_assessment_score'    => $validated['bd_assessment_score'],
-            'initial_requirement'    => $validated['initial_requirement'] ?? $project->initial_requirement,
+            'target_timeline_type'   => $targetTimeline,
+            'competitor_analysis'    => $request->input('competitor_analysis') ?: ($project->competitor_analysis ?: 'Belum teridentifikasi'),
+            'partner_alignment'      => $partnerAlignment,
+            'bd_assessment_score'    => $bdScore,
+            'initial_requirement'    => $request->input('initial_requirement') ?: $project->initial_requirement,
+            'notes'                  => $request->input('notes') ?: $project->notes,
             'stakeholders_data'      => $stakeholders,
             'handover_document_file' => $filePath,
             'bdm_handover_status'    => 'Handed Over to Sales',

@@ -348,7 +348,7 @@
                                 <select name="sales_stage" x-model="formStage" @change="syncProbability()" required
                                         class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
                                     @foreach($stages as $sKey => $sMeta)
-                                        <option value="{{ $sKey }}">{{ $sMeta['label'] }} ({{ $sMeta['default_prob'] }}%)</option>
+                                        <option value="{{ $sKey }}">{{ $sMeta['label'] }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -518,7 +518,7 @@
                                 <select name="sales_stage" 
                                         class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
                                     @foreach($stages as $sKey => $sMeta)
-                                        <option value="{{ $sKey }}" {{ $sKey == 'Qualification' ? 'selected' : '' }}>{{ $sMeta['label'] }} ({{ $sMeta['default_prob'] }}%)</option>
+                                        <option value="{{ $sKey }}" {{ $sKey == 'Qualification' ? 'selected' : '' }}>{{ $sMeta['label'] }}</option>
                                     @endforeach
                                 </select>
                             </div>

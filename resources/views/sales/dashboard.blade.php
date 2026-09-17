@@ -549,15 +549,14 @@
                                 <label class="block font-bold text-gray-800 mb-1">Tahapan Siklus Penjualan (Sales Stage) *</label>
                                 <select name="sales_stage" x-model="formStage" @change="syncProbability()" required
                                         class="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-800 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
-                                    <option value="Qualification">1. Qualification (10%)</option>
-                                    <option value="Qualified Opportunity">2. Qualified Opportunity (25%)</option>
-                                    <option value="Proposal Request">3. Proposal Request (50%)</option>
-                                    <option value="Quotation">4. Quotation Submitted (70%)</option>
-                                    <option value="Negotiation">5. Negotiation (85%)</option>
-                                    <option value="Approval">6. Internal Approval (95%)</option>
-                                    <option value="Contract / PO / SPK">7. Contract / PO / SPK (98%)</option>
-                                    <option value="Closed Won">8. Closed Won (100% Handover)</option>
-                                    <option value="Closed Lost">Closed Lost / Drop (0%)</option>
+                                    <option value="Qualification">Qualification</option>
+                                    <option value="Qualified Opportunity">Qualified Opportunity</option>
+                                    <option value="Proposal Request">Proposal Request</option>
+                                    <option value="Quotation">Quotation Submitted</option>
+                                    <option value="Negotiation">Negotiation</option>
+                                    <option value="Approval">Internal Approval</option>
+                                    <option value="Contract / PO / SPK">Contract / PO / SPK</option>
+                                    <option value="Closed Won">Closed Won (Handover)</option>
                                 </select>
                             </div>
 
