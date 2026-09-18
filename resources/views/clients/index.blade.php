@@ -130,11 +130,11 @@
 
                 <div class="bg-white rounded-xl border border-gray-200/80 p-4 shadow-xs flex items-center gap-3.5">
                     <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
                     </div>
                     <div class="min-w-0">
-                        <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Integrasi CRM</div>
-                        <div class="text-[18px] font-bold text-purple-700 leading-tight">Ready <span class="text-[11px] font-medium text-gray-500">Auto-Sync</span></div>
+                        <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Proyek</div>
+                        <div class="text-[18px] font-bold text-purple-700 leading-tight">{{ $totalProjects ?? \App\Models\Project::count() }} <span class="text-[11px] font-medium text-gray-500">Portofolio</span></div>
                     </div>
                 </div>
             </div>

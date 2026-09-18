@@ -22,12 +22,13 @@ class ClientController extends Controller
         }
 
         $clients = $query->paginate(15)->withQueryString();
+        $totalProjects = \App\Models\Project::count();
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json($clients);
         }
 
-        return view('clients.index', compact('clients'));
+        return view('clients.index', compact('clients', 'totalProjects'));
     }
 
     public function store(Request $request)
