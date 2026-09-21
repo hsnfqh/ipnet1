@@ -71,35 +71,103 @@
                     </div>
                 </div>
 
-                <!-- Filter Controls -->
-                <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3">
-                    @if(!($isMaintenance ?? false))
-                    <select x-model="filterProject" 
-                            class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="">Semua Project</option>
-                        <template x-for="project in projects" :key="project.id">
-                            <option :value="project.id" x-text="project.name"></option>
-                        </template>
-                    </select>
-                    @endif
+                <!-- Filter Controls Toolbar -->
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 pt-1">
+                    <!-- Left: Category Filters (Project, Priority, Engineer) -->
+                    <div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
+                        @if(!($isMaintenance ?? false))
+                        <div class="w-full sm:w-auto">
+                            <select x-model="filterProject" 
+                                    class="h-[38px] w-full sm:w-48 px-3 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                                <option value="">Semua Project</option>
+                                <template x-for="project in projects" :key="project.id">
+                                    <option :value="project.id" x-text="project.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                        @endif
 
-                    <select x-model="filterPriority" 
-                            class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="">Semua Priority</option>
-                        <option value="High">High</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Low">Low</option>
-                    </select>
+                        <div class="w-full sm:w-auto">
+                            <select x-model="filterPriority" 
+                                    class="h-[38px] w-full sm:w-36 px-3 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                                <option value="">Semua Priority</option>
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
 
-                    @if($isLead)
-                    <select x-model="filterEngineer" 
-                            class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="">Semua Engineer</option>
-                        <template x-for="engineer in engineers" :key="engineer.id">
-                            <option :value="engineer.id" x-text="engineer.name"></option>
+                        @if($isLead)
+                        <div class="w-full sm:w-auto">
+                            <select x-model="filterEngineer" 
+                                    class="h-[38px] w-full sm:w-44 px-3 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                                <option value="">Semua Engineer</option>
+                                <template x-for="engineer in engineers" :key="engineer.id">
+                                    <option :value="engineer.id" x-text="engineer.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Right: Period Filter Group (Bulan & Tahun) -->
+                    <div class="flex flex-wrap items-center gap-2 p-1 bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl shrink-0">
+                        <div class="flex items-center gap-1.5 pl-2.5 pr-1 text-[#64748B] text-[11.5px] font-bold">
+                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="hidden sm:inline">Periode:</span>
+                        </div>
+
+                        <!-- Filter Bulan -->
+                        <select x-model="filterMonth" 
+                                class="h-[34px] px-2.5 rounded-xl border border-[#CBD5E1] text-[12px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                            <option value="">Semua Bulan</option>
+                            <option value="1">Januari</option>
+                            <option value="2">Februari</option>
+                            <option value="3">Maret</option>
+                            <option value="4">April</option>
+                            <option value="5">Mei</option>
+                            <option value="6">Juni</option>
+                            <option value="7">Juli</option>
+                            <option value="8">Agustus</option>
+                            <option value="9">September</option>
+                            <option value="10">Oktober</option>
+                            <option value="11">November</option>
+                            <option value="12">Desember</option>
+                        </select>
+
+                        <!-- Filter Tahun -->
+                        <select x-model="filterYear" 
+                                class="h-[34px] px-2.5 rounded-xl border border-[#CBD5E1] text-[12px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                            <option value="">Semua Tahun</option>
+                            <template x-for="yr in availableYears" :key="yr">
+                                <option :value="yr" x-text="yr"></option>
+                            </template>
+                        </select>
+
+                        <!-- Quick Action: Bulan Ini -->
+                        <button type="button"
+                                @click="filterMonth = String(new Date().getMonth() + 1); filterYear = String(new Date().getFullYear());"
+                                class="h-[34px] px-3 rounded-xl border text-[11.5px] font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                                :class="isCurrentMonthActive ? 'bg-[#8F0A0D] text-white border-[#8F0A0D] shadow-sm' : 'bg-white text-[#475569] hover:text-[#8F0A0D] border-[#CBD5E1] hover:border-[#8F0A0D]'"
+                                title="Tampilkan tugas bulan ini saja">
+                            <span>Bulan Ini</span>
+                        </button>
+
+                        <!-- Reset Filter Button -->
+                        <template x-if="filterMonth !== '' || filterYear !== '' || filterProject !== '' || filterPriority !== '' || filterEngineer !== ''">
+                            <button type="button"
+                                    @click="filterMonth = ''; filterYear = ''; filterProject = ''; filterPriority = ''; filterEngineer = '';"
+                                    class="h-[34px] px-2.5 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] hover:text-[#1E293B] text-[11.5px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                                    title="Reset semua filter">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                                <span>Reset</span>
+                            </button>
                         </template>
-                    </select>
-                    @endif
+                    </div>
                 </div>
             </div>
 
@@ -931,6 +999,8 @@
                 filterProject: '',
                 filterPriority: '',
                 filterEngineer: '',
+                filterMonth: '',
+                filterYear: '',
                 engineerDropdownOpen: false,
                 engineerSearch: '',
                 columnPagination: {
@@ -1002,17 +1072,113 @@
                     this.detailModalOpen = true;
                 },
 
+                getTaskTime: function(task) {
+                    if (!task) return 0;
+                    if (task.deadline) {
+                        var datePart = '';
+                        var timePart = '00:00:00';
+                        if (typeof task.deadline === 'string') {
+                            if (task.deadline.includes('T')) {
+                                var parts = task.deadline.split('T');
+                                datePart = parts[0];
+                                if (parts[1] && parts[1].substring(0, 5) !== '00:00') {
+                                    timePart = parts[1].substring(0, 8);
+                                }
+                            } else if (task.deadline.includes(' ')) {
+                                var parts = task.deadline.split(' ');
+                                datePart = parts[0];
+                                if (parts[1] && parts[1].substring(0, 5) !== '00:00') {
+                                    timePart = parts[1].substring(0, 8);
+                                }
+                            } else {
+                                datePart = task.deadline;
+                            }
+                        }
+                        if (task.deadline_time) {
+                            var dt = String(task.deadline_time).substring(0, 5);
+                            if (dt !== '00:00') {
+                                timePart = dt + ':00';
+                            }
+                        }
+                        if (datePart) {
+                            var timestamp = new Date(datePart + 'T' + timePart).getTime();
+                            if (!isNaN(timestamp)) return timestamp;
+                        }
+                    }
+                    if (task.updated_at) {
+                        var uTime = new Date(task.updated_at).getTime();
+                        if (!isNaN(uTime)) return uTime;
+                    }
+                    if (task.created_at) {
+                        var cTime = new Date(task.created_at).getTime();
+                        if (!isNaN(cTime)) return cTime;
+                    }
+                    return Number(task.id) || 0;
+                },
+
+                get availableYears() {
+                    var currentY = new Date().getFullYear();
+                    var years = new Set([currentY, currentY - 1, currentY + 1]);
+                    if (this.tasks && Array.isArray(this.tasks)) {
+                        this.tasks.forEach(function(t) {
+                            if (t.deadline) {
+                                var y = parseInt(String(t.deadline).substring(0, 4), 10);
+                                if (!isNaN(y) && y > 2000) years.add(y);
+                            }
+                            if (t.created_at) {
+                                var y2 = parseInt(String(t.created_at).substring(0, 4), 10);
+                                if (!isNaN(y2) && y2 > 2000) years.add(y2);
+                            }
+                        });
+                    }
+                    return Array.from(years).sort(function(a, b) { return b - a; });
+                },
+
+                get isCurrentMonthActive() {
+                    var now = new Date();
+                    return String(this.filterMonth) === String(now.getMonth() + 1) && String(this.filterYear) === String(now.getFullYear());
+                },
+
                 getFilteredTasksByStatus: function(status) {
                     var self = this;
-                    return this.tasks.filter(function(t) {
+                    var filtered = this.tasks.filter(function(t) {
                         var matchStatus = t.status === status;
                         var matchProject = self.filterProject === '' || t.project_id == self.filterProject;
                         var matchPriority = self.filterPriority === '' || t.priority === self.filterPriority;
                         var matchEngineer = self.filterEngineer === '' || 
                             t.engineer_id == self.filterEngineer || 
                             (t.engineers && t.engineers.some(function(e) { return e.id == self.filterEngineer; }));
-                        return matchStatus && matchProject && matchPriority && matchEngineer;
+
+                        // Month & Year Filter based on deadline or created_at
+                        var dateStr = t.deadline || t.created_at || '';
+                        var matchMonth = true;
+                        var matchYear = true;
+                        if (dateStr) {
+                            var rawDate = String(dateStr).split('T')[0].split(' ')[0];
+                            var parts = rawDate.split('-');
+                            if (parts.length >= 2) {
+                                var taskYear = parts[0];
+                                var taskMonth = String(parseInt(parts[1], 10));
+                                if (self.filterYear !== '') {
+                                    matchYear = taskYear === String(self.filterYear);
+                                }
+                                if (self.filterMonth !== '') {
+                                    matchMonth = taskMonth === String(parseInt(self.filterMonth, 10));
+                                }
+                            }
+                        }
+
+                        return matchStatus && matchProject && matchPriority && matchEngineer && matchMonth && matchYear;
                     });
+
+                    // Untuk kolom Completed, urutkan dari tanggal terbaru di paling atas (descending)
+                    if (status === 'Completed') {
+                        filtered.sort(function(a, b) {
+                            return self.getTaskTime(b) - self.getTaskTime(a);
+                        });
+                    }
+
+                    return filtered;
                 },
 
                 getPaginatedTasks: function(status) {

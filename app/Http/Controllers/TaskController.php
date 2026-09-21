@@ -58,6 +58,8 @@ class TaskController extends Controller
                     $q->orWhere('created_by', $user->id);
                 });
             })
+            ->orderByDesc('deadline')
+            ->orderByDesc('created_at')
             ->get();
 
         // Project khusus untuk modal Buat & Assign Task: semua project yang relevan dengan divisi/scope user
