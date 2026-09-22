@@ -74,6 +74,14 @@ class Project extends Model
         'commercial_handover_status',
         'commercial_handover_at',
         'commercial_handover_by',
+        'handover_target',
+        'service_start_date',
+        'service_end_date',
+        'maintenance_frequency',
+        'sla_coverage_hours',
+        'ms_handover_status',
+        'ms_accepted_at',
+        'ms_accepted_by',
         'lost_reason',
         'lost_competitor',
         'created_by',
@@ -88,11 +96,14 @@ class Project extends Model
         'deadline'                      => 'date:Y-m-d',
         'expected_closing_date'         => 'date:Y-m-d',
         'po_spk_date'                   => 'date:Y-m-d',
+        'service_start_date'            => 'date:Y-m-d',
+        'service_end_date'              => 'date:Y-m-d',
         'handover_conditional_deadline' => 'datetime',
         'handover_submitted_at'         => 'datetime',
         'handover_approved_at'          => 'datetime',
         'bdm_handover_at'               => 'datetime',
         'commercial_handover_at'        => 'datetime',
+        'ms_accepted_at'                => 'datetime',
         'documents_checklist'           => 'array',
         'handover_data'                 => 'array',
         'stakeholders_data'             => 'array',
@@ -121,6 +132,11 @@ class Project extends Model
     public function commercialHandoverBy()
     {
         return $this->belongsTo(User::class, 'commercial_handover_by');
+    }
+
+    public function msAcceptedBy()
+    {
+        return $this->belongsTo(User::class, 'ms_accepted_by');
     }
 
     public function bdm()
@@ -326,5 +342,15 @@ class Project extends Model
         if ($this->status !== $newStatus) {
             $this->updateQuietly(['status' => $newStatus]);
         }
+    }
+
+    public function projectDocuments()
+    {
+        return $this->hasMany(ProjectDocument::class, 'project_id');
+    }
+
+    public function stageDocuments(int $stageNumber)
+    {
+        return $this->projectDocuments()->where('stage_number', $stageNumber);
     }
 }

@@ -45,7 +45,10 @@ class ScheduleController extends Controller
                     ? substr($matchingTask->deadline_time, 0, 5) 
                     : ($matchingTask->deadline->format('H:i') !== '00:00' ? $matchingTask->deadline->format('H:i') : '09:00');
 
-                $existingSched = Schedule::where('title', $matchingTask->title)->first();
+                $existingSched = Schedule::where('title', $matchingTask->title)
+                    ->whereDate('date', $taskDate)
+                    ->first();
+
                 if ($existingSched) {
                     if ($hasScheduleUser) {
                         $engIds = $matchingTask->engineers->pluck('id')->toArray();
@@ -88,19 +91,25 @@ class ScheduleController extends Controller
             }
         }
 
-        // Auto-deduplikasi data ganda di database berdasarkan judul yang sama
+        // Auto-deduplikasi data ganda di database berdasarkan judul dan tanggal yang sama persis
         try {
-            $duplicates = Schedule::select('title')
+            $duplicates = Schedule::select('title', 'date')
                 ->whereNotNull('title')
-                ->groupBy('title')
+                ->whereNotNull('date')
+                ->groupBy('title', 'date')
                 ->havingRaw('COUNT(*) > 1')
                 ->get();
 
             foreach ($duplicates as $dup) {
-                $dupRecords = Schedule::where('title', $dup->title)->orderBy('id', 'asc')->get();
+                $dupDateStr = $dup->date instanceof \Carbon\Carbon ? $dup->date->format('Y-m-d') : substr($dup->date, 0, 10);
+                $dupRecords = Schedule::where('title', $dup->title)
+                    ->whereDate('date', $dupDateStr)
+                    ->orderBy('id', 'asc')
+                    ->get();
+
                 if ($dupRecords->count() > 1) {
-                    // Jika ada jadwal tiket berlabel Preventive Maintenance, prioritaskan simpan jadwal tersebut
-                    $pmMatch = $dupRecords->firstWhere('category', 'Preventive Maintenance');
+                    // Jika ada jadwal tiket berlabel Preventive Maintenance / Meeting, prioritaskan simpan jadwal tersebut
+                    $pmMatch = $dupRecords->firstWhere('category', 'Preventive Maintenance') ?? $dupRecords->firstWhere('category', 'Meeting');
                     $keepId = $pmMatch ? $pmMatch->id : $dupRecords->first()->id;
                     $deleteIds = $dupRecords->where('id', '!=', $keepId)->pluck('id')->all();
                     Schedule::whereIn('id', $deleteIds)->delete();
@@ -562,6 +571,9 @@ class ScheduleController extends Controller
             }
             unset($data['engineer_ids']);
 
+            $oldTitle = $schedule->getOriginal('title');
+            $oldProjectId = $schedule->getOriginal('project_id');
+
             $schedule->update($data);
             $withRelations = ['project', 'engineer', 'creator'];
             if ($hasScheduleUser) {
@@ -576,22 +588,45 @@ class ScheduleController extends Controller
                 ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
                 : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
 
-            // Sync / Buat Task jika kategori adalah Task/Kegiatan
-            if ((in_array($schedule->category, ['Task', 'Kegiatan']) || $request->boolean('create_task')) && $schedule->category !== 'Day Off') {
+            // Sync / Update Task jika agenda ini memiliki task terkait atau kategori Task/Kegiatan
+            if ($schedule->category !== 'Day Off') {
                 $deadlineTime = $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : '23:59:00';
                 $dateStr = $schedule->date ? $schedule->date->format('Y-m-d') : now()->toDateString();
                 
-                $task = Task::where('title', $schedule->title)
-                    ->where('project_id', $schedule->project_id)
-                    ->first();
+                // Cari task lama berdasarkan judul lama atau judul baru
+                $task = null;
+                if ($oldTitle) {
+                    $task = Task::where('title', $oldTitle)
+                        ->where('project_id', $oldProjectId)
+                        ->first();
+
+                    if (!$task) {
+                        $task = Task::where('title', $oldTitle)->first();
+                    }
+                }
+
+                if (!$task) {
+                    $task = Task::where('title', $schedule->title)
+                        ->where('project_id', $schedule->project_id)
+                        ->first();
+                }
 
                 if ($task) {
+                    // Update task yang sudah ada (termasuk rename judul baru)
                     $task->update([
+                        'title'         => $schedule->title,
+                        'project_id'    => $schedule->project_id,
                         'deadline'      => $dateStr . ' ' . $deadlineTime,
                         'deadline_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : null,
                         'engineer_id'   => $schedule->engineer_id,
+                        'description'   => $schedule->description ?: $task->description,
                     ]);
-                } else {
+
+                    if (Schema::hasTable('task_user') && !empty($engineerIdsList)) {
+                        $task->engineers()->sync($engineerIdsList);
+                    }
+                } elseif (in_array($schedule->category, ['Task', 'Kegiatan']) || $request->boolean('create_task')) {
+                    // Buat task baru hanya jika memang belum pernah ada dan kategori adalah Task
                     $task = Task::create([
                         'title'         => $schedule->title,
                         'project_id'    => $schedule->project_id,
@@ -605,10 +640,10 @@ class ScheduleController extends Controller
                         'description'   => $schedule->description ?: ('Task dibuat dari jadwal: ' . $schedule->title),
                         'created_by'    => auth()->id(),
                     ]);
-                }
 
-                if (Schema::hasTable('task_user') && !empty($engineerIdsList)) {
-                    $task->engineers()->sync($engineerIdsList);
+                    if (Schema::hasTable('task_user') && !empty($engineerIdsList)) {
+                        $task->engineers()->sync($engineerIdsList);
+                    }
                 }
             }
 

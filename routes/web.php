@@ -141,6 +141,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/projects/{project}/documents', [PmoController::class, 'updateDocuments'])->name('pmo.documents.update');
         Route::post('/projects/{project}/handover-approve', [PmoController::class, 'approveHandover'])->name('pmo.handover.approve');
         Route::post('/projects/{project}/handover-conditional', [PmoController::class, 'conditionalHandover'])->name('pmo.handover.conditional');
+        Route::post('/projects/{project}/handover-to-ms', [PmoController::class, 'handoverToManagedService'])->name('pmo.handover.to_ms');
     });
 
     // Lead & Executive Dashboard (Dashboard 2)
@@ -247,6 +248,9 @@ Route::middleware(['auth'])->group(function () {
         // Reports
         Route::get('/reports', [\App\Http\Controllers\ManagedServiceController::class, 'reports'])->name('ms.reports.index');
         Route::post('/reports', [\App\Http\Controllers\ManagedServiceController::class, 'storeReport'])->name('ms.reports.store');
+
+        // Incoming Service Handovers (Accept & Activate)
+        Route::post('/handovers/{project}/accept', [\App\Http\Controllers\ManagedServiceController::class, 'acceptServiceHandover'])->name('ms.handovers.accept');
     });
 
     // Fallback direct route
@@ -359,9 +363,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
         Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
         Route::put('/{project}', [ProjectController::class, 'update'])->name('projects.update');
-        Route::delete('/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
         Route::get('/{project}', [ProjectController::class, 'show'])->name('projects.show');
         Route::get('/data', [ProjectController::class, 'getData'])->name('projects.data');
+
+        // 6-Stage Handover & Document Flow (Commercial to Operation)
+        Route::get('/{project}/document-flow', [\App\Http\Controllers\ProjectDocumentController::class, 'getProjectFlow'])->name('projects.document_flow');
+        Route::post('/{project}/documents/upload', [\App\Http\Controllers\ProjectDocumentController::class, 'upload'])->name('projects.documents.upload');
+        Route::post('/{project}/documents/{document}/verify', [\App\Http\Controllers\ProjectDocumentController::class, 'verify'])->name('projects.documents.verify');
+        Route::get('/{project}/documents/{document}/download', [\App\Http\Controllers\ProjectDocumentController::class, 'download'])->name('projects.documents.download');
+        Route::delete('/{project}/documents/{document}', [\App\Http\Controllers\ProjectDocumentController::class, 'delete'])->name('projects.documents.delete');
     });
 
     // Tasks

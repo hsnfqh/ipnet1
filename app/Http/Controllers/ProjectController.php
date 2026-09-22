@@ -128,13 +128,17 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        $project->load(['tasks.engineer', 'creator', 'division', 'pm', 'bdm']);
+        $project->load(['tasks.engineer', 'creator', 'division', 'pm', 'bdm', 'projectDocuments.uploader', 'projectDocuments.verifier']);
+        $documentFlow = \App\Services\ProjectDocumentFlowService::getProjectDocumentProgress($project);
 
         if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
-            return response()->json($project);
+            return response()->json([
+                'project' => $project,
+                'document_flow' => $documentFlow
+            ]);
         }
 
-        return view('projects.show', compact('project'));
+        return view('projects.show', compact('project', 'documentFlow'));
     }
 
     public function getData()

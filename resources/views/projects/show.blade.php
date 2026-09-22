@@ -31,13 +31,13 @@
 @endpush
 
 @section('content')
-<div class="flex h-screen overflow-hidden bg-[#F8FAFC]">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC]" x-data="projectDocumentHub()" x-cloak>
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Detail Proyek'])
         
-        <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto">
+        <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1680px] mx-auto">
             
             {{-- Breadcrumb & Top Actions --}}
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 anim-fade-up">
@@ -58,7 +58,7 @@
                         $statusBadge = match($project->status) {
                             'Draft'       => 'bg-slate-100 text-slate-700 border-slate-200',
                             'Opportunity' => 'bg-blue-50 text-blue-700 border-blue-200',
-                            'Planning'    => 'bg-purple-50 text-purple-700 border-purple-200',
+                            'Planning'    => 'bg-slate-100 text-slate-800 border-slate-200',
                             'On Progress' => 'bg-amber-50 text-amber-800 border-amber-200',
                             'Completed'   => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                             default       => 'bg-slate-50 text-slate-700 border-slate-200',
@@ -71,7 +71,7 @@
 
                     @if($project->handover_document_file)
                         <a href="{{ asset('storage/' . $project->handover_document_file) }}" target="_blank" 
-                           class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[12px] font-bold rounded-xl shadow-xs transition hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+                           class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[12px] font-bold rounded-xl shadow-xs transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             <span>Unduh Berkas TOR / KAK</span>
                         </a>
@@ -86,7 +86,7 @@
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10.5px] font-bold uppercase tracking-wider bg-red-50 text-[#8F0A0D] border border-red-100">
                                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                Detail Informasi Inisiasi Peluang
+                                Detail Informasi Inisiasi Peluang &amp; Proyek
                             </span>
                             <span class="px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                                 {{ $project->project_type ?: 'One-Time Project' }}
@@ -95,9 +95,9 @@
                         <h1 class="text-xl sm:text-2xl font-bold text-[#1E293B] tracking-tight leading-snug">{{ $project->name }}</h1>
                         <p class="text-[12.5px] text-[#64748B] font-medium flex items-center gap-2 flex-wrap">
                             <span class="font-bold text-[#1E293B]">{{ $project->client }}</span>
-                            <span>•</span>
+                            <span>&bull;</span>
                             <span class="text-[#475569] font-semibold">{{ $project->division ? $project->division->name : 'Lintas Divisi' }}</span>
-                            <span>•</span>
+                            <span>&bull;</span>
                             <span class="text-[#94A3B8]">Dibuat {{ $project->created_at ? $project->created_at->format('d M Y') : '—' }}</span>
                         </p>
                     </div>
@@ -120,46 +120,217 @@
                 </div>
             </div>
 
-            {{-- 4 Metric Summary Cards --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 anim-fade-up anim-delay-2">
-                
-                {{-- Card 1: PIC Sales --}}
-                <div class="ipnet-card p-4 sm:p-5 hover:-translate-y-0.5 transition-transform duration-200">
-                    <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Account Executive / Sales</p>
-                    <h4 class="text-[15px] font-bold text-[#1E293B] truncate mt-1">{{ $project->sales_name ?: 'Tim Sales' }}</h4>
-                    <p class="text-[11.5px] text-[#94A3B8] mt-0.5">PIC tindak lanjut komersial</p>
+            {{-- 6-STAGE HANDOVER & DOCUMENT FLOW HUB (FROM COMMERCIAL TO OPERATION) --}}
+            <div class="ipnet-card p-5 sm:p-6 space-y-6 anim-fade-up anim-delay-2">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F1F5F9] pb-4">
+                    <div>
+                        <div class="flex items-center gap-2 text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider mb-0.5">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                            <span>Lifecycle Handover &amp; Document Flow</span>
+                        </div>
+                        <h2 class="text-[18px] font-bold text-[#1E293B] tracking-tight">
+                            Alur Serah Terima &amp; Repositori Dokumen 6 Tahapan
+                        </h2>
+                        <p class="text-[12px] text-[#64748B] mt-0.5">
+                            Transisi dokumen terstruktur dari inisiasi komersial hingga operasional layanan purnajual
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-bold">
+                            Total Berkas: <span class="text-gray-900" x-text="totalUploadedAll + '/' + totalDocsAll"></span>
+                        </span>
+                    </div>
                 </div>
 
-                {{-- Card 2: Kelayakan Feasibility --}}
-                <div class="ipnet-card p-4 sm:p-5 hover:-translate-y-0.5 transition-transform duration-200">
-                    <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Kelayakan BDM</p>
-                    <h4 class="text-[15px] font-bold text-[#1E293B] truncate mt-1">
-                        {{ $project->bd_assessment_score ?: 80 }}/100 Feasible
-                    </h4>
-                    <p class="text-[11.5px] text-[#94A3B8] mt-0.5">Skor asesmen potensi peluang</p>
+                {{-- 6 Milestone Cards Grid --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <template x-for="(stg, stgNum) in stages" :key="stgNum">
+                        <div @click="activeStageNumber = parseInt(stgNum)"
+                             class="p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-3"
+                             :class="activeStageNumber === parseInt(stgNum) 
+                                ? 'border-[#8F0A0D] bg-red-50/20 shadow-xs ring-1 ring-[#8F0A0D]/20' 
+                                : 'border-[#E2E8F0] hover:border-slate-300 bg-white'">
+                            
+                            {{-- Stage Number & Name --}}
+                            <div>
+                                <div class="flex items-center justify-between gap-1 mb-1">
+                                    <span class="w-5 h-5 rounded-full text-[11px] font-black flex items-center justify-center"
+                                          :class="activeStageNumber === parseInt(stgNum) ? 'bg-[#8F0A0D] text-white' : 'bg-slate-100 text-slate-700'"
+                                          x-text="stgNum">
+                                    </span>
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider"
+                                          :class="stg.is_complete ? 'text-emerald-700' : 'text-slate-400'"
+                                          x-text="stg.uploaded_docs + '/' + stg.total_docs + ' Doc'">
+                                    </span>
+                                </div>
+                                <h4 class="font-bold text-[12.5px] text-[#1E293B] leading-tight" x-text="stg.stage_name"></h4>
+                                <p class="text-[10.5px] text-[#64748B] font-medium mt-0.5 line-clamp-1" x-text="stg.sub_title"></p>
+                            </div>
+
+                            {{-- Mini Progress & Gate Action --}}
+                            <div>
+                                <div class="w-full h-1 bg-gray-100 rounded-full overflow-hidden mb-1.5">
+                                    <div class="h-full bg-[#8F0A0D] rounded-full transition-all duration-300"
+                                         :style="'width: ' + stg.percentage + '%'"></div>
+                                </div>
+                                <div class="text-[10px] font-semibold text-[#475569] truncate" x-text="stg.gate_action"></div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
-                {{-- Card 3: Target Timeline --}}
-                <div class="ipnet-card p-4 sm:p-5 hover:-translate-y-0.5 transition-transform duration-200">
-                    <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Target Timeline</p>
-                    <h4 class="text-[15px] font-bold text-[#1E293B] truncate mt-1">
-                        {{ $project->target_timeline_type ?: 'Q3 2026' }}
-                    </h4>
-                    <p class="text-[11.5px] text-[#94A3B8] mt-0.5">Estimasi kebutuhan implementasi</p>
-                </div>
+                {{-- Active Stage Detail & Document Repository Card --}}
+                <div class="p-4 sm:p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-4" x-show="activeStage">
+                    
+                    {{-- Active Stage Header --}}
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3.5">
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#8F0A0D] text-white">
+                                    Tahap <span x-text="activeStageNumber"></span>: <span x-text="activeStage.stage_name"></span>
+                                </span>
+                                <span class="text-xs text-[#64748B] font-semibold" x-text="activeStage.sub_title"></span>
+                            </div>
+                            <p class="text-[12px] text-[#475569] mt-1" x-text="activeStage.description"></p>
+                            <div class="text-[11px] text-[#64748B] mt-0.5">
+                                <strong>Penanggung Jawab:</strong> <span class="text-[#1E293B] font-semibold" x-text="activeStage.owner"></span>
+                            </div>
+                        </div>
 
-                {{-- Card 4: Status Handover --}}
-                <div class="ipnet-card p-4 sm:p-5 hover:-translate-y-0.5 transition-transform duration-200">
-                    <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Status Handover</p>
-                    <h4 class="text-[15px] font-bold text-[#8F0A0D] truncate mt-1">
-                        {{ $project->bdm_handover_status ?: 'Draft Inisiasi' }}
-                    </h4>
-                    <p class="text-[11.5px] text-[#94A3B8] mt-0.5">Tahapan serah terima BDM</p>
+                        <div class="flex items-center gap-2.5 shrink-0">
+                            <div class="text-right">
+                                <span class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider block">Handover Package:</span>
+                                <span class="text-[12px] font-bold text-[#8F0A0D]" x-text="activeStage.handover_package"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Document Table / Items List --}}
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-white text-gray-500 uppercase text-[10.5px] font-bold border-b border-[#E2E8F0]">
+                                <tr>
+                                    <th class="py-3 px-3.5 rounded-l-lg">No</th>
+                                    <th class="py-3 px-3.5">Nama Dokumen Kunci (*Key Document*)</th>
+                                    <th class="py-3 px-3.5">Ketentuan</th>
+                                    <th class="py-3 px-3.5">Status Berkas</th>
+                                    <th class="py-3 px-3.5">Detail Berkas Terunggah</th>
+                                    <th class="py-3 px-3.5 text-right rounded-r-lg">Aksi Dokumen</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200/60 font-medium text-gray-700">
+                                <template x-for="(doc, idx) in activeStage.documents" :key="doc.id || idx">
+                                    <tr class="hover:bg-white/60 transition-colors">
+                                        {{-- No --}}
+                                        <td class="py-3 px-3.5 font-bold text-gray-400" x-text="idx + 1"></td>
+
+                                        {{-- Title & Desc --}}
+                                        <td class="py-3 px-3.5 max-w-sm">
+                                            <div class="font-bold text-gray-900 text-[12.5px]" x-text="doc.document_title"></div>
+                                            <div class="text-[11px] text-gray-500 font-normal mt-0.5" x-text="doc.notes || '—'"></div>
+                                        </td>
+
+                                        {{-- Mandatory --}}
+                                        <td class="py-3 px-3.5 whitespace-nowrap">
+                                            <span class="px-2 py-0.5 rounded text-[10.5px] font-bold"
+                                                  :class="doc.is_mandatory ? 'bg-red-50 text-[#8F0A0D] border border-red-200' : 'bg-slate-100 text-slate-600 border border-slate-200'"
+                                                  x-text="doc.is_mandatory ? 'Wajib' : 'Opsional'">
+                                            </span>
+                                        </td>
+
+                                        {{-- Status --}}
+                                        <td class="py-3 px-3.5 whitespace-nowrap">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10.5px] font-bold border"
+                                                  :class="{
+                                                      'bg-emerald-50 text-emerald-700 border-emerald-200': doc.status === 'Verified',
+                                                      'bg-blue-50 text-blue-700 border-blue-200': doc.status === 'Uploaded',
+                                                      'bg-red-50 text-red-700 border-red-200': doc.status === 'Rejected',
+                                                      'bg-slate-100 text-slate-600 border-slate-200': doc.status === 'Pending' || !doc.status
+                                                  }">
+                                                <span class="w-1.5 h-1.5 rounded-full"
+                                                      :class="{
+                                                          'bg-emerald-500': doc.status === 'Verified',
+                                                          'bg-blue-500': doc.status === 'Uploaded',
+                                                          'bg-red-500': doc.status === 'Rejected',
+                                                          'bg-slate-400': doc.status === 'Pending' || !doc.status
+                                                      }"></span>
+                                                <span x-text="doc.status || 'Pending / Kosong'"></span>
+                                            </span>
+                                        </td>
+
+                                        {{-- File Info --}}
+                                        <td class="py-3 px-3.5">
+                                            <template x-if="doc.file_path">
+                                                <div class="space-y-0.5">
+                                                    <div class="font-semibold text-gray-900 truncate max-w-xs flex items-center gap-1">
+                                                        <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                        <span x-text="doc.file_name"></span>
+                                                    </div>
+                                                    <div class="text-[10.5px] text-gray-400">
+                                                        <span x-text="formatBytes(doc.file_size)"></span>
+                                                        <span x-show="doc.uploaded_at">&bull; <span x-text="formatDate(doc.uploaded_at)"></span></span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template x-if="!doc.file_path">
+                                                <span class="text-gray-400 text-xs italic">Belum ada berkas terlampir</span>
+                                            </template>
+                                        </td>
+
+                                        {{-- Actions --}}
+                                        <td class="py-3 px-3.5 text-right whitespace-nowrap">
+                                            <div class="inline-flex items-center justify-end gap-1.5">
+                                                {{-- Upload / Replace Button --}}
+                                                <button type="button" 
+                                                        @click="openUploadModal(doc)"
+                                                        class="px-2.5 py-1 bg-white hover:bg-gray-50 text-[#8F0A0D] border border-red-200 hover:border-[#8F0A0D] rounded-lg text-[11px] font-bold transition shadow-2xs cursor-pointer flex items-center gap-1">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                    <span x-text="doc.file_path ? 'Ganti Berkas' : 'Unggah File'"></span>
+                                                </button>
+
+                                                {{-- Download Button --}}
+                                                <template x-if="doc.file_path">
+                                                    <a :href="'/projects/' + projectData.id + '/documents/' + doc.id + '/download'" 
+                                                       target="_blank"
+                                                       class="px-2.5 py-1 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-lg text-[11px] font-semibold transition shadow-2xs cursor-pointer flex items-center gap-1">
+                                                        <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                        <span>Unduh</span>
+                                                    </a>
+                                                </template>
+
+                                                {{-- Verify Button (For Uploaded Docs) --}}
+                                                <template x-if="doc.file_path && doc.status !== 'Verified'">
+                                                    <button type="button" 
+                                                            @click="verifyDocument(doc, 'Verified')"
+                                                            class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-[11px] font-bold transition shadow-2xs cursor-pointer"
+                                                            title="Sahkan / Verifikasi Dokumen">
+                                                        <span>Sahkan</span>
+                                                    </button>
+                                                </template>
+
+                                                {{-- Delete Button --}}
+                                                <template x-if="doc.file_path">
+                                                    <button type="button" 
+                                                            @click="deleteDocument(doc)"
+                                                            class="p-1 text-gray-400 hover:text-red-600 rounded transition cursor-pointer"
+                                                            title="Hapus Berkas">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+
                 </div>
 
             </div>
 
-            {{-- 2-Column Content Layout --}}
+            {{-- 2-Column Content Layout (Details Peluang & Klien) --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 anim-fade-up anim-delay-3">
                 
                 {{-- Left 8-Cols: BDM Handover Details --}}
@@ -169,7 +340,7 @@
                     <div class="ipnet-card p-5 sm:p-6 space-y-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F1F5F9] pb-3.5">
                             <div>
-                                <h3 class="text-[15px] font-bold text-[#1E293B]">Inisiasi Peluang & Handover BDM</h3>
+                                <h3 class="text-[15px] font-bold text-[#1E293B]">Inisiasi Peluang &amp; Handover BDM</h3>
                                 <p class="text-[12px] text-[#64748B] mt-0.5">Paket data serah terima dari Business Development ke Sales</p>
                             </div>
                             
@@ -225,7 +396,7 @@
                                             <span class="text-[#64748B] text-[11px]">Telepon:</span>
                                             <span class="font-semibold text-[#1E293B] ml-1">{{ $sh['pic_phone'] ?? '-' }}</span>
                                         </div>
-                                        <span class="text-slate-300">•</span>
+                                        <span class="text-slate-300">&bull;</span>
                                         <div>
                                             <span class="text-[#64748B] text-[11px]">Email:</span>
                                             <span class="font-semibold text-[#1E293B] ml-1">{{ $sh['pic_email'] ?? '-' }}</span>
@@ -237,7 +408,7 @@
                             {{-- 3. Analisis Teknis & Mitra --}}
                             <div class="bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-xl space-y-2 hover:border-[#CBD5E1] transition-colors">
                                 <div class="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
-                                    Kompetitor & Rekomendasi Mitra
+                                    Kompetitor &amp; Rekomendasi Mitra
                                 </div>
                                 <div class="space-y-2 text-[12.5px] pt-1">
                                     <div>
@@ -254,7 +425,7 @@
                             {{-- 4. Kebutuhan Teknis Awal & Dokumen Pendukung --}}
                             <div class="sm:col-span-2 bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-xl space-y-3 hover:border-[#CBD5E1] transition-colors">
                                 <div class="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
-                                    Spesifikasi Awal, Timeline & Dokumen Pendukung (TOR/KAK)
+                                    Spesifikasi Awal, Timeline &amp; Dokumen Pendukung (TOR/KAK)
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1 text-[12.5px]">
                                     <div class="sm:col-span-2">
@@ -270,18 +441,6 @@
                                             <span class="text-[#64748B] text-[11px] block">Sumber Peluang:</span>
                                             <span class="font-semibold text-[#1E293B]">{{ $project->opportunity_source ?: 'Inbound Market Intel' }}</span>
                                         </div>
-                                        <div>
-                                            <span class="text-[#64748B] text-[11px] block mb-1">Berkas TOR / KAK:</span>
-                                            @if($project->handover_document_file)
-                                                <a href="{{ asset('storage/' . $project->handover_document_file) }}" target="_blank" 
-                                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#CBD5E1] text-[#8F0A0D] rounded-xl font-bold text-[11.5px] hover:bg-red-50 transition hover:border-[#8F0A0D]/40 shadow-2xs">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                    <span>Unduh Dokumen</span>
-                                                </a>
-                                            @else
-                                                <span class="text-slate-400 text-[11.5px] italic">Tidak ada lampiran berkas</span>
-                                            @endif
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -296,7 +455,7 @@
                     {{-- Detail Klien & Spesifikasi --}}
                     <div class="ipnet-card p-5 space-y-4">
                         <div class="flex items-center justify-between border-b border-[#F1F5F9] pb-3">
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Informasi Pelanggan & Lokasi</h3>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Informasi Pelanggan &amp; Lokasi</h3>
                         </div>
 
                         <div class="divide-y divide-[#F1F5F9] text-[13px]">
@@ -318,7 +477,7 @@
                             @if($project->visit_schedule && $project->visit_schedule !== 'None')
                                 <div class="py-2.5 flex items-center justify-between">
                                     <span class="text-[#64748B] font-medium">Jadwal Visit:</span>
-                                    <span class="font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200 text-xs">
+                                    <span class="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-xs">
                                         {{ $project->visit_schedule }}
                                     </span>
                                 </div>
@@ -336,7 +495,7 @@
                     {{-- Timeline & Penanggung Jawab --}}
                     <div class="ipnet-card p-5 space-y-4">
                         <div class="flex items-center justify-between border-b border-[#F1F5F9] pb-3">
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Jadwal & Tim Pelaksana</h3>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Jadwal &amp; Tim Pelaksana</h3>
                         </div>
 
                         <div class="divide-y divide-[#F1F5F9] text-[13px]">
@@ -366,7 +525,7 @@
 
                             <div class="py-2.5 flex items-center justify-between">
                                 <span class="text-[#64748B] font-medium">Project Manager (PM):</span>
-                                <span class="font-semibold text-[#1E293B]">{{ $project->pm ? $project->pm->name : 'Rizki (PMO)' }}</span>
+                                <span class="font-semibold text-[#1E293B]">{{ $project->pm ? $project->pm->name : 'PMO' }}</span>
                             </div>
 
                             @if($project->bdm)
@@ -384,5 +543,260 @@
 
         </div>
     </div>
+
+    {{-- MODAL UPLOAD DOKUMEN (CLEAN CORPORATE MODAL) --}}
+    <template x-teleport="body">
+        <div x-show="isUploadModalOpen" 
+             x-cloak 
+             class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5"
+             @click.self="isUploadModalOpen = false">
+            <div class="bg-white rounded-2xl w-[600px] max-w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-[#E2E8F0] my-auto anim-fade-up">
+                
+                {{-- Header --}}
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
+                    <div>
+                        <div class="flex items-center gap-2 text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider mb-0.5">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                            <span>Unggah Dokumen Tahap <span x-text="activeStageNumber"></span></span>
+                        </div>
+                        <h3 class="text-[16px] font-bold text-[#1E293B]" x-text="selectedDoc?.document_title"></h3>
+                    </div>
+                    <button type="button" @click="isUploadModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                {{-- Form Body --}}
+                <form @submit.prevent="submitUpload()" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                    <div class="p-5 sm:p-6 overflow-y-auto space-y-4 text-[12.5px] flex-1">
+                        
+                        {{-- Info Box --}}
+                        <div class="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] text-xs text-gray-600">
+                            <div class="font-bold text-gray-900 mb-0.5">Deskripsi Dokumen:</div>
+                            <div x-text="selectedDoc?.notes || 'Dokumen resmi persyaratan tahapan.'"></div>
+                        </div>
+
+                        {{-- File Input --}}
+                        <div>
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                                Pilih Berkas Dokumen <span class="text-[#8F0A0D]">*</span>
+                            </label>
+                            <input type="file" 
+                                   x-ref="fileInput" 
+                                   required
+                                   accept=".pdf,.docx,.doc,.xlsx,.xls,.zip,.rar,.png,.jpg,.jpeg,.txt,.csv"
+                                   class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-xs text-[#64748B] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-[#8F0A0D] file:text-white hover:file:bg-[#73080A] cursor-pointer">
+                            <span class="text-[11px] text-gray-400 mt-1 block">Format didukung: PDF, DOCX, XLSX, ZIP, RAR, Gambar (Maks 50MB)</span>
+                        </div>
+
+                        {{-- Notes Input --}}
+                        <div>
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                                Catatan / Keterangan Tambahan
+                            </label>
+                            <textarea x-model="uploadNotes" 
+                                      rows="2.5" 
+                                      placeholder="Contoh: Dokumen versi final v1.2 telah ditandatangani oleh Direktur Klien..."
+                                      class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"></textarea>
+                        </div>
+
+                        {{-- Loading State --}}
+                        <div x-show="isUploading" class="p-3 bg-red-50 rounded-xl border border-red-200 text-[#8F0A0D] text-xs font-semibold flex items-center gap-2">
+                            <svg class="animate-spin h-4 w-4 text-[#8F0A0D]" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Sedang mengunggah berkas dokumen...</span>
+                        </div>
+
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="flex items-center justify-end gap-2.5 p-4 px-6 border-t border-[#E2E8F0] bg-[#FAF9F8] shrink-0">
+                        <button type="button" 
+                                @click="isUploadModalOpen = false" 
+                                class="px-4 py-2 text-[12.5px] font-bold text-[#475569] hover:bg-gray-100 border border-gray-300 rounded-xl transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" 
+                                :disabled="isUploading"
+                                class="px-5 py-2 text-[12.5px] font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] disabled:opacity-50 rounded-xl shadow-xs transition cursor-pointer">
+                            Simpan &amp; Unggah Berkas
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </template>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('projectDocumentHub', () => ({
+            projectData: @json($project),
+            stages: @json($documentFlow),
+            activeStageNumber: 1,
+            isUploadModalOpen: false,
+            selectedDoc: null,
+            uploadNotes: '',
+            isUploading: false,
+
+            init() {
+                // Set default active stage based on project stage
+                const stageMap = { 'Acquire': 1, 'Design': 2, 'Deliver': 4, 'Operate': 6 };
+                if (this.projectData.stage && stageMap[this.projectData.stage]) {
+                    this.activeStageNumber = stageMap[this.projectData.stage];
+                }
+            },
+
+            get activeStage() {
+                return this.stages[this.activeStageNumber] || null;
+            },
+
+            get totalUploadedAll() {
+                let count = 0;
+                for (let k in this.stages) {
+                    count += this.stages[k].uploaded_docs || 0;
+                }
+                return count;
+            },
+
+            get totalDocsAll() {
+                let count = 0;
+                for (let k in this.stages) {
+                    count += this.stages[k].total_docs || 0;
+                }
+                return count;
+            },
+
+            openUploadModal(doc) {
+                this.selectedDoc = doc;
+                this.uploadNotes = doc.notes || '';
+                this.isUploadModalOpen = true;
+                if (this.$refs.fileInput) {
+                    this.$refs.fileInput.value = '';
+                }
+            },
+
+            async submitUpload() {
+                if (!this.$refs.fileInput.files[0]) {
+                    alert('Silakan pilih file dokumen terlebih dahulu.');
+                    return;
+                }
+
+                this.isUploading = true;
+                const formData = new FormData();
+                formData.append('stage_number', this.activeStageNumber);
+                formData.append('document_key', this.selectedDoc.document_key);
+                formData.append('document_file', this.$refs.fileInput.files[0]);
+                formData.append('notes', this.uploadNotes);
+
+                try {
+                    const response = await fetch(`/projects/${this.projectData.id}/documents/upload`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+
+                    const res = await response.json();
+                    if (response.ok && res.success) {
+                        this.isUploadModalOpen = false;
+                        await this.refreshDocumentFlow();
+                        alert(res.message || 'Dokumen berhasil diunggah!');
+                    } else {
+                        alert(res.message || 'Gagal mengunggah dokumen.');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Terjadi kesalahan jaringan saat mengunggah dokumen.');
+                } finally {
+                    this.isUploading = false;
+                }
+            },
+
+            async verifyDocument(doc, status) {
+                if (!confirm(`Sahkan dokumen '${doc.document_title}'?`)) return;
+
+                try {
+                    const response = await fetch(`/projects/${this.projectData.id}/documents/${doc.id}/verify`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ status: status })
+                    });
+
+                    const res = await response.json();
+                    if (response.ok && res.success) {
+                        await this.refreshDocumentFlow();
+                    } else {
+                        alert(res.message || 'Gagal memverifikasi dokumen.');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Terjadi kesalahan jaringan.');
+                }
+            },
+
+            async deleteDocument(doc) {
+                if (!confirm(`Hapus berkas dokumen '${doc.document_title}'?`)) return;
+
+                try {
+                    const response = await fetch(`/projects/${this.projectData.id}/documents/${doc.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const res = await response.json();
+                    if (response.ok && res.success) {
+                        await this.refreshDocumentFlow();
+                    } else {
+                        alert(res.message || 'Gagal menghapus dokumen.');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Terjadi kesalahan jaringan.');
+                }
+            },
+
+            async refreshDocumentFlow() {
+                try {
+                    const response = await fetch(`/projects/${this.projectData.id}/document-flow`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    const res = await response.json();
+                    if (res.success && res.stages) {
+                        this.stages = res.stages;
+                    }
+                } catch (e) {
+                    console.error('Error refreshing document flow:', e);
+                }
+            },
+
+            formatBytes(bytes) {
+                if (!bytes) return '—';
+                if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
+                if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' KB';
+                return bytes + ' B';
+            },
+
+            formatDate(dt) {
+                if (!dt) return '';
+                const d = new Date(dt);
+                return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
+        }));
+    });
+</script>
+@endpush
 @endsection

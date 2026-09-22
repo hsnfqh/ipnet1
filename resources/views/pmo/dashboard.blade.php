@@ -9,109 +9,84 @@
     <div class="flex-1 min-w-0 overflow-y-auto bg-[#FAF9F8]">
         @include('components.topbar', ['title' => 'Dashboard'])
         
-        <div class="p-4 sm:p-5 lg:p-[26px] animate-fade-in space-y-6">
+        <div class="p-4 sm:p-5 lg:p-7 animate-fade-in space-y-6 max-w-[1680px] mx-auto">
             
-            {{-- Filter Controls --}}
-            <div class="flex flex-wrap items-center justify-end gap-2.5">
-                <div class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-gray-200 shadow-xs text-xs">
-                    <span class="text-gray-400 font-semibold">Divisi:</span>
-                    <select x-model="selectedDivision" @change="currentPage = 1" class="bg-transparent font-bold text-gray-800 outline-none cursor-pointer">
-                        <option value="all">Semua Divisi</option>
-                        @foreach($divisions as $div)
-                            <option value="{{ $div->id }}">{{ $div->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-gray-200 shadow-xs text-xs">
-                    <span class="text-gray-400 font-semibold">Project Manager:</span>
-                    <select x-model="selectedPm" @change="currentPage = 1" class="bg-transparent font-bold text-gray-800 outline-none cursor-pointer">
-                        <option value="all">Semua PM</option>
-                        @foreach($pmList as $pm)
-                            <option value="{{ $pm->id }}">{{ $pm->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-
             {{-- 4 Metric Cards --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 
                 {{-- Card 1: Deliver Aktif --}}
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-4 wms-card-hover animate-pop-in stagger-1">
-                    <div class="space-y-3">
-                        <div class="w-10 h-10 rounded-xl bg-red-50 border border-red-100 text-[#C81E2C] flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Proyek Tahap Deliver</span>
+                        <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-100 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                             </svg>
                         </div>
-                        <div>
-                            <p class="text-[11.5px] font-medium text-gray-400">Proyek Tahap Deliver</p>
-                            <h3 class="text-xl font-extrabold text-gray-900 tracking-tight mt-1" x-text="stageCounts.Deliver + ' Proyek'"></h3>
-                        </div>
                     </div>
-                    <div class="flex items-center justify-between text-xs pt-3 border-t border-gray-50 text-gray-400">
-                        <span class="font-bold text-emerald-600" x-text="stageCounts.Deliver > 0 ? 'Sedang Berjalan' : 'Belum Ada Proyek'"></span>
-                        <span>Fase Implementasi Teknis</span>
+                    <div>
+                        <div class="text-2xl font-black text-gray-900 tracking-tight">
+                            <span x-text="stageCounts.Deliver"></span> <span class="text-xs font-semibold text-gray-400">Proyek</span>
+                        </div>
+                        <p class="text-[11.5px] text-gray-500 font-medium mt-1">Fase Implementasi Teknis</p>
                     </div>
                 </div>
 
                 {{-- Card 2: Kesehatan Timeline --}}
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-4 wms-card-hover animate-pop-in stagger-2">
-                    <div class="space-y-3">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Kepatuhan Jadwal</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
-                        <div>
-                            <p class="text-[11.5px] font-medium text-gray-400">Kepatuhan Jadwal (Timeline)</p>
-                            <h3 class="text-xl font-extrabold text-emerald-600 tracking-tight mt-1" x-text="onTrackCount + ' Sesuai Jadwal'"></h3>
-                        </div>
                     </div>
-                    <div class="flex items-center justify-between text-xs pt-3 border-t border-gray-50 text-gray-400">
-                        <span class="font-bold" :class="delayedCount > 0 ? 'text-red-600' : 'text-emerald-600'" x-text="delayedCount > 0 ? delayedCount + ' Proyek Terlambat' : 'Semua Tepat Waktu'"></span>
-                        <span x-text="delayedCount > 0 ? 'Perlu Mitigasi' : 'Jadwal Aman'"></span>
+                    <div>
+                        <div class="text-2xl font-black text-gray-900 tracking-tight">
+                            <span x-text="onTrackCount"></span> <span class="text-xs font-semibold text-emerald-600">Sesuai Jadwal</span>
+                        </div>
+                        <p class="text-[11.5px] font-medium mt-1" :class="delayedCount > 0 ? 'text-red-600' : 'text-gray-500'">
+                            <span x-text="delayedCount > 0 ? delayedCount + ' Proyek Terlambat' : 'Semua Jadwal Aman'"></span>
+                        </p>
                     </div>
                 </div>
 
                 {{-- Card 3: Gerbang Handover Gateway --}}
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-4 wms-card-hover animate-pop-in stagger-3">
-                    <div class="space-y-3">
-                        <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Review Serah Terima</span>
+                        <div class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                         </div>
-                        <div>
-                            <p class="text-[11.5px] font-medium text-gray-400">Review Handover Gateway</p>
-                            <h3 class="text-xl font-extrabold text-blue-600 tracking-tight mt-1" x-text="handoverPendingCount + ' Menunggu Verifikasi'"></h3>
-                        </div>
                     </div>
-                    <div class="flex items-center justify-between text-xs pt-3 border-t border-gray-50 text-gray-400">
-                        <span class="font-bold text-amber-600" x-text="handoverConditionalCount > 0 ? handoverConditionalCount + ' Revisi 2x24 Jam' : 'SOP Gatekeeper'"></span>
-                        <span>Commercial &rarr; PMO</span>
+                    <div>
+                        <div class="text-2xl font-black text-gray-900 tracking-tight">
+                            <span x-text="handoverPendingCount"></span> <span class="text-xs font-semibold text-amber-600">Menunggu Review</span>
+                        </div>
+                        <p class="text-[11.5px] text-gray-500 font-medium mt-1">Commercial Sales &rarr; PMO</p>
                     </div>
                 </div>
 
                 {{-- Card 4: Utilisasi Teknisi Lapangan --}}
-                <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-4 wms-card-hover animate-pop-in stagger-4">
-                    <div class="space-y-3">
-                        <div class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Alokasi Engineer</span>
+                        <div class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                             </svg>
                         </div>
-                        <div>
-                            <p class="text-[11.5px] font-medium text-gray-400">Alokasi Personil Engineer</p>
-                            <h3 class="text-xl font-extrabold text-purple-700 tracking-tight mt-1">
-                                <span x-text="activeEngineersCount"></span> / <span x-text="totalEngineersCount"></span> Ditugaskan
-                            </h3>
-                        </div>
                     </div>
-                    <div class="flex items-center justify-between text-xs pt-3 border-t border-gray-50 text-gray-400">
-                        <span class="font-bold text-emerald-600" x-text="standbyEngineersCount + ' Personil Siap Ditugaskan'"></span>
-                        <span>Seluruh Divisi</span>
+                    <div>
+                        <div class="text-2xl font-black text-gray-900 tracking-tight">
+                            <span x-text="activeEngineersCount"></span><span class="text-base text-gray-400 font-normal">/</span><span x-text="totalEngineersCount"></span> <span class="text-xs font-semibold text-gray-400">Ditugaskan</span>
+                        </div>
+                        <p class="text-[11.5px] text-gray-500 font-medium mt-1">
+                            <span class="text-emerald-600 font-bold" x-text="standbyEngineersCount + ' Standby'"></span> &bull; Seluruh Divisi
+                        </p>
                     </div>
                 </div>
 
@@ -119,48 +94,67 @@
 
             {{-- Handover Pending Alert Banner --}}
             <template x-if="handoverPendingCount > 0 || handoverConditionalCount > 0">
-                <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                     <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <div class="w-8 h-8 rounded-lg bg-[#8F0A0D] text-white flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-blue-900">Perhatian Gatekeeper Serah Terima Proyek (PMO & Kadiv)</h4>
-                            <p class="text-[11.5px] text-blue-700 mt-0.5">
-                                Terdapat <strong x-text="handoverPendingCount"></strong> berkas serah terima baru yang menunggu pengesahan, dan <strong x-text="handoverConditionalCount"></strong> berkas dengan catatan bersyarat (tenggat 2x24 jam).
+                            <h4 class="text-xs font-bold text-gray-900">Perhatian Gatekeeper Serah Terima Proyek (PMO & Kadiv)</h4>
+                            <p class="text-[11.5px] text-gray-500 mt-0.5">
+                                Terdapat <strong class="text-gray-900" x-text="handoverPendingCount"></strong> berkas serah terima baru yang menunggu verifikasi, dan <strong class="text-gray-900" x-text="handoverConditionalCount"></strong> berkas dengan catatan bersyarat.
                             </p>
                         </div>
                     </div>
                     <button type="button" 
                             @click="handoverFilter = (handoverFilter === 'pending' ? 'all' : 'pending'); currentPage = 1;"
-                            class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs whitespace-nowrap"
+                            class="px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-xs font-bold rounded-lg transition cursor-pointer shadow-xs whitespace-nowrap"
                             x-text="handoverFilter === 'pending' ? 'Tampilkan Semua Proyek' : 'Filter Menunggu Handover'">
                     </button>
                 </div>
             </template>
 
-
-
             {{-- Tabel Portofolio Proyek & Matriks Dokumen --}}
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.03)] overflow-hidden">
+            <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-xs overflow-hidden">
                 
-                {{-- Table Search Header --}}
-                <div class="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white">
-                    <div class="relative w-full sm:w-80">
+                {{-- Table Toolbar: Search & Filters --}}
+                <div class="p-4 sm:p-5 border-b border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-white">
+                    <div class="relative w-full md:w-80">
                         <input type="text" 
                                x-model="search" 
                                @input="currentPage = 1" 
-                               placeholder="Cari nama proyek, klien, sales, atau PM..." 
-                               class="w-full pl-9 pr-4 py-2 bg-gray-50/80 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#C81E2C] focus:ring-2 focus:ring-red-500/20 transition outline-none">
+                               placeholder="Cari proyek, klien, sales, atau PM..." 
+                               class="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition outline-none">
                         <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
 
-                    <div class="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                        <span>Total: <strong class="text-gray-700" x-text="filteredProjects.length"></strong> Proyek Ditemukan</span>
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        {{-- Filter Divisi --}}
+                        <select x-model="selectedDivision" @change="currentPage = 1" 
+                                class="px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 outline-none hover:border-gray-300 focus:border-[#8F0A0D] transition cursor-pointer">
+                            <option value="all">Semua Divisi</option>
+                            @foreach($divisions as $div)
+                                <option value="{{ $div->id }}">{{ $div->name }}</option>
+                            @endforeach
+                        </select>
+
+                        {{-- Filter PM --}}
+                        <select x-model="selectedPm" @change="currentPage = 1" 
+                                class="px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 outline-none hover:border-gray-300 focus:border-[#8F0A0D] transition cursor-pointer">
+                            <option value="all">Semua Project Manager</option>
+                            @foreach($pmList as $pm)
+                                <option value="{{ $pm->id }}">{{ $pm->name }}</option>
+                            @endforeach
+                        </select>
+
+                        {{-- Total Counter Badge --}}
+                        <span class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-500 font-medium whitespace-nowrap">
+                            Total: <strong class="text-gray-900" x-text="filteredProjects.length"></strong> Proyek
+                        </span>
                     </div>
                 </div>
 
@@ -168,10 +162,10 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
-                            <tr class="border-b border-gray-100 bg-gray-50/50 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                                <th class="py-3.5 px-4 sm:px-6">NAMA PROYEK & KLIEN</th>
-                                <th class="py-3.5 px-4">DIVISI & PROJECT MANAGER</th>
-                                <th class="py-3.5 px-4">TAHAP & STATUS PROSES</th>
+                            <tr class="border-b border-gray-100 bg-gray-50/50 text-[10.5px] font-bold text-gray-500 uppercase tracking-wider">
+                                <th class="py-3.5 px-4 sm:px-6">NAMA PROYEK &amp; KLIEN</th>
+                                <th class="py-3.5 px-4">DIVISI &amp; PM</th>
+                                <th class="py-3.5 px-4">TAHAP &amp; STATUS PROSES</th>
                                 <th class="py-3.5 px-4">TARGET DEADLINE</th>
                                 <th class="py-3.5 px-4">PROGRESS FISIK</th>
                                 <th class="py-3.5 px-4">CHECKLIST HANDOVER</th>
@@ -180,7 +174,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100 font-medium text-gray-700">
                             <template x-for="project in paginatedProjects" :key="project.id">
-                                <tr class="hover:bg-gray-50/80 transition" :class="project.handover_status === 'Submitted' ? 'bg-blue-50/30' : ''">
+                                <tr class="hover:bg-gray-50/80 transition" :class="project.handover_status === 'Submitted' ? 'bg-amber-50/20' : ''">
                                     {{-- Kolom 1: Project & Client --}}
                                     <td class="py-3.5 px-4 sm:px-6">
                                         <div class="font-bold text-gray-900 text-xs" x-text="project.name"></div>
@@ -192,21 +186,21 @@
                                     </td>
 
                                     {{-- Kolom 2: Divisi & PIC PM --}}
-                                    <td class="py-3.5 px-4">
+                                    <td class="py-3.5 px-4 whitespace-nowrap">
                                         <div class="font-semibold text-gray-800" x-text="project.division"></div>
                                         <div class="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
                                             <span>PM:</span>
-                                            <span class="font-bold" :class="project.pm ? 'text-blue-600' : 'text-gray-400'" x-text="project.pm || 'Belum Ditentukan'"></span>
+                                            <span class="font-bold" :class="project.pm ? 'text-gray-800' : 'text-gray-400'" x-text="project.pm || 'Belum Ditentukan'"></span>
                                         </div>
                                     </td>
 
                                     {{-- Kolom 3: Tahap & Status Handover --}}
                                     <td class="py-3.5 px-4">
                                         <div class="flex flex-col gap-1 items-start">
-                                            <span class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold border"
+                                            <span class="px-2 py-0.5 rounded text-[10.5px] font-bold border"
                                                   :class="{
-                                                      'bg-red-50 text-[#C81E2C] border-red-200': project.stage === 'Deliver',
-                                                      'bg-blue-50 text-blue-700 border-blue-200': project.stage === 'Design',
+                                                      'bg-red-50 text-[#8F0A0D] border-red-200': project.stage === 'Deliver',
+                                                      'bg-slate-100 text-slate-800 border-slate-200': project.stage === 'Design',
                                                       'bg-emerald-50 text-emerald-700 border-emerald-200': project.stage === 'Operate',
                                                       'bg-gray-100 text-gray-700 border-gray-200': project.stage === 'Acquire'
                                                   }"
@@ -215,19 +209,19 @@
 
                                             {{-- Handover Badge --}}
                                             <template x-if="project.handover_status === 'Submitted'">
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-blue-100 text-blue-800 animate-pulse">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                                     <span>Menunggu Verifikasi PMO</span>
                                                 </span>
                                             </template>
                                             <template x-if="project.handover_status === 'Conditional'">
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-100 text-amber-800" :title="project.handover_conditional_notes">
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-amber-100 text-amber-800 border border-amber-200" :title="project.handover_conditional_notes">
                                                     <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                                     <span>Bersyarat (2x24 Jam)</span>
                                                 </span>
                                             </template>
                                             <template x-if="project.handover_status === 'Approved'">
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-emerald-50 text-emerald-700">
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                     <span>Handover Approved</span>
                                                 </span>
@@ -239,7 +233,7 @@
                                     <td class="py-3.5 px-4 whitespace-nowrap">
                                         <div class="font-semibold text-gray-800" x-text="project.deadline"></div>
                                         <div class="mt-0.5">
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold border"
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold border"
                                                   :class="{
                                                       'bg-emerald-50 text-emerald-700 border-emerald-200': project.health_status === 'On-Track',
                                                       'bg-red-50 text-red-700 border-red-200': project.health_status === 'Delayed',
@@ -263,7 +257,7 @@
                                                 <span class="text-[10px] text-gray-400 font-normal" x-text="project.completed_tasks + '/' + project.total_tasks + ' Task'"></span>
                                             </div>
                                             <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                                <div class="h-full bg-[#C81E2C] rounded-full transition-all duration-300" :style="'width: ' + project.progress + '%'"></div>
+                                                <div class="h-full bg-[#8F0A0D] rounded-full transition-all duration-300" :style="'width: ' + project.progress + '%'"></div>
                                             </div>
                                         </div>
                                     </td>
@@ -273,7 +267,7 @@
                                         <button type="button" 
                                                 @click="openDocumentsModal(project)"
                                                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-xs font-semibold text-gray-700 transition cursor-pointer shadow-xs">
-                                            <span class="font-bold text-blue-600" x-text="project.docs_completed_count + '/11'"></span>
+                                            <span class="font-bold text-slate-800" x-text="project.docs_completed_count + '/11'"></span>
                                             <span>Item Form</span>
                                             <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -284,15 +278,28 @@
                                     {{-- Kolom 7: Aksi --}}
                                     <td class="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
                                         <div class="inline-flex items-center justify-end gap-1.5">
-                                            {{-- Review Handover Button for PMO Gatekeeper --}}
+                                            {{-- Review Handover Button for PMO Gatekeeper (From Sales) --}}
                                             <template x-if="project.handover_status === 'Submitted' || project.handover_status === 'Conditional' || project.stage === 'Design'">
                                                 <button type="button"
                                                         @click="openHandoverReviewModal(project)"
-                                                        class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1 cursor-pointer">
+                                                        class="px-2.5 py-1 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1 cursor-pointer">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                     </svg>
                                                     <span>Review Handover</span>
+                                                </button>
+                                            </template>
+
+                                            {{-- Gate 4: Serah Terima Pasca-Implementasi ke Managed Service (Hanya jika handover sudah approved) --}}
+                                            <template x-if="project.stage === 'Deliver' && project.handover_status === 'Approved'">
+                                                <button type="button"
+                                                        @click="openHandoverToMsModal(project)"
+                                                        class="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                                                        title="Serah Terima Hasil Implementasi ke Tim Managed Service (Tahap Operate)">
+                                                    <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                                    </svg>
+                                                    <span>Serah Terima ke MS</span>
                                                 </button>
                                             </template>
 
@@ -683,17 +690,116 @@
                 </div>
 
                 {{-- Modal Footer --}}
-                <div class="p-4 sm:px-6 border-t border-gray-100 bg-[#FAF9F8] flex items-center justify-between gap-2">
+                <div class="p-4 sm:px-6 border-t border-[#E2E8F0] bg-[#FAF9F8] flex items-center justify-between gap-2 flex-wrap">
                     <div class="text-xs text-gray-500">
                         Total Terpenuhi: <strong class="text-emerald-600" x-text="Object.values(activeDocs).filter(v => v === true).length + '/11 Item'"></strong>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button type="button" @click="docsModalOpen = false" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 transition cursor-pointer">Tutup</button>
-                        <button type="button" @click="saveDocuments()" class="px-4 py-2 bg-[#C81E2C] hover:brightness-105 active:translate-y-[1px] text-white rounded-lg text-xs font-bold shadow-[0_8px_20px_rgba(200,30,44,0.24)] transition cursor-pointer flex items-center gap-1.5">
+                        <a :href="'/projects/' + (activeProject?.id || '')" 
+                           class="px-3.5 py-2 bg-white border border-[#CBD5E1] text-[#1E293B] hover:bg-gray-50 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            <span>Repositori 6 Tahap</span>
+                        </a>
+                        <button type="button" @click="docsModalOpen = false" class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 transition cursor-pointer">Tutup</button>
+                        <button type="button" @click="saveDocuments()" class="px-4 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>Simpan Formulir Serah Terima</span>
+                            <span>Simpan Formulir Checklist</span>
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    {{-- MODAL GATE 4: SERAH TERIMA PASCA-IMPLEMENTASI (PMO -> MANAGED SERVICE) --}}
+    <template x-teleport="body">
+        <div x-show="handoverToMsModalOpen" 
+             x-cloak
+             class="fixed inset-0 bg-[#0E0D12]/60 z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+             @click.self="handoverToMsModalOpen = false">
+            <div class="bg-white rounded-2xl w-[720px] max-w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-6 border border-gray-200">
+                
+                {{-- Modal Header --}}
+                <div class="p-5 sm:p-6 bg-[#1E293B] text-white flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 text-red-400 text-xs font-bold uppercase tracking-wider mb-1">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                            <span>Gate 4: Post-Implementation Service Handover</span>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-bold text-white" x-text="'Serah Terima ke Managed Service: ' + (activeProject?.name || '')"></h3>
+                    </div>
+                    <button type="button" @click="handoverToMsModalOpen = false" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer">
+                        &times;
+                    </button>
+                </div>
+
+                {{-- Modal Body --}}
+                <div class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 text-xs">
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900">
+                        <div class="font-bold mb-1">Transisi Tahap Deliver &rarr; Operate:</div>
+                        <p class="text-slate-600 leading-relaxed">
+                            Proyek telah selesai tahap implementasi / instalasi. Formulir ini akan melimpahkan tanggung jawab pemeliharaan rutin, monitoring, dan SLA kepada <strong>Tim Managed Service</strong>.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">SLA Tier Kontrak <span class="text-red-500">*</span></label>
+                            <select x-model="msHandoverForm.sla_tier" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl font-bold text-gray-800 outline-none focus:border-[#8F0A0D]">
+                                <option value="Platinum">Platinum (24x7 MTTR 2 Jam, Uptime 99.9%)</option>
+                                <option value="Gold">Gold (8x5 MTTR 4 Jam, Uptime 99.5%)</option>
+                                <option value="Silver">Silver (8x5 Next Business Day, Uptime 99.0%)</option>
+                                <option value="Bronze">Bronze (Best Effort Support)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Support Hours Coverage <span class="text-red-500">*</span></label>
+                            <select x-model="msHandoverForm.sla_coverage_hours" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl font-semibold text-gray-800 outline-none focus:border-[#8F0A0D]">
+                                <option value="24x7">24x7 (24 Jam Termasuk Libur)</option>
+                                <option value="8x5">8x5 (Jam Kerja Senin-Jumat)</option>
+                                <option value="12x7">12x7 (08:00 - 20:00)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Frekuensi Preventive Maint. <span class="text-red-500">*</span></label>
+                            <select x-model="msHandoverForm.maintenance_frequency" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl font-medium text-gray-800 outline-none focus:border-[#8F0A0D]">
+                                <option value="Monthly">Bulanan (Monthly)</option>
+                                <option value="Quarterly">Triwulanan (3 Bulan)</option>
+                                <option value="Bi-Annual">Semesteran (6 Bulan)</option>
+                                <option value="Annual">Tahunan</option>
+                                <option value="On-Demand">On-Demand / Incident</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Mulai Periode Layanan <span class="text-red-500">*</span></label>
+                            <input type="date" x-model="msHandoverForm.service_start_date" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl font-medium text-gray-800 outline-none focus:border-[#8F0A0D]">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Akhir Kontrak Layanan</label>
+                            <input type="date" x-model="msHandoverForm.service_end_date" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl font-medium text-gray-800 outline-none focus:border-[#8F0A0D]">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Catatan Serah Terima Hasil Implementasi ke Tim Operasional</label>
+                        <textarea x-model="msHandoverForm.special_notes" rows="2.5" placeholder="Contoh: Seluruh konfigurasi telah selesai, password & IP schema terlampir di dokumentasi final..." class="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl text-gray-800 outline-none focus:border-[#8F0A0D]"></textarea>
+                    </div>
+                </div>
+
+                {{-- Modal Footer --}}
+                <div class="p-4 sm:px-6 border-t border-gray-100 bg-[#FAF9F8] flex items-center justify-end gap-2">
+                    <button type="button" @click="handoverToMsModalOpen = false" class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-gray-50 transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="button" @click="submitHandoverToMs()" class="px-5 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold shadow-md transition cursor-pointer flex items-center gap-1.5">
+                        <span>Serahkan ke Tim Managed Service</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -727,6 +833,7 @@
 
             docsModalOpen: false,
             handoverReviewModalOpen: false,
+            handoverToMsModalOpen: false,
             showConditionalInput: false,
             conditionalNotes: '',
             activeProject: null,
@@ -734,6 +841,51 @@
             handoverAssign: {
                 pm_id: '',
                 division_id: '',
+            },
+            msHandoverForm: {
+                sla_tier: 'Gold',
+                sla_coverage_hours: '24x7',
+                maintenance_frequency: 'Monthly',
+                service_start_date: '{{ date('Y-m-d') }}',
+                service_end_date: '',
+                special_notes: '',
+            },
+
+            openHandoverToMsModal(project) {
+                this.activeProject = project;
+                this.msHandoverForm.sla_tier = project.sla_tier || 'Gold';
+                this.msHandoverForm.sla_coverage_hours = '24x7';
+                this.msHandoverForm.maintenance_frequency = 'Monthly';
+                this.msHandoverForm.service_start_date = '{{ date('Y-m-d') }}';
+                this.msHandoverForm.service_end_date = '';
+                this.msHandoverForm.special_notes = project.special_notes || '';
+                this.handoverToMsModalOpen = true;
+            },
+
+            async submitHandoverToMs() {
+                try {
+                    const response = await fetch(`/pmo/projects/${this.activeProject.id}/handover-to-ms`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify(this.msHandoverForm)
+                    });
+
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        this.handoverToMsModalOpen = false;
+                        alert(data.message || 'Proyek berhasil diserahkan ke Managed Service!');
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'Gagal menyerahkan ke Managed Service.');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('Terjadi kesalahan jaringan.');
+                }
             },
 
             get filteredProjects() {

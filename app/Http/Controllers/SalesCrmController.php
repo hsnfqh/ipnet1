@@ -414,15 +414,16 @@ class SalesCrmController extends Controller
     }
 
     /**
-     * 3. Halaman Dedicated: Commercial Handover to Project (Delivery/PMO)
+     * 3. Halaman Dedicated: Commercial Handover to Project (Delivery/PMO or Managed Service)
      */
     public function commercialHandoverIndex(Request $request)
     {
         $user = auth()->user();
-        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager']);
+        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager', 'Lead Maintenance', 'Managed Service']);
 
         $search = $request->input('search');
         $filterStatus = $request->input('status');
+        $filterTarget = $request->input('target');
 
         $query = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
             ->where(function($q) {
@@ -434,7 +435,7 @@ class SalesCrmController extends Controller
                           ->where('commercial_handover_status', '!=', 'Draft');
                   });
             })
-            ->with(['creator', 'pm', 'commercialHandoverBy']);
+            ->with(['creator', 'pm', 'commercialHandoverBy', 'msAcceptedBy']);
 
         if (!$isManagerial) {
             $query->where(function($q) use ($user) {
@@ -456,42 +457,147 @@ class SalesCrmController extends Controller
             $query->where('commercial_handover_status', $filterStatus);
         }
 
+        if ($filterTarget) {
+            $query->where('handover_target', $filterTarget);
+        }
+
         $handoverProjects = $query->latest('updated_at')->paginate(10)->withQueryString();
 
-        return view('sales.handover.index', compact('handoverProjects', 'search', 'filterStatus', 'isManagerial'));
+        return view('sales.handover.index', compact('handoverProjects', 'search', 'filterStatus', 'filterTarget', 'isManagerial'));
     }
 
     /**
-     * Process Official Commercial Handover to Delivery/PMO
+     * Process Official Commercial Handover to Delivery/PMO or Managed Service
      */
     public function submitCommercialHandover(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'po_spk_number'      => 'required|string|max:255',
-            'po_spk_date'        => 'required|date',
-            'contract_value'     => 'required|numeric|min:0',
-            'po_spk_file'        => 'nullable|file|mimes:pdf,docx,xlsx,zip,rar|max:25600',
-            'billing_terms'      => 'required|string',
-            'commercial_terms'   => 'nullable|string',
-            'sla_commitment'     => 'nullable|string',
-            'special_commitment' => 'nullable|string',
-            'exclusions'         => 'nullable|string',
-            'description'        => 'nullable|string',
+            'handover_target'          => 'required|string|in:pmo,managed_service',
+            'po_spk_number'            => 'required|string|max:255',
+            'po_spk_date'              => 'required|date',
+            'contract_value'           => 'required|numeric|min:0',
+            'po_spk_file'              => 'nullable|file|mimes:pdf,docx,xlsx,zip,rar|max:25600',
+            'doc_customer_requirement' => 'nullable|file|mimes:pdf,docx,xlsx,zip,rar|max:25600',
+            'doc_commercial_proposal'  => 'nullable|file|mimes:pdf,docx,xlsx,zip,rar|max:25600',
+            'doc_negotiation_record'   => 'nullable|file|mimes:pdf,docx,xlsx,zip,rar|max:25600',
+            'doc_rfi_rfp'              => 'nullable|file|mimes:pdf,docx,xlsx,zip,rar|max:25600',
+            'doc_commercial_package'   => 'nullable|file|mimes:pdf,docx,xlsx,zip,rar|max:25600',
+            'billing_terms'            => 'required|string',
+            'commercial_terms'         => 'nullable|string',
+            'sla_commitment'           => 'nullable|string',
+            'special_commitment'       => 'nullable|string',
+            'exclusions'               => 'nullable|string',
+            'description'              => 'nullable|string',
+            // Managed Service Specific Fields
+            'sla_tier'                 => 'nullable|string|in:Platinum,Gold,Silver,Bronze',
+            'sla_coverage_hours'       => 'nullable|string|max:100',
+            'maintenance_frequency'    => 'nullable|string|max:100',
+            'service_start_date'       => 'nullable|date',
+            'service_end_date'         => 'nullable|date',
         ]);
 
         $poFilePath = $project->po_spk_file;
         if ($request->hasFile('po_spk_file')) {
-            $poFilePath = FileUploadHelper::storePublicly($request->file('po_spk_file'), 'commercial_contracts');
+            $uploadedPo = $request->file('po_spk_file');
+            $poFilePath = FileUploadHelper::storePublicly($uploadedPo, 'commercial_contracts');
+            
+            // Record to project_documents table (Stage 1: Signed Contract / PO)
+            \App\Models\ProjectDocument::updateOrCreate(
+                [
+                    'project_id'   => $project->id,
+                    'stage_number' => 1,
+                    'document_key' => 'contract_po_so',
+                ],
+                [
+                    'stage_name'     => 'Commercial',
+                    'document_title' => 'Contract / PO / SO (Signed)',
+                    'file_path'      => $poFilePath,
+                    'file_name'      => $uploadedPo->getClientOriginalName(),
+                    'file_size'      => $uploadedPo->getSize(),
+                    'file_mime'      => $uploadedPo->getClientMimeType(),
+                    'status'         => 'Uploaded',
+                    'uploaded_by'    => auth()->id(),
+                    'version'        => 1,
+                    'is_mandatory'   => true,
+                    'notes'          => 'PO/SPK No: ' . $validated['po_spk_number'],
+                ]
+            );
         }
 
-        $project->update([
+        // Store other Stage 1 Handover documents if provided
+        $stage1DocInputs = [
+            'doc_customer_requirement' => [
+                'key'       => 'customer_requirement',
+                'title'     => 'Customer Requirement',
+                'folder'    => 'customer_requirements',
+                'mandatory' => true,
+            ],
+            'doc_commercial_proposal' => [
+                'key'       => 'commercial_proposal',
+                'title'     => 'Commercial Proposal',
+                'folder'    => 'commercial_proposals',
+                'mandatory' => true,
+            ],
+            'doc_negotiation_record' => [
+                'key'       => 'negotiation_record',
+                'title'     => 'Negotiation Record & MoM',
+                'folder'    => 'negotiation_records',
+                'mandatory' => false,
+            ],
+            'doc_rfi_rfp' => [
+                'key'       => 'rfi_rfp_rfq',
+                'title'     => 'RFI / RFP / RFQ',
+                'folder'    => 'rfp_documents',
+                'mandatory' => false,
+            ],
+            'doc_commercial_package' => [
+                'key'       => 'commercial_handover_package',
+                'title'     => 'Commercial Handover Package',
+                'folder'    => 'commercial_handover_packages',
+                'mandatory' => true,
+            ],
+        ];
+
+        foreach ($stage1DocInputs as $inputName => $docMeta) {
+            if ($request->hasFile($inputName)) {
+                $file = $request->file($inputName);
+                $filePath = FileUploadHelper::storePublicly($file, 'project_documents/' . $docMeta['folder']);
+                
+                \App\Models\ProjectDocument::updateOrCreate(
+                    [
+                        'project_id'   => $project->id,
+                        'stage_number' => 1,
+                        'document_key' => $docMeta['key'],
+                    ],
+                    [
+                        'stage_name'     => 'Commercial',
+                        'document_title' => $docMeta['title'],
+                        'file_path'      => $filePath,
+                        'file_name'      => $file->getClientOriginalName(),
+                        'file_size'      => $file->getSize(),
+                        'file_mime'      => $file->getClientMimeType(),
+                        'status'         => 'Uploaded',
+                        'uploaded_by'    => auth()->id(),
+                        'version'        => 1,
+                        'is_mandatory'   => $docMeta['mandatory'],
+                        'notes'          => 'Diunggah saat Commercial Handover oleh Sales (' . auth()->user()->name . ')',
+                    ]
+                );
+            }
+        }
+
+        $target = $validated['handover_target'];
+        $isManagedService = ($target === 'managed_service');
+
+        $updateData = [
+            'handover_target'            => $target,
             'po_spk_number'              => $validated['po_spk_number'],
             'po_spk_date'                => $validated['po_spk_date'],
             'contract_value'             => $validated['contract_value'],
             'po_spk_file'                => $poFilePath,
             'billing_terms'              => $validated['billing_terms'],
             'commercial_terms'           => $validated['commercial_terms'] ?? 'Standar Garansi Resmi & Franco Jakarta',
-            'sla_commitment'             => $validated['sla_commitment'] ?? 'Standar SLA Jam Kerja (8x5) Response Time 4 Jam',
+            'sla_commitment'             => $validated['sla_commitment'] ?? ($isManagedService ? 'SLA Response Time 15-30 Menit & Resolusi 4 Jam' : 'Standar SLA Jam Kerja (8x5) Response Time 4 Jam'),
             'special_commitment'         => $validated['special_commitment'] ?? 'Tidak ada komitmen khusus di luar TOR',
             'exclusions'                 => $validated['exclusions'] ?? 'Pengadaan di luar BOM terlampir dikenakan PO terpisah',
             'description'                => $validated['description'] ?? $project->description,
@@ -500,26 +606,61 @@ class SalesCrmController extends Controller
             'commercial_handover_status' => 'Submitted',
             'commercial_handover_at'     => now(),
             'commercial_handover_by'     => auth()->id(),
-            'stage'                      => 'Deliver',
-            'status'                     => 'In Progress',
-        ]);
+        ];
 
-        // Notify PMO / Directors
-        $pmoUsers = User::whereHas('roles', function($q) {
-            $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Engineer', 'Director', 'Direktur']);
-        })->get();
-
-        foreach ($pmoUsers as $pmo) {
-            Notification::create([
-                'user_id' => $pmo->id,
-                'title'   => 'Commercial Handover Baru dari Sales',
-                'message' => "Proyek '{$project->name}' ({$project->client}) telah Closed Won dan diserahkan ke Tim Delivery.",
-                'type'    => 'commercial_handover',
-                'is_read' => false,
-            ]);
+        if ($isManagedService) {
+            $updateData['stage']                 = 'Operate';
+            $updateData['status']                = 'Active';
+            $updateData['sla_tier']              = $validated['sla_tier'] ?? 'Gold';
+            $updateData['sla_coverage_hours']    = $validated['sla_coverage_hours'] ?? '24x7';
+            $updateData['maintenance_frequency'] = $validated['maintenance_frequency'] ?? 'Monthly';
+            $updateData['service_start_date']    = $validated['service_start_date'] ?? $validated['po_spk_date'];
+            $updateData['service_end_date']      = $validated['service_end_date'] ?? null;
+            $updateData['ms_handover_status']    = 'Submitted';
+        } else {
+            $updateData['stage']                 = 'Deliver';
+            $updateData['status']                = 'In Progress';
+            $updateData['handover_status']       = 'Submitted';
+            $updateData['handover_submitted_at'] = now();
         }
 
-        return redirect()->back()
-            ->with('success', "Berkas Commercial Handover untuk proyek '{$project->name}' berhasil dikirim ke Tim Delivery & PMO.");
+        $project->update($updateData);
+
+        // Send Notifications based on handover target
+        if ($isManagedService) {
+            $msUsers = User::whereHas('roles', function($q) {
+                $q->whereIn('name', ['Managed Service', 'Lead Maintenance', 'Lead Engineer', 'Director', 'Direktur']);
+            })->get();
+
+            foreach ($msUsers as $msUser) {
+                Notification::create([
+                    'user_id' => $msUser->id,
+                    'title'   => 'Serah Terima Kontrak Managed Service Baru',
+                    'message' => "Kontrak Managed Service untuk '{$project->name}' ({$project->client}) telah Closed Won dan diserahkan ke Tim Managed Service (SLA Tier: " . ($project->sla_tier ?: 'Gold') . ").",
+                    'type'    => 'commercial_handover',
+                    'is_read' => false,
+                ]);
+            }
+
+            return redirect()->back()
+                ->with('success', "Berkas Serah Terima Managed Service untuk proyek '{$project->name}' berhasil dikirim ke Tim Managed Service.");
+        } else {
+            $pmoUsers = User::whereHas('roles', function($q) {
+                $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Engineer', 'Director', 'Direktur']);
+            })->get();
+
+            foreach ($pmoUsers as $pmo) {
+                Notification::create([
+                    'user_id' => $pmo->id,
+                    'title'   => 'Commercial Handover Baru dari Sales',
+                    'message' => "Proyek Implementasi '{$project->name}' ({$project->client}) telah Closed Won dan diserahkan ke Tim Delivery & PMO.",
+                    'type'    => 'commercial_handover',
+                    'is_read' => false,
+                ]);
+            }
+
+            return redirect()->back()
+                ->with('success', "Berkas Commercial Handover untuk proyek '{$project->name}' berhasil dikirim ke Tim Delivery & PMO.");
+        }
     }
 }

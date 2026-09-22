@@ -406,4 +406,59 @@ class PmoController extends Controller
 
         return back()->with('success', 'Formulir Serah Terima Proyek berhasil diperbarui!');
     }
+
+    /**
+     * Handover Proyek Pasca-Implementasi (Gate 4: PMO -> Managed Service)
+     */
+    public function handoverToManagedService(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'sla_tier'              => 'required|string|in:Platinum,Gold,Silver,Bronze',
+            'maintenance_frequency' => 'required|string|max:100',
+            'sla_coverage_hours'    => 'required|string|max:100',
+            'service_start_date'    => 'required|date',
+            'service_end_date'      => 'nullable|date|after_or_equal:service_start_date',
+            'special_notes'         => 'nullable|string',
+        ]);
+
+        $project->update([
+            'stage'                 => 'Operate',
+            'status'                => 'Active',
+            'handover_target'       => 'managed_service',
+            'sla_tier'              => $validated['sla_tier'],
+            'maintenance_frequency' => $validated['maintenance_frequency'],
+            'sla_coverage_hours'    => $validated['sla_coverage_hours'],
+            'service_start_date'    => $validated['service_start_date'],
+            'service_end_date'      => $validated['service_end_date'],
+            'ms_handover_status'    => 'Submitted',
+            'special_notes'         => $validated['special_notes'] ?? $project->special_notes,
+        ]);
+
+        // Kirim notifikasi ke Tim Managed Service
+        $msUsers = User::whereHas('roles', function($q) {
+            $q->whereIn('name', ['Managed Service', 'Lead Maintenance', 'Lead Engineer', 'Director', 'Direktur']);
+        })->get();
+
+        foreach ($msUsers as $ms) {
+            \App\Models\Notification::create([
+                'user_id' => $ms->id,
+                'title'   => 'Serah Terima Pasca-Implementasi (PMO -> MS)',
+                'message' => "Proyek '{$project->name}' telah selesai tahap implementasi (BAST) dan diserahkan oleh PMO ke Tim Managed Service untuk operasional & maintenance.",
+                'type'    => 'service_handover',
+                'url'     => route('ms.dashboard'),
+                'is_read' => false,
+            ]);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Proyek ' . $project->name . ' berhasil diserahterimakan ke Tim Managed Service (Tahap Operate)!',
+                'project' => $project->fresh(['pm', 'division']),
+            ]);
+        }
+
+        return back()->with('success', 'Proyek ' . $project->name . ' berhasil diserahterimakan ke Tim Managed Service (Tahap Operate)!');
+    }
 }
+

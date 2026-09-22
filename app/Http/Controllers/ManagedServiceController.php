@@ -178,6 +178,18 @@ class ManagedServiceController extends Controller
             ];
         });
 
+        // 8. Incoming Service Handovers (Dari Sales Tipe 2 & Pasca-Implementasi PMO)
+        $incomingHandovers = Project::where(function($q) {
+                $q->where('stage', 'Operate')
+                  ->orWhere('handover_target', 'managed_service');
+            })
+            ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->with(['creator', 'commercialHandoverBy', 'pm', 'msAcceptedBy'])
+            ->latest('updated_at')
+            ->get();
+
+        $pendingHandoversCount = $incomingHandovers->where('ms_handover_status', '!=', 'Accepted')->count();
+
         return view('managed_service.dashboard', compact(
             'assets',
             'tickets',
@@ -192,6 +204,8 @@ class ManagedServiceController extends Controller
             'slaScore',
             'totalSlaChecked',
             'operateProjects',
+            'incomingHandovers',
+            'pendingHandoversCount',
             'tierCounts',
             'clients',
             'maintenanceEngineers',
@@ -644,4 +658,56 @@ class ManagedServiceController extends Controller
 
         return redirect()->route('ms.reports.index')->with('success', 'Laporan Managed Service berhasil diterbitkan.');
     }
+
+    /**
+     * Pengesahan & Penerimaan Layanan Managed Service (Accept Service Handover)
+     */
+    public function acceptServiceHandover(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'sla_tier'              => 'required|string|in:Platinum,Gold,Silver,Bronze',
+            'maintenance_frequency' => 'nullable|string|max:100',
+            'sla_coverage_hours'    => 'nullable|string|max:100',
+            'service_start_date'    => 'nullable|date',
+            'service_end_date'      => 'nullable|date',
+            'special_notes'         => 'nullable|string',
+        ]);
+
+        $project->update([
+            'ms_handover_status'    => 'Accepted',
+            'ms_accepted_at'        => now(),
+            'ms_accepted_by'        => auth()->id(),
+            'sla_tier'              => $validated['sla_tier'],
+            'maintenance_frequency' => $validated['maintenance_frequency'] ?? ($project->maintenance_frequency ?: 'Monthly'),
+            'sla_coverage_hours'    => $validated['sla_coverage_hours'] ?? ($project->sla_coverage_hours ?: '24x7'),
+            'service_start_date'    => $validated['service_start_date'] ?? $project->service_start_date,
+            'service_end_date'      => $validated['service_end_date'] ?? $project->service_end_date,
+            'special_notes'         => $validated['special_notes'] ?? $project->special_notes,
+            'stage'                 => 'Operate',
+            'status'                => 'Active',
+        ]);
+
+        // Kirim notifikasi konfirmasi ke Sales PIC
+        if ($project->commercial_handover_by) {
+            \App\Models\Notification::create([
+                'user_id' => $project->commercial_handover_by,
+                'title'   => 'Layanan Managed Service Resmi Diaktifkan: ' . $project->name,
+                'message' => "Tim Managed Service telah menerima berkas serah terima dan mengaktifkan operasional kontrak untuk klien '{$project->client}' (SLA Tier: {$project->sla_tier}).",
+                'type'    => 'service_handover',
+                'url'     => route('sales.handover.index'),
+                'is_read' => false,
+            ]);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Layanan Managed Service untuk ' . $project->name . ' berhasil diterima dan resmi diaktifkan!',
+                'project' => $project->fresh(['creator', 'commercialHandoverBy', 'msAcceptedBy']),
+            ]);
+        }
+
+        return back()->with('success', 'Layanan Managed Service untuk ' . $project->name . ' berhasil diterima dan resmi diaktifkan!');
+    }
 }
+

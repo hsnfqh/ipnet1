@@ -2235,9 +2235,10 @@
                         var sTime = s.start_time ? s.start_time.substring(0, 5) : '';
                         var eTime = s.end_time ? s.end_time.substring(0, 5) : '';
                         var isDayOff = s.category === 'Day Off';
-                        var isTaskCat = s.category === 'Task' || s.category === 'Kegiatan' || s.category === 'Preventive Maintenance' || (s.category || '').toLowerCase().includes('maintenance') || (s.category || '').toLowerCase().includes('tiket') || (s.category || '').toLowerCase().includes('task');
+                        var isMeetingCat = (s.category || '').toLowerCase() === 'meeting' || (s.category || '').toLowerCase().includes('meeting') || (s.category || '').toLowerCase().includes('principal') || (s.category || '').toLowerCase().includes('klien') || (s.category || '').toLowerCase().includes('deep dive') || (s.category || '').toLowerCase().includes('series');
+                        var isTaskCat = !isMeetingCat && !isDayOff && (s.category === 'Task' || s.category === 'Kegiatan' || s.category === 'Preventive Maintenance' || (s.category || '').toLowerCase().includes('maintenance') || (s.category || '').toLowerCase().includes('tiket') || (s.category || '').toLowerCase().includes('task'));
                         var isPoc = (s.category || '').toLowerCase().includes('poc') || (s.category || '').toLowerCase().includes('lab');
-                        var isMeet = (s.category || '').toLowerCase().includes('meeting') || (s.category || '').toLowerCase().includes('principal') || (s.category || '').toLowerCase().includes('klien');
+                        var isMeet = isMeetingCat;
                         var isDesign = (s.category || '').toLowerCase().includes('desain') || (s.category || '').toLowerCase().includes('sow') || (s.category || '').toLowerCase().includes('review');
                         var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
                         var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : (s.category || 'Jadwal')));
