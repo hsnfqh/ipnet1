@@ -143,9 +143,10 @@
                                     <div class="flex items-center justify-between">
                                         <label class="form-label-bold !mb-0">ADDRESS 2 (SECONDARY)</label>
                                         <button type="button" @click="showSecondaryAddress = false" 
-                                                class="text-xs font-semibold text-gray-400 hover:text-red-600 transition flex items-center gap-1 cursor-pointer">
+                                                class="text-xs font-semibold text-gray-400 hover:text-red-600 transition flex items-center gap-1 cursor-pointer"
+                                                title="Hapus alamat sekunder">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            <span>Hapus Alamat Sekunder</span>
+                                            <span>Hapus</span>
                                         </button>
                                     </div>
                                     <textarea name="notes" rows="3"
