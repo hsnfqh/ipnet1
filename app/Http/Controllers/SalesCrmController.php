@@ -43,7 +43,7 @@ class SalesCrmController extends Controller
     ];
 
     /**
-     * 1. Halaman Dedicated: Sales Pipeline & Opportunity Register
+     * 1. Halaman Dedicated: Sales Pipeline & Project Kanban Board
      */
     public function pipeline(Request $request)
     {
@@ -51,20 +51,12 @@ class SalesCrmController extends Controller
         $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager']);
 
         $search = $request->input('search');
-        $filterStage = $request->input('stage');
+        $filterDivision = $request->input('division_id');
+        $filterApproval = $request->input('approval_status');
         $filterSales = $request->input('sales');
-        $viewMode = $request->input('view', 'table'); // table or kanban
 
         $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->where(function($q) {
-                $q->where('stage', 'Acquire')
-                  ->orWhere('status', 'Opportunity')
-                  ->orWhere(function($sub) {
-                      $sub->whereNotNull('sales_stage')
-                          ->where('stage', '!=', 'Deliver');
-                  });
-            })
-            ->with(['bdm', 'creator', 'salesActivities']);
+            ->with(['bdm', 'creator', 'salesActivities', 'division']);
 
         if (!$isManagerial) {
             $allProjectsQuery->where(function($q) use ($user) {
@@ -73,11 +65,8 @@ class SalesCrmController extends Controller
             });
         }
 
-        // Base Query
-        $query = (clone $allProjectsQuery);
-
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $allProjectsQuery->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('client', 'like', "%{$search}%")
                   ->orWhere('sales_name', 'like', "%{$search}%")
@@ -85,95 +74,133 @@ class SalesCrmController extends Controller
             });
         }
 
-        if ($filterStage) {
-            $query->where('sales_stage', $filterStage);
+        if ($filterDivision) {
+            $allProjectsQuery->where('division_id', $filterDivision);
+        }
+
+        if ($filterApproval) {
+            $allProjectsQuery->where(function($q) use ($filterApproval) {
+                $q->where('handover_status', $filterApproval)
+                  ->orWhere('status', $filterApproval)
+                  ->orWhere('sales_stage', $filterApproval);
+            });
         }
 
         if ($filterSales && $isManagerial) {
-            $query->where('sales_name', $filterSales);
+            $allProjectsQuery->where('sales_name', $filterSales);
         }
 
-        // Summary Stage Statistics for Pipeline Funnel Bar
-        $allStageProjects = (clone $allProjectsQuery)->get();
-        $stageSummary = [];
-        foreach (self::$stages as $stageKey => $meta) {
-            $stageProjects = $allStageProjects->where('sales_stage', $stageKey);
-            $stageCount = $stageProjects->count();
-            $stageValue = $stageProjects->sum('contract_value');
-            $weightedValue = $stageProjects->sum(fn($p) => ($p->contract_value ?? 0) * (($p->win_probability ?? $meta['default_prob']) / 100));
+        $allProjects = $allProjectsQuery->latest('updated_at')->get();
 
-            $stageSummary[$stageKey] = [
-                'label'          => $meta['label'],
-                'color'          => $meta['color'],
-                'bg'             => $meta['bg'],
-                'count'          => $stageCount,
-                'total_value'    => $stageValue,
-                'weighted_value' => $weightedValue,
-            ];
-        }
+        // 5 Kanban Columns
+        $kanban = [
+            'draft' => $allProjects->filter(function($p) {
+                $st = strtolower($p->status ?? '');
+                return $st === 'draft' || $st === 'planning' || $st === 'qualification';
+            }),
+            'opportunity' => $allProjects->filter(function($p) {
+                $st = strtolower($p->status ?? '');
+                $stage = strtolower($p->stage ?? '');
+                return $st === 'opportunity' || $st === 'prospect' || ($stage === 'acquire' && !in_array($st, ['draft', 'planning', 'completed', 'cancelled']));
+            }),
+            'in_progress' => $allProjects->filter(function($p) {
+                $st = strtolower($p->status ?? '');
+                return in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing']);
+            }),
+            'pending' => $allProjects->filter(function($p) {
+                $st = strtolower($p->status ?? '');
+                return in_array($st, ['pending', 'on hold', 'review', 'clarification']);
+            }),
+            'completed' => $allProjects->filter(function($p) {
+                $st = strtolower($p->status ?? '');
+                $salesStage = strtolower($p->sales_stage ?? '');
+                return in_array($st, ['completed', 'finished', 'delivered', 'done']) || $salesStage === 'closed won';
+            }),
+        ];
 
-        $totalPipelineValue = $allStageProjects->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])->sum('contract_value');
-        $totalWeightedForecast = $allStageProjects->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])->sum(fn($p) => ($p->contract_value ?? 0) * (($p->win_probability ?? 10) / 100));
-        $totalWonValue = $allStageProjects->where('sales_stage', 'Closed Won')->sum('contract_value');
-
-        // Data List
-        $projects = $query->latest('updated_at')->paginate(10)->withQueryString();
-
+        $divisions = \App\Models\Division::orderBy('name')->get();
+        $clients = Client::orderBy('name')->get();
         $salesTeam = BdmController::$salesTeam;
         $stages = self::$stages;
 
+        $totalPipelineValue = $allProjects->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])->sum('contract_value');
+        $totalWeightedForecast = $allProjects->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])->sum(fn($p) => ($p->contract_value ?? 0) * (($p->win_probability ?? 10) / 100));
+        $totalWonValue = $allProjects->where('sales_stage', 'Closed Won')->sum('contract_value');
+
         return view('sales.pipeline.index', compact(
-            'projects',
-            'stageSummary',
-            'totalPipelineValue',
-            'totalWeightedForecast',
-            'totalWonValue',
+            'allProjects',
+            'kanban',
+            'divisions',
+            'clients',
             'search',
-            'filterStage',
+            'filterDivision',
+            'filterApproval',
             'filterSales',
-            'viewMode',
             'salesTeam',
             'stages',
-            'isManagerial'
+            'isManagerial',
+            'totalPipelineValue',
+            'totalWeightedForecast',
+            'totalWonValue'
         ));
     }
 
     /**
-     * Store New Sales Opportunity (Self-Sourced by Sales Rep)
+     * Store New Sales Opportunity / Project
      */
     public function storeOpportunity(Request $request)
     {
         $validated = $request->validate([
             'name'                  => 'required|string|max:255',
             'client'                => 'required|string|max:255',
-            'contract_value'        => 'required|numeric|min:0',
+            'contract_value'        => 'nullable|numeric|min:0',
+            'division_id'           => 'nullable|exists:divisions,id',
+            'status'                => 'nullable|string',
             'sales_stage'           => 'nullable|string',
             'win_probability'       => 'nullable|integer|min:0|max:100',
             'expected_closing_date' => 'nullable|date',
             'opportunity_source'    => 'nullable|string|max:255',
             'sales_notes'           => 'nullable|string',
+            'is_completed'          => 'nullable|boolean',
         ]);
 
         $user = auth()->user();
-        $stage = $validated['sales_stage'] ?? 'Qualification';
-        $defaultProb = self::$stages[$stage]['default_prob'] ?? 10;
-        $prob = isset($validated['win_probability']) && $validated['win_probability'] !== '' ? (int) $validated['win_probability'] : $defaultProb;
+        $isCompleted = $request->boolean('is_completed') || ($request->input('status') === 'Completed');
+
+        if ($isCompleted) {
+            $status = 'Completed';
+            $stage = 'Deliver';
+            $salesStage = 'Closed Won';
+            $prob = 100;
+            $progress = 100;
+        } else {
+            $status = $validated['status'] ?? 'Opportunity';
+            $stage = in_array($status, ['In Progress', 'Active']) ? 'Deliver' : 'Acquire';
+            $salesStage = $validated['sales_stage'] ?? ($status === 'Draft' ? 'Qualification' : 'Qualified Opportunity');
+            $defaultProb = self::$stages[$salesStage]['default_prob'] ?? 25;
+            $prob = isset($validated['win_probability']) && $validated['win_probability'] !== '' ? (int) $validated['win_probability'] : $defaultProb;
+            $progress = 0;
+        }
+
         $closingDate = !empty($validated['expected_closing_date']) ? $validated['expected_closing_date'] : now()->addMonths(1)->toDateString();
+        $contractValue = $validated['contract_value'] ?? 0;
 
         $project = Project::create([
             'name'                  => $validated['name'],
             'client'                => $validated['client'],
-            'contract_value'        => $validated['contract_value'],
-            'sales_stage'           => $stage,
+            'contract_value'        => $contractValue,
+            'division_id'           => $validated['division_id'] ?? null,
+            'sales_stage'           => $salesStage,
             'win_probability'       => $prob,
             'expected_closing_date' => $closingDate,
             'opportunity_source'    => $validated['opportunity_source'] ?? 'Direct Sales Prospecting',
             'sales_name'            => $user->name,
             'created_by'            => $user->id,
             'sales_notes'           => $validated['sales_notes'] ?? null,
-            'status'                => 'Opportunity',
-            'stage'                 => 'Acquire',
-            'acquire_status'        => 'Prospecting',
+            'status'                => $status,
+            'stage'                 => $stage,
+            'progress'              => $progress,
+            'acquire_status'        => $status === 'Completed' ? 'Closed' : 'Prospecting',
             'bdm_handover_status'   => 'Self-Sourced Sales',
             'start_date'            => now(),
             'deadline'              => $closingDate,
@@ -195,13 +222,21 @@ class SalesCrmController extends Controller
             'activity_date'  => now()->toDateString(),
             'activity_time'  => now()->format('H:i'),
             'contact_person' => 'PIC Prospek',
-            'summary'        => 'Inisiasi peluang baru oleh Sales: ' . $project->name,
-            'outcome'        => 'Peluang masuk pipeline tahap ' . ($stage),
-            'next_action'    => 'Klarifikasi kebutuhan spesifikasi & jadwalkan pertemuan',
+            'summary'        => 'Inisiasi proyek oleh Sales: ' . $project->name,
+            'outcome'        => 'Proyek tersimpan dengan status ' . ($status),
+            'next_action'    => 'Monitoring progres dan koordinasi tim teknis',
         ]);
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Proyek '{$project->name}' berhasil disimpan.",
+                'project' => $project
+            ]);
+        }
+
         return redirect()->route('sales.pipeline.index')
-            ->with('success', "Peluang baru '{$project->name}' berhasil ditambahkan ke pipeline Anda.");
+            ->with('success', "Proyek '{$project->name}' berhasil ditambahkan ke board.");
     }
 
     /**

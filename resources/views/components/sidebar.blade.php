@@ -100,11 +100,11 @@
     } elseif ($isSales) {
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',           'route' => 'dashboard.sales'],
-            ['key' => 'pipeline',   'label' => 'Peluang & Pipeline',   'route' => 'sales.pipeline.index'],
-            ['key' => 'activities', 'label' => 'Aktivitas Sales',      'route' => 'sales.activities.index'],
+            ['key' => 'clients',    'label' => 'Client',              'route' => 'clients.index'],
+            ['key' => 'projects',   'label' => 'Project',             'route' => 'sales.pipeline.index'],
+            ['key' => 'inventory',  'label' => 'Inventory',           'route' => 'inventory.index'],
+            ['key' => 'vendors',    'label' => 'Vendor',              'route' => 'vendors.index'],
             ['key' => 'handover',   'label' => 'Serah Terima Proyek',  'route' => 'sales.handover.index'],
-            ['key' => 'proposals',  'label' => 'Proposal & SOW',       'route' => 'presales.proposals.index'],
-            ['key' => 'clients',    'label' => 'Database Klien',       'route' => 'clients.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',            'route' => 'timesheets.index'],
         ];
     } elseif (\App\Helpers\ScopeHelper::isTeamLeader($user)) {

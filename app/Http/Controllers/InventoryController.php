@@ -33,15 +33,18 @@ class InventoryController extends Controller
 
         $recentTransactions = InventoryTransaction::with(['item', 'creator'])->latest()->take(10)->get();
 
+        $allItems = InventoryItem::orderBy('product_name')->get();
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'items'              => $items,
+                'allItems'           => $allItems,
                 'categories'         => $categories,
                 'recentTransactions' => $recentTransactions
             ]);
         }
 
-        return view('inventory.index', compact('items', 'categories', 'recentTransactions'));
+        return view('inventory.index', compact('items', 'allItems', 'categories', 'recentTransactions'));
     }
 
     public function store(Request $request)
