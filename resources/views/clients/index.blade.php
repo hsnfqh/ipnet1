@@ -156,8 +156,10 @@
 
                                             <button type="button" 
                                                     @click="confirmDelete({{ $client->id }}, '{{ addslashes($client->name) }}')"
-                                                    class="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold uppercase shadow-xs transition cursor-pointer">
-                                                DELETE
+                                                    style="padding:6px 14px; border-radius:8px; font-size:11px; font-weight:700; text-transform:uppercase; color:#FFFFFF; background:linear-gradient(135deg,#8F0A0D 0%,#B81525 100%); border:none; cursor:pointer; transition:all .15s; box-shadow:0 2px 6px rgba(143,10,13,0.20);"
+                                                    onmouseover="this.style.background='linear-gradient(135deg,#73080A 0%,#9E0E1D 100%)'; this.style.boxShadow='0 3px 10px rgba(143,10,13,0.32)';"
+                                                    onmouseout="this.style.background='linear-gradient(135deg,#8F0A0D 0%,#B81525 100%)'; this.style.boxShadow='0 2px 6px rgba(143,10,13,0.20)';">
+                                                Hapus
                                             </button>
                                         </div>
                                     </td>
@@ -336,6 +338,55 @@
         @method('DELETE')
     </form>
 
+    {{-- DELETE CONFIRMATION MODAL --}}
+    <div x-show="isDeleteModalOpen" x-cloak
+         style="position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(15,23,42,0.45); backdrop-filter:blur(3px);"
+         @click.self="isDeleteModalOpen = false">
+        <div style="background:#FFFFFF; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.18); max-width:420px; width:100%; overflow:hidden; animation:modalIn .2s cubic-bezier(0.16,1,0.3,1);">
+            {{-- Header --}}
+            <div style="padding:18px 22px 14px; border-bottom:1px solid #FEE2E2; background:#FFF5F5; display:flex; align-items:center; gap:12px;">
+                <div style="width:38px; height:38px; background:#FEE2E2; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <svg style="width:17px; height:17px; color:#8F0A0D;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 style="font-size:14px; font-weight:700; color:#1E293B; margin:0 0 2px;">Hapus Client?</h3>
+                    <p style="font-size:11.5px; color:#64748B; margin:0;">Tindakan ini tidak dapat dibatalkan</p>
+                </div>
+                <button type="button" @click="isDeleteModalOpen = false" style="margin-left:auto; background:none; border:none; color:#94A3B8; cursor:pointer; font-size:18px; line-height:1; padding:0;">✕</button>
+            </div>
+            {{-- Body --}}
+            <div style="padding:20px 22px;">
+                <p style="font-size:12.5px; color:#475569; line-height:1.6; margin:0 0 14px;">
+                    Anda akan menghapus client <strong style="color:#1E293B;" x-text="deleteClientName"></strong> secara permanen.
+                </p>
+                <div style="background:#FFF5F5; border:1px solid #FECACA; border-radius:10px; padding:11px 14px; display:flex; align-items:flex-start; gap:8px;">
+                    <svg style="width:13px; height:13px; color:#8F0A0D; flex-shrink:0; margin-top:1px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p style="font-size:11.5px; color:#8F0A0D; font-weight:600; margin:0;">Data yang dihapus tidak dapat dikembalikan.</p>
+                </div>
+            </div>
+            {{-- Footer --}}
+            <div style="padding:12px 22px 18px; display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+                <button type="button" @click="isDeleteModalOpen = false"
+                        style="padding:8px 16px; border:1px solid #E2E8F0; border-radius:10px; font-size:12px; font-weight:600; color:#475569; background:#FFFFFF; cursor:pointer; transition:all .15s;"
+                        onmouseover="this.style.background='#F8FAFC';" onmouseout="this.style.background='#FFFFFF';">
+                    Batal
+                </button>
+                <button type="button" @click="submitDelete()"
+                        style="padding:8px 18px; background:linear-gradient(135deg,#8F0A0D 0%,#B81525 100%); border:none; border-radius:10px; font-size:12px; font-weight:700; color:#FFFFFF; cursor:pointer; box-shadow:0 2px 8px rgba(143,10,13,0.22); transition:all .15s; display:inline-flex; align-items:center; gap:6px;"
+                        onmouseover="this.style.background='linear-gradient(135deg,#73080A 0%,#9E0E1D 100%)';" onmouseout="this.style.background='linear-gradient(135deg,#8F0A0D 0%,#B81525 100%)';">
+                    <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Ya, Hapus Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -343,6 +394,9 @@
         return {
             isAddModalOpen: false,
             isDetailsModalOpen: false,
+            isDeleteModalOpen: false,
+            deleteClientId: null,
+            deleteClientName: '',
             selectedClient: {},
 
             openAddModal() {
@@ -355,11 +409,15 @@
             },
 
             confirmDelete(id, name) {
-                if (confirm(`Apakah Anda yakin ingin menghapus data klien "${name}"?`)) {
-                    const form = document.getElementById('deleteClientForm');
-                    form.action = `{{ url('clients') }}/${id}`;
-                    form.submit();
-                }
+                this.deleteClientId = id;
+                this.deleteClientName = name;
+                this.isDeleteModalOpen = true;
+            },
+
+            submitDelete() {
+                const form = document.getElementById('deleteClientForm');
+                form.action = `{{ url('clients') }}/${this.deleteClientId}`;
+                form.submit();
             }
         };
     }
