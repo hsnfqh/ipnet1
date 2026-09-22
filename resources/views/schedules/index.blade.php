@@ -1007,11 +1007,11 @@
                                         <!-- MODE 1: SESI HARIAN (MULTI-SESSION) -->
                                         <div x-show="form.date_mode === 'sessions' || editing">
                                             <!-- List Kartu Sesi -->
-                                            <div style="display:flex; flex-direction:column; gap:12px;">
+                                            <div style="display:flex; flex-direction:column; gap:14px;">
                                                 <template x-for="(session, sIdx) in (form.sessions || [])" :key="sIdx">
-                                                    <div style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:14px 16px; position:relative; display:flex; flex-direction:column; gap:12px; transition:all 0.15s ease;">
+                                                    <div style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:16px 18px; position:relative; display:flex; flex-direction:column; gap:16px; transition:all 0.15s ease;">
                                                         <!-- Header Sesi jika lebih dari 1 sesi -->
-                                                        <div x-show="!editing && form.sessions && form.sessions.length > 1" style="display:flex; align-items:center; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #E2E8F0;">
+                                                        <div x-show="!editing && form.sessions && form.sessions.length > 1" style="display:flex; align-items:center; justify-content:space-between; padding-bottom:10px; border-bottom:1px solid #E2E8F0;">
                                                             <div style="display:flex; align-items:center; gap:6px;">
                                                                 <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#C81E2C; color:white; font-size:10.5px; font-weight:700;" x-text="sIdx + 1"></span>
                                                                 <span style="font-size:11.5px; font-weight:700; color:#1E293B;" x-text="'Sesi Jadwal ke-' + (sIdx + 1)"></span>
@@ -1023,13 +1023,13 @@
                                                         </div>
 
                                                         <!-- Grid Tanggal & Jam -->
-                                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
                                                             <div>
-                                                                <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal</label>
+                                                                <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:7px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal</label>
                                                                 <input type="date" x-model="session.date" class="jkw-form-input" :required="form.date_mode === 'sessions'">
                                                             </div>
                                                             <div>
-                                                                <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                                                                <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:7px; text-transform:uppercase; letter-spacing:0.4px;">
                                                                     <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
                                                                 </label>
                                                                 <input type="time" x-model="session.start_time" class="jkw-form-input" :required="form.category === 'Meeting'">
@@ -1037,8 +1037,8 @@
                                                         </div>
 
                                                         <!-- Lokasi per Sesi jika Meeting -->
-                                                        <div x-show="form.category !== 'Day Off'">
-                                                            <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Lokasi / Link Meeting (Sesi Ini)</label>
+                                                        <div x-show="form.category !== 'Day Off'" style="margin-top:2px;">
+                                                            <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:7px; text-transform:uppercase; letter-spacing:0.4px;">Lokasi / Link Meeting (Sesi Ini)</label>
                                                             <input type="text" x-model="session.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." class="jkw-form-input">
                                                         </div>
                                                     </div>
@@ -1059,35 +1059,35 @@
                                         </div>
 
                                         <!-- MODE 2: RENTANG TANGGAL (KONSISTEN, RAPIH & PROPORSIONAL DENGAN SESI HARIAN) -->
-                                        <div x-show="form.date_mode === 'range' && !editing" style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:14px 16px; position:relative; display:flex; flex-direction:column; gap:14px;">
+                                        <div x-show="form.date_mode === 'range' && !editing" style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:16px 18px; position:relative; display:flex; flex-direction:column; gap:16px;">
                                             <!-- Grid Baris 1: Tanggal Mulai & Tanggal Selesai -->
-                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
                                                 <div>
-                                                    <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Mulai</label>
+                                                    <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:7px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Mulai</label>
                                                     <input type="date" x-model="form.start_date" class="jkw-form-input">
                                                 </div>
                                                 <div>
-                                                    <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Selesai</label>
+                                                    <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:7px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Selesai</label>
                                                     <input type="date" x-model="form.end_date" class="jkw-form-input">
                                                 </div>
                                             </div>
 
-                                            <!-- Grid Baris 2: Jam & Lokasi (Sejajar 2 Kolom Konsisten dengan Sesi Harian) -->
-                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                                            <!-- Grid Baris 2: Jam & Lokasi (Diberi margin-top agar berjarak lega dan rapih persis seperti Sesi Harian) -->
+                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:2px;">
                                                 <div :style="form.category === 'Day Off' ? 'grid-column: span 2;' : ''">
-                                                    <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                                                    <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:7px; text-transform:uppercase; letter-spacing:0.4px;">
                                                         <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
                                                     </label>
                                                     <input type="time" x-model="form.start_time" class="jkw-form-input">
                                                 </div>
                                                 <div x-show="form.category !== 'Day Off'">
-                                                    <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Lokasi / Link Meeting</label>
+                                                    <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:7px; text-transform:uppercase; letter-spacing:0.4px;">Lokasi / Link Meeting</label>
                                                     <input type="text" x-model="form.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." class="jkw-form-input">
                                                 </div>
                                             </div>
 
                                             <!-- Opsi Filter Hari Kerja / Libur -->
-                                            <div style="background:white; border:1.5px solid #E2E8F0; border-radius:9px; padding:12px 14px; display:flex; flex-direction:column; gap:10px;">
+                                            <div style="background:white; border:1.5px solid #E2E8F0; border-radius:9px; padding:14px 16px; margin-top:2px; display:flex; flex-direction:column; gap:10px;">
                                                 <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
                                                     <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">
                                                         <svg style="width:13px; height:13px; color:#C81E2C;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
