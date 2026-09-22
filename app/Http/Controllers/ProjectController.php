@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Project;
+use App\Models\User;
+use App\Models\Task;
 use App\Http\Requests\ProjectRequest;
 
 class ProjectController extends Controller
@@ -129,6 +131,9 @@ class ProjectController extends Controller
     public function show(Project $project)
     {
         $relations = ['tasks.engineer', 'creator', 'division', 'pm', 'bdm'];
+        if (\Illuminate\Support\Facades\Schema::hasTable('task_user')) {
+            $relations[] = 'tasks.engineers';
+        }
         if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
             $relations[] = 'projectDocuments.uploader';
             $relations[] = 'projectDocuments.verifier';
@@ -140,14 +145,178 @@ class ProjectController extends Controller
             $documentFlow = \App\Services\ProjectDocumentFlowService::getProjectDocumentProgress($project);
         }
 
+        $allUsers = User::with('roles')->orderBy('name')->get();
+
         if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
             return response()->json([
                 'project' => $project,
-                'document_flow' => $documentFlow
+                'document_flow' => $documentFlow,
+                'all_users' => $allUsers,
             ]);
         }
 
-        return view('projects.show', compact('project', 'documentFlow'));
+        return view('projects.show', compact('project', 'documentFlow', 'allUsers'));
+    }
+
+    /**
+     * Penugasan Tim (Project Manager atau Engineer)
+     */
+    public function assignTeam(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'role_type'  => 'required|in:pm,engineer',
+            'user_id'    => 'required|exists:users,id',
+            'task_title' => 'nullable|string|max:255',
+            'deadline'   => 'nullable|date',
+        ]);
+
+        $user = User::findOrFail($validated['user_id']);
+
+        if ($validated['role_type'] === 'pm') {
+            $project->update(['pm_id' => $user->id]);
+            $msg = "User '{$user->name}' berhasil ditugaskan sebagai Project Manager!";
+        } else {
+            $taskTitle = $validated['task_title'] ?: ('Implementasi Teknis: ' . $project->name);
+            $task = Task::create([
+                'project_id'  => $project->id,
+                'engineer_id' => $user->id,
+                'title'       => $taskTitle,
+                'status'      => 'Pending',
+                'priority'    => 'Medium',
+                'deadline'    => $validated['deadline'] ?: ($project->deadline ?: now()->addDays(7)),
+                'created_by'  => auth()->id(),
+            ]);
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('task_user')) {
+                $task->engineers()->sync([$user->id]);
+            }
+
+            if (in_array($project->status, ['Draft', 'Planning', 'Opportunity'])) {
+                $project->update(['status' => 'In Progress', 'stage' => 'Deliver']);
+            }
+
+            $msg = "Engineer '{$user->name}' berhasil ditugaskan pada proyek!";
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => $msg, 'project' => $project->fresh(['pm', 'tasks.engineer'])]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Persetujuan Draft Berjenjang (Pak Susanto - Head & Pak Hariyadi - Direktur)
+     */
+    public function approveDraft(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'approval_role' => 'required|in:head,director',
+            'notes'         => 'nullable|string|max:1000',
+            'auto_advance'  => 'nullable|boolean',
+        ]);
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $approvals = $handoverData['draft_approvals'] ?? [
+            'head' => ['approved' => false, 'by' => null, 'date' => null, 'notes' => null],
+            'director' => ['approved' => false, 'by' => null, 'date' => null, 'notes' => null],
+        ];
+
+        $now = now()->format('d M Y H:i');
+        if ($validated['approval_role'] === 'head') {
+            $approvals['head'] = [
+                'approved' => true,
+                'by' => 'Susanto Djaya (Head Divisi)',
+                'date' => $now,
+                'notes' => $validated['notes'] ?: 'Kelayakan teknis & alokasi resource disetujui.',
+            ];
+            $msg = "Persetujuan Head Divisi (Pak Susanto) berhasil dicatat!";
+        } else {
+            $approvals['director'] = [
+                'approved' => true,
+                'by' => 'Hariyadi (Direktur)',
+                'date' => $now,
+                'notes' => $validated['notes'] ?: 'Otorisasi anggaran dan persetujuan eksekusi kontrak disahkan.',
+            ];
+            $msg = "Otorisasi Direktur (Pak Hariyadi) berhasil dicatat!";
+        }
+
+        $handoverData['draft_approvals'] = $approvals;
+        $project->handover_data = $handoverData;
+
+        if (!empty($approvals['head']['approved']) && !empty($approvals['director']['approved'])) {
+            if ($project->status === 'Draft') {
+                $project->status = 'Opportunity';
+            }
+        }
+
+        $project->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => $msg, 'approvals' => $approvals]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Update Status / Lifecycle Stage Langsung dari Tampilan Detail
+     */
+    public function updateStageDirect(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:Draft,Opportunity,In Progress,Pending,Completed',
+        ]);
+
+        $newStatus = $validated['status'];
+        $updateData = ['status' => $newStatus];
+
+        if ($newStatus === 'Draft') {
+            $updateData['stage'] = 'Acquire';
+        } elseif ($newStatus === 'Opportunity') {
+            $updateData['stage'] = 'Acquire';
+            $updateData['sales_stage'] = $project->sales_stage ?: 'Proposal Submission';
+        } elseif ($newStatus === 'In Progress') {
+            $updateData['stage'] = 'Deliver';
+            if ($project->progress < 10) {
+                $updateData['progress'] = 15;
+            }
+        } elseif ($newStatus === 'Pending') {
+            // keep stage
+        } elseif ($newStatus === 'Completed') {
+            $updateData['stage'] = 'Deliver';
+            $updateData['progress'] = 100;
+            $updateData['sales_stage'] = 'Closed Won';
+        }
+
+        $project->update($updateData);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => "Status proyek berhasil diubah ke '{$newStatus}'.", 'project' => $project->fresh()]);
+        }
+
+        return back()->with('success', "Status proyek berhasil diubah menjadi '{$newStatus}'.");
+    }
+
+    /**
+     * Update Estimasi Proyek (Meta Banner)
+     */
+    public function updateMeta(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'contract_value' => 'nullable|numeric|min:0',
+            'start_date'     => 'nullable|date',
+            'deadline'       => 'nullable|date',
+            'description'    => 'nullable|string|max:1000',
+        ]);
+
+        $project->update($validated);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Estimasi dan timeline proyek berhasil diperbarui.', 'project' => $project->fresh()]);
+        }
+
+        return back()->with('success', 'Estimasi dan timeline proyek berhasil diperbarui.');
     }
 
     public function getData()

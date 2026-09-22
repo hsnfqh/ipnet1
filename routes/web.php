@@ -366,6 +366,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{project}', [ProjectController::class, 'show'])->name('projects.show');
         Route::get('/data', [ProjectController::class, 'getData'])->name('projects.data');
 
+        // Stage Lifecycle & Team Actions
+        Route::post('/{project}/assign', [ProjectController::class, 'assignTeam'])->name('projects.assign');
+        Route::post('/{project}/approve-draft', [ProjectController::class, 'approveDraft'])->name('projects.approve_draft');
+        Route::post('/{project}/stage-update', [ProjectController::class, 'updateStageDirect'])->name('projects.stage_update');
+        Route::post('/{project}/meta-update', [ProjectController::class, 'updateMeta'])->name('projects.meta_update');
+
         // 6-Stage Handover & Document Flow (Commercial to Operation)
         Route::get('/{project}/document-flow', [\App\Http\Controllers\ProjectDocumentController::class, 'getProjectFlow'])->name('projects.document_flow');
         Route::post('/{project}/documents/upload', [\App\Http\Controllers\ProjectDocumentController::class, 'upload'])->name('projects.documents.upload');
