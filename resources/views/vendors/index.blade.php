@@ -156,8 +156,8 @@
 
                                             <button type="button" 
                                                     @click="confirmDelete({{ $vendor->id }}, '{{ addslashes($vendor->name) }}')"
-                                                    class="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold uppercase shadow-xs transition cursor-pointer">
-                                                DELETE
+                                                    class="btn-ipnet-gradient px-3.5 py-1.5 rounded-lg text-white text-[11px] font-bold uppercase shadow-xs hover:shadow-md transition cursor-pointer">
+                                                HAPUS
                                             </button>
                                         </div>
                                     </td>

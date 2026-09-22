@@ -305,7 +305,7 @@
                     <button type="button" @click="isAssignModalOpen = false" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl font-bold bg-red-600 text-white shadow-md hover:bg-red-700">
+                    <button type="submit" class="btn-ipnet-gradient px-5 py-2 rounded-xl font-bold text-white shadow-md hover:shadow-lg cursor-pointer">
                         Assign User
                     </button>
                 </div>

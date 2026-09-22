@@ -15,7 +15,8 @@
                     {{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }} Milestones
                 </span>
             @else
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-red-600 text-white shadow-2xs">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-white shadow-xs"
+                      style="background: linear-gradient(135deg, #EF4444 0%, #B81525 55%, #8F0A0D 100%); box-shadow: 0 2px 6px rgba(184, 21, 37, 0.35);">
                     No milestones found
                 </span>
             @endif

@@ -177,7 +177,7 @@
 
                     {{-- SAVE BUTTON (Matching Screenshot 3 Bottom Right) --}}
                     <div class="flex items-center justify-end pt-6 border-t border-gray-100">
-                        <button type="submit" class="px-7 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md cursor-pointer transition">
+                        <button type="submit" class="btn-ipnet-gradient px-7 py-2.5 rounded-xl text-white font-bold text-xs shadow-md hover:shadow-lg cursor-pointer transition">
                             Save
                         </button>
                     </div>
