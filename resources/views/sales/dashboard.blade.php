@@ -139,76 +139,68 @@
         <div class="px-5 py-5 lg:px-8 lg:py-6 space-y-5 max-w-screen-2xl mx-auto">
 
             {{-- ═══ HERO BANNER (greeting) ═══ --}}
-            <div class="sales-hero px-5 py-4 sm:px-7 sm:py-5 text-white">
-                {{-- Decorative geometric shapes --}}
-                <div class="sales-hero-pattern">
-                    <svg class="w-full h-full" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="sg1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#C61828"/>
-                                <stop offset="100%" stop-color="#9E0E1D"/>
-                            </linearGradient>
-                            <linearGradient id="sg2" x1="100%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#B01423"/>
-                                <stop offset="100%" stop-color="#7A0813"/>
-                            </linearGradient>
-                        </defs>
-                        <polygon points="200,0 800,0 1200,120 500,120" fill="url(#sg2)" opacity="0.5"/>
-                        <polygon points="700,0 1440,0 1440,120 1100,120" fill="url(#sg1)" opacity="0.4"/>
-                        <polygon points="0,0 400,0 700,120 0,120" fill="#73080A" opacity="0.3"/>
-                        <circle cx="1360" cy="-20" r="90" fill="rgba(255,255,255,0.04)"/>
-                        <circle cx="80" cy="130" r="70" fill="rgba(255,255,255,0.03)"/>
+            <div style="background: linear-gradient(135deg, #8F0A0D 0%, #B81525 50%, #8F0A0D 100%); border-radius: 16px; position: relative; overflow: hidden; box-shadow: 0 4px 20px rgba(143,10,13,0.22); padding: 20px 28px;">
+                {{-- Decorative overlay (SVG with explicit height) --}}
+                <div style="position:absolute; inset:0; pointer-events:none; overflow:hidden;">
+                    <svg width="100%" height="100%" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="0,0 480,0 800,120 0,120" fill="rgba(0,0,0,0.12)"/>
+                        <polygon points="600,0 1440,0 1440,120 1000,120" fill="rgba(0,0,0,0.10)"/>
+                        <polygon points="300,0 900,0 1300,120 600,120" fill="rgba(255,255,255,0.05)"/>
+                        <circle cx="1380" cy="10" r="100" fill="rgba(255,255,255,0.04)"/>
+                        <circle cx="60" cy="110" r="80" fill="rgba(0,0,0,0.08)"/>
                     </svg>
                 </div>
 
-                <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                {{-- Content --}}
+                <div style="position:relative; z-index:10; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px;">
                     <div>
-                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/15 border border-white/20 uppercase tracking-wider mb-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-white inline-block"></span>
+                        <div style="display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:999px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); font-size:10.5px; font-weight:700; color:#FFFFFF; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">
+                            <span style="width:6px; height:6px; border-radius:50%; background:#FFFFFF; display:inline-block;"></span>
                             PT IP NETWORK SOLUSINDO &bull; SALES DASHBOARD
                         </div>
-                        <h1 style="font-size:20px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px; line-height:1.2; margin-bottom:4px;">
+                        <h1 style="font-size:20px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px; line-height:1.25; margin:0 0 4px 0;">
                             Selamat Datang, {{ auth()->user()->name }} 👋
                         </h1>
-                        <p style="font-size:12.5px; color:rgba(255,255,255,0.75); line-height:1.5;">
-                            Monitoring performa project, pipeline, dan konversi deals — Tahun {{ $selectedYear }}
+                        <p style="font-size:12.5px; color:rgba(255,255,255,0.75); margin:0; line-height:1.5;">
+                            Monitoring performa project, pipeline &amp; konversi deals — Tahun {{ $selectedYear }}
                         </p>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2 shrink-0">
-                    <form method="GET" action="{{ route('dashboard.sales') }}">
-                        <div class="relative">
-                            <svg class="w-3.5 h-3.5 text-white/70 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            <select name="year" onchange="this.form.submit()"
-                                    style="appearance:none; padding:7px 28px 7px 30px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:12px; font-size:11.5px; font-weight:700; color:#FFFFFF; cursor:pointer; outline:none;">
-                                @for($y = date('Y'); $y >= 2024; $y--)
-                                    <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }} style="color:#1E293B; background:#FFFFFF;">Tahun {{ $y }}</option>
-                                @endfor
-                            </select>
-                            <svg class="w-3 h-3 text-white/70 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
-                            </svg>
-                        </div>
-                    </form>
+                    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
+                        {{-- Year selector --}}
+                        <form method="GET" action="{{ route('dashboard.sales') }}">
+                            <div style="position:relative; display:inline-flex; align-items:center;">
+                                <svg style="width:14px; height:14px; position:absolute; left:10px; pointer-events:none; color:rgba(255,255,255,0.7);" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <select name="year" onchange="this.form.submit()"
+                                        style="appearance:none; padding:7px 28px 7px 30px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:10px; font-size:11.5px; font-weight:700; color:#FFFFFF; cursor:pointer; outline:none;">
+                                    @for($y = date('Y'); $y >= 2024; $y--)
+                                        <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }} style="color:#1E293B; background:#FFFFFF;">Tahun {{ $y }}</option>
+                                    @endfor
+                                </select>
+                                <svg style="width:12px; height:12px; position:absolute; right:8px; pointer-events:none; color:rgba(255,255,255,0.7);" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+                                </svg>
+                            </div>
+                        </form>
 
-                    <a href="{{ route('sales.pipeline.index') }}"
-                       class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white border border-white/20 bg-white/10 hover:bg-white/20 transition">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
-                        </svg>
-                        Pipeline Board
-                    </a>
+                        <a href="{{ route('sales.pipeline.index') }}"
+                           style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:10px; font-size:11.5px; font-weight:700; color:#FFFFFF; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.22); text-decoration:none; transition:background .15s;">
+                            <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                            </svg>
+                            Pipeline Board
+                        </a>
 
-                    <a href="{{ route('sales.activities.index') }}"
-                       class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white border border-white/20 bg-white/10 hover:bg-white/20 transition">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        Activity Log
-                    </a>
-                </div>
+                        <a href="{{ route('sales.activities.index') }}"
+                           style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:10px; font-size:11.5px; font-weight:700; color:#FFFFFF; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.22); text-decoration:none; transition:background .15s;">
+                            <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Activity Log
+                        </a>
+                    </div>
                 </div>
             </div>
 
