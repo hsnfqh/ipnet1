@@ -67,8 +67,19 @@ class ClientController extends Controller
         return view('clients.show', compact('client'));
     }
 
+    public function edit(Request $request, Client $client)
+    {
+        return $this->show($request, $client);
+    }
+
     public function update(Request $request, Client $client)
     {
+        // Support array of departments if submitted as array
+        if (is_array($request->input('department'))) {
+            $deptClean = implode(', ', array_filter($request->input('department')));
+            $request->merge(['department' => $deptClean]);
+        }
+
         $validated = $request->validate([
             'name'       => 'required|string|max:255',
             'department' => 'nullable|string|max:255',
@@ -89,7 +100,7 @@ class ClientController extends Controller
             ]);
         }
 
-        return redirect()->route('clients.index')->with('success', 'Data klien berhasil diperbarui!');
+        return redirect()->back()->with('success', 'Data klien berhasil diperbarui!');
     }
 
     public function destroy(Request $request, Client $client)
