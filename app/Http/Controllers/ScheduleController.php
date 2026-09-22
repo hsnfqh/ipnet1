@@ -286,8 +286,8 @@ class ScheduleController extends Controller
         }
 
         // Tasks dengan deadline untuk ditampilkan di kalender
-        if ($isArchitect) {
-            // Solution Architect tidak terbebani task lapangan engineer lain
+        if ($isArchitect || $isCommercial) {
+            // Solution Architect & Commercial tidak terbebani task lapangan engineer lain
             $tasks = collect([]);
         } else {
             $existingScheduleTitles = Schedule::pluck('title')->map(fn($t) => strtolower(trim($t)))->toArray();

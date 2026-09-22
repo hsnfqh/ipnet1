@@ -134,12 +134,12 @@
                 </div>
             </div>
 
-            {{-- PANEL KETERSEDIAAN ENGINEER — Hanya Managerial/Lead --}}
-            @if($isLead)
+            {{-- PANEL KETERSEDIAAN ENGINEER — Hanya Managerial/Lead Teknis (Bukan Sales/Commercial) --}}
+            @if($isLead && !($isCommercial ?? false))
             <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2"
                  x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-avail-head">
-                    <span class="jkw-eyebrow">{{ ($isCommercial ?? false) ? 'Ketersediaan Presales & Tim' : 'Ketersediaan Engineer' }} — <span x-text="periodLabel"></span></span>
+                    <span class="jkw-eyebrow">Ketersediaan Engineer — <span x-text="periodLabel"></span></span>
                     <label class="jkw-check">
                         <input type="checkbox" x-model="showOnlyAvailable">
                         <span>Hanya yang tersedia</span>
@@ -200,16 +200,24 @@
                             </span>
                         </div>
                     </template>
-                    <template x-if="!isArchitect">
+                    @if($isCommercial ?? false)
                         <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
-                                <span style="width:10px; height:10px; border-radius:3px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
+                                <span style="width:10px; height:10px; border-radius:3px; background:#C81E2C; flex-shrink:0; display:inline-block;"></span>
                                 <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Jadwal Meeting</span>
                             </span>
                             <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
                                 <span style="width:10px; height:10px; border-radius:3px; background:#10B981; flex-shrink:0; display:inline-block;"></span>
                                 <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Sesi PoC &amp; Demo</span>
+                            </span>
+                        </div>
+                    @else
+                    <template x-if="!isArchitect">
+                        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Jadwal Meeting</span>
                             </span>
                             <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
@@ -223,6 +231,7 @@
                             </span>
                         </div>
                     </template>
+                    @endif
                 </div>
             </template>
 
@@ -783,10 +792,10 @@
                                                 <span>Day Off</span>
                                             </button>
                                         </div>
-                                        @else
-                                        <div style="display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px;">
+                                        @elseif($isCommercial ?? false)
+                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                                             <button type="button" 
-                                                    class="jkw-cat-btn jkw-cat-btn--meeting"
+                                                    class="jkw-cat-btn jkw-cat-btn--meeting-sales"
                                                     :class="{ 'is-active': form.category === 'Meeting' }"
                                                     @click="setCategory('Meeting')">
                                                 <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -804,6 +813,18 @@
                                                 </svg>
                                                 <span>PoC &amp; Demo</span>
                                             </button>
+                                        </div>
+                                        @else
+                                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                                            <button type="button" 
+                                                    class="jkw-cat-btn jkw-cat-btn--meeting"
+                                                    :class="{ 'is-active': form.category === 'Meeting' }"
+                                                    @click="setCategory('Meeting')">
+                                                <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                                </svg>
+                                                <span>Meeting</span>
+                                            </button>
 
                                             <button type="button" 
                                                     class="jkw-cat-btn jkw-cat-btn--task"
@@ -812,7 +833,7 @@
                                                 <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                                                 </svg>
-                                                <span>Task</span>
+                                                <span>Task / Kegiatan</span>
                                             </button>
 
                                             <button type="button" 
@@ -826,7 +847,7 @@
                                                     <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
                                                     <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
                                                 </svg>
-                                                <span>Day Off</span>
+                                                <span>Day Off / Cuti</span>
                                             </button>
                                         </div>
                                         @endif
@@ -955,7 +976,8 @@
                                                 Tanggal &amp; Waktu Kegiatan
                                             </label>
 
-                                            <!-- Mode Switcher Pill (Sesi Harian vs Rentang Tanggal) -->
+                                            <!-- Mode Switcher Pill (Sesi Harian vs Rentang Tanggal) - Hanya untuk Tim Operasional / Lead Engineer -->
+                                            @if(!($isCommercial ?? false))
                                             <template x-if="!editing">
                                                 <div style="display:inline-flex; align-items:center; background:#F1F5F9; border:1px solid #CBD5E1; border-radius:6px; padding:2px; gap:2px;">
                                                     <button type="button" 
@@ -974,6 +996,7 @@
                                                     </button>
                                                 </div>
                                             </template>
+                                            @endif
                                         </div>
 
                                         <!-- MODE 1: SESI HARIAN (MULTI-SESSION) -->
@@ -1817,6 +1840,26 @@
     color: #FFFFFF !important;
 }
 
+.jkw-cat-btn--meeting-sales {
+    background: #FFFFFF !important;
+    color: #C81E2C !important;
+    border: 1.5px solid #FCA5A5 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+}
+.jkw-cat-btn--meeting-sales:hover {
+    background: #FEF2F2 !important;
+    border-color: #F87171 !important;
+}
+.jkw-cat-btn--meeting-sales.is-active {
+    background: #C81E2C !important;
+    color: #FFFFFF !important;
+    border-color: #C81E2C !important;
+    box-shadow: 0 4px 14px rgba(200, 30, 44, 0.35) !important;
+}
+.jkw-cat-btn--meeting-sales.is-active svg {
+    color: #FFFFFF !important;
+}
+
 .jkw-cat-btn--poc {
     background: #FFFFFF !important;
     color: #10B981 !important;
@@ -2023,6 +2066,7 @@
                 isMaintenance: @json($isMaintenance ?? false),
                 selectedTicketId: '',
                 isArchitect: @json($isArchitect ?? false),
+                isCommercial: @json($isCommercial ?? false),
                 viewMode: 'week',
                 currentDate: new Date(),
                 showAvailability: false,
@@ -2352,12 +2396,21 @@
                         var isMeet = isMeetingCat;
                         var isDesign = (s.category || '').toLowerCase().includes('desain') || (s.category || '').toLowerCase().includes('sow') || (s.category || '').toLowerCase().includes('review');
                         var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
-                        var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : (isPoc ? 'PoC/Demo' : (s.category || 'Jadwal'))));
+                        var timeLabel = isDayOff 
+                            ? 'Day Off' 
+                            : (sTime 
+                                ? (sTime + ' WIB') 
+                                : (self.isCommercial 
+                                    ? (isPoc ? 'PoC & Demo' : 'Meeting') 
+                                    : (isTaskCat ? 'Kegiatan' : (isPoc ? 'PoC/Demo' : (s.category || 'Jadwal')))));
                         var eventType;
                         var eventColor;
                         if (self.isArchitect) {
                             eventType = isDayOff ? 'day_off' : (isPoc ? 'poc' : (isMeet ? 'meeting' : (isDesign ? 'design' : 'schedule')));
                             eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isMeet ? '#8B5CF6' : (isDesign ? '#2563EB' : '#2563EB')));
+                        } else if (self.isCommercial) {
+                            eventType = isPoc ? 'poc' : 'meeting';
+                            eventColor = isPoc ? '#10B981' : '#C81E2C';
                         } else {
                             eventType = isDayOff ? 'day_off' : (isPoc ? 'poc' : (isTaskCat ? 'task' : 'meeting'));
                             eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isTaskCat ? '#C81E2C' : '#2563EB'));
@@ -2380,13 +2433,17 @@
                             engLabel = s.project.name;
                         }
 
+                        var tooltipPrefix = self.isCommercial
+                            ? (isPoc ? 'PoC & Demo: ' : 'Jadwal Meeting: ')
+                            : (isDayOff ? 'Day Off: ' : (isTaskCat ? 'Task/Kegiatan: ' : 'Jadwal: '));
+
                         map[d].push({
                             _uid: 'sch-' + s.id,
                             _type: eventType,
                             _color: eventColor,
                             _displayTitle: s.title,
                             _timeLabel: timeLabel,
-                            _tooltip: (isDayOff ? 'Day Off: ' : (isTaskCat ? 'Task/Kegiatan: ' : 'Jadwal: ')) + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + (isTaskCompleted ? ' • (Selesai)' : ' • Klik untuk edit'),
+                            _tooltip: tooltipPrefix + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + (isTaskCompleted ? ' • (Selesai)' : ' • Klik untuk edit'),
                             _subLabel: engLabel,
                             category: s.category || 'Meeting',
                             status: s.status || s.task_status,
@@ -2407,69 +2464,71 @@
                         });
                     });
 
-                    // --- Deadline Task (MERAH) ---
-                    var filteredTasks = this.engineerFilter
-                        ? this.tasks.filter(function(t) { 
-                            var engIds = t.engineer_ids || (t.engineers ? t.engineers.map(function(e){ return e.id; }) : [t.engineer_id]);
-                            return engIds.some(function(id) { return String(id) === String(self.engineerFilter); });
-                        })
-                        : this.tasks;
+                    // --- Deadline Task (MERAH) - Hanya untuk Tim Operasional / Lead Engineer ---
+                    if (!self.isCommercial) {
+                        var filteredTasks = this.engineerFilter
+                            ? this.tasks.filter(function(t) { 
+                                var engIds = t.engineer_ids || (t.engineers ? t.engineers.map(function(e){ return e.id; }) : [t.engineer_id]);
+                                return engIds.some(function(id) { return String(id) === String(self.engineerFilter); });
+                            })
+                            : this.tasks;
 
-                    filteredTasks.forEach(function(t) {
-                        var d = parseDateKey(t.deadline);
-                        if (!d) return;
-                        if (!map[d]) map[d] = [];
+                        filteredTasks.forEach(function(t) {
+                            var d = parseDateKey(t.deadline);
+                            if (!d) return;
+                            if (!map[d]) map[d] = [];
 
-                        var cleanTaskTitle = (t.title || '').trim().toLowerCase();
-                        var taskDedupKey = 'task-' + t.id + '|' + d;
-                        var taskTitleDedupKey = cleanTaskTitle + '|' + d;
-                        
-                        // Jangan tampilkan jika sudah ada di tanggal yang sama
-                        if (seenKeys[taskDedupKey] || (cleanTaskTitle && seenKeys[taskTitleDedupKey])) return;
-                        seenKeys[taskDedupKey] = true;
-                        if (cleanTaskTitle) seenKeys[taskTitleDedupKey] = true;
+                            var cleanTaskTitle = (t.title || '').trim().toLowerCase();
+                            var taskDedupKey = 'task-' + t.id + '|' + d;
+                            var taskTitleDedupKey = cleanTaskTitle + '|' + d;
+                            
+                            // Jangan tampilkan jika sudah ada di tanggal yang sama
+                            if (seenKeys[taskDedupKey] || (cleanTaskTitle && seenKeys[taskTitleDedupKey])) return;
+                            seenKeys[taskDedupKey] = true;
+                            if (cleanTaskTitle) seenKeys[taskTitleDedupKey] = true;
 
-                        var dTime = t.deadline_time 
-                            ? t.deadline_time.substring(0, 5) 
-                            : (t.deadline && String(t.deadline).indexOf('T') !== -1 && String(t.deadline).split('T')[1] 
-                                ? String(t.deadline).split('T')[1].substring(0, 5) 
-                                : (t.deadline && String(t.deadline).indexOf(' ') !== -1 && String(t.deadline).split(' ')[1] 
-                                    ? String(t.deadline).split(' ')[1].substring(0, 5) 
-                                    : ''));
+                            var dTime = t.deadline_time 
+                                ? t.deadline_time.substring(0, 5) 
+                                : (t.deadline && String(t.deadline).indexOf('T') !== -1 && String(t.deadline).split('T')[1] 
+                                    ? String(t.deadline).split('T')[1].substring(0, 5) 
+                                    : (t.deadline && String(t.deadline).indexOf(' ') !== -1 && String(t.deadline).split(' ')[1] 
+                                        ? String(t.deadline).split(' ')[1].substring(0, 5) 
+                                        : ''));
 
-                        var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
-                        var taskEngLabel = '';
-                        if (t.engineers && t.engineers.length > 0) {
-                            taskEngLabel = t.engineers.map(function(e) { return e.name; }).join(', ');
-                        } else if (t.engineer && t.engineer.name) {
-                            taskEngLabel = t.engineer.name;
-                        } else if (t.project && t.project.name) {
-                            taskEngLabel = t.project.name;
-                        }
+                            var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
+                            var taskEngLabel = '';
+                            if (t.engineers && t.engineers.length > 0) {
+                                taskEngLabel = t.engineers.map(function(e) { return e.name; }).join(', ');
+                            } else if (t.engineer && t.engineer.name) {
+                                taskEngLabel = t.engineer.name;
+                            } else if (t.project && t.project.name) {
+                                taskEngLabel = t.project.name;
+                            }
 
-                        map[d].push({
-                            _uid: 'task-' + t.id,
-                            _type: 'task',
-                            _color: '#C81E2C',
-                            _displayTitle: t.title,
-                            _timeLabel: taskTimeLabel,
-                            _tooltip: 'Jadwal Kegiatan: ' + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (taskEngLabel ? '\nEngineer: ' + taskEngLabel : ''),
-                            _subLabel: taskEngLabel,
-                            id: t.id,
-                            title: t.title,
-                            project: t.project,
-                            engineer: t.engineer,
-                            engineers: t.engineers || [],
-                            priority: t.priority,
-                            status: t.status,
-                            deadline: t.deadline,
-                            deadline_time: dTime,
-                            start_time: dTime,
-                            end_time: '',
-                            location: '',
-                            description: ''
+                            map[d].push({
+                                _uid: 'task-' + t.id,
+                                _type: 'task',
+                                _color: '#C81E2C',
+                                _displayTitle: t.title,
+                                _timeLabel: taskTimeLabel,
+                                _tooltip: 'Jadwal Kegiatan: ' + t.title + (dTime ? ' (' + dTime + ' WIB)' : '') + (taskEngLabel ? '\nEngineer: ' + taskEngLabel : ''),
+                                _subLabel: taskEngLabel,
+                                id: t.id,
+                                title: t.title,
+                                project: t.project,
+                                engineer: t.engineer,
+                                engineers: t.engineers || [],
+                                priority: t.priority,
+                                status: t.status,
+                                deadline: t.deadline,
+                                deadline_time: dTime,
+                                start_time: dTime,
+                                end_time: '',
+                                location: '',
+                                description: ''
+                            });
                         });
-                    });
+                    }
 
                     // Urutkan agenda tiap tanggal: Day Off paling atas, lalu jam paling pagi ke paling malam
                     Object.keys(map).forEach(function(key) {
@@ -2502,6 +2561,9 @@
                 get modalTitle() {
                     if (this.isArchitect) {
                         return this.editing ? 'Edit Agenda / Catatan Kerja' : 'Buat Agenda / Catatan Kerja';
+                    }
+                    if (this.isCommercial) {
+                        return this.editing ? 'Edit Jadwal Meeting / PoC' : 'Buat Jadwal Meeting / PoC';
                     }
                     return this.editing ? 'Edit Jadwal' : 'Buat Jadwal';
                 },
