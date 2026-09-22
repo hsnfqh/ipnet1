@@ -159,7 +159,7 @@
                             PT IP NETWORK SOLUSINDO &bull; SALES DASHBOARD
                         </div>
                         <h1 style="font-size:20px; font-weight:700; color:#FFFFFF; letter-spacing:-0.3px; line-height:1.25; margin:0 0 4px 0;">
-                            Selamat Datang, {{ auth()->user()->name }} 👋
+                            Selamat Datang, {{ auth()->user()->name }}
                         </h1>
                         <p style="font-size:12.5px; color:rgba(255,255,255,0.75); margin:0; line-height:1.5;">
                             Monitoring performa project, pipeline &amp; konversi deals — Tahun {{ $selectedYear }}
