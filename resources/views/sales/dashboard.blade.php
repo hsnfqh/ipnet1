@@ -277,7 +277,7 @@
                         </div>
                         <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px; padding-top:10px; border-top:1px solid #F1F5F9; font-size:11px; color:#94A3B8; font-weight:500;">
                             <span>Sedang dikerjakan</span>
-                            <strong style="color:#B45309;">{{ $totalInProgressCount }} proj</strong>
+                            <strong style="color:#B45309;">{{ $totalInProgressCount }} project</strong>
                         </div>
                     </div>
 
@@ -300,7 +300,7 @@
                         </div>
                         <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px; padding-top:10px; border-top:1px solid #F1F5F9; font-size:11px; color:#94A3B8; font-weight:500;">
                             <span>Review / tertunda</span>
-                            <strong style="color:#C2410C;">{{ $totalPendingCount }} proj</strong>
+                            <strong style="color:#C2410C;">{{ $totalPendingCount }} project</strong>
                         </div>
                     </div>
 
@@ -323,7 +323,7 @@
                         </div>
                         <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px; padding-top:10px; border-top:1px solid #F1F5F9; font-size:11px; color:#94A3B8; font-weight:500;">
                             <span>Project selesai</span>
-                            <strong style="color:#047857;">{{ $totalCompleteCount }} proj</strong>
+                            <strong style="color:#047857;">{{ $totalCompleteCount }} project</strong>
                         </div>
                     </div>
 
