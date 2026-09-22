@@ -31,6 +31,28 @@ class ScheduleController extends Controller
 
         // Auto-heal / Sinkronkan Task ke Jadwal Kerja sesuai scope divisi user
         if (!$isArchitect) {
+            // 1. Bersihkan Jadwal kategori Task/Kegiatan yang task induknya sudah dihapus / sudah di-rename
+            try {
+                $existingTaskTitles = Task::pluck('title')->toArray();
+                Schedule::where(function($q) {
+                    $q->whereIn('category', ['Task', 'Kegiatan'])
+                      ->orWhere(function($sq) {
+                          $sq->where('category', 'Preventive Maintenance')
+                             ->where('title', 'regexp', '^\\[(PM|CM|INC|REQ|CR|TCK)-');
+                      });
+                })
+                ->whereNotIn('title', $existingTaskTitles)
+                ->delete();
+            } catch (\Exception $e) {
+                // Abaikan jika regex tidak disupport driver DB tertentu
+                try {
+                    $existingTaskTitles = Task::pluck('title')->toArray();
+                    Schedule::whereIn('category', ['Task', 'Kegiatan'])
+                        ->whereNotIn('title', $existingTaskTitles)
+                        ->delete();
+                } catch (\Exception $ex) {}
+            }
+
             $taskQuery = Task::with('engineers')->whereNotNull('deadline');
             if ($scopeIds !== null) {
                 $taskQuery->where(function($q) use ($scopeIds) {
