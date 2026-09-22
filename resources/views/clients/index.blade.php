@@ -259,76 +259,146 @@
         </div>
     </div>
 
-    {{-- MODAL: DETAILS / EDIT CLIENT --}}
-    <div x-show="isDetailsModalOpen" x-cloak 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-        <div @click.away="isDetailsModalOpen = false" 
-             class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-gray-100 space-y-4 max-h-[90vh] overflow-y-auto">
-            
-            <div class="flex items-center justify-between border-b pb-3">
-                <div>
-                    <h3 class="text-base font-bold text-gray-900">Detail &amp; Edit Klien</h3>
-                    <p class="text-xs text-gray-400 mt-0.5" x-text="selectedClient.name"></p>
+    {{-- MODAL: DETAILS / EDIT CLIENT (wide 2-col layout) --}}
+    <div x-show="isDetailsModalOpen" x-cloak
+         style="position:fixed; inset:0; z-index:9998; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(15,23,42,0.50); backdrop-filter:blur(4px);"
+         @click.self="isDetailsModalOpen = false">
+        <div style="background:#FFFFFF; border-radius:18px; box-shadow:0 24px 80px rgba(0,0,0,0.18); width:100%; max-width:880px; max-height:92vh; overflow-y:auto; animation:modalIn .22s cubic-bezier(0.16,1,0.3,1);">
+
+            {{-- Modal Header --}}
+            <div style="padding:18px 24px 16px; border-bottom:1px solid #F1F5F9; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:#FFFFFF; z-index:10; border-radius:18px 18px 0 0;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="width:38px; height:38px; background:#FEF2F2; border:1px solid #FECACA; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <svg style="width:17px; height:17px; color:#8F0A0D;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p style="font-size:10.5px; font-weight:700; color:#8F0A0D; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 1px;">Detail & Edit Klien</p>
+                        <h3 style="font-size:16px; font-weight:700; color:#1E293B; margin:0;" x-text="selectedClient.name"></h3>
+                    </div>
                 </div>
-                <button type="button" @click="isDetailsModalOpen = false" class="text-gray-400 hover:text-gray-700 text-lg font-bold">✕</button>
+                <button type="button" @click="isDetailsModalOpen = false"
+                        style="width:32px; height:32px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#64748B; font-size:16px; transition:all .15s;"
+                        onmouseover="this.style.background='#F1F5F9';" onmouseout="this.style.background='#F8FAFC';">✕</button>
             </div>
 
-            <form :action="'{{ url('clients') }}/' + selectedClient.id" method="POST" class="space-y-4 text-xs font-semibold">
-                @csrf
-                @method('PUT')
+            {{-- Modal Body: 2-column --}}
+            <div style="padding:20px 24px; display:grid; grid-template-columns:1fr 280px; gap:20px; align-items:start;">
 
-                <div>
-                    <label class="block text-gray-700 mb-1">Nama Perusahaan / Klien <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" x-model="selectedClient.name" required
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
-                </div>
+                {{-- LEFT: Form --}}
+                <form :action="'{{ url('clients') }}/' + selectedClient.id" method="POST">
+                    @csrf
+                    @method('PUT')
 
-                <div>
-                    <label class="block text-gray-700 mb-1">Departemen / Divisi Klien</label>
-                    <input type="text" name="department" x-model="selectedClient.department"
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
-                </div>
+                    <div style="display:flex; flex-direction:column; gap:18px;">
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-gray-700 mb-1">Nama PIC / Kontak</label>
-                        <input type="text" name="pic_name" x-model="selectedClient.pic_name"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
+                        {{-- NAME --}}
+                        <div>
+                            <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:6px;">NAME</label>
+                            <input type="text" name="name" x-model="selectedClient.name" required
+                                   style="width:100%; padding:9px 14px; border:1px solid #E2E8F0; border-radius:10px; font-size:13px; font-weight:500; color:#1E293B; background:#FAFBFD; outline:none; box-sizing:border-box; transition:border-color .15s, box-shadow .15s;"
+                                   onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.08)';"
+                                   onblur="this.style.borderColor='#E2E8F0'; this.style.boxShadow='none';">
+                        </div>
+
+                        {{-- ADDRESS --}}
+                        <div>
+                            <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:6px;">ADDRESS 1</label>
+                            <textarea name="address" rows="4" x-model="selectedClient.address"
+                                      style="width:100%; padding:9px 14px; border:1px solid #E2E8F0; border-radius:10px; font-size:13px; font-weight:400; color:#1E293B; background:#FAFBFD; outline:none; box-sizing:border-box; line-height:1.6; resize:vertical; transition:border-color .15s;"
+                                      onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.08)';"
+                                      onblur="this.style.borderColor='#E2E8F0'; this.style.boxShadow='none';"></textarea>
+                            <div style="margin-top:8px;">
+                                <a href="#" style="font-size:11.5px; font-weight:700; color:#8F0A0D; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                                    <svg style="width:11px; height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    + CREATE SECONDARY ADDRESS
+                                </a>
+                            </div>
+                        </div>
+
+                        {{-- DEPARTMENT --}}
+                        <div>
+                            <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:6px;">DEPARTMENT 1</label>
+                            <input type="text" name="department" x-model="selectedClient.department"
+                                   style="width:100%; padding:9px 14px; border:1px solid #E2E8F0; border-radius:10px; font-size:13px; font-weight:500; color:#1E293B; background:#FAFBFD; outline:none; box-sizing:border-box; transition:border-color .15s;"
+                                   onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.08)';"
+                                   onblur="this.style.borderColor='#E2E8F0'; this.style.boxShadow='none';">
+                            <div style="margin-top:8px; padding:10px 14px; background:#F8FAFC; border:1px solid #E8EDF3; border-radius:10px; text-align:center;">
+                                <a href="#" style="font-size:11.5px; font-weight:700; color:#8F0A0D; text-decoration:none;">
+                                    + CREATE PIC <span x-text="selectedClient.department || ''"></span>
+                                </a>
+                            </div>
+                        </div>
+
+                        {{-- PIC & PHONE --}}
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                            <div>
+                                <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:6px;">Nama PIC</label>
+                                <input type="text" name="pic_name" x-model="selectedClient.pic_name"
+                                       style="width:100%; padding:9px 14px; border:1px solid #E2E8F0; border-radius:10px; font-size:13px; color:#1E293B; background:#FAFBFD; outline:none; box-sizing:border-box;"
+                                       onfocus="this.style.borderColor='#8F0A0D';" onblur="this.style.borderColor='#E2E8F0';">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:6px;">Telepon / WA</label>
+                                <input type="text" name="phone" x-model="selectedClient.phone"
+                                       style="width:100%; padding:9px 14px; border:1px solid #E2E8F0; border-radius:10px; font-size:13px; color:#1E293B; background:#FAFBFD; outline:none; box-sizing:border-box;"
+                                       onfocus="this.style.borderColor='#8F0A0D';" onblur="this.style.borderColor='#E2E8F0';">
+                            </div>
+                        </div>
+
+                        {{-- EMAIL --}}
+                        <div>
+                            <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.07em; margin-bottom:6px;">Email Resmi</label>
+                            <input type="email" name="email" x-model="selectedClient.email"
+                                   style="width:100%; padding:9px 14px; border:1px solid #E2E8F0; border-radius:10px; font-size:13px; color:#1E293B; background:#FAFBFD; outline:none; box-sizing:border-box;"
+                                   onfocus="this.style.borderColor='#8F0A0D';" onblur="this.style.borderColor='#E2E8F0';">
+                        </div>
+
+                        {{-- CREATE DEPARTMENT --}}
+                        <div>
+                            <a href="#" style="font-size:11.5px; font-weight:700; color:#8F0A0D; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                                <svg style="width:11px; height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                + CREATE DEPARTMENT
+                            </a>
+                        </div>
+
+                        {{-- Action Buttons --}}
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding-top:14px; border-top:1px solid #F1F5F9; flex-wrap:wrap; gap:10px;">
+                            <button type="button" @click="isDetailsModalOpen = false"
+                                    style="padding:8px 18px; border:1px solid #E2E8F0; border-radius:10px; font-size:12px; font-weight:600; color:#475569; background:#FFFFFF; cursor:pointer; transition:all .15s;"
+                                    onmouseover="this.style.background='#F8FAFC';" onmouseout="this.style.background='#FFFFFF';">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn-ipnet-gradient"
+                                    style="padding:9px 22px; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; border:none;">
+                                Update Client
+                            </button>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-gray-700 mb-1">Nomor Telepon / WA</label>
-                        <input type="text" name="phone" x-model="selectedClient.phone"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
+                </form>
+
+                {{-- RIGHT: Projects panel --}}
+                <div>
+                    <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:16px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #F1F5F9;">
+                            <span style="width:7px; height:7px; border-radius:50%; background:#8F0A0D; display:inline-block;"></span>
+                            <h4 style="font-size:13px; font-weight:700; color:#1E293B; margin:0;">Projects</h4>
+                        </div>
+                        <div style="padding:20px 12px; text-align:center; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:10px;">
+                            <svg style="width:28px; height:28px; color:#CBD5E1; margin:0 auto 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                            </svg>
+                            <p style="font-size:11.5px; color:#94A3B8; font-weight:600; margin:0 0 4px;">Don't have any project</p>
+                            <p style="font-size:10.5px; color:#CBD5E1; margin:0 0 12px;">please add current or latest project here</p>
+                            <a :href="'{{ url('clients') }}/' + selectedClient.id"
+                               style="font-size:11px; font-weight:700; color:#8F0A0D; text-decoration:none;">
+                                Lihat halaman detail →
+                            </a>
+                        </div>
                     </div>
                 </div>
-
-                <div>
-                    <label class="block text-gray-700 mb-1">Email Resmi</label>
-                    <input type="email" name="email" x-model="selectedClient.email"
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
-                </div>
-
-                <div>
-                    <label class="block text-gray-700 mb-1">Alamat Kantor</label>
-                    <textarea name="address" rows="2" x-model="selectedClient.address"
-                              class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-gray-700 mb-1">Catatan</label>
-                    <textarea name="notes" rows="2" x-model="selectedClient.notes"
-                              class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]"></textarea>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isDetailsModalOpen = false" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50">
-                        Tutup
-                    </button>
-                    <button type="submit" class="btn-ipnet-gradient px-5 py-2.5 rounded-xl font-bold shadow-md cursor-pointer">
-                        Simpan Perubahan
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
