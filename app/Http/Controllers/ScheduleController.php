@@ -475,6 +475,12 @@ class ScheduleController extends Controller
             $creator = auth()->user();
             $creatorName = $creator ? $creator->name : 'Team Leader';
 
+            $allDates = array_column($sessions, 'date');
+            sort($allDates);
+            $firstDate = !empty($allDates) ? reset($allDates) : ($data['date'] ?? now()->toDateString());
+            $lastDate  = !empty($allDates) ? end($allDates) : $firstDate;
+            $isMultiDate = count($allDates) > 1;
+
             foreach ($sessions as $session) {
                 $scheduleData = $data;
                 $scheduleData['date']       = $session['date'];
@@ -500,59 +506,6 @@ class ScheduleController extends Controller
                     ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
                     : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
 
-                // Otomatis Buat Task di Menu Task jika opsi dicentang dan project_id valid
-                if ($createTask && !empty($schedule->project_id)) {
-                    $deadlineTime = $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : '23:59:00';
-                    $dateStr = $schedule->date ? $schedule->date->format('Y-m-d') : now()->toDateString();
-                    
-                    $taskDesc = ($schedule->description ? $schedule->description . "\n\n" : '')
-                        . "[Dibuat otomatis dari Jadwal Kegiatan: " . $schedule->title 
-                        . " | Tanggal: " . ($schedule->date ? $schedule->date->format('d/m/Y') : '-') 
-                        . ($schedule->start_time ? " Pukul " . substr($schedule->start_time, 0, 5) . " WIB" : "")
-                        . ($schedule->location ? " | Lokasi: " . $schedule->location : "") . "]";
-
-                    $task = Task::create([
-                        'title'         => $schedule->title,
-                        'project_id'    => $schedule->project_id,
-                        'engineer_id'   => $schedule->engineer_id,
-                        'priority'      => $taskPriority,
-                        'status'        => 'Assigned',
-                        'progress'      => 0,
-                        'attachments'   => 0,
-                        'deadline'      => $dateStr . ' ' . $deadlineTime,
-                        'deadline_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : null,
-                        'description'   => $taskDesc,
-                        'created_by'    => auth()->id(),
-                    ]);
-
-                    if (Schema::hasTable('task_user') && !empty($engineerIdsList)) {
-                        $task->engineers()->sync($engineerIdsList);
-                    }
-
-                    // Notifikasi Task untuk tim engineer
-                    foreach ($engineerIdsList as $engId) {
-                        \App\Models\Notification::create([
-                            'user_id' => (int) $engId,
-                            'title'   => 'Task Baru dari Jadwal: ' . $schedule->title,
-                            'message' => 'Tiket pekerjaan baru telah dibuat dari jadwal oleh ' . $creatorName . ' (Prioritas: ' . $taskPriority . '). Silakan proses dan selesaikan di menu Task.',
-                            'url'     => route('tasks.index'),
-                            'is_read' => false,
-                        ]);
-                    }
-                }
-
-                // Notifikasi ke engineer untuk jadwal
-                $notifTitle = $schedule->category === 'Day Off' ? 'Jadwal Day Off / Cuti: ' . $schedule->title : 'Agenda Jadwal Baru: ' . $schedule->title;
-                foreach ($engineerIdsList as $engId) {
-                    \App\Models\Notification::create([
-                        'user_id' => (int) $engId,
-                        'title'   => $notifTitle,
-                        'message' => 'Anda dijadwalkan oleh ' . $creatorName . ' pada: "' . $schedule->title . '" (' . ($schedule->date ? $schedule->date->format('d/m/Y') : '-') . ($schedule->start_time ? ' pukul ' . substr($schedule->start_time, 0, 5) . ' WIB' : '') . ').',
-                        'url'     => route('schedules.index'),
-                        'is_read' => false,
-                    ]);
-                }
-
                 $createdSchedules[] = [
                     'id'          => $schedule->id,
                     'title'       => $schedule->title,
@@ -575,6 +528,74 @@ class ScheduleController extends Controller
                     ] : null,
                     'engineers'   => $engineersList,
                 ];
+            }
+
+            // Dapatkan daftar unik seluruh engineer yang ditugaskan
+            $allAssignedEngineerIds = $engineerIds;
+            if (empty($allAssignedEngineerIds) && !empty($data['engineer_id'])) {
+                $allAssignedEngineerIds = [(int) $data['engineer_id']];
+            }
+
+            $firstSessionTime = !empty($sessions[0]['start_time']) ? $sessions[0]['start_time'] : (!empty($data['start_time']) ? $data['start_time'] : null);
+            $deadlineTime = $firstSessionTime ? substr($firstSessionTime, 0, 5) . ':00' : '23:59:00';
+
+            // Format label rentang tanggal untuk keterangan task & notifikasi
+            $dateRangeLabel = $isMultiDate
+                ? (\Carbon\Carbon::parse($firstDate)->translatedFormat('d M Y') . ' s/d ' . \Carbon\Carbon::parse($lastDate)->translatedFormat('d M Y') . ' (' . count($sessions) . ' hari kerja)')
+                : (\Carbon\Carbon::parse($firstDate)->translatedFormat('d/m/Y') . ($firstSessionTime ? ' Pukul ' . substr($firstSessionTime, 0, 5) . ' WIB' : ''));
+
+            // 1. Buat HANYA 1 TASK di Penugasan Tim jika opsi dicentang (mencegah spam tiket per hari)
+            if ($createTask && !empty($data['project_id'])) {
+                $taskDesc = ($data['description'] ? $data['description'] . "\n\n" : '')
+                    . "[Dibuat otomatis dari Jadwal: " . $data['title'] 
+                    . " | Periode: " . $dateRangeLabel
+                    . (!empty($data['location']) ? " | Lokasi: " . $data['location'] : "") . "]";
+
+                $task = Task::create([
+                    'title'         => $data['title'],
+                    'project_id'    => $data['project_id'],
+                    'engineer_id'   => !empty($allAssignedEngineerIds) ? $allAssignedEngineerIds[0] : null,
+                    'priority'      => $taskPriority,
+                    'status'        => 'Assigned',
+                    'progress'      => 0,
+                    'attachments'   => 0,
+                    'deadline'      => $lastDate . ' ' . $deadlineTime,
+                    'deadline_time' => $firstSessionTime ? substr($firstSessionTime, 0, 5) . ':00' : null,
+                    'description'   => $taskDesc,
+                    'created_by'    => auth()->id(),
+                ]);
+
+                if (Schema::hasTable('task_user') && !empty($allAssignedEngineerIds)) {
+                    $task->engineers()->sync($allAssignedEngineerIds);
+                }
+
+                // Kirim 1 notifikasi penugasan task per engineer
+                foreach ($allAssignedEngineerIds as $engId) {
+                    \App\Models\Notification::create([
+                        'user_id' => (int) $engId,
+                        'title'   => 'Task Baru dari Jadwal: ' . $data['title'],
+                        'message' => 'Tiket pekerjaan baru telah dibuat dari jadwal oleh ' . $creatorName . ' (Periode: ' . $dateRangeLabel . ', Prioritas: ' . $taskPriority . '). Silakan proses di menu Penugasan Tim.',
+                        'url'     => route('tasks.index'),
+                        'is_read' => false,
+                    ]);
+                }
+            }
+
+            // 2. Kirim 1 notifikasi agenda jadwal per engineer
+            $notifTitle = ($data['category'] ?? '') === 'Day Off' 
+                ? 'Jadwal Day Off / Cuti: ' . $data['title'] 
+                : 'Agenda Jadwal Baru: ' . $data['title'];
+            
+            $notifMsg = 'Anda dijadwalkan oleh ' . $creatorName . ' pada: "' . $data['title'] . '" (' . $dateRangeLabel . ').';
+
+            foreach ($allAssignedEngineerIds as $engId) {
+                \App\Models\Notification::create([
+                    'user_id' => (int) $engId,
+                    'title'   => $notifTitle,
+                    'message' => $notifMsg,
+                    'url'     => route('schedules.index'),
+                    'is_read' => false,
+                ]);
             }
 
             if ($request->wantsJson() || $request->ajax()) {
