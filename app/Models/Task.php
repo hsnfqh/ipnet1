@@ -28,8 +28,8 @@ class Task extends Model
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'deadline' => 'datetime',
+        'start_date' => 'date:Y-m-d',
+        'deadline' => 'datetime:Y-m-d H:i:s',
         'deadline_time' => 'string',
         'progress' => 'integer',
         'attachments' => 'integer',

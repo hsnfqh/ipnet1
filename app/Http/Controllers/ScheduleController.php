@@ -406,9 +406,26 @@ class ScheduleController extends Controller
                     $data['title'] = trim($request->input('new_project_name'));
                 }
             } elseif ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {
-                $data['project_id'] = null;
-                if (!empty($request->input('new_project_name')) && empty($data['title'])) {
-                    $data['title'] = trim($request->input('new_project_name'));
+                $projectName = trim($request->input('new_project_name'));
+                if (!empty($projectName)) {
+                    $project = Project::firstOrCreate(
+                        ['name' => $projectName],
+                        [
+                            'client'       => 'Internal / Lainnya',
+                            'location'     => $data['location'] ?? 'On-Site / Lapangan',
+                            'start_date'   => now()->toDateString(),
+                            'deadline'     => now()->addMonth()->toDateString(),
+                            'status'       => 'Planning',
+                            'project_type' => 'One-Time Project',
+                            'created_by'   => auth()->id(),
+                        ]
+                    );
+                    $data['project_id'] = $project->id;
+                    if (empty($data['title'])) {
+                        $data['title'] = $projectName;
+                    }
+                } else {
+                    $data['project_id'] = null;
                 }
             }
             $createTask = ($request->boolean('create_task') || $request->input('create_task') === '1' || $request->input('create_task') === 1 || $request->input('create_task') === true || in_array($data['category'] ?? '', ['Task', 'Kegiatan'])) && (($data['category'] ?? '') !== 'Day Off');

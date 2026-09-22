@@ -220,11 +220,13 @@
                                                 </template>
                                             </div>
                                         </div>
-                                        <span class="text-[10.5px] font-mono text-[#64748B] whitespace-nowrap" x-text="formatDeadline(task.deadline, task.deadline_time, task.start_date)"></span>
+                                        <span class="text-[10.5px] font-mono text-[#64748B] whitespace-nowrap" x-text="formatDeadline(task.deadline, task.deadline_time, task.start_date, task.description)"></span>
                                     </div>
 
-                                    <div class="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-full h-1.5 overflow-hidden">
-                                        <div class="h-full rounded-full bg-linear-to-r from-[#8F0A0D] to-[#DC2626] transition-all duration-300" :style="{ width: (task.progress || 0) + '%' }"></div>
+                                    <div class="w-full rounded-full h-2 overflow-hidden my-1 shadow-2xs" style="background:#E2E8F0 !important;">
+                                        <div class="h-full rounded-full transition-all duration-500 ease-out" 
+                                             :style="{ width: Math.min(100, Math.max(0, parseInt(task.progress) || 0)) + '%', background: 'linear-gradient(90deg, #8F0A0D 0%, #DC2626 100%)' }"
+                                             style="background: linear-gradient(90deg, #8F0A0D 0%, #DC2626 100%);"></div>
                                     </div>
 
                                     <div class="flex justify-between items-center mt-1.5 text-[11px] text-[#64748B]">
@@ -485,7 +487,7 @@
                                         <div>
                                             <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Mulai <span style="color:#8F0A0D;">*</span></label>
                                             <input type="date" x-model="form.start_date"
-                                                   @change="if(!form.end_date) form.end_date = form.start_date;"
+                                                   @change="if(!form.end_date || form.end_date < form.start_date) form.end_date = form.start_date;"
                                                    style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box; cursor:pointer;"
                                                    onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
                                                    onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'"
@@ -793,7 +795,7 @@
                                 </div>
                                 <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px;">
                                     <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.4px;">TANGGAL KEGIATAN</span>
-                                    <strong style="font-size:12.5px; color:#0F172A; display:block;" x-text="formatDeadline(selectedTask?.deadline, selectedTask?.deadline_time, selectedTask?.start_date)"></strong>
+                                    <strong style="font-size:12.5px; color:#0F172A; display:block;" x-text="formatDeadline(selectedTask?.deadline, selectedTask?.deadline_time, selectedTask?.start_date, selectedTask?.description)"></strong>
                                 </div>
                             </div>
 
@@ -1336,6 +1338,14 @@
                     if (task.start_date) {
                         sDateStr = typeof task.start_date === 'string' ? task.start_date.split('T')[0].split(' ')[0] : '';
                     }
+                    if (!sDateStr && task.description) {
+                        var periodMatch = task.description.match(/Periode:\s*([0-9]{1,2})\s+([A-Za-z]+)\s+([0-9]{4})\s+s\/d/i);
+                        if (periodMatch) {
+                            var monthMap = { 'jan':'01', 'feb':'02', 'mar':'03', 'apr':'04', 'mei':'05', 'may':'05', 'jun':'06', 'jul':'07', 'agu':'08', 'aug':'08', 'sep':'09', 'okt':'10', 'oct':'10', 'nov':'11', 'des':'12', 'dec':'12' };
+                            var mKey = periodMatch[2].toLowerCase().substring(0, 3);
+                            sDateStr = periodMatch[3] + '-' + (monthMap[mKey] || '01') + '-' + String(periodMatch[1]).padStart(2, '0');
+                        }
+                    }
                     if (!sDateStr) sDateStr = dateStr;
 
                     this.form = {
@@ -1347,12 +1357,12 @@
                         engineer_ids: ids,
                         priority: task.priority,
                         start_date: sDateStr,
-                        end_date: (dateStr !== sDateStr) ? dateStr : '',
-                        deadline: dateStr,
+                        end_date: dateStr || sDateStr,
+                        deadline: dateStr || sDateStr,
                         deadline_time: timeStr,
                         status: task.status,
                         original_status: task.status,
-                        progress: task.progress || 0,
+                        progress: task.progress !== undefined ? parseInt(task.progress) : 0,
                         description: task.description || ''
                     };
                     this.modalOpen = true;
@@ -1412,6 +1422,11 @@
                         }
                         if (!this.form.end_date && this.form.start_date) {
                             this.form.end_date = this.form.start_date;
+                        }
+                        if (this.form.start_date && this.form.end_date && this.form.start_date > this.form.end_date) {
+                            var tmpDate = this.form.start_date;
+                            this.form.start_date = this.form.end_date;
+                            this.form.end_date = tmpDate;
                         }
                         this.form.deadline = this.form.end_date || this.form.start_date;
 
@@ -1653,10 +1668,8 @@
                             '</span>';
                 },
 
-                formatDeadline: function(deadline, deadlineTime, startDate) {
-                    if (!deadline && !startDate) return '';
-                    var endStr = deadline || startDate;
-                    var startStr = startDate || deadline;
+                formatDeadline: function(deadline, deadlineTime, startDate, description) {
+                    if (!deadline && !startDate && !description) return '';
 
                     var parseDateOnly = function(val) {
                         if (!val) return '';
@@ -1666,22 +1679,27 @@
                         return val;
                     };
 
-                    var sDate = parseDateOnly(startStr);
-                    var eDate = parseDateOnly(endStr);
+                    var sDate = parseDateOnly(startDate);
+                    var eDate = parseDateOnly(deadline);
+
+                    // Fallback jika startDate kosong tapi ada keterangan Periode di deskripsi task
+                    if (!sDate && description && typeof description === 'string') {
+                        var periodMatch = description.match(/Periode:\s*([0-9]{1,2})\s+([A-Za-z]+)\s+([0-9]{4})\s+s\/d/i);
+                        if (periodMatch) {
+                            var monthMap = {
+                                'jan':'01', 'feb':'02', 'mar':'03', 'apr':'04', 'mei':'05', 'may':'05',
+                                'jun':'06', 'jul':'07', 'agu':'08', 'aug':'08', 'sep':'09', 'okt':'10',
+                                'oct':'10', 'nov':'11', 'des':'12', 'dec':'12'
+                            };
+                            var mKey = periodMatch[2].toLowerCase().substring(0, 3);
+                            sDate = periodMatch[3] + '-' + (monthMap[mKey] || '01') + '-' + String(periodMatch[1]).padStart(2, '0');
+                        }
+                    }
+
+                    if (!sDate && eDate) sDate = eDate;
+                    if (!eDate && sDate) eDate = sDate;
 
                     var months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-
-                    var formatSingle = function(dateStr) {
-                        var d = new Date(dateStr + 'T00:00:00');
-                        if (isNaN(d.getTime())) return dateStr;
-                        return String(d.getDate()).padStart(2, '0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-                    };
-
-                    var formatShort = function(dateStr) {
-                        var d = new Date(dateStr + 'T00:00:00');
-                        if (isNaN(d.getTime())) return dateStr;
-                        return String(d.getDate()).padStart(2, '0') + ' ' + months[d.getMonth()];
-                    };
 
                     var timePart = '';
                     if (deadlineTime) {
@@ -1695,18 +1713,47 @@
                     }
 
                     if (sDate && eDate && sDate !== eDate) {
-                        var rangeText = formatShort(sDate) + ' - ' + formatSingle(eDate);
-                        if (timePart && timePart !== '00:00') {
-                            return rangeText + ' • ' + timePart;
+                        var dStart = new Date(sDate + 'T00:00:00');
+                        var dEnd = new Date(eDate + 'T00:00:00');
+                        if (!isNaN(dStart.getTime()) && !isNaN(dEnd.getTime())) {
+                            if (dStart > dEnd) {
+                                var temp = dStart;
+                                dStart = dEnd;
+                                dEnd = temp;
+                            }
+                            var sDay = String(dStart.getDate()).padStart(2, '0');
+                            var eDay = String(dEnd.getDate()).padStart(2, '0');
+                            var sMonth = months[dStart.getMonth()];
+                            var eMonth = months[dEnd.getMonth()];
+                            var sYear = dStart.getFullYear();
+                            var eYear = dEnd.getFullYear();
+
+                            var rangeText = '';
+                            if (sYear === eYear && sMonth === eMonth) {
+                                rangeText = sDay + ' - ' + eDay + ' ' + eMonth + ' ' + eYear;
+                            } else if (sYear === eYear) {
+                                rangeText = sDay + ' ' + sMonth + ' - ' + eDay + ' ' + eMonth + ' ' + eYear;
+                            } else {
+                                rangeText = sDay + ' ' + sMonth + ' ' + sYear + ' - ' + eDay + ' ' + eMonth + ' ' + eYear;
+                            }
+
+                            if (timePart && timePart !== '00:00') {
+                                return rangeText + ' • ' + timePart;
+                            }
+                            return rangeText;
                         }
-                        return rangeText;
                     }
 
-                    var singleText = formatSingle(eDate || sDate);
-                    if (timePart && timePart !== '00:00') {
-                        return singleText + ' • ' + timePart;
+                    var dSingle = new Date((eDate || sDate) + 'T00:00:00');
+                    if (!isNaN(dSingle.getTime())) {
+                        var singleText = String(dSingle.getDate()).padStart(2, '0') + ' ' + months[dSingle.getMonth()] + ' ' + dSingle.getFullYear();
+                        if (timePart && timePart !== '00:00') {
+                            return singleText + ' • ' + timePart;
+                        }
+                        return singleText;
                     }
-                    return singleText;
+
+                    return eDate || sDate || '';
                 },
 
                 showToast: function(message) {
