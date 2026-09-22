@@ -430,8 +430,8 @@ class ScheduleController extends Controller
                     ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
                     : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
 
-                // Otomatis Buat Task di Menu Task jika opsi dicentang
-                if ($createTask) {
+                // Otomatis Buat Task di Menu Task jika opsi dicentang dan project_id valid
+                if ($createTask && !empty($schedule->project_id)) {
                     $deadlineTime = $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : '23:59:00';
                     $dateStr = $schedule->date ? $schedule->date->format('Y-m-d') : now()->toDateString();
                     
@@ -613,20 +613,25 @@ class ScheduleController extends Controller
 
                 if ($task) {
                     // Update task yang sudah ada (termasuk rename judul baru)
-                    $task->update([
+                    $taskUpdateData = [
                         'title'         => $schedule->title,
-                        'project_id'    => $schedule->project_id,
                         'deadline'      => $dateStr . ' ' . $deadlineTime,
                         'deadline_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : null,
                         'engineer_id'   => $schedule->engineer_id,
                         'description'   => $schedule->description ?: $task->description,
-                    ]);
+                    ];
+
+                    if (!empty($schedule->project_id)) {
+                        $taskUpdateData['project_id'] = $schedule->project_id;
+                    }
+
+                    $task->update($taskUpdateData);
 
                     if (Schema::hasTable('task_user') && !empty($engineerIdsList)) {
                         $task->engineers()->sync($engineerIdsList);
                     }
-                } elseif (in_array($schedule->category, ['Task', 'Kegiatan']) || $request->boolean('create_task')) {
-                    // Buat task baru hanya jika memang belum pernah ada dan kategori adalah Task
+                } elseif ((in_array($schedule->category, ['Task', 'Kegiatan']) || $request->boolean('create_task')) && !empty($schedule->project_id)) {
+                    // Buat task baru hanya jika memang belum pernah ada, kategori adalah Task, dan project_id tidak null
                     $task = Task::create([
                         'title'         => $schedule->title,
                         'project_id'    => $schedule->project_id,
