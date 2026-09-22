@@ -181,14 +181,6 @@
                                             <input type="email" name="email" value="{{ old('email', $client->email) }}"
                                                    placeholder="Email resmi..."
                                                    class="form-input-clean text-xs">
-                                        </div>
-                                    </div>
-
-                                    {{-- Gray Action Box: + CREATE PIC [DEPT] --}}
-                                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-200 text-center">
-                                        <button type="button" class="text-xs font-bold text-[#8F0A0D] hover:text-[#73080A] cursor-pointer tracking-wide uppercase">
-                                            + CREATE PIC <span x-text="(departments[idx] || ('DEPARTMENT ' + (idx + 1))).toUpperCase()"></span>
-                                        </button>
                                     </div>
                                 </div>
                             </template>
