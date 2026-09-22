@@ -10,226 +10,273 @@
     }
 @endphp
 
+@push('styles')
+<style>
+    .ipnet-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 18px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.02);
+    }
+    .ipnet-card-header {
+        border-bottom: 1px solid #F1F5F9;
+        padding-bottom: 18px;
+        margin-bottom: 26px;
+    }
+    .form-label-bold {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 7px;
+    }
+    .form-input-clean {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #E2E8F0;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #1E293B;
+        background: #FAFBFD;
+        outline: none;
+        transition: all .15s ease;
+        box-sizing: border-box;
+    }
+    .form-input-clean:focus {
+        border-color: #8F0A0D;
+        background: #FFFFFF;
+        box-shadow: 0 0 0 3px rgba(143,10,13,0.08);
+    }
+    .project-card-clean {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 14px 16px;
+        transition: all .18s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .project-card-clean:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+        transform: translateY(-1px);
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="flex h-screen overflow-hidden font-sans" style="background:#FFFFFF;"
+<div class="flex h-screen overflow-hidden font-sans bg-[#F8FAFC]"
      x-data="clientShowPage()">
     @include('components.sidebar')
 
-    <div class="flex-1 min-w-0 overflow-y-auto" style="background:#FFFFFF;">
+    <div class="flex-1 min-w-0 overflow-y-auto bg-[#F8FAFC]">
         @include('components.topbar', ['title' => 'Client'])
 
-        <div style="padding: 24px 32px 48px; max-width: 1300px; margin: 0 auto;">
+        <div class="p-4 sm:p-6 lg:p-8 max-w-[1440px] mx-auto">
 
             {{-- Flash Message --}}
             @if(session('success'))
-                <div style="margin-bottom: 20px; padding: 12px 18px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px; color: #166534; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <svg style="width: 16px; height: 16px; color: #16A34A; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <div class="mb-5 p-3.5 px-4.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-xs">
+                    <div class="flex items-center gap-2.5">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                         <span>{{ session('success') }}</span>
                     </div>
-                    <button onclick="this.parentElement.remove()" style="color: #16A34A; font-weight: 700; background: none; border: none; cursor: pointer; padding: 0 4px; font-size: 14px;">✕</button>
+                    <button onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700 font-bold px-2 cursor-pointer">✕</button>
                 </div>
             @endif
 
-            {{-- Breadcrumb --}}
-            <nav style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: #64748B; margin-bottom: 12px;">
-                <a href="{{ route('clients.index') }}" style="color: #1E293B; text-decoration: none; font-weight: 600;" onmouseover="this.style.color='#8F0A0D'" onmouseout="this.style.color='#1E293B'">Client</a>
-                <svg style="width: 12px; height: 12px; color: #94A3B8;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                </svg>
-                <span style="color: #1E293B; font-weight: 700; text-transform: uppercase;">{{ $client->name }}</span>
-                <svg style="width: 12px; height: 12px; color: #94A3B8;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                </svg>
-                <span style="color: #94A3B8;">Edit</span>
-            </nav>
+            {{-- THE MAIN IPNET CARD --}}
+            <div class="ipnet-card p-6 sm:p-8 lg:p-9">
 
-            {{-- Page Title Header --}}
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 24px;">
-                <div style="width: 32px; height: 32px; border: 1.5px solid #8F0A0D; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: #8F0A0D; flex-shrink: 0; background: #FFFFFF;">
-                    <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                </div>
-                <h1 style="font-size: 22px; font-weight: 700; color: #111827; letter-spacing: -0.02em; margin: 0;">View Client</h1>
-            </div>
+                {{-- Card Header: Breadcrumb & Title --}}
+                <div class="ipnet-card-header">
+                    <nav class="flex items-center gap-2 text-xs font-semibold text-[#64748B] mb-2.5">
+                        <a href="{{ route('clients.index') }}" class="text-[#1E293B] hover:text-[#8F0A0D] transition">Client</a>
+                        <svg class="w-3.5 h-3.5 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-[#1E293B] font-bold uppercase">{{ $client->name }}</span>
+                        <svg class="w-3.5 h-3.5 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <span class="text-[#94A3B8]">Edit</span>
+                    </nav>
 
-            {{-- Two Column Content --}}
-            <div style="display: flex; gap: 32px; align-items: flex-start;">
-
-                {{-- LEFT COLUMN: Form --}}
-                <div style="flex: 1; min-width: 0;">
-                    <form action="{{ route('clients.update', $client->id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-
-                        {{-- NAME --}}
-                        <div style="margin-bottom: 20px;">
-                            <label style="display: block; font-size: 11px; font-weight: 700; color: #4B5563; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">NAME</label>
-                            <input type="text" name="name" value="{{ old('name', $client->name) }}" required
-                                   style="width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; font-weight: 500; color: #1F2937; background: #FFFFFF; outline: none; transition: border-color .15s, box-shadow .15s; box-sizing: border-box;"
-                                   onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.08)';"
-                                   onblur="this.style.borderColor='#E5E7EB'; this.style.boxShadow='none';">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg border border-[#8F0A0D] flex items-center justify-center text-[#8F0A0D] bg-white shrink-0 shadow-2xs">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
                         </div>
+                        <h1 class="text-xl sm:text-2xl font-bold text-[#1E293B] tracking-tight">View Client</h1>
+                    </div>
+                </div>
 
-                        {{-- ADDRESS 1 --}}
-                        <div style="margin-bottom: 12px;">
-                            <label style="display: block; font-size: 11px; font-weight: 700; color: #4B5563; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">ADDRESS 1</label>
-                            <textarea name="address" rows="5"
-                                      style="width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; font-weight: 400; color: #1F2937; background: #FFFFFF; outline: none; line-height: 1.6; resize: vertical; transition: border-color .15s, box-shadow .15s; box-sizing: border-box;"
-                                      onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.08)';"
-                                      onblur="this.style.borderColor='#E5E7EB'; this.style.boxShadow='none';"
-                                      placeholder="Masukkan alamat utama client...">{{ old('address', $client->address) }}</textarea>
+                {{-- 2-Column Grid inside the Card --}}
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
 
-                            <div style="margin-top: 6px;">
-                                <button type="button" @click="showSecondaryAddress = !showSecondaryAddress"
-                                        style="background: none; border: none; padding: 0; font-size: 11.5px; font-weight: 700; color: #8F0A0D; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
-                                        onmouseover="this.style.textDecoration='underline'"
-                                        onmouseout="this.style.textDecoration='none'">
-                                    + CREATE SECONDARY ADDRESS
+                    {{-- Left Column: Form (col-span-8) --}}
+                    <div class="lg:col-span-8">
+                        <form action="{{ route('clients.update', $client->id) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+
+                            {{-- NAME --}}
+                            <div class="mb-5">
+                                <label class="form-label-bold">NAME</label>
+                                <input type="text" name="name" value="{{ old('name', $client->name) }}" required
+                                       class="form-input-clean"
+                                       placeholder="Nama Client...">
+                            </div>
+
+                            {{-- ADDRESS 1 --}}
+                            <div class="mb-4">
+                                <label class="form-label-bold">ADDRESS 1</label>
+                                <textarea name="address" rows="5"
+                                          class="form-input-clean resize-y"
+                                          placeholder="Masukkan alamat utama client...">{{ old('address', $client->address) }}</textarea>
+
+                                <div class="mt-2">
+                                    <button type="button" @click="showSecondaryAddress = !showSecondaryAddress"
+                                            class="text-[11.5px] font-bold text-[#8F0A0D] hover:underline uppercase tracking-wide cursor-pointer inline-flex items-center gap-1">
+                                        + CREATE SECONDARY ADDRESS
+                                    </button>
+                                </div>
+
+                                {{-- Secondary Address drawer --}}
+                                <div x-show="showSecondaryAddress" x-cloak class="mt-3.5 p-4 rounded-xl bg-[#FAFBFD] border border-[#E2E8F0]">
+                                    <label class="form-label-bold">ADDRESS 2 (SECONDARY)</label>
+                                    <textarea name="notes" rows="3"
+                                              class="form-input-clean bg-white resize-y"
+                                              placeholder="Alamat sekunder / cabang / catatan tambahan...">{{ old('notes', $client->notes) }}</textarea>
+                                </div>
+                            </div>
+
+                            {{-- DEPARTMENTS (Dynamic list) --}}
+                            <template x-for="(dept, idx) in departments" :key="idx">
+                                <div class="mt-5">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="form-label-bold !mb-0" x-text="'DEPARTMENT ' + (idx + 1)"></label>
+                                        <template x-if="departments.length > 1">
+                                            <button type="button" @click="removeDepartment(idx)" class="text-[11px] font-semibold text-[#94A3B8] hover:text-[#8F0A0D] cursor-pointer">
+                                                ✕ Hapus Dept
+                                            </button>
+                                        </template>
+                                    </div>
+                                    <input type="text" name="department[]" x-model="departments[idx]"
+                                           class="form-input-clean"
+                                           :placeholder="'Nama Departemen ' + (idx + 1)">
+
+                                    {{-- Gray Box: + CREATE PIC [DEPT] --}}
+                                    <div class="mt-2.5">
+                                        <button type="button" @click="togglePic(idx)"
+                                                class="w-full py-3 px-4 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#E2E8F0] text-left cursor-pointer transition flex items-center justify-between">
+                                            <span class="text-[11.5px] font-bold text-[#8F0A0D] uppercase tracking-wide">
+                                                + CREATE PIC <span x-text="(departments[idx] || ('DEPARTMENT ' + (idx + 1))).toUpperCase()"></span>
+                                            </span>
+                                            <svg class="w-3.5 h-3.5 text-[#94A3B8] transition-transform duration-200" :class="activePicDeptIndex === idx ? 'rotate-180 text-[#8F0A0D]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                        </button>
+
+                                        {{-- Expandable PIC Form for this department --}}
+                                        <div x-show="activePicDeptIndex === idx" x-cloak
+                                             class="mt-2.5 p-4 rounded-xl bg-[#FAFBFD] border border-[#E2E8F0] space-y-3">
+                                            <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Kontak PIC Departemen</p>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div>
+                                                    <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Nama PIC</label>
+                                                    <input type="text" name="pic_name" value="{{ old('pic_name', $client->pic_name) }}" placeholder="Nama PIC..."
+                                                           class="form-input-clean !bg-white">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Telepon / WhatsApp</label>
+                                                    <input type="text" name="phone" value="{{ old('phone', $client->phone) }}" placeholder="Nomor Telepon..."
+                                                           class="form-input-clean !bg-white">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10.5px] font-semibold text-[#64748B] mb-1">Email Resmi</label>
+                                                <input type="email" name="email" value="{{ old('email', $client->email) }}" placeholder="Email PIC..."
+                                                       class="form-input-clean !bg-white">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            {{-- + CREATE DEPARTMENT Link --}}
+                            <div class="mt-4">
+                                <button type="button" @click="addDepartment()"
+                                        class="text-[11.5px] font-bold text-[#8F0A0D] hover:underline uppercase tracking-wide cursor-pointer inline-flex items-center gap-1">
+                                    + CREATE DEPARTMENT
                                 </button>
                             </div>
 
-                            {{-- Secondary Address drawer --}}
-                            <div x-show="showSecondaryAddress" x-cloak style="margin-top: 10px;">
-                                <label style="display: block; font-size: 11px; font-weight: 700; color: #4B5563; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">ADDRESS 2 (SECONDARY)</label>
-                                <textarea name="notes" rows="3"
-                                          style="width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; font-weight: 400; color: #1F2937; background: #FFFFFF; outline: none; line-height: 1.6; resize: vertical; box-sizing: border-box;"
-                                          placeholder="Alamat sekunder / cabang / catatan tambahan...">{{ old('notes', $client->notes) }}</textarea>
+                            {{-- Center-aligned Action Buttons --}}
+                            <div class="flex items-center justify-center gap-5 mt-10 pt-4">
+                                <a href="{{ route('clients.index') }}"
+                                   class="px-5 py-2.5 text-xs font-bold text-[#475569] hover:text-[#1E293B] transition rounded-xl">
+                                    Cancel
+                                </a>
+
+                                <button type="submit"
+                                        class="px-8 py-2.5 rounded-xl font-bold text-xs text-white uppercase tracking-wider transition cursor-pointer shadow-sm hover:shadow-md"
+                                        style="background: linear-gradient(135deg, #8F0A0D 0%, #B81525 100%);">
+                                    Update Client
+                                </button>
                             </div>
+
+                            {{-- Subtle Delete Client Link --}}
+                            <div class="border-t border-[#F1F5F9] pt-4 mt-8 flex items-center justify-start">
+                                <button type="button" @click="showDeleteModal = true"
+                                        class="text-[11.5px] font-semibold text-red-600 hover:text-red-800 hover:underline cursor-pointer inline-flex items-center gap-1.5 transition">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                    Hapus data client ini
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {{-- Right Column: Projects Panel (col-span-4) with clear border separator --}}
+                    <div class="lg:col-span-4 lg:border-l lg:border-[#E2E8F0] lg:pl-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Projects</h3>
+                            @if($client->projects && $client->projects->count() > 0)
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FEF2F2] text-[#8F0A0D] border border-[#FECACA]">
+                                    {{ $client->projects->count() }} Proyek
+                                </span>
+                            @endif
                         </div>
 
-                        {{-- DEPARTMENTS (Dynamic list) --}}
-                        <template x-for="(dept, idx) in departments" :key="idx">
-                            <div style="margin-top: 20px;">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                                    <label style="font-size: 11px; font-weight: 700; color: #4B5563; text-transform: uppercase; letter-spacing: 0.05em;" x-text="'DEPARTMENT ' + (idx + 1)"></label>
-                                    <template x-if="departments.length > 1">
-                                        <button type="button" @click="removeDepartment(idx)" style="background: none; border: none; color: #9CA3AF; font-size: 11px; font-weight: 600; cursor: pointer;" onmouseover="this.style.color='#8F0A0D'" onmouseout="this.style.color='#9CA3AF'">
-                                            ✕ Hapus Dept
-                                        </button>
-                                    </template>
-                                </div>
-                                <input type="text" name="department[]" x-model="departments[idx]"
-                                       style="width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 13px; font-weight: 500; color: #1F2937; background: #FFFFFF; outline: none; transition: border-color .15s, box-shadow .15s; box-sizing: border-box;"
-                                       onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.08)';"
-                                       onblur="this.style.borderColor='#E5E7EB'; this.style.boxShadow='none';"
-                                       :placeholder="'Nama Departemen ' + (idx + 1)">
-
-                                {{-- Gray Box: + CREATE PIC [DEPT] --}}
-                                <div style="margin-top: 8px;">
-                                    <button type="button" @click="togglePic(idx)"
-                                            style="width: 100%; padding: 12px 16px; background: #F8FAFC; border: 1px solid #F1F5F9; border-radius: 8px; text-align: left; cursor: pointer; transition: all .15s; box-sizing: border-box;"
-                                            onmouseover="this.style.background='#F1F5F9';"
-                                            onmouseout="this.style.background='#F8FAFC';">
-                                        <span style="font-size: 11.5px; font-weight: 700; color: #8F0A0D; text-transform: uppercase; letter-spacing: 0.04em;">
-                                            + CREATE PIC <span x-text="(departments[idx] || ('DEPARTMENT ' + (idx + 1))).toUpperCase()"></span>
-                                        </span>
-                                    </button>
-
-                                    {{-- Expandable PIC Form for this department --}}
-                                    <div x-show="activePicDeptIndex === idx" x-cloak
-                                         style="margin-top: 8px; padding: 16px; background: #FAFBFD; border: 1px solid #E2E8F0; border-radius: 10px; display: flex; flex-direction: column; gap: 12px;">
-                                        <p style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Kontak PIC Departemen</p>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                            <div>
-                                                <label style="display: block; font-size: 10.5px; font-weight: 600; color: #64748B; margin-bottom: 4px;">Nama PIC</label>
-                                                <input type="text" name="pic_name" value="{{ old('pic_name', $client->pic_name) }}" placeholder="Nama PIC..."
-                                                       style="width: 100%; padding: 8px 12px; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 12.5px; color: #1E293B; background: #FFFFFF; outline: none; box-sizing: border-box;">
-                                            </div>
-                                            <div>
-                                                <label style="display: block; font-size: 10.5px; font-weight: 600; color: #64748B; margin-bottom: 4px;">Telepon / WA</label>
-                                                <input type="text" name="phone" value="{{ old('phone', $client->phone) }}" placeholder="Nomor Telepon..."
-                                                       style="width: 100%; padding: 8px 12px; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 12.5px; color: #1E293B; background: #FFFFFF; outline: none; box-sizing: border-box;">
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label style="display: block; font-size: 10.5px; font-weight: 600; color: #64748B; margin-bottom: 4px;">Email</label>
-                                            <input type="email" name="email" value="{{ old('email', $client->email) }}" placeholder="Email PIC..."
-                                                   style="width: 100%; padding: 8px 12px; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 12.5px; color: #1E293B; background: #FFFFFF; outline: none; box-sizing: border-box;">
+                        @if($client->projects && $client->projects->count() > 0)
+                            <div class="space-y-3">
+                                @foreach($client->projects as $p)
+                                    <div class="project-card-clean">
+                                        <a href="{{ route('projects.show', $p->id) }}" class="text-[13px] font-bold text-[#1E293B] hover:text-[#8F0A0D] transition block mb-1.5">
+                                            {{ $p->name }}
+                                        </a>
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="font-bold text-[#64748B]">
+                                                Rp {{ number_format($p->contract_value ?? 0, 0, ',', '.') }}
+                                            </span>
+                                            <span class="px-2.5 py-0.5 rounded-md text-[10.5px] font-bold bg-[#F1F5F9] border border-[#E2E8F0] text-[#475569]">
+                                                {{ $p->status ?: ($p->stage ?: 'Opportunity') }}
+                                            </span>
                                         </div>
                                     </div>
-                                </div>
+                                @endforeach
                             </div>
-                        </template>
+                        @else
+                            <div class="p-6 text-center rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                <p class="text-xs font-semibold text-[#64748B] leading-relaxed">
+                                    Don't have any project, please add current or latest project here
+                                </p>
+                            </div>
+                        @endif
+                    </div>
 
-                        {{-- + CREATE DEPARTMENT Link --}}
-                        <div style="margin-top: 16px;">
-                            <button type="button" @click="addDepartment()"
-                                    style="background: none; border: none; padding: 0; font-size: 11.5px; font-weight: 700; color: #8F0A0D; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
-                                    onmouseover="this.style.textDecoration='underline'"
-                                    onmouseout="this.style.textDecoration='none'">
-                                + CREATE DEPARTMENT
-                            </button>
-                        </div>
-
-                        {{-- Action Buttons --}}
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 48px; margin-bottom: 24px;">
-                            <a href="{{ route('clients.index') }}"
-                               style="font-size: 13px; font-weight: 600; color: #4B5563; text-decoration: none; padding: 10px 18px; transition: color .15s;"
-                               onmouseover="this.style.color='#111827'"
-                               onmouseout="this.style.color='#4B5563'">
-                                Cancel
-                            </a>
-
-                            <button type="submit"
-                                    style="padding: 10px 36px; background: #8F0A0D; color: #FFFFFF; font-size: 13px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(143,10,13,0.25); transition: all .18s;"
-                                    onmouseover="this.style.background='#73080A'; this.style.transform='translateY(-1px)';"
-                                    onmouseout="this.style.background='#8F0A0D'; this.style.transform='none';">
-                                Update Client
-                            </button>
-                        </div>
-
-                        {{-- Subtle Delete Client Link at the bottom --}}
-                        <div style="border-top: 1px solid #F1F5F9; padding-top: 16px; margin-top: 24px; display: flex; align-items: center; justify-content: flex-start;">
-                            <button type="button" @click="showDeleteModal = true"
-                                    style="background: none; border: none; padding: 0; font-size: 11.5px; font-weight: 600; color: #DC2626; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: color .15s;"
-                                    onmouseover="this.style.color='#991B1B'; this.style.textDecoration='underline';"
-                                    onmouseout="this.style.color='#DC2626'; this.style.textDecoration='none';">
-                                <svg style="width: 13px; height: 13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                                Hapus data client ini
-                            </button>
-                        </div>
-                    </form>
                 </div>
-
-                {{-- RIGHT COLUMN: Projects Panel --}}
-                <div style="width: 340px; flex-shrink: 0;">
-                    <h3 style="font-size: 15px; font-weight: 700; color: #111827; margin: 0 0 14px;">Projects</h3>
-
-                    @if($client->projects && $client->projects->count() > 0)
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            @foreach($client->projects as $p)
-                                <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; padding: 14px; transition: all .15s;"
-                                     onmouseover="this.style.borderColor='#CBD5E1'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.04)';"
-                                     onmouseout="this.style.borderColor='#E5E7EB'; this.style.boxShadow='none';">
-                                    <a href="{{ route('projects.show', $p->id) }}" style="font-size: 13px; font-weight: 700; color: #111827; text-decoration: none; display: block; margin-bottom: 6px;"
-                                       onmouseover="this.style.color='#8F0A0D'" onmouseout="this.style.color='#111827'">
-                                        {{ $p->name }}
-                                    </a>
-                                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11.5px;">
-                                        <span style="color: #6B7280; font-weight: 600;">
-                                            Rp {{ number_format($p->contract_value ?? 0, 0, ',', '.') }}
-                                        </span>
-                                        <span style="padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; background: #F3F4F6; color: #374151;">
-                                            {{ $p->status ?? 'Active' }}
-                                        </span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div style="background: #F8FAFC; border: 1px solid #F1F5F9; border-radius: 10px; padding: 24px 18px; text-align: center;">
-                            <p style="font-size: 12px; font-weight: 600; color: #374151; line-height: 1.5; margin: 0;">
-                                Don't have any project, please add current or latest project here
-                            </p>
-                        </div>
-                    @endif
-                </div>
-
             </div>
+
         </div>
     </div>
 
