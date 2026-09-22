@@ -363,6 +363,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [ProjectController::class, 'index'])->name('projects.index');
         Route::post('/', [ProjectController::class, 'store'])->name('projects.store');
         Route::put('/{project}', [ProjectController::class, 'update'])->name('projects.update');
+        Route::delete('/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
         Route::get('/{project}', [ProjectController::class, 'show'])->name('projects.show');
         Route::get('/data', [ProjectController::class, 'getData'])->name('projects.data');
 
