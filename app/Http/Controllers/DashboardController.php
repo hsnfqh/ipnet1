@@ -509,14 +509,16 @@ class DashboardController extends Controller
         $totalCompleteCount = $completeProjects->count();
         $totalCompleteValue = $completeProjects->sum('contract_value');
 
-        // Monthly chart data in Billion IDR (Jan to Des)
+        // Monthly chart data (in Billion IDR & raw amounts)
         $monthlyChartData = [];
+        $monthlyChartRaw  = [];
         for ($m = 1; $m <= 12; $m++) {
             $val = $projects->filter(function($p) use ($m, $selectedYear) {
                 $date = $p->created_at ?: $p->start_date;
                 return $date && \Carbon\Carbon::parse($date)->year == $selectedYear && \Carbon\Carbon::parse($date)->month == $m;
             })->sum('contract_value');
             $monthlyChartData[] = round($val / 1000000000, 2);
+            $monthlyChartRaw[]  = (float) $val;
         }
 
         // Project List Table
@@ -535,6 +537,7 @@ class DashboardController extends Controller
             'totalCompleteCount'         => $totalCompleteCount,
             'totalCompleteValue'         => $totalCompleteValue,
             'monthlyChartData'           => $monthlyChartData,
+            'monthlyChartRaw'            => $monthlyChartRaw,
             'projectList'                => $projectList,
             'totalPipelineCount'         => $totalPipelineCount,
             'totalPipelineValue'         => $totalPipelineValue,
