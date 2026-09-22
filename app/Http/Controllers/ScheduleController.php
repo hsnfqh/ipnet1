@@ -63,53 +63,64 @@ class ScheduleController extends Controller
             }
             $allTasks = $taskQuery->get();
             foreach ($allTasks as $matchingTask) {
-                $taskDate = $matchingTask->deadline->format('Y-m-d');
+                $taskStartDate = $matchingTask->start_date ? $matchingTask->start_date->format('Y-m-d') : $matchingTask->deadline->format('Y-m-d');
+                $taskEndDate   = $matchingTask->deadline->format('Y-m-d');
                 $taskTime = $matchingTask->deadline_time 
                     ? substr($matchingTask->deadline_time, 0, 5) 
                     : ($matchingTask->deadline->format('H:i') !== '00:00' ? $matchingTask->deadline->format('H:i') : '09:00');
 
-                $existingSched = Schedule::where('title', $matchingTask->title)
-                    ->whereDate('date', $taskDate)
-                    ->first();
-
-                if ($existingSched) {
-                    if ($hasScheduleUser) {
-                        $engIds = $matchingTask->engineers->pluck('id')->toArray();
-                        if (empty($engIds) && $matchingTask->engineer_id) {
-                            $engIds = [$matchingTask->engineer_id];
-                        }
-                        if (!empty($engIds) && $existingSched->engineers()->count() === 0) {
-                            $existingSched->engineers()->sync($engIds);
-                        }
-                    }
-                    continue;
+                $curDate = \Carbon\Carbon::parse($taskStartDate);
+                $endDate = \Carbon\Carbon::parse($taskEndDate);
+                if ($curDate->gt($endDate)) {
+                    $temp = $curDate;
+                    $curDate = $endDate;
+                    $endDate = $temp;
                 }
 
                 $schedCategory = preg_match('/^\[(PM|CM|INC|REQ|CR|TCK)-[0-9\-]+\]/', $matchingTask->title) 
                     ? 'Preventive Maintenance' 
                     : 'Task';
 
-                $sched = Schedule::create([
-                    'title'       => $matchingTask->title,
-                    'project_id'  => $matchingTask->project_id,
-                    'date'        => $taskDate,
-                    'category'    => $schedCategory,
-                    'engineer_id' => $matchingTask->engineer_id,
-                    'start_time'  => $taskTime . ':00',
-                    'end_time'    => date('H:i:s', strtotime($taskTime . ' +3 hours')),
-                    'location'    => $matchingTask->project ? ($matchingTask->project->location ?? 'On-Site Client') : 'On-Site Client',
-                    'description' => $matchingTask->description ?? ('Pengerjaan task: ' . $matchingTask->title),
-                    'created_by'  => $matchingTask->created_by ?? $user->id,
-                ]);
-
+                $engIds = [];
                 if ($hasScheduleUser) {
                     $engIds = $matchingTask->engineers->pluck('id')->toArray();
                     if (empty($engIds) && $matchingTask->engineer_id) {
                         $engIds = [$matchingTask->engineer_id];
                     }
-                    if (!empty($engIds)) {
-                        $sched->engineers()->sync($engIds);
+                }
+
+                while ($curDate->lte($endDate)) {
+                    $curStr = $curDate->toDateString();
+                    // Lewati hari Minggu jika tugas memiliki rentang multi-hari
+                    if ($taskStartDate === $taskEndDate || !$curDate->isSunday()) {
+                        $existingSched = Schedule::where('title', $matchingTask->title)
+                            ->whereDate('date', $curStr)
+                            ->first();
+
+                        if ($existingSched) {
+                            if ($hasScheduleUser && !empty($engIds) && $existingSched->engineers()->count() === 0) {
+                                $existingSched->engineers()->sync($engIds);
+                            }
+                        } else {
+                            $sched = Schedule::create([
+                                'title'       => $matchingTask->title,
+                                'project_id'  => $matchingTask->project_id,
+                                'date'        => $curStr,
+                                'category'    => $schedCategory,
+                                'engineer_id' => $matchingTask->engineer_id,
+                                'start_time'  => $taskTime . ':00',
+                                'end_time'    => date('H:i:s', strtotime($taskTime . ' +3 hours')),
+                                'location'    => $matchingTask->project ? ($matchingTask->project->location ?? 'On-Site Client') : 'On-Site Client',
+                                'description' => $matchingTask->description ?? ('Pengerjaan task: ' . $matchingTask->title),
+                                'created_by'  => $matchingTask->created_by ?? $user->id,
+                            ]);
+
+                            if ($hasScheduleUser && !empty($engIds)) {
+                                $sched->engineers()->sync($engIds);
+                            }
+                        }
                     }
+                    $curDate->addDay();
                 }
             }
         }
@@ -582,6 +593,7 @@ class ScheduleController extends Controller
                     'status'        => 'Assigned',
                     'progress'      => 0,
                     'attachments'   => 0,
+                    'start_date'    => $firstDate,
                     'deadline'      => $lastDate . ' ' . $deadlineTime,
                     'deadline_time' => $firstSessionTime ? substr($firstSessionTime, 0, 5) . ':00' : null,
                     'description'   => $taskDesc,

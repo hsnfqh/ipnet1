@@ -147,17 +147,36 @@ class TaskController extends Controller
         }
         unset($data['new_project_name']);
 
+        // Kelola rentang tanggal (start_date & deadline/end_date)
+        $startDateStr = $request->filled('start_date') ? substr($request->input('start_date'), 0, 10) : null;
+        $endDateStr   = $request->filled('end_date') 
+            ? substr($request->input('end_date'), 0, 10) 
+            : ($request->filled('deadline') ? substr($request->input('deadline'), 0, 10) : null);
+
+        if (!$startDateStr && $endDateStr) {
+            $startDateStr = $endDateStr;
+        }
+        if (!$endDateStr && $startDateStr) {
+            $endDateStr = $startDateStr;
+        }
+        if (!$startDateStr && !$endDateStr) {
+            $startDateStr = now()->toDateString();
+            $endDateStr = $startDateStr;
+        }
+
+        $data['start_date'] = $startDateStr;
+        unset($data['end_date']);
+
         // Kelola deadline & opsional jam (deadline_time)
         $deadlineTime = $request->filled('deadline_time') ? trim($request->input('deadline_time')) : null;
         if (!empty($deadlineTime)) {
             if (strlen($deadlineTime) === 5) {
                 $deadlineTime .= ':00';
             }
-            $datePart = substr($data['deadline'], 0, 10);
-            $data['deadline'] = $datePart . ' ' . $deadlineTime;
+            $data['deadline'] = $endDateStr . ' ' . $deadlineTime;
             $data['deadline_time'] = $deadlineTime;
         } else {
-            $data['deadline'] = substr($data['deadline'], 0, 10) . ' 00:00:00';
+            $data['deadline'] = $endDateStr . ' 00:00:00';
             $data['deadline_time'] = null;
         }
 
@@ -195,36 +214,51 @@ class TaskController extends Controller
             ]);
         }
 
-        // Otomatis sinkronkan Task baru ke Jadwal Kerja (Schedule)
+        // Otomatis sinkronkan Task baru ke Jadwal Kerja (Schedule) untuk setiap hari dalam rentang
         if ($task->deadline) {
-            $taskDate = $task->deadline->format('Y-m-d');
+            $taskStartDate = $task->start_date ? $task->start_date->format('Y-m-d') : $task->deadline->format('Y-m-d');
+            $taskEndDate   = $task->deadline->format('Y-m-d');
             $taskTime = $task->deadline_time 
                 ? substr($task->deadline_time, 0, 5) 
-                : ($task->deadline->format('H:i') !== '00:00' ? $task->deadline->format('H:i') : '09:00');
+                : ($task->deadline->format('H:i') !== '00:00' ? $task->deadline->format('H:i') : null);
 
             $schedCategory = (ScopeHelper::isMaintenance(auth()->user()) || preg_match('/^\[(PM|CM|INC|REQ|CR|TCK)-[0-9\-]+\]/', $task->title)) 
                 ? 'Preventive Maintenance' 
                 : 'Task';
 
-            $newSchedule = \App\Models\Schedule::updateOrCreate(
-                [
-                    'title' => $task->title,
-                ],
-                [
-                    'project_id'  => $task->project_id,
-                    'category'    => $schedCategory,
-                    'engineer_id' => $task->engineer_id,
-                    'date'        => $taskDate,
-                    'start_time'  => $taskTime . ':00',
-                    'end_time'    => date('H:i:s', strtotime($taskTime . ' +3 hours')),
-                    'location'    => $task->project ? ($task->project->location ?? 'On-Site Client') : 'On-Site Client',
-                    'description' => $task->description ?? ('Pengerjaan task: ' . $task->title),
-                    'created_by'  => $task->created_by ?? auth()->id(),
-                ]
-            );
+            $curDate = \Carbon\Carbon::parse($taskStartDate);
+            $endDate = \Carbon\Carbon::parse($taskEndDate);
+            if ($curDate->gt($endDate)) {
+                $temp = $curDate;
+                $curDate = $endDate;
+                $endDate = $temp;
+            }
 
-            if (Schema::hasTable('schedule_user') && !empty($engineerIds)) {
-                $newSchedule->engineers()->sync($engineerIds);
+            while ($curDate->lte($endDate)) {
+                if ($taskStartDate === $taskEndDate || !$curDate->isSunday()) {
+                    $curStr = $curDate->toDateString();
+                    $newSchedule = \App\Models\Schedule::updateOrCreate(
+                        [
+                            'title' => $task->title,
+                            'date'  => $curStr,
+                        ],
+                        [
+                            'project_id'  => $task->project_id,
+                            'category'    => $schedCategory,
+                            'engineer_id' => $task->engineer_id,
+                            'start_time'  => $taskTime ? $taskTime . ':00' : null,
+                            'end_time'    => $taskTime ? date('H:i:s', strtotime($taskTime . ' +3 hours')) : null,
+                            'location'    => $task->project ? ($task->project->location ?? 'On-Site Client') : 'On-Site Client',
+                            'description' => $task->description ?? ('Pengerjaan task: ' . $task->title),
+                            'created_by'  => $task->created_by ?? auth()->id(),
+                        ]
+                    );
+
+                    if (Schema::hasTable('schedule_user') && !empty($engineerIds)) {
+                        $newSchedule->engineers()->sync($engineerIds);
+                    }
+                }
+                $curDate->addDay();
             }
         }
 
@@ -251,7 +285,9 @@ class TaskController extends Controller
             'engineer_ids'      => 'sometimes|nullable|array|min:1',
             'engineer_ids.*'    => 'exists:users,id',
             'priority'          => 'sometimes|required|in:High,Medium,Low',
-            'deadline'          => 'sometimes|required|date',
+            'start_date'        => 'sometimes|nullable|date',
+            'end_date'          => 'sometimes|nullable|date',
+            'deadline'          => 'sometimes|nullable|date',
             'deadline_time'     => 'sometimes|nullable|string',
             'description'       => 'sometimes|nullable|string',
             'status'            => 'sometimes|required|in:Assigned,In Progress,Waiting Review,Completed',
@@ -284,6 +320,19 @@ class TaskController extends Controller
         }
         unset($validated['new_project_name']);
 
+        // Kelola rentang tanggal (start_date & deadline/end_date)
+        if ($request->has('start_date') || $request->has('end_date') || $request->has('deadline')) {
+            $startDateStr = $request->filled('start_date') ? substr($request->input('start_date'), 0, 10) : ($task->start_date ? $task->start_date->format('Y-m-d') : null);
+            $endDateStr   = $request->filled('end_date') 
+                ? substr($request->input('end_date'), 0, 10) 
+                : ($request->filled('deadline') ? substr($request->input('deadline'), 0, 10) : ($task->deadline ? $task->deadline->format('Y-m-d') : null));
+
+            if (!$startDateStr && $endDateStr) $startDateStr = $endDateStr;
+            if (!$endDateStr && $startDateStr) $endDateStr = $startDateStr;
+            if ($startDateStr) $validated['start_date'] = $startDateStr;
+            if ($endDateStr) $validated['deadline'] = $endDateStr;
+        }
+
         // Kelola deadline & opsional jam
         if (isset($validated['deadline'])) {
             $deadlineTime = $request->filled('deadline_time') ? trim($request->input('deadline_time')) : null;
@@ -302,6 +351,7 @@ class TaskController extends Controller
         if (isset($validated['deadline_time']) && !Schema::hasColumn('tasks', 'deadline_time')) {
             unset($validated['deadline_time']);
         }
+        unset($validated['end_date']);
 
         // Multi-assignee sync
         if ($request->has('engineer_ids') || $request->has('engineer_id')) {
@@ -364,50 +414,54 @@ class TaskController extends Controller
             $allAssigneeIds = [$task->engineer_id];
         }
 
-        // Sinkronkan perubahan judul, tanggal/jam task, dan engineer ke Jadwal jika ada
+        // Sinkronkan perubahan judul, tanggal/jam task, dan engineer ke Jadwal untuk setiap hari dalam rentang
         if ($task->deadline) {
             $schedCategory = (ScopeHelper::isMaintenance(auth()->user()) || preg_match('/^\[(PM|CM|INC|REQ|CR|TCK)-[0-9\-]+\]/', $task->title)) 
                 ? 'Preventive Maintenance' 
                 : 'Task';
             
-            $startTime = $task->deadline_time ? substr($task->deadline_time, 0, 5) : ($task->deadline->format('H:i') !== '00:00' ? $task->deadline->format('H:i') : '09:00');
-            
-            // Cari schedule lama berdasarkan oldTaskTitle atau title saat ini
-            $sched = null;
-            if (!empty($oldTaskTitle)) {
-                $sched = \App\Models\Schedule::where('title', $oldTaskTitle)->first();
-            }
-            if (!$sched) {
-                $sched = \App\Models\Schedule::where('title', $task->title)->first();
+            $startTime = $task->deadline_time ? substr($task->deadline_time, 0, 5) : ($task->deadline->format('H:i') !== '00:00' ? $task->deadline->format('H:i') : null);
+            $taskStartDate = $task->start_date ? $task->start_date->format('Y-m-d') : $task->deadline->format('Y-m-d');
+            $taskEndDate   = $task->deadline->format('Y-m-d');
+
+            $curDate = \Carbon\Carbon::parse($taskStartDate);
+            $endDate = \Carbon\Carbon::parse($taskEndDate);
+            if ($curDate->gt($endDate)) {
+                $temp = $curDate;
+                $curDate = $endDate;
+                $endDate = $temp;
             }
 
-            if ($sched) {
-                $sched->update([
-                    'title'       => $task->title,
-                    'project_id'  => $task->project_id,
-                    'category'    => $schedCategory,
-                    'date'        => $task->deadline->format('Y-m-d'),
-                    'start_time'  => $startTime . ':00',
-                    'end_time'    => date('H:i:s', strtotime($startTime . ' +3 hours')),
-                    'engineer_id' => $task->engineer_id,
-                    'description' => $task->description,
-                ]);
-            } else {
-                $sched = \App\Models\Schedule::create([
-                    'title'       => $task->title,
-                    'project_id'  => $task->project_id,
-                    'category'    => $schedCategory,
-                    'date'        => $task->deadline->format('Y-m-d'),
-                    'start_time'  => $startTime . ':00',
-                    'end_time'    => date('H:i:s', strtotime($startTime . ' +3 hours')),
-                    'engineer_id' => $task->engineer_id,
-                    'description' => $task->description,
-                    'created_by'  => $task->created_by ?? auth()->id(),
-                ]);
+            // Update title lama jika di-rename
+            if (!empty($oldTaskTitle) && $oldTaskTitle !== $task->title) {
+                \App\Models\Schedule::where('title', $oldTaskTitle)->update(['title' => $task->title]);
             }
 
-            if (Schema::hasTable('schedule_user') && !empty($allAssigneeIds)) {
-                $sched->engineers()->sync($allAssigneeIds);
+            while ($curDate->lte($endDate)) {
+                if ($taskStartDate === $taskEndDate || !$curDate->isSunday()) {
+                    $curStr = $curDate->toDateString();
+                    $sched = \App\Models\Schedule::updateOrCreate(
+                        [
+                            'title' => $task->title,
+                            'date'  => $curStr,
+                        ],
+                        [
+                            'project_id'  => $task->project_id,
+                            'category'    => $schedCategory,
+                            'engineer_id' => $task->engineer_id,
+                            'start_time'  => $startTime ? $startTime . ':00' : null,
+                            'end_time'    => $startTime ? date('H:i:s', strtotime($startTime . ' +3 hours')) : null,
+                            'location'    => $task->project ? ($task->project->location ?? 'On-Site Client') : 'On-Site Client',
+                            'description' => $task->description ?? ('Pengerjaan task: ' . $task->title),
+                            'created_by'  => $task->created_by ?? auth()->id(),
+                        ]
+                    );
+
+                    if (Schema::hasTable('schedule_user') && !empty($allAssigneeIds)) {
+                        $sched->engineers()->sync($allAssigneeIds);
+                    }
+                }
+                $curDate->addDay();
             }
         }
 

@@ -1030,9 +1030,9 @@
                                                             </div>
                                                             <div>
                                                                 <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:7px; text-transform:uppercase; letter-spacing:0.4px;">
-                                                                    <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
+                                                                    <span>Jam (Opsional)</span>
                                                                 </label>
-                                                                <input type="time" x-model="session.start_time" class="jkw-form-input" :required="form.category === 'Meeting'">
+                                                                <input type="time" x-model="session.start_time" class="jkw-form-input">
                                                             </div>
                                                         </div>
 
@@ -1076,7 +1076,7 @@
                                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:2px;">
                                                 <div :style="form.category === 'Day Off' ? 'grid-column: span 2;' : ''">
                                                     <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:7px; text-transform:uppercase; letter-spacing:0.4px;">
-                                                        <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
+                                                        <span>Jam (Opsional)</span>
                                                     </label>
                                                     <input type="time" x-model="form.start_time" class="jkw-form-input">
                                                 </div>
@@ -1093,10 +1093,6 @@
                                                         <svg style="width:13px; height:13px; color:#C81E2C;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                                                         <span>Filter Hari Kerja &amp; Libur</span>
                                                     </div>
-                                                    <template x-if="form.start_date && form.end_date">
-                                                        <span style="display:inline-flex; align-items:center; padding:2.5px 8px; background:#FEE2E2; color:#C81E2C; border-radius:6px; font-size:10.5px; font-weight:700;" 
-                                                              x-text="getRangeSummary().count + ' Hari Efektif (' + getRangeSummary().total + ' Hari Rentang)'"></span>
-                                                    </template>
                                                 </div>
                                                 
                                                 <div style="display:flex; flex-direction:column; gap:7px; padding-top:4px; border-top:1px solid #F1F5F9;">

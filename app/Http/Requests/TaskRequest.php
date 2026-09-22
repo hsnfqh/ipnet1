@@ -31,7 +31,9 @@ class TaskRequest extends FormRequest
             'engineer_ids.*'   => 'exists:users,id',
             'priority'         => 'required|in:High,Medium,Low',
             'status'           => 'nullable|in:Assigned,In Progress,Waiting Review,Completed',
-            'deadline'         => 'required|date',
+            'start_date'       => 'nullable|date',
+            'end_date'         => 'nullable|date',
+            'deadline'         => 'nullable|date',
             'deadline_time'    => 'nullable|string',
             'description'      => 'nullable|string',
         ];

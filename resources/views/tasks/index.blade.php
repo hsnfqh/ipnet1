@@ -220,7 +220,7 @@
                                                 </template>
                                             </div>
                                         </div>
-                                        <span class="text-[10.5px] font-mono text-[#64748B] whitespace-nowrap" x-text="formatDeadline(task.deadline, task.deadline_time)"></span>
+                                        <span class="text-[10.5px] font-mono text-[#64748B] whitespace-nowrap" x-text="formatDeadline(task.deadline, task.deadline_time, task.start_date)"></span>
                                     </div>
 
                                     <div class="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-full h-1.5 overflow-hidden">
@@ -468,25 +468,39 @@
                                         </div>
                                     </div>
 
-                                    <!-- PRIORITY & TANGGAL KEGIATAN -->
+                                    <!-- PRIORITY -->
+                                    <div>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Priority <span style="color:#8F0A0D;">*</span></label>
+                                        <select x-model="form.priority" style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box; cursor:pointer;"
+                                                onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
+                                                onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'">
+                                            <option value="High">High (Prioritas Tinggi)</option>
+                                            <option value="Medium">Medium (Standar)</option>
+                                            <option value="Low">Low (Rendah)</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- TANGGAL KEGIATAN (RENTANG TANGGAL PENUGASAN) -->
                                     <div class="modal-grid-2">
                                         <div>
-                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Priority <span style="color:#8F0A0D;">*</span></label>
-                                            <select x-model="form.priority" style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box; cursor:pointer;"
-                                                    onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
-                                                    onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'">
-                                                <option value="High">High (Prioritas Tinggi)</option>
-                                                <option value="Medium">Medium (Standar)</option>
-                                                <option value="Low">Low (Rendah)</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Kegiatan <span style="color:#8F0A0D;">*</span></label>
-                                            <input type="date" x-model="form.deadline"
+                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Mulai <span style="color:#8F0A0D;">*</span></label>
+                                            <input type="date" x-model="form.start_date"
+                                                   @change="if(!form.end_date) form.end_date = form.start_date;"
                                                    style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box; cursor:pointer;"
                                                    onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
                                                    onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'"
                                                    required>
+                                        </div>
+                                        <div>
+                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                                <label style="font-size:11.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Selesai</label>
+                                                <span style="font-size:11px; color:#94A3B8; font-weight:500;">(Opsional)</span>
+                                            </div>
+                                            <input type="date" x-model="form.end_date"
+                                                   :min="form.start_date"
+                                                   style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13.5px; color:#0F172A; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box; cursor:pointer;"
+                                                   onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
+                                                   onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'">
                                         </div>
                                     </div>
 
@@ -779,7 +793,7 @@
                                 </div>
                                 <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px;">
                                     <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.4px;">TANGGAL KEGIATAN</span>
-                                    <strong style="font-size:12.5px; color:#0F172A; display:block;" x-text="formatDeadline(selectedTask?.deadline, selectedTask?.deadline_time)"></strong>
+                                    <strong style="font-size:12.5px; color:#0F172A; display:block;" x-text="formatDeadline(selectedTask?.deadline, selectedTask?.deadline_time, selectedTask?.start_date)"></strong>
                                 </div>
                             </div>
 
@@ -1197,6 +1211,7 @@
                     this.engineerDropdownOpen = false;
                     this.engineerSearch = '';
                     var initialEngId = this.engineers[0]?.id || null;
+                    var todayStr = new Date().toISOString().split('T')[0];
                     this.form = {
                         id: null,
                         title: '',
@@ -1205,7 +1220,9 @@
                         engineer_id: initialEngId,
                         engineer_ids: initialEngId ? [initialEngId] : [],
                         priority: 'Medium',
-                        deadline: '',
+                        start_date: todayStr,
+                        end_date: todayStr,
+                        deadline: todayStr,
                         deadline_time: '',
                         status: 'Assigned',
                         progress: 0,
@@ -1254,13 +1271,18 @@
                     // Deadline date & time
                     if (ticket.sla_deadline) {
                         var parts = ticket.sla_deadline.split('T');
+                        this.form.start_date = parts[0];
+                        this.form.end_date = parts[0];
                         this.form.deadline = parts[0];
                         if (parts[1]) {
                             this.form.deadline_time = parts[1].substring(0, 5);
                         }
                     } else {
                         var today = new Date();
-                        this.form.deadline = today.toISOString().split('T')[0];
+                        var tStr = today.toISOString().split('T')[0];
+                        this.form.start_date = tStr;
+                        this.form.end_date = tStr;
+                        this.form.deadline = tStr;
                         this.form.deadline_time = '10:00';
                     }
 
@@ -1310,6 +1332,12 @@
                         }
                     }
 
+                    var sDateStr = '';
+                    if (task.start_date) {
+                        sDateStr = typeof task.start_date === 'string' ? task.start_date.split('T')[0].split(' ')[0] : '';
+                    }
+                    if (!sDateStr) sDateStr = dateStr;
+
                     this.form = {
                         id: task.id,
                         title: task.title,
@@ -1318,6 +1346,8 @@
                         engineer_id: ids[0] || (validIds.length > 0 ? validIds[0] : null),
                         engineer_ids: ids,
                         priority: task.priority,
+                        start_date: sDateStr,
+                        end_date: (dateStr !== sDateStr) ? dateStr : '',
                         deadline: dateStr,
                         deadline_time: timeStr,
                         status: task.status,
@@ -1375,6 +1405,15 @@
                             return;
                         }
                         this.form.engineer_id = this.form.engineer_ids[0];
+
+                        // Sinkronkan start_date dan end_date/deadline
+                        if (!this.form.start_date && this.form.end_date) {
+                            this.form.start_date = this.form.end_date;
+                        }
+                        if (!this.form.end_date && this.form.start_date) {
+                            this.form.end_date = this.form.start_date;
+                        }
+                        this.form.deadline = this.form.end_date || this.form.start_date;
 
                         var url = this.editing ? '/tasks/' + this.form.id : '/tasks';
                         var method = this.editing ? 'PUT' : 'POST';
@@ -1614,40 +1653,60 @@
                             '</span>';
                 },
 
-                formatDeadline: function(deadline, deadlineTime) {
-                    if (!deadline) return '';
-                    var datePart = '';
+                formatDeadline: function(deadline, deadlineTime, startDate) {
+                    if (!deadline && !startDate) return '';
+                    var endStr = deadline || startDate;
+                    var startStr = startDate || deadline;
+
+                    var parseDateOnly = function(val) {
+                        if (!val) return '';
+                        if (typeof val !== 'string') val = String(val);
+                        if (val.includes('T')) return val.split('T')[0];
+                        if (val.includes(' ')) return val.split(' ')[0];
+                        return val;
+                    };
+
+                    var sDate = parseDateOnly(startStr);
+                    var eDate = parseDateOnly(endStr);
+
+                    var months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+
+                    var formatSingle = function(dateStr) {
+                        var d = new Date(dateStr + 'T00:00:00');
+                        if (isNaN(d.getTime())) return dateStr;
+                        return String(d.getDate()).padStart(2, '0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+                    };
+
+                    var formatShort = function(dateStr) {
+                        var d = new Date(dateStr + 'T00:00:00');
+                        if (isNaN(d.getTime())) return dateStr;
+                        return String(d.getDate()).padStart(2, '0') + ' ' + months[d.getMonth()];
+                    };
+
                     var timePart = '';
-
-                    if (deadline.includes('T')) {
-                        var parts = deadline.split('T');
-                        datePart = parts[0];
-                        if (!deadlineTime && parts[1] && parts[1].substring(0, 5) !== '00:00') {
-                            timePart = parts[1].substring(0, 5);
-                        }
-                    } else if (deadline.includes(' ')) {
-                        var parts = deadline.split(' ');
-                        datePart = parts[0];
-                        if (!deadlineTime && parts[1] && parts[1].substring(0, 5) !== '00:00') {
-                            timePart = parts[1].substring(0, 5);
-                        }
-                    } else {
-                        datePart = deadline;
-                    }
-
                     if (deadlineTime) {
-                        timePart = deadlineTime.substring(0, 5);
+                        timePart = String(deadlineTime).substring(0, 5);
+                    } else if (typeof deadline === 'string' && deadline.includes(' ')) {
+                        var tp = deadline.split(' ')[1];
+                        if (tp && tp.substring(0, 5) !== '00:00') timePart = tp.substring(0, 5);
+                    } else if (typeof deadline === 'string' && deadline.includes('T')) {
+                        var tp2 = deadline.split('T')[1];
+                        if (tp2 && tp2.substring(0, 5) !== '00:00') timePart = tp2.substring(0, 5);
                     }
 
-                    var d = new Date(datePart + 'T00:00:00');
-                    if (isNaN(d.getTime())) return deadline;
-                    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                    var formattedDate = String(d.getDate()).padStart(2,'0') + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+                    if (sDate && eDate && sDate !== eDate) {
+                        var rangeText = formatShort(sDate) + ' - ' + formatSingle(eDate);
+                        if (timePart && timePart !== '00:00') {
+                            return rangeText + ' • ' + timePart;
+                        }
+                        return rangeText;
+                    }
 
+                    var singleText = formatSingle(eDate || sDate);
                     if (timePart && timePart !== '00:00') {
-                        return formattedDate + ' • ' + timePart;
+                        return singleText + ' • ' + timePart;
                     }
-                    return formattedDate;
+                    return singleText;
                 },
 
                 showToast: function(message) {

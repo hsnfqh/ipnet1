@@ -17,6 +17,7 @@ class Task extends Model
         'engineer_id',
         'priority',
         'status',
+        'start_date',
         'deadline',
         'deadline_time',
         'progress',
@@ -27,6 +28,7 @@ class Task extends Model
     ];
 
     protected $casts = [
+        'start_date' => 'date',
         'deadline' => 'datetime',
         'deadline_time' => 'string',
         'progress' => 'integer',
