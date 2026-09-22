@@ -78,24 +78,22 @@
                         <p class="text-[13px] text-[#64748B] mt-0.5">Monitoring stok ketersediaan barang, mutasi barang keluar (DO) dan penerimaan barang masuk</p>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-                        {{-- Hero Action: Tambah Produk (Beda Sendiri & Standout IPNET Gradient) --}}
+                    <div class="flex flex-wrap items-center gap-3 shrink-0">
+                        {{-- Hero Action: Tambah Produk (Identik Lead Engineer & Standout Hero) --}}
                         <button type="button" 
                                 @click="openAddProductModal()"
-                                class="btn-ipnet-gradient h-10 px-4.5 rounded-xl font-bold text-[12.5px] inline-flex items-center gap-2 text-white shadow-md shadow-[#8F0A0D]/25 hover:shadow-lg hover:shadow-[#8F0A0D]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer group">
-                            <span class="w-5 h-5 rounded-lg bg-white/20 flex items-center justify-center text-white transition-transform duration-200 group-hover:rotate-90">
-                                <svg class="w-3.5 h-3.5 stroke-[2.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-                                </svg>
-                            </span>
+                                class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.98] transition-all">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
                             <span>Tambah Produk</span>
                         </button>
 
-                        {{-- Action Buttons: Barang Keluar & Barang Masuk (Konsisten Dimension & Sizing) --}}
+                        {{-- Action Buttons: Barang Keluar & Barang Masuk (Konsisten Standard Lead Engineer) --}}
                         <button type="button" 
                                 @click="openStockOutModal()"
-                                class="h-10 px-4 rounded-xl bg-slate-700 hover:bg-slate-800 text-white font-bold text-[12.5px] inline-flex items-center gap-2 shadow-xs hover:shadow hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer">
-                            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                class="px-4 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#94A3B8] font-bold text-[13px] transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-[0.98]">
+                            <svg class="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18"/>
                             </svg>
                             <span>Barang Keluar</span>
@@ -103,8 +101,8 @@
 
                         <button type="button" 
                                 @click="openStockInModal()"
-                                class="h-10 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-[12.5px] inline-flex items-center gap-2 shadow-xs hover:shadow hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer">
-                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                class="px-4 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#94A3B8] font-bold text-[13px] transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-[0.98]">
+                            <svg class="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/>
                             </svg>
                             <span>Barang Masuk</span>
