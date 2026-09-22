@@ -393,10 +393,58 @@ class ScheduleController extends Controller
             }
             unset($data['engineer_ids']);
 
-            // Parse multiple sessions jika ada
+            // Parse multiple sessions atau Date Range (Rentang Tanggal Proyek Panjang)
+            $dateMode = $request->input('date_mode', 'sessions');
+            $startDateStr = $request->input('start_date');
+            $endDateStr = $request->input('end_date');
+            $excludeSundays = $request->boolean('exclude_sundays', true);
+            $excludeSaturdays = $request->boolean('exclude_saturdays', false);
+            $includeSundays = $request->boolean('include_sundays', false);
+            if ($includeSundays) {
+                $excludeSundays = false;
+            }
+
             $rawSessions = $request->input('sessions', []);
             $sessions = [];
-            if (!empty($rawSessions) && is_array($rawSessions)) {
+
+            if ($dateMode === 'range' && !empty($startDateStr) && !empty($endDateStr)) {
+                $startTime = !empty($data['start_time']) ? $data['start_time'] : null;
+                $endTime   = !empty($data['end_time']) ? $data['end_time'] : $startTime;
+                $location  = $data['location'] ?? null;
+
+                $currentDate = \Carbon\Carbon::parse($startDateStr);
+                $endDate = \Carbon\Carbon::parse($endDateStr);
+
+                if ($currentDate->gt($endDate)) {
+                    $temp = $currentDate;
+                    $currentDate = $endDate;
+                    $endDate = $temp;
+                }
+
+                while ($currentDate->lte($endDate)) {
+                    $isSunday = $currentDate->isSunday();
+                    $isSaturday = $currentDate->isSaturday();
+
+                    $skip = false;
+                    if ($isSunday && $excludeSundays) {
+                        $skip = true;
+                    }
+                    if ($isSaturday && $excludeSaturdays) {
+                        $skip = true;
+                    }
+
+                    if (!$skip) {
+                        $sessions[] = [
+                            'date'       => $currentDate->toDateString(),
+                            'start_time' => $startTime,
+                            'end_time'   => $endTime,
+                            'location'   => $location,
+                        ];
+                    }
+
+                    $currentDate->addDay();
+                }
+            } elseif (!empty($rawSessions) && is_array($rawSessions)) {
                 foreach ($rawSessions as $s) {
                     if (!empty($s['date'])) {
                         $startTime = !empty($s['start_time']) ? $s['start_time'] : null;

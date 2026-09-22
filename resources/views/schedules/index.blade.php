@@ -915,68 +915,152 @@
                                     </div>
                                     @endif
 
-                                    <!-- Sesi Tanggal & Waktu (Multi-Date / Multi-Session) -->
+                                    <!-- Sesi Tanggal & Waktu (Multi-Date / Multi-Session / Date Range Proyek Panjang) -->
                                     <div style="margin-bottom:14px;">
-                                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                                             <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
-                                                Tanggal & Waktu Kegiatan
+                                                Tanggal &amp; Waktu Kegiatan
                                             </label>
-                                            <template x-if="!editing && form.sessions && form.sessions.length > 1">
-                                                <span style="font-size:11px; font-weight:700; color:#2563EB; background:#EFF6FF; border:1px solid #DBEAFE; padding:2px 8px; border-radius:12px;" 
-                                                      x-text="form.sessions.length + ' Tanggal / Sesi'"></span>
-                                            </template>
-                                        </div>
 
-                                        <!-- List Kartu Sesi -->
-                                        <div style="display:flex; flex-direction:column; gap:10px;">
-                                            <template x-for="(session, sIdx) in (form.sessions || [])" :key="sIdx">
-                                                <div style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:12px 14px; position:relative; transition:all 0.15s ease;">
-                                                    <!-- Header Sesi jika lebih dari 1 sesi -->
-                                                    <div x-show="!editing && form.sessions && form.sessions.length > 1" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid #E2E8F0;">
-                                                        <div style="display:flex; align-items:center; gap:6px;">
-                                                            <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#2563EB; color:white; font-size:10.5px; font-weight:700;" x-text="sIdx + 1"></span>
-                                                            <span style="font-size:12px; font-weight:700; color:#1E293B;" x-text="'Sesi Jadwal ke-' + (sIdx + 1)"></span>
-                                                        </div>
-                                                        <button type="button" @click="removeSession(sIdx)" style="background:none; border:none; color:#EF4444; font-size:11.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:6px;" onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='none'">
-                                                            <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                            <span>Hapus</span>
-                                                        </button>
-                                                    </div>
-
-                                                    <!-- Grid Tanggal & Jam -->
-                                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                                                        <div>
-                                                            <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Tanggal</label>
-                                                            <input type="date" x-model="session.date" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;" required>
-                                                        </div>
-                                                        <div>
-                                                            <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">
-                                                                <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
-                                                            </label>
-                                                            <input type="time" x-model="session.start_time" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;" :required="form.category === 'Meeting'">
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Lokasi per Sesi jika Meeting -->
-                                                    <div x-show="form.category !== 'Day Off'" style="margin-top:8px;">
-                                                        <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Lokasi / Link Meeting (Sesi Ini)</label>
-                                                        <input type="text" x-model="session.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." style="width:100%; padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:12.5px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
-                                                    </div>
+                                            <!-- Mode Toggle Pill (Hanya saat buat jadwal baru) -->
+                                            <template x-if="!editing">
+                                                <div style="display:inline-flex; background:#F1F5F9; border:1px solid #CBD5E1; border-radius:8px; padding:2px; gap:2px;">
+                                                    <button type="button" 
+                                                            @click="form.date_mode = 'sessions'"
+                                                            :style="form.date_mode === 'sessions' ? 'background:#FFFFFF; color:#8F0A0D; font-weight:700; box-shadow:0 1px 2px rgba(0,0,0,0.05);' : 'background:transparent; color:#64748B; font-weight:600;'"
+                                                            style="padding:3px 8px; border-radius:6px; font-size:10.5px; border:none; cursor:pointer; transition:all 0.15s ease;">
+                                                        📅 Sesi Harian
+                                                    </button>
+                                                    <button type="button" 
+                                                            @click="form.date_mode = 'range'; if (!form.start_date) form.start_date = form.date || formatDate(new Date()); if (!form.end_date) form.end_date = form.start_date;"
+                                                            :style="form.date_mode === 'range' ? 'background:#8F0A0D; color:#FFFFFF; font-weight:700; box-shadow:0 1px 2px rgba(143,10,13,0.25);' : 'background:transparent; color:#64748B; font-weight:600;'"
+                                                            style="padding:3px 8px; border-radius:6px; font-size:10.5px; border:none; cursor:pointer; transition:all 0.15s ease;">
+                                                        🗓️ Rentang Proyek Panjang
+                                                    </button>
                                                 </div>
                                             </template>
                                         </div>
 
-                                        <!-- Tombol Tambah Tanggal / Sesi -->
-                                        <template x-if="!editing">
-                                            <button type="button" 
-                                                    @click="addSession()" 
-                                                    style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 12px; background:#F8FAFC; border:1.5px dashed #94A3B8; border-radius:9px; font-size:12.5px; font-weight:700; color:#2563EB; cursor:pointer; transition:all 0.15s ease; margin-top:8px;"
-                                                    onmouseover="this.style.background='#EFF6FF'; this.style.borderColor='#3B82F6'; this.style.color='#1D4ED8';"
-                                                    onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8'; this.style.color='#2563EB';">
-                                                <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                                <span>Tambah Tanggal / Sesi Jadwal</span>
-                                            </button>
-                                        </template>
+                                        <!-- MODE 1: SESI HARIAN (MULTI-SESSION) -->
+                                        <div x-show="form.date_mode === 'sessions' || editing">
+                                            <!-- List Kartu Sesi -->
+                                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                                <template x-for="(session, sIdx) in (form.sessions || [])" :key="sIdx">
+                                                    <div style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:12px 14px; position:relative; transition:all 0.15s ease;">
+                                                        <!-- Header Sesi jika lebih dari 1 sesi -->
+                                                        <div x-show="!editing && form.sessions && form.sessions.length > 1" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid #E2E8F0;">
+                                                            <div style="display:flex; align-items:center; gap:6px;">
+                                                                <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#8F0A0D; color:white; font-size:10.5px; font-weight:700;" x-text="sIdx + 1"></span>
+                                                                <span style="font-size:12px; font-weight:700; color:#1E293B;" x-text="'Sesi Jadwal ke-' + (sIdx + 1)"></span>
+                                                            </div>
+                                                            <button type="button" @click="removeSession(sIdx)" style="background:none; border:none; color:#EF4444; font-size:11.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:2px 6px; border-radius:6px;" onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='none'">
+                                                                <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                                <span>Hapus</span>
+                                                            </button>
+                                                        </div>
+
+                                                        <!-- Grid Tanggal & Jam -->
+                                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                                            <div>
+                                                                <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Tanggal</label>
+                                                                <input type="date" x-model="session.date" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;" :required="form.date_mode === 'sessions'">
+                                                            </div>
+                                                            <div>
+                                                                <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">
+                                                                    <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
+                                                                </label>
+                                                                <input type="time" x-model="session.start_time" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;" :required="form.category === 'Meeting'">
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Lokasi per Sesi jika Meeting -->
+                                                        <div x-show="form.category !== 'Day Off'" style="margin-top:8px;">
+                                                            <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Lokasi / Link Meeting (Sesi Ini)</label>
+                                                            <input type="text" x-model="session.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." style="width:100%; padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:12.5px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+
+                                            <!-- Tombol Tambah Tanggal / Sesi -->
+                                            <template x-if="!editing">
+                                                <button type="button" 
+                                                        @click="addSession()" 
+                                                        style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 12px; background:#F8FAFC; border:1.5px dashed #94A3B8; border-radius:9px; font-size:12.5px; font-weight:700; color:#8F0A0D; cursor:pointer; transition:all 0.15s ease; margin-top:8px;"
+                                                        onmouseover="this.style.background='#FEF2F2'; this.style.borderColor='#8F0A0D';"
+                                                        onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8';">
+                                                    <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                                    <span>+ Tambah Tanggal / Sesi Jadwal</span>
+                                                </button>
+                                            </template>
+                                        </div>
+
+                                        <!-- MODE 2: RENTANG TANGGAL (PROYEK PANJANG DENGAN FILTER HARI MINGGU / LIBUR) -->
+                                        <div x-show="form.date_mode === 'range' && !editing" style="background:#FFF9F9; border:1.5px solid #FECACA; border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; gap:12px;">
+                                            <div style="display:flex; align-items:center; justify-content:space-between;">
+                                                <span style="font-size:12px; font-weight:800; color:#8F0A0D; display:inline-flex; align-items:center; gap:6px;">
+                                                    <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                    Periode Rentang Tanggal Kegiatan
+                                                </span>
+                                                <span style="font-size:10.5px; font-weight:700; color:#B91C1C; background:#FEE2E2; padding:2px 8px; border-radius:10px;"
+                                                      x-text="getRangeSummary().count + ' Hari Jadwal Aktif'"></span>
+                                            </div>
+
+                                            <!-- Input Mulai s/d Selesai -->
+                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                                <div>
+                                                    <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Tanggal Mulai</label>
+                                                    <input type="date" x-model="form.start_date" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Tanggal Selesai</label>
+                                                    <input type="date" x-model="form.end_date" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
+                                                </div>
+                                            </div>
+
+                                            <!-- Jam & Lokasi untuk Rentang -->
+                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                                <div>
+                                                    <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Jam Kerja Kegiatan</label>
+                                                    <input type="time" x-model="form.start_time" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
+                                                </div>
+                                                <div>
+                                                    <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Lokasi / On-Site</label>
+                                                    <input type="text" x-model="form.location" placeholder="Lokasi kegiatan..." style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:12.5px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
+                                                </div>
+                                            </div>
+
+                                            <!-- Opsi Hari Kerja & Libur Minggu -->
+                                            <div style="background:#FFFFFF; border:1px solid #F1F5F9; border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:8px;">
+                                                <span style="font-size:10.5px; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:0.5px;">Filter Hari Kerja &amp; Libur</span>
+                                                
+                                                <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#1E293B; font-weight:600; cursor:pointer;">
+                                                    <input type="checkbox" x-model="form.exclude_sundays" @change="if(form.exclude_sundays) form.include_sundays = false;" style="accent-color:#8F0A0D; width:15px; height:15px;">
+                                                    <span>Lewati Hari Minggu (Libur Akhir Pekan)</span>
+                                                </label>
+
+                                                <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#1E293B; font-weight:600; cursor:pointer;">
+                                                    <input type="checkbox" x-model="form.include_sundays" @change="if(form.include_sundays) form.exclude_sundays = false;" style="accent-color:#8F0A0D; width:15px; height:15px;">
+                                                    <span>Sertakan Hari Minggu (Ada Pekerjaan Lembur / Maintenance)</span>
+                                                </label>
+
+                                                <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#1E293B; font-weight:600; cursor:pointer;">
+                                                    <input type="checkbox" x-model="form.exclude_saturdays" style="accent-color:#8F0A0D; width:15px; height:15px;">
+                                                    <span>Lewati Hari Sabtu (Sabtu Libur)</span>
+                                                </label>
+                                            </div>
+
+                                            <!-- Preview Ringkasan Otomatis -->
+                                            <div style="font-size:11.5px; color:#8F0A0D; background:#FDF2F2; padding:8px 12px; border-radius:8px; border:1px solid #FCA5A5; display:flex; align-items:center; justify-content:space-between;">
+                                                <div>
+                                                    <span style="font-weight:700;">⚡ Estimasi:</span>
+                                                    <span x-text="getRangeSummary().count + ' hari kegiatan akan dibuat (' + getRangeSummary().total + ' hari total kalender, ' + (form.exclude_sundays ? getRangeSummary().sundays + ' Minggu dilewati' : 'Minggu disertakan') + ').'"></span>
+                                                </div>
+                                                <button type="button" @click="convertRangeToSessions()" style="background:white; border:1px solid #DC2626; color:#DC2626; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; cursor:pointer; flex-shrink:0;">
+                                                    Lihat Per Sesi
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div>
@@ -2480,6 +2564,97 @@
                     }
                 },
 
+                getRangeSummary: function() {
+                    if (!this.form || !this.form.start_date || !this.form.end_date) {
+                        return { count: 0, sundays: 0, saturdays: 0, total: 0 };
+                    }
+                    var sParts = this.form.start_date.split('-');
+                    var eParts = this.form.end_date.split('-');
+                    if (sParts.length !== 3 || eParts.length !== 3) {
+                        return { count: 0, sundays: 0, saturdays: 0, total: 0 };
+                    }
+                    var start = new Date(parseInt(sParts[0], 10), parseInt(sParts[1], 10) - 1, parseInt(sParts[2], 10));
+                    var end = new Date(parseInt(eParts[0], 10), parseInt(eParts[1], 10) - 1, parseInt(eParts[2], 10));
+                    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                        return { count: 0, sundays: 0, saturdays: 0, total: 0 };
+                    }
+                    if (start > end) {
+                        var temp = start;
+                        start = end;
+                        end = temp;
+                    }
+                    var count = 0;
+                    var sundays = 0;
+                    var saturdays = 0;
+                    var total = 0;
+                    var cur = new Date(start);
+                    while (cur <= end) {
+                        total++;
+                        var day = cur.getDay(); // 0 = Sunday, 6 = Saturday
+                        var skip = false;
+                        if (day === 0) {
+                            sundays++;
+                            if (this.form.exclude_sundays && !this.form.include_sundays) {
+                                skip = true;
+                            }
+                        }
+                        if (day === 6) {
+                            saturdays++;
+                            if (this.form.exclude_saturdays) {
+                                skip = true;
+                            }
+                        }
+                        if (!skip) {
+                            count++;
+                        }
+                        cur.setDate(cur.getDate() + 1);
+                    }
+                    return { count: count, sundays: sundays, saturdays: saturdays, total: total };
+                },
+
+                convertRangeToSessions: function() {
+                    var summary = this.getRangeSummary();
+                    if (summary.count === 0) {
+                        this.showToast('Pilih rentang tanggal mulai dan selesai yang valid!');
+                        return;
+                    }
+                    var sParts = this.form.start_date.split('-');
+                    var eParts = this.form.end_date.split('-');
+                    var start = new Date(parseInt(sParts[0], 10), parseInt(sParts[1], 10) - 1, parseInt(sParts[2], 10));
+                    var end = new Date(parseInt(eParts[0], 10), parseInt(eParts[1], 10) - 1, parseInt(eParts[2], 10));
+                    if (start > end) {
+                        var temp = start;
+                        start = end;
+                        end = temp;
+                    }
+                    var newSessions = [];
+                    var cur = new Date(start);
+                    var time = this.form.start_time || '09:00';
+                    var loc = this.form.location || '';
+                    while (cur <= end) {
+                        var day = cur.getDay();
+                        var skip = false;
+                        if (day === 0 && this.form.exclude_sundays && !this.form.include_sundays) {
+                            skip = true;
+                        }
+                        if (day === 6 && this.form.exclude_saturdays) {
+                            skip = true;
+                        }
+                        if (!skip) {
+                            newSessions.push({
+                                date: this.formatDate(cur),
+                                start_time: time,
+                                end_time: '',
+                                location: loc
+                            });
+                        }
+                        cur.setDate(cur.getDate() + 1);
+                    }
+                    this.form.sessions = newSessions;
+                    this.form.date_mode = 'sessions';
+                    this.showToast('Berhasil mengonversi rentang proyek menjadi ' + newSessions.length + ' sesi kegiatan!');
+                },
+
                 addSession: function() {
                     if (!this.form.sessions) this.form.sessions = [];
                     var last = this.form.sessions.length > 0 ? this.form.sessions[this.form.sessions.length - 1] : null;
@@ -2524,6 +2699,12 @@
                             new_project_name: '',
                             engineer_id: engIds[0] || null,
                             engineer_ids: engIds,
+                            date_mode: 'sessions',
+                            start_date: schDate,
+                            end_date: schDate,
+                            exclude_sundays: true,
+                            exclude_saturdays: false,
+                            include_sundays: false,
                             date: schDate,
                             start_time: schStart,
                             end_time: schEnd,
@@ -2555,6 +2736,12 @@
                             new_project_name: '',
                             engineer_id: initialEngIds[0] || null,
                             engineer_ids: initialEngIds,
+                            date_mode: 'sessions',
+                            start_date: targetDate,
+                            end_date: targetDate,
+                            exclude_sundays: true,
+                            exclude_saturdays: false,
+                            include_sundays: false,
                             date: targetDate,
                             start_time: '09:00',
                             end_time: '',
@@ -2725,8 +2912,12 @@
                             this.form.engineer_id = this.form.engineer_ids[0];
                         }
 
-                        // Sinkronkan sesi pertama dengan form root
-                        if (this.form.sessions && this.form.sessions.length > 0) {
+                        // Sinkronkan sesi pertama atau date_mode range dengan form root
+                        if (this.form.date_mode === 'range') {
+                            this.form.date = this.form.start_date || this.formatDate(new Date());
+                            if (!this.form.start_time) this.form.start_time = '09:00';
+                            if (!this.form.end_time) this.form.end_time = this.form.start_time;
+                        } else if (this.form.sessions && this.form.sessions.length > 0) {
                             this.form.date = this.form.sessions[0].date;
                             this.form.start_time = this.form.sessions[0].start_time;
                             this.form.end_time = this.form.sessions[0].end_time || this.form.sessions[0].start_time;
