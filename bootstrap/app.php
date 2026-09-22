@@ -1,6 +1,8 @@
 <?php
 // bootstrap/app.php
 
+require_once __DIR__ . '/../app/Helpers/FinfoPolyfill.php';
+
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
