@@ -130,16 +130,23 @@
                                           class="form-input-clean leading-relaxed resize-y font-normal"
                                           placeholder="Masukkan alamat utama client...">{{ old('address', $client->address) }}</textarea>
 
-                                <div class="mt-2">
-                                    <button type="button" @click="showSecondaryAddress = !showSecondaryAddress"
+                                <div class="mt-2 flex items-center gap-3">
+                                    <button type="button" @click="showSecondaryAddress = true" x-show="!showSecondaryAddress"
                                             class="text-xs font-bold text-[#8F0A0D] hover:text-[#73080A] hover:underline cursor-pointer inline-flex items-center gap-1">
                                         + CREATE SECONDARY ADDRESS
+                                    </button>
+                                    <button type="button" @click="showSecondaryAddress = false" x-show="showSecondaryAddress" x-cloak
+                                            class="text-xs font-bold text-gray-500 hover:text-red-600 hover:underline cursor-pointer inline-flex items-center gap-1">
+                                        ✕ Batalkan Alamat Sekunder
                                     </button>
                                 </div>
 
                                 {{-- Secondary Address Drawer --}}
                                 <div x-show="showSecondaryAddress" x-cloak class="mt-3 p-4 rounded-xl bg-[#FAFBFD] border border-[#E2E8F0] space-y-2">
-                                    <label class="form-label-bold !mb-1">ADDRESS 2 (SECONDARY)</label>
+                                    <div class="flex items-center justify-between">
+                                        <label class="form-label-bold !mb-0">ADDRESS 2 (SECONDARY)</label>
+                                        <button type="button" @click="showSecondaryAddress = false" class="text-xs text-gray-400 hover:text-red-600 cursor-pointer font-semibold">✕ Tutup</button>
+                                    </div>
                                     <textarea name="notes" rows="3"
                                               class="form-input-clean !bg-white leading-relaxed resize-y"
                                               placeholder="Alamat sekunder / cabang / catatan tambahan...">{{ old('notes', $client->notes) }}</textarea>
@@ -147,49 +154,69 @@
                             </div>
 
                             {{-- DEPARTMENTS (Dynamic Loop) --}}
-                            <template x-for="(dept, idx) in departments" :key="idx">
-                                <div class="space-y-3 pt-2">
-                                    <div class="flex items-center justify-between">
-                                        <label class="form-label-bold !mb-0" x-text="'DEPARTMENT ' + (idx + 1)"></label>
-                                        <template x-if="departments.length > 1">
-                                            <button type="button" @click="removeDepartment(idx)" class="text-xs font-semibold text-gray-400 hover:text-red-600 cursor-pointer">
-                                                ✕ Hapus Dept
-                                            </button>
-                                        </template>
+                            <div class="space-y-4 pt-1">
+                                <template x-for="(dept, idx) in departments" :key="idx">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <label class="form-label-bold !mb-0" x-text="'DEPARTMENT ' + (idx + 1)"></label>
+                                            <template x-if="departments.length > 1">
+                                                <button type="button" @click="removeDepartment(idx)" 
+                                                        class="px-2.5 py-0.5 rounded-md text-xs font-bold text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition cursor-pointer inline-flex items-center gap-1"
+                                                        title="Hapus / batalkan departemen ini">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                    <span>Hapus</span>
+                                                </button>
+                                            </template>
+                                        </div>
+
+                                        <input type="text" name="department[]" x-model="departments[idx]"
+                                               class="form-input-clean"
+                                               :placeholder="'Nama Departemen ' + (idx + 1)">
                                     </div>
+                                </template>
 
-                                    <input type="text" name="department[]" x-model="departments[idx]"
-                                           class="form-input-clean"
-                                           :placeholder="'Nama Departemen ' + (idx + 1)">
+                                {{-- Action Link: + CREATE DEPARTMENT & UNDO --}}
+                                <div class="flex items-center gap-3 pt-1">
+                                    <button type="button" @click="addDepartment()" 
+                                            class="text-xs font-bold text-[#8F0A0D] hover:text-[#73080A] hover:underline cursor-pointer inline-flex items-center gap-1">
+                                        + CREATE DEPARTMENT
+                                    </button>
 
-                                    {{-- PIC Row for this Department --}}
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                                        <div>
-                                            <label class="block text-gray-400 text-[10px] font-bold mb-1">PIC NAME</label>
-                                            <input type="text" name="pic_name" value="{{ old('pic_name', $client->pic_name) }}"
-                                                   placeholder="Nama kontak PIC..."
-                                                   class="form-input-clean text-xs">
-                                        </div>
-                                        <div>
-                                            <label class="block text-gray-400 text-[10px] font-bold mb-1">PIC PHONE</label>
-                                            <input type="text" name="phone" value="{{ old('phone', $client->phone) }}"
-                                                   placeholder="Nomor Telepon..."
-                                                   class="form-input-clean text-xs">
-                                        </div>
-                                        <div>
-                                            <label class="block text-gray-400 text-[10px] font-bold mb-1">PIC EMAIL</label>
-                                            <input type="email" name="email" value="{{ old('email', $client->email) }}"
-                                                   placeholder="Email resmi..."
-                                                   class="form-input-clean text-xs">
+                                    {{-- Undo Button if new department added --}}
+                                    <template x-if="departments.length > initialDeptCount">
+                                        <button type="button" @click="undoAddDepartment()" 
+                                                class="px-2.5 py-1 rounded-lg text-xs font-bold text-gray-600 hover:text-red-700 bg-gray-100 hover:bg-red-50 border border-gray-200 transition cursor-pointer inline-flex items-center gap-1.5"
+                                                title="Batalkan penambahan departemen terakhir">
+                                            <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a5 5 0 015 5v2m0 0l-4-4m4 4l4-4"/></svg>
+                                            <span>Undo Tambah Dept</span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            {{-- PIC & KONTAK SECTION --}}
+                            <div class="pt-5 border-t border-gray-100">
+                                <label class="form-label-bold mb-3">PIC &amp; KONTAK UTAMA</label>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block text-gray-400 text-[10px] font-bold mb-1 uppercase">PIC NAME</label>
+                                        <input type="text" name="pic_name" value="{{ old('pic_name', $client->pic_name) }}"
+                                               placeholder="Nama kontak PIC..."
+                                               class="form-input-clean text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-400 text-[10px] font-bold mb-1 uppercase">PIC PHONE</label>
+                                        <input type="text" name="phone" value="{{ old('phone', $client->phone) }}"
+                                               placeholder="Nomor Telepon..."
+                                               class="form-input-clean text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-400 text-[10px] font-bold mb-1 uppercase">PIC EMAIL</label>
+                                        <input type="email" name="email" value="{{ old('email', $client->email) }}"
+                                               placeholder="Email resmi..."
+                                               class="form-input-clean text-xs">
                                     </div>
                                 </div>
-                            </template>
-
-                            {{-- CREATE DEPARTMENT LINK --}}
-                            <div>
-                                <button type="button" @click="addDepartment()" class="text-xs font-bold text-[#8F0A0D] hover:text-[#73080A] hover:underline cursor-pointer inline-flex items-center gap-1">
-                                    + CREATE DEPARTMENT
-                                </button>
                             </div>
 
                             {{-- SAVE & CANCEL BUTTONS (Docked at Bottom Right) --}}
@@ -336,13 +363,23 @@
 @push('scripts')
 <script>
     function clientShowPage() {
+        const initDepts = @json(array_values($rawDepts));
         return {
             showDeleteModal: false,
             showSecondaryAddress: {{ !empty($client->notes) ? 'true' : 'false' }},
-            departments: @json(array_values($rawDepts)),
+            departments: JSON.parse(JSON.stringify(initDepts)),
+            initialDeptCount: initDepts.length,
 
             addDepartment() {
                 this.departments.push('');
+            },
+
+            undoAddDepartment() {
+                if (this.departments.length > this.initialDeptCount) {
+                    this.departments.pop();
+                } else if (this.departments.length > 1) {
+                    this.departments.pop();
+                }
             },
 
             removeDepartment(idx) {
