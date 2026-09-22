@@ -59,10 +59,13 @@ class VendorController extends Controller
         return redirect()->route('vendors.index')->with('success', 'Vendor / Distributor berhasil ditambahkan!');
     }
 
-    public function show(Vendor $vendor)
+    public function show(Request $request, Vendor $vendor)
     {
         $vendor->load('creator');
-        return response()->json($vendor);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($vendor);
+        }
+        return view('vendors.show', compact('vendor'));
     }
 
     public function update(Request $request, Vendor $vendor)

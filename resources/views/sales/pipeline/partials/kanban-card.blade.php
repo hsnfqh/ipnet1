@@ -1,53 +1,54 @@
-{{-- Kanban Project Card (Official IPNet Style) --}}
-<div class="bg-white rounded-xl p-3.5 border border-[#E2E8F0] shadow-xs hover:shadow-md hover:border-[#CBD5E1] transition duration-150 flex flex-col justify-between gap-2.5">
+{{-- Kanban Project Card (Matching Screenshot 1) --}}
+<div class="bg-white rounded-xl p-4 border border-gray-200 shadow-2xs hover:shadow-md hover:border-gray-300 transition duration-150 flex flex-col justify-between gap-3">
     <div>
         {{-- Project Name --}}
-        <h4 class="text-[13px] font-bold text-[#1E293B] leading-snug line-clamp-2">
+        <h4 class="text-[13.5px] font-bold text-gray-900 leading-snug">
             <a href="{{ route('projects.show', $project->id) }}" class="hover:text-[#8F0A0D] transition">
                 {{ $project->name }}
             </a>
         </h4>
 
-        {{-- Client Name --}}
-        <div class="flex items-center gap-1.5 mt-1.5 text-[11.5px] text-[#64748B] font-medium">
-            <svg class="w-3.5 h-3.5 text-[#94A3B8] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-            </svg>
-            <span class="truncate">{{ $project->client }}</span>
-        </div>
-    </div>
-
-    {{-- Value & Division Badge --}}
-    <div class="pt-2 border-t border-[#F1F5F9] flex items-center justify-between text-[11.5px]">
-        <div>
-            @if($project->contract_value > 0)
-                <span class="font-extrabold text-[#8F0A0D]">
-                    Rp {{ number_format($project->contract_value / 1000000, 1, ',', '.') }} Jt
+        {{-- Milestone Status Badge --}}
+        <div class="mt-2">
+            @if($project->tasks && $project->tasks->count() > 0)
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }} Milestones
                 </span>
             @else
-                <span class="text-[#94A3B8] italic">Nilai TBA</span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-red-600 text-white shadow-2xs">
+                    No milestones found
+                </span>
             @endif
         </div>
-
-        @if($project->division)
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#F1F5F9] border border-[#E2E8F0] text-[#475569] truncate max-w-[100px]" title="{{ $project->division->name }}">
-                {{ $project->division->name }}
-            </span>
-        @elseif($project->sales_name)
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-50 text-[#8F0A0D] border border-red-100 truncate max-w-[100px]">
-                {{ $project->sales_name }}
-            </span>
-        @endif
     </div>
 
-    {{-- Footer Meta & Action --}}
-    <div class="flex items-center justify-between pt-1 text-[10.5px]">
-        <span class="text-[#94A3B8]">
-            {{ \Carbon\Carbon::parse($project->updated_at)->diffForHumans() }}
-        </span>
-        <a href="{{ route('projects.show', $project->id) }}" class="text-[#8F0A0D] hover:underline font-bold flex items-center gap-0.5 transition">
-            <span>Detail</span>
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-        </a>
+    {{-- Footer Info --}}
+    <div class="pt-2.5 border-t border-gray-100 flex flex-col gap-2">
+        <div class="flex items-center justify-between text-[11px]">
+            {{-- Division / Team Badge --}}
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200">
+                {{ $project->division ? $project->division->name : 'IPNET 01' }}
+            </span>
+
+            {{-- Icon Counters --}}
+            <div class="flex items-center gap-2.5 text-gray-400 font-semibold text-[11px]">
+                <div class="flex items-center gap-1" title="Milestones / Tasks">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <span>{{ $project->tasks ? $project->tasks->count() : 0 }}</span>
+                </div>
+                <div class="flex items-center gap-1" title="Attachments">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                    <span>{{ $project->projectDocuments ? $project->projectDocuments->count() : 0 }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Created By --}}
+        <div class="flex items-center justify-between text-[10.5px] text-gray-400">
+            <span>Created by</span>
+            <span class="font-bold text-gray-700 truncate max-w-[130px]">
+                {{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Nabylla Berlianita') }}
+            </span>
+        </div>
     </div>
 </div>

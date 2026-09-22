@@ -58,10 +58,13 @@ class ClientController extends Controller
         return redirect()->route('clients.index')->with('success', 'Klien berhasil ditambahkan!');
     }
 
-    public function show(Client $client)
+    public function show(Request $request, Client $client)
     {
         $client->load(['projects', 'creator']);
-        return response()->json($client);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($client);
+        }
+        return view('clients.show', compact('client'));
     }
 
     public function update(Request $request, Client $client)

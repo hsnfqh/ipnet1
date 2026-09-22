@@ -489,8 +489,53 @@ class DashboardController extends Controller
             ->where('commercial_handover_status', 'Draft')
             ->count();
 
+        // 5 Summary Metric Cards (Matching Screenshot 4)
+        $totalProjectCount = $projects->count();
+        $totalProjectValue = $projects->sum('contract_value');
+
+        $oppProjects = $projects->filter(fn($p) => in_array(strtolower($p->status ?? ''), ['opportunity', 'prospect', 'inisiasi']));
+        $totalOppCount = $oppProjects->count();
+        $totalOppValue = $oppProjects->sum('contract_value');
+
+        $inProgressProjects = $projects->filter(fn($p) => in_array(strtolower($p->status ?? ''), ['in progress', 'on progress', 'active', 'development', 'testing']));
+        $totalInProgressCount = $inProgressProjects->count();
+        $totalInProgressValue = $inProgressProjects->sum('contract_value');
+
+        $pendingProjects = $projects->filter(fn($p) => in_array(strtolower($p->status ?? ''), ['pending', 'on hold', 'review', 'clarification']));
+        $totalPendingCount = $pendingProjects->count();
+        $totalPendingValue = $pendingProjects->sum('contract_value');
+
+        $completeProjects = $projects->filter(fn($p) => in_array(strtolower($p->status ?? ''), ['completed', 'finished', 'delivered', 'done']) || strtolower($p->sales_stage ?? '') === 'closed won');
+        $totalCompleteCount = $completeProjects->count();
+        $totalCompleteValue = $completeProjects->sum('contract_value');
+
+        // Monthly chart data in Billion IDR (Jan to Des)
+        $monthlyChartData = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $val = $projects->filter(function($p) use ($m, $selectedYear) {
+                $date = $p->created_at ?: $p->start_date;
+                return $date && \Carbon\Carbon::parse($date)->year == $selectedYear && \Carbon\Carbon::parse($date)->month == $m;
+            })->sum('contract_value');
+            $monthlyChartData[] = round($val / 1000000000, 2);
+        }
+
+        // Project List Table
+        $projectList = (clone $allProjectsQuery)->with(['division', 'creator'])->latest('updated_at')->paginate(10)->withQueryString();
+
         $data = [
             'selectedYear'               => $selectedYear,
+            'totalProjectCount'          => $totalProjectCount,
+            'totalProjectValue'          => $totalProjectValue,
+            'totalOppCount'              => $totalOppCount,
+            'totalOppValue'              => $totalOppValue,
+            'totalInProgressCount'       => $totalInProgressCount,
+            'totalInProgressValue'       => $totalInProgressValue,
+            'totalPendingCount'          => $totalPendingCount,
+            'totalPendingValue'          => $totalPendingValue,
+            'totalCompleteCount'         => $totalCompleteCount,
+            'totalCompleteValue'         => $totalCompleteValue,
+            'monthlyChartData'           => $monthlyChartData,
+            'projectList'                => $projectList,
             'totalPipelineCount'         => $totalPipelineCount,
             'totalPipelineValue'         => $totalPipelineValue,
             'totalWeightedForecast'      => $totalWeightedForecast,
