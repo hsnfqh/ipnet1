@@ -332,11 +332,43 @@
         </div>
     </div>
 
-    {{-- DELETE CONFIRM FORM --}}
-    <form id="deleteVendorForm" method="POST" style="display:none;">
-        @csrf
-        @method('DELETE')
-    </form>
+    {{-- MODAL KONFIRMASI HAPUS (PLEK KETIPLEK DENGAN LEAD ENGINEER) --}}
+    <template x-teleport="body">
+        <div x-show="deleteConfirmOpen" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-xs"
+             @click.self="deleteConfirmOpen = false"
+             @keydown.escape.window="deleteConfirmOpen = false">
+            
+            <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] animate-fade-in-up border border-[#E2E8F0]">
+                <div class="w-12 h-12 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#8F0A0D]">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+                
+                <h3 class="text-center font-display text-[16px] font-bold text-[#1E293B] mb-1.5">Yakin Hapus Vendor?</h3>
+                <p class="text-center text-[12.5px] text-[#64748B] mb-6 break-words" x-text="'Vendor &quot;' + (vendorToDelete ? vendorToDelete.name : '') + '&quot; akan dihapus secara permanen.'"></p>
+
+                <form :action="`/vendors/${vendorToDelete ? vendorToDelete.id : ''}`" method="POST" class="flex gap-2.5">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" @click="deleteConfirmOpen = false" class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-[12.5px] hover:bg-[#F8FAFC] transition cursor-pointer text-center">
+                        Batal
+                    </button>
+                    <button type="submit" class="flex-1 py-2.5 px-4 rounded-xl btn-ipnet-gradient font-bold text-[12.5px] transition cursor-pointer shadow-md text-white text-center">
+                        Hapus
+                    </button>
+                </form>
+            </div>
+        </div>
+    </template>
 
 </div>
 
@@ -346,6 +378,8 @@
             isAddModalOpen: false,
             isDetailsModalOpen: false,
             selectedVendor: {},
+            deleteConfirmOpen: false,
+            vendorToDelete: null,
 
             openAddModal() {
                 this.isAddModalOpen = true;
@@ -357,11 +391,8 @@
             },
 
             confirmDelete(id, name) {
-                if (confirm(`Apakah Anda yakin ingin menghapus data vendor "${name}"?`)) {
-                    const form = document.getElementById('deleteVendorForm');
-                    form.action = `{{ url('vendors') }}/${id}`;
-                    form.submit();
-                }
+                this.vendorToDelete = { id: id, name: name };
+                this.deleteConfirmOpen = true;
             }
         };
     }

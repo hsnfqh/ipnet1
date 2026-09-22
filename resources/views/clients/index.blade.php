@@ -277,50 +277,36 @@
         @method('DELETE')
     </form>
 
-    {{-- DELETE CONFIRMATION MODAL --}}
+    {{-- DELETE CONFIRMATION MODAL (PLEK KETIPLEK DENGAN LEAD ENGINEER) --}}
     <template x-teleport="body">
         <div x-show="isDeleteModalOpen" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
              class="fixed inset-0 z-[99999] bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4"
              @click.self="isDeleteModalOpen = false"
              @keydown.escape.window="isDeleteModalOpen = false">
-            <div class="bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-2xl border border-[#E2E8F0] m-auto anim-fade-up">
-                {{-- Header --}}
-                <div class="p-5 border-b border-red-100 bg-red-50/60 flex items-center gap-3">
-                    <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
-                        <svg class="w-5 h-5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-[#1E293B]">Hapus Client?</h3>
-                        <p class="text-[11.5px] text-[#64748B]">Tindakan ini tidak dapat dibatalkan</p>
-                    </div>
-                    <button type="button" @click="isDeleteModalOpen = false" class="ml-auto text-slate-400 hover:text-slate-600 text-lg leading-none cursor-pointer">✕</button>
+            <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0] animate-fade-in-up">
+                <div class="w-12 h-12 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#8F0A0D]">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
                 </div>
-                {{-- Body --}}
-                <div class="p-5 space-y-3.5">
-                    <p class="text-[12.5px] text-[#475569] leading-relaxed">
-                        Anda akan menghapus client <strong class="text-[#1E293B]" x-text="deleteClientName"></strong> secara permanen.
-                    </p>
-                    <div class="bg-red-50/75 border border-red-200 rounded-xl p-3 flex items-start gap-2.5">
-                        <svg class="w-4 h-4 text-[#8F0A0D] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <p class="text-[11.5px] text-[#8F0A0D] font-semibold">Data yang dihapus tidak dapat dikembalikan.</p>
-                    </div>
-                </div>
-                {{-- Footer --}}
-                <div class="p-4 bg-slate-50/50 border-t border-[#E2E8F0] flex items-center justify-end gap-2.5">
+                
+                <h3 class="text-center font-display text-[16px] font-bold text-[#1E293B] mb-1.5">Yakin Hapus Client?</h3>
+                <p class="text-center text-[12.5px] text-[#64748B] mb-6 break-words" x-text="'Client &quot;' + deleteClientName + '&quot; akan dihapus secara permanen.'"></p>
+
+                <div class="flex gap-2.5">
                     <button type="button" @click="isDeleteModalOpen = false"
-                            class="px-4 py-2 border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#475569] bg-white hover:bg-slate-50 transition cursor-pointer">
+                            class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-[12.5px] hover:bg-[#F8FAFC] transition cursor-pointer text-center">
                         Batal
                     </button>
                     <button type="button" @click="submitDelete()"
-                            class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition cursor-pointer inline-flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                        <span>Ya, Hapus Sekarang</span>
+                            class="flex-1 py-2.5 px-4 rounded-xl btn-ipnet-gradient font-bold text-[12.5px] transition cursor-pointer shadow-md text-white text-center">
+                        Hapus
                     </button>
                 </div>
             </div>
