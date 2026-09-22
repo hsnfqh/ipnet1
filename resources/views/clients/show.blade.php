@@ -309,57 +309,59 @@
     </div>
 
     {{-- ═══ DELETE CONFIRMATION MODAL ═══ --}}
-    <div x-show="showDeleteModal" x-cloak
-         style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15,23,42,0.45); backdrop-filter: blur(3px);"
-         @click.self="showDeleteModal = false">
-        <div style="background: #FFFFFF; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.18); max-width: 420px; width: 100%; overflow: hidden;">
-            {{-- Header --}}
-            <div style="padding: 18px 22px 14px; border-bottom: 1px solid #FEE2E2; background: #FFF5F5; display: flex; align-items: center; gap: 12px;">
-                <div style="width: 38px; height: 38px; background: #FEE2E2; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <svg style="width: 17px; height: 17px; color: #8F0A0D;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
-                    </svg>
-                </div>
-                <div>
-                    <h3 style="font-size: 14px; font-weight: 700; color: #1E293B; margin: 0 0 2px;">Hapus Client?</h3>
-                    <p style="font-size: 11.5px; color: #64748B; margin: 0;">Tindakan ini tidak dapat dibatalkan</p>
-                </div>
-                <button type="button" @click="showDeleteModal = false" style="margin-left: auto; background: none; border: none; color: #94A3B8; cursor: pointer; font-size: 18px; line-height: 1; padding: 0;">✕</button>
-            </div>
-            {{-- Body --}}
-            <div style="padding: 20px 22px;">
-                <p style="font-size: 12.5px; color: #475569; line-height: 1.6; margin: 0 0 14px;">
-                    Anda akan menghapus client <strong style="color: #1E293B;">{{ $client->name }}</strong> secara permanen.
-                </p>
-                <div style="background: #FFF5F5; border: 1px solid #FECACA; border-radius: 10px; padding: 11px 14px; display: flex; align-items: flex-start; gap: 8px;">
-                    <svg style="width: 13px; height: 13px; color: #8F0A0D; flex-shrink: 0; margin-top: 1px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <p style="font-size: 11.5px; color: #8F0A0D; font-weight: 600; margin: 0;">Data yang dihapus tidak dapat dikembalikan.</p>
-                </div>
-            </div>
-            {{-- Footer --}}
-            <div style="padding: 12px 22px 18px; display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
-                <button type="button" @click="showDeleteModal = false"
-                        style="padding: 8px 16px; border: 1px solid #E2E8F0; border-radius: 10px; font-size: 12px; font-weight: 600; color: #475569; background: #FFFFFF; cursor: pointer; transition: all .15s;"
-                        onmouseover="this.style.background='#F8FAFC';" onmouseout="this.style.background='#FFFFFF';">
-                    Batal
-                </button>
-                <form action="{{ route('clients.destroy', $client->id) }}" method="POST" style="display: inline;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                            style="padding: 8px 18px; background: linear-gradient(135deg, #8F0A0D 0%, #B81525 100%); border: none; border-radius: 10px; font-size: 12px; font-weight: 700; color: #FFFFFF; cursor: pointer; box-shadow: 0 2px 8px rgba(143,10,13,0.22); transition: all .15s; display: inline-flex; align-items: center; gap: 6px;"
-                            onmouseover="this.style.background='linear-gradient(135deg, #73080A 0%, #9E0E1D 100%)';" onmouseout="this.style.background='linear-gradient(135deg, #8F0A0D 0%, #B81525 100%)';">
-                        <svg style="width: 13px; height: 13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+    {{-- ═══ DELETE CONFIRMATION MODAL ═══ --}}
+    <template x-teleport="body">
+        <div x-show="showDeleteModal" x-cloak
+             class="fixed inset-0 z-[99999] bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4"
+             @click.self="showDeleteModal = false"
+             @keydown.escape.window="showDeleteModal = false">
+            <div class="bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-2xl border border-[#E2E8F0] m-auto anim-fade-up">
+                {{-- Header --}}
+                <div class="p-5 border-b border-red-100 bg-red-50/60 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
                         </svg>
-                        Ya, Hapus Sekarang
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-[#1E293B]">Hapus Client?</h3>
+                        <p class="text-[11.5px] text-[#64748B]">Tindakan ini tidak dapat dibatalkan</p>
+                    </div>
+                    <button type="button" @click="showDeleteModal = false" class="ml-auto text-slate-400 hover:text-slate-600 text-lg leading-none cursor-pointer">✕</button>
+                </div>
+                {{-- Body --}}
+                <div class="p-5 space-y-3.5">
+                    <p class="text-[12.5px] text-[#475569] leading-relaxed">
+                        Anda akan menghapus client <strong class="text-[#1E293B]">{{ $client->name }}</strong> secara permanen.
+                    </p>
+                    <div class="bg-red-50/75 border border-red-200 rounded-xl p-3 flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-[#8F0A0D] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p class="text-[11.5px] text-[#8F0A0D] font-semibold">Data yang dihapus tidak dapat dikembalikan.</p>
+                    </div>
+                </div>
+                {{-- Footer --}}
+                <div class="p-4 bg-slate-50/50 border-t border-[#E2E8F0] flex items-center justify-end gap-2.5">
+                    <button type="button" @click="showDeleteModal = false"
+                            class="px-4 py-2 border border-[#CBD5E1] rounded-xl text-xs font-bold text-[#475569] bg-white hover:bg-slate-50 transition cursor-pointer">
+                        Batal
                     </button>
-                </form>
+                    <form action="{{ route('clients.destroy', $client->id) }}" method="POST" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                                class="btn-ipnet-gradient px-4 py-2 rounded-xl text-xs font-bold text-white shadow-md hover:shadow-lg transition cursor-pointer inline-flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            <span>Ya, Hapus Sekarang</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
+    </template>
 
 </div>
 
