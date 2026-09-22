@@ -4,41 +4,58 @@
 
 @push('styles')
 <style>
-    .bg-banner-peach {
+    .ipnet-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 4px 12px rgba(0, 0, 0, 0.015);
+    }
+    .banner-peach {
         background-color: #FAF2ED;
         border: 1px solid #EFE4DC;
+        border-radius: 12px;
     }
     .badge-terracotta {
         background-color: #A2623D;
         color: #FFFFFF;
     }
     .text-ipnet-red {
-        color: #D32F2F;
+        color: #B81525;
     }
     .text-ipnet-red:hover {
-        color: #B71C1C;
+        color: #8F0A0D;
     }
-    .border-ipnet-red {
-        border-color: #D32F2F;
-    }
-    .stage-switch-btn {
-        padding: 5px 12px;
-        border-radius: 8px;
-        font-size: 11.5px;
-        font-weight: 600;
+    .btn-ipnet-primary {
+        background-color: #8F0A0D;
+        color: #FFFFFF;
         transition: all 0.15s ease;
     }
-    .stage-switch-btn.active {
-        background-color: #A2623D;
+    .btn-ipnet-primary:hover {
+        background-color: #700609;
         color: #FFFFFF;
     }
-    .stage-switch-btn:not(.active) {
-        background-color: #F3F4F6;
-        color: #4B5563;
+    .stage-pill {
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
-    .stage-switch-btn:not(.active):hover {
-        background-color: #E5E7EB;
-        color: #111827;
+    .stage-pill.active {
+        background-color: #0F172A;
+        color: #FFFFFF;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+    .stage-pill:not(.active) {
+        background-color: #F1F5F9;
+        color: #475569;
+    }
+    .stage-pill:not(.active):hover {
+        background-color: #E2E8F0;
+        color: #0F172A;
     }
 </style>
 @endpush
@@ -102,452 +119,442 @@
     $pmoUsers = \App\Models\User::role(['PMO', 'Project Manager'])->orWhere('name', 'like', '%Rizki%')->orderBy('name')->get();
 @endphp
 
-<div class="flex h-screen overflow-hidden bg-white font-sans text-gray-800" 
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans text-slate-800" 
      x-data="projectDetailPage('{{ $initialStage }}', '{{ $currentStatus }}')">
     @include('components.sidebar')
     
-    <div class="flex-1 min-w-0 overflow-y-auto bg-white">
+    <div class="flex-1 min-w-0 overflow-y-auto">
+        @include('components.topbar', ['title' => 'Project'])
         
-        {{-- TOP HEADER BAR (Matching Screenshot 1-to-1) --}}
-        <div class="border-b border-gray-200 px-6 py-3.5 flex items-center justify-between">
-            {{-- Breadcrumb --}}
-            <div class="flex items-center gap-2 text-xs font-medium text-gray-500">
-                <a href="{{ route('sales.pipeline.index') }}" class="font-bold text-gray-900 hover:text-red-700 transition">Project</a>
-                <span class="text-gray-400">&gt;</span>
-                <span class="text-gray-700 font-semibold">{{ $project->name }}</span>
-            </div>
-
-            {{-- User Info Pill --}}
-            <div class="flex items-center gap-4">
-                <button type="button" class="text-gray-400 hover:text-gray-600 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                </button>
-                <div class="flex items-center gap-3 pl-2 border-l border-gray-200">
-                    <div class="text-right">
-                        <div class="text-xs font-bold text-gray-900">{{ auth()->user()->name ?? 'Nabylla Berlianita' }}</div>
-                        <div class="text-[10px] text-gray-400 font-medium leading-tight">Sales • IPNET 01</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Flash Messages --}}
-        @if(session('success'))
-            <div class="mx-6 mt-4 p-3.5 rounded-xl bg-gray-900 text-white text-xs font-semibold flex items-center justify-between shadow-xs">
-                <div class="flex items-center gap-2.5">
-                    <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    <span>{{ session('success') }}</span>
-                </div>
-                <button type="button" onclick="this.parentElement.remove()" class="text-gray-400 hover:text-white font-bold px-2 cursor-pointer">✕</button>
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="mx-6 mt-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-semibold flex items-center justify-between shadow-xs">
-                <div class="flex items-center gap-2.5">
-                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>{{ session('error') }}</span>
-                </div>
-                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold px-2 cursor-pointer">✕</button>
-            </div>
-        @endif
-
-        {{-- MAIN 2-COLUMN LAYOUT (Matching Screenshot 1-to-1) --}}
-        <div class="grid grid-cols-1 lg:grid-cols-4 min-h-[calc(100vh-65px)]">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
             
-            {{-- LEFT SECTION (3 of 4 columns) --}}
-            <div class="lg:col-span-3 p-6 lg:p-8 space-y-6 lg:border-r lg:border-gray-200">
-                
-                {{-- 1. Status Badge & Team Row (Matching Screenshot Top) --}}
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div class="flex items-center gap-3 flex-wrap">
-                        {{-- Draft Badge with Play Arrow --}}
-                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold badge-terracotta shadow-2xs">
-                            <span x-text="stageNameToDbStatus(activeStageTab)">{{ $currentStatus }}</span>
-                            <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                        </div>
-
-                        {{-- Team Label & Badge --}}
-                        <div class="flex items-center gap-2 text-xs">
-                            <span class="text-[11px] font-medium text-gray-400">Team</span>
-                            <span class="text-gray-700 font-medium text-xs">{{ $project->division ? $project->division->name : 'IPNET 01' }}</span>
-                            
-                            {{-- Circular Plus Button (Triggers Handover to PMO) --}}
-                            <button type="button" 
-                                    @click="isHandoverModalOpen = true" 
-                                    class="w-5 h-5 rounded-full border border-red-400 text-red-600 flex items-center justify-center font-bold text-xs hover:bg-red-50 transition cursor-pointer"
-                                    title="Handover ke PMO (Rizki)">
-                                +
-                            </button>
-                        </div>
-
-                        {{-- Clean Lifecycle Stage Switcher --}}
-                        <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg ml-2">
-                            <button type="button" @click="activeStageTab = 'draft'" :class="activeStageTab === 'draft' ? 'active' : ''" class="stage-switch-btn cursor-pointer">Draft</button>
-                            <button type="button" @click="activeStageTab = 'opportunity'" :class="activeStageTab === 'opportunity' ? 'active' : ''" class="stage-switch-btn cursor-pointer">Opty</button>
-                            <button type="button" @click="activeStageTab = 'in_progress'" :class="activeStageTab === 'in_progress' ? 'active' : ''" class="stage-switch-btn cursor-pointer">In Progress</button>
-                            <button type="button" @click="activeStageTab = 'pending'" :class="activeStageTab === 'pending' ? 'active' : ''" class="stage-switch-btn cursor-pointer">Pending</button>
-                            <button type="button" @click="activeStageTab = 'completed'" :class="activeStageTab === 'completed' ? 'active' : ''" class="stage-switch-btn cursor-pointer">Completed</button>
-                        </div>
+            {{-- Flash Messages --}}
+            @if(session('success'))
+                <div class="p-4 rounded-xl bg-slate-900 text-white text-xs font-semibold flex items-center justify-between shadow-xs">
+                    <div class="flex items-center gap-2.5">
+                        <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>{{ session('success') }}</span>
                     </div>
-
-                    <div class="text-xs text-gray-400 font-normal">
-                        Created by <span class="text-gray-600 font-medium">{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Nabylla Berlianita') }}</span>, 
-                        {{ \Carbon\Carbon::parse($project->created_at)->format('d M Y H:i') }}
-                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white font-bold px-2 cursor-pointer">✕</button>
                 </div>
+            @endif
 
-                {{-- 2. Project Title & Subtitle + Action Buttons (Matching Screenshot) --}}
-                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">{{ $project->name }}</h1>
-                        <p class="text-xs text-gray-500 mt-1">{{ $project->description ?: $project->name }}</p>
+            @if(session('error'))
+                <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-semibold flex items-center justify-between shadow-xs">
+                    <div class="flex items-center gap-2.5">
+                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>{{ session('error') }}</span>
                     </div>
-
-                    {{-- Pending & Delete Action Buttons (Red text with simple icons, matching screenshot) --}}
-                    <div class="flex items-center gap-4 shrink-0 pt-1">
-                        <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="status" value="{{ $currentStatus === 'Pending' ? 'In Progress' : 'Pending' }}">
-                            <button type="submit" class="inline-flex items-center gap-1.5 text-xs font-semibold text-ipnet-red hover:underline cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.8"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 7v5l3 2"/></svg>
-                                <span>{{ $currentStatus === 'Pending' ? 'Resume' : 'Pending' }}</span>
-                            </button>
-                        </form>
-
-                        <button type="button" @click="confirmDeleteProject()" class="inline-flex items-center gap-1.5 text-xs font-semibold text-ipnet-red hover:underline cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            <span>Delete</span>
-                        </button>
-                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold px-2 cursor-pointer">✕</button>
                 </div>
+            @endif
 
-                {{-- 3. Project Estimation Banner (Matching Screenshot Warm Beige Box) --}}
-                <div class="bg-banner-peach rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 flex-1 text-xs">
-                        <div>
-                            <div class="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider">PROJECT ESTIMATION</div>
-                            <div class="text-base font-bold text-gray-900 mt-1">
-                                Rp {{ number_format($project->contract_value ?: 300000000, 0, ',', '.') }}
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider">PROJECT START</div>
-                            <div class="text-xs font-bold text-gray-900 mt-1.5">
-                                {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : '24 Aug 2026' }}
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider">PROJECT END</div>
-                            <div class="text-xs font-bold text-gray-900 mt-1.5">
-                                {{ $project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('d M Y') : '-' }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="shrink-0">
-                        <button type="button" 
-                                @click="isEditMetaModalOpen = true" 
-                                class="p-1.5 text-gray-600 hover:text-gray-900 transition cursor-pointer" 
-                                title="Edit Estimasi Proyek">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- 4. CONTEXTUAL CONTENT BERDASARKAN TAB AKTIF --}}
-
-                {{-- TAB A: DRAFT APPROVAL (Persetujuan Pak Susanto Head & Pak Hariyadi Direktur) --}}
-                <div x-show="activeStageTab === 'draft'" x-cloak class="p-4 rounded-xl border border-amber-200 bg-amber-50/40 space-y-4">
-                    <div class="flex items-center justify-between border-b border-amber-200/60 pb-2.5">
-                        <div>
-                            <div class="text-xs font-bold text-gray-900">Alur Persetujuan Draft Proyek (Dual Sign-Off)</div>
-                            <div class="text-[11px] text-gray-500">Draft butuh persetujuan dari <strong>Pak Susanto (Head Divisi)</strong> dan <strong>Pak Hariyadi (Direktur)</strong> sebelum masuk ke delivery PMO.</div>
-                        </div>
-                        <span class="text-[11px] font-semibold text-amber-800">
-                            {{ (!empty($headApproval['approved']) && !empty($directorApproval['approved'])) ? '✓ Lengkap Disetujui' : 'Menunggu Approval' }}
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                        {{-- Reviewer 1: Pak Susanto --}}
-                        <div class="p-3.5 rounded-lg bg-white border border-gray-200 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="text-[10px] font-bold text-gray-400 uppercase">HEAD DIVISI</div>
-                                    <div class="font-bold text-gray-900">Pak Susanto Djaya</div>
-                                </div>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ !empty($headApproval['approved']) ? 'bg-gray-100 text-gray-800' : 'bg-amber-100 text-amber-800' }}">
-                                    {{ !empty($headApproval['approved']) ? 'Disetujui' : 'Menunggu' }}
-                                </span>
-                            </div>
-                            <div class="text-[11px] text-gray-500 italic">"{{ $headApproval['notes'] ?? 'Review kelayakan teknis & alokasi resource.' }}"</div>
-                            <div class="text-right pt-1">
-                                <button type="button" @click="openApproveModal('head')" class="text-xs font-bold text-ipnet-red hover:underline cursor-pointer">
-                                    {{ empty($headApproval['approved']) ? '+ Beri Approval Pak Susanto' : 'Ubah Catatan' }}
-                                </button>
-                            </div>
-                        </div>
-
-                        {{-- Reviewer 2: Pak Hariyadi --}}
-                        <div class="p-3.5 rounded-lg bg-white border border-gray-200 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="text-[10px] font-bold text-gray-400 uppercase">DIREKTUR</div>
-                                    <div class="font-bold text-gray-900">Pak Hariyadi</div>
-                                </div>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ !empty($directorApproval['approved']) ? 'bg-gray-100 text-gray-800' : 'bg-amber-100 text-amber-800' }}">
-                                    {{ !empty($directorApproval['approved']) ? 'Disahkan' : 'Menunggu' }}
-                                </span>
-                            </div>
-                            <div class="text-[11px] text-gray-500 italic">"{{ $directorApproval['notes'] ?? 'Otorisasi finansial & validasi kontrak.' }}"</div>
-                            <div class="text-right pt-1">
-                                <button type="button" @click="openApproveModal('director')" class="text-xs font-bold text-ipnet-red hover:underline cursor-pointer">
-                                    {{ empty($directorApproval['approved']) ? '+ Beri Approval Pak Hariyadi' : 'Ubah Catatan' }}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- TAB B: IN PROGRESS (Delivery ke PMO Rizki & Monitoring Engineer) --}}
-                <div x-show="activeStageTab === 'in_progress'" x-cloak class="p-4 rounded-xl border border-gray-200 bg-gray-50/70 space-y-4">
-                    <div class="flex items-center justify-between border-b border-gray-200 pb-2.5">
-                        <div>
-                            <div class="text-xs font-bold text-gray-900">Fase Delivery ke PMO & Tim Lapangan</div>
-                            <div class="text-[11px] text-gray-500">Sales telah menyerahkan proyek ke PMO. Alokasi engineer diatur oleh PMO dan dipantau Sales di bawah ini.</div>
-                        </div>
-                        <button type="button" @click="isHandoverModalOpen = true" class="text-xs font-bold text-ipnet-red hover:underline cursor-pointer">
-                            {{ $project->pm ? 'Ganti PMO (' . $project->pm->name . ')' : '+ Handover ke PMO (Rizki)' }}
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                        {{-- PMO Info --}}
-                        <div class="p-3.5 rounded-lg bg-white border border-gray-200 space-y-1.5">
-                            <div class="text-[10px] font-bold text-gray-400 uppercase">PROJECT MANAGER (PMO)</div>
-                            <div class="font-bold text-gray-900 text-sm">{{ $project->pm ? $project->pm->name : 'Belum Ada PM (Tunjuk Rizki)' }}</div>
-                            <div class="text-[11px] text-gray-500">{{ $project->pm ? $project->pm->email : 'Sales silakan serahterimakan ke Rizki' }}</div>
-                        </div>
-
-                        {{-- Engineer Monitoring Info (Read-Only) --}}
-                        <div class="p-3.5 rounded-lg bg-white border border-gray-200 space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold text-gray-400 uppercase">TIM ENGINEER (READ-ONLY)</span>
-                                <span class="text-[10px] font-bold text-gray-600">{{ $uniqueEngineers->count() }} Orang</span>
-                            </div>
-                            @if($uniqueEngineers->count() > 0)
-                                <div class="space-y-1 pt-1">
-                                    @foreach($uniqueEngineers as $eng)
-                                        <div class="flex items-center justify-between text-[11.5px]">
-                                            <span class="font-semibold text-gray-800">{{ $eng->name }}</span>
-                                            <span class="text-gray-400">{{ $eng->roles->pluck('name')->first() ?? 'Engineer' }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <div class="text-[11.5px] text-gray-400 pt-1 italic">
-                                    Menunggu alokasi tim teknis oleh PMO (Rizki).
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                {{-- TAB C: OPPORTUNITY / CRM --}}
-                <div x-show="activeStageTab === 'opportunity'" x-cloak class="p-4 rounded-xl border border-gray-200 bg-gray-50/70 text-xs space-y-2">
-                    <div class="font-bold text-gray-900">Pipeline Komersial Sales</div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                        <div>Stage: <strong class="text-gray-900">{{ $project->sales_stage ?: 'Proposal' }}</strong></div>
-                        <div>Win Rate: <strong class="text-gray-900">{{ $project->win_probability ?: 25 }}%</strong></div>
-                        <div>Closing: <strong class="text-gray-900">{{ $project->expected_closing_date ? \Carbon\Carbon::parse($project->expected_closing_date)->format('d M Y') : '30 Sep 2026' }}</strong></div>
-                    </div>
-                </div>
-
-                {{-- TAB D: PENDING --}}
-                <div x-show="activeStageTab === 'pending'" x-cloak class="p-4 rounded-xl border border-gray-200 bg-gray-50/70 text-xs space-y-2">
-                    <div class="font-bold text-gray-900">Proyek Ditangguhkan (Pending)</div>
-                    <p class="text-gray-500">Pengerjaan proyek sedang di-pause menunggu konfirmasi akses site atau barang distributor.</p>
-                </div>
-
-                {{-- TAB E: COMPLETED --}}
-                <div x-show="activeStageTab === 'completed'" x-cloak class="p-4 rounded-xl border border-gray-200 bg-gray-50/70 text-xs space-y-2">
-                    <div class="font-bold text-gray-900">Proyek Selesai & BAST Terbit</div>
-                    <p class="text-gray-500">Seluruh milestone selesai dan berkas Berita Acara Serah Terima telah disahkan.</p>
-                </div>
-
-                {{-- 5. Client Info Section (Matching Screenshot) --}}
-                <div class="pt-4 border-t border-gray-100 space-y-3">
-                    <h3 class="text-sm font-bold text-gray-900">Client Info</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 text-xs">
-                        <div>
-                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CLIENT NAME</div>
-                            <div class="font-bold text-gray-900 mt-1">{{ $project->client ?: 'Sarana Kreasi Teknoart' }}</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CLIENT EMAIL</div>
-                            <div class="font-bold text-gray-900 mt-1 truncate">{{ $project->customer_pic_finance ?: ($project->customer_pic_technical ?: 'sales@saranateknoart.com') }}</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PIC</div>
-                            <div class="font-bold text-gray-900 mt-1">{{ $project->customer_pic_name ?? ($project->sales_name ?? 'Yanuar') }}</div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CONTACT PIC</div>
-                            <div class="font-bold text-gray-900 mt-1">{{ $project->customer_pic_business ?: '081299771333' }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- 6. Milestone Section (Matching Screenshot) --}}
-                <div class="pt-6 border-t border-gray-100 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-bold text-gray-900">Milestone</h3>
-                        <div class="text-xs text-gray-400 font-normal">
-                            Complete ({{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }})
-                        </div>
-                    </div>
-
-                    {{-- Daftar Task Jika Ada --}}
-                    @if($project->tasks->count() > 0)
-                        <div class="space-y-2">
-                            @foreach($project->tasks as $task)
-                                <div class="p-3 rounded-lg border border-gray-200 bg-white flex items-center justify-between text-xs">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <input type="checkbox" {{ $task->status === 'Completed' ? 'checked' : '' }} disabled class="rounded text-red-600 shrink-0">
-                                        <div class="min-w-0">
-                                            <span class="font-bold text-gray-900 truncate block">{{ $task->title ?? $task->name }}</span>
-                                            @if($task->engineer)
-                                                <div class="text-[10.5px] text-gray-400">Engineer: {{ $task->engineer->name }}</div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700">
-                                        {{ $task->status }}
-                                    </span>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    <div>
-                        <button type="button" 
-                                @click="isAddMilestoneModalOpen = true" 
-                                class="text-xs font-bold text-ipnet-red hover:underline cursor-pointer">
-                            +ADD MILESTONE
-                        </button>
-                    </div>
-                </div>
-
-                {{-- 7. Attachments Section (Matching Screenshot) --}}
-                <div class="pt-6 border-t border-gray-100 space-y-3">
-                    <div class="flex items-center justify-between flex-wrap gap-2">
-                        <h3 class="text-sm font-bold text-gray-900">Attachments</h3>
-                        
-                        <div class="flex items-center gap-4 text-xs font-bold">
-                            <button type="button" @click="isUploadDocModalOpen = true" class="text-ipnet-red hover:underline cursor-pointer">
-                                + ADD ATTACHMENT
-                            </button>
-                            <button type="button" @click="isUploadDocModalOpen = true" class="text-ipnet-red hover:underline cursor-pointer">
-                                + ADD COGS ATTACHMENT
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- List Dokumen Jika Ada --}}
-                    @if($project->relationLoaded('projectDocuments') && $project->projectDocuments->count() > 0)
-                        <div class="space-y-2">
-                            @foreach($project->projectDocuments as $doc)
-                                <div class="p-3 rounded-lg border border-gray-200 bg-white flex items-center justify-between text-xs">
-                                    <span class="font-bold text-gray-900 truncate">{{ $doc->document_title ?? ($doc->document_name ?? 'Document') }}</span>
-                                    @if($doc->file_path)
-                                        <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="text-ipnet-red font-bold hover:underline">
-                                            Download
-                                        </a>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-
+            {{-- 1. BREADCRUMBS --}}
+            <div class="flex items-center gap-2 text-xs font-semibold text-gray-500">
+                <a href="{{ route('sales.pipeline.index') }}" class="text-gray-900 hover:text-red-700 transition">Project</a>
+                <span>&gt;</span>
+                <span class="text-gray-600">{{ $project->name }}</span>
             </div>
 
-            {{-- RIGHT SECTION (1 of 4 columns, Matching Screenshot) --}}
-            <div class="p-6 lg:p-8 space-y-6 bg-white">
-                
-                {{-- Project Status --}}
-                <div class="space-y-2.5">
-                    <div class="text-xs font-bold text-gray-400">Project Status</div>
-                    <div class="flex items-center gap-3 text-xs">
-                        <span class="px-2 py-0.5 rounded text-[11px] font-bold text-white badge-terracotta">
-                            <span x-text="stageNameToDbStatus(activeStageTab)">{{ $currentStatus }}</span>
-                        </span>
-                        <span class="text-gray-400 text-[11.5px]">
-                            Progress {{ $project->progress ?: 0 }}% ({{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }} complete)
-                        </span>
-                    </div>
-                </div>
-
-                {{-- Project Activities --}}
-                <div class="pt-6 border-t border-gray-100 space-y-3">
-                    <h3 class="text-sm font-bold text-gray-900">Project Activities</h3>
+            {{-- 2. MAIN CARD WRAPPER (Template IPNET) --}}
+            <div class="ipnet-card overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
                     
-                    <div class="space-y-3 text-xs">
-                        <div class="space-y-1">
-                            <div class="font-normal text-gray-700">
-                                <strong class="font-medium text-gray-900">{{ $project->creator ? $project->creator->name : 'Nabylla Berlianita' }}</strong> created this project
+                    {{-- ══ LEFT SECTION: PROJECT DETAILS (col-span-8 or 9) ══ --}}
+                    <div class="lg:col-span-9 p-6 sm:p-8 space-y-6 lg:border-r lg:border-gray-200">
+                        
+                        {{-- A. Top Status Bar: Status Pill, Team + Add, Stage Selector, Creator info --}}
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+                            <div class="flex items-center gap-2.5 flex-wrap">
+                                {{-- Stage Selector Pills --}}
+                                <div class="inline-flex items-center gap-1.5 p-1 rounded-xl bg-gray-100">
+                                    <button type="button" @click="activeStageTab = 'draft'" :class="activeStageTab === 'draft' ? 'active' : ''" class="stage-pill cursor-pointer">
+                                        <span>Draft</span>
+                                    </button>
+                                    <button type="button" @click="activeStageTab = 'opportunity'" :class="activeStageTab === 'opportunity' ? 'active' : ''" class="stage-pill cursor-pointer">
+                                        <span>Opty</span>
+                                    </button>
+                                    <button type="button" @click="activeStageTab = 'in_progress'" :class="activeStageTab === 'in_progress' ? 'active' : ''" class="stage-pill cursor-pointer">
+                                        <span>In Progress</span>
+                                    </button>
+                                    <button type="button" @click="activeStageTab = 'pending'" :class="activeStageTab === 'pending' ? 'active' : ''" class="stage-pill cursor-pointer">
+                                        <span>Pending</span>
+                                    </button>
+                                    <button type="button" @click="activeStageTab = 'completed'" :class="activeStageTab === 'completed' ? 'active' : ''" class="stage-pill cursor-pointer">
+                                        <span>Completed</span>
+                                    </button>
+                                </div>
+
+                                {{-- Team Pill + Handover PMO Plus Button --}}
+                                <div class="flex items-center gap-2 pl-2 text-xs">
+                                    <span class="text-[11px] font-medium text-gray-400">Team</span>
+                                    <span class="text-gray-700 font-semibold">{{ $project->division ? $project->division->name : 'IPNET 01' }}</span>
+                                    <button type="button" 
+                                            @click="isHandoverModalOpen = true" 
+                                            class="w-5 h-5 rounded-full border border-red-300 text-red-600 flex items-center justify-center font-bold text-xs hover:bg-red-50 transition cursor-pointer"
+                                            title="Handover ke PMO (Rizki)">
+                                        +
+                                    </button>
+                                </div>
                             </div>
-                            <div class="text-[11px] text-gray-400">
+
+                            <div class="text-xs text-gray-400 font-normal shrink-0">
+                                Created by <span class="text-gray-700 font-semibold">{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}</span>, 
                                 {{ \Carbon\Carbon::parse($project->created_at)->format('d M Y H:i') }}
                             </div>
                         </div>
 
-                        @if($project->pm)
-                            <div class="space-y-1 pt-2 border-t border-gray-100">
-                                <div class="font-normal text-gray-700">
-                                    Handover ke PMO: <strong class="font-medium text-gray-900">{{ $project->pm->name }}</strong>
-                                </div>
-                                <div class="text-[11px] text-gray-400">
-                                    Tanggung jawab delivery dialihkan
-                                </div>
+                        {{-- B. Project Title & Action Buttons --}}
+                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">{{ $project->name }}</h1>
+                                <p class="text-xs text-gray-500 mt-1">{{ $project->description ?: $project->name }}</p>
                             </div>
-                        @endif
 
-                        @if(!empty($headApproval['approved']))
-                            <div class="space-y-1 pt-2 border-t border-gray-100">
-                                <div class="font-normal text-gray-700">
-                                    Approval Head: <strong class="font-medium text-gray-900">Pak Susanto</strong>
-                                </div>
-                                <div class="text-[11px] text-gray-400">
-                                    {{ $headApproval['date'] ?? 'Disetujui' }}
-                                </div>
-                            </div>
-                        @endif
+                            {{-- Pending & Delete Action Buttons (Red text with simple icons) --}}
+                            <div class="flex items-center gap-4 shrink-0 pt-1">
+                                <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="status" value="{{ $currentStatus === 'Pending' ? 'In Progress' : 'Pending' }}">
+                                    <button type="submit" class="inline-flex items-center gap-1.5 text-xs font-semibold text-ipnet-red hover:underline cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.8"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 7v5l3 2"/></svg>
+                                        <span>{{ $currentStatus === 'Pending' ? 'Resume' : 'Pending' }}</span>
+                                    </button>
+                                </form>
 
-                        @if(!empty($directorApproval['approved']))
-                            <div class="space-y-1 pt-2 border-t border-gray-100">
-                                <div class="font-normal text-gray-700">
-                                    Approval Direktur: <strong class="font-medium text-gray-900">Pak Hariyadi</strong>
+                                <button type="button" @click="confirmDeleteProject()" class="inline-flex items-center gap-1.5 text-xs font-semibold text-ipnet-red hover:underline cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    <span>Delete</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- C. Project Estimation Banner (Warm Peach Box) --}}
+                        <div class="banner-peach p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 flex-1 text-xs">
+                                <div>
+                                    <div class="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider">PROJECT ESTIMATION</div>
+                                    <div class="text-base font-bold text-gray-900 mt-1">
+                                        Rp {{ number_format($project->contract_value ?: 300000000, 0, ',', '.') }}
+                                    </div>
                                 </div>
-                                <div class="text-[11px] text-gray-400">
-                                    {{ $directorApproval['date'] ?? 'Disahkan' }}
+
+                                <div>
+                                    <div class="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider">PROJECT START</div>
+                                    <div class="text-xs font-bold text-gray-900 mt-1.5">
+                                        {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : '24 Aug 2026' }}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider">PROJECT END</div>
+                                    <div class="text-xs font-bold text-gray-900 mt-1.5">
+                                        {{ $project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('d M Y') : '-' }}
+                                    </div>
                                 </div>
                             </div>
-                        @endif
+
+                            <div class="shrink-0">
+                                <button type="button" 
+                                        @click="isEditMetaModalOpen = true" 
+                                        class="p-2 rounded-lg bg-white/70 hover:bg-white text-gray-700 transition cursor-pointer shadow-2xs" 
+                                        title="Edit Estimasi Proyek">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- D. Dynamic Contextual Panel: Draft, In Progress, Opty, etc. --}}
+
+                        {{-- TAB 1: DRAFT (Persetujuan Pak Susanto Head & Pak Hariyadi Direktur) --}}
+                        <div x-show="activeStageTab === 'draft'" x-cloak class="p-5 rounded-xl border border-gray-200 bg-gray-50/60 space-y-4">
+                            <div class="flex items-center justify-between border-b border-gray-200 pb-2.5">
+                                <div>
+                                    <div class="text-xs font-bold text-gray-900">Alur Persetujuan Draft Proyek (Dual Sign-Off)</div>
+                                    <div class="text-[11px] text-gray-500">Persetujuan berjenjang dari <strong>Pak Susanto (Head Divisi)</strong> dan <strong>Pak Hariyadi (Direktur)</strong> sebelum diserahkan ke PMO:</div>
+                                </div>
+                                <span class="text-[11px] font-bold {{ (!empty($headApproval['approved']) && !empty($directorApproval['approved'])) ? 'text-gray-900' : 'text-amber-800' }}">
+                                    {{ (!empty($headApproval['approved']) && !empty($directorApproval['approved'])) ? 'Disetujui Lengkap' : 'Menunggu Approval' }}
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                {{-- Reviewer 1: Pak Susanto --}}
+                                <div class="p-4 rounded-xl bg-white border border-gray-200 space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="text-[10px] font-bold text-gray-400 uppercase">HEAD DIVISI</div>
+                                            <div class="font-bold text-gray-900 text-sm">Pak Susanto Djaya</div>
+                                        </div>
+                                        <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ !empty($headApproval['approved']) ? 'bg-slate-100 text-slate-800 border border-slate-200' : 'bg-amber-50 text-amber-800 border border-amber-200' }}">
+                                            {{ !empty($headApproval['approved']) ? 'Disetujui' : 'Menunggu' }}
+                                        </span>
+                                    </div>
+                                    <div class="text-[11.5px] text-gray-600 italic">"{{ $headApproval['notes'] ?? 'Review kelayakan teknis & alokasi resource.' }}"</div>
+                                    <div class="text-right pt-1 border-t border-gray-100">
+                                        <button type="button" @click="openApproveModal('head')" class="text-xs font-bold text-ipnet-red hover:underline cursor-pointer">
+                                            {{ empty($headApproval['approved']) ? '+ Beri Approval Pak Susanto' : 'Ubah Catatan' }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- Reviewer 2: Pak Hariyadi --}}
+                                <div class="p-4 rounded-xl bg-white border border-gray-200 space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <div class="text-[10px] font-bold text-gray-400 uppercase">DIREKTUR</div>
+                                            <div class="font-bold text-gray-900 text-sm">Pak Hariyadi</div>
+                                        </div>
+                                        <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ !empty($directorApproval['approved']) ? 'bg-slate-100 text-slate-800 border border-slate-200' : 'bg-amber-50 text-amber-800 border border-amber-200' }}">
+                                            {{ !empty($directorApproval['approved']) ? 'Disahkan' : 'Menunggu' }}
+                                        </span>
+                                    </div>
+                                    <div class="text-[11.5px] text-gray-600 italic">"{{ $directorApproval['notes'] ?? 'Otorisasi finansial & validasi kontrak.' }}"</div>
+                                    <div class="text-right pt-1 border-t border-gray-100">
+                                        <button type="button" @click="openApproveModal('director')" class="text-xs font-bold text-ipnet-red hover:underline cursor-pointer">
+                                            {{ empty($directorApproval['approved']) ? '+ Beri Approval Pak Hariyadi' : 'Ubah Catatan' }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- TAB 2: IN PROGRESS (Delivery ke PMO Rizki & Monitoring Tim Engineer) --}}
+                        <div x-show="activeStageTab === 'in_progress'" x-cloak class="p-5 rounded-xl border border-gray-200 bg-gray-50/60 space-y-4">
+                            <div class="flex items-center justify-between border-b border-gray-200 pb-2.5">
+                                <div>
+                                    <div class="text-xs font-bold text-gray-900">Fase Delivery ke PMO (In Progress)</div>
+                                    <div class="text-[11px] text-gray-500">Sales menyerahkan proyek ke PMO. Alokasi personel teknis dikelola PMO dan dipantau Sales di bawah:</div>
+                                </div>
+                                <button type="button" @click="isHandoverModalOpen = true" class="text-xs font-bold text-ipnet-red hover:underline cursor-pointer">
+                                    {{ $project->pm ? 'Ubah PMO (' . $project->pm->name . ')' : '+ Handover ke PMO (Rizki)' }}
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                {{-- PMO Info --}}
+                                <div class="p-4 rounded-xl bg-white border border-gray-200 space-y-2">
+                                    <div class="text-[10px] font-bold text-gray-400 uppercase">PROJECT MANAGER (PMO)</div>
+                                    <div class="font-bold text-gray-900 text-sm">{{ $project->pm ? $project->pm->name : 'Belum Ada PM (Tunjuk Rizki)' }}</div>
+                                    <div class="text-[11.5px] text-gray-500">{{ $project->pm ? $project->pm->email : 'Sales silakan serahkan delivery ke Rizki' }}</div>
+                                </div>
+
+                                {{-- Engineer Monitoring Info (Read-Only) --}}
+                                <div class="p-4 rounded-xl bg-white border border-gray-200 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] font-bold text-gray-400 uppercase">TIM ENGINEER PELAKSANA</span>
+                                        <span class="text-[10px] font-bold text-gray-600">{{ $uniqueEngineers->count() }} Orang</span>
+                                    </div>
+                                    @if($uniqueEngineers->count() > 0)
+                                        <div class="space-y-1.5 pt-1">
+                                            @foreach($uniqueEngineers as $eng)
+                                                <div class="flex items-center justify-between text-[11.5px]">
+                                                    <span class="font-semibold text-gray-900">{{ $eng->name }}</span>
+                                                    <span class="text-gray-400">{{ $eng->roles->pluck('name')->first() ?? 'Engineer' }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <div class="text-[11.5px] text-gray-400 pt-1 italic">
+                                            Menunggu alokasi tim teknis oleh PMO (Rizki).
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- TAB 3: OPPORTUNITY / CRM --}}
+                        <div x-show="activeStageTab === 'opportunity'" x-cloak class="p-5 rounded-xl border border-gray-200 bg-gray-50/60 text-xs space-y-2">
+                            <div class="font-bold text-gray-900">Pipeline Sales & Opportunity</div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-gray-600">
+                                <div>Stage: <strong class="text-gray-900">{{ $project->sales_stage ?: 'Proposal' }}</strong></div>
+                                <div>Win Probability: <strong class="text-gray-900">{{ $project->win_probability ?: 25 }}%</strong></div>
+                                <div>Target Closing: <strong class="text-gray-900">{{ $project->expected_closing_date ? \Carbon\Carbon::parse($project->expected_closing_date)->format('d M Y') : '30 Sep 2026' }}</strong></div>
+                            </div>
+                        </div>
+
+                        {{-- TAB 4: PENDING --}}
+                        <div x-show="activeStageTab === 'pending'" x-cloak class="p-5 rounded-xl border border-gray-200 bg-gray-50/60 text-xs space-y-2">
+                            <div class="font-bold text-gray-900">Proyek Ditangguhkan (Pending)</div>
+                            <p class="text-gray-500">Pengerjaan proyek sedang di-pause menunggu konfirmasi akses site atau pengiriman barang.</p>
+                        </div>
+
+                        {{-- TAB 5: COMPLETED --}}
+                        <div x-show="activeStageTab === 'completed'" x-cloak class="p-5 rounded-xl border border-gray-200 bg-gray-50/60 text-xs space-y-2">
+                            <div class="font-bold text-gray-900">Proyek Selesai & BAST Terbit</div>
+                            <p class="text-gray-500">Seluruh milestone selesai 100% dan berkas Berita Acara Serah Terima telah disahkan.</p>
+                        </div>
+
+                        {{-- E. Client Info Section (4 Kolom Sesuai Template) --}}
+                        <div class="pt-5 border-t border-gray-200 space-y-3">
+                            <h3 class="text-sm font-bold text-gray-900">Client Info</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 text-xs">
+                                <div>
+                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CLIENT NAME</div>
+                                    <div class="font-bold text-gray-900 mt-1">{{ $project->client ?: 'Sarana Kreasi Teknoart' }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CLIENT EMAIL</div>
+                                    <div class="font-bold text-gray-900 mt-1 truncate">{{ $project->customer_pic_finance ?: ($project->customer_pic_technical ?: 'sales@saranateknoart.com') }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PIC</div>
+                                    <div class="font-bold text-gray-900 mt-1">{{ $project->customer_pic_name ?? ($project->sales_name ?? 'Yanuar') }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CONTACT PIC</div>
+                                    <div class="font-bold text-gray-900 mt-1">{{ $project->customer_pic_business ?: '081299771333' }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- F. Milestone Section --}}
+                        <div class="pt-6 border-t border-gray-200 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-bold text-gray-900">Milestone</h3>
+                                <div class="text-xs text-gray-400 font-normal">
+                                    Complete ({{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }})
+                                </div>
+                            </div>
+
+                            @if($project->tasks->count() > 0)
+                                <div class="space-y-2">
+                                    @foreach($project->tasks as $task)
+                                        <div class="p-3 rounded-lg border border-gray-200 bg-white flex items-center justify-between text-xs">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <input type="checkbox" {{ $task->status === 'Completed' ? 'checked' : '' }} disabled class="rounded text-red-600 shrink-0">
+                                                <div class="min-w-0">
+                                                    <span class="font-bold text-gray-900 truncate block">{{ $task->title ?? $task->name }}</span>
+                                                    @if($task->engineer)
+                                                        <div class="text-[10.5px] text-gray-400">Engineer: {{ $task->engineer->name }}</div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700">
+                                                {{ $task->status }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            <div>
+                                <button type="button" 
+                                        @click="isAddMilestoneModalOpen = true" 
+                                        class="text-xs font-bold text-ipnet-red hover:underline cursor-pointer">
+                                    +ADD MILESTONE
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- G. Attachments Section --}}
+                        <div class="pt-6 border-t border-gray-200 space-y-3">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <h3 class="text-sm font-bold text-gray-900">Attachments</h3>
+                                
+                                <div class="flex items-center gap-4 text-xs font-bold">
+                                    <button type="button" @click="isUploadDocModalOpen = true" class="text-ipnet-red hover:underline cursor-pointer">
+                                        + ADD ATTACHMENT
+                                    </button>
+                                    <button type="button" @click="isUploadDocModalOpen = true" class="text-ipnet-red hover:underline cursor-pointer">
+                                        + ADD COGS ATTACHMENT
+                                    </button>
+                                </div>
+                            </div>
+
+                            @if($project->relationLoaded('projectDocuments') && $project->projectDocuments->count() > 0)
+                                <div class="space-y-2">
+                                    @foreach($project->projectDocuments as $doc)
+                                        <div class="p-3 rounded-lg border border-gray-200 bg-white flex items-center justify-between text-xs">
+                                            <span class="font-bold text-gray-900 truncate">{{ $doc->document_title ?? ($doc->document_name ?? 'Document') }}</span>
+                                            @if($doc->file_path)
+                                                <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="text-ipnet-red font-bold hover:underline">
+                                                    Download
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+
                     </div>
-                </div>
 
+                    {{-- ══ RIGHT SECTION: PROJECT STATUS & ACTIVITIES (col-span-3) ══ --}}
+                    <div class="lg:col-span-3 p-6 sm:p-8 space-y-6 bg-white">
+                        
+                        {{-- Project Status --}}
+                        <div class="space-y-2.5">
+                            <div class="text-xs font-bold text-gray-400">Project Status</div>
+                            <div class="flex items-center gap-3 text-xs">
+                                <span class="px-2 py-0.5 rounded text-[11px] font-bold text-white badge-terracotta">
+                                    <span x-text="stageNameToDbStatus(activeStageTab)">{{ $currentStatus }}</span>
+                                </span>
+                                <span class="text-gray-400 text-[11.5px]">
+                                    Progress {{ $project->progress ?: 0 }}% ({{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }} complete)
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Project Activities --}}
+                        <div class="pt-6 border-t border-gray-100 space-y-3">
+                            <h3 class="text-sm font-bold text-gray-900">Project Activities</h3>
+                            
+                            <div class="space-y-3 text-xs">
+                                <div class="space-y-1">
+                                    <div class="font-normal text-gray-700">
+                                        <strong class="font-medium text-gray-900">{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}</strong> created this project
+                                    </div>
+                                    <div class="text-[11px] text-gray-400">
+                                        {{ \Carbon\Carbon::parse($project->created_at)->format('d M Y H:i') }}
+                                    </div>
+                                </div>
+
+                                @if($project->pm)
+                                    <div class="space-y-1 pt-2 border-t border-gray-100">
+                                        <div class="font-normal text-gray-700">
+                                            Handover ke PMO: <strong class="font-medium text-gray-900">{{ $project->pm->name }}</strong>
+                                        </div>
+                                        <div class="text-[11px] text-gray-400">
+                                            Delivery dipimpin oleh PMO
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if(!empty($headApproval['approved']))
+                                    <div class="space-y-1 pt-2 border-t border-gray-100">
+                                        <div class="font-normal text-gray-700">
+                                            Approval Head: <strong class="font-medium text-gray-900">Pak Susanto</strong>
+                                        </div>
+                                        <div class="text-[11px] text-gray-400">
+                                            {{ $headApproval['date'] ?? 'Disetujui' }}
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if(!empty($directorApproval['approved']))
+                                    <div class="space-y-1 pt-2 border-t border-gray-100">
+                                        <div class="font-normal text-gray-700">
+                                            Approval Direktur: <strong class="font-medium text-gray-900">Pak Hariyadi</strong>
+                                        </div>
+                                        <div class="text-[11px] text-gray-400">
+                                            {{ $directorApproval['date'] ?? 'Disahkan' }}
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
             </div>
 
         </div>
-
     </div>
 
     {{-- ======================================================== --}}
-    {{-- MODALS: ALL PROPERLY CENTERED & TELEPORTED TO BODY       --}}
+    {{-- MODALS: CENTERED & CLEAN                                --}}
     {{-- ======================================================== --}}
 
     {{-- 1. ASSIGN / HANDOVER TO PMO (RIZKI) MODAL --}}
@@ -598,7 +605,7 @@
                         <button type="button" @click="isHandoverModalOpen = false" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold bg-gray-900 hover:bg-gray-800 text-white cursor-pointer transition">
+                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
                             Assign ke PMO
                         </button>
                     </div>
@@ -640,7 +647,7 @@
                         <button type="button" @click="isApproveModalOpen = false" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold bg-[#A2623D] hover:bg-[#884D2B] text-white cursor-pointer transition">
+                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
                             Simpan Approval
                         </button>
                     </div>
@@ -693,7 +700,7 @@
                         <button type="button" @click="isAddMilestoneModalOpen = false" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold bg-gray-900 hover:bg-gray-800 text-white cursor-pointer transition">
+                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
                             Simpan Milestone
                         </button>
                     </div>
@@ -740,7 +747,7 @@
                         <button type="button" @click="isEditMetaModalOpen = false" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold bg-gray-900 hover:bg-gray-800 text-white cursor-pointer transition">
+                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
                             Simpan Perubahan
                         </button>
                     </div>
@@ -783,7 +790,7 @@
                         <button type="button" @click="isUploadDocModalOpen = false" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold bg-gray-900 hover:bg-gray-800 text-white cursor-pointer transition">
+                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
                             Upload Berkas
                         </button>
                     </div>
