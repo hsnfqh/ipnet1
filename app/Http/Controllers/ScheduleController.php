@@ -713,10 +713,12 @@ class ScheduleController extends Controller
     public function destroy(Schedule $schedule)
     {
         try {
-            if (in_array($schedule->category, ['Task', 'Kegiatan'])) {
-                Task::where('title', $schedule->title)
-                    ->where('project_id', $schedule->project_id)
-                    ->delete();
+            if (in_array($schedule->category, ['Task', 'Kegiatan', 'Preventive Maintenance'])) {
+                $taskQuery = Task::where('title', $schedule->title);
+                if (!empty($schedule->project_id)) {
+                    $taskQuery->where('project_id', $schedule->project_id);
+                }
+                $taskQuery->delete();
             }
 
             $schedule->delete();

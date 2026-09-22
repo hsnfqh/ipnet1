@@ -348,6 +348,7 @@ class TaskController extends Controller
         }
 
         // Cek perubahan field sebelum disave
+        $oldTaskTitle = $task->getOriginal('title');
         $statusChanged = $task->isDirty('status');
         $progressChanged = $task->isDirty('progress');
         $engineerChanged = $task->isDirty('engineer_id');
@@ -369,25 +370,44 @@ class TaskController extends Controller
                 ? 'Preventive Maintenance' 
                 : 'Task';
             
-            $sched = \App\Models\Schedule::updateOrCreate(
-                [
-                    'title' => $task->title,
-                ],
-                [
+            $startTime = $task->deadline_time ? substr($task->deadline_time, 0, 5) : ($task->deadline->format('H:i') !== '00:00' ? $task->deadline->format('H:i') : '09:00');
+            
+            // Cari schedule lama berdasarkan oldTaskTitle atau title saat ini
+            $sched = null;
+            if (!empty($oldTaskTitle)) {
+                $sched = \App\Models\Schedule::where('title', $oldTaskTitle)->first();
+            }
+            if (!$sched) {
+                $sched = \App\Models\Schedule::where('title', $task->title)->first();
+            }
+
+            if ($sched) {
+                $sched->update([
+                    'title'       => $task->title,
                     'project_id'  => $task->project_id,
                     'category'    => $schedCategory,
                     'date'        => $task->deadline->format('Y-m-d'),
-                    'start_time'  => $task->deadline_time ? substr($task->deadline_time, 0, 5) : ($task->deadline->format('H:i') !== '00:00' ? $task->deadline->format('H:i') : '09:00'),
-                    'end_time'    => '17:00:00',
+                    'start_time'  => $startTime . ':00',
+                    'end_time'    => date('H:i:s', strtotime($startTime . ' +3 hours')),
                     'engineer_id' => $task->engineer_id,
-                    'user_id'     => $task->engineer_id,
                     'description' => $task->description,
-                ]
-            );
+                ]);
+            } else {
+                $sched = \App\Models\Schedule::create([
+                    'title'       => $task->title,
+                    'project_id'  => $task->project_id,
+                    'category'    => $schedCategory,
+                    'date'        => $task->deadline->format('Y-m-d'),
+                    'start_time'  => $startTime . ':00',
+                    'end_time'    => date('H:i:s', strtotime($startTime . ' +3 hours')),
+                    'engineer_id' => $task->engineer_id,
+                    'description' => $task->description,
+                    'created_by'  => $task->created_by ?? auth()->id(),
+                ]);
+            }
 
             if (Schema::hasTable('schedule_user') && !empty($allAssigneeIds)) {
                 $sched->engineers()->sync($allAssigneeIds);
-                $sched->users()->sync($allAssigneeIds);
             }
         }
 
