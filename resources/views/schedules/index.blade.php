@@ -924,19 +924,19 @@
 
                                             <!-- Mode Switcher Pill (Sesi Harian vs Rentang Tanggal) -->
                                             <template x-if="!editing">
-                                                <div style="display:inline-flex; align-items:center; background:#E2E8F0; border-radius:8px; padding:2px; gap:2px; box-shadow:inset 0 1px 2px rgba(0,0,0,0.06);">
+                                                <div style="display:inline-flex; align-items:center; background:#F1F5F9; border:1px solid #E2E8F0; border-radius:8px; padding:3px; gap:3px;">
                                                     <button type="button" 
                                                             @click="form.date_mode = 'sessions'"
-                                                            :style="form.date_mode === 'sessions' ? 'background:#FFFFFF; color:#8F0A0D; font-weight:700; box-shadow:0 1px 3px rgba(0,0,0,0.1);' : 'background:transparent; color:#64748B; font-weight:600;'"
-                                                            style="padding:3.5px 10px; border-radius:6px; font-size:11px; border:none; cursor:pointer; outline:none !important; transition:all 0.15s ease;"
-                                                            onfocus="this.style.outline='none'">
+                                                            :style="form.date_mode === 'sessions' ? 'background:#FFFFFF; color:#8F0A0D; font-weight:700; box-shadow:0 1px 2px rgba(0,0,0,0.06);' : 'background:transparent; color:#64748B; font-weight:600;'"
+                                                            style="padding:4px 11px; border-radius:6px; font-size:11.5px; border:none; cursor:pointer; outline:none !important; box-shadow:none; transition:all 0.15s ease; user-select:none; -webkit-tap-highlight-color:transparent;"
+                                                            class="focus:outline-none focus:ring-0 focus-visible:outline-none select-none">
                                                         Sesi Harian
                                                     </button>
                                                     <button type="button" 
                                                             @click="form.date_mode = 'range'; if (!form.start_date) form.start_date = form.date || formatDate(new Date()); if (!form.end_date) form.end_date = form.start_date;"
-                                                            :style="form.date_mode === 'range' ? 'background:#FFFFFF; color:#8F0A0D; font-weight:700; box-shadow:0 1px 3px rgba(0,0,0,0.1);' : 'background:transparent; color:#64748B; font-weight:600;'"
-                                                            style="padding:3.5px 10px; border-radius:6px; font-size:11px; border:none; cursor:pointer; outline:none !important; transition:all 0.15s ease;"
-                                                            onfocus="this.style.outline='none'">
+                                                            :style="form.date_mode === 'range' ? 'background:#FFFFFF; color:#8F0A0D; font-weight:700; box-shadow:0 1px 2px rgba(0,0,0,0.06);' : 'background:transparent; color:#64748B; font-weight:600;'"
+                                                            style="padding:4px 11px; border-radius:6px; font-size:11.5px; border:none; cursor:pointer; outline:none !important; box-shadow:none; transition:all 0.15s ease; user-select:none; -webkit-tap-highlight-color:transparent;"
+                                                            class="focus:outline-none focus:ring-0 focus-visible:outline-none select-none">
                                                         Rentang Tanggal
                                                     </button>
                                                 </div>
@@ -946,11 +946,11 @@
                                         <!-- MODE 1: SESI HARIAN (MULTI-SESSION) -->
                                         <div x-show="form.date_mode === 'sessions' || editing">
                                             <!-- List Kartu Sesi -->
-                                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                            <div style="display:flex; flex-direction:column; gap:12px;">
                                                 <template x-for="(session, sIdx) in (form.sessions || [])" :key="sIdx">
-                                                    <div style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:12px 14px; position:relative; transition:all 0.15s ease;">
+                                                    <div style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:14px 16px; position:relative; display:flex; flex-direction:column; gap:12px; transition:all 0.15s ease;">
                                                         <!-- Header Sesi jika lebih dari 1 sesi -->
-                                                        <div x-show="!editing && form.sessions && form.sessions.length > 1" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid #E2E8F0;">
+                                                        <div x-show="!editing && form.sessions && form.sessions.length > 1" style="display:flex; align-items:center; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #E2E8F0;">
                                                             <div style="display:flex; align-items:center; gap:6px;">
                                                                 <span style="display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:#8F0A0D; color:white; font-size:10.5px; font-weight:700;" x-text="sIdx + 1"></span>
                                                                 <span style="font-size:12px; font-weight:700; color:#1E293B;" x-text="'Sesi Jadwal ke-' + (sIdx + 1)"></span>
@@ -962,23 +962,23 @@
                                                         </div>
 
                                                         <!-- Grid Tanggal & Jam -->
-                                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                                                             <div>
-                                                                <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Tanggal</label>
-                                                                <input type="date" x-model="session.date" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;" :required="form.date_mode === 'sessions'">
+                                                                <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:5px; text-transform:uppercase;">Tanggal</label>
+                                                                <input type="date" x-model="session.date" style="width:100%; padding:8.5px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;" :required="form.date_mode === 'sessions'">
                                                             </div>
                                                             <div>
-                                                                <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">
+                                                                <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:5px; text-transform:uppercase;">
                                                                     <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
                                                                 </label>
-                                                                <input type="time" x-model="session.start_time" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;" :required="form.category === 'Meeting'">
+                                                                <input type="time" x-model="session.start_time" style="width:100%; padding:8.5px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;" :required="form.category === 'Meeting'">
                                                             </div>
                                                         </div>
 
                                                         <!-- Lokasi per Sesi jika Meeting -->
-                                                        <div x-show="form.category !== 'Day Off'" style="margin-top:8px;">
-                                                            <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Lokasi / Link Meeting (Sesi Ini)</label>
-                                                            <input type="text" x-model="session.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." style="width:100%; padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:12.5px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
+                                                        <div x-show="form.category !== 'Day Off'">
+                                                            <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:5px; text-transform:uppercase;">Lokasi / Link Meeting (Sesi Ini)</label>
+                                                            <input type="text" x-model="session.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." style="width:100%; padding:8.5px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:12.5px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
                                                         </div>
                                                     </div>
                                                 </template>
@@ -988,7 +988,7 @@
                                             <template x-if="!editing">
                                                 <button type="button" 
                                                         @click="addSession()" 
-                                                        style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 12px; background:#F8FAFC; border:1.5px dashed #CBD5E1; border-radius:9px; font-size:12.5px; font-weight:700; color:#2563EB; cursor:pointer; transition:all 0.15s ease; margin-top:8px;"
+                                                        style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px 14px; background:#F8FAFC; border:1.5px dashed #CBD5E1; border-radius:9px; font-size:12.5px; font-weight:700; color:#2563EB; cursor:pointer; transition:all 0.15s ease; margin-top:10px;"
                                                         onmouseover="this.style.background='#EFF6FF'; this.style.borderColor='#3B82F6'; this.style.color='#1D4ED8';"
                                                         onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1'; this.style.color='#2563EB';">
                                                     <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -997,53 +997,53 @@
                                             </template>
                                         </div>
 
-                                        <!-- MODE 2: RENTANG TANGGAL (PROYEK PANJANG DENGAN DESAIN BERSIH & RAPIH) -->
-                                        <div x-show="form.date_mode === 'range' && !editing" style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:12px 14px; position:relative; display:flex; flex-direction:column; gap:10px;">
+                                        <!-- MODE 2: RENTANG TANGGAL (PROYEK PANJANG DENGAN DESAIN BERSIH, LEGA & RAPIH) -->
+                                        <div x-show="form.date_mode === 'range' && !editing" style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:14px 16px; position:relative; display:flex; flex-direction:column; gap:14px;">
                                             <!-- Grid Tanggal Mulai & Selesai -->
-                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                                                 <div>
-                                                    <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Tanggal Mulai</label>
-                                                    <input type="date" x-model="form.start_date" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
+                                                    <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:5px; text-transform:uppercase;">Tanggal Mulai</label>
+                                                    <input type="date" x-model="form.start_date" style="width:100%; padding:8.5px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
                                                 </div>
                                                 <div>
-                                                    <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Tanggal Selesai</label>
-                                                    <input type="date" x-model="form.end_date" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
+                                                    <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:5px; text-transform:uppercase;">Tanggal Selesai</label>
+                                                    <input type="date" x-model="form.end_date" style="width:100%; padding:8.5px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
                                                 </div>
                                             </div>
 
                                             <!-- Jam Kegiatan -->
-                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                                                 <div>
-                                                    <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">
+                                                    <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:5px; text-transform:uppercase;">
                                                         <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
                                                     </label>
-                                                    <input type="time" x-model="form.start_time" style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
+                                                    <input type="time" x-model="form.start_time" style="width:100%; padding:8.5px 10px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
                                                 </div>
                                                 <div></div>
                                             </div>
 
                                             <!-- Lokasi per Sesi jika Meeting / Task (Full Width) -->
-                                            <div x-show="form.category !== 'Day Off'" style="margin-top:2px;">
-                                                <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:4px; text-transform:uppercase;">Lokasi / Link Meeting (Sesi Ini)</label>
-                                                <input type="text" x-model="form.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." style="width:100%; padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:12.5px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
+                                            <div x-show="form.category !== 'Day Off'">
+                                                <label style="display:block; font-size:10.5px; font-weight:700; color:#64748B; margin-bottom:5px; text-transform:uppercase;">Lokasi / Link Meeting (Sesi Ini)</label>
+                                                <input type="text" x-model="form.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." style="width:100%; padding:8.5px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:12.5px; color:#0F172A; outline:none; background:white; box-sizing:border-box;">
                                             </div>
 
                                             <!-- Opsi Filter Hari Kerja / Libur -->
-                                            <div style="background:white; border:1.5px solid #E2E8F0; border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:8px; margin-top:2px;">
+                                            <div style="background:white; border:1.5px solid #E2E8F0; border-radius:8px; padding:12px 14px; display:flex; flex-direction:column; gap:10px;">
                                                 <div style="font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">Filter Hari Kerja &amp; Libur</div>
                                                 
-                                                <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#1E293B; font-weight:600; cursor:pointer;">
-                                                    <input type="checkbox" x-model="form.exclude_sundays" @change="if(form.exclude_sundays) form.include_sundays = false;" style="accent-color:#2563EB; width:15px; height:15px;">
+                                                <label style="display:flex; align-items:center; gap:9px; font-size:12px; color:#1E293B; font-weight:600; cursor:pointer;">
+                                                    <input type="checkbox" x-model="form.exclude_sundays" @change="if(form.exclude_sundays) form.include_sundays = false;" style="accent-color:#2563EB; width:15px; height:15px; cursor:pointer;">
                                                     <span>Lewati Hari Minggu (Libur Akhir Pekan)</span>
                                                 </label>
 
-                                                <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#1E293B; font-weight:600; cursor:pointer;">
-                                                    <input type="checkbox" x-model="form.include_sundays" @change="if(form.include_sundays) form.exclude_sundays = false;" style="accent-color:#2563EB; width:15px; height:15px;">
+                                                <label style="display:flex; align-items:center; gap:9px; font-size:12px; color:#1E293B; font-weight:600; cursor:pointer;">
+                                                    <input type="checkbox" x-model="form.include_sundays" @change="if(form.include_sundays) form.exclude_sundays = false;" style="accent-color:#2563EB; width:15px; height:15px; cursor:pointer;">
                                                     <span>Sertakan Hari Minggu (Ada Pekerjaan Lembur / Maintenance)</span>
                                                 </label>
 
-                                                <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#1E293B; font-weight:600; cursor:pointer;">
-                                                    <input type="checkbox" x-model="form.exclude_saturdays" style="accent-color:#2563EB; width:15px; height:15px;">
+                                                <label style="display:flex; align-items:center; gap:9px; font-size:12px; color:#1E293B; font-weight:600; cursor:pointer;">
+                                                    <input type="checkbox" x-model="form.exclude_saturdays" style="accent-color:#2563EB; width:15px; height:15px; cursor:pointer;">
                                                     <span>Lewati Hari Sabtu (Sabtu Libur)</span>
                                                 </label>
                                             </div>
