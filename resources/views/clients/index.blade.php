@@ -16,12 +16,14 @@
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
     }
     .ipnet-badge-dot {
-        width: 8px;
-        height: 8px;
+        width: 9px;
+        height: 9px;
         border-radius: 50%;
-        background-color: #8F0A0D;
+        background: linear-gradient(135deg, #EF4444 0%, #8F0A0D 100%);
+        box-shadow: 0 0 0 2px #FEE2E2, 0 1px 3px rgba(143, 10, 13, 0.4);
         display: inline-block;
         margin-right: 8px;
+        flex-shrink: 0;
     }
     @keyframes fadeUpStagger {
         0% { opacity: 0; transform: translateY(16px); }

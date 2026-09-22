@@ -16,12 +16,61 @@
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
     }
     .ipnet-badge-dot {
-        width: 8px;
-        height: 8px;
+        width: 9px;
+        height: 9px;
         border-radius: 50%;
-        background-color: #8F0A0D;
+        background: linear-gradient(135deg, #EF4444 0%, #8F0A0D 100%);
+        box-shadow: 0 0 0 2px #FEE2E2, 0 1px 3px rgba(143, 10, 13, 0.4);
         display: inline-block;
         margin-right: 8px;
+        flex-shrink: 0;
+    }
+
+    /* Modern Status Gradient Bullets */
+    .bullet-draft {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #94A3B8 0%, #475569 100%);
+        box-shadow: 0 0 0 2.5px #F1F5F9, 0 1px 3px rgba(71, 85, 105, 0.35);
+        display: inline-block;
+        flex-shrink: 0;
+    }
+    .bullet-opportunity {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #38BDF8 0%, #2563EB 100%);
+        box-shadow: 0 0 0 2.5px #EFF6FF, 0 1px 4px rgba(37, 99, 235, 0.4);
+        display: inline-block;
+        flex-shrink: 0;
+    }
+    .bullet-in-progress {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #FBBF24 0%, #EA580C 100%);
+        box-shadow: 0 0 0 2.5px #FFFBEB, 0 1px 4px rgba(234, 88, 12, 0.4);
+        display: inline-block;
+        flex-shrink: 0;
+    }
+    .bullet-pending {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #C084FC 0%, #7C3AED 100%);
+        box-shadow: 0 0 0 2.5px #FAF5FF, 0 1px 4px rgba(124, 58, 237, 0.4);
+        display: inline-block;
+        flex-shrink: 0;
+    }
+    .bullet-completed {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #34D399 0%, #059669 100%);
+        box-shadow: 0 0 0 2.5px #ECFDF5, 0 1px 4px rgba(5, 150, 105, 0.4);
+        display: inline-block;
+        flex-shrink: 0;
     }
     @keyframes fadeUpStagger {
         0% { opacity: 0; transform: translateY(16px); }
@@ -234,7 +283,7 @@
                         <div class="kanban-col">
                             <div class="kanban-col-head">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                                    <span class="bullet-draft"></span>
                                     <h3 class="text-[13.5px] font-bold text-[#1E293B]">Draft</h3>
                                 </div>
                                 <span class="text-[11.5px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-slate-700 shadow-2xs">
@@ -247,7 +296,7 @@
                                 @empty
                                     <div class="py-14 px-4 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/50 space-y-2">
                                         <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                            <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                         </div>
                                         <span class="text-slate-500 font-semibold text-[12px]">Belum ada project draft</span>
                                     </div>
@@ -259,7 +308,7 @@
                         <div class="kanban-col">
                             <div class="kanban-col-head">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                                    <span class="bullet-opportunity"></span>
                                     <h3 class="text-[13.5px] font-bold text-[#1E293B]">Opportunity</h3>
                                 </div>
                                 <span class="text-[11.5px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-blue-700 shadow-2xs">
@@ -272,7 +321,7 @@
                                 @empty
                                     <div class="py-14 px-4 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/50 space-y-2">
                                         <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-400">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                            <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                                         </div>
                                         <span class="text-slate-500 font-semibold text-[12px]">Belum ada opportunity</span>
                                     </div>
@@ -284,7 +333,7 @@
                         <div class="kanban-col">
                             <div class="kanban-col-head">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                    <span class="bullet-in-progress"></span>
                                     <h3 class="text-[13.5px] font-bold text-[#1E293B]">In Progress</h3>
                                 </div>
                                 <span class="text-[11.5px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-amber-700 shadow-2xs">
@@ -297,7 +346,7 @@
                                 @empty
                                     <div class="py-14 px-4 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/50 space-y-2">
                                         <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-400">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         </div>
                                         <span class="text-slate-500 font-semibold text-[12px]">Belum ada project in progress</span>
                                     </div>
@@ -309,7 +358,7 @@
                         <div class="kanban-col">
                             <div class="kanban-col-head">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                                    <span class="bullet-pending"></span>
                                     <h3 class="text-[13.5px] font-bold text-[#1E293B]">Pending</h3>
                                 </div>
                                 <span class="text-[11.5px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-purple-700 shadow-2xs">
@@ -322,7 +371,7 @@
                                 @empty
                                     <div class="py-14 px-4 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/50 space-y-2">
                                         <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-400">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         </div>
                                         <span class="text-slate-500 font-semibold text-[12px]">Belum ada project pending</span>
                                     </div>
@@ -334,7 +383,7 @@
                         <div class="kanban-col">
                             <div class="kanban-col-head">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                    <span class="bullet-completed"></span>
                                     <h3 class="text-[13.5px] font-bold text-[#1E293B]">Completed</h3>
                                 </div>
                                 <span class="text-[11.5px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-emerald-700 shadow-2xs">
@@ -347,7 +396,7 @@
                                 @empty
                                     <div class="py-14 px-4 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/50 space-y-2">
                                         <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         </div>
                                         <span class="text-slate-500 font-semibold text-[12px]">Belum ada project completed</span>
                                     </div>
@@ -394,8 +443,14 @@
                                         </span>
                                     </td>
                                     <td class="py-3.5 px-5 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#F1F5F9] border border-[#E2E8F0] text-[#1E293B]">
-                                            {{ $p->status }}
+                                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold bg-[#F8FAFC] border border-[#E2E8F0] text-[#1E293B] shadow-2xs">
+                                            @if($p->status === 'Draft') <span class="bullet-draft" style="width:8px; height:8px;"></span>
+                                            @elseif($p->status === 'Opportunity') <span class="bullet-opportunity" style="width:8px; height:8px;"></span>
+                                            @elseif($p->status === 'In Progress') <span class="bullet-in-progress" style="width:8px; height:8px;"></span>
+                                            @elseif($p->status === 'Pending') <span class="bullet-pending" style="width:8px; height:8px;"></span>
+                                            @elseif($p->status === 'Completed') <span class="bullet-completed" style="width:8px; height:8px;"></span>
+                                            @endif
+                                            <span>{{ $p->status }}</span>
                                         </span>
                                     </td>
                                     <td class="py-3.5 px-5 text-center whitespace-nowrap">
