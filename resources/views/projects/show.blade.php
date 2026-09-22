@@ -198,19 +198,23 @@
                         <h3 class="text-sm font-bold text-gray-900">Attachments</h3>
                         
                         <div class="space-y-2">
-                            @forelse($project->projectDocuments as $doc)
-                                <div class="p-3.5 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-between text-xs">
-                                    <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                                        <span class="font-bold text-gray-800">{{ $doc->document_name }}</span>
+                            @if($project->relationLoaded('projectDocuments') && $project->projectDocuments->count() > 0)
+                                @foreach($project->projectDocuments as $doc)
+                                    <div class="p-3.5 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-between text-xs">
+                                        <div class="flex items-center gap-2.5">
+                                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                            <span class="font-bold text-gray-800">{{ $doc->document_title ?? ($doc->document_name ?? 'Document') }}</span>
+                                        </div>
+                                        @if($doc->file_path)
+                                            <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="text-red-600 font-bold hover:underline">
+                                                Download
+                                            </a>
+                                        @endif
                                     </div>
-                                    <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="text-red-600 font-bold hover:underline">
-                                        Download
-                                    </a>
-                                </div>
-                            @empty
+                                @endforeach
+                            @else
                                 <div class="py-2 text-xs text-gray-400">Belum ada berkas lampiran.</div>
-                            @endforelse
+                            @endif
                         </div>
 
                         <div class="flex items-center gap-4 flex-wrap pt-2">

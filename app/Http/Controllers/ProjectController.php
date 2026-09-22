@@ -128,8 +128,17 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        $project->load(['tasks.engineer', 'creator', 'division', 'pm', 'bdm', 'projectDocuments.uploader', 'projectDocuments.verifier']);
-        $documentFlow = \App\Services\ProjectDocumentFlowService::getProjectDocumentProgress($project);
+        $relations = ['tasks.engineer', 'creator', 'division', 'pm', 'bdm'];
+        if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+            $relations[] = 'projectDocuments.uploader';
+            $relations[] = 'projectDocuments.verifier';
+        }
+        $project->load($relations);
+
+        $documentFlow = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+            $documentFlow = \App\Services\ProjectDocumentFlowService::getProjectDocumentProgress($project);
+        }
 
         if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
             return response()->json([

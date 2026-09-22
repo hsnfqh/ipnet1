@@ -333,6 +333,10 @@ class ProjectDocumentFlowService
      */
     public static function ensureProjectDocumentsInitialized(Project $project): void
     {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+            return;
+        }
+
         $stages = self::getStagesDefinition();
         $existingDocs = $project->projectDocuments()->pluck('document_key')->toArray();
 
@@ -368,6 +372,10 @@ class ProjectDocumentFlowService
      */
     public static function getProjectDocumentProgress(Project $project): array
     {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+            return [];
+        }
+
         self::ensureProjectDocumentsInitialized($project);
 
         $documents = $project->projectDocuments()->get();
