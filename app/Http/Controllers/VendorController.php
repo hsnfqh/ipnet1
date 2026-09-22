@@ -91,7 +91,7 @@ class VendorController extends Controller
             ]);
         }
 
-        return redirect()->route('vendors.index')->with('success', 'Data vendor berhasil diperbarui!');
+        return redirect()->route('vendors.show', $vendor->id)->with('success', 'Data vendor berhasil diperbarui!');
     }
 
     public function destroy(Request $request, Vendor $vendor)

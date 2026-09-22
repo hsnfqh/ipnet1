@@ -148,11 +148,10 @@
                                     {{-- Action Buttons --}}
                                     <td class="py-4 px-6 text-right whitespace-nowrap">
                                         <div class="inline-flex items-center gap-2">
-                                            <button type="button" 
-                                                    @click="openDetailsModal({{ json_encode($vendor) }})"
-                                                    class="px-3.5 py-1.5 rounded-lg border border-[#CBD5E1] text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#94A3B8] text-[11px] font-bold uppercase transition cursor-pointer">
+                                            <a href="{{ route('vendors.show', $vendor->id) }}" 
+                                               class="px-3.5 py-1.5 rounded-lg border border-[#CBD5E1] text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#8F0A0D] hover:text-[#8F0A0D] text-[11px] font-bold uppercase transition cursor-pointer inline-flex items-center justify-center">
                                                 DETAILS
-                                            </button>
+                                            </a>
 
                                             <button type="button" 
                                                     @click="confirmDelete({{ $vendor->id }}, '{{ addslashes($vendor->name) }}')"
