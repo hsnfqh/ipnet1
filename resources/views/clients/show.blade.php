@@ -201,8 +201,13 @@
                                     <div>
                                         <label class="block text-gray-400 text-[10px] font-bold mb-1 uppercase">PIC PHONE</label>
                                         <div class="relative">
-                                            <input type="text" name="phone" value="{{ old('phone', $client->phone) }}"
-                                                   placeholder="Nomor Telepon..."
+                                            <input type="tel" 
+                                                   name="phone" 
+                                                   value="{{ old('phone', $client->phone) }}"
+                                                   inputmode="tel"
+                                                   pattern="[0-9+\-\s()]+"
+                                                   oninput="this.value = this.value.replace(/[^0-9+\-\s()]/g, '')"
+                                                   placeholder="Contoh: 081234567890..."
                                                    class="form-input-clean text-xs">
                                         </div>
                                     </div>

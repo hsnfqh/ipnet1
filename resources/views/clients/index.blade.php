@@ -226,7 +226,12 @@
                     </div>
                     <div>
                         <label class="block text-gray-700 mb-1">Nomor Telepon / WA</label>
-                        <input type="text" name="phone" placeholder="0812xxxxxxx"
+                        <input type="tel" 
+                               name="phone" 
+                               inputmode="tel"
+                               pattern="[0-9+\-\s()]+"
+                               oninput="this.value = this.value.replace(/[^0-9+\-\s()]/g, '')"
+                               placeholder="Contoh: 081234567890"
                                class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
                     </div>
                 </div>

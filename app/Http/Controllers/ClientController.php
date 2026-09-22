@@ -37,10 +37,12 @@ class ClientController extends Controller
             'name'       => 'required|string|max:255',
             'department' => 'nullable|string|max:255',
             'pic_name'   => 'nullable|string|max:255',
-            'phone'      => 'nullable|string|max:50',
+            'phone'      => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-\s()]*$/'],
             'email'      => 'nullable|email|max:255',
             'address'    => 'nullable|string',
             'notes'      => 'nullable|string',
+        ], [
+            'phone.regex' => 'Format nomor telepon tidak valid. Gunakan angka atau tanda + / -.'
         ]);
 
         $validated['created_by'] = auth()->id();
@@ -84,10 +86,12 @@ class ClientController extends Controller
             'name'       => 'required|string|max:255',
             'department' => 'nullable|string|max:255',
             'pic_name'   => 'nullable|string|max:255',
-            'phone'      => 'nullable|string|max:50',
+            'phone'      => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-\s()]*$/'],
             'email'      => 'nullable|email|max:255',
             'address'    => 'nullable|string',
             'notes'      => 'nullable|string',
+        ], [
+            'phone.regex' => 'Format nomor telepon tidak valid. Gunakan angka atau tanda + / -.'
         ]);
 
         $client->update($validated);
