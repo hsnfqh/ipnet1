@@ -1058,9 +1058,9 @@
                                             </template>
                                         </div>
 
-                                        <!-- MODE 2: RENTANG TANGGAL (KONSISTEN, RAPIH & PROPORSIONAL) -->
-                                        <div x-show="form.date_mode === 'range' && !editing" style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:14px 16px; position:relative; display:flex; flex-direction:column; gap:13px;">
-                                            <!-- Grid Tanggal Mulai & Selesai -->
+                                        <!-- MODE 2: RENTANG TANGGAL (KONSISTEN, RAPIH & PROPORSIONAL DENGAN SESI HARIAN) -->
+                                        <div x-show="form.date_mode === 'range' && !editing" style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:14px 16px; position:relative; display:flex; flex-direction:column; gap:14px;">
+                                            <!-- Grid Baris 1: Tanggal Mulai & Tanggal Selesai -->
                                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                                                 <div>
                                                     <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Mulai</label>
@@ -1072,26 +1072,18 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Grid Jam Mulai & Jam Selesai -->
+                                            <!-- Grid Baris 2: Jam & Lokasi (Sejajar 2 Kolom Konsisten dengan Sesi Harian) -->
                                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                                                <div>
+                                                <div :style="form.category === 'Day Off' ? 'grid-column: span 2;' : ''">
                                                     <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
-                                                        <span x-text="form.category === 'Day Off' ? 'Jam Mulai (Opsional)' : 'Jam Mulai'"></span>
+                                                        <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
                                                     </label>
                                                     <input type="time" x-model="form.start_time" class="jkw-form-input">
                                                 </div>
-                                                <div>
-                                                    <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
-                                                        <span>Jam Selesai (Opsional)</span>
-                                                    </label>
-                                                    <input type="time" x-model="form.end_time" class="jkw-form-input">
+                                                <div x-show="form.category !== 'Day Off'">
+                                                    <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Lokasi / Link Meeting</label>
+                                                    <input type="text" x-model="form.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." class="jkw-form-input">
                                                 </div>
-                                            </div>
-
-                                            <!-- Lokasi per Sesi jika Meeting / Task (Full Width) -->
-                                            <div x-show="form.category !== 'Day Off'">
-                                                <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Lokasi / Link Meeting</label>
-                                                <input type="text" x-model="form.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet / On-Site Klien)..." class="jkw-form-input">
                                             </div>
 
                                             <!-- Opsi Filter Hari Kerja / Libur -->
