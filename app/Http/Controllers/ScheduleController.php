@@ -26,7 +26,8 @@ class ScheduleController extends Controller
         $scopeIds = ScopeHelper::getScopeUserIds($user);
         $hasScheduleUser = Schema::hasTable('schedule_user');
         $isArchitect = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
-        $isLead = (ScopeHelper::isManagerial($user) || $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO'])) && !$isArchitect;
+        $isCommercial = $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO', 'Customer Relation Officer']);
+        $isLead = (ScopeHelper::isManagerial($user) || $isCommercial) && !$isArchitect;
         $canManageSchedule = ScopeHelper::canManageSchedules($user) || $isArchitect;
 
         // Auto-heal / Sinkronkan Task ke Jadwal Kerja sesuai scope divisi user
@@ -156,6 +157,21 @@ class ScheduleController extends Controller
                     $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $user->id));
                 }
             });
+        } elseif ($isCommercial) {
+            // Sales / Commercial: dapat melihat jadwal Presales, Solution Architect, tim Commercial, serta jadwal yang dibuat oleh user atau melibatkan mereka
+            $presalesUserIds = \App\Models\User::role([
+                'Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect',
+                'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'CRO'
+            ])->pluck('id')->toArray();
+
+            $schedulesQuery->where(function($q) use ($presalesUserIds, $user, $hasScheduleUser) {
+                $q->whereIn('engineer_id', $presalesUserIds)
+                  ->orWhere('created_by', $user->id)
+                  ->orWhereHas('creator', fn($cq) => $cq->role(['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'Presales', 'Solution Architect']));
+                if ($hasScheduleUser) {
+                    $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $presalesUserIds));
+                }
+            });
         } elseif ($scopeIds !== null) {
             $schedulesQuery->where(function($q) use ($scopeIds, $user, $hasScheduleUser) {
                 if (count($scopeIds) === 1) {
@@ -243,6 +259,13 @@ class ScheduleController extends Controller
             ->orderBy('name')
             ->get();
         $rawEngineers = $isArchitect ? collect([$user]) : ScopeHelper::getAssignableEngineers($user);
+        if ($isCommercial) {
+            // Urutkan Presales & Solution Architect di urutan teratas agar Sales langsung menemukan partner untuk POC / meeting
+            $rawEngineers = $rawEngineers->sortByDesc(function($e) {
+                $isPresalesOrSA = method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA']);
+                return $isPresalesOrSA ? 2 : (method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Sales', 'Account Manager', 'BDM']) ? 1 : 0);
+            })->values();
+        }
         $engineers = $rawEngineers->map(function($e) {
             $isMaint = ($e->division_id == 3) || (method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)']));
             $roles = method_exists($e, 'getRoleNames') ? $e->getRoleNames()->toArray() : [];
@@ -351,7 +374,7 @@ class ScheduleController extends Controller
                 ->get();
         }
 
-        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect', 'isMaintenance', 'msTickets'));
+        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect', 'isMaintenance', 'msTickets', 'isCommercial'));
     }
 
     /**
@@ -935,20 +958,39 @@ class ScheduleController extends Controller
     {
         try {
             $user = auth()->user();
-            $isLead = ScopeHelper::isManagerial($user);
+            $isCommercial = $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO', 'Customer Relation Officer']);
+            $isLead = ScopeHelper::isManagerial($user) || $isCommercial;
             $scopeIds = ScopeHelper::getScopeUserIds($user);
             $engineerId = $request->get('engineer_id');
 
-            $schedules = Schedule::with(['project', 'engineer', 'creator'])
-                ->when($scopeIds !== null, function ($query) use ($scopeIds) {
-                    return count($scopeIds) === 1
-                        ? $query->where('engineer_id', $scopeIds[0])
-                        : $query->whereIn('engineer_id', $scopeIds);
-                })
-                ->when($isLead && $engineerId, function ($query) use ($engineerId) {
-                    return $query->where('engineer_id', $engineerId);
-                })
-                ->get();
+            $schedulesQuery = Schedule::with(['project', 'engineer', 'creator']);
+            if ($isCommercial) {
+                $presalesUserIds = \App\Models\User::role([
+                    'Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect',
+                    'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'CRO'
+                ])->pluck('id')->toArray();
+
+                $schedulesQuery->where(function($q) use ($presalesUserIds, $user) {
+                    $q->whereIn('engineer_id', $presalesUserIds)
+                      ->orWhere('created_by', $user->id)
+                      ->orWhereHas('creator', fn($cq) => $cq->role(['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'Presales', 'Solution Architect']));
+                    if (Schema::hasTable('schedule_user')) {
+                        $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $presalesUserIds));
+                    }
+                });
+            } elseif ($scopeIds !== null) {
+                $schedulesQuery->when(count($scopeIds) === 1, fn($q) => $q->where('engineer_id', $scopeIds[0]), fn($q) => $q->whereIn('engineer_id', $scopeIds));
+            }
+
+            if ($isLead && $engineerId) {
+                $schedulesQuery->where(function($q) use ($engineerId) {
+                    $q->where('engineer_id', $engineerId);
+                    if (Schema::hasTable('schedule_user')) {
+                        $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $engineerId));
+                    }
+                });
+            }
+            $schedules = $schedulesQuery->get();
 
             $engineerFilterName = null;
             if ($engineerId) {
@@ -985,20 +1027,39 @@ class ScheduleController extends Controller
     {
         try {
             $user = auth()->user();
-            $isLead = ScopeHelper::isManagerial($user);
+            $isCommercial = $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO', 'Customer Relation Officer']);
+            $isLead = ScopeHelper::isManagerial($user) || $isCommercial;
             $scopeIds = ScopeHelper::getScopeUserIds($user);
             $engineerId = $request->get('engineer_id');
 
-            $schedules = Schedule::with(['project', 'engineer', 'creator'])
-                ->when($scopeIds !== null, function ($query) use ($scopeIds) {
-                    return count($scopeIds) === 1
-                        ? $query->where('engineer_id', $scopeIds[0])
-                        : $query->whereIn('engineer_id', $scopeIds);
-                })
-                ->when($isLead && $engineerId, function ($query) use ($engineerId) {
-                    return $query->where('engineer_id', $engineerId);
-                })
-                ->get();
+            $schedulesQuery = Schedule::with(['project', 'engineer', 'creator']);
+            if ($isCommercial) {
+                $presalesUserIds = \App\Models\User::role([
+                    'Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect',
+                    'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'CRO'
+                ])->pluck('id')->toArray();
+
+                $schedulesQuery->where(function($q) use ($presalesUserIds, $user) {
+                    $q->whereIn('engineer_id', $presalesUserIds)
+                      ->orWhere('created_by', $user->id)
+                      ->orWhereHas('creator', fn($cq) => $cq->role(['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'Presales', 'Solution Architect']));
+                    if (Schema::hasTable('schedule_user')) {
+                        $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $presalesUserIds));
+                    }
+                });
+            } elseif ($scopeIds !== null) {
+                $schedulesQuery->when(count($scopeIds) === 1, fn($q) => $q->where('engineer_id', $scopeIds[0]), fn($q) => $q->whereIn('engineer_id', $scopeIds));
+            }
+
+            if ($isLead && $engineerId) {
+                $schedulesQuery->where(function($q) use ($engineerId) {
+                    $q->where('engineer_id', $engineerId);
+                    if (Schema::hasTable('schedule_user')) {
+                        $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $engineerId));
+                    }
+                });
+            }
+            $schedules = $schedulesQuery->get();
 
             $engineerFilterName = null;
             if ($engineerId) {

@@ -52,6 +52,12 @@
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Agenda & Catatan Kerja Solution Architect</h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5">Kelola agenda rancangan solusi, kajian PoC lab, koordinasi vendor, dan catatan kerja harian mandiri</p>
+                        @elseif($isCommercial ?? false)
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> PENJADWALAN SALES &amp; PRESALES
+                        </p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Jadwal Kerja, Meeting &amp; PoC Presales</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Atur jadwal koordinasi dengan tim presales, sesi Proof of Concept (PoC), demo solusi, dan pertemuan klien</p>
                         @else
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                             <span class="ipnet-badge-dot"></span> MANAJEMEN PENJADWALAN
@@ -85,9 +91,9 @@
                         <div class="relative">
                             <select class="px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer" 
                                     x-model="engineerFilter">
-                                <option value="">Semua Engineer</option>
+                                <option value="">Semua Personel</option>
                                 <template x-for="engineer in engineers" :key="engineer.id">
-                                    <option :value="engineer.id" x-text="engineer.name"></option>
+                                    <option :value="engineer.id" x-text="engineer.name + (engineer.role && (engineer.role.includes('Presales') || engineer.role.includes('Architect') || engineer.role.includes('Pre-Sales')) ? ' [Presales/SA]' : '')"></option>
                                 </template>
                             </select>
                         </div>
@@ -133,7 +139,7 @@
             <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2"
                  x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-avail-head">
-                    <span class="jkw-eyebrow">Ketersediaan Engineer — <span x-text="periodLabel"></span></span>
+                    <span class="jkw-eyebrow">{{ ($isCommercial ?? false) ? 'Ketersediaan Presales & Tim' : 'Ketersediaan Engineer' }} — <span x-text="periodLabel"></span></span>
                     <label class="jkw-check">
                         <input type="checkbox" x-model="showOnlyAvailable">
                         <span>Hanya yang tersedia</span>
@@ -199,6 +205,11 @@
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
                                 <span style="width:10px; height:10px; border-radius:3px; background:#2563EB; flex-shrink:0; display:inline-block;"></span>
                                 <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Jadwal Meeting</span>
+                            </span>
+                            <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
+                            <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                                <span style="width:10px; height:10px; border-radius:3px; background:#10B981; flex-shrink:0; display:inline-block;"></span>
+                                <span style="font-size:12.5px; font-weight:600; color:#334155; white-space:nowrap;">Sesi PoC &amp; Demo</span>
                             </span>
                             <span style="color:#CBD5E1; font-weight:bold; flex-shrink:0;">|</span>
                             <span style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
@@ -773,7 +784,7 @@
                                             </button>
                                         </div>
                                         @else
-                                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                                        <div style="display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px;">
                                             <button type="button" 
                                                     class="jkw-cat-btn jkw-cat-btn--meeting"
                                                     :class="{ 'is-active': form.category === 'Meeting' }"
@@ -785,13 +796,23 @@
                                             </button>
 
                                             <button type="button" 
+                                                    class="jkw-cat-btn jkw-cat-btn--poc"
+                                                    :class="{ 'is-active': form.category === 'PoC & Demo' || form.category === 'Sesi PoC & Demo' || form.category === 'PoC / Lab' || form.category === 'Sesi PoC & Lab' }"
+                                                    @click="setCategory('PoC & Demo')">
+                                                <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                                </svg>
+                                                <span>PoC &amp; Demo</span>
+                                            </button>
+
+                                            <button type="button" 
                                                     class="jkw-cat-btn jkw-cat-btn--task"
                                                     :class="{ 'is-active': form.category === 'Task' || form.category === 'Kegiatan' }"
                                                     @click="setCategory('Task')">
                                                 <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                                                 </svg>
-                                                <span>Task / Kegiatan</span>
+                                                <span>Task</span>
                                             </button>
 
                                             <button type="button" 
@@ -805,7 +826,7 @@
                                                     <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
                                                     <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
                                                 </svg>
-                                                <span>Day Off / Cuti</span>
+                                                <span>Day Off</span>
                                             </button>
                                         </div>
                                         @endif
@@ -813,7 +834,7 @@
 
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Judul {{ ($isArchitect ?? false) ? 'Agenda / Catatan' : 'Jadwal' }}</label>
-                                        <input type="text" x-model="form.title" :placeholder="form.category === 'Day Off' ? 'Contoh: Day Off / Cuti' : (isArchitect ? 'Contoh: Kajian Arsitektur Proyek XYZ / Sesi PoC Lab' : 'Contoh: Meeting Koordinasi Proyek ABC')" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:#FFFFFF; box-sizing:border-box; transition:border-color 0.15s ease;" required>
+                                        <input type="text" x-model="form.title" :placeholder="form.category === 'Day Off' ? 'Contoh: Day Off / Cuti' : (isArchitect ? 'Contoh: Kajian Arsitektur Proyek XYZ / Sesi PoC Lab' : (form.category === 'PoC & Demo' ? 'Contoh: Sesi PoC Fortinet / Demo Solusi SD-WAN' : 'Contoh: Meeting Koordinasi Proyek ABC'))" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:#FFFFFF; box-sizing:border-box; transition:border-color 0.15s ease;" required>
                                     </div>
 
                                     @if(!($isMaintenance ?? false))
@@ -842,7 +863,7 @@
                                     <div>
                                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                                             <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
-                                                <span x-text="form.category === 'Day Off' ? 'Engineer yang Cuti / Libur' : 'Engineer / Peserta Meeting'"></span>
+                                                <span x-text="form.category === 'Day Off' ? 'Personel yang Cuti / Libur' : (form.category === 'PoC & Demo' ? 'Presales & Peserta PoC' : 'Personel / Peserta Meeting')"></span>
                                             </label>
                                             <div style="display:flex; align-items:center; gap:8px;">
                                                 <button type="button" @click="selectAllEngineers()" 
@@ -865,19 +886,19 @@
                                                 <div style="display:inline-flex; align-items:center; gap:6px; background:#FFFFFF; border:1px solid #CBD5E1; padding:3px 8px 3px 6px; border-radius:20px; font-size:11.5px; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
                                                     <span style="width:7px; height:7px; border-radius:50%;" :style="{ background: form.category === 'Day Off' ? '#64748B' : (idx === 0 ? '#C81E2C' : '#2563EB') }"></span>
                                                     <span style="font-weight:600; color:#0F172A;" x-text="getEngineerName(engId)"></span>
-                                                    <template x-if="form.category === 'Meeting'">
-                                                        <span style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:10px;" :style="{ background: idx === 0 ? '#FDF1F2' : '#EFF6FF', color: idx === 0 ? '#C81E2C' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC' : 'Peserta'"></span>
+                                                    <template x-if="form.category === 'Meeting' || form.category === 'PoC & Demo'">
+                                                        <span style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:10px;" :style="{ background: idx === 0 ? '#FDF1F2' : '#EFF6FF', color: idx === 0 ? '#C81E2C' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC / Partner' : 'Peserta'"></span>
                                                     </template>
                                                     <button type="button" @click="toggleEngineer(engId)" style="background:none; border:none; color:#94A3B8; cursor:pointer; padding:0; display:flex; align-items:center; transition:color 0.15s;" onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='#94A3B8'" title="Hapus">
                                                         <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                                     </button>
                                                 </div>
                                             </template>
-                                            <span x-show="!form.engineer_ids || form.engineer_ids.length === 0" style="font-size:12px; color:#94A3B8; margin-left:4px;">Pilih engineer dari daftar checklist di bawah...</span>
+                                            <span x-show="!form.engineer_ids || form.engineer_ids.length === 0" style="font-size:12px; color:#94A3B8; margin-left:4px;">Pilih engineer / presales dari daftar checklist di bawah...</span>
                                         </div>
 
                                         <!-- Checklist engineer -->
-                                        <div style="max-height:160px; overflow-y:auto; border:1.5px solid #E2E8F0; border-radius:9px; background:white; padding:4px;">
+                                        <div style="max-height:170px; overflow-y:auto; border:1.5px solid #E2E8F0; border-radius:9px; background:white; padding:4px;">
                                             <template x-for="engineer in engineers" :key="engineer.id">
                                                 <div @click="toggleEngineer(engineer.id)" 
                                                      style="display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:7px; cursor:pointer; font-size:12.5px; transition:all 0.12s ease; margin-bottom:2px;"
@@ -896,6 +917,18 @@
                                                             <span style="font-weight:600;" 
                                                                   :style="{ color: (isEngineerDayOff(engineer.id, form.date) && form.category !== 'Day Off') ? '#64748B' : '#0F172A' }" 
                                                                   x-text="engineer.name"></span>
+                                                            <!-- Badge Presales / Solution Architect -->
+                                                            <template x-if="engineer.role && (engineer.role.includes('Presales') || engineer.role.includes('Solution Architect') || engineer.role.includes('Pre-Sales'))">
+                                                                <span style="font-size:9.5px; font-weight:700; background:#ECFDF5; color:#065F46; padding:1px 7px; border-radius:6px; border:1px solid #A7F3D0; display:inline-flex; align-items:center;">
+                                                                    Presales / SA
+                                                                </span>
+                                                            </template>
+                                                            <!-- Badge Sales / Commercial -->
+                                                            <template x-if="engineer.role && (engineer.role.includes('Sales') || engineer.role.includes('Account Manager') || engineer.role.includes('BDM'))">
+                                                                <span style="font-size:9.5px; font-weight:700; background:#FFFBEB; color:#92400E; padding:1px 7px; border-radius:6px; border:1px solid #FDE68A; display:inline-flex; align-items:center;">
+                                                                    Sales / BDM
+                                                                </span>
+                                                            </template>
                                                             <!-- Badge Sedang Day Off -->
                                                             <template x-if="form.category !== 'Day Off' && isEngineerDayOff(engineer.id, form.date)">
                                                                 <span style="font-size:9.5px; font-weight:700; background:#E2E8F0; color:#334155; padding:1px 7px; border-radius:6px; border:1px solid #CBD5E1; display:inline-flex; align-items:center; gap:3px;">
@@ -904,10 +937,10 @@
                                                             </template>
                                                         </div>
                                                     </div>
-                                                    <template x-if="form.category === 'Meeting' && form.engineer_ids && form.engineer_ids.includes(engineer.id)">
+                                                    <template x-if="(form.category === 'Meeting' || form.category === 'PoC & Demo') && form.engineer_ids && form.engineer_ids.includes(engineer.id)">
                                                         <span style="font-size:10px; font-weight:700; padding:1px 7px; border-radius:10px; flex-shrink:0;" 
                                                               :style="{ background: form.engineer_ids.indexOf(engineer.id) === 0 ? '#FDF1F2' : '#EFF6FF', color: form.engineer_ids.indexOf(engineer.id) === 0 ? '#C81E2C' : '#1D4ED8' }"
-                                                              x-text="form.engineer_ids.indexOf(engineer.id) === 0 ? 'PIC' : 'Peserta'"></span>
+                                                              x-text="form.engineer_ids.indexOf(engineer.id) === 0 ? 'PIC / Partner' : 'Peserta'"></span>
                                                     </template>
                                                 </div>
                                             </template>
@@ -2048,7 +2081,11 @@
                     if (pos.includes('leader') || pos.includes('lead') || role.includes('lead') || role.includes('direktur') || cleanName.includes('nugraha') || cleanName.includes('susanto') || cleanName.includes('doris')) {
                         return '#7C3AED';
                     }
-                    // 2. Engineer L2 / Senior -> Deep Blue (#2563EB)
+                    // 2. Presales / Solution Architect -> Emerald (#0D9488)
+                    if (pos.includes('presales') || role.includes('presales') || pos.includes('architect') || role.includes('architect') || ['akbar', 'aris sadewo', 'aris'].includes(cleanName)) {
+                        return '#0D9488';
+                    }
+                    // 3. Engineer L2 / Senior -> Deep Blue (#2563EB)
                     if (pos.includes('l2') || pos.includes('senior') || pos.includes('level 2') || role.includes('l2') || ['dedy suryana', 'raihan ghiffary', 'syaiful amin', 'ardiansyah'].includes(cleanName)) {
                         return '#2563EB';
                     }
@@ -2310,20 +2347,20 @@
                         var eTime = s.end_time ? s.end_time.substring(0, 5) : '';
                         var isDayOff = s.category === 'Day Off';
                         var isMeetingCat = (s.category || '').toLowerCase() === 'meeting' || (s.category || '').toLowerCase().includes('meeting') || (s.category || '').toLowerCase().includes('principal') || (s.category || '').toLowerCase().includes('klien') || (s.category || '').toLowerCase().includes('deep dive') || (s.category || '').toLowerCase().includes('series');
-                        var isTaskCat = !isMeetingCat && !isDayOff && (s.category === 'Task' || s.category === 'Kegiatan' || s.category === 'Preventive Maintenance' || (s.category || '').toLowerCase().includes('maintenance') || (s.category || '').toLowerCase().includes('tiket') || (s.category || '').toLowerCase().includes('task'));
-                        var isPoc = (s.category || '').toLowerCase().includes('poc') || (s.category || '').toLowerCase().includes('lab');
+                        var isPoc = (s.category || '').toLowerCase().includes('poc') || (s.category || '').toLowerCase().includes('lab') || (s.category || '').toLowerCase().includes('demo');
+                        var isTaskCat = !isMeetingCat && !isDayOff && !isPoc && (s.category === 'Task' || s.category === 'Kegiatan' || s.category === 'Preventive Maintenance' || (s.category || '').toLowerCase().includes('maintenance') || (s.category || '').toLowerCase().includes('tiket') || (s.category || '').toLowerCase().includes('task'));
                         var isMeet = isMeetingCat;
                         var isDesign = (s.category || '').toLowerCase().includes('desain') || (s.category || '').toLowerCase().includes('sow') || (s.category || '').toLowerCase().includes('review');
                         var isTaskCompleted = s.status === 'Completed' || s.task_status === 'Completed';
-                        var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : (s.category || 'Jadwal')));
+                        var timeLabel = isDayOff ? 'Day Off' : (sTime ? (sTime + ' WIB') : (isTaskCat ? 'Kegiatan' : (isPoc ? 'PoC/Demo' : (s.category || 'Jadwal'))));
                         var eventType;
                         var eventColor;
                         if (self.isArchitect) {
                             eventType = isDayOff ? 'day_off' : (isPoc ? 'poc' : (isMeet ? 'meeting' : (isDesign ? 'design' : 'schedule')));
                             eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isMeet ? '#8B5CF6' : (isDesign ? '#2563EB' : '#2563EB')));
                         } else {
-                            eventType = isDayOff ? 'day_off' : (isTaskCat ? 'task' : 'meeting');
-                            eventColor = isDayOff ? '#64748B' : (isTaskCat ? '#C81E2C' : '#2563EB');
+                            eventType = isDayOff ? 'day_off' : (isPoc ? 'poc' : (isTaskCat ? 'task' : 'meeting'));
+                            eventColor = isDayOff ? '#64748B' : (isPoc ? '#10B981' : (isTaskCat ? '#C81E2C' : '#2563EB'));
                         }
                         
                         // Cegah duplikasi agenda yang sama persis di tanggal yang sama
@@ -2716,7 +2753,7 @@
                         this.editing = false;
                         this.selectedTicketId = '';
                         var todayFormatted = this.formatDate(new Date());
-                        var initialEngIds = this.isArchitect ? [{{ auth()->id() }}] : (this.engineers.length > 0 ? [this.engineers[0].id] : [{{ auth()->id() }}]);
+                        var initialEngIds = [{{ auth()->id() }}];
                         var targetDate = this.viewMode === 'day' ? this.currentDateStr : todayFormatted;
                         this.form = {
                             id: null,
