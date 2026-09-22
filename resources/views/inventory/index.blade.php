@@ -78,25 +78,36 @@
                         <p class="text-[13px] text-[#64748B] mt-0.5">Monitoring stok ketersediaan barang, mutasi barang keluar (DO) dan penerimaan barang masuk</p>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-3 shrink-0">
-                        {{-- Quick Add Product Item --}}
+                    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                        {{-- Hero Action: Tambah Produk (Beda Sendiri & Standout IPNET Gradient) --}}
                         <button type="button" 
                                 @click="openAddProductModal()"
-                                class="px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[#1E293B] hover:bg-[#F8FAFC] text-[12.5px] font-bold shadow-xs transition cursor-pointer">
-                            + Tambah Produk
+                                class="btn-ipnet-gradient h-10 px-4.5 rounded-xl font-bold text-[12.5px] inline-flex items-center gap-2 text-white shadow-md shadow-[#8F0A0D]/25 hover:shadow-lg hover:shadow-[#8F0A0D]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer group">
+                            <span class="w-5 h-5 rounded-lg bg-white/20 flex items-center justify-center text-white transition-transform duration-200 group-hover:rotate-90">
+                                <svg class="w-3.5 h-3.5 stroke-[2.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                                </svg>
+                            </span>
+                            <span>Tambah Produk</span>
                         </button>
 
-                        {{-- Action Buttons: Barang Keluar & Barang Masuk --}}
+                        {{-- Action Buttons: Barang Keluar & Barang Masuk (Konsisten Dimension & Sizing) --}}
                         <button type="button" 
                                 @click="openStockOutModal()"
-                                class="px-4 py-2.5 rounded-xl bg-slate-600 hover:bg-slate-700 text-white font-bold text-[13px] shadow-md transition cursor-pointer">
-                            Barang Keluar
+                                class="h-10 px-4 rounded-xl bg-slate-700 hover:bg-slate-800 text-white font-bold text-[12.5px] inline-flex items-center gap-2 shadow-xs hover:shadow hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer">
+                            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18"/>
+                            </svg>
+                            <span>Barang Keluar</span>
                         </button>
 
                         <button type="button" 
                                 @click="openStockInModal()"
-                                class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] shadow-md cursor-pointer">
-                            Barang Masuk
+                                class="h-10 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-[12.5px] inline-flex items-center gap-2 shadow-xs hover:shadow hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/>
+                            </svg>
+                            <span>Barang Masuk</span>
                         </button>
                     </div>
                 </div>
@@ -138,6 +149,7 @@
                                 <th class="py-3.5 px-5 font-bold">TANGGAL</th>
                                 <th class="py-3.5 px-5 font-bold text-center">STOK AKHIR</th>
                                 <th class="py-3.5 px-5 font-bold text-center">STATUS</th>
+                                <th class="py-3.5 px-5 font-bold text-center">AKSI</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#F1F5F9] font-medium text-[#1E293B]">
@@ -199,10 +211,27 @@
                                             </span>
                                         @endif
                                     </td>
+
+                                    {{-- Aksi: Hapus Produk --}}
+                                    <td class="py-3.5 px-5 text-center whitespace-nowrap">
+                                        <form action="{{ route('inventory.destroy', $item->id) }}" 
+                                              method="POST" 
+                                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk {{ addslashes($item->product_name) }} ({{ $item->product_code }})?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                    title="Hapus Produk" 
+                                                    class="w-8 h-8 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 transition-all cursor-pointer">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="py-12 text-center text-[#94A3B8] text-xs">
+                                    <td colspan="8" class="py-12 text-center text-[#94A3B8] text-xs">
                                         Tidak ada data inventory produk.
                                     </td>
                                 </tr>
