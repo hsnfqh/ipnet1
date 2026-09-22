@@ -50,43 +50,45 @@
         background: #94A3B8;
     }
 
-    /* Vertical Scroll on Kanban Columns (Identical to Lead Engineer Tasks Board) */
+    /* Vertical Scroll on Kanban Columns (Spacious & Breathable, Matching Lead Engineer) */
     .kanban-col {
         display: flex;
         flex-direction: column;
         max-height: calc(100vh - 270px);
-        min-height: 520px;
+        min-height: 560px;
         overflow: hidden;
         background: #F8FAFC;
         border: 1px solid #E2E8F0;
-        border-radius: 1rem;
-        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+        border-radius: 18px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     }
     .kanban-col-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 12px 14px;
+        padding: 14px 18px;
         flex-shrink: 0;
         background: #F8FAFC;
         border-bottom: 1px solid #E2E8F0;
-        border-radius: 1rem 1rem 0 0;
+        border-radius: 18px 18px 0 0;
     }
     .kanban-col-body {
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        padding: 12px;
+        gap: 14px;
+        padding: 16px 12px 16px 16px;
         overflow-y: auto;
+        overflow-x: hidden;
         flex: 1;
         scrollbar-width: thin;
         scrollbar-color: #CBD5E1 transparent;
     }
     .kanban-col-body::-webkit-scrollbar {
-        width: 5px;
+        width: 6px;
     }
     .kanban-col-body::-webkit-scrollbar-track {
         background: transparent;
+        margin-block: 8px;
     }
     .kanban-col-body::-webkit-scrollbar-thumb {
         background: #CBD5E1;
@@ -226,16 +228,16 @@
             <!-- ========================================================== -->
             <div x-show="viewMode === 'kanban'" class="anim-fade-up anim-delay-2">
                 <div class="kanban-scroll overflow-x-auto pb-4">
-                    <div class="grid grid-cols-5 gap-4 min-w-[1250px] items-start">
+                    <div class="grid grid-cols-5 gap-5 min-w-[1550px] items-start">
                         
                         {{-- 1. DRAFT --}}
                         <div class="kanban-col">
                             <div class="kanban-col-head">
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2.5">
                                     <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-                                    <h3 class="text-[13px] font-bold text-[#1E293B]">Draft</h3>
+                                    <h3 class="text-[13.5px] font-bold text-[#1E293B]">Draft</h3>
                                 </div>
-                                <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-slate-700 shadow-2xs">
+                                <span class="text-[11.5px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-slate-700 shadow-2xs">
                                     {{ $kanban['draft']->count() }}
                                 </span>
                             </div>
@@ -243,9 +245,11 @@
                                 @forelse($kanban['draft'] as $p)
                                     @include('sales.pipeline.partials.kanban-card', ['project' => $p, 'column' => 'Draft'])
                                 @empty
-                                    <div class="py-12 px-3 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/40">
-                                        <svg class="w-7 h-7 text-slate-300 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        <span>Belum ada project draft</span>
+                                    <div class="py-14 px-4 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/50 space-y-2">
+                                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        </div>
+                                        <span class="text-slate-500 font-semibold text-[12px]">Belum ada project draft</span>
                                     </div>
                                 @endforelse
                             </div>
@@ -254,11 +258,11 @@
                         {{-- 2. OPPORTUNITY --}}
                         <div class="kanban-col">
                             <div class="kanban-col-head">
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2.5">
                                     <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                                    <h3 class="text-[13px] font-bold text-[#1E293B]">Opportunity</h3>
+                                    <h3 class="text-[13.5px] font-bold text-[#1E293B]">Opportunity</h3>
                                 </div>
-                                <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-blue-700 shadow-2xs">
+                                <span class="text-[11.5px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-blue-700 shadow-2xs">
                                     {{ $kanban['opportunity']->count() }}
                                 </span>
                             </div>
@@ -266,9 +270,11 @@
                                 @forelse($kanban['opportunity'] as $p)
                                     @include('sales.pipeline.partials.kanban-card', ['project' => $p, 'column' => 'Opportunity'])
                                 @empty
-                                    <div class="py-12 px-3 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/40">
-                                        <svg class="w-7 h-7 text-slate-300 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        <span>Belum ada opportunity</span>
+                                    <div class="py-14 px-4 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/50 space-y-2">
+                                        <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-400">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                        </div>
+                                        <span class="text-slate-500 font-semibold text-[12px]">Belum ada opportunity</span>
                                     </div>
                                 @endforelse
                             </div>
@@ -277,11 +283,11 @@
                         {{-- 3. IN PROGRESS --}}
                         <div class="kanban-col">
                             <div class="kanban-col-head">
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2.5">
                                     <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                                    <h3 class="text-[13px] font-bold text-[#1E293B]">In Progress</h3>
+                                    <h3 class="text-[13.5px] font-bold text-[#1E293B]">In Progress</h3>
                                 </div>
-                                <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-amber-700 shadow-2xs">
+                                <span class="text-[11.5px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-amber-700 shadow-2xs">
                                     {{ $kanban['in_progress']->count() }}
                                 </span>
                             </div>
@@ -289,9 +295,11 @@
                                 @forelse($kanban['in_progress'] as $p)
                                     @include('sales.pipeline.partials.kanban-card', ['project' => $p, 'column' => 'In Progress'])
                                 @empty
-                                    <div class="py-12 px-3 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/40">
-                                        <svg class="w-7 h-7 text-slate-300 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        <span>Belum ada project in progress</span>
+                                    <div class="py-14 px-4 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/50 space-y-2">
+                                        <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-400">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </div>
+                                        <span class="text-slate-500 font-semibold text-[12px]">Belum ada project in progress</span>
                                     </div>
                                 @endforelse
                             </div>
@@ -300,11 +308,11 @@
                         {{-- 4. PENDING --}}
                         <div class="kanban-col">
                             <div class="kanban-col-head">
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2.5">
                                     <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-                                    <h3 class="text-[13px] font-bold text-[#1E293B]">Pending</h3>
+                                    <h3 class="text-[13.5px] font-bold text-[#1E293B]">Pending</h3>
                                 </div>
-                                <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-purple-700 shadow-2xs">
+                                <span class="text-[11.5px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-purple-700 shadow-2xs">
                                     {{ $kanban['pending']->count() }}
                                 </span>
                             </div>
@@ -312,9 +320,11 @@
                                 @forelse($kanban['pending'] as $p)
                                     @include('sales.pipeline.partials.kanban-card', ['project' => $p, 'column' => 'Pending'])
                                 @empty
-                                    <div class="py-12 px-3 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/40">
-                                        <svg class="w-7 h-7 text-slate-300 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        <span>Belum ada project pending</span>
+                                    <div class="py-14 px-4 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/50 space-y-2">
+                                        <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-400">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </div>
+                                        <span class="text-slate-500 font-semibold text-[12px]">Belum ada project pending</span>
                                     </div>
                                 @endforelse
                             </div>
@@ -323,11 +333,11 @@
                         {{-- 5. COMPLETED --}}
                         <div class="kanban-col">
                             <div class="kanban-col-head">
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2.5">
                                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                                    <h3 class="text-[13px] font-bold text-[#1E293B]">Completed</h3>
+                                    <h3 class="text-[13.5px] font-bold text-[#1E293B]">Completed</h3>
                                 </div>
-                                <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-emerald-700 shadow-2xs">
+                                <span class="text-[11.5px] font-extrabold px-2.5 py-0.5 rounded-full bg-white border border-[#E2E8F0] text-emerald-700 shadow-2xs">
                                     {{ $kanban['completed']->count() }}
                                 </span>
                             </div>
@@ -335,9 +345,11 @@
                                 @forelse($kanban['completed'] as $p)
                                     @include('sales.pipeline.partials.kanban-card', ['project' => $p, 'column' => 'Completed'])
                                 @empty
-                                    <div class="py-12 px-3 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/40">
-                                        <svg class="w-7 h-7 text-slate-300 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        <span>Belum ada project completed</span>
+                                    <div class="py-14 px-4 text-center flex flex-col items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-[#E2E8F0] rounded-xl bg-white/50 space-y-2">
+                                        <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </div>
+                                        <span class="text-slate-500 font-semibold text-[12px]">Belum ada project completed</span>
                                     </div>
                                 @endforelse
                             </div>
