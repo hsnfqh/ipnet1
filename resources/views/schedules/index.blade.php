@@ -971,35 +971,29 @@
 
                                     <!-- Sesi Tanggal & Waktu (Multi-Date / Multi-Session / Date Range Proyek Panjang) -->
                                     <div style="margin-bottom:14px;">
-                                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                                            <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
+                                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; flex-wrap:wrap;">
+                                            <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; flex-shrink:0;">
                                                 Tanggal &amp; Waktu Kegiatan
                                             </label>
 
                                             <!-- Mode Switcher Pill (Sesi Harian vs Rentang Tanggal) - Hanya untuk Tim Operasional / Lead Engineer -->
                                             @if(!($isCommercial ?? false))
                                             <template x-if="!editing">
-                                                <div style="display:inline-flex; align-items:center; background:#F1F5F9; border:1px solid #E2E8F0; border-radius:8px; padding:3px; gap:3px;">
+                                                <div class="jkw-mode-segmented">
                                                     <button type="button" 
-                                                            @click="form.date_mode = 'sessions'"
-                                                            :style="form.date_mode === 'sessions' 
-                                                                ? 'background:#FFFFFF; color:#C81E2C; font-weight:700; box-shadow:0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04); border:1px solid #E2E8F0;' 
-                                                                : 'background:transparent; color:#64748B; font-weight:600; border:1px solid transparent;'"
-                                                            style="display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:6px; font-size:11px; cursor:pointer; transition:all 0.18s ease; outline:none !important;"
-                                                            class="focus:outline-none focus:ring-0 select-none">
-                                                        <svg style="width:12.5px; height:12.5px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                                                            class="jkw-mode-btn"
+                                                            :class="{ 'is-active': form.date_mode === 'sessions' }"
+                                                            @click="form.date_mode = 'sessions'">
+                                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                                         </svg>
                                                         <span>Sesi Harian</span>
                                                     </button>
                                                     <button type="button" 
-                                                            @click="form.date_mode = 'range'; if (!form.start_date) form.start_date = form.date || formatDate(new Date()); if (!form.end_date) form.end_date = form.start_date;"
-                                                            :style="form.date_mode === 'range' 
-                                                                ? 'background:#FFFFFF; color:#C81E2C; font-weight:700; box-shadow:0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04); border:1px solid #E2E8F0;' 
-                                                                : 'background:transparent; color:#64748B; font-weight:600; border:1px solid transparent;'"
-                                                            style="display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:6px; font-size:11px; cursor:pointer; transition:all 0.18s ease; outline:none !important;"
-                                                            class="focus:outline-none focus:ring-0 select-none">
-                                                        <svg style="width:12.5px; height:12.5px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                                                            class="jkw-mode-btn"
+                                                            :class="{ 'is-active': form.date_mode === 'range' }"
+                                                            @click="form.date_mode = 'range'; if (!form.start_date) form.start_date = form.date || formatDate(new Date()); if (!form.end_date) form.end_date = form.start_date;">
+                                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M14 15l2 2 4-4"/>
                                                         </svg>
@@ -1032,20 +1026,20 @@
                                                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                                                             <div>
                                                                 <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal</label>
-                                                                <input type="date" x-model="session.date" style="width:100%; height:42px; min-height:42px; padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13.5px; font-weight:500; color:#0F172A; outline:none; background:white; box-sizing:border-box; transition:all 0.15s ease;" :required="form.date_mode === 'sessions'">
+                                                                <input type="date" x-model="session.date" class="jkw-form-input" :required="form.date_mode === 'sessions'">
                                                             </div>
                                                             <div>
                                                                 <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
                                                                     <span x-text="form.category === 'Day Off' ? 'Jam (Opsional)' : 'Jam'"></span>
                                                                 </label>
-                                                                <input type="time" x-model="session.start_time" style="width:100%; height:42px; min-height:42px; padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13.5px; font-weight:500; color:#0F172A; outline:none; background:white; box-sizing:border-box; transition:all 0.15s ease;" :required="form.category === 'Meeting'">
+                                                                <input type="time" x-model="session.start_time" class="jkw-form-input" :required="form.category === 'Meeting'">
                                                             </div>
                                                         </div>
 
                                                         <!-- Lokasi per Sesi jika Meeting -->
                                                         <div x-show="form.category !== 'Day Off'">
                                                             <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Lokasi / Link Meeting (Sesi Ini)</label>
-                                                            <input type="text" x-model="session.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." style="width:100%; height:42px; min-height:42px; padding:8px 14px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; font-weight:500; color:#0F172A; outline:none; background:white; box-sizing:border-box; transition:all 0.15s ease;">
+                                                            <input type="text" x-model="session.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet)..." class="jkw-form-input">
                                                         </div>
                                                     </div>
                                                 </template>
@@ -1070,11 +1064,11 @@
                                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                                                 <div>
                                                     <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Mulai</label>
-                                                    <input type="date" x-model="form.start_date" style="width:100%; height:42px; min-height:42px; padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13.5px; font-weight:500; color:#0F172A; outline:none; background:white; box-sizing:border-box; transition:all 0.15s ease;">
+                                                    <input type="date" x-model="form.start_date" class="jkw-form-input">
                                                 </div>
                                                 <div>
                                                     <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Tanggal Selesai</label>
-                                                    <input type="date" x-model="form.end_date" style="width:100%; height:42px; min-height:42px; padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13.5px; font-weight:500; color:#0F172A; outline:none; background:white; box-sizing:border-box; transition:all 0.15s ease;">
+                                                    <input type="date" x-model="form.end_date" class="jkw-form-input">
                                                 </div>
                                             </div>
 
@@ -1084,20 +1078,20 @@
                                                     <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
                                                         <span x-text="form.category === 'Day Off' ? 'Jam Mulai (Opsional)' : 'Jam Mulai'"></span>
                                                     </label>
-                                                    <input type="time" x-model="form.start_time" style="width:100%; height:42px; min-height:42px; padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13.5px; font-weight:500; color:#0F172A; outline:none; background:white; box-sizing:border-box; transition:all 0.15s ease;">
+                                                    <input type="time" x-model="form.start_time" class="jkw-form-input">
                                                 </div>
                                                 <div>
                                                     <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
                                                         <span>Jam Selesai (Opsional)</span>
                                                     </label>
-                                                    <input type="time" x-model="form.end_time" style="width:100%; height:42px; min-height:42px; padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13.5px; font-weight:500; color:#0F172A; outline:none; background:white; box-sizing:border-box; transition:all 0.15s ease;">
+                                                    <input type="time" x-model="form.end_time" class="jkw-form-input">
                                                 </div>
                                             </div>
 
                                             <!-- Lokasi per Sesi jika Meeting / Task (Full Width) -->
                                             <div x-show="form.category !== 'Day Off'">
                                                 <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">Lokasi / Link Meeting</label>
-                                                <input type="text" x-model="form.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet / On-Site Klien)..." style="width:100%; height:42px; min-height:42px; padding:8px 14px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; font-weight:500; color:#0F172A; outline:none; background:white; box-sizing:border-box; transition:all 0.15s ease;">
+                                                <input type="text" x-model="form.location" placeholder="Masukkan lokasi (misal: Ruang Rapat / Google Meet / On-Site Klien)..." class="jkw-form-input">
                                             </div>
 
                                             <!-- Opsi Filter Hari Kerja / Libur -->
@@ -2005,6 +1999,105 @@
 }
 
 .jkw-modal-actions-row { display:flex !important; flex-direction:row !important; gap:10px !important; margin-top:18px !important; padding-top:16px !important; border-top:1px solid var(--jkw-line-soft) !important; }
+
+/* Mode Switcher Segmented Control */
+.jkw-mode-segmented {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    background: #F1F5F9 !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 9px !important;
+    padding: 3px !important;
+    gap: 3px !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.jkw-mode-btn {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 5px 12px !important;
+    border-radius: 7px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: #64748B !important;
+    background: transparent !important;
+    border: none !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
+    text-decoration: none !important;
+}
+
+.jkw-mode-btn svg {
+    width: 13.5px !important;
+    height: 13.5px !important;
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+    stroke: currentColor !important;
+    vertical-align: middle !important;
+}
+
+.jkw-mode-btn span {
+    white-space: nowrap !important;
+    display: inline-block !important;
+    line-height: 1 !important;
+}
+
+.jkw-mode-btn:hover {
+    color: #1E293B !important;
+    background: rgba(255, 255, 255, 0.6) !important;
+}
+
+.jkw-mode-btn.is-active {
+    background: #FFFFFF !important;
+    color: #C81E2C !important;
+    font-weight: 700 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+.jkw-mode-btn.is-active svg {
+    color: #C81E2C !important;
+    stroke: #C81E2C !important;
+}
+
+/* Form Inputs for Schedules */
+.jkw-form-input {
+    width: 100% !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 13px !important;
+    border-radius: 8px !important;
+    border: 1.5px solid #CBD5E1 !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    color: #0F172A !important;
+    background: #FFFFFF !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+.jkw-form-input:focus {
+    border-color: #C81E2C !important;
+    box-shadow: 0 0 0 3px rgba(200, 30, 44, 0.12) !important;
+}
+.jkw-form-input::-webkit-calendar-picker-indicator {
+    cursor: pointer !important;
+    opacity: 0.7 !important;
+    transition: opacity 0.15s ease !important;
+}
+.jkw-form-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1 !important;
+}
 
 /* ===================== RESPONSIVE BREAKPOINTS ===================== */
 
