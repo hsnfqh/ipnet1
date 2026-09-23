@@ -135,25 +135,31 @@ class ProjectController extends Controller
             $relations[] = 'tasks.engineers';
         }
         if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
-            $relations[] = 'projectDocuments.uploader';
-            $relations[] = 'projectDocuments.verifier';
+            // Bersihkan placeholder dokumen kosong tanpa file
+            \App\Models\ProjectDocument::where('project_id', $project->id)
+                ->where(function($q) {
+                    $q->whereNull('file_path')->orWhere('file_path', '');
+                })->delete();
+
+            $relations['projectDocuments'] = function ($q) {
+                $q->whereNotNull('file_path')->where('file_path', '!=', '')->with(['uploader', 'verifier']);
+            };
         }
         $project->load($relations);
 
         $documentFlow = [];
-        if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
-            $documentFlow = \App\Services\ProjectDocumentFlowService::getProjectDocumentProgress($project);
-        }
-
-        $allUsers = User::with('roles')->orderBy('name')->get();
-
         if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+                $documentFlow = \App\Services\ProjectDocumentFlowService::getProjectDocumentProgress($project);
+            }
             return response()->json([
                 'project' => $project,
                 'document_flow' => $documentFlow,
-                'all_users' => $allUsers,
+                'all_users' => $allUsers ?? User::with('roles')->orderBy('name')->get(),
             ]);
         }
+
+        $allUsers = User::with('roles')->orderBy('name')->get();
 
         return view('projects.show', compact('project', 'documentFlow', 'allUsers'));
     }

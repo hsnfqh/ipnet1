@@ -90,11 +90,15 @@ class ProjectDocumentController extends Controller
         }
         $doc->save();
 
-        return response()->json([
-            'success'  => true,
-            'message'  => "Dokumen '{$doc->document_title}' berhasil diunggah!",
-            'document' => $doc->fresh(['uploader', 'verifier']),
-        ]);
+        if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
+            return response()->json([
+                'success'  => true,
+                'message'  => "Dokumen '{$doc->document_title}' berhasil diunggah!",
+                'document' => $doc->fresh(['uploader', 'verifier']),
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Dokumen '{$doc->document_title}' berhasil diunggah!");
     }
 
     /**

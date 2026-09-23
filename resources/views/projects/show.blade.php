@@ -473,21 +473,34 @@
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                         <span>ADD ATTACHMENT</span>
                                     </button>
-                                    <button type="button" @click="isUploadDocModalOpen = true" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                        <span>ADD COGS ATTACHMENT</span>
-                                    </button>
                                 </div>
                             </div>
 
-                            @if($project->relationLoaded('projectDocuments') && $project->projectDocuments->count() > 0)
+                            @php
+                                $uploadedDocs = $project->relationLoaded('projectDocuments') 
+                                    ? $project->projectDocuments->filter(fn($doc) => !empty($doc->file_path)) 
+                                    : collect();
+                            @endphp
+
+                            @if($uploadedDocs->count() > 0)
                                 <div class="space-y-2">
-                                    @foreach($project->projectDocuments as $doc)
+                                    @foreach($uploadedDocs as $doc)
                                         <div class="p-3 rounded-xl border border-[#E2E8F0] bg-white flex items-center justify-between text-xs hover:border-[#CBD5E1] transition">
-                                            <span class="font-bold text-[#1E293B] truncate">{{ $doc->document_title ?? ($doc->document_name ?? 'Document') }}</span>
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <span class="font-bold text-[#1E293B] truncate block">{{ $doc->document_title ?? ($doc->document_name ?? 'Attachment') }}</span>
+                                                    @if($doc->file_name)
+                                                        <span class="text-[11px] text-[#64748B] block truncate">{{ $doc->file_name }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
                                             @if($doc->file_path)
-                                                <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="text-[#8F0A0D] font-bold hover:underline">
-                                                    Download
+                                                <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition no-underline">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                    <span>Download</span>
                                                 </a>
                                             @endif
                                         </div>
