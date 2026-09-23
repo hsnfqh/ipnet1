@@ -6,52 +6,45 @@
 <style>
     .ipnet-card {
         background-color: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 16px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 4px 12px rgba(0, 0, 0, 0.015);
-    }
-    .banner-peach {
-        background-color: #FAF2ED;
-        border: 1px solid #EFE4DC;
-        border-radius: 12px;
-    }
-    .badge-terracotta {
-        background-color: #A2623D;
-        color: #FFFFFF;
+        border: 1.5px solid #E2E8F0;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
     }
     .text-ipnet-red {
-        color: #B81525;
-    }
-    .text-ipnet-red:hover {
         color: #8F0A0D;
     }
+    .text-ipnet-red:hover {
+        color: #700609;
+    }
     .btn-ipnet-primary {
-        background-color: #8F0A0D;
+        background: linear-gradient(135deg, #8F0A0D 0%, #D62E3C 100%);
         color: #FFFFFF;
+        box-shadow: 0 2px 6px rgba(143, 10, 13, 0.25);
         transition: all 0.15s ease;
     }
     .btn-ipnet-primary:hover {
-        background-color: #700609;
+        filter: brightness(1.08);
+        box-shadow: 0 4px 12px rgba(143, 10, 13, 0.35);
         color: #FFFFFF;
     }
     .stage-pill {
         padding: 6px 14px;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 12px;
-        font-weight: 600;
-        transition: all 0.15s ease;
+        font-weight: 700;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         display: inline-flex;
         align-items: center;
         gap: 6px;
     }
     .stage-pill.active {
-        background-color: #0F172A;
+        background: linear-gradient(135deg, #8F0A0D 0%, #D62E3C 100%);
         color: #FFFFFF;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 8px rgba(143, 10, 13, 0.3);
     }
     .stage-pill:not(.active) {
         background-color: #F1F5F9;
-        color: #475569;
+        color: #64748B;
     }
     .stage-pill:not(.active):hover {
         background-color: #E2E8F0;
@@ -150,10 +143,10 @@
             @endif
 
             {{-- 1. BREADCRUMBS --}}
-            <div class="flex items-center gap-2 text-xs font-semibold text-gray-500">
-                <a href="{{ route('sales.pipeline.index') }}" class="text-gray-900 hover:text-red-700 transition">Project</a>
-                <span>&gt;</span>
-                <span class="text-gray-600">{{ $project->name }}</span>
+            <div class="flex items-center gap-2 text-[12.5px] font-semibold text-[#64748B]">
+                <a href="{{ route('sales.pipeline.index') }}" class="hover:text-[#8F0A0D] transition font-bold text-[#1E293B]">Project</a>
+                <svg class="w-3 h-3 text-[#CBD5E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                <span class="text-[#64748B] truncate max-w-md">{{ $project->name }}</span>
             </div>
 
             {{-- 2. MAIN CARD WRAPPER (Template IPNET) --}}
@@ -161,13 +154,13 @@
                 <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
                     
                     {{-- ══ LEFT SECTION: PROJECT DETAILS (col-span-8 or 9) ══ --}}
-                    <div class="lg:col-span-9 p-6 sm:p-8 space-y-6 lg:border-r lg:border-gray-200">
+                    <div class="lg:col-span-9 p-6 sm:p-8 space-y-6 lg:border-r lg:border-[#F1F5F9]">
                         
                         {{-- A. Top Status Bar: Status Pill, Team + Add, Stage Selector, Creator info --}}
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
                             <div class="flex items-center gap-2.5 flex-wrap">
                                 {{-- Stage Selector Pills --}}
-                                <div class="inline-flex items-center gap-1.5 p-1 rounded-xl bg-gray-100">
+                                <div class="inline-flex items-center gap-1.5 p-1 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0]">
                                     <button type="button" @click="activeStageTab = 'draft'" :class="activeStageTab === 'draft' ? 'active' : ''" class="stage-pill cursor-pointer">
                                         <span>Draft</span>
                                     </button>
@@ -185,21 +178,17 @@
                                     </button>
                                 </div>
 
-                                {{-- Team Pill + Handover PMO Plus Button --}}
+                                {{-- Team / Client Dept (Standalone Sales) --}}
                                 <div class="flex items-center gap-2 pl-2 text-xs">
-                                    <span class="text-[11px] font-medium text-gray-400">Team</span>
-                                    <span class="text-gray-700 font-semibold">{{ $project->division ? $project->division->name : 'IPNET 01' }}</span>
-                                    <button type="button" 
-                                            @click="isHandoverModalOpen = true" 
-                                            class="w-5 h-5 rounded-full border border-red-300 text-red-600 flex items-center justify-center font-bold text-xs hover:bg-red-50 transition cursor-pointer"
-                                            title="Handover ke PMO (Rizki)">
-                                        +
-                                    </button>
+                                    <span class="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">Team</span>
+                                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#F8FAFC] text-[#1E293B] border border-[#E2E8F0] shadow-2xs">
+                                        {{ $project->client_department ?: 'IPNET 01' }}
+                                    </span>
                                 </div>
                             </div>
 
-                            <div class="text-xs text-gray-400 font-normal shrink-0">
-                                Created by <span class="text-gray-700 font-semibold">{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}</span>, 
+                            <div class="text-xs text-[#94A3B8] font-normal shrink-0">
+                                Created by <span class="text-[#1E293B] font-bold">{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}</span>, 
                                 {{ \Carbon\Carbon::parse($project->created_at)->format('d M Y H:i') }}
                             </div>
                         </div>
@@ -207,49 +196,51 @@
                         {{-- B. Project Title & Action Buttons --}}
                         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                             <div>
-                                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">{{ $project->name }}</h1>
-                                <p class="text-xs text-gray-500 mt-1">{{ $project->description ?: $project->name }}</p>
+                                <h1 class="text-2xl font-bold text-[#1E293B] tracking-tight">{{ $project->name }}</h1>
+                                <p class="text-xs text-[#64748B] mt-1">{{ $project->description ?: $project->name }}</p>
                             </div>
 
-                            {{-- Pending & Delete Action Buttons (Red text with simple icons) --}}
-                            <div class="flex items-center gap-4 shrink-0 pt-1">
+                            {{-- Pending & Delete Action Buttons --}}
+                            <div class="flex items-center gap-3 shrink-0 pt-1">
                                 <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="status" value="{{ $currentStatus === 'Pending' ? 'In Progress' : 'Pending' }}">
-                                    <button type="submit" class="inline-flex items-center gap-1.5 text-xs font-semibold text-ipnet-red hover:underline cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.8"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 7v5l3 2"/></svg>
+                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-xs font-bold text-[#64748B] hover:text-[#8F0A0D] hover:bg-red-50 hover:border-red-200 transition cursor-pointer shadow-2xs">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 2"/></svg>
                                         <span>{{ $currentStatus === 'Pending' ? 'Resume' : 'Pending' }}</span>
                                     </button>
                                 </form>
 
-                                <button type="button" @click="confirmDeleteProject()" class="inline-flex items-center gap-1.5 text-xs font-semibold text-ipnet-red hover:underline cursor-pointer">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <button type="button" @click="confirmDeleteProject()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-white text-xs font-bold text-[#EF4444] hover:bg-red-50 hover:border-red-200 transition cursor-pointer shadow-2xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     <span>Delete</span>
                                 </button>
                             </div>
                         </div>
 
-                        {{-- C. Project Estimation Banner (Warm Peach Box) --}}
-                        <div class="banner-peach p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                        {{-- C. Project Estimation Banner (IPNET Modern Metric Box) --}}
+                        <div class="p-5 rounded-2xl border border-[#E2E8F0] bg-gradient-to-r from-[#F8FAFC] to-[#FFFFFF] shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 flex-1 text-xs">
                                 <div>
-                                    <div class="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider">PROJECT ESTIMATION</div>
-                                    <div class="text-base font-bold text-gray-900 mt-1">
-                                        Rp {{ number_format($project->contract_value ?: 300000000, 0, ',', '.') }}
+                                    <div class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider">PROJECT ESTIMATION</div>
+                                    <div class="text-[17px] font-extrabold text-[#8F0A0D] mt-1">
+                                        Rp {{ number_format($project->contract_value ?: 0, 0, ',', '.') }}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div class="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider">PROJECT START</div>
-                                    <div class="text-xs font-bold text-gray-900 mt-1.5">
-                                        {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : '24 Aug 2026' }}
+                                    <div class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider">PROJECT START</div>
+                                    <div class="text-[13px] font-bold text-[#1E293B] mt-1 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : '-' }}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <div class="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider">PROJECT END</div>
-                                    <div class="text-xs font-bold text-gray-900 mt-1.5">
-                                        {{ $project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('d M Y') : '-' }}
+                                    <div class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider">PROJECT END</div>
+                                    <div class="text-[13px] font-bold text-[#1E293B] mt-1 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        {{ $project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('d M Y') : ($project->expected_closing_date ? \Carbon\Carbon::parse($project->expected_closing_date)->format('d M Y') : '-') }}
                                     </div>
                                 </div>
                             </div>
@@ -257,9 +248,9 @@
                             <div class="shrink-0">
                                 <button type="button" 
                                         @click="isEditMetaModalOpen = true" 
-                                        class="p-2 rounded-lg bg-white/70 hover:bg-white text-gray-700 transition cursor-pointer shadow-2xs" 
+                                        class="p-2.5 rounded-xl border border-[#CBD5E1] bg-white hover:bg-[#F8FAFC] text-[#475569] hover:text-[#8F0A0D] hover:border-[#8F0A0D]/30 transition cursor-pointer shadow-2xs" 
                                         title="Edit Estimasi Proyek">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                 </button>
                             </div>
                         </div>
@@ -364,55 +355,76 @@
                         </div>
 
                         {{-- TAB 3: OPPORTUNITY / CRM --}}
-                        <div x-show="activeStageTab === 'opportunity'" x-cloak class="p-5 rounded-xl border border-gray-200 bg-gray-50/60 text-xs space-y-2">
-                            <div class="font-bold text-gray-900">Pipeline Sales & Opportunity</div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-gray-600">
-                                <div>Stage: <strong class="text-gray-900">{{ $project->sales_stage ?: 'Proposal' }}</strong></div>
-                                <div>Win Probability: <strong class="text-gray-900">{{ $project->win_probability ?: 25 }}%</strong></div>
-                                <div>Target Closing: <strong class="text-gray-900">{{ $project->expected_closing_date ? \Carbon\Carbon::parse($project->expected_closing_date)->format('d M Y') : '30 Sep 2026' }}</strong></div>
+                        <div x-show="activeStageTab === 'opportunity'" x-cloak class="p-5 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] text-xs space-y-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full" style="background: linear-gradient(135deg, #0EA5E9, #0284C7);"></span>
+                                <span class="text-[13px] font-bold text-[#1E293B]">Pipeline Sales &amp; Opportunity</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                                <div class="p-3.5 bg-white rounded-xl border border-[#E2E8F0] shadow-2xs">
+                                    <span class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider block">Stage</span>
+                                    <strong class="text-[13px] text-[#1E293B] font-extrabold mt-0.5 block">{{ $project->sales_stage ?: 'Qualification' }}</strong>
+                                </div>
+                                <div class="p-3.5 bg-white rounded-xl border border-[#E2E8F0] shadow-2xs">
+                                    <span class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider block">Win Probability</span>
+                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                        <span class="w-2.5 h-2.5 rounded-full" style="background: linear-gradient(135deg, #FDE047, #F59E0B);"></span>
+                                        <strong class="text-[13px] text-[#8F0A0D] font-extrabold">{{ $project->win_probability ?: 10 }}%</strong>
+                                    </div>
+                                </div>
+                                <div class="p-3.5 bg-white rounded-xl border border-[#E2E8F0] shadow-2xs">
+                                    <span class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider block">Target Closing</span>
+                                    <strong class="text-[13px] text-[#1E293B] font-extrabold mt-0.5 block">{{ $project->expected_closing_date ? \Carbon\Carbon::parse($project->expected_closing_date)->format('d M Y') : '-' }}</strong>
+                                </div>
                             </div>
                         </div>
 
                         {{-- TAB 4: PENDING --}}
-                        <div x-show="activeStageTab === 'pending'" x-cloak class="p-5 rounded-xl border border-gray-200 bg-gray-50/60 text-xs space-y-2">
-                            <div class="font-bold text-gray-900">Proyek Ditangguhkan (Pending)</div>
-                            <p class="text-gray-500">Pengerjaan proyek sedang di-pause menunggu konfirmasi akses site atau pengiriman barang.</p>
+                        <div x-show="activeStageTab === 'pending'" x-cloak class="p-5 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] text-xs space-y-2">
+                            <div class="font-bold text-[#1E293B] text-[13px]">Proyek Ditangguhkan (Pending)</div>
+                            <p class="text-[#64748B]">Pengerjaan proyek sedang di-pause menunggu konfirmasi akses site atau pengiriman barang.</p>
                         </div>
 
                         {{-- TAB 5: COMPLETED --}}
-                        <div x-show="activeStageTab === 'completed'" x-cloak class="p-5 rounded-xl border border-gray-200 bg-gray-50/60 text-xs space-y-2">
-                            <div class="font-bold text-gray-900">Proyek Selesai & BAST Terbit</div>
-                            <p class="text-gray-500">Seluruh milestone selesai 100% dan berkas Berita Acara Serah Terima telah disahkan.</p>
+                        <div x-show="activeStageTab === 'completed'" x-cloak class="p-5 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] text-xs space-y-2">
+                            <div class="font-bold text-[#1E293B] text-[13px]">Proyek Selesai &amp; BAST Terbit</div>
+                            <p class="text-[#64748B]">Seluruh milestone selesai 100% dan berkas Berita Acara Serah Terima telah disahkan.</p>
                         </div>
 
-                        {{-- E. Client Info Section (4 Kolom Sesuai Template) --}}
-                        <div class="pt-5 border-t border-gray-200 space-y-3">
-                            <h3 class="text-sm font-bold text-gray-900">Client Info</h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 text-xs">
-                                <div>
-                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CLIENT NAME</div>
-                                    <div class="font-bold text-gray-900 mt-1">{{ $project->client ?: 'Sarana Kreasi Teknoart' }}</div>
+                        {{-- E. Client Info Section --}}
+                        <div class="pt-6 border-t border-[#F1F5F9] space-y-3">
+                            <h3 class="text-[13.5px] font-bold text-[#1E293B] flex items-center gap-2">
+                                <span class="w-1.5 h-4 rounded-full" style="background: linear-gradient(135deg, #8F0A0D, #D62E3C);"></span>
+                                Client Info
+                            </h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+                                <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                    <div class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider">CLIENT NAME</div>
+                                    <div class="font-bold text-[#1E293B] text-[13px] mt-1">{{ $project->client ?: '-' }}</div>
                                 </div>
-                                <div>
-                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CLIENT EMAIL</div>
-                                    <div class="font-bold text-gray-900 mt-1 truncate">{{ $project->customer_pic_finance ?: ($project->customer_pic_technical ?: 'sales@saranateknoart.com') }}</div>
+                                <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                    <div class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider">CLIENT EMAIL</div>
+                                    <div class="font-bold text-[#1E293B] text-[13px] mt-1 truncate">{{ $project->customer_pic_finance ?: ($project->customer_pic_technical ?: '-') }}</div>
                                 </div>
-                                <div>
-                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PIC</div>
-                                    <div class="font-bold text-gray-900 mt-1">{{ $project->customer_pic_name ?? ($project->sales_name ?? 'Yanuar') }}</div>
+                                <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                    <div class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider">PIC</div>
+                                    <div class="font-bold text-[#1E293B] text-[13px] mt-1">{{ $project->customer_pic_name ?? ($project->sales_name ?? '-') }}</div>
                                 </div>
-                                <div>
-                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CONTACT PIC</div>
-                                    <div class="font-bold text-gray-900 mt-1">{{ $project->customer_pic_business ?: '081299771333' }}</div>
+                                <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                                    <div class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider">CONTACT PIC</div>
+                                    <div class="font-bold text-[#1E293B] text-[13px] mt-1">{{ $project->customer_pic_business ?: '-' }}</div>
                                 </div>
                             </div>
                         </div>
 
                         {{-- F. Milestone Section --}}
-                        <div class="pt-6 border-t border-gray-200 space-y-3">
+                        <div class="pt-6 border-t border-[#F1F5F9] space-y-3">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-sm font-bold text-gray-900">Milestone</h3>
-                                <div class="text-xs text-gray-400 font-normal">
+                                <h3 class="text-[13.5px] font-bold text-[#1E293B] flex items-center gap-2">
+                                    <span class="w-1.5 h-4 rounded-full" style="background: linear-gradient(135deg, #FDE047, #F59E0B);"></span>
+                                    Milestone
+                                </h3>
+                                <div class="text-xs text-[#64748B] font-semibold">
                                     Complete ({{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }})
                                 </div>
                             </div>
@@ -420,17 +432,17 @@
                             @if($project->tasks->count() > 0)
                                 <div class="space-y-2">
                                     @foreach($project->tasks as $task)
-                                        <div class="p-3 rounded-lg border border-gray-200 bg-white flex items-center justify-between text-xs">
+                                        <div class="p-3 rounded-xl border border-[#E2E8F0] bg-white flex items-center justify-between text-xs hover:border-[#CBD5E1] transition">
                                             <div class="flex items-center gap-2.5 min-w-0">
-                                                <input type="checkbox" {{ $task->status === 'Completed' ? 'checked' : '' }} disabled class="rounded text-red-600 shrink-0">
+                                                <input type="checkbox" {{ $task->status === 'Completed' ? 'checked' : '' }} disabled class="rounded text-[#8F0A0D] shrink-0">
                                                 <div class="min-w-0">
-                                                    <span class="font-bold text-gray-900 truncate block">{{ $task->title ?? $task->name }}</span>
+                                                    <span class="font-bold text-[#1E293B] truncate block">{{ $task->title ?? $task->name }}</span>
                                                     @if($task->engineer)
-                                                        <div class="text-[10.5px] text-gray-400">Engineer: {{ $task->engineer->name }}</div>
+                                                        <div class="text-[10.5px] text-[#64748B]">Engineer: {{ $task->engineer->name }}</div>
                                                     @endif
                                                 </div>
                                             </div>
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700">
+                                            <span class="px-2.5 py-0.5 rounded-lg text-[10.5px] font-bold {{ $task->status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-[#F1F5F9] text-[#475569]' }}">
                                                 {{ $task->status }}
                                             </span>
                                         </div>
@@ -441,23 +453,29 @@
                             <div>
                                 <button type="button" 
                                         @click="isAddMilestoneModalOpen = true" 
-                                        class="text-xs font-bold text-ipnet-red hover:underline cursor-pointer">
-                                    +ADD MILESTONE
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span>ADD MILESTONE</span>
                                 </button>
                             </div>
                         </div>
 
                         {{-- G. Attachments Section --}}
-                        <div class="pt-6 border-t border-gray-200 space-y-3">
+                        <div class="pt-6 border-t border-[#F1F5F9] space-y-3">
                             <div class="flex items-center justify-between flex-wrap gap-2">
-                                <h3 class="text-sm font-bold text-gray-900">Attachments</h3>
+                                <h3 class="text-[13.5px] font-bold text-[#1E293B] flex items-center gap-2">
+                                    <span class="w-1.5 h-4 rounded-full" style="background: linear-gradient(135deg, #0EA5E9, #0284C7);"></span>
+                                    Attachments
+                                </h3>
                                 
-                                <div class="flex items-center gap-4 text-xs font-bold">
-                                    <button type="button" @click="isUploadDocModalOpen = true" class="text-ipnet-red hover:underline cursor-pointer">
-                                        + ADD ATTACHMENT
+                                <div class="flex items-center gap-3 text-xs font-bold">
+                                    <button type="button" @click="isUploadDocModalOpen = true" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        <span>ADD ATTACHMENT</span>
                                     </button>
-                                    <button type="button" @click="isUploadDocModalOpen = true" class="text-ipnet-red hover:underline cursor-pointer">
-                                        + ADD COGS ATTACHMENT
+                                    <button type="button" @click="isUploadDocModalOpen = true" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        <span>ADD COGS ATTACHMENT</span>
                                     </button>
                                 </div>
                             </div>
@@ -465,10 +483,10 @@
                             @if($project->relationLoaded('projectDocuments') && $project->projectDocuments->count() > 0)
                                 <div class="space-y-2">
                                     @foreach($project->projectDocuments as $doc)
-                                        <div class="p-3 rounded-lg border border-gray-200 bg-white flex items-center justify-between text-xs">
-                                            <span class="font-bold text-gray-900 truncate">{{ $doc->document_title ?? ($doc->document_name ?? 'Document') }}</span>
+                                        <div class="p-3 rounded-xl border border-[#E2E8F0] bg-white flex items-center justify-between text-xs hover:border-[#CBD5E1] transition">
+                                            <span class="font-bold text-[#1E293B] truncate">{{ $doc->document_title ?? ($doc->document_name ?? 'Document') }}</span>
                                             @if($doc->file_path)
-                                                <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="text-ipnet-red font-bold hover:underline">
+                                                <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="text-[#8F0A0D] font-bold hover:underline">
                                                     Download
                                                 </a>
                                             @endif
@@ -484,13 +502,20 @@
                     <div class="lg:col-span-3 p-6 sm:p-8 space-y-6 bg-white">
                         
                         {{-- Project Status --}}
-                        <div class="space-y-2.5">
-                            <div class="text-xs font-bold text-gray-400">Project Status</div>
-                            <div class="flex items-center gap-3 text-xs">
-                                <span class="px-2 py-0.5 rounded text-[11px] font-bold text-white badge-terracotta">
+                        <div class="space-y-3">
+                            <div class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Project Status</div>
+                            <div class="flex items-center gap-3 text-xs flex-wrap">
+                                <span class="px-3 py-1 rounded-xl text-[11.5px] font-extrabold text-white shadow-xs"
+                                      :class="{
+                                          'bg-gradient-to-r from-blue-600 to-indigo-600': activeStageTab === 'opportunity',
+                                          'bg-gradient-to-r from-amber-500 to-orange-600': activeStageTab === 'in_progress',
+                                          'bg-gradient-to-r from-emerald-500 to-teal-600': activeStageTab === 'completed',
+                                          'bg-gradient-to-r from-purple-500 to-indigo-600': activeStageTab === 'pending',
+                                          'bg-gradient-to-r from-slate-500 to-slate-700': activeStageTab === 'draft'
+                                      }">
                                     <span x-text="stageNameToDbStatus(activeStageTab)">{{ $currentStatus }}</span>
                                 </span>
-                                <span class="text-gray-400 text-[11.5px]">
+                                <span class="text-[#64748B] text-[11.5px] font-semibold">
                                     Progress {{ $project->progress ?: 0 }}% ({{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }} complete)
                                 </span>
                             </div>
