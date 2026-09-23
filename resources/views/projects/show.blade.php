@@ -94,6 +94,13 @@
     // Default stage selector
     $currentStatus = $project->status ?: 'Draft';
     $statusLower = strtolower($currentStatus);
+    $initialStage = match($currentStatus) {
+        'Opportunity' => 'opportunity',
+        'In Progress' => 'in_progress',
+        'Pending' => 'pending',
+        'Completed' => 'completed',
+        default => 'draft',
+    };
 
     // Hak otorisasi persetujuan pimpinan (Pak Susanto & Pak Hariyadi)
     $authUser = auth()->user();
@@ -105,7 +112,7 @@
 @endphp
 
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans text-slate-800" 
-     x-data="projectDetailPage('{{ $initialStage }}', '{{ $currentStatus }}')">
+     x-data="projectDetailPage('{{ $initialStage ?? 'draft' }}', '{{ $currentStatus }}')">
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
