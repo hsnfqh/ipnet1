@@ -115,11 +115,20 @@
 
     // Hak otorisasi persetujuan pimpinan (Pak Susanto & Pak Hariyadi)
     $authUser = auth()->user();
-    $canApproveHead = $authUser && ($authUser->hasAnyRole(['Director', 'Direktur', 'Division Head', 'Head Divisi', 'Group Leader']) || str_contains(strtolower($authUser->name), 'susanto'));
-    $canApproveDirector = $authUser && ($authUser->hasAnyRole(['Director', 'Direktur']) || str_contains(strtolower($authUser->name), 'hariyadi'));
+    $userRoles = $authUser ? $authUser->roles->pluck('name')->toArray() : [];
+    $canApproveHead = $authUser && (
+        !empty(array_intersect(['Director', 'Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Lead Divisi'], $userRoles)) 
+        || str_contains(strtolower($authUser->name), 'susanto')
+    );
+    $canApproveDirector = $authUser && (
+        !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur'], $userRoles)) 
+        || str_contains(strtolower($authUser->name), 'hariyadi')
+    );
 
-    // Ambil daftar user PMO (Rizki, Kuncoro, dsb)
-    $pmoUsers = \App\Models\User::role(['PMO', 'Project Manager'])->orWhere('name', 'like', '%Rizki%')->orderBy('name')->get();
+    // Ambil daftar user PMO secara aman (tanpa crash jika role belum ada di DB)
+    $pmoUsers = \App\Models\User::whereHas('roles', function($q) {
+        $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Divisi', 'Group Leader', 'Direktur', 'HD / Direktur']);
+    })->orWhere('name', 'like', '%Rizki%')->orWhere('name', 'like', '%Kuncoro%')->orderBy('name')->get();
 @endphp
 
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans text-slate-800" 
@@ -152,7 +161,7 @@
                 </div>
             @endif
 
-            @if($errors->any())
+            @if(isset($errors) && $errors->any())
                 <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-semibold space-y-1.5 shadow-xs">
                     <div class="flex items-center justify-between font-bold text-red-900">
                         <div class="flex items-center gap-2">
