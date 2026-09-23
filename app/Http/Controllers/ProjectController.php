@@ -251,6 +251,17 @@ class ProjectController extends Controller
                 'assigned_at'      => $now,
                 'sales_notes'      => $validated['notes'] ?? null,
             ]);
+
+            // Kirim notifikasi sistem ke Pak Susanto
+            if ($headUser && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                \App\Models\Notification::create([
+                    'user_id' => $headUser->id,
+                    'title'   => 'Permohonan Review Draft: ' . $project->name,
+                    'message' => "Sales ({$creatorName}) menugaskan Anda untuk meninjau kelayakan teknis draft proyek '{$project->name}' (Klien: " . ($project->client ?: '-') . ")." . (!empty($validated['notes']) ? " Catatan: {$validated['notes']}" : ''),
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
         }
 
         if (in_array($validated['role'], ['director', 'both'])) {
@@ -267,13 +278,24 @@ class ProjectController extends Controller
                 'assigned_at'      => $now,
                 'sales_notes'      => $validated['notes'] ?? null,
             ]);
+
+            // Kirim notifikasi sistem ke Pak Hariyadi
+            if ($directorUser && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                \App\Models\Notification::create([
+                    'user_id' => $directorUser->id,
+                    'title'   => 'Permohonan Otorisasi Draft: ' . $project->name,
+                    'message' => "Sales ({$creatorName}) menugaskan Anda untuk mengotorisasi draft proyek '{$project->name}' (Klien: " . ($project->client ?: '-') . ")." . (!empty($validated['notes']) ? " Catatan: {$validated['notes']}" : ''),
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
         }
 
         $handoverData['draft_approvals'] = $approvals;
         $project->handover_data = $handoverData;
         $project->save();
 
-        $msg = "Review draft berhasil ditugaskan ke pimpinan!";
+        $msg = "Review draft berhasil ditugaskan ke pimpinan dan notifikasi telah dikirimkan!";
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'message' => $msg, 'approvals' => $approvals]);
         }
@@ -299,22 +321,51 @@ class ProjectController extends Controller
         ];
 
         $now = now()->format('d M Y H:i');
+        $approverUser = auth()->user();
+        $approverName = $approverUser ? $approverUser->name : 'Pimpinan';
+
         if ($validated['approval_role'] === 'head') {
-            $approvals['head'] = [
+            $approvals['head'] = array_merge($approvals['head'] ?? [], [
+                'assigned' => true,
                 'approved' => true,
-                'by' => 'Susanto Djaya (Head Divisi)',
-                'date' => $now,
-                'notes' => $validated['notes'] ?: 'Kelayakan teknis & alokasi resource disetujui.',
-            ];
-            $msg = "Persetujuan Head Divisi (Pak Susanto) berhasil dicatat!";
+                'by'       => $approverName . ' (Head Divisi)',
+                'date'     => $now,
+                'notes'    => $validated['notes'] ?: 'Kelayakan teknis & alokasi resource disetujui.',
+            ]);
+            $msg = "Persetujuan Head Divisi ({$approverName}) berhasil dicatat!";
+
+            // Kirim notifikasi ke pembuat proyek (Sales)
+            $targetUserId = $project->creator_id ?? $project->created_by;
+            if ($targetUserId && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                \App\Models\Notification::create([
+                    'user_id' => $targetUserId,
+                    'title'   => 'Draft Proyek Disetujui Head: ' . $project->name,
+                    'message' => "Head Divisi ({$approverName}) telah menyetujui kelayakan teknis draft proyek '{$project->name}'.",
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
         } else {
-            $approvals['director'] = [
+            $approvals['director'] = array_merge($approvals['director'] ?? [], [
+                'assigned' => true,
                 'approved' => true,
-                'by' => 'Hariyadi (Direktur)',
-                'date' => $now,
-                'notes' => $validated['notes'] ?: 'Otorisasi anggaran dan persetujuan eksekusi kontrak disahkan.',
-            ];
-            $msg = "Otorisasi Direktur (Pak Hariyadi) berhasil dicatat!";
+                'by'       => $approverName . ' (Direktur)',
+                'date'     => $now,
+                'notes'    => $validated['notes'] ?: 'Otorisasi anggaran dan persetujuan eksekusi kontrak disahkan.',
+            ]);
+            $msg = "Otorisasi Direktur ({$approverName}) berhasil dicatat!";
+
+            // Kirim notifikasi ke pembuat proyek (Sales)
+            $targetUserId = $project->creator_id ?? $project->created_by;
+            if ($targetUserId && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                \App\Models\Notification::create([
+                    'user_id' => $targetUserId,
+                    'title'   => 'Draft Proyek Diotorisasi Direktur: ' . $project->name,
+                    'message' => "Direktur ({$approverName}) telah mengotorisasi draft proyek '{$project->name}'.",
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
         }
 
         $handoverData['draft_approvals'] = $approvals;
@@ -323,6 +374,23 @@ class ProjectController extends Controller
         if (!empty($approvals['head']['approved']) && !empty($approvals['director']['approved'])) {
             if ($project->status === 'Draft') {
                 $project->status = 'Opportunity';
+            }
+
+            // Notifikasi ke seluruh PMO bahwa dual sign-off telah selesai
+            if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                $pmoUsers = \App\Models\User::whereHas('roles', function($q) {
+                    $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Divisi', 'Group Leader']);
+                })->orWhere('name', 'like', '%Rizki%')->get();
+
+                foreach ($pmoUsers as $pmo) {
+                    \App\Models\Notification::create([
+                        'user_id' => $pmo->id,
+                        'title'   => 'Draft Proyek Siap Handover: ' . $project->name,
+                        'message' => "Proyek '{$project->name}' telah selesai ditinjau & diotorisasi (Dual Sign-Off lengkap) dan siap diproses lebih lanjut.",
+                        'url'     => route('projects.show', $project->id),
+                        'is_read' => false,
+                    ]);
+                }
             }
         }
 
