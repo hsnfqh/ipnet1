@@ -11,7 +11,7 @@ use App\Http\Requests\ProjectRequest;
 
 class ProjectController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user         = auth()->user();
         $isLead       = \App\Helpers\ScopeHelper::isManagerial($user);
@@ -30,10 +30,18 @@ class ProjectController extends Controller
                 $q->whereNull('project_type')->orWhere('project_type', '!=', 'Meeting / Internal');
             });
 
-        // Jangan tampilkan project Draft sales ke Lead Engineer / Engineer
-        if (!$isSales && !$isDirektur) {
+        // Jangan tampilkan project Draft sales ke Lead Engineer / Engineer biasa,
+        // TETAPI pimpinan (Direktur, Group Leader / Head Divisi seperti Susanto) dan Sales harus bisa melihatnya
+        if (!$isSales && !$isDirektur && !$isSupervisor && !str_contains(strtolower($user->name), 'susanto') && !str_contains(strtolower($user->name), 'hariyadi')) {
             $baseQuery->whereNotIn('status', ['Draft', 'draft'])
                       ->where('stage', '!=', 'Draft');
+        }
+
+        if ($request->filled('status')) {
+            $baseQuery->where(function($q) use ($request) {
+                $q->where('status', $request->status)
+                  ->orWhere('stage', $request->status);
+            });
         }
 
         if ($isDirektur || $isSupervisor || $isSales || $isPmo) {

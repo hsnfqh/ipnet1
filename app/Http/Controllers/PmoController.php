@@ -206,7 +206,9 @@ class PmoController extends Controller
         $handoverConditionalCount = $formattedProjects->where('handover_status', 'Conditional')->count();
 
         // 4. Hitung Utilisasi Engineer Lintas Divisi
-        $allEngineers = User::role(['Engineer', 'Engineer L1', 'Engineer L2', 'Maintenance'])->get();
+        $allEngineers = User::whereHas('roles', function($q) {
+            $q->whereIn('name', ['Engineer', 'Engineer L1', 'Engineer L2', 'Maintenance', 'Lead Engineer', 'Lead Maintenance']);
+        })->get();
         $assignedEngineerIds = Task::whereHas('project', function($q) {
             $q->whereNull('deleted_at');
         })->whereIn('status', ['In Progress', 'Testing', 'Review'])
@@ -229,7 +231,9 @@ class PmoController extends Controller
 
         // 6. Data Master untuk Filter & Form
         $divisions = Division::all();
-        $pmList = User::role(['PMO', 'Project Manager'])->get(['id', 'name', 'email']);
+        $pmList = User::whereHas('roles', function($q) {
+            $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Divisi', 'Group Leader', 'Direktur', 'HD / Direktur']);
+        })->orWhere('name', 'like', '%Rizki%')->orWhere('name', 'like', '%Kuncoro%')->get(['id', 'name', 'email']);
 
         return view('pmo.dashboard', compact(
             'formattedProjects',

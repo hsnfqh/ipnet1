@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Daftar Proyek - PT IP Network Solusindo')
 
@@ -84,6 +84,7 @@
                     <select x-model="statusFilter" @change="currentPage = 1" 
                             class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="Semua">Semua Status</option>
+                        <option value="Draft">Draft (Menunggu Approval)</option>
                         <option value="Planning">Planning</option>
                         <option value="On Progress">On Progress</option>
                         <option value="Completed">Completed</option>
@@ -201,8 +202,15 @@
                                     {{-- Aksi --}}
                                     <td class="py-3.5 px-4 text-right whitespace-nowrap">
                                         <div class="flex justify-end items-center gap-1">
-                                            {{-- Detail --}}
-                                            <button @click="viewProject(project)" title="Lihat Detail Project" class="p-1.5 rounded-lg text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition cursor-pointer">
+                                            {{-- Buka Halaman Proyek & Approval --}}
+                                            <a :href="'/projects/' + project.id" title="Buka Detail Proyek & Alur Approval" class="p-1.5 rounded-lg text-[#8F0A0D] hover:bg-[#FEF2F2] transition cursor-pointer flex items-center justify-center">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                                </svg>
+                                            </a>
+
+                                            {{-- Quick Modal View --}}
+                                            <button @click="viewProject(project)" title="Lihat Ringkasan Modal" class="p-1.5 rounded-lg text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition cursor-pointer">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -762,7 +770,7 @@
         Alpine.data('projectsManager', () => ({
             projects: @json($projects),
             search: '',
-            statusFilter: 'Semua',
+            statusFilter: (new URLSearchParams(window.location.search).get('status')) || 'Semua',
             typeFilter: 'Semua',
             currentPage: 1,
             perPage: 10,
@@ -972,6 +980,7 @@
 
             getStatusBadge(status) {
                 const styles = {
+                    'Draft': { bg: '#FEF2F2', fg: '#991B1B', border: '#FECACA', dot: '#DC2626' },
                     'Planning': { bg: '#F1F5F9', fg: '#475569', border: '#E2E8F0', dot: '#94A3B8' },
                     'On Progress': { bg: '#FFFBEB', fg: '#D97706', border: '#FDE68A', dot: '#D97706' },
                     'Completed': { bg: '#F0FDF4', fg: '#16A34A', border: '#BBF7D0', dot: '#16A34A' }
@@ -979,7 +988,7 @@
                 const s = styles[status] || styles['Planning'];
                 return `<span style="background: ${s.bg}; color: ${s.fg}; border: 1px solid ${s.border}; font-size: 11px; font-weight: 600; padding: 2.5px 8px 2.5px 6px; border-radius: 9999px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4.5px;">
                             <span style="width: 5.5px; height: 5.5px; border-radius: 50%; background: ${s.dot}; flex-shrink: 0;"></span>
-                            ${status}
+                            ${status === 'Draft' ? 'Draft (Menunggu Approval)' : status}
                         </span>`;
             },
 

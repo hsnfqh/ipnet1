@@ -13,13 +13,43 @@
 
     $navItems = [];
 
+    // Hitung permohonan persetujuan draft untuk pimpinan (Susanto & Hariyadi)
+    $pendingApprovalsCount = 0;
+    if ($isExecutiveOrGl && \Illuminate\Support\Facades\Schema::hasTable('projects')) {
+        $isSusanto = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
+        $isHariyadi = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
+
+        $pendingApprovalsCount = \App\Models\Project::where(function($q) {
+                $q->whereNotNull('handover_data')
+                  ->orWhere('status', 'Draft')
+                  ->orWhere('stage', 'Draft');
+            })
+            ->whereNull('deleted_at')
+            ->get()
+            ->filter(function($p) use ($isSusanto, $isHariyadi) {
+                $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+                $approvals = $hd['draft_approvals'] ?? [];
+                $needHead = !empty($approvals['head']['assigned']) && empty($approvals['head']['approved']);
+                $needDirector = !empty($approvals['director']['assigned']) && empty($approvals['director']['approved']);
+
+                if ($isSusanto && $needHead) return true;
+                if ($isHariyadi && $needDirector) return true;
+
+                $isDraftState = in_array(strtolower($p->status ?? ''), ['draft']) || in_array(strtolower($p->stage ?? ''), ['draft']);
+                if ($isDraftState) {
+                    if ($isSusanto && empty($approvals['head']['approved'])) return true;
+                    if ($isHariyadi && empty($approvals['director']['approved'])) return true;
+                }
+                return false;
+            })->count();
+    }
+
     if ($isExecutiveOrGl) {
         $navItems = [
             ['key' => 'dashboard',        'label' => 'Dashboard Utama',     'route' => 'dashboard.lead'],
+            ['key' => 'draft_approvals',  'label' => 'Persetujuan Draft',   'route' => 'projects.index', 'params' => ['status' => 'Draft'], 'badge' => $pendingApprovalsCount],
             ['key' => 'pmo_dashboard',    'label' => 'Dashboard PMO',       'route' => 'pmo.dashboard'],
             ['key' => 'managed_service',  'label' => 'Managed Service',     'route' => 'ms.dashboard'],
-            ['key' => 'cro',              'label' => 'Customer Care',       'route' => 'cro.dashboard'],
-            ['key' => 'admin_dashboard',  'label' => 'Admin Support',       'route' => 'admin_support.dashboard'],
             ['key' => 'acquire',          'label' => 'Peluang & Pipeline',  'route' => 'acquire.index'],
             ['key' => 'projects',         'label' => 'Daftar Proyek',       'route' => 'projects.index'],
             ['key' => 'tasks',            'label' => 'Daftar Tugas',        'route' => 'tasks.index'],
@@ -259,9 +289,15 @@
 
         @foreach($navItems as $item)
             @php
-                $isActive = $currentRoute === $item['route'];
+                $itemParams = $item['params'] ?? [];
+                $itemUrl = !empty($itemParams) ? route($item['route'], $itemParams) : route($item['route']);
+                if (isset($itemParams['status'])) {
+                    $isActive = ($currentRoute === $item['route']) && (request('status') === $itemParams['status']);
+                } else {
+                    $isActive = ($currentRoute === $item['route']) && (!request()->has('status') || request('status') === '');
+                }
             @endphp
-            <a href="{{ route($item['route']) }}"
+            <a href="{{ $itemUrl }}"
                class="sidebar-nav-item{{ $isActive ? ' sidebar-nav-item-active' : '' }}"
                style="display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:12px; text-decoration:none; font-size:13.5px; font-weight:{{ $isActive ? '700' : '500' }}; {{ $isActive ? 'background:white; color:#8F0A0D; box-shadow:0 6px 18px rgba(0,0,0,0.22);' : 'color:rgba(255,255,255,0.85);' }} transition:all 0.15s ease;">
                 @switch($item['key'])
@@ -453,8 +489,18 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
                     @break
+                    @case('draft_approvals')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    @break
                 @endswitch
                 <span x-show="!collapsed" x-cloak>{{ $item['label'] }}</span>
+                @if(isset($item['badge']) && $item['badge'] > 0)
+                    <span x-show="!collapsed" x-cloak style="margin-left:auto; background:{{ $isActive ? '#8F0A0D' : '#ef4444' }}; color:white; font-size:10px; font-weight:800; padding:2px 7.5px; border-radius:9999px; line-height:1.2; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+                        {{ $item['badge'] }}
+                    </span>
+                @endif
             </a>
         @endforeach
     </div>

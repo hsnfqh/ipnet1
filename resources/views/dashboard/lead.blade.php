@@ -215,6 +215,67 @@
             </div>
 
             {{-- ======================================================== --}}
+            {{-- 1.5 PERMOHONAN PERSETUJUAN DRAFT DARI SALES (DUAL SIGN-OFF) --}}
+            {{-- ======================================================== --}}
+            @if(isset($pendingDraftApprovals) && $pendingDraftApprovals->count() > 0)
+                <div class="rounded-2xl p-5 border-2 border-red-200 bg-gradient-to-br from-red-50/90 via-white to-amber-50/40 shadow-md shadow-red-950/5 space-y-3.5 anim-fade-up">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="relative flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-[#8F0A0D]"></span>
+                            </span>
+                            <h3 class="text-[14px] font-extrabold text-[#1E293B] flex items-center gap-2">
+                                <span>Permohonan Persetujuan Draft Proyek dari Sales</span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#8F0A0D] text-white shadow-xs">
+                                    {{ $pendingDraftApprovals->count() }} Menunggu Otorisasi Anda
+                                </span>
+                            </h3>
+                        </div>
+                        <span class="text-[11.5px] font-semibold text-[#64748B]">Perlu review kelayakan teknis / otorisasi kontrak sebelum diserahkan ke PMO</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
+                        @foreach($pendingDraftApprovals as $pProj)
+                            @php
+                                $hd = is_array($pProj->handover_data) ? $pProj->handover_data : [];
+                                $dApp = $hd['draft_approvals'] ?? [];
+                                $isHeadWaiting = !empty($dApp['head']['assigned']) && empty($dApp['head']['approved']);
+                                $isDirWaiting = !empty($dApp['director']['assigned']) && empty($dApp['director']['approved']);
+                                $salesNotes = $dApp['head']['sales_notes'] ?? ($dApp['director']['sales_notes'] ?? null);
+                            @endphp
+                            <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-2xs hover:border-red-400 transition flex flex-col justify-between space-y-3">
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center justify-between gap-1">
+                                        <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-md {{ $isHeadWaiting ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-red-50 text-[#8F0A0D] border border-red-200' }}">
+                                            {{ $isHeadWaiting ? 'Review Teknis (Head Divisi)' : 'Otorisasi Direktur' }}
+                                        </span>
+                                        <span class="text-[10.5px] font-semibold text-gray-500">
+                                            Sales: {{ $pProj->sales_name ?: ($pProj->creator ? $pProj->creator->name : 'Sales') }}
+                                        </span>
+                                    </div>
+                                    <h4 class="text-[13.5px] font-extrabold text-gray-900 leading-snug line-clamp-1">{{ $pProj->name }}</h4>
+                                    <div class="text-[11.5px] text-gray-500 flex items-center gap-1.5">
+                                        <span>Klien:</span>
+                                        <span class="font-bold text-gray-800 truncate">{{ $pProj->client ?: '-' }}</span>
+                                    </div>
+                                    @if($salesNotes)
+                                        <div class="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100 italic line-clamp-2">
+                                            "{{ $salesNotes }}"
+                                        </div>
+                                    @endif
+                                </div>
+                                <a href="{{ route('projects.show', $pProj->id) }}" class="inline-flex items-center justify-center gap-1.5 w-full py-2 px-3.5 rounded-xl text-xs font-bold text-white btn-ipnet-primary transition shadow-2xs hover:scale-[1.01]">
+                                    <span>Review & Setujui Sekarang</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            {{-- ======================================================== --}}
             {{-- 2. METRIC SUMMARY CARDS (IPNET BLUSH ACCENTS)             --}}
             {{-- ======================================================== --}}
             <div class="anim-fade-up anim-delay-1">
