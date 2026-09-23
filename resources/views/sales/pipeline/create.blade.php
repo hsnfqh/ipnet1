@@ -60,7 +60,7 @@
                 @csrf
                 <input type="hidden" name="status" value="{{ $isCompleted ? 'Completed' : 'Opportunity' }}">
                 <input type="hidden" name="is_completed" value="{{ $isCompleted ? '1' : '0' }}">
-                <div class="max-w-[860px]">
+                <div class="w-full">
                         <div class="sec-card afu">
                             <div class="sec-head"><span class="sec-dot" style="background:linear-gradient(135deg,#8F0A0D,#D62E3C);"></span>Project Information</div>
                             <div class="mb-4">
