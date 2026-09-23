@@ -482,90 +482,181 @@
     </div>
 
     {{-- MODAL: + ADD NEW PROJECT / + ADD COMPLETE PROJECT --}}
-    <div x-show="isAddModalOpen" x-cloak 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-        <div @click.away="isAddModalOpen = false" 
-             class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 space-y-4 max-h-[90vh] overflow-y-auto">
-            
-            <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="text-base font-bold text-gray-900" x-text="modalTitle"></h3>
-                <button type="button" @click="isAddModalOpen = false" class="text-gray-400 hover:text-gray-700 text-lg font-bold">✕</button>
+    <div x-show="isAddModalOpen" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/65 backdrop-blur-sm">
+        <div @click.away="isAddModalOpen = false"
+             class="bg-white rounded-2xl w-[660px] max-w-full max-h-[90vh] flex flex-col overflow-hidden shadow-[0_24px_64px_rgba(15,23,42,0.28)] border border-[#E2E8F0]">
+
+            {{-- ── Modal Header ── --}}
+            <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] flex-shrink-0"
+                 style="background: linear-gradient(135deg, #F8FAFC 0%, #FEF2F2 100%);">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                         style="background: linear-gradient(135deg, #8F0A0D, #D62E3C);">
+                        <svg style="width:18px;height:18px;" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-[15px] font-bold text-[#1E293B] leading-tight" x-text="modalTitle"></h3>
+                        <p class="text-[11.5px] text-[#64748B] mt-0.5">Lengkapi informasi pipeline sales dengan benar</p>
+                    </div>
+                </div>
+                <button type="button" @click="isAddModalOpen = false"
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-[#64748B] hover:text-[#1E293B] hover:bg-[#E2E8F0] transition-colors cursor-pointer">
+                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
             </div>
 
-            <form action="{{ route('sales.pipeline.store') }}" method="POST" class="space-y-4 text-xs font-semibold">
-                @csrf
-                <input type="hidden" name="status" :value="formStatus">
-                <input type="hidden" name="is_completed" :value="formStatus === 'Completed' ? '1' : '0'">
+            {{-- ── Modal Body ── --}}
+            <div class="overflow-y-auto flex-1 bg-[#F8FAFC]">
+                <form action="{{ route('sales.pipeline.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="status" :value="formStatus">
+                    <input type="hidden" name="is_completed" :value="formStatus === 'Completed' ? '1' : '0'">
 
-                <div>
-                    <label class="block text-gray-700 mb-1">Nama Project <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" required placeholder="Contoh: Pengadaan Firewall & Switch Datacenter"
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
-                </div>
+                    {{-- ════ SECTION 1: Informasi Proyek ════ --}}
+                    <div class="px-6 pt-5 pb-4">
+                        <div class="flex items-center gap-2.5 mb-4">
+                            <div class="w-1 h-4 rounded-full bg-[#8F0A0D]"></div>
+                            <span class="text-[11.5px] font-extrabold text-[#8F0A0D] uppercase tracking-widest">Informasi Proyek</span>
+                        </div>
 
-                <div>
-                    <label class="block text-gray-700 mb-1">Nama Client <span class="text-red-500">*</span></label>
-                    <input type="text" name="client" required placeholder="Contoh: PT Telkom Indonesia / Bank BRI"
-                           list="clientListOptions"
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
-                    <datalist id="clientListOptions">
-                        @foreach($clients as $cl)
-                            <option value="{{ $cl->name }}">{{ $cl->department ? "({$cl->department})" : '' }}</option>
-                        @endforeach
-                    </datalist>
-                </div>
+                        <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 space-y-4 shadow-sm">
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-gray-700 mb-1">Divisi Terkait</label>
-                        <select name="division_id" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer">
-                            <option value="">Pilih Divisi...</option>
-                            @foreach($divisions as $div)
-                                <option value="{{ $div->id }}">{{ $div->name }}</option>
-                            @endforeach
-                        </select>
+                            {{-- Nama Project --}}
+                            <div>
+                                <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                    Nama Project <span class="text-[#8F0A0D]">*</span>
+                                </label>
+                                <input type="text" name="name" required
+                                       placeholder="Contoh: Pengadaan Firewall &amp; Switch Datacenter"
+                                       class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition">
+                            </div>
+
+                            {{-- Nama Client --}}
+                            <div>
+                                <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                    Nama Client <span class="text-[#8F0A0D]">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
+                                        <svg class="w-4 h-4 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        </svg>
+                                    </div>
+                                    <input type="text" name="client" required
+                                           placeholder="Contoh: PT Telkom Indonesia / Bank BRI"
+                                           list="clientListOptions"
+                                           class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition">
+                                    <datalist id="clientListOptions">
+                                        @foreach($clients as $cl)
+                                            <option value="{{ $cl->name }}">{{ $cl->department ? "({$cl->department})" : '' }}</option>
+                                        @endforeach
+                                    </datalist>
+                                </div>
+                            </div>
+
+                            {{-- 2-Col: Divisi Terkait + Nilai Kontrak --}}
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                    <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Divisi Terkait</label>
+                                    <select name="division_id"
+                                            class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition cursor-pointer">
+                                        <option value="">Pilih Divisi...</option>
+                                        @foreach($divisions as $div)
+                                            <option value="{{ $div->id }}">{{ $div->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Nilai Kontrak (Rp)</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
+                                            <span class="text-[12px] font-bold text-[#94A3B8]">Rp</span>
+                                        </div>
+                                        <input type="number" name="contract_value" min="0" placeholder="0"
+                                               class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition">
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Catatan Tambahan --}}
+                            <div>
+                                <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                    Catatan Tambahan <span class="text-[#94A3B8] font-normal normal-case">(opsional)</span>
+                                </label>
+                                <textarea name="sales_notes" rows="3"
+                                          placeholder="Detail kebutuhan klien, spesifikasi teknis, atau catatan penting..."
+                                          class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition resize-none"></textarea>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-gray-700 mb-1">Nilai Kontrak (Rp)</label>
-                        <input type="number" name="contract_value" min="0" placeholder="0"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
-                    </div>
-                </div>
+                    {{-- ════ SECTION 2: Pipeline Sales (disembunyikan jika Completed) ════ --}}
+                    <div class="px-6 pb-5" x-show="formStatus !== 'Completed'">
+                        <div class="flex items-center gap-2.5 mb-4">
+                            <div class="w-1 h-4 rounded-full bg-[#4F46E5]"></div>
+                            <span class="text-[11.5px] font-extrabold text-[#4F46E5] uppercase tracking-widest">Pipeline &amp; Estimasi</span>
+                        </div>
 
-                <div class="grid grid-cols-2 gap-3" x-show="formStatus !== 'Completed'">
-                    <div>
-                        <label class="block text-gray-700 mb-1">Tahapan Sales</label>
-                        <select name="sales_stage" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer">
-                            @foreach($stages as $k => $stg)
-                                <option value="{{ $k }}">{{ $stg['label'] }}</option>
-                            @endforeach
-                        </select>
+                        <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 shadow-sm">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                    <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Tahapan Sales</label>
+                                    <select name="sales_stage"
+                                            class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition cursor-pointer">
+                                        @foreach($stages as $k => $stg)
+                                            <option value="{{ $k }}">{{ $stg['label'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Estimasi Closing</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
+                                            <svg class="w-4 h-4 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                        </div>
+                                        <input type="date" name="expected_closing_date"
+                                               value="{{ date('Y-m-d', strtotime('+1 month')) }}"
+                                               class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-gray-700 mb-1">Estimasi Closing</label>
-                        <input type="date" name="expected_closing_date" value="{{ date('Y-m-d', strtotime('+1 month')) }}"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
+
+                    {{-- ── Modal Footer ── --}}
+                    <div class="flex items-center gap-3 px-6 py-4 border-t border-[#E2E8F0] bg-white flex-shrink-0 sticky bottom-0">
+                        <button type="button" @click="isAddModalOpen = false"
+                                class="flex-1 flex items-center justify-center gap-2 h-[42px] bg-white hover:bg-[#F8FAFC] text-[#475569] border border-[#CBD5E1] px-4 rounded-xl font-bold text-[13px] transition-all cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Batal
+                        </button>
+                        <button type="submit"
+                                :class="formStatus === 'Completed' ? 'bg-emerald-600 hover:bg-emerald-700' : ''"
+                                :style="formStatus !== 'Completed' ? 'background: linear-gradient(135deg, #8F0A0D 0%, #D62E3C 100%);' : ''"
+                                class="flex-[2] flex items-center justify-center gap-2 h-[42px] px-6 rounded-xl font-bold text-[13px] text-white cursor-pointer shadow-md transition-all hover:opacity-90 active:scale-[0.98]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span x-text="formStatus === 'Completed' ? 'Simpan Project Selesai' : 'Simpan Project'"></span>
+                        </button>
                     </div>
-                </div>
-
-                <div>
-                    <label class="block text-gray-700 mb-1">Catatan Tambahan</label>
-                    <textarea name="sales_notes" rows="2.5" placeholder="Detail kebutuhan klien atau spesifikasi..."
-                              class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-normal text-gray-900 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]"></textarea>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isAddModalOpen = false" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50">
-                        Batal
-                    </button>
-                    <button type="submit" 
-                            :class="formStatus === 'Completed' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'btn-ipnet-gradient'"
-                            class="px-5 py-2.5 rounded-xl font-bold shadow-md cursor-pointer">
-                        Simpan Project
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 
