@@ -134,14 +134,7 @@
                             </div>
                         </div>
 
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="cf-label" style="margin-bottom:0;">Win Probability</label>
-                                <span class="text-[13px] font-extrabold text-[#8F0A0D]" x-text="probability + '%'"></span>
-                            </div>
-                            <input type="range" name="win_probability" min="0" max="100" step="5" x-model.number="probability" class="win-slider" :style="`background:linear-gradient(to right,#8F0A0D 0%,#8F0A0D ${probability}%,#E2E8F0 ${probability}%,#E2E8F0 100%)`">
-                            <div class="flex justify-between mt-1 text-[10.5px] text-[#94A3B8]"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
-                        </div>
+                        <input type="hidden" name="win_probability" :value="probability">
 
                         {{-- ─── DIVIDER ─── --}}
                         <hr class="sec-divider mt-6">
