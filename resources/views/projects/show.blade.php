@@ -161,19 +161,19 @@
                             <div class="flex items-center gap-2.5 flex-wrap">
                                 {{-- Stage Selector Pills --}}
                                 <div class="inline-flex items-center gap-1.5 p-1 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0]">
-                                    <button type="button" @click="activeStageTab = 'draft'" :class="activeStageTab === 'draft' ? 'active' : ''" class="stage-pill cursor-pointer">
+                                    <button type="button" @click="selectStage('draft')" :class="activeStageTab === 'draft' ? 'active' : ''" class="stage-pill cursor-pointer">
                                         <span>Draft</span>
                                     </button>
-                                    <button type="button" @click="activeStageTab = 'opportunity'" :class="activeStageTab === 'opportunity' ? 'active' : ''" class="stage-pill cursor-pointer">
+                                    <button type="button" @click="selectStage('opportunity')" :class="activeStageTab === 'opportunity' ? 'active' : ''" class="stage-pill cursor-pointer">
                                         <span>Opty</span>
                                     </button>
-                                    <button type="button" @click="activeStageTab = 'in_progress'" :class="activeStageTab === 'in_progress' ? 'active' : ''" class="stage-pill cursor-pointer">
+                                    <button type="button" @click="selectStage('in_progress')" :class="activeStageTab === 'in_progress' ? 'active' : ''" class="stage-pill cursor-pointer">
                                         <span>In Progress</span>
                                     </button>
-                                    <button type="button" @click="activeStageTab = 'pending'" :class="activeStageTab === 'pending' ? 'active' : ''" class="stage-pill cursor-pointer">
+                                    <button type="button" @click="selectStage('pending')" :class="activeStageTab === 'pending' ? 'active' : ''" class="stage-pill cursor-pointer">
                                         <span>Pending</span>
                                     </button>
-                                    <button type="button" @click="activeStageTab = 'completed'" :class="activeStageTab === 'completed' ? 'active' : ''" class="stage-pill cursor-pointer">
+                                    <button type="button" @click="selectStage('completed')" :class="activeStageTab === 'completed' ? 'active' : ''" class="stage-pill cursor-pointer">
                                         <span>Completed</span>
                                     </button>
                                 </div>
@@ -901,6 +901,23 @@
             openApproveModal(role = 'head') {
                 this.approveRole = role;
                 this.isApproveModalOpen = true;
+            },
+
+            selectStage(tabKey) {
+                this.activeStageTab = tabKey;
+                const newStatus = this.stageNameToDbStatus(tabKey);
+                this.currentStatus = newStatus;
+
+                fetch('{{ route("projects.stage_update", $project->id) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                }).catch(err => console.error('Stage update error:', err));
             },
 
             stageNameToDbStatus(tabKey) {

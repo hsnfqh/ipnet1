@@ -212,8 +212,8 @@ class SalesCrmController extends Controller
             $prob = 100;
             $progress = 0;              // Progress teknis belum dimulai, baru commercial closed
         } else {
-            $status = $validated['status'] ?? 'Opportunity';
-            $stage = in_array($status, ['In Progress', 'Active']) ? 'Deliver' : 'Acquire';
+            $status = $validated['status'] ?? 'Draft';
+            $stage = in_array($status, ['In Progress', 'Active']) ? 'Deliver' : 'Draft';
             $salesStage = $validated['sales_stage'] ?? ($status === 'Draft' ? 'Qualification' : 'Qualified Opportunity');
             $defaultProb = self::$stages[$salesStage]['default_prob'] ?? 25;
             $prob = isset($validated['win_probability']) && $validated['win_probability'] !== '' ? (int) $validated['win_probability'] : $defaultProb;
@@ -238,7 +238,7 @@ class SalesCrmController extends Controller
             'status'                => $status,
             'stage'                 => $stage,
             'progress'              => $progress,
-            'acquire_status'        => $status === 'Completed' ? 'Closed' : 'Prospecting',
+            'acquire_status'        => $status === 'Completed' ? 'Closed' : ($status === 'Draft' ? 'Draft' : 'Prospecting'),
             'bdm_handover_status'   => 'Self-Sourced Sales',
             'start_date'            => now(),
             'deadline'              => $closingDate,

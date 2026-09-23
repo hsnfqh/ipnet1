@@ -61,7 +61,7 @@
             <div class="main-card">
                 <form action="{{ route('sales.pipeline.store') }}" method="POST" id="createProjectForm">
                     @csrf
-                    <input type="hidden" name="status" value="{{ $isCompleted ? 'Completed' : 'Opportunity' }}">
+                    <input type="hidden" name="status" value="{{ $isCompleted ? 'Completed' : 'Draft' }}">
                     <input type="hidden" name="is_completed" value="{{ $isCompleted ? '1' : '0' }}">
 
                     <div class="p-7">

@@ -70,7 +70,7 @@ class ProjectController extends Controller
     {
         $data = $request->validated();
         $data['created_by'] = auth()->id();
-        $data['status'] = 'Planning';
+        $data['status'] = $data['status'] ?? 'Draft';
         if (auth()->user()->division_id) {
             $data['division_id'] = auth()->user()->division_id;
         }
