@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Tambah Project Baru - PT IP Network Solusindo')
 
@@ -60,9 +60,7 @@
                 @csrf
                 <input type="hidden" name="status" value="{{ $isCompleted ? 'Completed' : 'Opportunity' }}">
                 <input type="hidden" name="is_completed" value="{{ $isCompleted ? '1' : '0' }}">
-                <div class="flex gap-5 items-start max-w-[1180px]">
-                    {{-- LEFT COLUMN --}}
-                    <div class="flex-[2] min-w-0">
+                <div class="max-w-[860px]">
                         <div class="sec-card afu">
                             <div class="sec-head"><span class="sec-dot" style="background:linear-gradient(135deg,#8F0A0D,#D62E3C);"></span>Project Information</div>
                             <div class="mb-4">
@@ -141,40 +139,6 @@
                                 + ADD MILESTONE
                             </button>
                         </div>
-                    </div>
-                    {{-- RIGHT SIDEBAR --}}
-                    <div class="w-[290px] flex-shrink-0 sticky top-4">
-                        <div class="side-card afu">
-                            <div class="side-head"><span class="w-2 h-2 rounded-full bg-[#8F0A0D] flex-shrink-0"></span>Project Status</div>
-                            <div class="side-row"><span class="side-key">Status</span><span class="side-val"><span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-[#FEF2F2] text-[#8F0A0D] border border-[#FECACA]">{{ $isCompleted ? 'Completed' : 'Opportunity' }}</span></span></div>
-                            <div class="side-row"><span class="side-key">Team</span><span class="side-val text-[#8F0A0D] font-extrabold">IPNET 01</span></div>
-                            <div class="side-row"><span class="side-key">Created By</span><span class="side-val">{{ auth()->user()->name }}</span></div>
-                        </div>
-                        <div class="side-card afu afu-1">
-                            <div class="side-head"><span class="w-2 h-2 rounded-full bg-[#4F46E5] flex-shrink-0"></span>Preview Data</div>
-                            <div class="side-row"><span class="side-key">Project</span><span class="side-val" x-text="projectName || '—'"></span></div>
-                            <div class="side-row"><span class="side-key">Client</span><span class="side-val" x-text="clientName || '—'"></span></div>
-                            <div class="side-row"><span class="side-key">Department</span><span class="side-val" x-text="clientDept || '—'"></span></div>
-                            <div class="side-row"><span class="side-key">Sales PIC</span><span class="side-val" x-text="salesPic || '—'"></span></div>
-                            <div class="side-row"><span class="side-key">Nilai Kontrak</span><span class="side-val text-[#8F0A0D] font-extrabold" x-text="contractValue > 0 ? 'Rp ' + Number(contractValue).toLocaleString('id-ID') : '—'"></span></div>
-                            <div class="side-row"><span class="side-key">Win Prob.</span><span class="side-val font-extrabold" x-text="probability + '%'"></span></div>
-                            <div class="side-row"><span class="side-key">Est. Closing</span><span class="side-val" x-text="closingDate || '—'"></span></div>
-                        </div>
-                        <div class="side-card afu afu-2" x-show="milestones.length > 0">
-                            <div class="side-head"><span class="w-2 h-2 rounded-full bg-[#0EA5E9] flex-shrink-0"></span>Milestones (<span x-text="milestones.length"></span>)</div>
-                            <template x-for="(ms,i) in milestones" :key="i">
-                                <div class="side-row"><span class="side-key flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[#0EA5E9] flex-shrink-0"></span><span x-text="ms.title"></span></span><span class="side-val text-[#64748B]" x-text="ms.date || '—'"></span></div>
-                            </template>
-                        </div>
-                        <div class="side-card afu afu-2" style="background:linear-gradient(135deg,#FEF2F2,#FFF7ED); border-color:#FECACA;">
-                            <div class="side-head" style="color:#8F0A0D;margin-bottom:10px;"><span class="w-2 h-2 rounded-full bg-[#8F0A0D] flex-shrink-0"></span>Tips</div>
-                            <ul class="space-y-2 text-[11.5px] text-[#64748B]">
-                                <li class="flex items-start gap-1.5"><span class="text-[#8F0A0D] flex-shrink-0">•</span>Isi estimasi nilai kontrak untuk forecasting pipeline</li>
-                                <li class="flex items-start gap-1.5"><span class="text-[#8F0A0D] flex-shrink-0">•</span>Milestone membantu tracking progress closing deal</li>
-                                <li class="flex items-start gap-1.5"><span class="text-[#8F0A0D] flex-shrink-0">•</span>Project masuk Sales Board setelah disimpan</li>
-                            </ul>
-                        </div>
-                    </div>
                 </div>
             </form>
         </div>
