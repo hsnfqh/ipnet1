@@ -224,12 +224,12 @@
                                class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
                     </div>
 
-                    {{-- Select Division Dropdown --}}
-                    <select name="division_id" onchange="this.form.submit()" 
+                    {{-- Select Sales Dropdown (Standalone Sales) --}}
+                    <select name="sales" onchange="this.form.submit()" 
                             class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="">Select division</option>
-                        @foreach($divisions as $div)
-                            <option value="{{ $div->id }}" {{ $filterDivision == $div->id ? 'selected' : '' }}>{{ $div->name }}</option>
+                        <option value="">Semua Sales</option>
+                        @foreach($salesTeam as $sName)
+                            <option value="{{ $sName }}" {{ $filterSales == $sName ? 'selected' : '' }}>{{ $sName }}</option>
                         @endforeach
                     </select>
 
@@ -416,7 +416,7 @@
                         <thead>
                             <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] uppercase text-[11px] font-bold">
                                 <th class="py-3.5 px-5">Nama Project &amp; Client</th>
-                                <th class="py-3.5 px-5">Sales &amp; Divisi</th>
+                                <th class="py-3.5 px-5">Sales &amp; Team</th>
                                 <th class="py-3.5 px-5 text-right">Nilai Kontrak</th>
                                 <th class="py-3.5 px-5 text-center">Status Kanban</th>
                                 <th class="py-3.5 px-5 text-center">Tahapan CRM</th>
@@ -434,7 +434,7 @@
                                     </td>
                                     <td class="py-3.5 px-5">
                                         <div class="font-bold text-[#1E293B]">{{ $p->sales_name ?: '-' }}</div>
-                                        <div class="text-[11px] text-[#64748B]">{{ $p->division ? $p->division->name : 'Divisi Umum' }}</div>
+                                        <div class="text-[11px] text-[#64748B]">{{ $p->client_department ?: 'IPNET 01' }}</div>
                                     </td>
                                     <td class="py-3.5 px-5 text-right whitespace-nowrap">
                                         <span class="font-extrabold text-[#8F0A0D] text-[13px]">

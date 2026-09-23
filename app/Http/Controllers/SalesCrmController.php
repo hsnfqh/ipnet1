@@ -55,8 +55,33 @@ class SalesCrmController extends Controller
         $filterApproval = $request->input('approval_status');
         $filterSales = $request->input('sales');
 
+        $salesTeam = BdmController::$salesTeam;
+
         $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->with(['bdm', 'creator', 'salesActivities', 'division']);
+            // Standalone Sales: HANYA proyek peluang/pipeline sales (belum terhubung ke teknikal/engineer)
+            ->where(function($q) use ($salesTeam, $user) {
+                $q->where('stage', 'Acquire')
+                  ->orWhere('opportunity_source', 'Direct Sales Prospecting')
+                  ->orWhereNotNull('opportunity_source')
+                  ->orWhereNotNull('bdm_id')
+                  ->orWhere('bdm_handover_status', 'Self-Sourced Sales')
+                  ->orWhereIn('sales_name', $salesTeam)
+                  ->orWhere('created_by', $user->id)
+                  ->orWhereHas('creator', function($c) {
+                      $c->whereHas('roles', function($r) {
+                          $r->whereIn('name', ['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']);
+                      });
+                  });
+            })
+            // JANGAN menyangkut teknikal / engineer / maintenance
+            ->where('name', 'not like', '%Preventive Maintenance%')
+            ->where('name', 'not like', '%Corrective Maintenance%')
+            ->whereDoesntHave('creator', function($c) {
+                $c->whereHas('roles', function($r) {
+                    $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance']);
+                });
+            })
+            ->with(['bdm', 'creator', 'salesActivities']);
 
         if (!$isManagerial) {
             $allProjectsQuery->where(function($q) use ($user) {

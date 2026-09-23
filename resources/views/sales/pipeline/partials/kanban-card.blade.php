@@ -26,9 +26,9 @@
     {{-- Footer Info --}}
     <div class="pt-3 border-t border-[#F1F5F9] flex flex-col gap-2.5">
         <div class="flex items-center justify-between text-[11px]">
-            {{-- Division / Team Badge --}}
+            {{-- Client Dept / Team Badge (Standalone Sales, no engineer division) --}}
             <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                {{ $project->division ? $project->division->name : 'IPNET 01' }}
+                {{ $project->client_department ?: 'IPNET 01' }}
             </span>
 
             {{-- Icon Counters --}}
@@ -48,7 +48,7 @@
         <div class="flex items-center justify-between text-[10.5px] text-slate-400">
             <span>Created by</span>
             <span class="font-bold text-slate-700 truncate max-w-[150px]">
-                {{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Nugraha Pratama') }}
+                {{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}
             </span>
         </div>
     </div>
