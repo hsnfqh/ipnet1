@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Tambah Project Baru - PT IP Network Solusindo')
 
@@ -159,23 +159,25 @@
                             </div>
                         </template>
 
-                        <button type="button" @click="openMilestoneModal()" class="flex items-center gap-1.5 text-[12.5px] font-bold text-[#8F0A0D] hover:text-[#6B0009] transition cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            + ADD MILESTONE
-                        </button>
+                        {{-- ─── BOTTOM ACTIONS (INSIDE CARD) ─── --}}
+                        <div class="flex items-center justify-between pt-8 mt-6 border-t border-[#F1F5F9]">
+                            <div>
+                                <button type="button" @click="openMilestoneModal()" class="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#8F0A0D] hover:text-[#6B0009] transition cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    + ADD MILESTONE
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <a href="{{ route('sales.pipeline.index') }}" class="px-5 py-2.5 rounded-xl border border-[#CBD5E1] text-[#475569] font-bold text-[13px] hover:bg-[#F8FAFC] transition cursor-pointer inline-flex items-center">
+                                    Cancel
+                                </a>
+                                <button type="submit" class="px-6 py-2.5 rounded-xl font-bold text-[13px] text-white cursor-pointer shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all" style="background:linear-gradient(135deg,#8F0A0D 0%,#D62E3C 100%);">
+                                    {{ $isCompleted ? 'Simpan Project Selesai' : 'Create New Project' }}
+                                </button>
+                            </div>
+                        </div>
 
                     </div>{{-- end p-7 --}}
-
-                    {{-- ─── CARD FOOTER: ACTION BUTTONS ─── --}}
-                    <div class="flex items-center justify-end gap-3 px-7 py-4 border-t border-[#F1F5F9] bg-[#FAFBFC]">
-                        <a href="{{ route('sales.pipeline.index') }}" class="px-5 py-2.5 rounded-xl border border-[#CBD5E1] text-[#475569] font-bold text-[13px] hover:bg-[#F1F5F9] transition cursor-pointer inline-flex items-center">
-                            Cancel
-                        </a>
-                        <button type="submit" class="px-6 py-2.5 rounded-xl font-bold text-[13px] text-white cursor-pointer shadow-md hover:opacity-90 active:scale-[0.98] transition-all" style="background:linear-gradient(135deg,#8F0A0D 0%,#D62E3C 100%);">
-                            {{ $isCompleted ? 'Simpan Project Selesai' : 'Create New Project' }}
-                        </button>
-                    </div>
-
                 </form>
             </div>{{-- end main-card --}}
         </div>
