@@ -84,7 +84,7 @@
 
     // Data Penugasan Tim Solusi Teknis (Presales Specialist & Solution Architect)
     $technicalAssignments = $handoverData['technical_assignments'] ?? [];
-    $presalesAssignment = $technicalAssignments['presales'] ?? [
+    $presalesAssignment = array_merge([
         'assigned'         => false,
         'assigned_to'      => 'Akbar',
         'assigned_user_id' => null,
@@ -96,8 +96,9 @@
         'document_path'    => null,
         'document_name'    => null,
         'document_title'   => null,
-    ];
-    $architectAssignment = $technicalAssignments['architect'] ?? [
+    ], is_array($technicalAssignments['presales'] ?? null) ? $technicalAssignments['presales'] : []);
+
+    $architectAssignment = array_merge([
         'assigned'         => false,
         'assigned_to'      => 'Aris Sadewo',
         'assigned_user_id' => null,
@@ -109,7 +110,7 @@
         'document_path'    => null,
         'document_name'    => null,
         'document_title'   => null,
-    ];
+    ], is_array($technicalAssignments['architect'] ?? null) ? $technicalAssignments['architect'] : []);
 
     $isPresalesAssigned = !empty($presalesAssignment['assigned']);
     $isArchitectAssigned = !empty($architectAssignment['assigned']);
@@ -173,6 +174,21 @@
     if ($architectUsers->isEmpty()) {
         $architectUsers = \App\Models\User::where('name', 'like', '%Aris%')->get();
     }
+
+    // Hak otorisasi unggah berkas teknis solusi:
+    // Hanya akun yang ditugaskan atau role Presales / Solution Architect yang dapat mengunggah berkas.
+    // Akun Sales hanya menugaskan dan memantau status berkas tanpa tombol unggah.
+    $canUploadPresales = $authUser && (
+        (!empty($presalesAssignment['assigned_user_id']) && $authUser->id == $presalesAssignment['assigned_user_id'])
+        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Super Admin', 'Admin'], $userRoles))
+        || str_contains(strtolower($authUser->name), 'akbar')
+    );
+
+    $canUploadArchitect = $authUser && (
+        (!empty($architectAssignment['assigned_user_id']) && $authUser->id == $architectAssignment['assigned_user_id'])
+        || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Super Admin', 'Admin'], $userRoles))
+        || str_contains(strtolower($authUser->name), 'aris')
+    );
 @endphp
 
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans text-slate-800" 
@@ -555,7 +571,7 @@
                                                     </div>
                                                 @elseif($isPresalesAssigned)
                                                     <div class="p-2 rounded-lg bg-amber-50/60 border border-amber-200 text-amber-800">
-                                                        <div class="font-semibold italic">"{{ $presalesAssignment['sales_notes'] ?: 'Mohon segera dibuatkan proposal teknis dan BoQ estimasi proyek.' }}"</div>
+                                                        <div class="font-semibold italic">"{{ !empty($presalesAssignment['sales_notes']) ? $presalesAssignment['sales_notes'] : 'Mohon segera dibuatkan proposal teknis dan BoQ estimasi proyek.' }}"</div>
                                                         <div class="text-[10.5px] text-amber-600 mt-1">Ditugaskan: {{ $presalesAssignment['assigned_at'] ?? '-' }} (oleh {{ $presalesAssignment['assigned_by'] ?? 'Sales' }})</div>
                                                     </div>
                                                 @else
@@ -576,10 +592,25 @@
                                                 </button>
                                             @endif
 
-                                            <button type="button" @click="openUploadTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                <span>{{ $isPresalesDone ? 'Unggah Ulang Proposal' : 'Unggah Proposal & BoQ' }}</span>
-                                            </button>
+                                            {{-- Tombol Unggah hanya muncul jika sudah di-assign dan dibuka oleh Pre-Sales terkait --}}
+                                            @if($canUploadPresales && $isPresalesAssigned)
+                                                <button type="button" @click="openUploadTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                    <span>{{ $isPresalesDone ? 'Unggah Ulang Proposal' : 'Unggah Proposal & BoQ' }}</span>
+                                                </button>
+                                            @elseif($isPresalesAssigned)
+                                                @if($isPresalesDone)
+                                                    <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg ml-auto">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                        Berkas Terunggah
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg ml-auto">
+                                                        <svg class="w-3 h-3 text-amber-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                        Menunggu Berkas Pre-Sales
+                                                    </span>
+                                                @endif
+                                            @endif
                                         </div>
                                     </div>
 
@@ -616,7 +647,7 @@
                                                     </div>
                                                 @elseif($isArchitectAssigned)
                                                     <div class="p-2 rounded-lg bg-amber-50/60 border border-amber-200 text-amber-800">
-                                                        <div class="font-semibold italic">"{{ $architectAssignment['sales_notes'] ?: 'Mohon dirancang diagram topologi arsitektur sistem dan validasi sizing teknis.' }}"</div>
+                                                        <div class="font-semibold italic">"{{ !empty($architectAssignment['sales_notes']) ? $architectAssignment['sales_notes'] : 'Mohon dirancang diagram topologi arsitektur sistem dan validasi sizing teknis.' }}"</div>
                                                         <div class="text-[10.5px] text-amber-600 mt-1">Ditugaskan: {{ $architectAssignment['assigned_at'] ?? '-' }} (oleh {{ $architectAssignment['assigned_by'] ?? 'Sales' }})</div>
                                                     </div>
                                                 @else
@@ -637,10 +668,25 @@
                                                 </button>
                                             @endif
 
-                                            <button type="button" @click="openUploadTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                <span>{{ $isArchitectDone ? 'Unggah Ulang Desain' : 'Unggah Desain Topologi' }}</span>
-                                            </button>
+                                            {{-- Tombol Unggah hanya muncul jika sudah di-assign dan dibuka oleh Solution Architect terkait --}}
+                                            @if($canUploadArchitect && $isArchitectAssigned)
+                                                <button type="button" @click="openUploadTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                    <span>{{ $isArchitectDone ? 'Unggah Ulang Desain' : 'Unggah Desain Topologi' }}</span>
+                                                </button>
+                                            @elseif($isArchitectAssigned)
+                                                @if($isArchitectDone)
+                                                    <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg ml-auto">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                        Desain Terunggah
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg ml-auto">
+                                                        <svg class="w-3 h-3 text-amber-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                        Menunggu Desain Arsitek
+                                                    </span>
+                                                @endif
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
