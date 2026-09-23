@@ -494,18 +494,16 @@
              class="bg-white rounded-2xl w-[660px] max-w-full max-h-[90vh] flex flex-col overflow-hidden shadow-[0_24px_64px_rgba(15,23,42,0.28)] border border-[#E2E8F0]">
 
             {{-- ── Modal Header ── --}}
-            <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] flex-shrink-0"
-                 style="background: linear-gradient(135deg, #F8FAFC 0%, #FEF2F2 100%);">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] flex-shrink-0" style="background: linear-gradient(135deg, #F8FAFC 0%, #FEF2F2 100%);">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                         style="background: linear-gradient(135deg, #8F0A0D, #D62E3C);">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #8F0A0D, #D62E3C);">
                         <svg style="width:18px;height:18px;" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2.2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
                         </svg>
                     </div>
                     <div>
                         <h3 class="text-[15px] font-bold text-[#1E293B] leading-tight" x-text="modalTitle"></h3>
-                        <p class="text-[11.5px] text-[#64748B] mt-0.5">Lengkapi informasi pipeline sales dengan benar</p>
+                        <p class="text-[11.5px] text-[#64748B] mt-0.5">Lengkapi informasi peluang komersial baru</p>
                     </div>
                 </div>
                 <button type="button" @click="isAddModalOpen = false"
@@ -518,7 +516,7 @@
 
             {{-- ── Modal Body ── --}}
             <div class="overflow-y-auto flex-1 bg-[#F8FAFC]">
-                <form action="{{ route('sales.pipeline.store') }}" method="POST">
+                <form action="{{ route('sales.pipeline.store') }}" method="POST" id="pipelineProjectForm">
                     @csrf
                     <input type="hidden" name="status" :value="formStatus">
                     <input type="hidden" name="is_completed" :value="formStatus === 'Completed' ? '1' : '0'">
@@ -531,7 +529,6 @@
                         </div>
 
                         <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 space-y-4 shadow-sm">
-
                             {{-- Nama Project --}}
                             <div>
                                 <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
@@ -539,7 +536,7 @@
                                 </label>
                                 <input type="text" name="name" required
                                        placeholder="Contoh: Pengadaan Firewall &amp; Switch Datacenter"
-                                       class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition">
+                                       class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:border-[#8F0A0D] focus:bg-white outline-none transition placeholder-[#94A3B8]">
                             </div>
 
                             {{-- Nama Client --}}
@@ -554,9 +551,9 @@
                                         </svg>
                                     </div>
                                     <input type="text" name="client" required
-                                           placeholder="Contoh: PT Telkom Indonesia / Bank BRI"
                                            list="clientListOptions"
-                                           class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition">
+                                           placeholder="Contoh: PT Telkom Indonesia / Bank BRI"
+                                           class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:border-[#8F0A0D] focus:bg-white outline-none transition placeholder-[#94A3B8]">
                                     <datalist id="clientListOptions">
                                         @foreach($clients as $cl)
                                             <option value="{{ $cl->name }}">{{ $cl->department ? "({$cl->department})" : '' }}</option>
@@ -565,12 +562,12 @@
                                 </div>
                             </div>
 
-                            {{-- 2-Col: Divisi Terkait + Nilai Kontrak --}}
+                            {{-- 2-Col: Divisi + Nilai Kontrak --}}
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                 <div>
                                     <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Divisi Terkait</label>
                                     <select name="division_id"
-                                            class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition cursor-pointer">
+                                            class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:border-[#8F0A0D] focus:bg-white outline-none transition cursor-pointer">
                                         <option value="">Pilih Divisi...</option>
                                         @foreach($divisions as $div)
                                             <option value="{{ $div->id }}">{{ $div->name }}</option>
@@ -584,36 +581,27 @@
                                             <span class="text-[12px] font-bold text-[#94A3B8]">Rp</span>
                                         </div>
                                         <input type="number" name="contract_value" min="0" placeholder="0"
-                                               class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition">
+                                               class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:border-[#8F0A0D] focus:bg-white outline-none transition placeholder-[#94A3B8]">
                                     </div>
                                 </div>
-                            </div>
-
-                            {{-- Catatan Tambahan --}}
-                            <div>
-                                <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
-                                    Catatan Tambahan <span class="text-[#94A3B8] font-normal normal-case">(opsional)</span>
-                                </label>
-                                <textarea name="sales_notes" rows="3"
-                                          placeholder="Detail kebutuhan klien, spesifikasi teknis, atau catatan penting..."
-                                          class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] placeholder-[#94A3B8] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition resize-none"></textarea>
                             </div>
                         </div>
                     </div>
 
-                    {{-- ════ SECTION 2: Pipeline Sales (disembunyikan jika Completed) ════ --}}
-                    <div class="px-6 pb-5" x-show="formStatus !== 'Completed'">
+                    {{-- ════ SECTION 2: Detail Sales (hidden when Completed) ════ --}}
+                    <div class="px-6 pb-4" x-show="formStatus !== 'Completed'">
                         <div class="flex items-center gap-2.5 mb-4">
                             <div class="w-1 h-4 rounded-full bg-[#4F46E5]"></div>
-                            <span class="text-[11.5px] font-extrabold text-[#4F46E5] uppercase tracking-widest">Pipeline &amp; Estimasi</span>
+                            <span class="text-[11.5px] font-extrabold text-[#4F46E5] uppercase tracking-widest">Pipeline &amp; Target</span>
                         </div>
 
-                        <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 shadow-sm">
+                        <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 space-y-4 shadow-sm">
+                            {{-- 2-Col: Tahapan Sales + Estimasi Closing --}}
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                 <div>
                                     <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Tahapan Sales</label>
                                     <select name="sales_stage"
-                                            class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition cursor-pointer">
+                                            class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:border-[#8F0A0D] focus:bg-white outline-none transition cursor-pointer">
                                         @foreach($stages as $k => $stg)
                                             <option value="{{ $k }}">{{ $stg['label'] }}</option>
                                         @endforeach
@@ -629,33 +617,48 @@
                                         </div>
                                         <input type="date" name="expected_closing_date"
                                                value="{{ date('Y-m-d', strtotime('+1 month')) }}"
-                                               class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition">
+                                               class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:border-[#8F0A0D] focus:bg-white outline-none transition">
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- ── Modal Footer ── --}}
-                    <div class="flex items-center gap-3 px-6 py-4 border-t border-[#E2E8F0] bg-white flex-shrink-0 sticky bottom-0">
-                        <button type="button" @click="isAddModalOpen = false"
-                                class="flex-1 flex items-center justify-center gap-2 h-[42px] bg-white hover:bg-[#F8FAFC] text-[#475569] border border-[#CBD5E1] px-4 rounded-xl font-bold text-[13px] transition-all cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                            Batal
-                        </button>
-                        <button type="submit"
-                                :class="formStatus === 'Completed' ? 'bg-emerald-600 hover:bg-emerald-700' : ''"
-                                :style="formStatus !== 'Completed' ? 'background: linear-gradient(135deg, #8F0A0D 0%, #D62E3C 100%);' : ''"
-                                class="flex-[2] flex items-center justify-center gap-2 h-[42px] px-6 rounded-xl font-bold text-[13px] text-white cursor-pointer shadow-md transition-all hover:opacity-90 active:scale-[0.98]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span x-text="formStatus === 'Completed' ? 'Simpan Project Selesai' : 'Simpan Project'"></span>
-                        </button>
+                    {{-- ════ SECTION 3: Catatan Tambahan ════ --}}
+                    <div class="px-6 pb-5">
+                        <div class="flex items-center gap-2.5 mb-4">
+                            <div class="w-1 h-4 rounded-full bg-[#0EA5E9]"></div>
+                            <span class="text-[11.5px] font-extrabold text-[#0EA5E9] uppercase tracking-widest">Catatan Tambahan</span>
+                        </div>
+
+                        <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 shadow-sm">
+                            <textarea name="sales_notes" rows="3"
+                                      placeholder="Detail kebutuhan klien, spesifikasi teknis, atau catatan penting lainnya..."
+                                      class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:border-[#8F0A0D] focus:bg-white outline-none transition resize-none placeholder-[#94A3B8]"></textarea>
+                        </div>
                     </div>
+
                 </form>
+            </div>
+
+            {{-- ── Modal Footer ── --}}
+            <div class="flex items-center gap-3 px-6 py-4 border-t border-[#E2E8F0] bg-white flex-shrink-0">
+                <button type="button" @click="isAddModalOpen = false"
+                        class="flex-1 flex items-center justify-center gap-2 h-[42px] bg-white hover:bg-[#F8FAFC] text-[#475569] border border-[#CBD5E1] px-4 rounded-xl font-bold text-[13px] transition-all cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Batal
+                </button>
+                <button type="submit" form="pipelineProjectForm"
+                        :class="formStatus === 'Completed' ? 'bg-emerald-600 hover:bg-emerald-700' : ''"
+                        :style="formStatus !== 'Completed' ? 'background: linear-gradient(135deg, #8F0A0D 0%, #D62E3C 100%)' : ''"
+                        class="flex-[2] flex items-center justify-center gap-2 h-[42px] px-6 rounded-xl font-bold text-[13px] text-white cursor-pointer shadow-md transition-all hover:opacity-90 active:scale-[0.98]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span x-text="formStatus === 'Completed' ? 'Simpan Project Selesai' : 'Simpan Project Baru'"></span>
+                </button>
             </div>
         </div>
     </div>
