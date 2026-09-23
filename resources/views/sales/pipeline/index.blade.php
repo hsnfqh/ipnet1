@@ -190,14 +190,13 @@
                         </div>
 
                         {{-- Add New Project (Red) --}}
-                        <button type="button" 
-                                @click="openAddProjectModal('Opportunity')"
-                                class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.98] transition-all">
+                        <a href="{{ route('sales.pipeline.create') }}"
+                           class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.98] transition-all no-underline">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
                             <span>Add New Project</span>
-                        </button>
+                        </a>
 
                         {{-- Add Complete Project (Emerald) --}}
                         <button type="button" 

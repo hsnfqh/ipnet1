@@ -146,6 +146,19 @@ class SalesCrmController extends Controller
     }
 
     /**
+     * Halaman Full: Form Tambah Proyek / Opportunity Baru
+     */
+    public function createOpportunity(Request $request)
+    {
+        $divisions = \App\Models\Division::orderBy('name')->get();
+        $clients   = Client::orderBy('name')->get();
+        $stages    = self::$stages;
+        $isCompleted = $request->query('type') === 'completed';
+
+        return view('sales.pipeline.create', compact('divisions', 'clients', 'stages', 'isCompleted'));
+    }
+
+    /**
      * Store New Sales Opportunity / Project
      */
     public function storeOpportunity(Request $request)

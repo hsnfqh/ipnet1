@@ -191,6 +191,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('sales')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Sales|Account Manager|BusDev|BDM|Business Development|CRO|Customer Relation Officer|Presales|Pre-Sales|Solution Architect|PMO|Project Manager')->group(function () {
         // Dedicated Menu 1: Pipeline & Opportunity Register
         Route::get('/pipeline', [\App\Http\Controllers\SalesCrmController::class, 'pipeline'])->name('sales.pipeline.index');
+        Route::get('/pipeline/create', [\App\Http\Controllers\SalesCrmController::class, 'createOpportunity'])->name('sales.pipeline.create');
         Route::post('/pipeline/create', [\App\Http\Controllers\SalesCrmController::class, 'storeOpportunity'])->name('sales.pipeline.store');
         Route::post('/pipeline/{project}/stage', [\App\Http\Controllers\SalesCrmController::class, 'updateStage'])->name('sales.pipeline.update');
 
