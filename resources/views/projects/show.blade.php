@@ -152,6 +152,23 @@
                 </div>
             @endif
 
+            @if($errors->any())
+                <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-semibold space-y-1.5 shadow-xs">
+                    <div class="flex items-center justify-between font-bold text-red-900">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Terjadi kendala pada pengunggahan / formulir:</span>
+                        </div>
+                        <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold px-2 cursor-pointer">✕</button>
+                    </div>
+                    <ul class="list-disc list-inside pl-6 text-[11.5px] space-y-0.5 text-red-700">
+                        @foreach($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             {{-- 1. BREADCRUMBS --}}
             <div class="flex items-center gap-2 text-[12.5px] font-semibold text-[#64748B]">
                 <a href="{{ route('sales.pipeline.index') }}" class="hover:text-[#8F0A0D] transition font-bold text-[#1E293B]">Project</a>
@@ -520,9 +537,11 @@
 
                         {{-- G. Attachments Section --}}
                         @php
-                            $uploadedDocs = $project->relationLoaded('projectDocuments') 
-                                ? $project->projectDocuments->filter(fn($doc) => !empty($doc->file_path)) 
-                                : collect();
+                            $uploadedDocs = \App\Models\ProjectDocument::where('project_id', $project->id)
+                                ->whereNotNull('file_path')
+                                ->where('file_path', '!=', '')
+                                ->latest()
+                                ->get();
                         @endphp
                         <div class="pt-6 border-t border-[#F1F5F9] space-y-3">
                             <div class="flex items-center justify-between flex-wrap gap-2">

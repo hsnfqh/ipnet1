@@ -14,6 +14,8 @@ class ProjectDocument extends Model
 
     protected $fillable = [
         'project_id',
+        'name',
+        'document_type',
         'stage_number',
         'stage_name',
         'document_key',

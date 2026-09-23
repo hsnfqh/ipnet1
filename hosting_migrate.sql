@@ -73,17 +73,45 @@ CREATE TABLE IF NOT EXISTS `schedule_user` (
 CREATE TABLE IF NOT EXISTS `project_documents` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `project_id` BIGINT UNSIGNED NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
+    `stage_number` TINYINT UNSIGNED NOT NULL DEFAULT 1,
+    `stage_name` VARCHAR(255) NOT NULL DEFAULT 'Commercial',
+    `document_key` VARCHAR(255) NOT NULL DEFAULT 'lampiran_pendukung',
+    `document_title` VARCHAR(255) NOT NULL DEFAULT 'Lampiran',
+    `name` VARCHAR(255) NULL,
+    `is_mandatory` TINYINT(1) NOT NULL DEFAULT 0,
     `file_path` VARCHAR(500) NULL,
-    `document_type` VARCHAR(100) NULL,
+    `file_name` VARCHAR(255) NULL,
+    `file_size` BIGINT UNSIGNED NULL,
+    `file_extension` VARCHAR(50) NULL,
+    `document_type` VARCHAR(100) NULL DEFAULT 'Attachment',
+    `status` VARCHAR(50) NOT NULL DEFAULT 'Uploaded',
     `notes` TEXT NULL,
     `uploaded_by` BIGINT UNSIGNED NULL,
+    `uploaded_at` TIMESTAMP NULL,
+    `verified_by` BIGINT UNSIGNED NULL,
+    `verified_at` TIMESTAMP NULL,
     `created_at` TIMESTAMP NULL,
     `updated_at` TIMESTAMP NULL,
     PRIMARY KEY (`id`),
     KEY `project_documents_project_id_index` (`project_id`),
     CONSTRAINT `project_documents_project_id_foreign` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
 );
+
+-- Kolom pelengkap jika tabel project_documents sudah terlanjur dibuat dengan kolom lama
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `stage_number` TINYINT UNSIGNED NOT NULL DEFAULT 1;
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `stage_name` VARCHAR(255) NOT NULL DEFAULT 'Commercial';
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `document_key` VARCHAR(255) NOT NULL DEFAULT 'lampiran_pendukung';
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `document_title` VARCHAR(255) NOT NULL DEFAULT 'Lampiran';
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `name` VARCHAR(255) NULL;
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `is_mandatory` TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `file_name` VARCHAR(255) NULL;
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `file_size` BIGINT UNSIGNED NULL;
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `file_extension` VARCHAR(50) NULL;
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `document_type` VARCHAR(100) NULL DEFAULT 'Attachment';
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `status` VARCHAR(50) NOT NULL DEFAULT 'Uploaded';
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `uploaded_at` TIMESTAMP NULL;
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `verified_by` BIGINT UNSIGNED NULL;
+ALTER TABLE `project_documents` ADD COLUMN IF NOT EXISTS `verified_at` TIMESTAMP NULL;
 
 -- ---------------------------------------------------------------
 -- 6. TABEL PROJECTS: Kolom tambahan (satu per satu agar tidak error jika sudah ada)

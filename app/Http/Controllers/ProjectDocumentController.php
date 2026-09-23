@@ -37,12 +37,12 @@ class ProjectDocumentController extends Controller
     public function upload(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'document_id'      => 'nullable|exists:project_documents,id',
-            'stage_number'     => 'required|integer|min:1|max:6',
-            'document_key'     => 'required|string|max:100',
-            'document_file'    => 'nullable|file|mimes:pdf,docx,doc,xlsx,xls,zip,rar,png,jpg,jpeg,txt,csv|max:51200', // max 50MB
+            'document_id'      => 'nullable',
+            'stage_number'     => 'nullable|integer|min:1|max:6',
+            'document_key'     => 'nullable|string|max:100',
+            'document_file'    => 'nullable|file|max:51200', // max 50MB
             'document_files'   => 'nullable|array',
-            'document_files.*' => 'file|mimes:pdf,docx,doc,xlsx,xls,zip,rar,png,jpg,jpeg,txt,csv|max:51200',
+            'document_files.*' => 'file|max:51200',
             'notes'            => 'nullable|string|max:1000',
         ]);
 
@@ -60,10 +60,26 @@ class ProjectDocumentController extends Controller
             return redirect()->back()->with('error', 'Silakan pilih berkas untuk diunggah.');
         }
 
-        // Cari atau inisialisasi dokumen
-        ProjectDocumentFlowService::ensureProjectDocumentsInitialized($project);
+        $stageNumber = !empty($validated['stage_number']) ? (int)$validated['stage_number'] : 1;
+        $documentKey = !empty($validated['document_key']) ? $validated['document_key'] : 'lampiran_pendukung';
         $stages = ProjectDocumentFlowService::getStagesDefinition();
-        $stageInfo = $stages[$validated['stage_number']] ?? ['stage_name' => 'General'];
+        $stageInfo = $stages[$stageNumber] ?? ['stage_name' => 'Commercial'];
+
+        $hasNameCol        = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'name');
+        $hasDocTitleCol    = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'document_title');
+        $hasDocKeyCol      = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'document_key');
+        $hasStageNumCol    = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'stage_number');
+        $hasStageNameCol   = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'stage_name');
+        $hasIsMandatoryCol = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'is_mandatory');
+        $hasDocTypeCol     = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'document_type');
+        $hasFileNameCol    = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'file_name');
+        $hasFileSizeCol    = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'file_size');
+        $hasFileExtCol     = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'file_extension');
+        $hasStatusCol      = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'status');
+        $hasUploadedByCol  = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'uploaded_by');
+        $hasUploadedAtCol  = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'uploaded_at');
+        $hasNotesCol       = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'notes');
+
         $uploadedDocs = [];
 
         foreach ($files as $index => $file) {
@@ -73,27 +89,31 @@ class ProjectDocumentController extends Controller
             $cleanTitle = pathinfo($originalName, PATHINFO_FILENAME);
 
             // Jika upload tunggal dengan slot spesifik
+            $doc = null;
             if (count($files) === 1 && !empty($validated['document_id'])) {
                 $doc = ProjectDocument::find($validated['document_id']);
-            } elseif (count($files) === 1 && $validated['document_key'] !== 'lampiran_pendukung') {
+            } elseif (count($files) === 1 && $documentKey !== 'lampiran_pendukung' && $hasDocKeyCol && $hasStageNumCol) {
                 $doc = ProjectDocument::where('project_id', $project->id)
-                    ->where('stage_number', $validated['stage_number'])
-                    ->where('document_key', $validated['document_key'])
+                    ->where('stage_number', $stageNumber)
+                    ->where('document_key', $documentKey)
                     ->first();
-            } else {
-                $doc = null;
             }
 
             if (!$doc) {
-                $docKey = 'attachment_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid();
-                $doc = new ProjectDocument([
-                    'project_id'     => $project->id,
-                    'stage_number'   => $validated['stage_number'],
-                    'stage_name'     => $stageInfo['stage_name'],
-                    'document_key'   => $docKey,
-                    'document_title' => $cleanTitle ?: ('Attachment ' . ($index + 1)),
-                    'is_mandatory'   => false,
-                ]);
+                $doc = new ProjectDocument();
+                $doc->project_id = $project->id;
+                if ($hasDocKeyCol) {
+                    $doc->document_key = 'attachment_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid();
+                }
+                if ($hasStageNumCol) {
+                    $doc->stage_number = $stageNumber;
+                }
+                if ($hasStageNameCol) {
+                    $doc->stage_name = $stageInfo['stage_name'] ?? 'Commercial';
+                }
+                if ($hasIsMandatoryCol) {
+                    $doc->is_mandatory = false;
+                }
             } else {
                 // Hapus file lama jika ada
                 if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
@@ -101,16 +121,37 @@ class ProjectDocumentController extends Controller
                 }
             }
 
-            $path = $file->store("project_documents/{$project->id}/stage_{$validated['stage_number']}", 'public');
+            $path = $file->store("project_documents/{$project->id}/stage_{$stageNumber}", 'public');
 
             $doc->file_path = $path;
-            $doc->file_name = $originalName;
-            $doc->file_size = $size;
-            $doc->file_extension = strtolower($extension);
-            $doc->status = 'Uploaded';
-            $doc->uploaded_by = auth()->id();
-            $doc->uploaded_at = now();
-            if (!empty($validated['notes'])) {
+            if ($hasNameCol) {
+                $doc->name = $originalName;
+            }
+            if ($hasDocTitleCol) {
+                $doc->document_title = $cleanTitle ?: ('Attachment ' . ($index + 1));
+            }
+            if ($hasDocTypeCol) {
+                $doc->document_type = 'Attachment';
+            }
+            if ($hasFileNameCol) {
+                $doc->file_name = $originalName;
+            }
+            if ($hasFileSizeCol) {
+                $doc->file_size = $size;
+            }
+            if ($hasFileExtCol) {
+                $doc->file_extension = strtolower($extension);
+            }
+            if ($hasStatusCol) {
+                $doc->status = 'Uploaded';
+            }
+            if ($hasUploadedByCol) {
+                $doc->uploaded_by = auth()->id();
+            }
+            if ($hasUploadedAtCol) {
+                $doc->uploaded_at = now();
+            }
+            if ($hasNotesCol && !empty($validated['notes'])) {
                 $doc->notes = $validated['notes'];
             }
             $doc->save();
@@ -118,9 +159,10 @@ class ProjectDocumentController extends Controller
         }
 
         $count = count($uploadedDocs);
+        $displayTitle = $uploadedDocs[0]->document_title ?? ($uploadedDocs[0]->name ?? 'Berkas');
         $msg = $count > 1 
             ? "{$count} berkas lampiran berhasil diunggah!" 
-            : "Dokumen '{$uploadedDocs[0]->document_title}' berhasil diunggah!";
+            : "Dokumen '{$displayTitle}' berhasil diunggah!";
 
         if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
             return response()->json([
@@ -128,7 +170,7 @@ class ProjectDocumentController extends Controller
                 'message'   => $msg,
                 'count'     => $count,
                 'documents' => $uploadedDocs,
-                'document'  => $uploadedDocs[0]->fresh(['uploader', 'verifier']),
+                'document'  => $uploadedDocs[0],
             ]);
         }
 
