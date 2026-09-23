@@ -159,12 +159,12 @@
                 <span class="text-[#64748B] truncate max-w-md">{{ $project->name }}</span>
             </div>
 
-            {{-- 2. MAIN CARD WRAPPER (Template IPNET) --}}
-            <div class="ipnet-card overflow-hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
-                    
-                    {{-- ══ LEFT SECTION: PROJECT DETAILS (col-span-8 or 9) ══ --}}
-                    <div class="lg:col-span-9 p-6 sm:p-8 space-y-6 lg:border-r lg:border-[#F1F5F9]">
+            {{-- 2. MAIN 2-COLUMN BALANCED GRID (SEPERTI CLIENT VIEW) --}}
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                {{-- ══ LEFT COLUMN: PROJECT DETAILS CARD (col-span-8) ══ --}}
+                <div class="lg:col-span-8">
+                    <div class="ipnet-card p-6 sm:p-8 space-y-6">
                         
                         {{-- A. Top Info Bar: Team & Creator Info (Filter stage dihapus) --}}
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
@@ -574,85 +574,85 @@
                         </div>
 
                     </div>
+                </div>
 
-                    {{-- ══ RIGHT SECTION: 2 SEPARATE CARDS (STATUS & ACTIVITIES) ══ --}}
-                    <div class="lg:col-span-3 p-5 sm:p-6 space-y-4 bg-[#F8FAFC]">
-                        
-                        {{-- CARD 1: PROJECT STATUS --}}
-                        <div class="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs space-y-3">
-                            <div class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Project Status</div>
-                            <div>
-                                @php
-                                    $statusBadgeClass = match($currentStatus) {
-                                        'Draft' => 'bg-gradient-to-r from-slate-600 to-slate-800 text-white',
-                                        'Opportunity' => 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white',
-                                        'In Progress' => 'bg-gradient-to-r from-amber-500 to-orange-600 text-white',
-                                        'Pending' => 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white',
-                                        'Completed' => 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white',
-                                        default => 'bg-slate-700 text-white',
-                                    };
-                                @endphp
-                                <span class="inline-block px-3 py-1 rounded-xl text-[11.5px] font-extrabold shadow-xs {{ $statusBadgeClass }}">
-                                    <span>{{ $currentStatus }}</span>
-                                </span>
-                            </div>
+                {{-- ══ RIGHT COLUMN: 2 SEPARATE CARDS (col-span-4) ══ --}}
+                <div class="lg:col-span-4 space-y-6">
+                    
+                    {{-- CARD 1: PROJECT STATUS --}}
+                    <div class="ipnet-card p-6 space-y-4">
+                        <div class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Project Status</div>
+                        <div>
+                            @php
+                                $statusBadgeClass = match($currentStatus) {
+                                    'Draft' => 'bg-gradient-to-r from-slate-600 to-slate-800 text-white',
+                                    'Opportunity' => 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white',
+                                    'In Progress' => 'bg-gradient-to-r from-amber-500 to-orange-600 text-white',
+                                    'Pending' => 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white',
+                                    'Completed' => 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white',
+                                    default => 'bg-slate-700 text-white',
+                                };
+                            @endphp
+                            <span class="inline-block px-3 py-1 rounded-xl text-[11.5px] font-extrabold shadow-xs {{ $statusBadgeClass }}">
+                                <span>{{ $currentStatus }}</span>
+                            </span>
                         </div>
+                    </div>
 
-                        {{-- CARD 2: PROJECT ACTIVITIES --}}
-                        <div class="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs space-y-3.5">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-[13px] font-bold text-[#1E293B]">Project Activities</h3>
-                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D]/70 animate-pulse"></span>
+                    {{-- CARD 2: PROJECT ACTIVITIES --}}
+                    <div class="ipnet-card p-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-[13px] font-bold text-[#1E293B]">Project Activities</h3>
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]/70 animate-pulse"></span>
+                        </div>
+                        
+                        <div class="space-y-3 text-xs">
+                            <div class="space-y-1">
+                                <div class="font-normal text-gray-700">
+                                    <strong class="font-medium text-gray-900">{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}</strong> created this project
+                                </div>
+                                <div class="text-[11px] text-gray-400">
+                                    {{ \Carbon\Carbon::parse($project->created_at)->format('d M Y H:i') }}
+                                </div>
                             </div>
-                            
-                            <div class="space-y-3 text-xs">
-                                <div class="space-y-1">
+
+                            @if($project->pm)
+                                <div class="space-y-1 pt-2.5 border-t border-gray-100">
                                     <div class="font-normal text-gray-700">
-                                        <strong class="font-medium text-gray-900">{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}</strong> created this project
+                                        Handover ke PMO: <strong class="font-medium text-gray-900">{{ $project->pm->name }}</strong>
                                     </div>
                                     <div class="text-[11px] text-gray-400">
-                                        {{ \Carbon\Carbon::parse($project->created_at)->format('d M Y H:i') }}
+                                        Delivery dipimpin oleh PMO
                                     </div>
                                 </div>
+                            @endif
 
-                                @if($project->pm)
-                                    <div class="space-y-1 pt-2.5 border-t border-gray-100">
-                                        <div class="font-normal text-gray-700">
-                                            Handover ke PMO: <strong class="font-medium text-gray-900">{{ $project->pm->name }}</strong>
-                                        </div>
-                                        <div class="text-[11px] text-gray-400">
-                                            Delivery dipimpin oleh PMO
-                                        </div>
+                            @if(!empty($headApproval['approved']))
+                                <div class="space-y-1 pt-2.5 border-t border-gray-100">
+                                    <div class="font-normal text-gray-700">
+                                        Approval Head: <strong class="font-medium text-gray-900">Pak Susanto</strong>
                                     </div>
-                                @endif
+                                    <div class="text-[11px] text-gray-400">
+                                        {{ $headApproval['date'] ?? 'Disetujui' }}
+                                    </div>
+                                </div>
+                            @endif
 
-                                @if(!empty($headApproval['approved']))
-                                    <div class="space-y-1 pt-2.5 border-t border-gray-100">
-                                        <div class="font-normal text-gray-700">
-                                            Approval Head: <strong class="font-medium text-gray-900">Pak Susanto</strong>
-                                        </div>
-                                        <div class="text-[11px] text-gray-400">
-                                            {{ $headApproval['date'] ?? 'Disetujui' }}
-                                        </div>
+                            @if(!empty($directorApproval['approved']))
+                                <div class="space-y-1 pt-2.5 border-t border-gray-100">
+                                    <div class="font-normal text-gray-700">
+                                        Approval Direktur: <strong class="font-medium text-gray-900">Pak Hariyadi</strong>
                                     </div>
-                                @endif
-
-                                @if(!empty($directorApproval['approved']))
-                                    <div class="space-y-1 pt-2.5 border-t border-gray-100">
-                                        <div class="font-normal text-gray-700">
-                                            Approval Direktur: <strong class="font-medium text-gray-900">Pak Hariyadi</strong>
-                                        </div>
-                                        <div class="text-[11px] text-gray-400">
-                                            {{ $directorApproval['date'] ?? 'Disahkan' }}
-                                        </div>
+                                    <div class="text-[11px] text-gray-400">
+                                        {{ $directorApproval['date'] ?? 'Disahkan' }}
                                     </div>
-                                @endif
-                            </div>
+                                </div>
+                            @endif
                         </div>
-
                     </div>
 
                 </div>
+
             </div>
 
         </div>
