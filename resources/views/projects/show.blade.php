@@ -247,24 +247,13 @@
                         @if($currentStatus === 'Draft')
                             {{-- DRAFT: Persetujuan Pimpinan (Head Divisi & Direktur) --}}
                             <div class="p-5 rounded-2xl border border-gray-200 bg-[#F8FAFC] space-y-4">
-                                <div class="flex items-center justify-between border-b border-gray-200 pb-2.5 flex-wrap gap-2">
-                                    <div>
-                                        <div class="text-xs font-bold text-gray-900">Alur Persetujuan Draft Proyek (Dual Sign-Off)</div>
-                                        <div class="text-[11px] text-gray-500">
-                                            Diajukan oleh Sales (<strong>{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales') }}</strong>) untuk ditinjau kelayakan teknis & diotorisasi pimpinan sebelum diserahkan ke PMO:
-                                        </div>
+                                <div class="border-b border-gray-200 pb-2.5">
+                                    <div class="text-[13px] font-bold text-gray-900 flex items-center gap-2">
+                                        <span class="w-1.5 h-4 rounded-full bg-[#8F0A0D]"></span>
+                                        Persetujuan Pimpinan (Review &amp; Sign-Off)
                                     </div>
-
-                                    <div class="flex items-center gap-2">
-                                        @if(!$isAnyAssigned)
-                                            <button type="button" @click="openAssignModal('both')" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                                <span>Assign ke Pimpinan</span>
-                                            </button>
-                                        @endif
-                                        <span class="text-[11.5px] font-bold px-2.5 py-1 rounded-lg border {{ $isBothApproved ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isAnyAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200') }}">
-                                            {{ $isBothApproved ? 'Persetujuan Lengkap' : ($isAnyAssigned ? 'Menunggu Approval Pimpinan' : 'Belum Diajukan ke Pimpinan') }}
-                                        </span>
+                                    <div class="text-[11.5px] text-gray-500 mt-0.5">
+                                        Review kelayakan teknis oleh Head Divisi &amp; otorisasi kontrak oleh Direktur sebelum diserahkan ke PMO.
                                     </div>
                                 </div>
 
@@ -485,22 +474,22 @@
                         {{-- F. Milestone Section --}}
                         <div class="pt-6 border-t border-[#F1F5F9] space-y-3">
                             <div class="flex items-center justify-between flex-wrap gap-2">
-                                <h3 class="text-[13.5px] font-bold text-[#1E293B] flex items-center gap-2">
-                                    <span class="w-1.5 h-4 rounded-full" style="background: linear-gradient(135deg, #FDE047, #F59E0B);"></span>
-                                    Milestone
-                                </h3>
-                                
-                                <div class="flex items-center gap-3">
-                                    <span class="text-xs text-[#64748B] font-semibold">
-                                        Complete ({{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }})
+                                <div class="flex items-center gap-2.5">
+                                    <h3 class="text-[13.5px] font-bold text-[#1E293B] flex items-center gap-2">
+                                        <span class="w-1.5 h-4 rounded-full" style="background: linear-gradient(135deg, #FDE047, #F59E0B);"></span>
+                                        Milestones
+                                    </h3>
+                                    <span class="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-[#F1F5F9] text-[#64748B] border border-[#E2E8F0]">
+                                        {{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }} Selesai
                                     </span>
-                                    <button type="button" 
-                                            @click="isAddMilestoneModalOpen = true" 
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                        <span>ADD MILESTONE</span>
-                                    </button>
                                 </div>
+                                
+                                <button type="button" 
+                                        @click="isAddMilestoneModalOpen = true" 
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200 shadow-2xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span>ADD MILESTONE</span>
+                                </button>
                             </div>
 
                             @if($project->tasks->count() > 0)
@@ -522,30 +511,36 @@
                                         </div>
                                     @endforeach
                                 </div>
+                            @else
+                                <div class="p-3.5 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC]/50 text-center text-xs text-[#94A3B8]">
+                                    Belum ada milestone. Klik tombol <span class="font-semibold text-[#8F0A0D]">+ ADD MILESTONE</span> untuk menambahkan target pekerjaan.
+                                </div>
                             @endif
                         </div>
 
                         {{-- G. Attachments Section --}}
+                        @php
+                            $uploadedDocs = $project->relationLoaded('projectDocuments') 
+                                ? $project->projectDocuments->filter(fn($doc) => !empty($doc->file_path)) 
+                                : collect();
+                        @endphp
                         <div class="pt-6 border-t border-[#F1F5F9] space-y-3">
                             <div class="flex items-center justify-between flex-wrap gap-2">
-                                <h3 class="text-[13.5px] font-bold text-[#1E293B] flex items-center gap-2">
-                                    <span class="w-1.5 h-4 rounded-full" style="background: linear-gradient(135deg, #0EA5E9, #0284C7);"></span>
-                                    Attachments
-                                </h3>
-                                
-                                <div class="flex items-center gap-3 text-xs font-bold">
-                                    <button type="button" @click="isUploadDocModalOpen = true" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                        <span>ADD ATTACHMENT</span>
-                                    </button>
+                                <div class="flex items-center gap-2.5">
+                                    <h3 class="text-[13.5px] font-bold text-[#1E293B] flex items-center gap-2">
+                                        <span class="w-1.5 h-4 rounded-full" style="background: linear-gradient(135deg, #0EA5E9, #0284C7);"></span>
+                                        Attachments
+                                    </h3>
+                                    <span class="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-[#F1F5F9] text-[#64748B] border border-[#E2E8F0]">
+                                        {{ $uploadedDocs->count() }} Berkas
+                                    </span>
                                 </div>
+                                
+                                <button type="button" @click="isUploadDocModalOpen = true" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200 shadow-2xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span>ADD ATTACHMENT</span>
+                                </button>
                             </div>
-
-                            @php
-                                $uploadedDocs = $project->relationLoaded('projectDocuments') 
-                                    ? $project->projectDocuments->filter(fn($doc) => !empty($doc->file_path)) 
-                                    : collect();
-                            @endphp
 
                             @if($uploadedDocs->count() > 0)
                                 <div class="space-y-2">
@@ -564,25 +559,29 @@
                                             </div>
                                             @if($doc->file_path)
                                                 <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition no-underline">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                     <span>Download</span>
                                                 </a>
                                             @endif
                                         </div>
                                     @endforeach
                                 </div>
+                            @else
+                                <div class="p-3.5 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC]/50 text-center text-xs text-[#94A3B8]">
+                                    Belum ada berkas lampiran. Klik tombol <span class="font-semibold text-[#8F0A0D]">+ ADD ATTACHMENT</span> untuk mengunggah BoQ atau dokumen pendukung.
+                                </div>
                             @endif
                         </div>
 
                     </div>
 
-                    {{-- ══ RIGHT SECTION: PROJECT STATUS & ACTIVITIES (col-span-3) ══ --}}
-                    <div class="lg:col-span-3 p-6 sm:p-8 space-y-6 bg-white">
+                    {{-- ══ RIGHT SECTION: 2 SEPARATE CARDS (STATUS & ACTIVITIES) ══ --}}
+                    <div class="lg:col-span-3 p-5 sm:p-6 space-y-4 bg-[#F8FAFC]">
                         
-                        {{-- Project Status --}}
-                        <div class="space-y-3">
+                        {{-- CARD 1: PROJECT STATUS --}}
+                        <div class="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs space-y-3">
                             <div class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Project Status</div>
-                            <div class="flex items-center gap-3 text-xs flex-wrap">
+                            <div>
                                 @php
                                     $statusBadgeClass = match($currentStatus) {
                                         'Draft' => 'bg-gradient-to-r from-slate-600 to-slate-800 text-white',
@@ -593,15 +592,18 @@
                                         default => 'bg-slate-700 text-white',
                                     };
                                 @endphp
-                                <span class="px-3 py-1 rounded-xl text-[11.5px] font-extrabold shadow-xs {{ $statusBadgeClass }}">
+                                <span class="inline-block px-3 py-1 rounded-xl text-[11.5px] font-extrabold shadow-xs {{ $statusBadgeClass }}">
                                     <span>{{ $currentStatus }}</span>
                                 </span>
                             </div>
                         </div>
 
-                        {{-- Project Activities --}}
-                        <div class="pt-6 border-t border-gray-100 space-y-3">
-                            <h3 class="text-sm font-bold text-gray-900">Project Activities</h3>
+                        {{-- CARD 2: PROJECT ACTIVITIES --}}
+                        <div class="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs space-y-3.5">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-[13px] font-bold text-[#1E293B]">Project Activities</h3>
+                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D]/70 animate-pulse"></span>
+                            </div>
                             
                             <div class="space-y-3 text-xs">
                                 <div class="space-y-1">
@@ -614,7 +616,7 @@
                                 </div>
 
                                 @if($project->pm)
-                                    <div class="space-y-1 pt-2 border-t border-gray-100">
+                                    <div class="space-y-1 pt-2.5 border-t border-gray-100">
                                         <div class="font-normal text-gray-700">
                                             Handover ke PMO: <strong class="font-medium text-gray-900">{{ $project->pm->name }}</strong>
                                         </div>
@@ -625,7 +627,7 @@
                                 @endif
 
                                 @if(!empty($headApproval['approved']))
-                                    <div class="space-y-1 pt-2 border-t border-gray-100">
+                                    <div class="space-y-1 pt-2.5 border-t border-gray-100">
                                         <div class="font-normal text-gray-700">
                                             Approval Head: <strong class="font-medium text-gray-900">Pak Susanto</strong>
                                         </div>
@@ -636,7 +638,7 @@
                                 @endif
 
                                 @if(!empty($directorApproval['approved']))
-                                    <div class="space-y-1 pt-2 border-t border-gray-100">
+                                    <div class="space-y-1 pt-2.5 border-t border-gray-100">
                                         <div class="font-normal text-gray-700">
                                             Approval Direktur: <strong class="font-medium text-gray-900">Pak Hariyadi</strong>
                                         </div>
