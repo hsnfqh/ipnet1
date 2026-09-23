@@ -182,10 +182,10 @@ class SalesCrmController extends Controller
 
         if ($isCompleted) {
             $status = 'Completed';
-            $stage = 'Deliver';
+            $stage = 'Acquire';          // Tetap di Acquire — PMO hanya lihat Deliver & Operate
             $salesStage = 'Closed Won';
             $prob = 100;
-            $progress = 100;
+            $progress = 0;              // Progress teknis belum dimulai, baru commercial closed
         } else {
             $status = $validated['status'] ?? 'Opportunity';
             $stage = in_array($status, ['In Progress', 'Active']) ? 'Deliver' : 'Acquire';
