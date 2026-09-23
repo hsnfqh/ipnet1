@@ -26,8 +26,13 @@
     .ms-del-btn:hover { color:#EF4444; background:#FEF2F2; }
     .ms-modal-overlay { position:fixed; inset:0; background:rgba(15,23,42,.55); backdrop-filter:blur(4px); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px; }
     .ms-modal-box { background:#FFFFFF; border-radius:20px; width:480px; max-width:100%; box-shadow:0 24px 64px rgba(15,23,42,.25); border:1.5px solid #E2E8F0; overflow:hidden; }
-    .ms-modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1.5px solid #F1F5F9; background:linear-gradient(135deg,#F8FAFC 0%,#EFF9FF 100%); }
+    .ms-modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1.5px solid #F1F5F9; background:linear-gradient(135deg,#FFFDFD 0%,#FFF5F5 100%); }
     .ms-modal-footer { display:flex; gap:10px; padding:14px 20px; border-top:1.5px solid #F1F5F9; justify-content:flex-end; background:#FAFAFA; }
+    .win-slider { -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:9999px; outline:none; cursor:pointer; }
+    .win-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg,#FDE047 0%,#F59E0B 50%,#D97706 100%); box-shadow:0 2px 6px rgba(217,119,6,.45),0 0 0 3px #FFFFFF; cursor:pointer; transition:transform .15s ease,box-shadow .15s ease; }
+    .win-slider::-webkit-slider-thumb:hover { transform:scale(1.15); box-shadow:0 3px 10px rgba(217,119,6,.6),0 0 0 3.5px #FEF08A; }
+    .win-slider::-webkit-slider-thumb:active { transform:scale(1.05); }
+    .win-slider::-moz-range-thumb { width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg,#FDE047 0%,#F59E0B 50%,#D97706 100%); box-shadow:0 2px 6px rgba(217,119,6,.45),0 0 0 3px #FFFFFF; border:none; cursor:pointer; }
     @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
     .afu { animation:fadeUp .4s cubic-bezier(.16,1,.3,1) both; }
     @keyframes scaleIn { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
@@ -134,7 +139,7 @@
                                 <label class="cf-label" style="margin-bottom:0;">Win Probability</label>
                                 <span class="text-[13px] font-extrabold text-[#8F0A0D]" x-text="probability + '%'"></span>
                             </div>
-                            <input type="range" name="win_probability" min="0" max="100" step="5" x-model.number="probability" class="w-full h-2 rounded-full appearance-none cursor-pointer" :style="`background:linear-gradient(to right,#8F0A0D 0%,#8F0A0D ${probability}%,#E2E8F0 ${probability}%,#E2E8F0 100%)`">
+                            <input type="range" name="win_probability" min="0" max="100" step="5" x-model.number="probability" class="win-slider" :style="`background:linear-gradient(to right,#8F0A0D 0%,#8F0A0D ${probability}%,#E2E8F0 ${probability}%,#E2E8F0 100%)`">
                             <div class="flex justify-between mt-1 text-[10.5px] text-[#94A3B8]"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
                         </div>
 
@@ -143,7 +148,7 @@
 
                         {{-- ─── SECTION 3: Milestone ─── --}}
                         <div class="flex items-center gap-2 mb-4">
-                            <span class="sec-dot" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);"></span>
+                            <span class="sec-dot" style="background:linear-gradient(135deg,#FDE047,#F59E0B); box-shadow:0 0 0 2px #FEF3C7;"></span>
                             <span class="text-[13px] font-extrabold text-[#1E293B]">Milestone</span>
                             <span class="ml-auto text-[11px] font-semibold text-[#94A3B8]">Complete (<span x-text="milestones.filter(m=>m.done).length"></span>/<span x-text="milestones.length"></span>)</span>
                         </div>
@@ -188,7 +193,7 @@
         <div class="ms-modal-box scale-in" @click.stop>
             <div class="ms-modal-header">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#0EA5E9,#0284C7);">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#8F0A0D,#D62E3C); box-shadow:0 2px 8px rgba(143,10,13,.25);">
                         <svg style="width:18px;height:18px;" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                     </div>
                     <div><div class="text-[15px] font-bold text-[#1E293B]">Milestone</div><p class="text-[11.5px] text-[#64748B] mt-0.5">Tambah target / tahapan baru</p></div>
@@ -212,7 +217,7 @@
             </div>
             <div class="ms-modal-footer">
                 <button type="button" @click="closeMilestoneModal()" class="px-5 py-2.5 rounded-xl border border-[#CBD5E1] text-[#475569] font-bold text-[13px] hover:bg-[#F8FAFC] transition cursor-pointer">Cancel</button>
-                <button type="button" @click="addMilestone()" class="px-6 py-2.5 rounded-xl font-bold text-[13px] text-white cursor-pointer shadow-md" style="background:linear-gradient(135deg,#0EA5E9 0%,#0284C7 100%);">Add</button>
+                <button type="button" @click="addMilestone()" class="px-6 py-2.5 rounded-xl font-bold text-[13px] text-white cursor-pointer shadow-md hover:brightness-105 active:scale-[0.98] transition-all" style="background:linear-gradient(135deg,#8F0A0D 0%,#D62E3C 100%);">Add</button>
             </div>
         </div>
     </div>
