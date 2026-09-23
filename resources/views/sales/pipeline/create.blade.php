@@ -28,11 +28,11 @@
     .ms-modal-box { background:#FFFFFF; border-radius:20px; width:480px; max-width:100%; box-shadow:0 24px 64px rgba(15,23,42,.25); border:1.5px solid #E2E8F0; overflow:hidden; }
     .ms-modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1.5px solid #F1F5F9; background:linear-gradient(135deg,#FFFDFD 0%,#FFF5F5 100%); }
     .ms-modal-footer { display:flex; gap:10px; padding:14px 20px; border-top:1.5px solid #F1F5F9; justify-content:flex-end; background:#FAFAFA; }
-    .win-slider { -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:9999px; outline:none; cursor:pointer; }
-    .win-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg,#FDE047 0%,#F59E0B 50%,#D97706 100%); box-shadow:0 2px 6px rgba(217,119,6,.45),0 0 0 3px #FFFFFF; cursor:pointer; transition:transform .15s ease,box-shadow .15s ease; }
-    .win-slider::-webkit-slider-thumb:hover { transform:scale(1.15); box-shadow:0 3px 10px rgba(217,119,6,.6),0 0 0 3.5px #FEF08A; }
+    .win-slider { -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:9999px; outline:none; cursor:pointer; }
+    .win-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:14px; height:14px; border-radius:50%; background:linear-gradient(135deg,#FDE047 0%,#F59E0B 100%); box-shadow:0 1px 3px rgba(217,119,6,.4),0 0 0 2px #FFFFFF; cursor:pointer; transition:transform .15s ease,box-shadow .15s ease; }
+    .win-slider::-webkit-slider-thumb:hover { transform:scale(1.2); box-shadow:0 2px 6px rgba(217,119,6,.55),0 0 0 2.5px #FEF08A; }
     .win-slider::-webkit-slider-thumb:active { transform:scale(1.05); }
-    .win-slider::-moz-range-thumb { width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg,#FDE047 0%,#F59E0B 50%,#D97706 100%); box-shadow:0 2px 6px rgba(217,119,6,.45),0 0 0 3px #FFFFFF; border:none; cursor:pointer; }
+    .win-slider::-moz-range-thumb { width:14px; height:14px; border-radius:50%; background:linear-gradient(135deg,#FDE047 0%,#F59E0B 100%); box-shadow:0 1px 3px rgba(217,119,6,.4),0 0 0 2px #FFFFFF; border:none; cursor:pointer; }
     @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
     .afu { animation:fadeUp .4s cubic-bezier(.16,1,.3,1) both; }
     @keyframes scaleIn { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
@@ -164,22 +164,22 @@
                             </div>
                         </template>
 
-                        {{-- ─── BOTTOM ACTIONS (INSIDE CARD) ─── --}}
-                        <div class="flex items-center justify-between pt-8 mt-6 border-t border-[#F1F5F9]">
-                            <div>
-                                <button type="button" @click="openMilestoneModal()" class="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[#8F0A0D] hover:text-[#6B0009] transition cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                    + ADD MILESTONE
-                                </button>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <a href="{{ route('sales.pipeline.index') }}" class="px-5 py-2.5 rounded-xl border border-[#CBD5E1] text-[#475569] font-bold text-[13px] hover:bg-[#F8FAFC] transition cursor-pointer inline-flex items-center">
-                                    Cancel
-                                </a>
-                                <button type="submit" class="px-6 py-2.5 rounded-xl font-bold text-[13px] text-white cursor-pointer shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all" style="background:linear-gradient(135deg,#8F0A0D 0%,#D62E3C 100%);">
-                                    {{ $isCompleted ? 'Simpan Project Selesai' : 'Create New Project' }}
-                                </button>
-                            </div>
+                        {{-- ADD MILESTONE BUTTON (Single plus, placed above footer actions) --}}
+                        <div class="mt-3">
+                            <button type="button" @click="openMilestoneModal()" class="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#8F0A0D] hover:text-[#6B0009] transition cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                <span>ADD MILESTONE</span>
+                            </button>
+                        </div>
+
+                        {{-- ─── BOTTOM ACTIONS (INSIDE CARD, SEPARATE ROW BELOW MILESTONE) ─── --}}
+                        <div class="flex items-center justify-end gap-3 pt-6 mt-8 border-t border-[#F1F5F9]">
+                            <a href="{{ route('sales.pipeline.index') }}" class="px-5 py-2.5 rounded-xl border border-[#CBD5E1] text-[#475569] font-bold text-[13px] hover:bg-[#F8FAFC] transition cursor-pointer inline-flex items-center">
+                                Cancel
+                            </a>
+                            <button type="submit" class="px-6 py-2.5 rounded-xl font-bold text-[13px] text-white cursor-pointer shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all" style="background:linear-gradient(135deg,#8F0A0D 0%,#D62E3C 100%);">
+                                {{ $isCompleted ? 'Simpan Project Selesai' : 'Create New Project' }}
+                            </button>
                         </div>
 
                     </div>{{-- end p-7 --}}
