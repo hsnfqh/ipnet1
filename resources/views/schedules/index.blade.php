@@ -1868,19 +1868,19 @@
 
 .jkw-cat-btn--poc {
     background: #FFFFFF !important;
-    color: #10B981 !important;
-    border: 1.5px solid #A7F3D0 !important;
+    color: #3B82F6 !important;
+    border: 1.5px solid #BFDBFE !important;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
 }
 .jkw-cat-btn--poc:hover {
-    background: #ECFDF5 !important;
-    border-color: #6EE7B7 !important;
+    background: #EFF6FF !important;
+    border-color: #93C5FD !important;
 }
 .jkw-cat-btn--poc.is-active {
-    background: #10B981 !important;
+    background: #3B82F6 !important;
     color: #FFFFFF !important;
-    border-color: #10B981 !important;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+    border-color: #3B82F6 !important;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35) !important;
 }
 .jkw-cat-btn--poc.is-active svg {
     color: #FFFFFF !important;

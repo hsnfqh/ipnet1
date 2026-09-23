@@ -216,15 +216,14 @@ class SalesCrmController extends Controller
 
         // Auto record initial Sales Activity log
         SalesActivity::create([
-            'project_id'     => $project->id,
-            'user_id'        => $user->id,
-            'activity_type'  => 'Follow Up',
-            'activity_date'  => now()->toDateString(),
-            'activity_time'  => now()->format('H:i'),
-            'contact_person' => 'PIC Prospek',
-            'summary'        => 'Inisiasi proyek oleh Sales: ' . $project->name,
-            'outcome'        => 'Proyek tersimpan dengan status ' . ($status),
-            'next_action'    => 'Monitoring progres dan koordinasi tim teknis',
+            'project_id'    => $project->id,
+            'sales_id'      => $user->id,
+            'activity_type' => 'Follow Up',
+            'subject'       => 'Inisiasi Proyek: ' . $project->name,
+            'activity_date' => now(),
+            'notes'         => 'Proyek tersimpan dengan status ' . $status,
+            'next_action'   => 'Monitoring progres dan koordinasi tim teknis',
+            'status'        => 'Completed',
         ]);
 
         if ($request->wantsJson() || $request->ajax()) {
