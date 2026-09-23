@@ -412,6 +412,210 @@ class ProjectController extends Controller
     }
 
     /**
+     * Penugasan Tim Solusi Teknis (Presales Specialist & Solution Architect)
+     */
+    public function assignTechnical(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'role'              => 'required|in:presales,architect,both',
+            'presales_user_id'  => 'nullable|exists:users,id',
+            'architect_user_id' => 'nullable|exists:users,id',
+            'notes'             => 'nullable|string|max:1000',
+        ]);
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
+        $technical = $handoverData['technical_assignments'] ?? [
+            'presales'  => ['assigned' => false, 'assigned_to' => null, 'assigned_user_id' => null, 'sales_notes' => null, 'status' => 'Pending'],
+            'architect' => ['assigned' => false, 'assigned_to' => null, 'assigned_user_id' => null, 'sales_notes' => null, 'status' => 'Pending'],
+        ];
+
+        $now = now()->format('d M Y H:i');
+        $creatorName = auth()->user() ? auth()->user()->name : ($project->sales_name ?: 'Sales');
+
+        if (in_array($validated['role'], ['presales', 'both'])) {
+            $presalesUser = !empty($validated['presales_user_id'])
+                ? \App\Models\User::find($validated['presales_user_id'])
+                : \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Presales', 'Pre-Sales']))->first()
+                   ?? \App\Models\User::where('name', 'like', '%Akbar%')->first();
+            $presalesName = $presalesUser ? $presalesUser->name : 'Akbar (Pre-Sales)';
+
+            $technical['presales'] = array_merge($technical['presales'] ?? [], [
+                'assigned'         => true,
+                'assigned_to'      => $presalesName,
+                'assigned_user_id' => $presalesUser ? $presalesUser->id : null,
+                'assigned_by'      => $creatorName,
+                'assigned_at'      => $now,
+                'sales_notes'      => $validated['notes'] ?? null,
+                'status'           => ($technical['presales']['status'] ?? '') === 'Completed' ? 'Completed' : 'Assigned',
+            ]);
+
+            // Kirim notifikasi sistem ke Presales
+            if ($presalesUser && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                $notifMsg = "Sales ({$creatorName}) menugaskan Anda untuk menyusun Proposal Teknis & BoQ proyek '{$project->name}' (Klien: " . ($project->client ?: '-') . ")." . (!empty($validated['notes']) ? " Catatan: {$validated['notes']}" : '');
+                \App\Models\Notification::create([
+                    'user_id' => $presalesUser->id,
+                    'title'   => \Illuminate\Support\Str::limit('Penugasan Proposal Teknis & BoQ: ' . $project->name, 240),
+                    'message' => \Illuminate\Support\Str::limit($notifMsg, 240),
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
+        }
+
+        if (in_array($validated['role'], ['architect', 'both'])) {
+            $architectUser = !empty($validated['architect_user_id'])
+                ? \App\Models\User::find($validated['architect_user_id'])
+                : \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Solution Architect', 'Solutions Architect', 'SA']))->first()
+                   ?? \App\Models\User::where('name', 'like', '%Aris%')->first();
+            $architectName = $architectUser ? $architectUser->name : 'Aris Sadewo (Solution Architect)';
+
+            $technical['architect'] = array_merge($technical['architect'] ?? [], [
+                'assigned'         => true,
+                'assigned_to'      => $architectName,
+                'assigned_user_id' => $architectUser ? $architectUser->id : null,
+                'assigned_by'      => $creatorName,
+                'assigned_at'      => $now,
+                'sales_notes'      => $validated['notes'] ?? null,
+                'status'           => ($technical['architect']['status'] ?? '') === 'Completed' ? 'Completed' : 'Assigned',
+            ]);
+
+            // Kirim notifikasi sistem ke Solution Architect
+            if ($architectUser && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                $notifMsg = "Sales ({$creatorName}) menugaskan Anda merancang Diagram Topologi & arsitektur proyek '{$project->name}' (Klien: " . ($project->client ?: '-') . ")." . (!empty($validated['notes']) ? " Catatan: {$validated['notes']}" : '');
+                \App\Models\Notification::create([
+                    'user_id' => $architectUser->id,
+                    'title'   => \Illuminate\Support\Str::limit('Penugasan Desain Topologi & Sizing: ' . $project->name, 240),
+                    'message' => \Illuminate\Support\Str::limit($notifMsg, 240),
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
+        }
+
+        $handoverData['technical_assignments'] = $technical;
+        $project->handover_data = $handoverData;
+        $project->save();
+
+        $msg = "Penugasan teknis solusi (Presales & Solution Architect) berhasil dicatat dan notifikasi telah dikirimkan!";
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => $msg, 'technical' => $technical]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Upload Dokumen Hasil Kerja Teknis oleh Presales Specialist atau Solution Architect
+     */
+    public function uploadTechnicalDoc(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'role_type'        => 'required|in:presales,architect',
+            'document_title'   => 'nullable|string|max:255',
+            'document_file'    => 'nullable|file|max:51200', // 50MB
+            'document_files'   => 'nullable|array',
+            'document_files.*' => 'file|max:51200',
+            'notes'            => 'nullable|string|max:1000',
+        ]);
+
+        $files = [];
+        if ($request->hasFile('document_files')) {
+            $files = $request->file('document_files');
+        } elseif ($request->hasFile('document_file')) {
+            $files = [$request->file('document_file')];
+        }
+
+        if (empty($files)) {
+            return back()->with('error', 'Silakan pilih berkas dokumen yang akan diunggah.');
+        }
+
+        $user = auth()->user();
+        $uploaderName = $user ? $user->name : 'Tim Teknis Solusi';
+        $now = now()->format('d M Y H:i');
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
+        $technical = $handoverData['technical_assignments'] ?? [];
+
+        $roleKey = $validated['role_type'];
+        $defaultDocKey = ($roleKey === 'presales') ? 'technical_proposal' : 'solution_architecture';
+        $defaultDocTitle = ($roleKey === 'presales') ? 'Proposal Teknis & BoQ' : 'Desain Arsitektur & Topologi';
+        $docTitle = $validated['document_title'] ?: $defaultDocTitle;
+
+        $lastStoredPath = null;
+        $lastStoredName = null;
+
+        foreach ($files as $file) {
+            $origName = $file->getClientOriginalName();
+            $ext      = $file->getClientOriginalExtension();
+            $size     = $file->getSize();
+            $path     = $file->store('project_documents/' . $project->id, 'public');
+
+            $lastStoredPath = $path;
+            $lastStoredName = $origName;
+
+            // Catat di project_documents (Stage 2: Solution / Presales)
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+                $docPayload = [
+                    'project_id'     => $project->id,
+                    'stage_number'   => 2,
+                    'stage_name'     => 'Solution',
+                    'document_key'   => $defaultDocKey,
+                    'document_title' => $docTitle,
+                    'file_name'      => $origName,
+                    'file_path'      => $path,
+                    'file_size'      => $size,
+                    'file_extension' => $ext,
+                    'status'         => 'Uploaded',
+                    'notes'          => $validated['notes'] ?? null,
+                    'uploaded_by'    => $user?->id,
+                    'uploaded_at'    => now(),
+                ];
+                if (\Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'name')) {
+                    $docPayload['name'] = $origName;
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'document_type')) {
+                    $docPayload['document_type'] = ($roleKey === 'presales' ? 'Technical Proposal' : 'Topology & Sizing');
+                }
+                \App\Models\ProjectDocument::create($docPayload);
+            }
+        }
+
+        // Update technical assignment status
+        $technical[$roleKey] = array_merge($technical[$roleKey] ?? [], [
+            'status'         => 'Completed',
+            'document_path'  => $lastStoredPath,
+            'document_name'  => $lastStoredName,
+            'document_title' => $docTitle,
+            'completed_at'   => $now,
+            'notes'          => $validated['notes'] ?? ($technical[$roleKey]['notes'] ?? null),
+        ]);
+
+        $handoverData['technical_assignments'] = $technical;
+        $project->handover_data = $handoverData;
+        $project->save();
+
+        // Kirim notifikasi balik ke Sales pembuat proyek
+        $salesUserId = $project->creator_id ?? $project->created_by;
+        if ($salesUserId && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            $roleLabel = ($roleKey === 'presales') ? 'Pre-Sales Specialist' : 'Solution Architect';
+            \App\Models\Notification::create([
+                'user_id' => $salesUserId,
+                'title'   => \Illuminate\Support\Str::limit("Berkas {$roleLabel} Diunggah: " . $project->name, 240),
+                'message' => \Illuminate\Support\Str::limit("{$uploaderName} ({$roleLabel}) telah mengunggah berkas '{$docTitle}' untuk proyek '{$project->name}'.", 240),
+                'url'     => route('projects.show', $project->id),
+                'is_read' => false,
+            ]);
+        }
+
+        $msg = "Berkas dokumen teknis ({$docTitle}) berhasil diunggah!";
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => $msg, 'technical' => $technical]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
      * Update Status / Lifecycle Stage Langsung dari Tampilan Detail
      */
     public function updateStageDirect(Request $request, Project $project)

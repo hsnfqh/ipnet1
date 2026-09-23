@@ -372,6 +372,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{project}/assign', [ProjectController::class, 'assignTeam'])->name('projects.assign');
         Route::post('/{project}/assign-approver', [ProjectController::class, 'assignApprover'])->name('projects.assign_approver');
         Route::post('/{project}/approve-draft', [ProjectController::class, 'approveDraft'])->name('projects.approve_draft');
+        Route::post('/{project}/assign-technical', [ProjectController::class, 'assignTechnical'])->name('projects.assign_technical');
+        Route::post('/{project}/upload-technical-doc', [ProjectController::class, 'uploadTechnicalDoc'])->name('projects.upload_technical_doc');
         Route::post('/{project}/stage-update', [ProjectController::class, 'updateStageDirect'])->name('projects.stage_update');
         Route::post('/{project}/meta-update', [ProjectController::class, 'updateMeta'])->name('projects.meta_update');
 

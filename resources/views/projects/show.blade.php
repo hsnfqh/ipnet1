@@ -82,6 +82,40 @@
     $isBothApproved = !empty($headApproval['approved']) && !empty($directorApproval['approved']);
     $isAnyAssigned = $isHeadAssigned || $isDirectorAssigned;
 
+    // Data Penugasan Tim Solusi Teknis (Presales Specialist & Solution Architect)
+    $technicalAssignments = $handoverData['technical_assignments'] ?? [];
+    $presalesAssignment = $technicalAssignments['presales'] ?? [
+        'assigned'         => false,
+        'assigned_to'      => 'Akbar',
+        'assigned_user_id' => null,
+        'assigned_by'      => null,
+        'assigned_at'      => null,
+        'sales_notes'      => null,
+        'status'           => 'Pending',
+        'completed_at'     => null,
+        'document_path'    => null,
+        'document_name'    => null,
+        'document_title'   => null,
+    ];
+    $architectAssignment = $technicalAssignments['architect'] ?? [
+        'assigned'         => false,
+        'assigned_to'      => 'Aris Sadewo',
+        'assigned_user_id' => null,
+        'assigned_by'      => null,
+        'assigned_at'      => null,
+        'sales_notes'      => null,
+        'status'           => 'Pending',
+        'completed_at'     => null,
+        'document_path'    => null,
+        'document_name'    => null,
+        'document_title'   => null,
+    ];
+
+    $isPresalesAssigned = !empty($presalesAssignment['assigned']);
+    $isArchitectAssigned = !empty($architectAssignment['assigned']);
+    $isPresalesDone = !empty($presalesAssignment['document_path']) || ($presalesAssignment['status'] ?? '') === 'Completed';
+    $isArchitectDone = !empty($architectAssignment['document_path']) || ($architectAssignment['status'] ?? '') === 'Completed';
+
     // Koleksi seluruh engineer pelaksana yang ditugaskan oleh PMO pada tasks proyek
     $assignedEngineers = collect();
     foreach($project->tasks as $t) {
@@ -129,6 +163,16 @@
     $pmoUsers = \App\Models\User::whereHas('roles', function($q) {
         $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Divisi', 'Group Leader', 'Direktur', 'HD / Direktur']);
     })->orWhere('name', 'like', '%Rizki%')->orWhere('name', 'like', '%Kuncoro%')->orderBy('name')->get();
+
+    // Ambil daftar user Presales & Solution Architect
+    $presalesUsers = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Presales', 'Pre-Sales']))->orderBy('name')->get();
+    if ($presalesUsers->isEmpty()) {
+        $presalesUsers = \App\Models\User::where('name', 'like', '%Akbar%')->get();
+    }
+    $architectUsers = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop']))->orderBy('name')->get();
+    if ($architectUsers->isEmpty()) {
+        $architectUsers = \App\Models\User::where('name', 'like', '%Aris%')->get();
+    }
 @endphp
 
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans text-slate-800" 
@@ -429,9 +473,17 @@
                         @elseif($currentStatus === 'Opportunity')
                             {{-- OPPORTUNITY / CRM --}}
                             <div class="p-5 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] text-xs space-y-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-2.5 h-2.5 rounded-full" style="background: linear-gradient(135deg, #0EA5E9, #0284C7);"></span>
-                                    <span class="text-[13px] font-bold text-[#1E293B]">Pipeline Sales &amp; Opportunity</span>
+                                <div class="flex items-center justify-between flex-wrap gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2.5 h-2.5 rounded-full" style="background: linear-gradient(135deg, #0EA5E9, #0284C7);"></span>
+                                        <span class="text-[13px] font-bold text-[#1E293B]">Pipeline Sales &amp; Opportunity</span>
+                                    </div>
+                                    @if(!$isPresalesAssigned || !$isArchitectAssigned)
+                                        <button type="button" @click="openAssignTechnicalModal('both')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white btn-ipnet-primary transition shadow-xs cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                            <span>Tugaskan Presales &amp; Solution Architect</span>
+                                        </button>
+                                    @endif
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                                     <div class="p-3.5 bg-white rounded-xl border border-[#E2E8F0] shadow-2xs">
@@ -448,6 +500,148 @@
                                     <div class="p-3.5 bg-white rounded-xl border border-[#E2E8F0] shadow-2xs">
                                         <span class="text-[10px] font-bold text-[#64748B] uppercase tracking-wider block">Target Closing</span>
                                         <strong class="text-[13px] text-[#1E293B] font-extrabold mt-0.5 block">{{ $project->expected_closing_date ? \Carbon\Carbon::parse($project->expected_closing_date)->format('d M Y') : '-' }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- DUAL CARD: PENUGASAN PRESALES & SOLUTION ARCHITECT (SESUAI REQUEST USER) --}}
+                            <div class="p-5 rounded-2xl border border-gray-200 bg-[#F8FAFC] space-y-4">
+                                <div class="border-b border-gray-200 pb-2.5 flex items-center justify-between flex-wrap gap-2">
+                                    <div>
+                                        <div class="text-[13px] font-bold text-gray-900 flex items-center gap-2">
+                                            <span class="w-1.5 h-4 rounded-full bg-[#8F0A0D]"></span>
+                                            Kolaborasi Teknis Solusi (Presales &amp; Solution Architect)
+                                        </div>
+                                        <div class="text-[11.5px] text-gray-500 mt-0.5">
+                                            Penugasan tim Presales untuk penyusunan proposal teknis &amp; BoQ, serta Solution Architect untuk perancangan topologi &amp; validasi arsitektur sistem.
+                                        </div>
+                                    </div>
+                                    <button type="button" @click="openAssignTechnicalModal('both')" class="text-xs font-bold text-[#8F0A0D] hover:underline cursor-pointer">
+                                        {{ ($isPresalesAssigned || $isArchitectAssigned) ? 'Ubah Penugasan Tim Solusi' : '+ Assign Tim Teknis' }}
+                                    </button>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                    {{-- Card 1: Pre-Sales Specialist --}}
+                                    <div class="p-4 rounded-xl bg-white border border-gray-200 space-y-2.5 shadow-2xs flex flex-col justify-between">
+                                        <div class="space-y-2.5">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PRE-SALES SPECIALIST</div>
+                                                    <div class="font-bold text-gray-900 text-sm">{{ $presalesAssignment['assigned_to'] ?? 'Akbar' }}</div>
+                                                </div>
+                                                <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ $isPresalesDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isPresalesAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
+                                                    {{ $isPresalesDone ? 'Berkas Diunggah' : ($isPresalesAssigned ? 'Menunggu Proposal & BoQ' : 'Belum Di-assign') }}
+                                                </span>
+                                            </div>
+
+                                            <div class="text-[11.5px] text-gray-600">
+                                                <div class="font-medium text-gray-700 mb-1">Tanggung Jawab: Penyusunan Proposal Teknis, Scope of Work (SOW), dan Bill of Quantity (BoQ) Komersial.</div>
+                                                @if($isPresalesDone)
+                                                    <div class="p-2 rounded-lg bg-emerald-50/70 border border-emerald-200 text-emerald-800 space-y-1">
+                                                        <div class="font-bold flex items-center gap-1.5">
+                                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                            <span>{{ $presalesAssignment['document_title'] ?? 'Proposal Teknis & BoQ' }}</span>
+                                                        </div>
+                                                        <div class="text-[10.5px] text-emerald-700 flex items-center justify-between">
+                                                            <span>Berkas: {{ $presalesAssignment['document_name'] ?? 'File terlampir' }}</span>
+                                                            @if(!empty($presalesAssignment['document_path']))
+                                                                <a href="{{ asset('storage/' . $presalesAssignment['document_path']) }}" target="_blank" class="font-bold underline text-emerald-800 hover:text-emerald-950">Unduh</a>
+                                                            @endif
+                                                        </div>
+                                                        @if(!empty($presalesAssignment['completed_at']))
+                                                            <div class="text-[10px] text-emerald-600">Diunggah: {{ $presalesAssignment['completed_at'] }}</div>
+                                                        @endif
+                                                    </div>
+                                                @elseif($isPresalesAssigned)
+                                                    <div class="p-2 rounded-lg bg-amber-50/60 border border-amber-200 text-amber-800">
+                                                        <div class="font-semibold italic">"{{ $presalesAssignment['sales_notes'] ?: 'Mohon segera dibuatkan proposal teknis dan BoQ estimasi proyek.' }}"</div>
+                                                        <div class="text-[10.5px] text-amber-600 mt-1">Ditugaskan: {{ $presalesAssignment['assigned_at'] ?? '-' }} (oleh {{ $presalesAssignment['assigned_by'] ?? 'Sales' }})</div>
+                                                    </div>
+                                                @else
+                                                    <span class="text-gray-400">Belum ditugaskan ke Pre-Sales. Klik tombol di bawah untuk menugaskan penyusunan proposal teknis.</span>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-2 border-t border-gray-100 flex items-center justify-between gap-2 mt-2">
+                                            @if(!$isPresalesAssigned)
+                                                <button type="button" @click="openAssignTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                                    <span>Assign ke Pre-Sales</span>
+                                                </button>
+                                            @else
+                                                <button type="button" @click="openAssignTechnicalModal('presales')" class="text-[11px] font-semibold text-gray-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                    Ubah Penugasan
+                                                </button>
+                                            @endif
+
+                                            <button type="button" @click="openUploadTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                <span>{{ $isPresalesDone ? 'Unggah Ulang Proposal' : 'Unggah Proposal & BoQ' }}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {{-- Card 2: Solution Architect --}}
+                                    <div class="p-4 rounded-xl bg-white border border-gray-200 space-y-2.5 shadow-2xs flex flex-col justify-between">
+                                        <div class="space-y-2.5">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">SOLUTION ARCHITECT</div>
+                                                    <div class="font-bold text-gray-900 text-sm">{{ $architectAssignment['assigned_to'] ?? 'Aris Sadewo' }}</div>
+                                                </div>
+                                                <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ $isArchitectDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
+                                                    {{ $isArchitectDone ? 'Desain Diunggah' : ($isArchitectAssigned ? 'Menunggu Desain Topologi' : 'Belum Di-assign') }}
+                                                </span>
+                                            </div>
+
+                                            <div class="text-[11.5px] text-gray-600">
+                                                <div class="font-medium text-gray-700 mb-1">Tanggung Jawab: Perancangan Arsitektur Topologi Jaringan, Sizing Spesifikasi Perangkat, dan Validasi Solusi Teknis.</div>
+                                                @if($isArchitectDone)
+                                                    <div class="p-2 rounded-lg bg-emerald-50/70 border border-emerald-200 text-emerald-800 space-y-1">
+                                                        <div class="font-bold flex items-center gap-1.5">
+                                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                            <span>{{ $architectAssignment['document_title'] ?? 'Desain Arsitektur & Topologi' }}</span>
+                                                        </div>
+                                                        <div class="text-[10.5px] text-emerald-700 flex items-center justify-between">
+                                                            <span>Berkas: {{ $architectAssignment['document_name'] ?? 'File terlampir' }}</span>
+                                                            @if(!empty($architectAssignment['document_path']))
+                                                                <a href="{{ asset('storage/' . $architectAssignment['document_path']) }}" target="_blank" class="font-bold underline text-emerald-800 hover:text-emerald-950">Unduh</a>
+                                                            @endif
+                                                        </div>
+                                                        @if(!empty($architectAssignment['completed_at']))
+                                                            <div class="text-[10px] text-emerald-600">Diunggah: {{ $architectAssignment['completed_at'] }}</div>
+                                                        @endif
+                                                    </div>
+                                                @elseif($isArchitectAssigned)
+                                                    <div class="p-2 rounded-lg bg-amber-50/60 border border-amber-200 text-amber-800">
+                                                        <div class="font-semibold italic">"{{ $architectAssignment['sales_notes'] ?: 'Mohon dirancang diagram topologi arsitektur sistem dan validasi sizing teknis.' }}"</div>
+                                                        <div class="text-[10.5px] text-amber-600 mt-1">Ditugaskan: {{ $architectAssignment['assigned_at'] ?? '-' }} (oleh {{ $architectAssignment['assigned_by'] ?? 'Sales' }})</div>
+                                                    </div>
+                                                @else
+                                                    <span class="text-gray-400">Belum ditugaskan ke Solution Architect. Klik tombol di bawah untuk menugaskan arsitektur solusi.</span>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-2 border-t border-gray-100 flex items-center justify-between gap-2 mt-2">
+                                            @if(!$isArchitectAssigned)
+                                                <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                                    <span>Assign ke Solution Architect</span>
+                                                </button>
+                                            @else
+                                                <button type="button" @click="openAssignTechnicalModal('architect')" class="text-[11px] font-semibold text-gray-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                    Ubah Penugasan
+                                                </button>
+                                            @endif
+
+                                            <button type="button" @click="openUploadTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                <span>{{ $isArchitectDone ? 'Unggah Ulang Desain' : 'Unggah Desain Topologi' }}</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -682,6 +876,50 @@
                                     </div>
                                     <div class="text-[11px] text-gray-400">
                                         {{ $directorApproval['date'] ?? 'Disahkan' }}
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($presalesAssignment['assigned']))
+                                <div class="space-y-1 pt-2.5 border-t border-gray-100">
+                                    <div class="font-normal text-gray-700">
+                                        Penugasan Presales: <strong class="font-medium text-gray-900">{{ $presalesAssignment['assigned_to'] ?? 'Akbar' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-gray-400">
+                                        {{ $presalesAssignment['assigned_at'] ?? 'Ditugaskan' }} (oleh {{ $presalesAssignment['assigned_by'] ?? 'Sales' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($architectAssignment['assigned']))
+                                <div class="space-y-1 pt-2.5 border-t border-gray-100">
+                                    <div class="font-normal text-gray-700">
+                                        Penugasan Solution Architect: <strong class="font-medium text-gray-900">{{ $architectAssignment['assigned_to'] ?? 'Aris Sadewo' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-gray-400">
+                                        {{ $architectAssignment['assigned_at'] ?? 'Ditugaskan' }} (oleh {{ $architectAssignment['assigned_by'] ?? 'Sales' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($presalesAssignment['document_path']))
+                                <div class="space-y-1 pt-2.5 border-t border-gray-100">
+                                    <div class="font-normal text-gray-700">
+                                        Proposal Teknis &amp; BoQ diunggah oleh <strong class="font-medium text-gray-900">{{ $presalesAssignment['assigned_to'] ?? 'Pre-Sales' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-emerald-600 font-semibold">
+                                        ✓ Berkas Proposal &amp; SOW Terlampir ({{ $presalesAssignment['completed_at'] ?? 'Selesai' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($architectAssignment['document_path']))
+                                <div class="space-y-1 pt-2.5 border-t border-gray-100">
+                                    <div class="font-normal text-gray-700">
+                                        Desain Arsitektur &amp; Topologi diunggah oleh <strong class="font-medium text-gray-900">{{ $architectAssignment['assigned_to'] ?? 'Solution Architect' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-emerald-600 font-semibold">
+                                        ✓ Diagram Arsitektur Terlampir ({{ $architectAssignment['completed_at'] ?? 'Selesai' }})
                                     </div>
                                 </div>
                             @endif
@@ -1007,6 +1245,142 @@
         </div>
     </template>
 
+    {{-- MODAL ASSIGN KE PRESALES & SOLUTION ARCHITECT --}}
+    <template x-teleport="body">
+        <div x-show="isAssignTechnicalModalOpen" x-cloak 
+             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-2xs overflow-y-auto"
+             style="display: none;">
+            <div @click.away="isAssignTechnicalModalOpen = false" 
+                 class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4 m-auto">
+                
+                <div class="flex items-center justify-between border-b pb-3">
+                    <div>
+                        <h3 class="text-base font-bold text-gray-900" 
+                            x-text="assignTechnicalRole === 'presales' ? 'Tugaskan Pre-Sales Specialist' : (assignTechnicalRole === 'architect' ? 'Tugaskan Solution Architect' : 'Tugaskan Presales & Solution Architect')"></h3>
+                        <p class="text-[11.5px] text-gray-500 mt-0.5">Penugasan tim teknis solusi untuk penyusunan proposal &amp; desain arsitektur</p>
+                    </div>
+                    <button type="button" @click="isAssignTechnicalModalOpen = false" class="text-gray-400 hover:text-gray-700 text-lg font-bold cursor-pointer">✕</button>
+                </div>
+
+                <form action="{{ route('projects.assign_technical', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                    @csrf
+                    <input type="hidden" name="role" :value="assignTechnicalRole">
+
+                    {{-- Pilihan Pre-Sales --}}
+                    <div x-show="assignTechnicalRole === 'presales' || assignTechnicalRole === 'both'">
+                        <label class="block text-gray-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH PRE-SALES SPECIALIST (PROPOSAL &amp; BOQ)</label>
+                        <select name="presales_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer">
+                            @foreach($presalesUsers as $pu)
+                                <option value="{{ $pu->id }}" {{ (isset($presalesAssignment['assigned_user_id']) && $presalesAssignment['assigned_user_id'] == $pu->id) || str_contains(strtolower($pu->name), 'akbar') ? 'selected' : '' }}>
+                                    (Pre-Sales) {{ $pu->name }} ({{ $pu->email }})
+                                </option>
+                            @endforeach
+                            @php
+                                $otherUsers = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $presalesUsers->pluck('id'));
+                            @endphp
+                            @foreach($otherUsers as $ou)
+                                <option value="{{ $ou->id }}" {{ (isset($presalesAssignment['assigned_user_id']) && $presalesAssignment['assigned_user_id'] == $ou->id) ? 'selected' : '' }}>
+                                    {{ $ou->name }} ({{ $ou->email }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Pilihan Solution Architect --}}
+                    <div x-show="assignTechnicalRole === 'architect' || assignTechnicalRole === 'both'">
+                        <label class="block text-gray-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH SOLUTION ARCHITECT (DESAIN TOPOLOGI &amp; SIZING)</label>
+                        <select name="architect_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer">
+                            @foreach($architectUsers as $au)
+                                <option value="{{ $au->id }}" {{ (isset($architectAssignment['assigned_user_id']) && $architectAssignment['assigned_user_id'] == $au->id) || str_contains(strtolower($au->name), 'aris') ? 'selected' : '' }}>
+                                    (Solution Architect) {{ $au->name }} ({{ $au->email }})
+                                </option>
+                            @endforeach
+                            @php
+                                $otherUsersSA = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $architectUsers->pluck('id'));
+                            @endphp
+                            @foreach($otherUsersSA as $ou)
+                                <option value="{{ $ou->id }}" {{ (isset($architectAssignment['assigned_user_id']) && $architectAssignment['assigned_user_id'] == $ou->id) ? 'selected' : '' }}>
+                                    {{ $ou->name }} ({{ $ou->email }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 mb-1.5 uppercase tracking-wider text-[10.5px]">INSTRUKSI &amp; CATATAN TEKNIS SALES</label>
+                        <textarea name="notes" rows="3" 
+                                  placeholder="Contoh: Tolong buatkan desain topologi redundant switch &amp; estimasi BoQ untuk kebutuhan penawaran tender klien."
+                                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-3 border-t">
+                        <button type="button" @click="isAssignTechnicalModalOpen = false" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                            Tugaskan Tim Teknis
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    {{-- MODAL UNGGAH BERKAS SOLUSI TEKNIS (PRESALES / SA) --}}
+    <template x-teleport="body">
+        <div x-show="isUploadTechnicalDocModalOpen" x-cloak 
+             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-2xs overflow-y-auto"
+             style="display: none;">
+            <div @click.away="isUploadTechnicalDocModalOpen = false" 
+                 class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4 m-auto">
+                
+                <div class="flex items-center justify-between border-b pb-3">
+                    <div>
+                        <h3 class="text-base font-bold text-gray-900" 
+                            x-text="uploadTechnicalRole === 'presales' ? 'Unggah Berkas Proposal &amp; BoQ (Pre-Sales)' : 'Unggah Desain Arsitektur &amp; Topologi (Solution Architect)'"></h3>
+                        <p class="text-[11.5px] text-gray-500 mt-0.5">Unggah berkas dokumen teknis pendukung solusi proyek</p>
+                    </div>
+                    <button type="button" @click="isUploadTechnicalDocModalOpen = false" class="text-gray-400 hover:text-gray-700 text-lg font-bold cursor-pointer">✕</button>
+                </div>
+
+                <form action="{{ route('projects.upload_technical_doc', $project->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs font-semibold">
+                    @csrf
+                    <input type="hidden" name="role_type" :value="uploadTechnicalRole">
+
+                    <div>
+                        <label class="block text-gray-700 mb-1 uppercase tracking-wider text-[10.5px]">NAMA / JUDUL DOKUMEN</label>
+                        <input type="text" name="document_title" 
+                               :placeholder="uploadTechnicalRole === 'presales' ? 'Contoh: Proposal Teknis &amp; BoQ Estimasi Rev 1' : 'Contoh: Diagram Topologi Arsitektur &amp; Sizing Switch'" 
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 mb-1 uppercase tracking-wider text-[10.5px]">PILIH BERKAS (BISA PILIH SEKALIGUS LEBIH DARI 1 BERKAS)</label>
+                        <input type="file" name="document_files[]" multiple required
+                               class="w-full text-xs text-gray-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-red-50 file:text-[#8F0A0D] hover:file:bg-red-100 cursor-pointer border border-gray-200 rounded-xl p-2 bg-gray-50/50">
+                        <span class="text-[10px] text-gray-400 mt-1 block">Format: PDF, Word (DOCX), Excel (XLSX), Visio (VSDX), atau Gambar (PNG/JPG). Maks 50MB per file.</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 mb-1 uppercase tracking-wider text-[10.5px]">CATATAN / RINGKASAN TEKNIS (OPSIONAL)</label>
+                        <textarea name="notes" rows="2" 
+                                  placeholder="Contoh: Dokumen telah disesuaikan dengan spek tender dan estimasi diskon prinsipal."
+                                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-3 border-t">
+                        <button type="button" @click="isUploadTechnicalDocModalOpen = false" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                            Unggah Dokumen Teknis
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
     {{-- MODAL KONFIRMASI HAPUS (SESUAI LEAD ENGINEER) --}}
     <template x-teleport="body">
         <div x-show="isDeleteModalOpen" x-cloak
@@ -1066,6 +1440,11 @@
             isAssignModalOpen: false,
             assignRole: 'both', // 'head', 'director', 'both'
 
+            isAssignTechnicalModalOpen: false,
+            assignTechnicalRole: 'both', // 'presales', 'architect', 'both'
+            isUploadTechnicalDocModalOpen: false,
+            uploadTechnicalRole: 'presales', // 'presales' or 'architect'
+
             isEditMetaModalOpen: false,
             isAddMilestoneModalOpen: false,
             isUploadDocModalOpen: false,
@@ -1079,6 +1458,16 @@
             openApproveModal(role = 'head') {
                 this.approveRole = role;
                 this.isApproveModalOpen = true;
+            },
+
+            openAssignTechnicalModal(role = 'both') {
+                this.assignTechnicalRole = role;
+                this.isAssignTechnicalModalOpen = true;
+            },
+
+            openUploadTechnicalModal(role = 'presales') {
+                this.uploadTechnicalRole = role;
+                this.isUploadTechnicalDocModalOpen = true;
             },
 
             selectStage(tabKey) {

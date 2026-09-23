@@ -199,6 +199,39 @@ INSERT IGNORE INTO `migrations` (`migration`, `batch`) VALUES
 ('2026_09_22_110000_create_project_documents_table', 10),
 ('2026_09_22_233126_add_start_date_to_tasks_table', 10);
 
+-- ---------------------------------------------------------------
+-- 8. UPGRADE NOTIFICATIONS & USER ROLE TEKNIS (Presales & Solution Architect)
+-- ---------------------------------------------------------------
+ALTER TABLE `notifications` MODIFY COLUMN `title` VARCHAR(255) NULL;
+ALTER TABLE `notifications` MODIFY COLUMN `message` TEXT NULL;
+
+-- Role Presales & Solution Architect
+INSERT IGNORE INTO `roles` (`name`, `guard_name`, `created_at`, `updated_at`) VALUES
+('Presales', 'web', NOW(), NOW()),
+('Solution Architect', 'web', NOW(), NOW());
+
+-- User Default Akbar (Presales) & Aris Sadewo (Solution Architect)
+INSERT INTO `users` (`name`, `email`, `password`, `created_at`, `updated_at`)
+SELECT 'Akbar', 'akbar@ipnetsolusindo.com', '$2y$12$jlhbqOWO7YkC4gqqv5FtsOXHzhG8E6wGcQ4GvXOdVDyu1Tp9Akhfy', NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM `users` WHERE `email` = 'akbar@ipnetsolusindo.com');
+
+INSERT INTO `users` (`name`, `email`, `password`, `created_at`, `updated_at`)
+SELECT 'Aris Sadewo', 'aris@ipnetsolusindo.com', '$2y$12$jlhbqOWO7YkC4gqqv5FtsOXHzhG8E6wGcQ4GvXOdVDyu1Tp9Akhfy', NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM `users` WHERE `email` = 'aris@ipnetsolusindo.com');
+
+-- Assign Role ke User Akbar (Presales)
+INSERT IGNORE INTO `model_has_roles` (`role_id`, `model_type`, `model_id`)
+SELECT r.id, 'App\\Models\\User', u.id
+FROM `roles` r, `users` u
+WHERE r.name = 'Presales' AND u.email = 'akbar@ipnetsolusindo.com';
+
+-- Assign Role ke User Aris Sadewo (Solution Architect)
+INSERT IGNORE INTO `model_has_roles` (`role_id`, `model_type`, `model_id`)
+SELECT r.id, 'App\\Models\\User', u.id
+FROM `roles` r, `users` u
+WHERE r.name = 'Solution Architect' AND u.email = 'aris@ipnetsolusindo.com';
+
 -- =============================================================
 -- SELESAI - Database hosting siap digunakan tanpa error!
 -- =============================================================
+
