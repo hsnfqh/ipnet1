@@ -86,7 +86,7 @@
     $technicalAssignments = $handoverData['technical_assignments'] ?? [];
     $presalesAssignment = array_merge([
         'assigned'         => false,
-        'assigned_to'      => 'Akbar',
+        'assigned_to'      => null,
         'assigned_user_id' => null,
         'assigned_by'      => null,
         'assigned_at'      => null,
@@ -100,7 +100,7 @@
 
     $architectAssignment = array_merge([
         'assigned'         => false,
-        'assigned_to'      => 'Aris Sadewo',
+        'assigned_to'      => null,
         'assigned_user_id' => null,
         'assigned_by'      => null,
         'assigned_at'      => null,
@@ -523,18 +523,15 @@
                             {{-- DUAL CARD: PENUGASAN PRESALES & SOLUTION ARCHITECT (SESUAI REQUEST USER) --}}
                             <div class="p-5 rounded-2xl border border-gray-200 bg-[#F8FAFC] space-y-4">
                                 <div class="border-b border-gray-200 pb-2.5 flex items-center justify-between flex-wrap gap-2">
-                                    <div>
-                                        <div class="text-[13px] font-bold text-gray-900 flex items-center gap-2">
-                                            <span class="w-1.5 h-4 rounded-full bg-[#8F0A0D]"></span>
-                                            Kolaborasi Teknis Solusi (Presales &amp; Solution Architect)
-                                        </div>
-                                        <div class="text-[11.5px] text-gray-500 mt-0.5">
-                                            Penugasan tim Presales untuk penyusunan proposal teknis &amp; BoQ, serta Solution Architect untuk perancangan topologi &amp; validasi arsitektur sistem.
-                                        </div>
+                                    <div class="text-[13px] font-bold text-gray-900 flex items-center gap-2">
+                                        <span class="w-1.5 h-4 rounded-full bg-[#8F0A0D]"></span>
+                                        Kolaborasi Teknis Solusi (Presales &amp; Solution Architect)
                                     </div>
-                                    <button type="button" @click="openAssignTechnicalModal('both')" class="text-xs font-bold text-[#8F0A0D] hover:underline cursor-pointer">
-                                        {{ ($isPresalesAssigned || $isArchitectAssigned) ? 'Ubah Penugasan Tim Solusi' : '+ Assign Tim Teknis' }}
-                                    </button>
+                                    @if($isPresalesAssigned || $isArchitectAssigned)
+                                        <button type="button" @click="openAssignTechnicalModal('both')" class="text-[11.5px] font-semibold text-gray-500 hover:text-[#8F0A0D] cursor-pointer">
+                                            Ubah Penugasan Tim
+                                        </button>
+                                    @endif
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -544,7 +541,9 @@
                                             <div class="flex items-center justify-between">
                                                 <div>
                                                     <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PRE-SALES SPECIALIST</div>
-                                                    <div class="font-bold text-gray-900 text-sm">{{ $presalesAssignment['assigned_to'] ?? 'Akbar' }}</div>
+                                                    <div class="font-bold {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? 'text-gray-900' : 'text-gray-400 italic' }} text-sm">
+                                                        {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? $presalesAssignment['assigned_to'] : 'Belum Ditugaskan' }}
+                                                    </div>
                                                 </div>
                                                 <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ $isPresalesDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isPresalesAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
                                                     {{ $isPresalesDone ? 'Berkas Diunggah' : ($isPresalesAssigned ? 'Menunggu Proposal & BoQ' : 'Belum Di-assign') }}
@@ -552,7 +551,7 @@
                                             </div>
 
                                             <div class="text-[11.5px] text-gray-600">
-                                                <div class="font-medium text-gray-700 mb-1">Tanggung Jawab: Penyusunan Proposal Teknis, Scope of Work (SOW), dan Bill of Quantity (BoQ) Komersial.</div>
+                                                <div class="font-medium text-gray-700 mb-1">Tanggung Jawab: Proposal Teknis &amp; BoQ Komersial.</div>
                                                 @if($isPresalesDone)
                                                     <div class="p-2 rounded-lg bg-emerald-50/70 border border-emerald-200 text-emerald-800 space-y-1">
                                                         <div class="font-bold flex items-center gap-1.5">
@@ -575,7 +574,7 @@
                                                         <div class="text-[10.5px] text-amber-600 mt-1">Ditugaskan: {{ $presalesAssignment['assigned_at'] ?? '-' }} (oleh {{ $presalesAssignment['assigned_by'] ?? 'Sales' }})</div>
                                                     </div>
                                                 @else
-                                                    <span class="text-gray-400">Belum ditugaskan ke Pre-Sales. Klik tombol di bawah untuk menugaskan penyusunan proposal teknis.</span>
+                                                    <span class="text-gray-400 italic">Belum ada penugasan Pre-Sales.</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -584,7 +583,7 @@
                                             @if(!$isPresalesAssigned)
                                                 <button type="button" @click="openAssignTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                                    <span>Assign ke Pre-Sales</span>
+                                                    <span>Tugaskan Pre-Sales</span>
                                                 </button>
                                             @else
                                                 <button type="button" @click="openAssignTechnicalModal('presales')" class="text-[11px] font-semibold text-gray-500 hover:text-[#8F0A0D] cursor-pointer">
@@ -620,7 +619,9 @@
                                             <div class="flex items-center justify-between">
                                                 <div>
                                                     <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">SOLUTION ARCHITECT</div>
-                                                    <div class="font-bold text-gray-900 text-sm">{{ $architectAssignment['assigned_to'] ?? 'Aris Sadewo' }}</div>
+                                                    <div class="font-bold {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? 'text-gray-900' : 'text-gray-400 italic' }} text-sm">
+                                                        {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? $architectAssignment['assigned_to'] : 'Belum Ditugaskan' }}
+                                                    </div>
                                                 </div>
                                                 <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ $isArchitectDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
                                                     {{ $isArchitectDone ? 'Desain Diunggah' : ($isArchitectAssigned ? 'Menunggu Desain Topologi' : 'Belum Di-assign') }}
@@ -628,7 +629,7 @@
                                             </div>
 
                                             <div class="text-[11.5px] text-gray-600">
-                                                <div class="font-medium text-gray-700 mb-1">Tanggung Jawab: Perancangan Arsitektur Topologi Jaringan, Sizing Spesifikasi Perangkat, dan Validasi Solusi Teknis.</div>
+                                                <div class="font-medium text-gray-700 mb-1">Tanggung Jawab: Desain Arsitektur &amp; Topologi Solusi.</div>
                                                 @if($isArchitectDone)
                                                     <div class="p-2 rounded-lg bg-emerald-50/70 border border-emerald-200 text-emerald-800 space-y-1">
                                                         <div class="font-bold flex items-center gap-1.5">
@@ -651,7 +652,7 @@
                                                         <div class="text-[10.5px] text-amber-600 mt-1">Ditugaskan: {{ $architectAssignment['assigned_at'] ?? '-' }} (oleh {{ $architectAssignment['assigned_by'] ?? 'Sales' }})</div>
                                                     </div>
                                                 @else
-                                                    <span class="text-gray-400">Belum ditugaskan ke Solution Architect. Klik tombol di bawah untuk menugaskan arsitektur solusi.</span>
+                                                    <span class="text-gray-400 italic">Belum ada penugasan Solution Architect.</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -660,7 +661,7 @@
                                             @if(!$isArchitectAssigned)
                                                 <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                                    <span>Assign ke Solution Architect</span>
+                                                    <span>Tugaskan Solution Architect</span>
                                                 </button>
                                             @else
                                                 <button type="button" @click="openAssignTechnicalModal('architect')" class="text-[11px] font-semibold text-gray-500 hover:text-[#8F0A0D] cursor-pointer">
