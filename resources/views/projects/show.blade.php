@@ -58,18 +58,29 @@
     $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
     $draftApprovals = $handoverData['draft_approvals'] ?? [];
     
+    $leadershipUsers = \App\Models\User::orderBy('name')->get();
+    $susantoUser = $leadershipUsers->first(fn($u) => str_contains(strtolower($u->name), 'susanto'));
+    $hariyadiUser = $leadershipUsers->first(fn($u) => str_contains(strtolower($u->name), 'hariyadi'));
+
     $headApproval = $draftApprovals['head'] ?? [
+        'assigned' => false,
         'approved' => false,
-        'by' => 'Susanto Djaya',
+        'by' => $susantoUser ? $susantoUser->name : 'Pak Susanto Djaya',
         'date' => null,
-        'notes' => 'Menunggu review kelayakan teknis dan alokasi resource.'
+        'notes' => null
     ];
     $directorApproval = $draftApprovals['director'] ?? [
+        'assigned' => false,
         'approved' => false,
-        'by' => 'Hariyadi',
+        'by' => $hariyadiUser ? $hariyadiUser->name : 'Pak Hariyadi',
         'date' => null,
-        'notes' => 'Menunggu otorisasi finansial dan persetujuan kontrak.'
+        'notes' => null
     ];
+
+    $isHeadAssigned = !empty($headApproval['assigned']) || !empty($headApproval['approved']);
+    $isDirectorAssigned = !empty($directorApproval['assigned']) || !empty($directorApproval['approved']);
+    $isBothApproved = !empty($headApproval['approved']) && !empty($directorApproval['approved']);
+    $isAnyAssigned = $isHeadAssigned || $isDirectorAssigned;
 
     // Koleksi seluruh engineer pelaksana yang ditugaskan oleh PMO pada tasks proyek
     $assignedEngineers = collect();
@@ -243,66 +254,119 @@
                                             Diajukan oleh Sales (<strong>{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales') }}</strong>) untuk ditinjau kelayakan teknis & diotorisasi pimpinan sebelum diserahkan ke PMO:
                                         </div>
                                     </div>
-                                    <span class="text-[11.5px] font-bold px-2.5 py-1 rounded-lg border {{ (!empty($headApproval['approved']) && !empty($directorApproval['approved'])) ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200' }}">
-                                        {{ (!empty($headApproval['approved']) && !empty($directorApproval['approved'])) ? 'Persetujuan Lengkap' : 'Menunggu Approval Pimpinan' }}
-                                    </span>
+
+                                    <div class="flex items-center gap-2">
+                                        @if(!$isAnyAssigned)
+                                            <button type="button" @click="openAssignModal('both')" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                                <span>Assign ke Pimpinan</span>
+                                            </button>
+                                        @endif
+                                        <span class="text-[11.5px] font-bold px-2.5 py-1 rounded-lg border {{ $isBothApproved ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isAnyAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200') }}">
+                                            {{ $isBothApproved ? 'Persetujuan Lengkap' : ($isAnyAssigned ? 'Menunggu Approval Pimpinan' : 'Belum Diajukan ke Pimpinan') }}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                                     {{-- Reviewer 1: Pak Susanto --}}
-                                    <div class="p-4 rounded-xl bg-white border border-gray-200 space-y-2.5 shadow-2xs">
-                                        <div class="flex items-center justify-between">
-                                            <div>
-                                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">HEAD DIVISI</div>
-                                                <div class="font-bold text-gray-900 text-sm">Pak Susanto Djaya</div>
+                                    <div class="p-4 rounded-xl bg-white border border-gray-200 space-y-2.5 shadow-2xs flex flex-col justify-between">
+                                        <div class="space-y-2.5">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">HEAD DIVISI</div>
+                                                    <div class="font-bold text-gray-900 text-sm">{{ $headApproval['assigned_to'] ?? ($susantoUser ? $susantoUser->name : 'Pak Susanto Djaya') }}</div>
+                                                </div>
+                                                <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ !empty($headApproval['approved']) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isHeadAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
+                                                    {{ !empty($headApproval['approved']) ? 'Disetujui' : ($isHeadAssigned ? 'Menunggu Review' : 'Belum Di-assign') }}
+                                                </span>
                                             </div>
-                                            <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ !empty($headApproval['approved']) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200' }}">
-                                                {{ !empty($headApproval['approved']) ? 'Disetujui' : 'Menunggu Review' }}
-                                            </span>
+
+                                            <div class="text-[11.5px] text-gray-600">
+                                                @if(!empty($headApproval['approved']))
+                                                    <span class="text-emerald-700 font-semibold">"{{ $headApproval['notes'] ?? 'Review kelayakan teknis & alokasi resource disetujui.' }}"</span>
+                                                    <div class="text-[10.5px] text-gray-400 mt-1">Disetujui: {{ $headApproval['date'] ?? '-' }}</div>
+                                                @elseif($isHeadAssigned)
+                                                    <span class="italic text-gray-500">"Menunggu review kelayakan teknis dan alokasi resource dari {{ $headApproval['assigned_to'] ?? 'Pak Susanto Djaya' }}."</span>
+                                                    @if(!empty($headApproval['assigned_at']))
+                                                        <div class="text-[10.5px] text-gray-400 mt-1">Ditugaskan: {{ $headApproval['assigned_at'] }} (oleh {{ $headApproval['assigned_by'] ?? 'Sales' }})</div>
+                                                    @endif
+                                                @else
+                                                    <span class="text-gray-400">Belum diajukan ke Head Divisi. Klik tombol di bawah untuk menugaskan review kelayakan teknis.</span>
+                                                @endif
+                                            </div>
                                         </div>
-                                        <div class="text-[11.5px] text-gray-600">
-                                            @if(!empty($headApproval['approved']))
-                                                <span class="text-emerald-700 font-semibold">"{{ $headApproval['notes'] ?? 'Review kelayakan teknis & alokasi resource disetujui.' }}"</span>
-                                                <div class="text-[10.5px] text-gray-400 mt-1">Disetujui: {{ $headApproval['date'] ?? '-' }}</div>
+
+                                        <div class="pt-2 border-t border-gray-100 flex items-center justify-between gap-2 mt-2">
+                                            @if(!$isHeadAssigned)
+                                                <button type="button" @click="openAssignModal('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                                    <span>Assign ke Pak Susanto</span>
+                                                </button>
+                                            @elseif(!$headApproval['approved'])
+                                                <button type="button" @click="openAssignModal('head')" class="text-[11px] font-semibold text-gray-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                    Ubah Penugasan
+                                                </button>
                                             @else
-                                                <span class="italic text-gray-500">"Menunggu review kelayakan teknis dan alokasi resource dari Pak Susanto."</span>
+                                                <div></div>
                                             @endif
-                                        </div>
-                                        @if($canApproveHead)
-                                            <div class="text-right pt-2 border-t border-gray-100">
-                                                <button type="button" @click="openApproveModal('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer">
+
+                                            @if($canApproveHead && $isHeadAssigned)
+                                                <button type="button" @click="openApproveModal('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
                                                     <span>{{ empty($headApproval['approved']) ? '✓ Beri Approval (Pak Susanto)' : 'Ubah Catatan' }}</span>
                                                 </button>
-                                            </div>
-                                        @endif
+                                            @endif
+                                        </div>
                                     </div>
 
                                     {{-- Reviewer 2: Pak Hariyadi --}}
-                                    <div class="p-4 rounded-xl bg-white border border-gray-200 space-y-2.5 shadow-2xs">
-                                        <div class="flex items-center justify-between">
-                                            <div>
-                                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">DIREKTUR</div>
-                                                <div class="font-bold text-gray-900 text-sm">Pak Hariyadi</div>
+                                    <div class="p-4 rounded-xl bg-white border border-gray-200 space-y-2.5 shadow-2xs flex flex-col justify-between">
+                                        <div class="space-y-2.5">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">DIREKTUR</div>
+                                                    <div class="font-bold text-gray-900 text-sm">{{ $directorApproval['assigned_to'] ?? ($hariyadiUser ? $hariyadiUser->name : 'Pak Hariyadi') }}</div>
+                                                </div>
+                                                <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ !empty($directorApproval['approved']) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isDirectorAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
+                                                    {{ !empty($directorApproval['approved']) ? 'Disahkan' : ($isDirectorAssigned ? 'Menunggu Otorisasi' : 'Belum Di-assign') }}
+                                                </span>
                                             </div>
-                                            <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ !empty($directorApproval['approved']) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200' }}">
-                                                {{ !empty($directorApproval['approved']) ? 'Disahkan' : 'Menunggu Otorisasi' }}
-                                            </span>
+
+                                            <div class="text-[11.5px] text-gray-600">
+                                                @if(!empty($directorApproval['approved']))
+                                                    <span class="text-emerald-700 font-semibold">"{{ $directorApproval['notes'] ?? 'Otorisasi finansial & validasi kontrak disahkan.' }}"</span>
+                                                    <div class="text-[10.5px] text-gray-400 mt-1">Disahkan: {{ $directorApproval['date'] ?? '-' }}</div>
+                                                @elseif($isDirectorAssigned)
+                                                    <span class="italic text-gray-500">"Menunggu otorisasi finansial dan persetujuan kontrak dari {{ $directorApproval['assigned_to'] ?? 'Pak Hariyadi' }}."</span>
+                                                    @if(!empty($directorApproval['assigned_at']))
+                                                        <div class="text-[10.5px] text-gray-400 mt-1">Ditugaskan: {{ $directorApproval['assigned_at'] }} (oleh {{ $directorApproval['assigned_by'] ?? 'Sales' }})</div>
+                                                    @endif
+                                                @else
+                                                    <span class="text-gray-400">Belum diajukan ke Direktur. Klik tombol di bawah untuk menugaskan otorisasi kontrak.</span>
+                                                @endif
+                                            </div>
                                         </div>
-                                        <div class="text-[11.5px] text-gray-600">
-                                            @if(!empty($directorApproval['approved']))
-                                                <span class="text-emerald-700 font-semibold">"{{ $directorApproval['notes'] ?? 'Otorisasi finansial & validasi kontrak disahkan.' }}"</span>
-                                                <div class="text-[10.5px] text-gray-400 mt-1">Disahkan: {{ $directorApproval['date'] ?? '-' }}</div>
+
+                                        <div class="pt-2 border-t border-gray-100 flex items-center justify-between gap-2 mt-2">
+                                            @if(!$isDirectorAssigned)
+                                                <button type="button" @click="openAssignModal('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                                    <span>Assign ke Pak Hariyadi</span>
+                                                </button>
+                                            @elseif(!$directorApproval['approved'])
+                                                <button type="button" @click="openAssignModal('director')" class="text-[11px] font-semibold text-gray-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                    Ubah Penugasan
+                                                </button>
                                             @else
-                                                <span class="italic text-gray-500">"Menunggu otorisasi finansial dan persetujuan kontrak dari Pak Hariyadi."</span>
+                                                <div></div>
                                             @endif
-                                        </div>
-                                        @if($canApproveDirector)
-                                            <div class="text-right pt-2 border-t border-gray-100">
-                                                <button type="button" @click="openApproveModal('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer">
+
+                                            @if($canApproveDirector && $isDirectorAssigned)
+                                                <button type="button" @click="openApproveModal('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
                                                     <span>{{ empty($directorApproval['approved']) ? '✓ Beri Otorisasi (Pak Hariyadi)' : 'Ubah Catatan' }}</span>
                                                 </button>
-                                            </div>
-                                        @endif
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -531,9 +595,6 @@
                                 @endphp
                                 <span class="px-3 py-1 rounded-xl text-[11.5px] font-extrabold shadow-xs {{ $statusBadgeClass }}">
                                     <span>{{ $currentStatus }}</span>
-                                </span>
-                                <span class="text-[#64748B] text-[11.5px] font-semibold">
-                                    Progress {{ $project->progress ?: 0 }}% ({{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }} complete)
                                 </span>
                             </div>
                         </div>
@@ -841,6 +902,71 @@
         </div>
     </template>
 
+    {{-- MODAL ASSIGN APPROVAL KE PIMPINAN (HEAD & DIREKTUR) --}}
+    <template x-teleport="body">
+        <div x-show="isAssignModalOpen" x-cloak 
+             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-2xs overflow-y-auto"
+             style="display: none;">
+            <div @click.away="isAssignModalOpen = false" 
+                 class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4 m-auto">
+                
+                <div class="flex items-center justify-between border-b pb-3">
+                    <div>
+                        <h3 class="text-base font-bold text-gray-900" 
+                            x-text="assignRole === 'head' ? 'Assign Review ke Head Divisi' : (assignRole === 'director' ? 'Assign Otorisasi ke Direktur' : 'Assign Review ke Pimpinan')"></h3>
+                        <p class="text-[11.5px] text-gray-500 mt-0.5">Tugaskan peninjauan draft proyek ke pimpinan yang berwenang</p>
+                    </div>
+                    <button type="button" @click="isAssignModalOpen = false" class="text-gray-400 hover:text-gray-700 text-lg font-bold cursor-pointer">✕</button>
+                </div>
+
+                <form action="{{ route('projects.assign_approver', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                    @csrf
+                    <input type="hidden" name="role" :value="assignRole">
+
+                    {{-- Pilihan Head Divisi --}}
+                    <div x-show="assignRole === 'head' || assignRole === 'both'">
+                        <label class="block text-gray-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH HEAD DIVISI (REVIEW TEKNIS)</label>
+                        <select name="head_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
+                            @foreach($leadershipUsers as $lu)
+                                <option value="{{ $lu->id }}" {{ ($susantoUser && $susantoUser->id == $lu->id) ? 'selected' : '' }}>
+                                    {{ $lu->name }} ({{ $lu->email }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Pilihan Direktur --}}
+                    <div x-show="assignRole === 'director' || assignRole === 'both'">
+                        <label class="block text-gray-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH DIREKTUR (OTORISASI KONTRAK)</label>
+                        <select name="director_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
+                            @foreach($leadershipUsers as $lu)
+                                <option value="{{ $lu->id }}" {{ ($hariyadiUser && $hariyadiUser->id == $lu->id) ? 'selected' : '' }}>
+                                    {{ $lu->name }} ({{ $lu->email }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 mb-1.5 uppercase tracking-wider text-[10.5px]">CATATAN DARI SALES (OPSIONAL)</label>
+                        <textarea name="notes" rows="3" 
+                                  placeholder="Contoh: Mohon review kelayakan teknis jaringan dan validasi estimasi nilai kontrak untuk penawaran klien."
+                                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-3 border-t">
+                        <button type="button" @click="isAssignModalOpen = false" class="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                            Tugaskan Sekarang
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
     {{-- MODAL KONFIRMASI HAPUS (SESUAI LEAD ENGINEER) --}}
     <template x-teleport="body">
         <div x-show="isDeleteModalOpen" x-cloak
@@ -897,10 +1023,18 @@
             isApproveModalOpen: false,
             approveRole: 'head', // 'head' (Susanto) or 'director' (Hariyadi)
 
+            isAssignModalOpen: false,
+            assignRole: 'both', // 'head', 'director', 'both'
+
             isEditMetaModalOpen: false,
             isAddMilestoneModalOpen: false,
             isUploadDocModalOpen: false,
             isDeleteModalOpen: false,
+
+            openAssignModal(role = 'both') {
+                this.assignRole = role;
+                this.isAssignModalOpen = true;
+            },
 
             openApproveModal(role = 'head') {
                 this.approveRole = role;

@@ -370,6 +370,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Stage Lifecycle & Team Actions
         Route::post('/{project}/assign', [ProjectController::class, 'assignTeam'])->name('projects.assign');
+        Route::post('/{project}/assign-approver', [ProjectController::class, 'assignApprover'])->name('projects.assign_approver');
         Route::post('/{project}/approve-draft', [ProjectController::class, 'approveDraft'])->name('projects.approve_draft');
         Route::post('/{project}/stage-update', [ProjectController::class, 'updateStageDirect'])->name('projects.stage_update');
         Route::post('/{project}/meta-update', [ProjectController::class, 'updateMeta'])->name('projects.meta_update');

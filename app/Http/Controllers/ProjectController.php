@@ -217,6 +217,71 @@ class ProjectController extends Controller
     }
 
     /**
+     * Penugasan Review Draft ke Pimpinan (Head Divisi / Direktur) oleh Sales
+     */
+    public function assignApprover(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'role'             => 'required|in:head,director,both',
+            'head_user_id'     => 'nullable|exists:users,id',
+            'director_user_id' => 'nullable|exists:users,id',
+            'notes'            => 'nullable|string|max:1000',
+        ]);
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $approvals = $handoverData['draft_approvals'] ?? [
+            'head'     => ['assigned' => false, 'approved' => false, 'by' => null, 'date' => null, 'notes' => null],
+            'director' => ['assigned' => false, 'approved' => false, 'by' => null, 'date' => null, 'notes' => null],
+        ];
+
+        $now = now()->format('d M Y H:i');
+        $creatorName = auth()->user() ? auth()->user()->name : ($project->sales_name ?: 'Sales');
+
+        if (in_array($validated['role'], ['head', 'both'])) {
+            $headUser = !empty($validated['head_user_id']) 
+                ? \App\Models\User::find($validated['head_user_id']) 
+                : \App\Models\User::where('name', 'like', '%Susanto%')->first();
+            $headName = $headUser ? $headUser->name : 'Pak Susanto Djaya';
+
+            $approvals['head'] = array_merge($approvals['head'] ?? [], [
+                'assigned'         => true,
+                'assigned_to'      => $headName,
+                'assigned_user_id' => $headUser ? $headUser->id : null,
+                'assigned_by'      => $creatorName,
+                'assigned_at'      => $now,
+                'sales_notes'      => $validated['notes'] ?? null,
+            ]);
+        }
+
+        if (in_array($validated['role'], ['director', 'both'])) {
+            $directorUser = !empty($validated['director_user_id']) 
+                ? \App\Models\User::find($validated['director_user_id']) 
+                : \App\Models\User::where('name', 'like', '%Hariyadi%')->first();
+            $directorName = $directorUser ? $directorUser->name : 'Pak Hariyadi';
+
+            $approvals['director'] = array_merge($approvals['director'] ?? [], [
+                'assigned'         => true,
+                'assigned_to'      => $directorName,
+                'assigned_user_id' => $directorUser ? $directorUser->id : null,
+                'assigned_by'      => $creatorName,
+                'assigned_at'      => $now,
+                'sales_notes'      => $validated['notes'] ?? null,
+            ]);
+        }
+
+        $handoverData['draft_approvals'] = $approvals;
+        $project->handover_data = $handoverData;
+        $project->save();
+
+        $msg = "Review draft berhasil ditugaskan ke pimpinan!";
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => $msg, 'approvals' => $approvals]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
      * Persetujuan Draft Berjenjang (Pak Susanto - Head & Pak Hariyadi - Direktur)
      */
     public function approveDraft(Request $request, Project $project)
