@@ -32,73 +32,107 @@ class ProjectDocumentController extends Controller
     }
 
     /**
-     * Upload / Perbarui Dokumen untuk slot tertentu pada tahap tertentu
+     * Upload / Perbarui Dokumen untuk slot tertentu atau upload multiple attachment
      */
-    public function upload(Request $request, Project $project): JsonResponse
+    public function upload(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'document_id'   => 'nullable|exists:project_documents,id',
-            'stage_number'  => 'required|integer|min:1|max:6',
-            'document_key'  => 'required|string|max:100',
-            'document_file' => 'required|file|mimes:pdf,docx,doc,xlsx,xls,zip,rar,png,jpg,jpeg,txt,csv|max:51200', // max 50MB
-            'notes'         => 'nullable|string|max:1000',
+            'document_id'      => 'nullable|exists:project_documents,id',
+            'stage_number'     => 'required|integer|min:1|max:6',
+            'document_key'     => 'required|string|max:100',
+            'document_file'    => 'nullable|file|mimes:pdf,docx,doc,xlsx,xls,zip,rar,png,jpg,jpeg,txt,csv|max:51200', // max 50MB
+            'document_files'   => 'nullable|array',
+            'document_files.*' => 'file|mimes:pdf,docx,doc,xlsx,xls,zip,rar,png,jpg,jpeg,txt,csv|max:51200',
+            'notes'            => 'nullable|string|max:1000',
         ]);
+
+        $files = [];
+        if ($request->hasFile('document_files')) {
+            $files = $request->file('document_files');
+        } elseif ($request->hasFile('document_file')) {
+            $files = [$request->file('document_file')];
+        }
+
+        if (empty($files)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Silakan pilih berkas untuk diunggah.'], 422);
+            }
+            return redirect()->back()->with('error', 'Silakan pilih berkas untuk diunggah.');
+        }
 
         // Cari atau inisialisasi dokumen
         ProjectDocumentFlowService::ensureProjectDocumentsInitialized($project);
+        $stages = ProjectDocumentFlowService::getStagesDefinition();
+        $stageInfo = $stages[$validated['stage_number']] ?? ['stage_name' => 'General'];
+        $uploadedDocs = [];
 
-        $doc = ProjectDocument::where('project_id', $project->id)
-            ->where('stage_number', $validated['stage_number'])
-            ->where('document_key', $validated['document_key'])
-            ->first();
+        foreach ($files as $index => $file) {
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $size = $file->getSize();
+            $cleanTitle = pathinfo($originalName, PATHINFO_FILENAME);
 
-        if (!$doc) {
-            $stages = ProjectDocumentFlowService::getStagesDefinition();
-            $stageInfo = $stages[$validated['stage_number']] ?? ['stage_name' => 'General'];
+            // Jika upload tunggal dengan slot spesifik
+            if (count($files) === 1 && !empty($validated['document_id'])) {
+                $doc = ProjectDocument::find($validated['document_id']);
+            } elseif (count($files) === 1 && $validated['document_key'] !== 'lampiran_pendukung') {
+                $doc = ProjectDocument::where('project_id', $project->id)
+                    ->where('stage_number', $validated['stage_number'])
+                    ->where('document_key', $validated['document_key'])
+                    ->first();
+            } else {
+                $doc = null;
+            }
 
-            $doc = new ProjectDocument([
-                'project_id'     => $project->id,
-                'stage_number'   => $validated['stage_number'],
-                'stage_name'     => $stageInfo['stage_name'],
-                'document_key'   => $validated['document_key'],
-                'document_title' => ucwords(str_replace('_', ' ', $validated['document_key'])),
-                'is_mandatory'   => true,
-            ]);
+            if (!$doc) {
+                $docKey = 'attachment_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid();
+                $doc = new ProjectDocument([
+                    'project_id'     => $project->id,
+                    'stage_number'   => $validated['stage_number'],
+                    'stage_name'     => $stageInfo['stage_name'],
+                    'document_key'   => $docKey,
+                    'document_title' => $cleanTitle ?: ('Attachment ' . ($index + 1)),
+                    'is_mandatory'   => false,
+                ]);
+            } else {
+                // Hapus file lama jika ada
+                if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
+                    Storage::disk('public')->delete($doc->file_path);
+                }
+            }
+
+            $path = $file->store("project_documents/{$project->id}/stage_{$validated['stage_number']}", 'public');
+
+            $doc->file_path = $path;
+            $doc->file_name = $originalName;
+            $doc->file_size = $size;
+            $doc->file_extension = strtolower($extension);
+            $doc->status = 'Uploaded';
+            $doc->uploaded_by = auth()->id();
+            $doc->uploaded_at = now();
+            if (!empty($validated['notes'])) {
+                $doc->notes = $validated['notes'];
+            }
+            $doc->save();
+            $uploadedDocs[] = $doc;
         }
 
-        // Hapus file lama jika ada
-        if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
-            Storage::disk('public')->delete($doc->file_path);
-        }
-
-        $file = $request->file('document_file');
-        $originalName = $file->getClientOriginalName();
-        $extension = $file->getClientOriginalExtension();
-        $size = $file->getSize();
-
-        $path = $file->store("project_documents/{$project->id}/stage_{$validated['stage_number']}", 'public');
-
-        $doc->file_path = $path;
-        $doc->file_name = $originalName;
-        $doc->file_size = $size;
-        $doc->file_extension = strtolower($extension);
-        $doc->status = 'Uploaded';
-        $doc->uploaded_by = auth()->id();
-        $doc->uploaded_at = now();
-        if (!empty($validated['notes'])) {
-            $doc->notes = $validated['notes'];
-        }
-        $doc->save();
+        $count = count($uploadedDocs);
+        $msg = $count > 1 
+            ? "{$count} berkas lampiran berhasil diunggah!" 
+            : "Dokumen '{$uploadedDocs[0]->document_title}' berhasil diunggah!";
 
         if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
             return response()->json([
-                'success'  => true,
-                'message'  => "Dokumen '{$doc->document_title}' berhasil diunggah!",
-                'document' => $doc->fresh(['uploader', 'verifier']),
+                'success'   => true,
+                'message'   => $msg,
+                'count'     => $count,
+                'documents' => $uploadedDocs,
+                'document'  => $uploadedDocs[0]->fresh(['uploader', 'verifier']),
             ]);
         }
 
-        return redirect()->back()->with('success', "Dokumen '{$doc->document_title}' berhasil diunggah!");
+        return redirect()->back()->with('success', $msg);
     }
 
     /**
@@ -158,31 +192,43 @@ class ProjectDocumentController extends Controller
     /**
      * Hapus Dokumen yang Diunggah
      */
-    public function delete(Project $project, ProjectDocument $document): JsonResponse
+    public function delete(Request $request, Project $project, ProjectDocument $document)
     {
         if ($document->project_id !== $project->id) {
-            return response()->json(['success' => false, 'message' => 'Dokumen tidak valid.'], 403);
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Dokumen tidak valid.'], 403);
+            }
+            return redirect()->back()->with('error', 'Dokumen tidak valid.');
         }
 
         if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
             Storage::disk('public')->delete($document->file_path);
         }
 
-        $document->file_path = null;
-        $document->file_name = null;
-        $document->file_size = null;
-        $document->file_extension = null;
-        $document->status = 'Pending';
-        $document->uploaded_by = null;
-        $document->uploaded_at = null;
-        $document->verified_by = null;
-        $document->verified_at = null;
-        $document->save();
+        $title = $document->document_title;
+        if (!$document->is_mandatory) {
+            $document->delete();
+        } else {
+            $document->file_path = null;
+            $document->file_name = null;
+            $document->file_size = null;
+            $document->file_extension = null;
+            $document->status = 'Pending';
+            $document->uploaded_by = null;
+            $document->uploaded_at = null;
+            $document->verified_by = null;
+            $document->verified_at = null;
+            $document->save();
+        }
 
-        return response()->json([
-            'success'  => true,
-            'message'  => "Berkas dokumen '{$document->document_title}' berhasil dihapus.",
-            'document' => $document->fresh(),
-        ]);
+        $msg = "Berkas dokumen '{$title}' berhasil dihapus.";
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'  => true,
+                'message'  => $msg,
+            ]);
+        }
+
+        return redirect()->back()->with('success', $msg);
     }
 }

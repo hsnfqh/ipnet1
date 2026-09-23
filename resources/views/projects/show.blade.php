@@ -513,7 +513,7 @@
                                 </div>
                             @else
                                 <div class="p-3.5 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC]/50 text-center text-xs text-[#94A3B8]">
-                                    Belum ada milestone. Klik tombol <span class="font-semibold text-[#8F0A0D]">+ ADD MILESTONE</span> untuk menambahkan target pekerjaan.
+                                    Belum ada milestone. Klik tombol <span class="font-semibold text-[#8F0A0D]">ADD MILESTONE</span> untuk menambahkan target pekerjaan.
                                 </div>
                             @endif
                         </div>
@@ -558,17 +558,26 @@
                                                 </div>
                                             </div>
                                             @if($doc->file_path)
-                                                <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition no-underline">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                    <span>Download</span>
-                                                </a>
+                                                <div class="flex items-center gap-1.5 shrink-0">
+                                                    <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition no-underline" title="Download Berkas">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                        <span>Download</span>
+                                                    </a>
+                                                    <form action="{{ route('projects.documents.delete', [$project->id, $doc->id]) }}" method="POST" onsubmit="return confirm('Hapus berkas lampiran ini?')" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer" title="Hapus Berkas">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             @endif
                                         </div>
                                     @endforeach
                                 </div>
                             @else
                                 <div class="p-3.5 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC]/50 text-center text-xs text-[#94A3B8]">
-                                    Belum ada berkas lampiran. Klik tombol <span class="font-semibold text-[#8F0A0D]">+ ADD ATTACHMENT</span> untuk mengunggah BoQ atau dokumen pendukung.
+                                    Belum ada berkas lampiran. Klik tombol <span class="font-semibold text-[#8F0A0D]">ADD ATTACHMENT</span> untuk mengunggah BoQ atau dokumen pendukung.
                                 </div>
                             @endif
                         </div>
@@ -770,7 +779,7 @@
                  class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 space-y-4 m-auto">
                 
                 <div class="flex items-center justify-between border-b pb-3">
-                    <h3 class="text-base font-bold text-gray-900">+ Add Milestone</h3>
+                    <h3 class="text-base font-bold text-gray-900">Add Milestone</h3>
                     <button type="button" @click="isAddMilestoneModalOpen = false" class="text-gray-400 hover:text-gray-700 text-lg font-bold cursor-pointer">✕</button>
                 </div>
 
@@ -880,9 +889,10 @@
                     <input type="hidden" name="document_key" value="lampiran_pendukung">
 
                     <div>
-                        <label class="block text-gray-700 mb-1 uppercase tracking-wider text-[10.5px]">PILIH BERKAS (PDF, XLSX, DOCX, ZIP)</label>
-                        <input type="file" name="document_file" required 
-                               class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-gray-50">
+                        <label class="block text-gray-700 mb-1 uppercase tracking-wider text-[10.5px]">PILIH BERKAS (BISA PILIH SEKALIGUS LEBIH DARI 1 BERKAS)</label>
+                        <input type="file" name="document_files[]" multiple required 
+                               class="w-full px-3 py-2 rounded-xl border border-gray-200 text-xs text-gray-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-gray-50 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-red-50 file:text-[#8F0A0D] hover:file:bg-red-100">
+                        <p class="text-[10.5px] text-gray-400 mt-1">Format: PDF, XLSX, DOCX, ZIP, PNG, JPG (Dapat memilih sekaligus beberapa berkas)</p>
                     </div>
 
                     <div>
