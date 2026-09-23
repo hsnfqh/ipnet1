@@ -66,14 +66,16 @@ class TaskController extends Controller
         $divisionId = $user->division_id;
         $isGlobal   = ScopeHelper::isGlobal($user);
 
-        $formProjectsQuery = Project::query();
+        $formProjectsQuery = Project::query()
+            ->whereNotIn('status', ['Draft', 'draft'])
+            ->where('stage', '!=', 'Draft');
+
         if ($divisionId && !$isGlobal) {
             $teamUserIds = ScopeHelper::getScopeUserIds($user) ?? [];
             $projectIdsWithTeamTasks = Task::whereIn('engineer_id', $teamUserIds)->pluck('project_id')->filter()->unique();
 
             $formProjectsQuery->where(function($q) use ($divisionId, $user, $projectIdsWithTeamTasks) {
                 $q->where('division_id', $divisionId)
-                  ->orWhereNull('division_id')
                   ->orWhere('created_by', $user->id);
                 if ($projectIdsWithTeamTasks->isNotEmpty()) {
                     $q->orWhereIn('id', $projectIdsWithTeamTasks);

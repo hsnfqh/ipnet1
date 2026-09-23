@@ -30,18 +30,23 @@ class ProjectController extends Controller
                 $q->whereNull('project_type')->orWhere('project_type', '!=', 'Meeting / Internal');
             });
 
+        // Jangan tampilkan project Draft sales ke Lead Engineer / Engineer
+        if (!$isSales && !$isDirektur) {
+            $baseQuery->whereNotIn('status', ['Draft', 'draft'])
+                      ->where('stage', '!=', 'Draft');
+        }
+
         if ($isDirektur || $isSupervisor || $isSales || $isPmo) {
             // Direktur, Group Leader, Sales, PMO: Memantau seluruh portofolio proyek
             $projects = $baseQuery->get();
         } elseif ($user->hasRole('Team Leader') && $user->division_id) {
-            // Team Leader: Proyek divisi, proyek umum/unassigned, proyek yang dibuatnya, atau yang ada task anggotanya
+            // Team Leader: Proyek divisi, proyek yang dibuatnya, atau yang ada task anggotanya
             $teamUserIds = \App\Helpers\ScopeHelper::getScopeUserIds($user) ?? [];
             $projectIdsWithTeamTasks = \App\Models\Task::whereIn('engineer_id', $teamUserIds)->pluck('project_id')->filter()->unique();
 
             $projects = $baseQuery
                 ->where(function($q) use ($user, $projectIdsWithTeamTasks) {
                     $q->where('division_id', $user->division_id)
-                      ->orWhereNull('division_id')
                       ->orWhere('created_by', $user->id);
                     if ($projectIdsWithTeamTasks->isNotEmpty()) {
                         $q->orWhereIn('id', $projectIdsWithTeamTasks);

@@ -41,10 +41,12 @@ class DashboardController extends Controller
         }
         $tasks = $tasksQuery->get();
 
-        // Filter projects sesuai scope role yang login (kecualikan dummy/internal Day Off)
+        // Filter projects sesuai scope role yang login (kecualikan dummy/internal Day Off & Draft yang masih dicoba-coba)
         $projectsQuery = Project::with(['tasks', 'creator'])
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
-            ->where('client', '!=', 'Internal / Umum');
+            ->where('client', '!=', 'Internal / Umum')
+            ->whereNotIn('status', ['Draft', 'draft'])
+            ->where('stage', '!=', 'Draft');
         if ($scopeIds !== null) {
             $projectIds = $tasks->pluck('project_id')->filter()->unique();
             $divisionId = $user->division_id;
@@ -56,8 +58,7 @@ class DashboardController extends Controller
                 }
                 $q->orWhere('created_by', $user->id);
                 if ($divisionId) {
-                    $q->orWhere('division_id', $divisionId)
-                      ->orWhereNull('division_id');
+                    $q->orWhere('division_id', $divisionId);
                 }
             });
         }
