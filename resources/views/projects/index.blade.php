@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Daftar Proyek - PT IP Network Solusindo')
 
@@ -288,185 +288,299 @@
             <!-- CREATE / EDIT MODAL                                          -->
             <!-- ============================================================ -->
             <template x-teleport="body">
-                <div x-show="modalOpen" 
+                <div x-show="modalOpen"
                      x-cloak
                      x-transition:enter="transition ease-out duration-200"
-                     x-transition:enter-start="opacity-0"
-                     x-transition:enter-end="opacity-100"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
                      x-transition:leave="transition ease-in duration-150"
-                     x-transition:leave-start="opacity-100"
-                     x-transition:leave-end="opacity-0"
-                     class="fixed inset-0 bg-[#0F172A]/60 z-50 flex items-center justify-center p-4 sm:p-6 backdrop-blur-xs"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     class="fixed inset-0 bg-[#0F172A]/65 z-50 flex items-center justify-center p-4 sm:p-6 backdrop-blur-sm"
                      @click.self="modalOpen = false">
-                    <div class="bg-white rounded-2xl w-[580px] max-w-full max-h-[85vh] flex flex-col overflow-hidden animate-fade-in-up shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0]">
-                        {{-- Modal Header --}}
-                        <div class="flex items-center justify-between p-4 sm:p-5 border-b border-[#E2E8F0] flex-shrink-0 bg-[#F8FAFC]">
-                            <div>
-                                <h3 class="font-display text-[16px] font-bold text-[#1E293B]" x-text="modalTitle"></h3>
-                                <p class="text-[12px] text-[#64748B] mt-0.5">Kelola informasi proyek, tim sales, dan jadwal pemeliharaan berkala.</p>
+                    <div class="bg-white rounded-2xl w-[700px] max-w-full max-h-[90vh] flex flex-col overflow-hidden shadow-[0_24px_64px_rgba(15,23,42,0.28)] border border-[#E2E8F0]">
+
+                        {{-- ── Modal Header ── --}}
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] flex-shrink-0" style="background: linear-gradient(135deg, #F8FAFC 0%, #FEF2F2 100%);">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #8F0A0D, #D62E3C);">
+                                    <svg style="width:18px;height:18px;" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2.2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-[15px] font-bold text-[#1E293B] leading-tight" x-text="modalTitle"></h3>
+                                    <p class="text-[11.5px] text-[#64748B] mt-0.5">Lengkapi semua informasi proyek dengan benar</p>
+                                </div>
                             </div>
-                            <button @click="modalOpen = false" class="rounded-lg p-1.5 text-[#64748B] hover:text-[#1E293B] hover:bg-[#E2E8F0] transition-colors cursor-pointer">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            <button @click="modalOpen = false" class="w-8 h-8 rounded-lg flex items-center justify-center text-[#64748B] hover:text-[#1E293B] hover:bg-[#E2E8F0] transition-colors cursor-pointer">
+                                <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
 
-                        {{-- Modal Body --}}
-                        <div class="p-5 sm:p-6 overflow-y-auto flex-1">
-                            <form id="projectForm" @submit.prevent="saveProject()" class="space-y-4 text-[13px]">
-                                <div>
-                                    <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Nama Project <span class="text-[#8F0A0D]">*</span></label>
-                                    <input type="text" x-model="form.name" required class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]" placeholder="Masukkan nama project lengkap">
-                                </div>
+                        {{-- ── Modal Body ── --}}
+                        <div class="overflow-y-auto flex-1 bg-[#F8FAFC]">
+                            <form id="projectForm" @submit.prevent="saveProject()">
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                    <div>
-                                        <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Klien / Pemilik Proyek <span class="text-[#8F0A0D]">*</span></label>
-                                        <input type="text" x-model="form.client" required class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]" placeholder="Contoh: PT Bank Central Asia Tbk">
+                                {{-- ════ SECTION 1: Informasi Proyek ════ --}}
+                                <div class="px-6 pt-5 pb-4">
+                                    <div class="flex items-center gap-2.5 mb-4">
+                                        <div class="w-1 h-4 rounded-full bg-[#8F0A0D]"></div>
+                                        <span class="text-[11.5px] font-extrabold text-[#8F0A0D] uppercase tracking-widest">Informasi Proyek</span>
                                     </div>
-                                    <div>
-                                        <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Nama Sales / PIC Sales <span class="text-[#8F0A0D]">*</span></label>
-                                        <input type="text" x-model="form.sales_name" required class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]" placeholder="Contoh: Donny / Erie / Hendry">
-                                    </div>
-                                </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                                    <div>
-                                        <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Tipe Proyek <span class="text-[#8F0A0D]">*</span></label>
-                                        <select x-model="form.project_type" class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]">
-                                            <option value="One-Time Project">One-Time Project / Deployment</option>
-                                            <option value="Maintenance Berkala">Maintenance Berkala / SLA</option>
-                                            <option value="Managed Service">Managed Service & Support</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Tier SLA / Paket</label>
-                                        <select x-model="form.sla_tier" 
-                                                @change="if(form.sla_tier === 'Platinum') { form.visit_schedule = 'Bulanan (Monthly)'; } else if(form.sla_tier === 'Gold') { form.visit_schedule = 'Triwulanan (Quarterly)'; } else if(form.sla_tier === 'Silver') { form.visit_schedule = 'Semesteran (Semi-Annual)'; } else if(form.sla_tier === 'Bronze') { form.visit_schedule = 'On-Call (Incidental)'; }"
-                                                class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]">
-                                            <option value="">-- Tanpa Tier SLA --</option>
-                                            <option value="Platinum">💎 Platinum (12x/Thn)</option>
-                                            <option value="Gold">🥇 Gold (4x/Thn)</option>
-                                            <option value="Silver">🥈 Silver (2x/Thn)</option>
-                                            <option value="Bronze">🥉 Bronze (1x/Thn)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Jadwal Visit Berkala</label>
-                                        <select x-model="form.visit_schedule" class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]">
-                                            <option value="None">None (Tidak Ada Visit Rutin)</option>
-                                            <option value="Mingguan (Weekly)">Mingguan (Weekly Visit)</option>
-                                            <option value="Bulanan (Monthly)">Bulanan (Monthly SLA Visit)</option>
-                                            <option value="Triwulanan (Quarterly)">Triwulanan (Quarterly Check)</option>
-                                            <option value="Semesteran (Semi-Annual)">Semesteran (6 Bulanan)</option>
-                                            <option value="On-Call (Incidental)">On-Call (Sesuai Permintaan)</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Lokasi <span class="text-[#8F0A0D]">*</span></label>
-                                    <input type="text" x-model="form.location" required class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]" placeholder="Gedung / Data Center / Alamat Project">
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                    <div>
-                                        <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Tanggal Mulai <span class="text-[#8F0A0D]">*</span></label>
-                                        <input type="date" x-model="form.start_date" required class="w-full py-2.5 px-3 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Deadline / Akhir Kontrak <span class="text-[#8F0A0D]">*</span></label>
-                                        <input type="date" x-model="form.deadline" required class="w-full py-2.5 px-3 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B]">
-                                    </div>
-                                </div>
-
-                                <template x-if="form.start_date && form.deadline">
-                                    <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[12px] text-[#334155] flex items-center justify-between">
-                                        <span>Estimasi Durasi Proyek:</span>
-                                        <span class="font-extrabold text-[#8F0A0D]" x-text="calculateFormDuration()"></span>
-                                    </div>
-                                </template>
-
-                                <div>
-                                    <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Deskripsi & Catatan SLA</label>
-                                    <textarea x-model="form.description" rows="3" class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 focus:bg-white transition text-[#1E293B] resize-none" placeholder="Deskripsi teknis, ruang lingkup SLA, atau catatan project..."></textarea>
-                                </div>
-
-                                {{-- Status & Progress Control (Khusus Lead Engineer / Team Leader) --}}
-                                @if($canEditProgress ?? true)
-                                <div class="p-4 rounded-xl bg-gradient-to-br from-[#FEF2F2]/60 to-[#F8FAFC] border border-[#FECACA]/80 space-y-3.5 mt-2">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-2">
-                                            <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D] animate-pulse"></span>
-                                            <label class="text-[12px] font-extrabold text-[#8F0A0D] uppercase tracking-wider">
-                                                Status & Progress Bar (Lead Engineer)
+                                    <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 space-y-4 shadow-sm">
+                                        {{-- Project Name --}}
+                                        <div>
+                                            <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                                Nama Project <span class="text-[#8F0A0D]">*</span>
                                             </label>
-                                        </div>
-                                        <span class="text-[10.5px] font-bold text-[#64748B] bg-white px-2 py-0.5 rounded-md border border-[#E2E8F0] shadow-2xs">
-                                            Otoritas Teknis
-                                        </span>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                        {{-- Status Project --}}
-                                        <div>
-                                            <label class="block text-[11.5px] font-bold text-[#475569] mb-1.5">Status Proyek</label>
-                                            <select x-model="form.status" 
-                                                    @change="if(form.status === 'Completed' && form.progress < 100) { form.progress = 100; } else if(form.status === 'Planning' && form.progress > 0) { form.progress = 0; }"
-                                                    class="w-full py-2.5 px-3.5 text-[12.5px] font-bold bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition text-[#1E293B] cursor-pointer shadow-2xs">
-                                                <option value="Planning">⚪ Planning</option>
-                                                <option value="On Progress">🟡 On Progress</option>
-                                                <option value="Completed">🟢 Completed (Selesai)</option>
-                                            </select>
+                                            <input type="text" x-model="form.name" required
+                                                   class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition text-[#1E293B] placeholder-[#94A3B8]"
+                                                   placeholder="Contoh: Implementasi Jaringan VLAN PT Telkom Regional 3">
                                         </div>
 
-                                        {{-- Progress Bar (%) Input & Slider --}}
+                                        {{-- Project Detail / Deskripsi --}}
                                         <div>
-                                            <div class="flex items-center justify-between mb-1.5">
-                                                <label class="text-[11.5px] font-bold text-[#475569]">Persentase Progress</label>
-                                                <span class="font-extrabold text-[13px] text-[#8F0A0D]" x-text="(form.progress || 0) + '%'"></span>
-                                            </div>
-                                            <div class="flex items-center gap-3">
-                                                <input type="range" min="0" max="100" step="5" x-model.number="form.progress"
-                                                       @input="if(form.progress == 100) { form.status = 'Completed'; } else if(form.progress > 0 && form.status === 'Planning') { form.status = 'On Progress'; } else if(form.progress == 0 && form.status === 'Completed') { form.status = 'Planning'; }"
-                                                       class="w-full h-2 bg-[#E2E8F0] rounded-lg appearance-none cursor-pointer accent-[#8F0A0D]">
-                                                <input type="number" min="0" max="100" x-model.number="form.progress"
-                                                       @input="if(form.progress == 100) { form.status = 'Completed'; } else if(form.progress > 0 && form.status === 'Planning') { form.status = 'On Progress'; } else if(form.progress == 0 && form.status === 'Completed') { form.status = 'Planning'; }"
-                                                       class="w-16 py-1.5 px-2 text-[12.5px] font-bold text-center bg-white border border-[#CBD5E1] rounded-lg focus:outline-none focus:border-[#8F0A0D]">
+                                            <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                                Detail Proyek <span class="text-[#94A3B8] font-normal normal-case">(opsional)</span>
+                                            </label>
+                                            <textarea x-model="form.description" rows="3"
+                                                      class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition text-[#1E293B] resize-none placeholder-[#94A3B8]"
+                                                      placeholder="Deskripsi teknis, ruang lingkup pekerjaan, SLA, atau catatan penting lainnya..."></textarea>
+                                        </div>
+
+                                        {{-- Client Name --}}
+                                        <div>
+                                            <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                                Nama Client <span class="text-[#8F0A0D]">*</span>
+                                            </label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
+                                                    <svg class="w-4 h-4 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                                    </svg>
+                                                </div>
+                                                <input type="text" x-model="form.client" required
+                                                       class="w-full pl-10 pr-3.5 py-2.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition text-[#1E293B] placeholder-[#94A3B8]"
+                                                       placeholder="Contoh: PT Bank Central Asia Tbk">
                                             </div>
                                         </div>
+
+                                        {{-- 2-Col: Tipe Proyek + Sales PIC --}}
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                            <div>
+                                                <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                                    Tipe Proyek <span class="text-[#8F0A0D]">*</span>
+                                                </label>
+                                                <select x-model="form.project_type"
+                                                        class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition text-[#1E293B] cursor-pointer">
+                                                    <option value="One-Time Project">One-Time Project / Deployment</option>
+                                                    <option value="Maintenance Berkala">Maintenance Berkala / SLA</option>
+                                                    <option value="Managed Service">Managed Service &amp; Support</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                                    Nama Sales / PIC <span class="text-[#8F0A0D]">*</span>
+                                                </label>
+                                                <div class="relative">
+                                                    <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
+                                                        <svg class="w-4 h-4 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                        </svg>
+                                                    </div>
+                                                    <input type="text" x-model="form.sales_name" required
+                                                           class="w-full pl-10 pr-3.5 py-2.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition text-[#1E293B] placeholder-[#94A3B8]"
+                                                           placeholder="Contoh: Donny / Erie / Hendry">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- ════ SECTION 2: Detail & Jadwal Proyek ════ --}}
+                                <div class="px-6 pb-4">
+                                    <div class="flex items-center gap-2.5 mb-4">
+                                        <div class="w-1 h-4 rounded-full bg-[#4F46E5]"></div>
+                                        <span class="text-[11.5px] font-extrabold text-[#4F46E5] uppercase tracking-widest">Detail &amp; Jadwal Proyek</span>
                                     </div>
 
-                                    {{-- Live Bar Preview --}}
-                                    <div class="pt-1">
-                                        <div class="w-full bg-[#E2E8F0] rounded-full h-2.5 overflow-hidden">
-                                            <div class="h-full rounded-full transition-all duration-300"
-                                                 style="background: linear-gradient(90deg, #8F0A0D, #D62E3C);"
-                                                 :style="{ width: (form.progress || 0) + '%' }"></div>
+                                    <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 space-y-4 shadow-sm">
+
+                                        {{-- Lokasi --}}
+                                        <div>
+                                            <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                                Lokasi Proyek <span class="text-[#8F0A0D]">*</span>
+                                            </label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
+                                                    <svg class="w-4 h-4 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    </svg>
+                                                </div>
+                                                <input type="text" x-model="form.location" required
+                                                       class="w-full pl-10 pr-3.5 py-2.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition text-[#1E293B] placeholder-[#94A3B8]"
+                                                       placeholder="Gedung / Data Center / Alamat lengkap proyek">
+                                            </div>
+                                        </div>
+
+                                        {{-- 2-Col: Tanggal Mulai + Deadline --}}
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                            <div>
+                                                <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                                    Tanggal Mulai <span class="text-[#8F0A0D]">*</span>
+                                                </label>
+                                                <div class="relative">
+                                                    <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
+                                                        <svg class="w-4 h-4 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                        </svg>
+                                                    </div>
+                                                    <input type="date" x-model="form.start_date" required
+                                                           class="w-full pl-10 pr-3 py-2.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition text-[#1E293B]">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">
+                                                    Deadline / Akhir Kontrak <span class="text-[#8F0A0D]">*</span>
+                                                </label>
+                                                <div class="relative">
+                                                    <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
+                                                        <svg class="w-4 h-4 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                        </svg>
+                                                    </div>
+                                                    <input type="date" x-model="form.deadline" required
+                                                           class="w-full pl-10 pr-3 py-2.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition text-[#1E293B]">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Estimasi Durasi --}}
+                                        <template x-if="form.start_date && form.deadline">
+                                            <div class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA]">
+                                                <svg class="w-4 h-4 text-[#8F0A0D] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                <span class="text-[12px] text-[#64748B]">Estimasi Durasi Proyek:</span>
+                                                <span class="text-[12.5px] font-extrabold text-[#8F0A0D] ml-auto" x-text="calculateFormDuration()"></span>
+                                            </div>
+                                        </template>
+
+                                        {{-- 2-Col: SLA Tier + Visit Schedule --}}
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                            <div>
+                                                <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Tier SLA / Paket</label>
+                                                <select x-model="form.sla_tier"
+                                                        @change="if(form.sla_tier === 'Platinum') { form.visit_schedule = 'Bulanan (Monthly)'; } else if(form.sla_tier === 'Gold') { form.visit_schedule = 'Triwulanan (Quarterly)'; } else if(form.sla_tier === 'Silver') { form.visit_schedule = 'Semesteran (Semi-Annual)'; } else if(form.sla_tier === 'Bronze') { form.visit_schedule = 'On-Call (Incidental)'; }"
+                                                        class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition text-[#1E293B] cursor-pointer">
+                                                    <option value="">— Tanpa Tier SLA —</option>
+                                                    <option value="Platinum">&#128142; Platinum (12x/Thn)</option>
+                                                    <option value="Gold">&#129351; Gold (4x/Thn)</option>
+                                                    <option value="Silver">&#129352; Silver (2x/Thn)</option>
+                                                    <option value="Bronze">&#129353; Bronze (1x/Thn)</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Jadwal Visit Berkala</label>
+                                                <select x-model="form.visit_schedule"
+                                                        class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition text-[#1E293B] cursor-pointer">
+                                                    <option value="None">Tidak Ada Visit Rutin</option>
+                                                    <option value="Mingguan (Weekly)">Mingguan (Weekly Visit)</option>
+                                                    <option value="Bulanan (Monthly)">Bulanan (Monthly SLA)</option>
+                                                    <option value="Triwulanan (Quarterly)">Triwulanan (Quarterly)</option>
+                                                    <option value="Semesteran (Semi-Annual)">Semesteran (6 Bulanan)</option>
+                                                    <option value="On-Call (Incidental)">On-Call (Incidental)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- ════ SECTION 3: Status & Progress (Lead Engineer) ════ --}}
+                                @if($canEditProgress ?? true)
+                                <div class="px-6 pb-5">
+                                    <div class="flex items-center gap-2.5 mb-4">
+                                        <div class="w-1 h-4 rounded-full bg-[#D97706]"></div>
+                                        <span class="text-[11.5px] font-extrabold text-[#D97706] uppercase tracking-widest">Status &amp; Progress</span>
+                                        <span class="ml-auto text-[10.5px] font-bold text-[#64748B] bg-[#F1F5F9] px-2.5 py-0.5 rounded-full border border-[#E2E8F0]">Otoritas Teknis</span>
+                                    </div>
+
+                                    <div class="bg-white rounded-xl border border-[#E2E8F0] p-4 space-y-4 shadow-sm">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                            <div>
+                                                <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Status Proyek</label>
+                                                <select x-model="form.status"
+                                                        @change="if(form.status === 'Completed' && form.progress < 100) { form.progress = 100; } else if(form.status === 'Planning' && form.progress > 0) { form.progress = 0; }"
+                                                        class="w-full py-2.5 px-3.5 text-[13px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#8F0A0D] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:bg-white transition text-[#1E293B] cursor-pointer font-semibold">
+                                                    <option value="Planning">&#9898; Planning</option>
+                                                    <option value="On Progress">&#128993; On Progress</option>
+                                                    <option value="Completed">&#128994; Completed</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <div class="flex items-center justify-between mb-1.5">
+                                                    <label class="text-[11.5px] font-bold text-[#475569] uppercase tracking-wider">Persentase Progress</label>
+                                                    <span class="text-[13px] font-extrabold text-[#8F0A0D]" x-text="(form.progress || 0) + '%'"></span>
+                                                </div>
+                                                <div class="flex items-center gap-2.5">
+                                                    <input type="range" min="0" max="100" step="5" x-model.number="form.progress"
+                                                           @input="if(form.progress == 100) { form.status = 'Completed'; } else if(form.progress > 0 && form.status === 'Planning') { form.status = 'On Progress'; } else if(form.progress == 0 && form.status === 'Completed') { form.status = 'Planning'; }"
+                                                           class="flex-1 h-2 bg-[#E2E8F0] rounded-lg appearance-none cursor-pointer accent-[#8F0A0D]">
+                                                    <input type="number" min="0" max="100" x-model.number="form.progress"
+                                                           @input="if(form.progress == 100) { form.status = 'Completed'; } else if(form.progress > 0 && form.status === 'Planning') { form.status = 'On Progress'; } else if(form.progress == 0 && form.status === 'Completed') { form.status = 'Planning'; }"
+                                                           class="w-16 py-2 px-2 text-[12.5px] font-bold text-center bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg focus:outline-none focus:border-[#8F0A0D] text-[#1E293B]">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Live Progress Bar --}}
+                                        <div>
+                                            <div class="w-full bg-[#E2E8F0] rounded-full h-2 overflow-hidden">
+                                                <div class="h-full rounded-full transition-all duration-500"
+                                                     style="background: linear-gradient(90deg, #8F0A0D, #D62E3C);"
+                                                     :style="{ width: (form.progress || 0) + '%' }"></div>
+                                            </div>
+                                            <div class="flex justify-between mt-1.5">
+                                                <span class="text-[10.5px] text-[#94A3B8]">0%</span>
+                                                <span class="text-[10.5px] text-[#94A3B8]">100%</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 @endif
+
                             </form>
                         </div>
 
-                        {{-- Modal Footer --}}
-                        <div class="flex items-center gap-3 p-4 sm:px-6 sm:py-3.5 border-t border-[#E2E8F0] bg-[#F8FAFC] flex-shrink-0">
-                            <button type="button" 
-                                    @click="modalOpen = false" 
-                                    class="flex-1 flex items-center justify-center min-h-[40px] bg-white hover:bg-[#F8FAFC] text-[#334155] border border-[#CBD5E1] px-4 py-2 rounded-xl font-bold text-[13px] transition-all cursor-pointer">
+                        {{-- ── Modal Footer ── --}}
+                        <div class="flex items-center gap-3 px-6 py-4 border-t border-[#E2E8F0] bg-white flex-shrink-0">
+                            <button type="button"
+                                    @click="modalOpen = false"
+                                    class="flex-1 flex items-center justify-center gap-2 h-[42px] bg-white hover:bg-[#F8FAFC] text-[#475569] border border-[#CBD5E1] px-4 rounded-xl font-bold text-[13px] transition-all cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
                                 Batal
                             </button>
-                            <button type="submit" 
-                                    form="projectForm" 
-                                    class="btn-ipnet-gradient flex-1 flex items-center justify-center min-h-[40px] px-4 py-2 rounded-xl font-bold text-[13px] cursor-pointer shadow-md">
-                                <span x-text="editing ? 'Simpan Perubahan' : 'Simpan Project'">Simpan Project</span>
+                            <button type="submit"
+                                    form="projectForm"
+                                    class="flex-[2] flex items-center justify-center gap-2 h-[42px] px-6 rounded-xl font-bold text-[13px] text-white cursor-pointer shadow-md transition-all hover:opacity-90 active:scale-[0.98]"
+                                    style="background: linear-gradient(135deg, #8F0A0D 0%, #D62E3C 100%);">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <span x-text="editing ? 'Simpan Perubahan' : 'Buat Project Baru'"></span>
                             </button>
                         </div>
                     </div>
                 </div>
             </template>
+
 
             <!-- ============================================================ -->
             <!-- DETAIL MODAL                                                 -->
