@@ -864,18 +864,37 @@ class ProjectController extends Controller
             $project->contract_value = $validated['contract_value'];
         }
 
-        // Sinkronisasi otomatis jika stage Closed Won
-        if (in_array(strtolower($validated['sales_stage']), ['closed won', 'won', 'closing won'])) {
+        $stageLower = strtolower($validated['sales_stage']);
+
+        // Sinkronisasi otomatis jika stage Closed Won (Menang / Deal)
+        if (str_contains($stageLower, 'won')) {
             $project->status = 'In Progress';
             $project->stage = 'Deliver';
+            $project->win_probability = 100;
             if ($project->progress < 10) {
                 $project->progress = 15;
+            }
+
+            // Notifikasi ke tim PMO & Manajemen
+            if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                $pmoUsers = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Engineer']))->get();
+                foreach ($pmoUsers as $pmo) {
+                    \App\Models\Notification::create([
+                        'user_id' => $pmo->id,
+                        'title'   => \Illuminate\Support\Str::limit("Proyek Closed Won & In Progress: " . $project->name, 240),
+                        'message' => \Illuminate\Support\Str::limit("Proyek '{$project->name}' (Klien: " . ($project->client ?: '-') . ") telah Closed Won dan otomatis beralih ke fase In Progress (Delivery PMO).", 240),
+                        'url'     => route('projects.show', $project->id),
+                        'is_read' => false,
+                    ]);
+                }
             }
         }
 
         $project->save();
 
-        $msg = "Pipeline Sales & Opportunity berhasil diperbarui!";
+        $msg = str_contains($stageLower, 'won') 
+            ? "Status proyek berhasil diubah ke Closed Won dan otomatis dipindahkan ke status In Progress!"
+            : "Pipeline Sales & Opportunity berhasil diperbarui!";
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'message' => $msg, 'project' => $project->fresh(['bdm'])]);
         }

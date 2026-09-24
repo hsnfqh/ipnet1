@@ -236,7 +236,7 @@ class PresalesProposalController extends Controller
             $handoverData['technical_assignments'] = $technical;
             $validated['handover_data'] = $handoverData;
 
-            // Kirim notifikasi ke PIC BD
+            // 1. Kirim notifikasi ke PIC BD
             $bdUserId = $project->bdm_id;
             if (!$bdUserId) {
                 $bdUser = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['BDM', 'BusDev', 'Business Development']))->first();
@@ -247,6 +247,35 @@ class PresalesProposalController extends Controller
                     'user_id' => $bdUserId,
                     'title'   => \Illuminate\Support\Str::limit("Verifikasi Proposal Teknis: " . $project->name, 240),
                     'message' => \Illuminate\Support\Str::limit("{$uploaderName} telah mengunggah berkas proposal & SOW untuk proyek '{$project->name}'. Silakan verifikasi kelayakan dokumen.", 240),
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
+
+            // 2. Kirim notifikasi ke Solution Architect jika ditugaskan
+            $saUserId = $technical['architect']['assigned_user_id'] ?? null;
+            if (!$saUserId) {
+                $saUser = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Solution Architect', 'Solutions Architect', 'SA']))->first()
+                    ?? \App\Models\User::where('name', 'like', '%Aris%')->first();
+                $saUserId = $saUser?->id;
+            }
+            if ($saUserId && $saUserId != ($user?->id) && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                \App\Models\Notification::create([
+                    'user_id' => $saUserId,
+                    'title'   => \Illuminate\Support\Str::limit("Dokumen SOW Diunggah: " . $project->name, 240),
+                    'message' => \Illuminate\Support\Str::limit("{$uploaderName} telah mengunggah berkas proposal & SOW untuk proyek '{$project->name}'. Berkas sedang diverifikasi oleh PIC BD.", 240),
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
+
+            // 3. Kirim notifikasi ke Sales pembuat proyek
+            $salesUserId = $project->creator_id ?? $project->created_by;
+            if ($salesUserId && $salesUserId != ($user?->id) && $salesUserId != $bdUserId && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                \App\Models\Notification::create([
+                    'user_id' => $salesUserId,
+                    'title'   => \Illuminate\Support\Str::limit("Dokumen Proposal Selesai Disusun: " . $project->name, 240),
+                    'message' => \Illuminate\Support\Str::limit("{$uploaderName} telah mengunggah berkas proposal & SOW untuk proyek '{$project->name}'. Berkas sedang diverifikasi oleh PIC BD.", 240),
                     'url'     => route('projects.show', $project->id),
                     'is_read' => false,
                 ]);

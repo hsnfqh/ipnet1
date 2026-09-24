@@ -51,5 +51,17 @@
                 {{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}
             </span>
         </div>
+
+        @if(($column ?? '') === 'In Progress' || $project->status === 'In Progress')
+            <form action="{{ route('projects.stage_update', $project->id) }}" method="POST" class="pt-2 border-t border-[#F1F5F9]" onclick="event.stopPropagation();">
+                @csrf
+                <input type="hidden" name="status" value="Completed">
+                <button type="submit" onclick="return confirm('Tandai proyek {{ addslashes($project->name) }} sebagai Selesai (Completed)?')"
+                        class="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition shadow-2xs cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Tandai Selesai</span>
+                </button>
+            </form>
+        @endif
     </div>
 </div>

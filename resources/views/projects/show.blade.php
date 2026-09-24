@@ -332,6 +332,18 @@
 
                             {{-- Pending & Delete Action Buttons --}}
                             <div class="flex items-center gap-3 shrink-0 pt-1">
+                                @if($currentStatus === 'In Progress')
+                                    <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="status" value="Completed">
+                                        <button type="submit" onclick="return confirm('Tandai proyek {{ addslashes($project->name) }} sebagai Completed?')"
+                                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-2xs cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            <span>Tandai Selesai (Completed)</span>
+                                        </button>
+                                    </form>
+                                @endif
+
                                 <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="status" value="{{ $currentStatus === 'Pending' ? 'In Progress' : 'Pending' }}">
@@ -509,9 +521,20 @@
                                         <div class="text-xs font-bold text-gray-900">Fase Delivery ke PMO (In Progress)</div>
                                         <div class="text-[11px] text-gray-500">Sales menyerahkan proyek ke PMO. Alokasi personel teknis dikelola PMO dan dipantau Sales di bawah:</div>
                                     </div>
-                                    <button type="button" @click="isHandoverModalOpen = true" class="text-xs font-bold text-[#8F0A0D] hover:underline cursor-pointer">
-                                        {{ $project->pm ? 'Ubah PMO (' . $project->pm->name . ')' : '+ Handover ke PMO (Rizki)' }}
-                                    </button>
+                                    <div class="flex items-center gap-2.5">
+                                        <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="status" value="Completed">
+                                            <button type="submit" onclick="return confirm('Tandai proyek {{ addslashes($project->name) }} sebagai Selesai (Completed)?')"
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-2xs cursor-pointer">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                <span>✓ Selesaikan Proyek (Completed)</span>
+                                            </button>
+                                        </form>
+                                        <button type="button" @click="isHandoverModalOpen = true" class="text-xs font-bold text-[#8F0A0D] hover:underline cursor-pointer">
+                                            {{ $project->pm ? 'Ubah PMO (' . $project->pm->name . ')' : '+ Handover ke PMO (Rizki)' }}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -605,12 +628,6 @@
                                             Alur: Sales tugaskan tim $\rightarrow$ Presales &amp; SA susun dokumen $\rightarrow$ Verifikasi PIC BD $\rightarrow$ Masuk ke Sales untuk penawaran klien.
                                         </p>
                                     </div>
-                                    @if($isAnyTechnicalAssigned)
-                                        <button type="button" @click="openAssignTechnicalModal('all')" class="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[#8F0A0D] hover:underline cursor-pointer">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                                            Ubah Penugasan Tim
-                                        </button>
-                                    @endif
                                 </div>
 
                                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
@@ -765,13 +782,6 @@
                                                     Ubah Penugasan
                                                 </button>
                                             @endif
-
-                                            @if($isPresalesAssigned)
-                                                <button type="button" @click="openUploadTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span>{{ $isPresalesDone ? 'Unggah Ulang' : 'Unggah Proposal' }}</span>
-                                                </button>
-                                            @endif
                                         </div>
                                     </div>
 
@@ -845,13 +855,6 @@
                                             @else
                                                 <button type="button" @click="openAssignTechnicalModal('architect')" class="text-[11px] font-semibold text-gray-500 hover:text-[#8F0A0D] cursor-pointer">
                                                     Ubah Penugasan
-                                                </button>
-                                            @endif
-
-                                            @if($isArchitectAssigned)
-                                                <button type="button" @click="openUploadTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                    <span>{{ $isArchitectDone ? 'Unggah Ulang' : 'Unggah Desain' }}</span>
                                                 </button>
                                             @endif
                                         </div>
@@ -1093,6 +1096,17 @@
                                 </div>
                             @endif
 
+                            @if($isBdmAssigned && !empty($bdmName))
+                                <div class="space-y-1 pt-2.5 border-t border-gray-100">
+                                    <div class="font-normal text-gray-700">
+                                        Penunjukan PIC BD: <strong class="font-medium text-gray-900">{{ $bdmName }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-gray-400">
+                                        Product Manager / Verifikator Solusi
+                                    </div>
+                                </div>
+                            @endif
+
                             @if(!empty($presalesAssignment['assigned']))
                                 <div class="space-y-1 pt-2.5 border-t border-gray-100">
                                     <div class="font-normal text-gray-700">
@@ -1133,6 +1147,20 @@
                                     </div>
                                     <div class="text-[11px] text-emerald-600 font-semibold">
                                         ✓ Diagram Arsitektur Terlampir ({{ $architectAssignment['completed_at'] ?? 'Selesai' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($bdVerification['status']) && $bdVerification['status'] !== 'Pending')
+                                <div class="space-y-1 pt-2.5 border-t border-gray-100">
+                                    <div class="font-normal text-gray-700">
+                                        Verifikasi Solusi BD: <strong class="font-medium {{ $bdVerification['status'] === 'Approved' ? 'text-emerald-700' : 'text-rose-700' }}">{{ $bdVerification['status'] === 'Approved' ? 'Disetujui' : 'Perlu Revisi' }}</strong> oleh <strong class="font-medium text-gray-900">{{ $bdVerification['verified_by'] ?? ($bdmName ?: 'PIC BD') }}</strong>
+                                    </div>
+                                    <div class="text-[11px] {{ $bdVerification['status'] === 'Approved' ? 'text-emerald-600' : 'text-rose-600' }} font-semibold">
+                                        {{ $bdVerification['verified_at'] ?? 'Selesai diverifikasi' }}
+                                        @if(!empty($bdVerification['notes']))
+                                            <div class="text-gray-500 font-normal italic mt-0.5">"{{ $bdVerification['notes'] }}"</div>
+                                        @endif
                                     </div>
                                 </div>
                             @endif
