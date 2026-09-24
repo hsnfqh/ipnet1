@@ -1,4 +1,13 @@
 {{-- PERSETUJUAN PIMPINAN (REVIEW & SIGN-OFF DRAF SUSANTO & HARIYADI) --}}
+@php
+    $isBothApproved = $isBothApproved ?? (!empty($headApproval['approved']) && !empty($directorApproval['approved']));
+    $isHeadAssigned = $isHeadAssigned ?? (!empty($headApproval['assigned']));
+    $isDirectorAssigned = $isDirectorAssigned ?? (!empty($directorApproval['assigned']));
+    $canApproveHead = $canApproveHead ?? false;
+    $canApproveDirector = $canApproveDirector ?? false;
+    $susantoUser = $susantoUser ?? null;
+    $hariyadiUser = $hariyadiUser ?? null;
+@endphp
 <div class="ipnet-card p-6 space-y-5">
     <div class="border-b border-slate-100 pb-3 flex items-center justify-between flex-wrap gap-2">
         <div>

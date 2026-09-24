@@ -1,4 +1,7 @@
 {{-- PIPELINE SALES & PROSPEK PENJUALAN --}}
+@php
+    $currentStatus = $currentStatus ?? ($project->status ?? 'Draft');
+@endphp
 <div class="ipnet-card p-6 space-y-4">
     <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 pb-3">
         <div>

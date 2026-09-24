@@ -1,4 +1,16 @@
 {{-- KOLABORASI TIM SOLUSI TEKNIS (PIC BD, PRE-SALES & SOLUTION ARCHITECT) --}}
+@php
+    $isBdApproved = $isBdApproved ?? ((($bdVerification['status'] ?? '') === 'Approved'));
+    $isBdmAssigned = $isBdmAssigned ?? (!empty($project->bdm_id) || !empty($bdmAssignment['assigned']));
+    $bdmName = $bdmName ?? ($project->bdm->name ?? ($bdmAssignment['assigned_to'] ?? null));
+    $isPresalesAssigned = $isPresalesAssigned ?? (!empty($presalesAssignment['assigned']));
+    $isArchitectAssigned = $isArchitectAssigned ?? (!empty($architectAssignment['assigned']));
+    $isPresalesDone = $isPresalesDone ?? (!empty($presalesAssignment['document_path']) || ($presalesAssignment['status'] ?? '') === 'Completed');
+    $isArchitectDone = $isArchitectDone ?? (!empty($architectAssignment['document_path']) || ($architectAssignment['status'] ?? '') === 'Completed');
+    $canVerifyBD = $canVerifyBD ?? false;
+    $canUploadPresales = $canUploadPresales ?? false;
+    $canUploadArchitect = $canUploadArchitect ?? false;
+@endphp
 <div class="ipnet-card p-6 space-y-5">
     {{-- Header & Status --}}
     <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 flex-wrap">

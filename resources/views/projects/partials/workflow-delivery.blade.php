@@ -1,4 +1,8 @@
 {{-- FASE DELIVERY & SERAH TERIMA PROYEK (PMO / MANAGED SERVICE) --}}
+@php
+    $currentStatus = $currentStatus ?? ($project->status ?? 'Draft');
+    $uniqueEngineers = $uniqueEngineers ?? collect();
+@endphp
 <div class="ipnet-card p-6 space-y-4">
     <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
         <div>

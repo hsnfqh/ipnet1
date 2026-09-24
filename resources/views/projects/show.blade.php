@@ -139,6 +139,7 @@
         $bdVerification['status'] = 'Waiting Uploads';
     }
 
+    $isBdApproved = (($bdVerification['status'] ?? '') === 'Approved');
     $isAnyTechnicalAssigned = $isBdmAssigned || $isPresalesAssigned || $isArchitectAssigned;
     $isAllTechnicalAssigned = $isBdmAssigned && $isPresalesAssigned && $isArchitectAssigned;
 
