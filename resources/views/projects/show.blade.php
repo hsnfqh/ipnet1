@@ -236,6 +236,23 @@
 @endphp
 
 <script>
+    window.openModal = function(modalId) {
+        const el = document.getElementById(modalId);
+        if (el) {
+            el.style.setProperty('display', 'flex', 'important');
+            el.removeAttribute('x-cloak');
+            el.classList.remove('hidden');
+        }
+    };
+
+    window.closeModal = function(modalId) {
+        const el = document.getElementById(modalId);
+        if (el) {
+            el.style.setProperty('display', 'none', 'important');
+            el.classList.add('hidden');
+        }
+    };
+
     function projectDetailPage(initialStage, currentDbStatus) {
         return {
             activeStageTab: initialStage || 'draft',
@@ -263,29 +280,40 @@
             openAssignModal(role = 'both') {
                 this.assignRole = role;
                 this.isAssignModalOpen = true;
+                window.openModal('modal-assign');
             },
 
             openApproveModal(role = 'head') {
                 this.approveRole = role;
                 this.isApproveModalOpen = true;
+                window.openModal('modal-approve');
             },
 
             openEditPipelineModal() {
                 this.isEditPipelineModalOpen = true;
+                window.openModal('modal-edit-pipeline');
             },
 
             openAssignTechnicalModal(role = 'all') {
                 this.assignTechnicalRole = role;
                 this.isAssignTechnicalModalOpen = true;
+                window.openModal('modal-assign-technical');
             },
 
             openUploadTechnicalModal(role = 'presales') {
                 this.uploadTechnicalRole = role;
                 this.isUploadTechnicalDocModalOpen = true;
+                window.openModal('modal-upload-technical-doc');
             },
 
             openVerifyTechnicalModal() {
                 this.isVerifyTechnicalModalOpen = true;
+                window.openModal('modal-verify-technical');
+            },
+
+            openEditMetaModal() {
+                this.isEditMetaModalOpen = true;
+                window.openModal('modal-edit-meta');
             },
 
             selectStage(tabKey) {
@@ -318,6 +346,7 @@
 
             confirmDeleteProject() {
                 this.isDeleteModalOpen = true;
+                window.openModal('modal-delete');
             }
         };
     }
@@ -495,7 +524,8 @@
 
                     <div class="shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
                         <button type="button" 
-                                @click="isEditMetaModalOpen = true" 
+                                @click="isEditMetaModalOpen = true; openEditMetaModal()" 
+                                onclick="window.openModal('modal-edit-meta')"
                                 class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition cursor-pointer shadow-2xs">
                             <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                             <span>Edit Estimasi</span>
@@ -522,7 +552,10 @@
                                     </p>
                                     <h3 class="text-sm font-bold text-slate-900">Tahapan Sales &amp; Estimasi Closing</h3>
                                 </div>
-                                <button type="button" @click="isEditPipelineModalOpen = true; openEditPipelineModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition cursor-pointer shadow-2xs">
+                                <button type="button" 
+                                        @click="isEditPipelineModalOpen = true; openEditPipelineModal()" 
+                                        onclick="window.openModal('modal-edit-pipeline')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition cursor-pointer shadow-2xs">
                                     <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     <span>Edit Stage &amp; Prospek</span>
                                 </button>
@@ -1020,7 +1053,7 @@
                                             <span>✓ Selesaikan Proyek (Completed)</span>
                                         </button>
                                     </form>
-                                    <button type="button" @click="isHandoverModalOpen = true" class="text-xs font-bold text-[#8F0A0D] hover:underline cursor-pointer">
+                                    <button type="button" @click="isHandoverModalOpen = true; openAssignModal('both')" onclick="window.openModal('modal-handover')" class="text-xs font-bold text-[#8F0A0D] hover:underline cursor-pointer">
                                         {{ $project->pm ? 'Ubah PMO (' . $project->pm->name . ')' : '+ Handover ke PMO' }}
                                     </button>
                                 </div>
@@ -1094,6 +1127,7 @@
                             
                             <button type="button" 
                                     @click="isAddMilestoneModalOpen = true" 
+                                    onclick="window.openModal('modal-add-milestone')"
                                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200 shadow-2xs">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 <span>Tambah Milestone</span>
@@ -1105,7 +1139,7 @@
                                 @foreach($project->tasks as $task)
                                     <div class="p-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
                                         <div class="flex items-center gap-3 min-w-0">
-                                            <input type="checkbox" {{ $task->status === 'Completed' ? 'checked' : '' }} disabled class="w-4 h-4 rounded text-[#8F0A0D] shrink-0 border-slate-300">
+                                             <input type="checkbox" {{ $task->status === 'Completed' ? 'checked' : '' }} disabled class="w-4 h-4 rounded text-[#8F0A0D] shrink-0 border-slate-300">
                                             <div class="min-w-0">
                                                 <span class="font-bold text-slate-900 truncate block">{{ $task->title ?? $task->name }}</span>
                                                 @if($task->engineer)
@@ -1146,7 +1180,10 @@
                                 </span>
                             </div>
                             
-                            <button type="button" @click="isUploadDocModalOpen = true" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200 shadow-2xs">
+                            <button type="button" 
+                                    @click="isUploadDocModalOpen = true" 
+                                    onclick="window.openModal('modal-upload-doc')"
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200 shadow-2xs">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 <span>Upload Berkas</span>
                             </button>
@@ -1410,14 +1447,14 @@
     {{-- ======================================================== --}}
 
     {{-- 1. ASSIGN / HANDOVER TO PMO MODAL --}}
-    <div x-show="isHandoverModalOpen" x-cloak 
+    <div id="modal-handover" x-show="isHandoverModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isHandoverModalOpen = false" 
+        <div @click.away="isHandoverModalOpen = false; window.closeModal('modal-handover')" 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
                 <h3 class="text-base font-bold text-slate-900">Assign PMO (Handover Proyek)</h3>
-                <button type="button" @click="isHandoverModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.assign', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
@@ -1452,7 +1489,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isHandoverModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
@@ -1464,14 +1501,14 @@
     </div>
 
     {{-- 2. DRAFT APPROVAL MODAL --}}
-    <div x-show="isApproveModalOpen" x-cloak 
+    <div id="modal-approve" x-show="isApproveModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isApproveModalOpen = false" 
+        <div @click.away="isApproveModalOpen = false; window.closeModal('modal-approve')" 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
                 <h3 class="text-base font-bold text-slate-900" x-text="approveRole === 'head' ? 'Approval Head Divisi (Pak Susanto)' : 'Approval Direktur (Pak Hariyadi)'"></h3>
-                <button type="button" @click="isApproveModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isApproveModalOpen = false; window.closeModal('modal-approve')" onclick="window.closeModal('modal-approve')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.approve_draft', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
@@ -1491,7 +1528,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isApproveModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" @click="isApproveModalOpen = false; window.closeModal('modal-approve')" onclick="window.closeModal('modal-approve')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
@@ -1503,14 +1540,14 @@
     </div>
 
     {{-- 3. ADD MILESTONE MODAL --}}
-    <div x-show="isAddMilestoneModalOpen" x-cloak 
+    <div id="modal-add-milestone" x-show="isAddMilestoneModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isAddMilestoneModalOpen = false" 
+        <div @click.away="isAddMilestoneModalOpen = false; window.closeModal('modal-add-milestone')" 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
                 <h3 class="text-base font-bold text-slate-900">Tambah Milestone</h3>
-                <button type="button" @click="isAddMilestoneModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isAddMilestoneModalOpen = false; window.closeModal('modal-add-milestone')" onclick="window.closeModal('modal-add-milestone')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('tasks.store') }}" method="POST" class="space-y-4 text-xs font-semibold">
@@ -1541,7 +1578,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isAddMilestoneModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" @click="isAddMilestoneModalOpen = false; window.closeModal('modal-add-milestone')" onclick="window.closeModal('modal-add-milestone')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
@@ -1553,14 +1590,14 @@
     </div>
 
     {{-- 4. EDIT META ESTIMATION MODAL --}}
-    <div x-show="isEditMetaModalOpen" x-cloak 
+    <div id="modal-edit-meta" x-show="isEditMetaModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isEditMetaModalOpen = false" 
+        <div @click.away="isEditMetaModalOpen = false; window.closeModal('modal-edit-meta')" 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
                 <h3 class="text-base font-bold text-slate-900">Edit Estimasi &amp; Tanggal</h3>
-                <button type="button" @click="isEditMetaModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isEditMetaModalOpen = false; window.closeModal('modal-edit-meta')" onclick="window.closeModal('modal-edit-meta')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.meta_update', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
@@ -1585,7 +1622,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isEditMetaModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" @click="isEditMetaModalOpen = false; window.closeModal('modal-edit-meta')" onclick="window.closeModal('modal-edit-meta')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
@@ -1597,14 +1634,14 @@
     </div>
 
     {{-- 5. UPLOAD DOCUMENT MODAL --}}
-    <div x-show="isUploadDocModalOpen" x-cloak 
+    <div id="modal-upload-doc" x-show="isUploadDocModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isUploadDocModalOpen = false" 
+        <div @click.away="isUploadDocModalOpen = false; window.closeModal('modal-upload-doc')" 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
                 <h3 class="text-base font-bold text-slate-900">Upload Berkas Lampiran</h3>
-                <button type="button" @click="isUploadDocModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isUploadDocModalOpen = false; window.closeModal('modal-upload-doc')" onclick="window.closeModal('modal-upload-doc')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.documents.upload', $project->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs font-semibold">
@@ -1626,7 +1663,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isUploadDocModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" @click="isUploadDocModalOpen = false; window.closeModal('modal-upload-doc')" onclick="window.closeModal('modal-upload-doc')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
@@ -1638,9 +1675,9 @@
     </div>
 
     {{-- 6. MODAL ASSIGN APPROVAL KE PIMPINAN (HEAD & DIREKTUR) --}}
-    <div x-show="isAssignModalOpen" x-cloak 
+    <div id="modal-assign" x-show="isAssignModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isAssignModalOpen = false" 
+        <div @click.away="isAssignModalOpen = false; window.closeModal('modal-assign')" 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -1649,7 +1686,7 @@
                         x-text="assignRole === 'head' ? 'Assign Review ke Head Divisi' : (assignRole === 'director' ? 'Assign Otorisasi ke Direktur' : 'Assign Review ke Pimpinan')"></h3>
                     <p class="text-[11.5px] text-slate-500 mt-0.5">Tugaskan peninjauan draft proyek ke pimpinan yang berwenang</p>
                 </div>
-                <button type="button" @click="isAssignModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isAssignModalOpen = false; window.closeModal('modal-assign')" onclick="window.closeModal('modal-assign')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.assign_approver', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
@@ -1688,7 +1725,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isAssignModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" @click="isAssignModalOpen = false; window.closeModal('modal-assign')" onclick="window.closeModal('modal-assign')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
@@ -1700,9 +1737,9 @@
     </div>
 
     {{-- 7. MODAL EDIT PIPELINE SALES & OPPORTUNITY --}}
-    <div x-show="isEditPipelineModalOpen" x-cloak 
+    <div id="modal-edit-pipeline" x-show="isEditPipelineModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isEditPipelineModalOpen = false" 
+        <div @click.away="isEditPipelineModalOpen = false; window.closeModal('modal-edit-pipeline')" 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -1710,7 +1747,7 @@
                     <h3 class="text-base font-bold text-slate-900">Ubah Stage &amp; Pipeline Sales</h3>
                     <p class="text-[11.5px] text-slate-500 mt-0.5">Perbarui progres tahapan prospek penjualan &amp; estimasi closing</p>
                 </div>
-                <button type="button" @click="isEditPipelineModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isEditPipelineModalOpen = false; window.closeModal('modal-edit-pipeline')" onclick="window.closeModal('modal-edit-pipeline')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.update_pipeline', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
@@ -1764,7 +1801,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isEditPipelineModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" @click="isEditPipelineModalOpen = false; window.closeModal('modal-edit-pipeline')" onclick="window.closeModal('modal-edit-pipeline')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
@@ -1776,9 +1813,9 @@
     </div>
 
     {{-- 8. MODAL ASSIGN KE TIM SOLUSI (PIC BD, PRESALES & SA) --}}
-    <div x-show="isAssignTechnicalModalOpen" x-cloak 
+    <div id="modal-assign-technical" x-show="isAssignTechnicalModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isAssignTechnicalModalOpen = false" 
+        <div @click.away="isAssignTechnicalModalOpen = false; window.closeModal('modal-assign-technical')" 
              class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -1787,7 +1824,7 @@
                         x-text="assignTechnicalRole === 'bdm' ? 'Tunjuk PIC BD (Product Manager)' : (assignTechnicalRole === 'presales' ? 'Tugaskan Pre-Sales Specialist' : (assignTechnicalRole === 'architect' ? 'Tugaskan Solution Architect' : 'Tugaskan Tim Solusi &amp; BD'))"></h3>
                     <p class="text-[11.5px] text-slate-500 mt-0.5">Penugasan PIC BD verifikator, penyusun proposal, dan perancang topologi</p>
                 </div>
-                <button type="button" @click="isAssignTechnicalModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isAssignTechnicalModalOpen = false; window.closeModal('modal-assign-technical')" onclick="window.closeModal('modal-assign-technical')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.assign_technical', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
@@ -1864,7 +1901,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isAssignTechnicalModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" @click="isAssignTechnicalModalOpen = false; window.closeModal('modal-assign-technical')" onclick="window.closeModal('modal-assign-technical')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
@@ -1876,9 +1913,9 @@
     </div>
 
     {{-- 9. MODAL VERIFIKASI SOLUSI OLEH PIC BD --}}
-    <div x-show="isVerifyTechnicalModalOpen" x-cloak 
+    <div id="modal-verify-technical" x-show="isVerifyTechnicalModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isVerifyTechnicalModalOpen = false" 
+        <div @click.away="isVerifyTechnicalModalOpen = false; window.closeModal('modal-verify-technical')" 
              class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -1886,7 +1923,7 @@
                     <h3 class="text-base font-bold text-slate-900">Verifikasi Kelayakan Dokumen Solusi</h3>
                     <p class="text-[11.5px] text-slate-500 mt-0.5">Tinjau kesiapan proposal teknis, BoQ, dan desain topologi</p>
                 </div>
-                <button type="button" @click="isVerifyTechnicalModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isVerifyTechnicalModalOpen = false; window.closeModal('modal-verify-technical')" onclick="window.closeModal('modal-verify-technical')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.verify_technical', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
@@ -1938,7 +1975,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isVerifyTechnicalModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" @click="isVerifyTechnicalModalOpen = false; window.closeModal('modal-verify-technical')" onclick="window.closeModal('modal-verify-technical')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
@@ -1950,9 +1987,9 @@
     </div>
 
     {{-- 10. MODAL UNGGAH BERKAS SOLUSI TEKNIS (PRESALES / SA) --}}
-    <div x-show="isUploadTechnicalDocModalOpen" x-cloak 
+    <div id="modal-upload-technical-doc" x-show="isUploadTechnicalDocModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isUploadTechnicalDocModalOpen = false" 
+        <div @click.away="isUploadTechnicalDocModalOpen = false; window.closeModal('modal-upload-technical-doc')" 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -1961,7 +1998,7 @@
                         x-text="uploadTechnicalRole === 'presales' ? 'Unggah Berkas Proposal &amp; BoQ (Pre-Sales)' : 'Unggah Desain Arsitektur &amp; Topologi (Solution Architect)'"></h3>
                     <p class="text-[11.5px] text-slate-500 mt-0.5">Unggah berkas dokumen teknis pendukung solusi proyek</p>
                 </div>
-                <button type="button" @click="isUploadTechnicalDocModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isUploadTechnicalDocModalOpen = false; window.closeModal('modal-upload-technical-doc')" onclick="window.closeModal('modal-upload-technical-doc')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.upload_technical_doc', $project->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs font-semibold">
@@ -1990,7 +2027,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isUploadTechnicalDocModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" @click="isUploadTechnicalDocModalOpen = false; window.closeModal('modal-upload-technical-doc')" onclick="window.closeModal('modal-upload-technical-doc')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
@@ -2002,7 +2039,7 @@
     </div>
 
     {{-- 11. MODAL KONFIRMASI HAPUS --}}
-    <div x-show="isDeleteModalOpen" x-cloak
+    <div id="modal-delete" x-show="isDeleteModalOpen" x-cloak
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -2010,8 +2047,8 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          class="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
-         @click.self="isDeleteModalOpen = false"
-         @keydown.escape.window="isDeleteModalOpen = false">
+         @click.self="isDeleteModalOpen = false; window.closeModal('modal-delete')"
+         @keydown.escape.window="isDeleteModalOpen = false; window.closeModal('modal-delete')">
         <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-2xl border border-slate-200">
             <div class="w-12 h-12 rounded-full bg-rose-50 text-[#8F0A0D] flex items-center justify-center mx-auto mb-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -2025,7 +2062,7 @@
             </p>
 
             <div class="flex gap-2.5">
-                <button type="button" @click="isDeleteModalOpen = false"
+                <button type="button" @click="isDeleteModalOpen = false; window.closeModal('modal-delete')" onclick="window.closeModal('modal-delete')"
                         class="flex-1 py-2.5 px-4 rounded-xl bg-white text-slate-600 border border-slate-300 font-bold text-xs hover:bg-slate-50 transition cursor-pointer text-center">
                     Batal
                 </button>
