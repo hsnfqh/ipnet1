@@ -555,12 +555,6 @@
                                             <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                             <span>Edit Stage &amp; Prospek</span>
                                         </button>
-                                        @if(!$isAllTechnicalAssigned)
-                                            <button type="button" @click="openAssignTechnicalModal('all')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white btn-ipnet-primary transition shadow-xs cursor-pointer">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                                <span>Tugaskan Tim Solusi &amp; BD</span>
-                                            </button>
-                                        @endif
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
