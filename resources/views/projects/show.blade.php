@@ -450,7 +450,7 @@
                                         </div>
                                     </div>
                                     <div class="w-16 bg-slate-200 h-2 rounded-full overflow-hidden">
-                                        <div class="bg-gradient-to-r from-amber-500 to-[#8F0A0D] h-full rounded-full" style="width: {{ min(100, max(5, $project->win_probability ?: 10)) }}%"></div>
+                                        <div class="bg-gradient-to-r from-[#DC2626] to-[#8F0A0D] h-full rounded-full" style="width: {{ min(100, max(5, $project->win_probability ?: 10)) }}%"></div>
                                     </div>
                                 </div>
 
@@ -468,35 +468,13 @@
                         <div class="ipnet-card p-6 space-y-5">
                             
                             {{-- Header & Status --}}
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                            <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
                                 <div>
                                     <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-1">
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> TIM SOLUSI TEKNIS
                                     </p>
                                     <h3 class="text-sm sm:text-base font-bold text-slate-900">Kolaborasi Tim Solusi (BD, Pre-Sales &amp; Solution Architect)</h3>
                                     <p class="text-xs text-slate-500 mt-0.5">Workflow verifikasi kelayakan teknis, proposal SOW &amp; desain topologi arsitektur.</p>
-                                </div>
-                                <div class="shrink-0">
-                                    @if(($bdVerification['status'] ?? '') === 'Approved')
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                            <span>Solusi Disetujui &amp; Disahkan BD</span>
-                                        </span>
-                                    @elseif(($bdVerification['status'] ?? '') === 'Revision Needed')
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
-                                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                            <span>Perlu Revisi Dokumen Solusi</span>
-                                        </span>
-                                    @elseif($isPresalesDone || $isArchitectDone)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                            <span>Menunggu Verifikasi PIC BD</span>
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                                            <span>Tahap Penyusunan Solusi</span>
-                                        </span>
-                                    @endif
                                 </div>
                             </div>
 
@@ -549,17 +527,21 @@
                                         {{-- Verification Result Box --}}
                                         <div>
                                             @if(($bdVerification['status'] ?? '') === 'Approved')
-                                                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1.5">
-                                                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-800">
-                                                        <span class="flex items-center gap-1.5 text-emerald-700 font-bold">
-                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                            <span>Proposal Disetujui</span>
-                                                        </span>
-                                                        <span class="text-[10px] text-slate-400 font-mono">{{ $bdVerification['verified_at'] ?? 'Selesai' }}</span>
+                                                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+                                                    <div class="flex items-center justify-between gap-2">
+                                                        <div class="flex items-center gap-2 min-w-0 flex-1">
+                                                            <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                            </div>
+                                                            <div class="min-w-0 flex-1">
+                                                                <div class="font-bold text-slate-900 text-xs truncate">Proposal Disetujui</div>
+                                                                <div class="text-[10px] text-slate-500 truncate">{{ !empty($bdVerification['notes']) ? '"' . $bdVerification['notes'] . '"' : 'Verifikasi Valid & Lolos' }}</div>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    @if(!empty($bdVerification['notes']))
-                                                        <div class="text-[11px] text-slate-700 bg-white p-2 rounded border border-slate-200 italic">
-                                                            "{{ $bdVerification['notes'] }}"
+                                                    @if(!empty($bdVerification['verified_at']))
+                                                        <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 text-right font-mono">
+                                                            {{ $bdVerification['verified_at'] }}
                                                         </div>
                                                     @endif
                                                 </div>
@@ -613,7 +595,7 @@
                                         
                                         {{-- Header --}}
                                         <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider whitespace-nowrap">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider whitespace-nowrap">
                                                 PRE-SALES
                                             </span>
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $isPresalesDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isPresalesAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
@@ -1164,7 +1146,7 @@
                                     <div class="font-normal text-slate-700">
                                         Approval Head Divisi: <strong class="font-semibold text-slate-900">Pak Susanto</strong>
                                     </div>
-                                    <div class="text-[11px] text-emerald-700 font-medium mt-0.5 font-mono">
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
                                         {{ $headApproval['date'] ?? 'Disetujui' }}
                                     </div>
                                 </div>
@@ -1177,7 +1159,7 @@
                                     <div class="font-normal text-slate-700">
                                         Approval Direktur: <strong class="font-semibold text-slate-900">Pak Hariyadi</strong>
                                     </div>
-                                    <div class="text-[11px] text-emerald-700 font-medium mt-0.5 font-mono">
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
                                         {{ $directorApproval['date'] ?? 'Disahkan' }}
                                     </div>
                                 </div>
@@ -1190,7 +1172,7 @@
                                     <div class="font-normal text-slate-700">
                                         Penunjukan PIC BD: <strong class="font-semibold text-slate-900">{{ $bdmName }}</strong>
                                     </div>
-                                    <div class="text-[11px] text-slate-500 mt-0.5">
+                                    <div class="text-[11px] text-slate-400 mt-0.5">
                                         Product Manager / Verifikator Solusi
                                     </div>
                                 </div>
@@ -1203,7 +1185,7 @@
                                     <div class="font-normal text-slate-700">
                                         Penugasan Pre-Sales: <strong class="font-semibold text-slate-900">{{ $presalesAssignment['assigned_to'] ?? 'Akbar' }}</strong>
                                     </div>
-                                    <div class="text-[11px] text-slate-500 mt-0.5 font-mono">
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
                                         {{ $presalesAssignment['assigned_at'] ?? 'Ditugaskan' }} (oleh {{ $presalesAssignment['assigned_by'] ?? 'Sales' }})
                                     </div>
                                 </div>
@@ -1216,7 +1198,7 @@
                                     <div class="font-normal text-slate-700">
                                         Penugasan Solution Architect: <strong class="font-semibold text-slate-900">{{ $architectAssignment['assigned_to'] ?? 'Aris Sadewo' }}</strong>
                                     </div>
-                                    <div class="text-[11px] text-slate-500 mt-0.5 font-mono">
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
                                         {{ $architectAssignment['assigned_at'] ?? 'Ditugaskan' }} (oleh {{ $architectAssignment['assigned_by'] ?? 'Sales' }})
                                     </div>
                                 </div>
@@ -1229,8 +1211,8 @@
                                     <div class="font-normal text-slate-700">
                                         Proposal Teknis &amp; BoQ diunggah oleh <strong class="font-semibold text-slate-900">{{ $presalesAssignment['assigned_to'] ?? 'Pre-Sales' }}</strong>
                                     </div>
-                                    <div class="text-[11px] text-emerald-700 font-semibold mt-0.5 font-mono">
-                                        ✓ Dokumen Proposal &amp; SOW Terlampir ({{ $presalesAssignment['completed_at'] ?? 'Selesai' }})
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        Dokumen Proposal &amp; SOW Terlampir ({{ $presalesAssignment['completed_at'] ?? 'Selesai' }})
                                     </div>
                                 </div>
                             @endif
@@ -1242,8 +1224,8 @@
                                     <div class="font-normal text-slate-700">
                                         Desain Topologi diunggah oleh <strong class="font-semibold text-slate-900">{{ $architectAssignment['assigned_to'] ?? 'Solution Architect' }}</strong>
                                     </div>
-                                    <div class="text-[11px] text-emerald-700 font-semibold mt-0.5 font-mono">
-                                        ✓ Diagram Arsitektur Terlampir ({{ $architectAssignment['completed_at'] ?? 'Selesai' }})
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        Diagram Arsitektur Terlampir ({{ $architectAssignment['completed_at'] ?? 'Selesai' }})
                                     </div>
                                 </div>
                             @endif
@@ -1253,9 +1235,9 @@
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
                                     <div class="font-normal text-slate-700">
-                                        Verifikasi Solusi BD: <strong class="font-semibold {{ $bdVerification['status'] === 'Approved' ? 'text-emerald-700' : 'text-rose-700' }}">{{ $bdVerification['status'] === 'Approved' ? 'Disetujui' : 'Perlu Revisi' }}</strong> oleh <strong class="font-semibold text-slate-900">{{ $bdVerification['verified_by'] ?? ($bdmName ?: 'PIC BD') }}</strong>
+                                        Verifikasi Solusi BD: <strong class="font-semibold text-slate-900">{{ $bdVerification['status'] === 'Approved' ? 'Disetujui' : 'Perlu Revisi' }}</strong> oleh <strong class="font-semibold text-slate-900">{{ $bdVerification['verified_by'] ?? ($bdmName ?: 'PIC BD') }}</strong>
                                     </div>
-                                    <div class="text-[11px] {{ $bdVerification['status'] === 'Approved' ? 'text-emerald-700' : 'text-rose-700' }} font-semibold mt-0.5 font-mono">
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
                                         {{ $bdVerification['verified_at'] ?? 'Selesai diverifikasi' }}
                                         @if(!empty($bdVerification['notes']))
                                             <div class="text-slate-600 font-normal italic mt-1 bg-slate-50 p-2 rounded border border-slate-200">"{{ $bdVerification['notes'] }}"</div>
