@@ -535,7 +535,7 @@
 
                                         {{-- Person --}}
                                         <div class="flex items-center gap-2.5">
-                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-700 to-indigo-500 text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                                 {{ $isBdmAssigned && !empty($bdmName) ? strtoupper(substr($bdmName, 0, 2)) : 'BD' }}
                                             </div>
                                             <div class="min-w-0 flex-1">
@@ -559,10 +559,6 @@
                                                             "{{ $bdVerification['notes'] }}"
                                                         </div>
                                                     @endif
-                                                    <div class="text-[10.5px] text-emerald-700 font-semibold flex items-center justify-between pt-0.5">
-                                                        <span>✓ Siap diajukan ke klien</span>
-                                                        <span class="text-emerald-600 text-[10px]">Verified</span>
-                                                    </div>
                                                 </div>
                                             @elseif(($bdVerification['status'] ?? '') === 'Revision Needed')
                                                 <div class="p-3 rounded-lg bg-rose-50/80 border border-rose-200 text-rose-900 space-y-1">
@@ -590,24 +586,22 @@
                                     </div>
 
                                     {{-- Actions Footer --}}
-                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                                        @if(!$isBdmAssigned)
-                                            <button type="button" @click="openAssignTechnicalModal('bdm')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                                                <span>+ Tunjuk PIC BD</span>
-                                            </button>
-                                        @else
-                                            <button type="button" @click="openAssignTechnicalModal('bdm')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                                                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                                <span>Ubah PIC BD</span>
-                                            </button>
-                                        @endif
+                                    @if(!$isBdmAssigned || ($canVerifyBD && ($isPresalesDone || $isArchitectDone)))
+                                        <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                                            @if(!$isBdmAssigned)
+                                                <button type="button" @click="openAssignTechnicalModal('bdm')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                    <span>Tunjuk PIC BD</span>
+                                                </button>
+                                            @endif
 
-                                        @if($canVerifyBD && ($isPresalesDone || $isArchitectDone))
-                                            <button type="button" @click="openVerifyTechnicalModal()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-primary shadow-xs cursor-pointer ml-auto">
-                                                <span>Verifikasi Dokumen</span>
-                                            </button>
-                                        @endif
-                                    </div>
+                                            @if($canVerifyBD && ($isPresalesDone || $isArchitectDone))
+                                                <button type="button" @click="openVerifyTechnicalModal()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-primary shadow-xs cursor-pointer ml-auto">
+                                                    <span>Verifikasi Dokumen</span>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
 
                                 {{-- ══ CARD 2: PRE-SALES SPECIALIST ══ --}}
@@ -626,7 +620,7 @@
 
                                         {{-- Person --}}
                                         <div class="flex items-center gap-2.5">
-                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-700 to-emerald-500 text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                                 {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? strtoupper(substr($presalesAssignment['assigned_to'], 0, 2)) : 'PS' }}
                                             </div>
                                             <div class="min-w-0 flex-1">
@@ -659,13 +653,11 @@
                                                             </a>
                                                         @endif
                                                     </div>
-                                                    <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 flex items-center justify-between">
-                                                        <span class="inline-flex items-center gap-1 text-emerald-700 font-medium">
-                                                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                            SOW Terlampir
-                                                        </span>
-                                                        <span class="font-mono">{{ $presalesAssignment['completed_at'] ?? '-' }}</span>
-                                                    </div>
+                                                    @if(!empty($presalesAssignment['completed_at']))
+                                                        <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 text-right font-mono">
+                                                            {{ $presalesAssignment['completed_at'] }}
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             @elseif($isPresalesAssigned)
                                                 <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1">
@@ -682,18 +674,14 @@
                                     </div>
 
                                     {{-- Actions Footer --}}
-                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                                        @if(!$isPresalesAssigned)
-                                            <button type="button" @click="openAssignTechnicalModal('presales')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                                                <span>+ Tugaskan Presales</span>
+                                    @if(!$isPresalesAssigned)
+                                        <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                                            <button type="button" @click="openAssignTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                <span>Tugaskan Presales</span>
                                             </button>
-                                        @else
-                                            <button type="button" @click="openAssignTechnicalModal('presales')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                                                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                                <span>Ubah Penugasan</span>
-                                            </button>
-                                        @endif
-                                    </div>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 {{-- ══ CARD 3: SOLUTION ARCHITECT ══ --}}
@@ -716,7 +704,7 @@
 
                                         {{-- Person --}}
                                         <div class="flex items-center gap-2.5">
-                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-700 to-sky-500 text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                                 {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? strtoupper(substr($architectAssignment['assigned_to'], 0, 2)) : 'SA' }}
                                             </div>
                                             <div class="min-w-0 flex-1">
@@ -749,13 +737,11 @@
                                                             </a>
                                                         @endif
                                                     </div>
-                                                    <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 flex items-center justify-between">
-                                                        <span class="inline-flex items-center gap-1 text-sky-700 font-medium">
-                                                            <svg class="w-3 h-3 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                            Diagram Valid
-                                                        </span>
-                                                        <span class="font-mono">{{ $architectAssignment['completed_at'] ?? '-' }}</span>
-                                                    </div>
+                                                    @if(!empty($architectAssignment['completed_at']))
+                                                        <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 text-right font-mono">
+                                                            {{ $architectAssignment['completed_at'] }}
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             @elseif($isBdApproved && $isArchitectAssigned)
                                                 <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
@@ -780,10 +766,11 @@
                                                             </a>
                                                         @endif
                                                     </div>
-                                                    <div class="text-[10px] text-emerald-600 pt-1.5 border-t border-slate-200/80 font-semibold flex items-center justify-between">
-                                                        <span>✓ Disahkan dalam verifikasi BD</span>
-                                                        <span class="text-slate-400 font-mono">{{ $bdVerification['verified_at'] ?? '-' }}</span>
-                                                    </div>
+                                                    @if(!empty($bdVerification['verified_at']))
+                                                        <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 text-right font-mono">
+                                                            {{ $bdVerification['verified_at'] }}
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             @elseif($isArchitectAssigned)
                                                 <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1">
@@ -800,18 +787,14 @@
                                     </div>
 
                                     {{-- Actions Footer --}}
-                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                                        @if(!$isArchitectAssigned)
-                                            <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                                                <span>+ Tugaskan SA</span>
+                                    @if(!$isArchitectAssigned)
+                                        <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                                            <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                <span>Tugaskan SA</span>
                                             </button>
-                                        @else
-                                            <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                                                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                                <span>Ubah Penugasan</span>
-                                            </button>
-                                        @endif
-                                    </div>
+                                        </div>
+                                    @endif
                                 </div>
 
                             </div>
@@ -1031,7 +1014,7 @@
                                     @click="isAddMilestoneModalOpen = true" 
                                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200 shadow-2xs">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span>+ Tambah Milestone</span>
+                                <span>Tambah Milestone</span>
                             </button>
                         </div>
 
@@ -1056,7 +1039,7 @@
                             </div>
                         @else
                             <div class="p-5 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center text-xs text-slate-400">
-                                Belum ada milestone yang dibuat. Klik <strong class="text-[#8F0A0D] font-semibold">+ Tambah Milestone</strong> untuk menyusun target proyek.
+                                Belum ada milestone yang dibuat. Klik <strong class="text-[#8F0A0D] font-semibold">Tambah Milestone</strong> untuk menyusun target proyek.
                             </div>
                         @endif
                     </div>
@@ -1083,7 +1066,7 @@
                             
                             <button type="button" @click="isUploadDocModalOpen = true" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200 shadow-2xs">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span>+ Upload Berkas</span>
+                                <span>Upload Berkas</span>
                             </button>
                         </div>
 
@@ -1122,7 +1105,7 @@
                             </div>
                         @else
                             <div class="p-5 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center text-xs text-slate-400">
-                                Belum ada berkas lampiran. Klik <strong class="text-[#8F0A0D] font-semibold">+ Upload Berkas</strong> untuk mengunggah dokumen pendukung.
+                                Belum ada berkas lampiran. Klik <strong class="text-[#8F0A0D] font-semibold">Upload Berkas</strong> untuk mengunggah dokumen pendukung.
                             </div>
                         @endif
                     </div>
