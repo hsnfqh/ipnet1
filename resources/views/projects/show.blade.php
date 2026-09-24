@@ -991,8 +991,8 @@
             
             <div class="flex items-center justify-between border-b pb-3">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900">Serah Terima &amp; Handover Proyek</h3>
-                    <p class="text-[11.5px] text-slate-500 mt-0.5">Tentukan jalur eksekusi proyek (Delivery PMO atau Operasional Managed Service)</p>
+                    <h3 class="text-base font-bold text-slate-900">Pilih Kategori Proyek &amp; Serah Terima</h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Tentukan jalur proyek: Implementasi ke PMO atau Managed Service ke Maintenance</p>
                 </div>
                 <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -1003,15 +1003,15 @@
 
                 {{-- Pilihan Target Handover (PMO vs Managed Service) --}}
                 <div>
-                    <label class="block text-slate-700 mb-2 uppercase tracking-wider text-[10.5px]">PILIH TIPE PROYEK (JALUR EKSEKUSI)</label>
+                    <label class="block text-slate-700 mb-2 uppercase tracking-wider text-[10.5px]">PILIH KATEGORI PROYEK</label>
                     <div class="grid grid-cols-2 gap-2.5">
                         <label :class="handoverTargetType === 'pmo' ? 'border-[#8F0A0D] bg-red-50/60 text-[#8F0A0D] shadow-xs' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
                                class="p-3 rounded-xl border-2 flex flex-col gap-1 cursor-pointer transition">
                             <div class="flex items-center gap-2">
                                 <input type="radio" name="handover_target" value="pmo" x-model="handoverTargetType" class="text-[#8F0A0D] focus:ring-[#8F0A0D] cursor-pointer">
-                                <span class="font-bold text-xs">PMO Delivery</span>
+                                <span class="font-bold text-xs">Implementasi (PMO)</span>
                             </div>
-                            <span class="text-[10px] text-slate-500 font-normal">Implementasi &amp; Deployment</span>
+                            <span class="text-[10px] text-slate-500 font-normal">Delivery &amp; Deployment Proyek</span>
                         </label>
 
                         <label :class="handoverTargetType === 'managed_service' ? 'border-purple-600 bg-purple-50/60 text-purple-900 shadow-xs' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
@@ -1020,7 +1020,7 @@
                                 <input type="radio" name="handover_target" value="managed_service" x-model="handoverTargetType" class="text-purple-600 focus:ring-purple-500 cursor-pointer">
                                 <span class="font-bold text-xs">Managed Service</span>
                             </div>
-                            <span class="text-[10px] text-slate-500 font-normal">Operasional, Helpdesk &amp; SLA</span>
+                            <span class="text-[10px] text-slate-500 font-normal">Maintenance, Helpdesk &amp; SLA</span>
                         </label>
                     </div>
                 </div>
@@ -1028,12 +1028,12 @@
                 {{-- User Selection --}}
                 <div>
                     <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]" 
-                           x-text="handoverTargetType === 'managed_service' ? 'PILIH LEAD MANAGED SERVICE / OPERASIONAL' : 'PILIH PROJECT MANAGER (PMO)'"></label>
+                           x-text="handoverTargetType === 'managed_service' ? 'PILIH LEAD MAINTENANCE / MANAGED SERVICE' : 'PILIH PROJECT MANAGER (PMO)'"></label>
                     <select name="user_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-white font-bold">
                         <option value="">-- Pilih Penanggung Jawab --</option>
                         @foreach($pmoUsers as $pmo)
                             <option value="{{ $pmo->id }}" {{ ($project->pm_id == $pmo->id || (empty($project->pm_id) && str_contains(strtolower($pmo->name), 'rizki'))) ? 'selected' : '' }}>
-                                (PMO / Lead) {{ $pmo->name }}
+                                (Lead) {{ $pmo->name }}
                             </option>
                         @endforeach
                         @php
@@ -1051,7 +1051,7 @@
                 </div>
 
                 {{-- SLA Tier for Managed Service --}}
-                <div x-show="targetType === 'managed_service'" x-cloak>
+                <div x-show="handoverTargetType === 'managed_service'" x-cloak>
                     <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">SLA TIER KONTRAK</label>
                     <select name="sla_tier" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 cursor-pointer bg-white font-bold">
                         <option value="Gold" {{ ($project->sla_tier ?: 'Gold') === 'Gold' ? 'selected' : '' }}>Gold (SLA 99.5% - Response 15-30 Menit)</option>
@@ -1066,7 +1066,7 @@
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                        Simpan Handover
+                        Simpan Kategori &amp; Penugasan
                     </button>
                 </div>
             </form>
