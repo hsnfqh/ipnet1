@@ -10,22 +10,21 @@
         <div>
             <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> 
-                {{ $isMs ? 'FASE OPERASIONAL & MAINTENANCE' : 'FASE IMPLEMENTASI & DELIVERY PMO' }}
+                ALOKASI KATEGORI PROYEK
             </p>
             <h3 class="text-sm sm:text-base font-bold text-slate-900">
-                Alokasi Tim {{ $isMs ? 'Maintenance (Managed Service)' : 'PMO (Implementasi)' }} &amp; Engineer Pelaksana
+                Alokasi Tipe Kategori Proyek
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">
-                Pilih kategori proyek (Implementasi menuju <strong class="text-slate-700">PMO</strong> atau Managed Service menuju <strong class="text-slate-700">Maintenance</strong>).
+                Penetapan alur eksekusi proyek (Implementasi PMO atau Managed Service &amp; Maintenance) serta penugasan tim pelaksana.
             </p>
         </div>
-        <div class="flex items-center gap-2">
-            <button type="button" @click="openHandoverModal('{{ $isMs ? 'managed_service' : 'pmo' }}')"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer shadow-2xs">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                <span>{{ $project->pm ? 'Ubah Kategori Proyek' : 'Pilih Kategori Proyek' }}</span>
-            </button>
-        </div>
+        @if($project->pm)
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
+                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span>{{ $isMs ? 'Managed Service Terkonfirmasi' : 'Implementasi PMO Terkonfirmasi' }}</span>
+            </span>
+        @endif
     </div>
 
     {{-- 2 Standardized Cards --}}
