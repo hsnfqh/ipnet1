@@ -282,6 +282,8 @@
                         @endforeach
                     </ul>
                 </div>
+            @endif
+
             {{-- 1. BREADCRUMBS & TOP NAVIGATION --}}
             <nav class="flex items-center gap-2 text-xs font-medium text-slate-500">
                 <a href="{{ route('sales.pipeline.index') }}" class="hover:text-[#8F0A0D] transition text-slate-600 font-semibold flex items-center gap-1.5">
