@@ -1129,7 +1129,10 @@
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="text-base font-bold text-slate-900">Edit Informasi &amp; Estimasi Proyek</h3>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Edit Nama &amp; Informasi Proyek</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Ubah nama proyek, deskripsi, nilai estimasi, atau tanggal target</p>
+                </div>
                 <button type="button" @click="isEditMetaModalOpen = false; window.closeModal('modal-edit-meta')" onclick="window.closeModal('modal-edit-meta')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
@@ -1151,19 +1154,20 @@
 
                 <div>
                     <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NILAI ESTIMASI (RP)</label>
-                    <input type="number" name="contract_value" value="{{ $project->contract_value ?: 300000000 }}" required 
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold">
+                    <input type="number" step="any" name="contract_value" value="{{ $project->contract_value ? (float)$project->contract_value : '' }}" 
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold"
+                           placeholder="Contoh: 300000000">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PROJECT START</label>
-                        <input type="date" name="start_date" value="{{ $project->start_date ? $project->start_date->format('Y-m-d') : date('Y-m-d') }}" 
+                        <input type="date" name="start_date" value="{{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : date('Y-m-d') }}" 
                                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
                     </div>
                     <div>
                         <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PROJECT END</label>
-                        <input type="date" name="deadline" value="{{ $project->deadline ? $project->deadline->format('Y-m-d') : '' }}" 
+                        <input type="date" name="deadline" value="{{ $project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : '' }}" 
                                class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
                     </div>
                 </div>

@@ -982,7 +982,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * Update Estimasi Proyek (Meta Banner)
+     * Update Estimasi & Data Proyek (Meta Banner)
      */
     public function updateMeta(Request $request, Project $project)
     {
@@ -994,7 +994,21 @@ class ProjectController extends Controller
             'description'    => 'nullable|string|max:1000',
         ]);
 
-        $project->update($validated);
+        $updateData = ['name' => $validated['name']];
+        if ($request->has('contract_value')) {
+            $updateData['contract_value'] = $validated['contract_value'];
+        }
+        if ($request->has('start_date')) {
+            $updateData['start_date'] = $validated['start_date'];
+        }
+        if ($request->has('deadline')) {
+            $updateData['deadline'] = $validated['deadline'];
+        }
+        if ($request->has('description')) {
+            $updateData['description'] = $validated['description'];
+        }
+
+        $project->update($updateData);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Data dan estimasi proyek berhasil diperbarui.', 'project' => $project->fresh()]);
