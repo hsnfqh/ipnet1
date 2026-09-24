@@ -4,7 +4,13 @@
 
 @php
     $user = auth()->user();
-    $canManageProposal = $user && ($user->hasRole('Presales') || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'PMO', 'Project Manager', 'Direktur', 'HD / Direktur', 'Group Leader', 'Lead Engineer'])) && !$user->hasAnyRole(['Sales', 'BDM']);
+    $isArchitect = $isArchitect ?? ($user && ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']) || str_contains(strtolower($user->name), 'aris')));
+    $isPresales  = $isPresales ?? ($user && ($user->hasAnyRole(['Presales', 'Pre-Sales']) || str_contains(strtolower($user->name), 'akbar')));
+    $isManagerial = $isManagerial ?? (\App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole([
+        'Director', 'Direktur', 'HD / Direktur', 'Division Head', 
+        'Lead Presales', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager', 'Super Admin', 'Admin'
+    ]));
+    $canManageProposal = $user && ($isPresales || $isArchitect || $isManagerial) && !$user->hasAnyRole(['Sales', 'BDM']);
 @endphp
 
 @push('styles')
@@ -223,6 +229,36 @@
                             </thead>
                             <tbody class="divide-y divide-[#F1F5F9] font-medium text-[#1E293B]">
                                 @foreach($projects as $p)
+                                    @php
+                                        $handover = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+                                        $techAssignments = $handover['technical_assignments'] ?? [];
+                                        
+                                        $psDoc = $techAssignments['presales']['document_path'] ?? $p->proposal_file;
+                                        $saDoc = $techAssignments['architect']['document_path'] ?? null;
+                                        
+                                        $hasPsUploaded = !empty($psDoc);
+                                        $hasSaUploaded = !empty($saDoc);
+
+                                        if ($isArchitect && !$isPresales && !$isManagerial) {
+                                            $hasMyUpload = $hasSaUploaded;
+                                            $myDocPath   = $saDoc;
+                                            $myRoleType  = 'architect';
+                                            $myDocName   = 'Desain Arsitektur';
+                                            $myBtnText   = $hasSaUploaded ? 'Edit Desain SA' : 'Unggah Desain SA';
+                                        } elseif ($isPresales && !$isArchitect && !$isManagerial) {
+                                            $hasMyUpload = $hasPsUploaded;
+                                            $myDocPath   = $psDoc;
+                                            $myRoleType  = 'presales';
+                                            $myDocName   = 'Proposal Teknis & SOW';
+                                            $myBtnText   = $hasPsUploaded ? 'Edit SOW' : 'Unggah SOW';
+                                        } else {
+                                            $hasMyUpload = $hasPsUploaded || $hasSaUploaded;
+                                            $myDocPath   = $psDoc ?: $saDoc;
+                                            $myRoleType  = $isArchitect ? 'architect' : 'presales';
+                                            $myDocName   = 'Dokumen Teknis';
+                                            $myBtnText   = ($hasPsUploaded && $hasSaUploaded) ? 'Edit Dokumen' : 'Unggah SOW / Desain';
+                                        }
+                                    @endphp
                                     <tr class="hover:bg-[#F8FAFC] transition-colors">
                                         {{-- Proyek & Klien --}}
                                         <td class="py-3 px-4 sm:px-5">
@@ -270,18 +306,57 @@
                                             @endif
                                         </td>
 
-                                        {{-- Dokumen Proposal Status --}}
+                                        {{-- Dokumen Proposal Status (Role-Aware) --}}
                                         <td class="py-3 px-3.5 text-center whitespace-nowrap">
-                                            @if($p->proposal_file)
-                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.8 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                    HLD/SOW Selesai
-                                                </span>
+                                            @if($isArchitect && !$isPresales && !$isManagerial)
+                                                @if($hasSaUploaded)
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.8 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                        Desain SA Selesai
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.8 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                        Perlu Desain SA
+                                                    </span>
+                                                @endif
+                                            @elseif($isPresales && !$isArchitect && !$isManagerial)
+                                                @if($hasPsUploaded)
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.8 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                        HLD/SOW Selesai
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.8 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                        Perlu BoQ
+                                                    </span>
+                                                @endif
                                             @else
-                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.8 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                                    Perlu BoQ
-                                                </span>
+                                                {{-- Managerial / Admin / Hybrid view --}}
+                                                <div class="inline-flex flex-col items-center gap-1">
+                                                    <div class="flex items-center gap-1.5">
+                                                        @if($hasPsUploaded)
+                                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded" title="Proposal Teknis & BoQ: Selesai">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> PS: Selesai
+                                                            </span>
+                                                        @else
+                                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded" title="Proposal Teknis & BoQ: Belum Upload">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> PS: Belum
+                                                            </span>
+                                                        @endif
+
+                                                        @if($hasSaUploaded)
+                                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded" title="Desain Topologi SA: Selesai">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> SA: Selesai
+                                                            </span>
+                                                        @else
+                                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded" title="Desain Topologi SA: Belum Upload">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> SA: Belum
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             @endif
                                         </td>
 
@@ -300,10 +375,19 @@
                                                     </svg>
                                                 </button>
 
-                                                @if($p->proposal_file)
-                                                    {{-- Unduh Berkas --}}
-                                                    <a href="{{ route('presales.proposals.download', $p->id) }}" 
-                                                       title="Unduh Berkas SOW / Proposal Teknis"
+                                                @if($hasMyUpload && $myDocPath)
+                                                    {{-- Unduh Berkas Pengguna --}}
+                                                    <a href="{{ route('presales.proposals.download', ['project' => $p->id, 'type' => $myRoleType]) }}" 
+                                                       title="Unduh Berkas ({{ $myDocName }})"
+                                                       class="p-1.5 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition inline-flex items-center justify-center cursor-pointer">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                        </svg>
+                                                    </a>
+                                                @elseif($isManagerial && ($hasPsUploaded || $hasSaUploaded))
+                                                    {{-- Unduh Berkas untuk Manajerial --}}
+                                                    <a href="{{ route('presales.proposals.download', ['project' => $p->id, 'type' => $hasPsUploaded ? 'presales' : 'architect']) }}" 
+                                                       title="Unduh Berkas Solusi Teknis"
                                                        class="p-1.5 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition inline-flex items-center justify-center cursor-pointer">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -312,33 +396,33 @@
                                                 @endif
 
                                                 @if($canManageProposal)
-                                                    @if($p->proposal_file)
-                                                        {{-- Edit SOW (Sudah Ada Berkas) --}}
-                                                        <button @click="openUploadModal({{ json_encode($p) }})" 
-                                                                title="Perbarui SOW & Berkas Proposal"
+                                                    @if($hasMyUpload)
+                                                        {{-- Edit Berkas (Sudah Ada) --}}
+                                                        <button @click="openUploadModal({{ json_encode($p) }}, '{{ $myRoleType }}')" 
+                                                                title="Perbarui Berkas {{ $myDocName }}"
                                                                 class="px-2.5 py-1.5 rounded-lg text-[#8F0A0D] bg-red-50 hover:bg-red-100/80 border border-red-200/80 text-[11px] font-semibold transition inline-flex items-center gap-1 cursor-pointer">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                             </svg>
-                                                            <span>Edit SOW</span>
+                                                            <span>{{ $myBtnText }}</span>
                                                         </button>
                                                     @else
-                                                        {{-- Unggah SOW (Belum Ada Berkas) --}}
-                                                        <button @click="openUploadModal({{ json_encode($p) }})" 
-                                                                title="Unggah SOW & Berkas Proposal"
+                                                        {{-- Unggah Berkas (Belum Ada) --}}
+                                                        <button @click="openUploadModal({{ json_encode($p) }}, '{{ $myRoleType }}')" 
+                                                                title="Unggah Berkas {{ $myDocName }}"
                                                                 class="px-2.5 py-1.5 rounded-lg text-white btn-ipnet-primary text-[11px] font-semibold transition inline-flex items-center gap-1 cursor-pointer shadow-2xs">
                                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                                             </svg>
-                                                            <span>Unggah SOW</span>
+                                                            <span>{{ $myBtnText }}</span>
                                                         </button>
                                                     @endif
                                                     
-                                                    @if($p->proposal_file)
+                                                    @if($hasMyUpload)
                                                         {{-- Hapus Berkas --}}
                                                         <button type="button" 
-                                                                @click="openDeleteModal({{ json_encode($p) }})"
-                                                                title="Hapus / Reset Berkas Proposal" 
+                                                                @click="openDeleteModal({{ json_encode($p) }}, '{{ $myRoleType }}')"
+                                                                title="Hapus / Reset Berkas {{ $myDocName }}" 
                                                                 class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100 transition-colors cursor-pointer">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -387,8 +471,9 @@
                         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4" @click.away="isUploadModalOpen = false">
                             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                                 <div>
-                                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#8F0A0D]">Presales &amp; Solution Architect</span>
-                                    <h3 class="text-base font-bold text-[#1E293B]" x-text="activeTender.name || 'Dokumen Proposal Teknis'"></h3>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#8F0A0D]" 
+                                          x-text="form.role_type === 'architect' ? 'Solution Architect (Topologi & Sizing)' : 'Pre-Sales Specialist (BoQ & SOW)'"></span>
+                                    <h3 class="text-base font-bold text-[#1E293B]" x-text="activeTender.name || 'Dokumen Solusi Teknis'"></h3>
                                 </div>
                                 <button @click="isUploadModalOpen = false" class="text-gray-400 hover:text-gray-600 cursor-pointer">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -397,6 +482,7 @@
 
                             <form :action="'/presales/proposals/' + activeTender.id" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs">
                                 @csrf
+                                <input type="hidden" name="role_type" :value="form.role_type">
 
                                 <div class="p-3 bg-gray-50 rounded-xl border border-gray-200/70 space-y-1">
                                     <div class="flex justify-between">
@@ -409,20 +495,20 @@
                                     </div>
                                 </div>
 
-                                {{-- Notice if file already exists --}}
-                                <template x-if="activeTender.proposal_file">
+                                {{-- Notice if file already exists for current role --}}
+                                <template x-if="hasFileForRole">
                                     <div class="p-3 bg-red-50/70 rounded-xl border border-red-200/80 flex items-center justify-between">
                                         <div class="flex items-center gap-2">
                                             <svg class="w-4 h-4 text-[#8F0A0D] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                             </svg>
                                             <div>
-                                                <div class="font-bold text-gray-900 text-[11px]">Berkas Proposal Sudah Terunggah</div>
+                                                <div class="font-bold text-gray-900 text-[11px]" x-text="form.role_type === 'architect' ? 'Berkas Desain Arsitektur Sudah Terunggah' : 'Berkas Proposal Teknis Sudah Terunggah'"></div>
                                                 <div class="text-[10.5px] text-gray-500">Pilih berkas baru di bawah jika ingin memperbarui.</div>
                                             </div>
                                         </div>
                                         <button type="button" 
-                                                @click="isUploadModalOpen = false; openDeleteModal(activeTender)" 
+                                                @click="isUploadModalOpen = false; openDeleteModal(activeTender, form.role_type)" 
                                                 class="px-2.5 py-1 text-[11px] font-bold text-red-700 bg-white hover:bg-red-50 border border-red-200 rounded-lg shadow-xs transition cursor-pointer">
                                             Hapus Berkas
                                         </button>
@@ -430,8 +516,8 @@
                                 </template>
 
                                 <div>
-                                    <label class="block font-bold text-gray-700 uppercase mb-1">Ruang Lingkup Teknis / SOW *</label>
-                                    <textarea name="proposal_notes" x-model="form.proposal_notes" rows="3" required placeholder="Tulis ringkasan arsitektur solusi, spesifikasi perangkat, dan ruang lingkup teknis..." 
+                                    <label class="block font-bold text-gray-700 uppercase mb-1" x-text="form.role_type === 'architect' ? 'Catatan Ruang Lingkup & Arsitektur Solusi *' : 'Ruang Lingkup Teknis / SOW *'"></label>
+                                    <textarea name="proposal_notes" x-model="form.proposal_notes" rows="3" required :placeholder="form.role_type === 'architect' ? 'Tulis ringkasan desain topologi arsitektur, sizing infrastruktur, dan batasan teknis...' : 'Tulis ringkasan arsitektur solusi, spesifikasi perangkat, dan ruang lingkup teknis...'" 
                                               class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]"></textarea>
                                 </div>
 
@@ -443,17 +529,17 @@
 
                                 <div>
                                     <label class="block font-bold text-gray-700 uppercase mb-1">
-                                        <span x-text="activeTender.proposal_file ? 'Perbarui Berkas Proposal Teknis (Opsional)' : 'Unggah Berkas Proposal Teknis & SOW (PDF, DOCX, ZIP)'"></span>
+                                        <span x-text="form.role_type === 'architect' ? (hasFileForRole ? 'Perbarui Berkas Desain Arsitektur (Opsional)' : 'Unggah Desain Topologi / Diagram (PDF, VSDX, ZIP, Gambar)') : (hasFileForRole ? 'Perbarui Berkas Proposal Teknis (Opsional)' : 'Unggah Berkas Proposal Teknis & SOW (PDF, DOCX, ZIP)')"></span>
                                     </label>
-                                    <input type="file" name="proposal_file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.png,.jpg,.jpeg,.txt"
+                                    <input type="file" name="proposal_file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.vsdx,.vsd,.zip,.rar,.7z,.png,.jpg,.jpeg,.txt"
                                            class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#8F0A0D] file:text-white hover:file:bg-[#73080A] cursor-pointer">
-                                    <p class="text-[10.5px] text-gray-400 mt-1">Format didukung: PDF, Word, Excel, PPT, ZIP/RAR. Maksimal 50MB.</p>
+                                    <p class="text-[10.5px] text-gray-400 mt-1">Format didukung: PDF, Word, Excel, PPT, Visio, ZIP/RAR, Gambar. Maksimal 50MB.</p>
                                 </div>
 
                                 <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
                                     <button type="button" @click="isUploadModalOpen = false" class="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition cursor-pointer">Batal</button>
                                     <button type="submit" class="px-4 py-2 text-xs font-bold text-white btn-ipnet-primary rounded-xl shadow-xs transition cursor-pointer">
-                                        Simpan &amp; Rilis SOW
+                                        <span x-text="form.role_type === 'architect' ? 'Simpan Desain Topologi' : 'Simpan & Rilis SOW'"></span>
                                     </button>
                                 </div>
                             </form>
@@ -473,12 +559,12 @@
                                 </svg>
                             </div>
                             <div class="text-center space-y-1">
-                                <h3 class="text-sm font-bold text-gray-900">Hapus Berkas Proposal?</h3>
+                                <h3 class="text-sm font-bold text-gray-900" x-text="deletingRoleType === 'architect' ? 'Hapus Desain Arsitektur?' : 'Hapus Berkas Proposal?'"></h3>
                                 <p class="text-xs text-gray-500 leading-relaxed">
-                                    Berkas proposal untuk proyek <span class="font-bold text-gray-800" x-text="deletingTender.name"></span> akan dihapus dari sistem.
+                                    Berkas untuk proyek <span class="font-bold text-gray-800" x-text="deletingTender.name"></span> akan dihapus dari sistem.
                                 </p>
                             </div>
-                            <form :action="'/presales/proposals/' + deletingTender.id + '/file'" method="POST" class="flex items-center gap-2 pt-2">
+                            <form :action="'/presales/proposals/' + deletingTender.id + '/file?type=' + deletingRoleType" method="POST" class="flex items-center gap-2 pt-2">
                                 @csrf
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="button" @click="isDeleteModalOpen = false" class="w-1/2 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition cursor-pointer">
@@ -616,7 +702,7 @@
                                             @click="openUploadFromView()" 
                                             class="px-4 py-2 text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-xs transition inline-flex items-center gap-1.5 cursor-pointer">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                        <span x-text="viewingTender.proposal_file ? 'Edit SOW' : 'Unggah SOW'"></span>
+                                        <span>Unggah / Edit Dokumen</span>
                                     </button>
                                 @endif
                             </div>
@@ -637,8 +723,13 @@
             isViewModalOpen: false,
             activeTender: {},
             deletingTender: {},
+            deletingRoleType: '{{ $isArchitect ? "architect" : "presales" }}',
             viewingTender: {},
+            hasFileForRole: false,
+            isArchitectUser: {{ $isArchitect ? 'true' : 'false' }},
+            isPresalesUser: {{ $isPresales ? 'true' : 'false' }},
             form: {
+                role_type: '{{ $isArchitect ? "architect" : "presales" }}',
                 proposal_notes: '',
                 mandays: 10,
             },
@@ -656,15 +747,38 @@
                 return String(d.getUTCDate()).padStart(2,'0') + ' ' + months[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
             },
 
-            openUploadModal(tender) {
+            openUploadModal(tender, roleType) {
                 this.activeTender = tender;
+                this.form.role_type = roleType || (this.isArchitectUser ? 'architect' : 'presales');
                 this.form.proposal_notes = tender.proposal_notes || tender.description || '';
                 this.form.mandays = tender.mandays || 10;
+                
+                // Cek status berkas pada role terkait
+                let tech = {};
+                try {
+                    tech = (typeof tender.handover_data === 'string' ? JSON.parse(tender.handover_data || '{}') : (tender.handover_data || {})).technical_assignments || {};
+                } catch(e) {
+                    tech = {};
+                }
+
+                if (this.form.role_type === 'architect') {
+                    this.hasFileForRole = !!(tech.architect && tech.architect.document_path);
+                    if (tech.architect && tech.architect.notes) {
+                        this.form.proposal_notes = tech.architect.notes;
+                    }
+                } else {
+                    this.hasFileForRole = !!((tech.presales && tech.presales.document_path) || tender.proposal_file);
+                    if (tech.presales && tech.presales.notes) {
+                        this.form.proposal_notes = tech.presales.notes;
+                    }
+                }
+
                 this.isUploadModalOpen = true;
             },
 
-            openDeleteModal(tender) {
+            openDeleteModal(tender, roleType) {
                 this.deletingTender = tender;
+                this.deletingRoleType = roleType || (this.isArchitectUser ? 'architect' : 'presales');
                 this.isDeleteModalOpen = true;
             },
 
@@ -676,7 +790,7 @@
             openUploadFromView() {
                 const t = this.viewingTender;
                 this.isViewModalOpen = false;
-                this.openUploadModal(t);
+                this.openUploadModal(t, this.isArchitectUser ? 'architect' : 'presales');
             }
         }
     }
