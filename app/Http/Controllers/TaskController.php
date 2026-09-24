@@ -294,7 +294,7 @@ class TaskController extends Controller
             'description'       => 'sometimes|nullable|string',
             'status'            => 'sometimes|required|in:Assigned,In Progress,Waiting Review,Completed',
             'progress'          => 'sometimes|nullable|integer|min:0|max:100',
-            'doc_file'          => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120',
+            'doc_file'          => \App\Helpers\FileUploadHelper::fileValidationRule(51200),
         ];
         if ($request->has('project_id') && $request->input('project_id') !== 'other') {
             $rules['project_id'] .= '|exists:projects,id';

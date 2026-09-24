@@ -135,34 +135,108 @@ class PresalesProposalController extends Controller
         $validated = $request->validate([
             'proposal_notes' => 'nullable|string',
             'mandays'        => 'nullable|integer|min:1',
-            'proposal_file'  => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,7z,png,jpg,jpeg,txt|max:51200',
+            'proposal_file'  => FileUploadHelper::fileValidationRule(51200),
         ], [
-            'proposal_file.mimes' => 'Format file yang didukung: PDF, Word (DOC/DOCX), Excel (XLS/XLSX), PPT/PPTX, Gambar, dan Arsip ZIP/RAR.',
             'proposal_file.max'   => 'Ukuran file maksimal adalah 50MB.',
             'mandays.min'         => 'Estimasi mandays minimal adalah 1 hari.',
         ]);
 
         if (empty($validated['proposal_notes'])) {
-            $validated['proposal_notes'] = $project->proposal_notes ?: ($project->description ?: 'Proposal teknis telah disusun.');
+            $validated['proposal_notes'] = $project->proposal_notes ?: ($project->description ?: 'Proposal teknis & SOW telah disusun.');
         }
 
         if (empty($validated['mandays'])) {
             $validated['mandays'] = $project->mandays ?: 10;
         }
 
+        $now = now()->format('d M Y H:i');
+        $uploaderName = $user ? $user->name : 'Pre-Sales Specialist';
+
         if ($request->hasFile('proposal_file')) {
+            $uploadedFile = $request->file('proposal_file');
+            $origName     = $uploadedFile->getClientOriginalName();
+            $ext          = $uploadedFile->getClientOriginalExtension();
+            $size         = $uploadedFile->getSize();
+
             // Hapus file lama jika ada
             if ($project->proposal_file) {
                 FileUploadHelper::delete($project->proposal_file);
             }
-            $path = FileUploadHelper::storePublicly($request->file('proposal_file'), 'proposals');
+            $path = FileUploadHelper::storePublicly($uploadedFile, 'proposals');
             $validated['proposal_file'] = $path;
+
+            // Catat di project_documents (Stage 2: Solution)
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+                $docPayload = [
+                    'project_id'     => $project->id,
+                    'stage_number'   => 2,
+                    'stage_name'     => 'Solution',
+                    'document_key'   => 'technical_proposal',
+                    'document_title' => 'Proposal Teknis & Ruang Lingkup (SOW)',
+                    'file_name'      => $origName,
+                    'file_path'      => $path,
+                    'file_size'      => $size,
+                    'file_extension' => $ext,
+                    'status'         => 'Uploaded',
+                    'notes'          => $validated['proposal_notes'],
+                    'uploaded_by'    => $user?->id,
+                    'uploaded_at'    => now(),
+                ];
+                if (\Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'name')) {
+                    $docPayload['name'] = $origName;
+                }
+                if (\Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'document_type')) {
+                    $docPayload['document_type'] = 'Technical Proposal';
+                }
+                \App\Models\ProjectDocument::create($docPayload);
+            }
+
+            // Sinkronkan ke penugasan tim solusi (handover_data) agar SA/Presales/Sales tidak perlu kerja 2x
+            $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
+            $technical = $handoverData['technical_assignments'] ?? [];
+            $technical['presales'] = array_merge($technical['presales'] ?? [], [
+                'status'         => 'Completed',
+                'document_path'  => $path,
+                'document_name'  => $origName,
+                'document_title' => 'Proposal Teknis & Ruang Lingkup (SOW)',
+                'completed_at'   => $now,
+                'notes'          => $validated['proposal_notes'],
+            ]);
+
+            // Status verifikasi BD otomatis beralih ke 'Pending Verification'
+            $technical['bd_verification'] = [
+                'status'         => 'Pending Verification',
+                'submitted_at'   => $now,
+                'submitted_by'   => $uploaderName,
+                'verified_by'    => null,
+                'verified_at'    => null,
+                'notes'          => null,
+            ];
+
+            $handoverData['technical_assignments'] = $technical;
+            $validated['handover_data'] = $handoverData;
+
+            // Kirim notifikasi ke PIC BD
+            $bdUserId = $project->bdm_id;
+            if (!$bdUserId) {
+                $bdUser = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['BDM', 'BusDev', 'Business Development']))->first();
+                $bdUserId = $bdUser?->id;
+            }
+            if ($bdUserId && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                \App\Models\Notification::create([
+                    'user_id' => $bdUserId,
+                    'title'   => \Illuminate\Support\Str::limit("Verifikasi Proposal Teknis: " . $project->name, 240),
+                    'message' => \Illuminate\Support\Str::limit("{$uploaderName} telah mengunggah berkas proposal & SOW untuk proyek '{$project->name}'. Silakan verifikasi kelayakan dokumen.", 240),
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
         }
 
         $validated['presales_status'] = 'Submitted';
         $project->update($validated);
 
-        return back()->with('success', 'Proposal teknis & estimasi mandays untuk ' . $project->name . ' berhasil disimpan dan diteruskan ke tim Sales!');
+        return back()->with('success', 'Proposal teknis & SOW untuk ' . $project->name . ' berhasil disimpan dan diteruskan ke PIC BD & Sales!');
     }
 
     public function download(Project $project)

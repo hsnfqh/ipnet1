@@ -555,12 +555,37 @@ class ProjectController extends Controller
      */
     public function uploadTechnicalDoc(Request $request, Project $project)
     {
+        $allowedExts = \App\Helpers\FileUploadHelper::allowedDocumentExtensions();
+
         $validated = $request->validate([
             'role_type'        => 'required|in:presales,architect',
             'document_title'   => 'nullable|string|max:255',
-            'document_file'    => 'nullable|file|max:51200', // 50MB
+            'document_file'    => [
+                'nullable',
+                'file',
+                'max:51200',
+                function ($attribute, $value, $fail) use ($allowedExts) {
+                    if ($value && $value->isValid()) {
+                        $ext = strtolower($value->getClientOriginalExtension());
+                        if (!$ext || !in_array($ext, $allowedExts)) {
+                            $fail('Format file tidak didukung. Format yang diizinkan: PDF, Word (DOC/DOCX), Excel (XLS/XLSX), PPT, Visio (VSDX), Gambar, dan Arsip ZIP/RAR.');
+                        }
+                    }
+                }
+            ],
             'document_files'   => 'nullable|array',
-            'document_files.*' => 'file|max:51200',
+            'document_files.*' => [
+                'file',
+                'max:51200',
+                function ($attribute, $value, $fail) use ($allowedExts) {
+                    if ($value && $value->isValid()) {
+                        $ext = strtolower($value->getClientOriginalExtension());
+                        if (!$ext || !in_array($ext, $allowedExts)) {
+                            $fail('Format file tidak didukung. Format yang diizinkan: PDF, Word (DOC/DOCX), Excel (XLS/XLSX), PPT, Visio (VSDX), Gambar, dan Arsip ZIP/RAR.');
+                        }
+                    }
+                }
+            ],
             'notes'            => 'nullable|string|max:1000',
         ]);
 
@@ -594,7 +619,7 @@ class ProjectController extends Controller
             $origName = $file->getClientOriginalName();
             $ext      = $file->getClientOriginalExtension();
             $size     = $file->getSize();
-            $path     = $file->store('project_documents/' . $project->id, 'public');
+            $path     = \App\Helpers\FileUploadHelper::storePublicly($file, 'project_documents/' . $project->id);
 
             $lastStoredPath = $path;
             $lastStoredName = $origName;
@@ -648,6 +673,16 @@ class ProjectController extends Controller
 
         $handoverData['technical_assignments'] = $technical;
         $project->handover_data = $handoverData;
+
+        // Jika yang diunggah presales, sinkronkan juga kolom proposal_file di projects agar sinkron di dashboard presales
+        if ($roleKey === 'presales') {
+            $project->proposal_file = $lastStoredPath;
+            if (!empty($validated['notes'])) {
+                $project->proposal_notes = $validated['notes'];
+            }
+            $project->presales_status = 'Submitted';
+        }
+
         $project->save();
 
         $roleLabel = ($roleKey === 'presales') ? 'Pre-Sales Specialist' : 'Solution Architect';

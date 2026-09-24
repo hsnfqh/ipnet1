@@ -34,7 +34,7 @@ class UserRequest extends FormRequest
             'team_id'            => 'nullable|exists:teams,id',
             'level'              => 'nullable|string|max:50',
             'password'           => $userId ? 'nullable|string|min:6' : 'required|string|min:6',
-            'certification_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'certification_file' => \App\Helpers\FileUploadHelper::fileValidationRule(10240, ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx']),
         ];
     }
 }

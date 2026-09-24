@@ -8,6 +8,35 @@ use Illuminate\Support\Str;
 class FileUploadHelper
 {
     /**
+     * Standard allowed document extensions.
+     */
+    public static function allowedDocumentExtensions(): array
+    {
+        return ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'ppt', 'pptx', 'vsd', 'vsdx', 'zip', 'rar', '7z', 'tar', 'gz', 'png', 'jpg', 'jpeg', 'webp', 'txt'];
+    }
+
+    /**
+     * Get a safe validation rule array that checks file extensions without failing on server finfo MIME discrepancies.
+     */
+    public static function fileValidationRule(int $maxKilobytes = 51200, array $customExtensions = []): array
+    {
+        $allowed = !empty($customExtensions) ? $customExtensions : self::allowedDocumentExtensions();
+        return [
+            'nullable',
+            'file',
+            'max:' . $maxKilobytes,
+            function ($attribute, $value, $fail) use ($allowed) {
+                if ($value && $value->isValid()) {
+                    $ext = strtolower($value->getClientOriginalExtension());
+                    if (!$ext || !in_array($ext, $allowed)) {
+                        $fail('Format file yang didukung: PDF, Word (DOC/DOCX), Excel (XLS/XLSX), PPT/PPTX, Visio (VSD/VSDX), Gambar (PNG/JPG), dan Arsip ZIP/RAR.');
+                    }
+                }
+            }
+        ];
+    }
+
+    /**
      * Store an uploaded file safely across local and shared hosting (cPanel/VPS) environments
      * without crashing when PHP ext-fileinfo is disabled or missing.
      *
