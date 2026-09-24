@@ -412,12 +412,13 @@ class ProjectController extends Controller
     }
 
     /**
-     * Penugasan Tim Solusi Teknis (Presales Specialist & Solution Architect)
+     * Penugasan Tim Solusi Teknis (Business Development, Presales Specialist & Solution Architect)
      */
     public function assignTechnical(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'role'              => 'required|in:presales,architect,both',
+            'role'              => 'required|in:presales,architect,bdm,both,all',
+            'bdm_user_id'       => 'nullable|exists:users,id',
             'presales_user_id'  => 'nullable|exists:users,id',
             'architect_user_id' => 'nullable|exists:users,id',
             'notes'             => 'nullable|string|max:1000',
@@ -425,14 +426,48 @@ class ProjectController extends Controller
 
         $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
         $technical = $handoverData['technical_assignments'] ?? [
-            'presales'  => ['assigned' => false, 'assigned_to' => null, 'assigned_user_id' => null, 'sales_notes' => null, 'status' => 'Pending'],
-            'architect' => ['assigned' => false, 'assigned_to' => null, 'assigned_user_id' => null, 'sales_notes' => null, 'status' => 'Pending'],
+            'bdm'             => ['assigned' => false, 'assigned_to' => null, 'assigned_user_id' => null, 'status' => 'Pending'],
+            'presales'        => ['assigned' => false, 'assigned_to' => null, 'assigned_user_id' => null, 'sales_notes' => null, 'status' => 'Pending'],
+            'architect'       => ['assigned' => false, 'assigned_to' => null, 'assigned_user_id' => null, 'sales_notes' => null, 'status' => 'Pending'],
+            'bd_verification' => ['status' => 'Pending Assignment', 'verified_by' => null, 'verified_at' => null, 'notes' => null],
         ];
 
         $now = now()->format('d M Y H:i');
         $creatorName = auth()->user() ? auth()->user()->name : ($project->sales_name ?: 'Sales');
 
-        if (in_array($validated['role'], ['presales', 'both'])) {
+        // 1. Assign PIC BD (Product Manager / Verifikator)
+        if (in_array($validated['role'], ['bdm', 'all']) || !empty($validated['bdm_user_id'])) {
+            $bdmUser = !empty($validated['bdm_user_id'])
+                ? \App\Models\User::find($validated['bdm_user_id'])
+                : ($project->bdm ?: \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['BDM', 'BusDev', 'Business Development']))->first());
+            
+            if ($bdmUser) {
+                $project->bdm_id = $bdmUser->id;
+                $technical['bdm'] = array_merge($technical['bdm'] ?? [], [
+                    'assigned'         => true,
+                    'assigned_to'      => $bdmUser->name,
+                    'assigned_user_id' => $bdmUser->id,
+                    'assigned_by'      => $creatorName,
+                    'assigned_at'      => $now,
+                    'status'           => 'Assigned',
+                ]);
+
+                // Kirim notifikasi sistem ke BD
+                if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                    $notifMsg = "Sales ({$creatorName}) menunjuk Anda sebagai PIC BD (Product Manager & Verifikator) untuk proyek '{$project->name}' (Klien: " . ($project->client ?: '-') . ").";
+                    \App\Models\Notification::create([
+                        'user_id' => $bdmUser->id,
+                        'title'   => \Illuminate\Support\Str::limit('Penunjukan PIC BD: ' . $project->name, 240),
+                        'message' => \Illuminate\Support\Str::limit($notifMsg, 240),
+                        'url'     => route('projects.show', $project->id),
+                        'is_read' => false,
+                    ]);
+                }
+            }
+        }
+
+        // 2. Assign Pre-Sales Specialist
+        if (in_array($validated['role'], ['presales', 'both', 'all'])) {
             $presalesUser = !empty($validated['presales_user_id'])
                 ? \App\Models\User::find($validated['presales_user_id'])
                 : \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Presales', 'Pre-Sales']))->first()
@@ -445,7 +480,7 @@ class ProjectController extends Controller
                 'assigned_user_id' => $presalesUser ? $presalesUser->id : null,
                 'assigned_by'      => $creatorName,
                 'assigned_at'      => $now,
-                'sales_notes'      => $validated['notes'] ?? null,
+                'sales_notes'      => $validated['notes'] ?? ($technical['presales']['sales_notes'] ?? null),
                 'status'           => ($technical['presales']['status'] ?? '') === 'Completed' ? 'Completed' : 'Assigned',
             ]);
 
@@ -462,7 +497,8 @@ class ProjectController extends Controller
             }
         }
 
-        if (in_array($validated['role'], ['architect', 'both'])) {
+        // 3. Assign Solution Architect
+        if (in_array($validated['role'], ['architect', 'both', 'all'])) {
             $architectUser = !empty($validated['architect_user_id'])
                 ? \App\Models\User::find($validated['architect_user_id'])
                 : \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Solution Architect', 'Solutions Architect', 'SA']))->first()
@@ -475,7 +511,7 @@ class ProjectController extends Controller
                 'assigned_user_id' => $architectUser ? $architectUser->id : null,
                 'assigned_by'      => $creatorName,
                 'assigned_at'      => $now,
-                'sales_notes'      => $validated['notes'] ?? null,
+                'sales_notes'      => $validated['notes'] ?? ($technical['architect']['sales_notes'] ?? null),
                 'status'           => ($technical['architect']['status'] ?? '') === 'Completed' ? 'Completed' : 'Assigned',
             ]);
 
@@ -492,13 +528,23 @@ class ProjectController extends Controller
             }
         }
 
+        // Update default verification state if assigned
+        if (!isset($technical['bd_verification']['status']) || $technical['bd_verification']['status'] === 'Pending Assignment') {
+            $technical['bd_verification'] = [
+                'status'       => 'Waiting Uploads',
+                'verified_by'  => null,
+                'verified_at'  => null,
+                'notes'        => null,
+            ];
+        }
+
         $handoverData['technical_assignments'] = $technical;
         $project->handover_data = $handoverData;
         $project->save();
 
-        $msg = "Penugasan teknis solusi (Presales & Solution Architect) berhasil dicatat dan notifikasi telah dikirimkan!";
+        $msg = "Penugasan tim kolaborasi solusi (PIC BD, Presales & Solution Architect) berhasil diperbarui!";
         if ($request->wantsJson() || $request->ajax()) {
-            return response()->json(['success' => true, 'message' => $msg, 'technical' => $technical]);
+            return response()->json(['success' => true, 'message' => $msg, 'technical' => $technical, 'project' => $project->fresh(['bdm'])]);
         }
 
         return back()->with('success', $msg);
@@ -590,26 +636,185 @@ class ProjectController extends Controller
             'notes'          => $validated['notes'] ?? ($technical[$roleKey]['notes'] ?? null),
         ]);
 
+        // Status Verifikasi BD menjadi 'Menunggu Verifikasi BD' (Pending Verification)
+        $technical['bd_verification'] = [
+            'status'         => 'Pending Verification',
+            'submitted_at'   => $now,
+            'submitted_by'   => $uploaderName,
+            'verified_by'    => null,
+            'verified_at'    => null,
+            'notes'          => null, // Reset previous revision catatan
+        ];
+
         $handoverData['technical_assignments'] = $technical;
         $project->handover_data = $handoverData;
         $project->save();
 
-        // Kirim notifikasi balik ke Sales pembuat proyek
-        $salesUserId = $project->creator_id ?? $project->created_by;
-        if ($salesUserId && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
-            $roleLabel = ($roleKey === 'presales') ? 'Pre-Sales Specialist' : 'Solution Architect';
+        $roleLabel = ($roleKey === 'presales') ? 'Pre-Sales Specialist' : 'Solution Architect';
+
+        // 1. Kirim notifikasi ke PIC BD untuk segera melakukan verifikasi
+        $bdUserId = $project->bdm_id;
+        if (!$bdUserId) {
+            $bdUser = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['BDM', 'BusDev', 'Business Development']))->first();
+            $bdUserId = $bdUser?->id;
+        }
+
+        if ($bdUserId && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
             \App\Models\Notification::create([
-                'user_id' => $salesUserId,
-                'title'   => \Illuminate\Support\Str::limit("Berkas {$roleLabel} Diunggah: " . $project->name, 240),
-                'message' => \Illuminate\Support\Str::limit("{$uploaderName} ({$roleLabel}) telah mengunggah berkas '{$docTitle}' untuk proyek '{$project->name}'.", 240),
+                'user_id' => $bdUserId,
+                'title'   => \Illuminate\Support\Str::limit("Verifikasi Berkas {$roleLabel}: " . $project->name, 240),
+                'message' => \Illuminate\Support\Str::limit("{$uploaderName} ({$roleLabel}) telah mengunggah '{$docTitle}' untuk proyek '{$project->name}'. Silakan verifikasi kelayakan dokumen.", 240),
                 'url'     => route('projects.show', $project->id),
                 'is_read' => false,
             ]);
         }
 
-        $msg = "Berkas dokumen teknis ({$docTitle}) berhasil diunggah!";
+        // 2. Kirim notifikasi tembusan ke Sales pembuat proyek
+        $salesUserId = $project->creator_id ?? $project->created_by;
+        if ($salesUserId && $salesUserId != $bdUserId && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            \App\Models\Notification::create([
+                'user_id' => $salesUserId,
+                'title'   => \Illuminate\Support\Str::limit("Berkas {$roleLabel} Diunggah: " . $project->name, 240),
+                'message' => \Illuminate\Support\Str::limit("{$uploaderName} ({$roleLabel}) telah mengunggah berkas '{$docTitle}' untuk proyek '{$project->name}'. Berkas sedang diverifikasi oleh PIC BD.", 240),
+                'url'     => route('projects.show', $project->id),
+                'is_read' => false,
+            ]);
+        }
+
+        $msg = "Berkas dokumen ({$docTitle}) berhasil diunggah dan dikirimkan ke PIC BD untuk verifikasi!";
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'message' => $msg, 'technical' => $technical]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Verifikasi Dokumen Solusi oleh PIC Business Development (BD)
+     */
+    public function verifyTechnicalSolution(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'decision' => 'required|in:approved,revision',
+            'notes'    => 'nullable|string|max:1000',
+        ]);
+
+        $user = auth()->user();
+        $verifierName = $user ? $user->name : 'PIC Business Development';
+        $now = now()->format('d M Y H:i');
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
+        $technical = $handoverData['technical_assignments'] ?? [];
+
+        $isApproved = ($validated['decision'] === 'approved');
+
+        $technical['bd_verification'] = [
+            'status'      => $isApproved ? 'Approved' : 'Revision Needed',
+            'verified_by' => $verifierName,
+            'verified_at' => $now,
+            'notes'       => $validated['notes'] ?? null,
+        ];
+
+        // Jika disetujui, update sales_stage ke Proposal Submission jika masih Qualification
+        if ($isApproved && in_array($project->sales_stage, ['Qualification', 'Discovery', null])) {
+            $project->sales_stage = 'Proposal / Quoting';
+            if ($project->win_probability < 30) {
+                $project->win_probability = 50;
+            }
+        }
+
+        $handoverData['technical_assignments'] = $technical;
+        $project->handover_data = $handoverData;
+        $project->save();
+
+        // 1. Notifikasi ke Sales
+        $salesUserId = $project->creator_id ?? $project->created_by;
+        if ($salesUserId && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            $salesTitle = $isApproved 
+                ? "Proposal Teknis Disetujui BD: {$project->name}" 
+                : "Dokumen Solusi Perlu Revisi: {$project->name}";
+            $salesMsg = $isApproved
+                ? "PIC BD ({$verifierName}) telah MENYETUJUI dokumen solusi teknis untuk proyek '{$project->name}'. Proposal resmi siap diajukan ke klien." . (!empty($validated['notes']) ? " Catatan BD: {$validated['notes']}" : '')
+                : "PIC BD ({$verifierName}) meminta REVISI berkas solusi proyek '{$project->name}'. Catatan: " . ($validated['notes'] ?? 'Mohon perbaiki proposal/desain.');
+            
+            \App\Models\Notification::create([
+                'user_id' => $salesUserId,
+                'title'   => \Illuminate\Support\Str::limit($salesTitle, 240),
+                'message' => \Illuminate\Support\Str::limit($salesMsg, 240),
+                'url'     => route('projects.show', $project->id),
+                'is_read' => false,
+            ]);
+        }
+
+        // 2. Notifikasi ke Presales & SA jika minta revisi
+        $techUserIds = array_filter([
+            $technical['presales']['assigned_user_id'] ?? null,
+            $technical['architect']['assigned_user_id'] ?? null,
+        ]);
+
+        foreach (array_unique($techUserIds) as $tUserId) {
+            if ($tUserId && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                $tTitle = $isApproved 
+                    ? "Berkas Solusi Disetujui BD: {$project->name}" 
+                    : "Permintaan Revisi dari BD: {$project->name}";
+                $tMsg = $isApproved
+                    ? "Kerja bagus! PIC BD ({$verifierName}) telah menyetujui proposal & desain solusi proyek '{$project->name}'."
+                    : "PIC BD ({$verifierName}) meminta revisi dokumen solusi proyek '{$project->name}'. Catatan: " . ($validated['notes'] ?? 'Silakan lakukan revisi berkas.');
+
+                \App\Models\Notification::create([
+                    'user_id' => $tUserId,
+                    'title'   => \Illuminate\Support\Str::limit($tTitle, 240),
+                    'message' => \Illuminate\Support\Str::limit($tMsg, 240),
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
+        }
+
+        $msg = $isApproved 
+            ? "Verifikasi berhasil! Dokumen solusi disetujui dan diteruskan ke Sales untuk proses penawaran ke klien." 
+            : "Permintaan revisi berhasil dikirimkan ke tim Presales & Solution Architect beserta catatan revisi.";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => $msg, 'technical' => $technical, 'project' => $project->fresh(['bdm'])]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Update Pipeline Sales & Opportunity (Stage, Probability, Target Closing)
+     */
+    public function updatePipeline(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'sales_stage'          => 'required|string|max:100',
+            'win_probability'      => 'required|numeric|min:0|max:100',
+            'expected_closing_date'=> 'nullable|date',
+            'contract_value'       => 'nullable|numeric|min:0',
+        ]);
+
+        $project->sales_stage = $validated['sales_stage'];
+        $project->win_probability = $validated['win_probability'];
+        $project->expected_closing_date = $validated['expected_closing_date'] ?? $project->expected_closing_date;
+        if ($request->filled('contract_value')) {
+            $project->contract_value = $validated['contract_value'];
+        }
+
+        // Sinkronisasi otomatis jika stage Closed Won
+        if (in_array(strtolower($validated['sales_stage']), ['closed won', 'won', 'closing won'])) {
+            $project->status = 'In Progress';
+            $project->stage = 'Deliver';
+            if ($project->progress < 10) {
+                $project->progress = 15;
+            }
+        }
+
+        $project->save();
+
+        $msg = "Pipeline Sales & Opportunity berhasil diperbarui!";
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => $msg, 'project' => $project->fresh(['bdm'])]);
         }
 
         return back()->with('success', $msg);
