@@ -611,10 +611,10 @@
                         @include('projects.partials.workflow-leadership')
 
                     @elseif($currentStatus === 'In Progress')
-                        {{-- IN PROGRESS: Delivery PMO/MS + Riwayat Pimpinan + Riwayat Solusi Teknis + Ringkasan Pipeline --}}
-                        @include('projects.partials.workflow-delivery')
-                        @include('projects.partials.workflow-leadership')
+                        {{-- IN PROGRESS: Riwayat Solusi Teknis + Riwayat Pimpinan + Delivery PMO/MS + Ringkasan Pipeline --}}
                         @include('projects.partials.workflow-technical-solution')
+                        @include('projects.partials.workflow-leadership')
+                        @include('projects.partials.workflow-delivery')
                         @include('projects.partials.workflow-pipeline')
 
                     @elseif($currentStatus === 'Pending')
@@ -628,9 +628,9 @@
                                 Pengerjaan proyek sedang di-pause sementara waktu menunggu konfirmasi akses site, perizinan, atau kelengkapan berkas kontrak.
                             </p>
                         </div>
-                        @include('projects.partials.workflow-delivery')
-                        @include('projects.partials.workflow-leadership')
                         @include('projects.partials.workflow-technical-solution')
+                        @include('projects.partials.workflow-leadership')
+                        @include('projects.partials.workflow-delivery')
 
                     @elseif($currentStatus === 'Completed')
                         {{-- COMPLETED --}}
@@ -643,9 +643,9 @@
                                 Seluruh target milestone teknis telah selesai 100% dan Berita Acara Serah Terima (BAST) pekerjaan telah disahkan bersama klien.
                             </p>
                         </div>
-                        @include('projects.partials.workflow-delivery')
-                        @include('projects.partials.workflow-leadership')
                         @include('projects.partials.workflow-technical-solution')
+                        @include('projects.partials.workflow-leadership')
+                        @include('projects.partials.workflow-delivery')
                         @include('projects.partials.workflow-pipeline')
                     @endif
 

@@ -16,7 +16,7 @@
                 Alokasi Tipe Kategori Proyek
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">
-                Penetapan alur eksekusi proyek (Implementasi PMO atau Managed Service &amp; Maintenance) serta penugasan tim pelaksana.
+                Penetapan alur eksekusi proyek Implementasi atau Managed Service serta penugasan tim pelaksana.
             </p>
         </div>
         @if($project->pm)
@@ -36,8 +36,8 @@
                 
                 {{-- Header --}}
                 <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $isMs ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200' }} uppercase tracking-wider whitespace-nowrap">
-                        {{ $isMs ? 'MAINTENANCE (MS)' : 'IMPLEMENTASI (PMO)' }}
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider whitespace-nowrap">
+                        KATEGORI PROYEK
                     </span>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $project->pm ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200' }}">
                         {{ $project->pm ? '✓ Ditugaskan' : 'Menunggu Kategori' }}
