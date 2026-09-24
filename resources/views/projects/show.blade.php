@@ -235,6 +235,95 @@
     );
 @endphp
 
+<script>
+    function projectDetailPage(initialStage, currentDbStatus) {
+        return {
+            activeStageTab: initialStage || 'draft',
+            currentStatus: currentDbStatus || 'Draft',
+            
+            isHandoverModalOpen: false,
+            isApproveModalOpen: false,
+            approveRole: 'head', // 'head' (Susanto) or 'director' (Hariyadi)
+
+            isAssignModalOpen: false,
+            assignRole: 'both', // 'head', 'director', 'both'
+
+            isEditPipelineModalOpen: false,
+            isAssignTechnicalModalOpen: false,
+            assignTechnicalRole: 'all', // 'bdm', 'presales', 'architect', 'all'
+            isUploadTechnicalDocModalOpen: false,
+            uploadTechnicalRole: 'presales', // 'presales' or 'architect'
+            isVerifyTechnicalModalOpen: false,
+
+            isEditMetaModalOpen: false,
+            isAddMilestoneModalOpen: false,
+            isUploadDocModalOpen: false,
+            isDeleteModalOpen: false,
+
+            openAssignModal(role = 'both') {
+                this.assignRole = role;
+                this.isAssignModalOpen = true;
+            },
+
+            openApproveModal(role = 'head') {
+                this.approveRole = role;
+                this.isApproveModalOpen = true;
+            },
+
+            openEditPipelineModal() {
+                this.isEditPipelineModalOpen = true;
+            },
+
+            openAssignTechnicalModal(role = 'all') {
+                this.assignTechnicalRole = role;
+                this.isAssignTechnicalModalOpen = true;
+            },
+
+            openUploadTechnicalModal(role = 'presales') {
+                this.uploadTechnicalRole = role;
+                this.isUploadTechnicalDocModalOpen = true;
+            },
+
+            openVerifyTechnicalModal() {
+                this.isVerifyTechnicalModalOpen = true;
+            },
+
+            selectStage(tabKey) {
+                this.activeStageTab = tabKey;
+                const newStatus = this.stageNameToDbStatus(tabKey);
+                this.currentStatus = newStatus;
+
+                fetch('{{ route("projects.stage_update", $project->id) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                }).catch(err => console.error('Stage update error:', err));
+            },
+
+            stageNameToDbStatus(tabKey) {
+                switch(tabKey) {
+                    case 'draft': return 'Draft';
+                    case 'opportunity': return 'Opportunity';
+                    case 'in_progress': return 'In Progress';
+                    case 'pending': return 'Pending';
+                    case 'completed': return 'Completed';
+                    default: return 'Draft';
+                }
+            },
+
+            confirmDeleteProject() {
+                this.isDeleteModalOpen = true;
+            }
+        };
+    }
+    window.projectDetailPage = projectDetailPage;
+</script>
+
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans text-slate-800" 
      x-data="projectDetailPage('{{ $initialStage ?? 'draft' }}', '{{ $currentStatus }}')">
     @include('components.sidebar')
@@ -1979,92 +2068,4 @@
     </form>
 
 </div>
-
-<script>
-    function projectDetailPage(initialStage, currentDbStatus) {
-        return {
-            activeStageTab: initialStage || 'draft',
-            currentStatus: currentDbStatus || 'Draft',
-            
-            isHandoverModalOpen: false,
-            isApproveModalOpen: false,
-            approveRole: 'head', // 'head' (Susanto) or 'director' (Hariyadi)
-
-            isAssignModalOpen: false,
-            assignRole: 'both', // 'head', 'director', 'both'
-
-            isEditPipelineModalOpen: false,
-            isAssignTechnicalModalOpen: false,
-            assignTechnicalRole: 'all', // 'bdm', 'presales', 'architect', 'all'
-            isUploadTechnicalDocModalOpen: false,
-            uploadTechnicalRole: 'presales', // 'presales' or 'architect'
-            isVerifyTechnicalModalOpen: false,
-
-            isEditMetaModalOpen: false,
-            isAddMilestoneModalOpen: false,
-            isUploadDocModalOpen: false,
-            isDeleteModalOpen: false,
-
-            openAssignModal(role = 'both') {
-                this.assignRole = role;
-                this.isAssignModalOpen = true;
-            },
-
-            openApproveModal(role = 'head') {
-                this.approveRole = role;
-                this.isApproveModalOpen = true;
-            },
-
-            openEditPipelineModal() {
-                this.isEditPipelineModalOpen = true;
-            },
-
-            openAssignTechnicalModal(role = 'all') {
-                this.assignTechnicalRole = role;
-                this.isAssignTechnicalModalOpen = true;
-            },
-
-            openUploadTechnicalModal(role = 'presales') {
-                this.uploadTechnicalRole = role;
-                this.isUploadTechnicalDocModalOpen = true;
-            },
-
-            openVerifyTechnicalModal() {
-                this.isVerifyTechnicalModalOpen = true;
-            },
-
-            selectStage(tabKey) {
-                this.activeStageTab = tabKey;
-                const newStatus = this.stageNameToDbStatus(tabKey);
-                this.currentStatus = newStatus;
-
-                fetch('{{ route("projects.stage_update", $project->id) }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                }).catch(err => console.error('Stage update error:', err));
-            },
-
-            stageNameToDbStatus(tabKey) {
-                switch(tabKey) {
-                    case 'draft': return 'Draft';
-                    case 'opportunity': return 'Opportunity';
-                    case 'in_progress': return 'In Progress';
-                    case 'pending': return 'Pending';
-                    case 'completed': return 'Completed';
-                    default: return 'Draft';
-                }
-            },
-
-            confirmDeleteProject() {
-                this.isDeleteModalOpen = true;
-            }
-        };
-    }
-</script>
 @endsection
