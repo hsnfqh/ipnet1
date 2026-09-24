@@ -282,9 +282,7 @@
                         @endforeach
                     </ul>
                 </div>
-            @endif
-
-            {{-- 1. BREADCRUMBS & NAVIGATION --}}
+            {{-- 1. BREADCRUMBS & TOP NAVIGATION --}}
             <nav class="flex items-center gap-2 text-xs font-medium text-slate-500">
                 <a href="{{ route('sales.pipeline.index') }}" class="hover:text-[#8F0A0D] transition text-slate-600 font-semibold flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -292,7 +290,9 @@
                 </a>
                 <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 <span class="text-slate-800 font-semibold truncate max-w-md">{{ $project->name }}</span>
-            </            {{-- 2. FULL-WIDTH ZONE 1: HERO & EXECUTIVE METRICS --}}
+            </nav>
+
+            {{-- 2. EXECUTIVE HERO BANNER & METRICS --}}
             <div class="ipnet-card p-6 sm:p-7 space-y-6">
                 
                 {{-- A. Top Header Strip --}}
@@ -406,717 +406,597 @@
 
             </div>
 
-            {{-- 3. FULL-WIDTH ZONE 2: PRIMARY WORKFLOW / COLLABORATION ENGINE --}}
-            @if($currentStatus === 'Draft')
-                {{-- DRAFT: Persetujuan Pimpinan (Review & Sign-Off) --}}
-                <div class="ipnet-card p-6 sm:p-7 space-y-5">
-                    <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
-                        <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                                <span class="w-2.5 h-5 rounded-full bg-[#8F0A0D]"></span>
-                                Persetujuan Pimpinan (Review &amp; Sign-Off)
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">
-                                Review kelayakan teknis oleh Head Divisi &amp; otorisasi kontrak oleh Direktur sebelum diserahkan ke PMO.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
-                        {{-- Reviewer 1: Pak Susanto --}}
-                        <div class="p-5 rounded-xl bg-slate-50/70 border border-slate-200 space-y-3.5 flex flex-col justify-between">
-                            <div class="space-y-2.5">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">HEAD DIVISI</div>
-                                        <div class="font-bold text-slate-900 text-sm mt-0.5">{{ $headApproval['assigned_to'] ?? ($susantoUser ? $susantoUser->name : 'Pak Susanto Djaya') }}</div>
-                                    </div>
-                                    <span class="px-2.5 py-1 rounded text-[10.5px] font-bold {{ !empty($headApproval['approved']) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isHeadAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
-                                        {{ !empty($headApproval['approved']) ? '✓ Disetujui' : ($isHeadAssigned ? 'Menunggu Review' : 'Belum Di-assign') }}
-                                    </span>
-                                </div>
-
-                                <div class="text-[11.5px] text-slate-600">
-                                    @if(!empty($headApproval['approved']))
-                                        <div class="p-3 rounded-lg bg-emerald-50/80 border border-emerald-200 text-emerald-800 font-medium">
-                                            "{{ $headApproval['notes'] ?? 'Review kelayakan teknis & alokasi resource disetujui.' }}"
-                                        </div>
-                                        <div class="text-[10.5px] text-slate-400 mt-1">Disetujui: {{ $headApproval['date'] ?? '-' }}</div>
-                                    @elseif($isHeadAssigned)
-                                        <div class="p-3 rounded-lg bg-amber-50/60 border border-amber-200 text-amber-800 italic">
-                                            "Menunggu review kelayakan teknis dan alokasi resource dari {{ $headApproval['assigned_to'] ?? 'Pak Susanto Djaya' }}."
-                                        </div>
-                                        @if(!empty($headApproval['assigned_at']))
-                                            <div class="text-[10.5px] text-slate-400 mt-1">Ditugaskan: {{ $headApproval['assigned_at'] }} (oleh {{ $headApproval['assigned_by'] ?? 'Sales' }})</div>
-                                        @endif
-                                    @else
-                                        <span class="text-slate-400">Belum diajukan ke Head Divisi.</span>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <div class="pt-2.5 border-t border-slate-200 flex items-center justify-between gap-2">
-                                @if(!$isHeadAssigned)
-                                    <button type="button" @click="openAssignModal('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                                        <span>+ Assign ke Pak Susanto</span>
-                                    </button>
-                                @elseif(!$headApproval['approved'])
-                                    <button type="button" @click="openAssignModal('head')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                                        Ubah Penugasan
-                                    </button>
-                                @else
-                                    <div></div>
-                                @endif
-
-                                @if($canApproveHead && $isHeadAssigned)
-                                    <button type="button" @click="openApproveModal('head')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-primary shadow-xs cursor-pointer ml-auto">
-                                        <span>{{ empty($headApproval['approved']) ? '✓ Beri Approval' : 'Ubah Catatan' }}</span>
-                                    </button>
-                                @endif
-                            </div>
-                        </div>
-
-                        {{-- Reviewer 2: Pak Hariyadi --}}
-                        <div class="p-5 rounded-xl bg-slate-50/70 border border-slate-200 space-y-3.5 flex flex-col justify-between">
-                            <div class="space-y-2.5">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">DIREKTUR</div>
-                                        <div class="font-bold text-slate-900 text-sm mt-0.5">{{ $directorApproval['assigned_to'] ?? ($hariyadiUser ? $hariyadiUser->name : 'Pak Hariyadi') }}</div>
-                                    </div>
-                                    <span class="px-2.5 py-1 rounded text-[10.5px] font-bold {{ !empty($directorApproval['approved']) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isDirectorAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
-                                        {{ !empty($directorApproval['approved']) ? '✓ Disahkan' : ($isDirectorAssigned ? 'Menunggu Otorisasi' : 'Belum Di-assign') }}
-                                    </span>
-                                </div>
-
-                                <div class="text-[11.5px] text-slate-600">
-                                    @if(!empty($directorApproval['approved']))
-                                        <div class="p-3 rounded-lg bg-emerald-50/80 border border-emerald-200 text-emerald-800 font-medium">
-                                            "{{ $directorApproval['notes'] ?? 'Otorisasi finansial & validasi kontrak disahkan.' }}"
-                                        </div>
-                                        <div class="text-[10.5px] text-slate-400 mt-1">Disahkan: {{ $directorApproval['date'] ?? '-' }}</div>
-                                    @elseif($isDirectorAssigned)
-                                        <div class="p-3 rounded-lg bg-amber-50/60 border border-amber-200 text-amber-800 italic">
-                                            "Menunggu otorisasi finansial dan persetujuan kontrak dari {{ $directorApproval['assigned_to'] ?? 'Pak Hariyadi' }}."
-                                        </div>
-                                        @if(!empty($directorApproval['assigned_at']))
-                                            <div class="text-[10.5px] text-slate-400 mt-1">Ditugaskan: {{ $directorApproval['assigned_at'] }} (oleh {{ $directorApproval['assigned_by'] ?? 'Sales' }})</div>
-                                        @endif
-                                    @else
-                                        <span class="text-slate-400">Belum diajukan ke Direktur.</span>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <div class="pt-2.5 border-t border-slate-200 flex items-center justify-between gap-2">
-                                @if(!$isDirectorAssigned)
-                                    <button type="button" @click="openAssignModal('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                                        <span>+ Assign ke Pak Hariyadi</span>
-                                    </button>
-                                @elseif(!$directorApproval['approved'])
-                                    <button type="button" @click="openAssignModal('director')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                                        Ubah Penugasan
-                                    </button>
-                                @else
-                                    <div></div>
-                                @endif
-
-                                @if($canApproveDirector && $isDirectorAssigned)
-                                    <button type="button" @click="openApproveModal('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-primary shadow-xs cursor-pointer ml-auto">
-                                        <span>{{ empty($directorApproval['approved']) ? '✓ Beri Otorisasi' : 'Ubah Catatan' }}</span>
-                                    </button>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            @elseif($currentStatus === 'In Progress')
-                {{-- IN PROGRESS: Fase Delivery ke PMO & Monitoring Engineer --}}
-                <div class="ipnet-card p-6 sm:p-7 space-y-5">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
-                        <div>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                                <span class="w-2.5 h-5 rounded-full bg-amber-500"></span>
-                                Fase Delivery Proyek (In Progress)
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">
-                                Proyek diserahkan ke PMO untuk pengawasan alokasi engineer dan pengerjaan milestone teknis.
-                            </p>
-                        </div>
-                        <div class="flex items-center gap-2.5">
-                            <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="status" value="Completed">
-                                <button type="submit" onclick="return confirm('Tandai proyek {{ addslashes($project->name) }} sebagai Selesai (Completed)?')"
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs cursor-pointer">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    <span>✓ Selesaikan Proyek (Completed)</span>
-                                </button>
-                            </form>
-                            <button type="button" @click="isHandoverModalOpen = true" class="text-xs font-bold text-[#8F0A0D] hover:underline cursor-pointer">
-                                {{ $project->pm ? 'Ubah PMO (' . $project->pm->name . ')' : '+ Handover ke PMO' }}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
-                        <div class="p-5 rounded-xl bg-slate-50/70 border border-slate-200 space-y-1.5">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PROJECT MANAGER (PMO)</div>
-                            <div class="font-bold text-slate-900 text-sm mt-0.5">{{ $project->pm ? $project->pm->name : 'Belum Ada PM' }}</div>
-                            <div class="text-[11.5px] text-slate-500">{{ $project->pm ? $project->pm->email : 'Sales silakan serahkan delivery ke tim PMO' }}</div>
-                        </div>
-                        <div class="p-5 rounded-xl bg-slate-50/70 border border-slate-200 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">TIM ENGINEER PELAKSANA</span>
-                                <span class="text-[10.5px] font-bold text-slate-600">{{ $uniqueEngineers->count() }} Personel</span>
-                            </div>
-                            @if($uniqueEngineers->count() > 0)
-                                <div class="space-y-1.5 pt-0.5">
-                                    @foreach($uniqueEngineers as $eng)
-                                        <div class="flex items-center justify-between text-[11.5px]">
-                                            <span class="font-semibold text-slate-800">{{ $eng->name }}</span>
-                                            <span class="text-slate-400">{{ $eng->roles->pluck('name')->first() ?? 'Engineer' }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <div class="text-[11.5px] text-slate-400 italic">
-                                    Menunggu alokasi tim teknis oleh PMO.
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-            @elseif($currentStatus === 'Opportunity')
-                {{-- OPPORTUNITY: Pipeline Sales & Kolaborasi Tim Solusi (FULL WIDTH) --}}
-                <div class="space-y-6">
-                    
-                    {{-- 1. Pipeline Sales Metrics Card --}}
-                    <div class="ipnet-card p-6 space-y-4">
-                        <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 pb-3">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-3 h-3 rounded-full bg-sky-500"></div>
-                                <div>
-                                    <h3 class="text-sm font-bold text-slate-900">Pipeline Sales &amp; Opportunity</h3>
-                                    <p class="text-xs text-slate-500">Pantau progres tahapan prospek penjualan &amp; estimasi closing</p>
-                                </div>
-                            </div>
-                            <button type="button" @click="openEditPipelineModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition cursor-pointer shadow-2xs">
-                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                <span>Edit Stage &amp; Prospek</span>
-                            </button>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div class="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80 flex items-center justify-between">
-                                <div>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">STAGE SAAT INI</span>
-                                    <strong class="text-sm font-bold text-slate-900 mt-0.5 block">{{ $project->sales_stage ?: 'Qualification' }}</strong>
-                                </div>
-                                <span class="px-2.5 py-1 rounded text-[10.5px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
-                                    Active Stage
-                                </span>
-                            </div>
-
-                            <div class="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80 flex items-center justify-between">
-                                <div class="space-y-1">
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">WIN PROBABILITY</span>
-                                    <div class="text-sm font-extrabold text-[#8F0A0D]">
-                                        {{ $project->win_probability ?: 10 }}% Peluang
-                                    </div>
-                                </div>
-                                <div class="w-24 bg-slate-200 h-2.5 rounded-full overflow-hidden">
-                                    <div class="bg-gradient-to-r from-amber-500 to-[#8F0A0D] h-full rounded-full" style="width: {{ min(100, max(5, $project->win_probability ?: 10)) }}%"></div>
-                                </div>
-                            </div>
-
-                            <div class="p-4 bg-slate-50/70 rounded-xl border border-slate-200/80 flex items-center justify-between">
-                                <div>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">TARGET CLOSING</span>
-                                    <strong class="text-sm font-bold text-slate-900 mt-0.5 block">{{ $project->expected_closing_date ? \Carbon\Carbon::parse($project->expected_closing_date)->format('d M Y') : 'Belum Ditentukan' }}</strong>
-                                </div>
-                                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- 2. Kolaborasi Tim Solusi (Enterprise Hub & Progress Pipeline - FULL WIDTH) --}}
-                    <div class="ipnet-card p-6 sm:p-7 space-y-6">
-                        
-                        {{-- Header & Overall Status --}}
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-2.5 h-6 rounded-full bg-[#8F0A0D]"></div>
-                                <div>
-                                    <h3 class="text-base font-bold text-slate-900 tracking-tight">Kolaborasi Tim Solusi (BD, Pre-Sales &amp; Solution Architect)</h3>
-                                    <p class="text-xs text-slate-500 mt-0.5">Workflow verifikasi kelayakan teknis, penyusunan SOW &amp; desain arsitektur sebelum penawaran klien.</p>
-                                </div>
-                            </div>
-                            <div class="shrink-0">
-                                @if(($bdVerification['status'] ?? '') === 'Approved')
-                                    <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-                                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                        <span>Solusi Disetujui &amp; Disahkan BD</span>
-                                    </span>
-                                @elseif(($bdVerification['status'] ?? '') === 'Revision Needed')
-                                    <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
-                                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                        <span>Perlu Revisi Dokumen Solusi</span>
-                                    </span>
-                                @elseif($isPresalesDone || $isArchitectDone)
-                                    <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
-                                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                        <span>Menunggu Verifikasi PIC BD</span>
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                                        <span>Tahap Penyusunan Solusi</span>
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-
-                        {{-- Connected Interactive Progress Track --}}
-                        @php
-                            $step1Done = $isAnyTechnicalAssigned;
-                            $step2Done = $isPresalesDone || $isArchitectDone;
-                            $step3Done = (($bdVerification['status'] ?? '') === 'Approved');
-                            $step4Done = in_array($project->sales_stage, ['Closed Won', 'Negotiation']);
-                        @endphp
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                            {{-- Step 1 --}}
-                            <div class="p-3.5 rounded-xl border flex items-center gap-3 transition {{ $step1Done ? 'bg-emerald-50/40 border-emerald-200 text-emerald-950' : 'bg-slate-50/70 border-slate-200 text-slate-700' }}">
-                                <div class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 {{ $step1Done ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-slate-200 text-slate-600' }}">
-                                    @if($step1Done)
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    @else
-                                        1
-                                    @endif
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="font-bold text-[12px] truncate">1. Penugasan Tim</div>
-                                    <div class="text-[10.5px] {{ $step1Done ? 'text-emerald-700 font-medium' : 'text-slate-400' }} truncate">{{ $step1Done ? 'Tim Ditugaskan' : 'Tunjuk PIC BD & Tim' }}</div>
-                                </div>
-                            </div>
-
-                            {{-- Step 2 --}}
-                            <div class="p-3.5 rounded-xl border flex items-center gap-3 transition {{ $step2Done ? 'bg-emerald-50/40 border-emerald-200 text-emerald-950' : ($step1Done ? 'bg-amber-50/40 border-amber-200 ring-1 ring-amber-200 text-amber-950' : 'bg-slate-50/70 border-slate-200 text-slate-700') }}">
-                                <div class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 {{ $step2Done ? 'bg-emerald-600 text-white shadow-2xs' : ($step1Done ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-200 text-slate-600') }}">
-                                    @if($step2Done)
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    @else
-                                        2
-                                    @endif
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="font-bold text-[12px] truncate">2. Dokumen Teknis</div>
-                                    <div class="text-[10.5px] {{ $step2Done ? 'text-emerald-700 font-medium' : ($step1Done ? 'text-amber-700 font-medium' : 'text-slate-400') }} truncate">{{ $step2Done ? 'Proposal Diunggah' : 'Upload Proposal & Topologi' }}</div>
-                                </div>
-                            </div>
-
-                            {{-- Step 3 --}}
-                            <div class="p-3.5 rounded-xl border flex items-center gap-3 transition {{ $step3Done ? 'bg-emerald-50/40 border-emerald-200 text-emerald-950' : ($step2Done ? 'bg-amber-50/40 border-amber-200 ring-1 ring-amber-200 text-amber-950' : 'bg-slate-50/70 border-slate-200 text-slate-700') }}">
-                                <div class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 {{ $step3Done ? 'bg-emerald-600 text-white shadow-2xs' : ($step2Done ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-200 text-slate-600') }}">
-                                    @if($step3Done)
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    @else
-                                        3
-                                    @endif
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="font-bold text-[12px] truncate">3. Verifikasi PIC BD</div>
-                                    <div class="text-[10.5px] {{ $step3Done ? 'text-emerald-700 font-medium' : ($step2Done ? 'text-amber-700 font-medium' : 'text-slate-400') }} truncate">{{ $step3Done ? 'Disetujui BD' : (($bdVerification['status'] ?? '') === 'Revision Needed' ? 'Revisi Diperlukan' : 'Review Kelayakan') }}</div>
-                                </div>
-                            </div>
-
-                            {{-- Step 4 --}}
-                            <div class="p-3.5 rounded-xl border flex items-center gap-3 transition {{ $step4Done ? 'bg-emerald-50/40 border-emerald-200 text-emerald-950' : ($step3Done ? 'bg-sky-50/40 border-sky-200 ring-1 ring-sky-200 text-sky-950' : 'bg-slate-50/70 border-slate-200 text-slate-700') }}">
-                                <div class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 {{ $step4Done ? 'bg-emerald-600 text-white shadow-2xs' : ($step3Done ? 'bg-sky-600 text-white shadow-2xs' : 'bg-slate-200 text-slate-600') }}">
-                                    @if($step4Done)
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    @else
-                                        4
-                                    @endif
-                                </div>
-                                <div class="min-w-0">
-                                    <div class="font-bold text-[12px] truncate">4. Penawaran Klien</div>
-                                    <div class="text-[10.5px] {{ $step4Done ? 'text-emerald-700 font-medium' : ($step3Done ? 'text-sky-700 font-medium' : 'text-slate-400') }} truncate">{{ $step4Done ? 'Deal / Closing' : 'Siap Diajukan Sales' }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- 3 Collaborative Person Workspace Cards (Wide & Luxurious Layout) --}}
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs items-stretch">
-                            
-                            {{-- ══ CARD 1: BUSINESS DEVELOPMENT (PIC / PM) ══ --}}
-                            <div class="p-6 rounded-2xl bg-white border {{ ($bdVerification['status'] ?? '') === 'Approved' ? 'border-emerald-200 ring-1 ring-emerald-100 shadow-xs' : (($bdVerification['status'] ?? '') === 'Revision Needed' ? 'border-rose-200 ring-1 ring-rose-100 shadow-xs' : 'border-slate-200 shadow-2xs') }} flex flex-col justify-between space-y-4 hover:border-slate-300 transition">
-                                <div class="space-y-4">
-                                    
-                                    {{-- Role Header & Badge --}}
-                                    <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                                        <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                            PIC BUSINESS DEV
-                                        </span>
-                                        @php
-                                            $bdBadgeClass = match($bdVerification['status'] ?? '') {
-                                                'Approved'            => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                                'Revision Needed'     => 'bg-rose-50 text-rose-700 border-rose-200',
-                                                'Pending Verification'=> 'bg-amber-50 text-amber-800 border-amber-300',
-                                                'Waiting Uploads'     => 'bg-slate-100 text-slate-700 border-slate-200',
-                                                default               => 'bg-slate-100 text-slate-500 border-slate-200',
-                                            };
-                                            $bdBadgeLabel = match($bdVerification['status'] ?? '') {
-                                                'Approved'            => '✓ Disetujui BD',
-                                                'Revision Needed'     => '⚠ Perlu Revisi',
-                                                'Pending Verification'=> 'Menunggu Verifikasi',
-                                                'Waiting Uploads'     => 'Menunggu Berkas',
-                                                default               => 'Belum Di-assign',
-                                            };
-                                        @endphp
-                                        <span class="px-3 py-1 rounded-full text-[10.5px] font-bold border {{ $bdBadgeClass }}">
-                                            {{ $bdBadgeLabel }}
-                                        </span>
-                                    </div>
-
-                                    {{-- Person Profile --}}
-                                    <div class="flex items-center gap-3.5">
-                                        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-700 to-indigo-500 text-white font-extrabold text-sm flex items-center justify-center shrink-0 shadow-2xs">
-                                            {{ $isBdmAssigned && !empty($bdmName) ? strtoupper(substr($bdmName, 0, 2)) : 'BD' }}
-                                        </div>
-                                        <div class="min-w-0">
-                                            <h4 class="font-extrabold text-sm {{ $isBdmAssigned ? 'text-slate-900' : 'text-slate-400 italic' }}">
-                                                {{ $isBdmAssigned && !empty($bdmName) ? $bdmName : 'Belum Ditugaskan' }}
-                                            </h4>
-                                            <p class="text-[11.5px] text-slate-500 mt-0.5">Product Manager &amp; Verifikator Solusi</p>
-                                        </div>
-                                    </div>
-
-                                    {{-- Verification Result Box --}}
-                                    <div class="pt-1">
-                                        @if(($bdVerification['status'] ?? '') === 'Approved')
-                                            <div class="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200 text-emerald-900 space-y-2.5">
-                                                <div class="flex items-center justify-between">
-                                                    <div class="font-bold flex items-center gap-1.5 text-xs text-emerald-800">
-                                                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                        <span>Proposal &amp; Desain Disetujui</span>
-                                                    </div>
-                                                    <span class="text-[10.5px] text-emerald-700 font-medium">{{ $bdVerification['verified_at'] ?? 'Selesai' }}</span>
-                                                </div>
-                                                @if(!empty($bdVerification['notes']))
-                                                    <div class="text-[11.5px] text-emerald-950 bg-white/90 p-2.5 rounded-lg border border-emerald-100 italic">
-                                                        "{{ $bdVerification['notes'] }}"
-                                                    </div>
-                                                @endif
-                                                <div class="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
-                                                    <span>✓ Berkas sah dan siap diajukan ke klien.</span>
-                                                </div>
-                                            </div>
-                                        @elseif(($bdVerification['status'] ?? '') === 'Revision Needed')
-                                            <div class="p-4 rounded-xl bg-rose-50/80 border border-rose-200 text-rose-900 space-y-2.5">
-                                                <div class="font-bold flex items-center gap-1.5 text-xs text-rose-800">
-                                                    <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                                    <span>Catatan Revisi dari PIC BD:</span>
-                                                </div>
-                                                <div class="text-[11.5px] text-rose-950 bg-white/90 p-2.5 rounded-lg border border-rose-100 italic">
-                                                    "{{ $bdVerification['notes'] ?? 'Mohon lakukan penyesuaian pada proposal/desain.' }}"
-                                                </div>
-                                            </div>
-                                        @elseif(($bdVerification['status'] ?? '') === 'Pending Verification')
-                                            <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1.5">
-                                                <div class="font-bold flex items-center gap-1.5 text-xs text-amber-800">
-                                                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                                    <span>Berkas Menunggu Verifikasi BD</span>
-                                                </div>
-                                                <p class="text-[11.5px] text-amber-800 leading-relaxed">Proposal dan topologi telah terunggah. PIC BD silakan meninjau dan memberikan persetujuan.</p>
-                                            </div>
-                                        @elseif($isBdmAssigned)
-                                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[11.5px] leading-relaxed">
-                                                Menunggu tim Pre-Sales &amp; Solution Architect mengunggah dokumen teknis.
-                                            </div>
-                                        @else
-                                            <div class="p-4 rounded-xl border border-dashed border-slate-200 text-slate-400 text-center text-[11.5px]">
-                                                Belum ada PIC BD yang ditunjuk.
-                                            </div>
-                                        @endif
-                                    </div>
-
-                                </div>
-
-                                {{-- Actions Footer --}}
-                                <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                                    @if(!$isBdmAssigned)
-                                        <button type="button" @click="openAssignTechnicalModal('bdm')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                                            <span>+ Tunjuk PIC BD</span>
-                                        </button>
-                                    @else
-                                        <button type="button" @click="openAssignTechnicalModal('bdm')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                                            Ubah PIC BD
-                                        </button>
-                                    @endif
-
-                                    @if($canVerifyBD && ($isPresalesDone || $isArchitectDone))
-                                        <button type="button" @click="openVerifyTechnicalModal()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white btn-ipnet-primary shadow-sm cursor-pointer ml-auto">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            <span>Verifikasi Dokumen</span>
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-
-                            {{-- ══ CARD 2: PRE-SALES SPECIALIST ══ --}}
-                            <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-4 hover:border-slate-300 transition">
-                                <div class="space-y-4">
-                                    
-                                    {{-- Role Header & Badge --}}
-                                    <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                                        <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            PRE-SALES SPECIALIST
-                                        </span>
-                                        <span class="px-3 py-1 rounded-full text-[10.5px] font-bold border {{ $isPresalesDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isPresalesAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
-                                            {{ $isPresalesDone ? 'Berkas Diunggah' : ($isPresalesAssigned ? 'Menunggu Proposal' : 'Belum Di-assign') }}
-                                        </span>
-                                    </div>
-
-                                    {{-- Person Profile --}}
-                                    <div class="flex items-center gap-3.5">
-                                        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-700 to-emerald-500 text-white font-extrabold text-sm flex items-center justify-center shrink-0 shadow-2xs">
-                                            {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? strtoupper(substr($presalesAssignment['assigned_to'], 0, 2)) : 'PS' }}
-                                        </div>
-                                        <div class="min-w-0">
-                                            <h4 class="font-extrabold text-sm {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? 'text-slate-900' : 'text-slate-400 italic' }}">
-                                                {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? $presalesAssignment['assigned_to'] : 'Belum Ditugaskan' }}
-                                            </h4>
-                                            <p class="text-[11.5px] text-slate-500 mt-0.5">Proposal Teknis &amp; BoQ Komersial</p>
-                                        </div>
-                                    </div>
-
-                                    {{-- Document Deliverable Box --}}
-                                    <div class="pt-1">
-                                        @if($isPresalesDone)
-                                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-                                                <div class="flex items-center justify-between gap-3">
-                                                    <div class="flex items-center gap-2.5 min-w-0">
-                                                        <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                        </div>
-                                                        <div class="min-w-0">
-                                                            <div class="font-bold text-slate-900 text-xs truncate">{{ $presalesAssignment['document_title'] ?? 'Proposal Teknis & SOW' }}</div>
-                                                            <div class="text-[11px] text-slate-500 truncate">{{ $presalesAssignment['document_name'] ?? 'Berkas terlampir' }}</div>
-                                                        </div>
-                                                    </div>
-                                                    @if(!empty($presalesAssignment['document_path']))
-                                                        <a href="{{ asset('storage/' . $presalesAssignment['document_path']) }}" target="_blank" 
-                                                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shrink-0 shadow-2xs" title="Unduh Proposal">
-                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                            <span>Unduh</span>
-                                                        </a>
-                                                    @endif
-                                                </div>
-                                                <div class="text-[10.5px] text-slate-400 pt-2 border-t border-slate-200/80 flex items-center justify-between">
-                                                    <span class="font-medium text-slate-600">Status: SOW Terlampir</span>
-                                                    <span>{{ $presalesAssignment['completed_at'] ?? '-' }}</span>
-                                                </div>
-                                            </div>
-                                        @elseif($isPresalesAssigned)
-                                            <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1.5">
-                                                <div class="font-medium italic text-[11.5px]">"{{ !empty($presalesAssignment['sales_notes']) ? $presalesAssignment['sales_notes'] : 'Mohon segera dibuatkan proposal teknis dan BoQ estimasi proyek.' }}"</div>
-                                                <div class="text-[10.5px] text-amber-700 mt-1">Ditugaskan: {{ $presalesAssignment['assigned_at'] ?? '-' }}</div>
-                                            </div>
-                                        @else
-                                            <div class="p-4 rounded-xl border border-dashed border-slate-200 text-slate-400 text-center text-[11.5px]">
-                                                Belum ada penugasan Pre-Sales.
-                                            </div>
-                                        @endif
-                                    </div>
-
-                                </div>
-
-                                {{-- Actions Footer --}}
-                                <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                                    @if(!$isPresalesAssigned)
-                                        <button type="button" @click="openAssignTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                                            <span>+ Tugaskan Presales</span>
-                                        </button>
-                                    @else
-                                        <button type="button" @click="openAssignTechnicalModal('presales')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                                            Ubah Penugasan
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-
-                            {{-- ══ CARD 3: SOLUTION ARCHITECT ══ --}}
-                            <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-4 hover:border-slate-300 transition">
-                                <div class="space-y-4">
-                                    
-                                    {{-- Role Header & Badge --}}
-                                    <div class="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                                        <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
-                                            SOLUTION ARCHITECT
-                                        </span>
-                                        @php
-                                            $isBdApproved = (($bdVerification['status'] ?? '') === 'Approved');
-                                            $saIsCompleted = $isArchitectDone || ($isBdApproved && $isArchitectAssigned);
-                                        @endphp
-                                        <span class="px-3 py-1 rounded-full text-[10.5px] font-bold border {{ $saIsCompleted ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
-                                            {{ $isArchitectDone ? 'Desain Diunggah' : ($isBdApproved && $isArchitectAssigned ? '✓ Solusi Disahkan' : ($isArchitectAssigned ? 'Menunggu Desain' : 'Belum Di-assign')) }}
-                                        </span>
-                                    </div>
-
-                                    {{-- Person Profile --}}
-                                    <div class="flex items-center gap-3.5">
-                                        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-sky-700 to-sky-500 text-white font-extrabold text-sm flex items-center justify-center shrink-0 shadow-2xs">
-                                            {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? strtoupper(substr($architectAssignment['assigned_to'], 0, 2)) : 'SA' }}
-                                        </div>
-                                        <div class="min-w-0">
-                                            <h4 class="font-extrabold text-sm {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? 'text-slate-900' : 'text-slate-400 italic' }}">
-                                                {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? $architectAssignment['assigned_to'] : 'Belum Ditugaskan' }}
-                                            </h4>
-                                            <p class="text-[11.5px] text-slate-500 mt-0.5">Desain Arsitektur &amp; Topologi Solusi</p>
-                                        </div>
-                                    </div>
-
-                                    {{-- Document Deliverable Box --}}
-                                    <div class="pt-1">
-                                        @if($isArchitectDone)
-                                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-                                                <div class="flex items-center justify-between gap-3">
-                                                    <div class="flex items-center gap-2.5 min-w-0">
-                                                        <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
-                                                        </div>
-                                                        <div class="min-w-0">
-                                                            <div class="font-bold text-slate-900 text-xs truncate">{{ $architectAssignment['document_title'] ?? 'Desain Topologi Arsitektur' }}</div>
-                                                            <div class="text-[11px] text-slate-500 truncate">{{ $architectAssignment['document_name'] ?? 'Berkas terlampir' }}</div>
-                                                        </div>
-                                                    </div>
-                                                    @if(!empty($architectAssignment['document_path']))
-                                                        <a href="{{ asset('storage/' . $architectAssignment['document_path']) }}" target="_blank" 
-                                                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition shrink-0 shadow-2xs" title="Unduh Desain">
-                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                            <span>Unduh</span>
-                                                        </a>
-                                                    @endif
-                                                </div>
-                                                <div class="text-[10.5px] text-slate-400 pt-2 border-t border-slate-200/80 flex items-center justify-between">
-                                                    <span class="font-medium text-slate-600">Status: Diagram Valid</span>
-                                                    <span>{{ $architectAssignment['completed_at'] ?? '-' }}</span>
-                                                </div>
-                                            </div>
-                                        @elseif($isBdApproved && $isArchitectAssigned)
-                                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-                                                <div class="flex items-center justify-between gap-3">
-                                                    <div class="flex items-center gap-2.5 min-w-0">
-                                                        <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                        </div>
-                                                        <div class="min-w-0">
-                                                            <div class="font-bold text-slate-900 text-xs truncate">Desain Solusi Disahkan</div>
-                                                            <div class="text-[11px] text-slate-500 truncate">{{ $presalesAssignment['document_name'] ?? 'Proposal & SOW' }}</div>
-                                                        </div>
-                                                    </div>
-                                                    @if(!empty($presalesAssignment['document_path']) || !empty($project->proposal_file))
-                                                        <a href="{{ asset('storage/' . ($presalesAssignment['document_path'] ?? $project->proposal_file)) }}" target="_blank" 
-                                                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition shrink-0 shadow-2xs" title="Unduh Berkas">
-                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                            <span>Unduh</span>
-                                                        </a>
-                                                    @endif
-                                                </div>
-                                                <div class="text-[10.5px] text-emerald-600 pt-2 border-t border-slate-200/80 font-semibold">
-                                                    ✓ Tercakup dalam pengesahan verifikasi solusi BD.
-                                                </div>
-                                            </div>
-                                        @elseif($isArchitectAssigned)
-                                            <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1.5">
-                                                <div class="font-medium italic text-[11.5px]">"{{ !empty($architectAssignment['sales_notes']) ? $architectAssignment['sales_notes'] : 'Mohon dirancang diagram topologi arsitektur sistem dan sizing teknis.' }}"</div>
-                                                <div class="text-[10.5px] text-amber-700 mt-1">Ditugaskan: {{ $architectAssignment['assigned_at'] ?? '-' }}</div>
-                                            </div>
-                                        @else
-                                            <div class="p-4 rounded-xl border border-dashed border-slate-200 text-slate-400 text-center text-[11.5px]">
-                                                Belum ada penugasan Solution Architect.
-                                            </div>
-                                        @endif
-                                    </div>
-
-                                </div>
-
-                                {{-- Actions Footer --}}
-                                <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                                    @if(!$isArchitectAssigned)
-                                        <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                                            <span>+ Tugaskan SA</span>
-                                        </button>
-                                    @else
-                                        <button type="button" @click="openAssignTechnicalModal('architect')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                                            Ubah Penugasan
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </div>
-
-            @elseif($currentStatus === 'Pending')
-                {{-- PENDING --}}
-                <div class="ipnet-card p-6 border-amber-200 bg-amber-50/50 space-y-2">
-                    <div class="font-bold text-amber-900 text-sm flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                        Proyek Ditangguhkan (Pending)
-                    </div>
-                    <p class="text-xs text-amber-800 leading-relaxed">
-                        Pengerjaan proyek sedang di-pause sementara waktu menunggu konfirmasi akses site, perizinan, atau kelengkapan berkas kontrak.
-                    </p>
-                </div>
-            @elseif($currentStatus === 'Completed')
-                {{-- COMPLETED --}}
-                <div class="ipnet-card p-6 border-emerald-200 bg-emerald-50/50 space-y-2">
-                    <div class="font-bold text-emerald-900 text-sm flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                        Proyek Selesai &amp; BAST Terbit (Completed)
-                    </div>
-                    <p class="text-xs text-emerald-800 leading-relaxed">
-                        Seluruh target milestone teknis telah selesai 100% dan Berita Acara Serah Terima (BAST) pekerjaan telah disahkan bersama klien.
-                    </p>
-                </div>
-            @endif
-
-            {{-- 4. BALANCED LOWER ZONE 3: 2-COLUMN SPLIT (7 / 5) --}}
+            {{-- 3. MAIN 2-COLUMN STRUCTURE (Lead Engineer Dashboard Layout) --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                {{-- ══ LEFT COLUMN: CLIENT SPECS, MILESTONES & REPOSITORY (col-span-7) ══ --}}
-                <div class="lg:col-span-7 space-y-6">
+                {{-- ══ LEFT MAIN COLUMN (lg:col-span-8) ══ --}}
+                <div class="lg:col-span-8 space-y-6">
                     
-                    {{-- CLIENT INFO CARD --}}
-                    <div class="ipnet-card p-6 space-y-4">
-                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                            <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
-                            Informasi Klien
-                        </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                            <div class="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CLIENT NAME</span>
-                                <div class="font-bold text-slate-900 text-xs mt-1">{{ $project->client ?: '-' }}</div>
+                    {{-- WORKFLOW SECTION BY PROJECT STATUS --}}
+                    @if($currentStatus === 'Opportunity')
+                        {{-- 1. Pipeline Sales & Opportunity Card --}}
+                        <div class="ipnet-card p-6 space-y-4">
+                            <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 pb-3">
+                                <div>
+                                    <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> PIPELINE &amp; PROSPEK PENJUALAN
+                                    </p>
+                                    <h3 class="text-sm font-bold text-slate-900">Tahapan Sales &amp; Estimasi Closing</h3>
+                                </div>
+                                <button type="button" @click="openEditPipelineModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition cursor-pointer shadow-2xs">
+                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    <span>Edit Stage &amp; Prospek</span>
+                                </button>
                             </div>
-                            <div class="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CLIENT EMAIL</span>
-                                <div class="font-bold text-slate-900 text-xs mt-1 truncate">{{ $project->customer_pic_finance ?: ($project->customer_pic_technical ?: '-') }}</div>
-                            </div>
-                            <div class="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PIC KLIEN</span>
-                                <div class="font-bold text-slate-900 text-xs mt-1">{{ $project->customer_pic_name ?? ($project->sales_name ?? '-') }}</div>
-                            </div>
-                            <div class="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CONTACT PIC</span>
-                                <div class="font-bold text-slate-900 text-xs mt-1">{{ $project->customer_pic_business ?: '-' }}</div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/80 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">STAGE SAAT INI</span>
+                                        <strong class="text-xs font-bold text-slate-900 mt-0.5 block">{{ $project->sales_stage ?: 'Qualification' }}</strong>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                                        Active Stage
+                                    </span>
+                                </div>
+
+                                <div class="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/80 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">WIN PROBABILITY</span>
+                                        <div class="text-xs font-extrabold text-[#8F0A0D] mt-0.5">
+                                            {{ $project->win_probability ?: 10 }}% Peluang
+                                        </div>
+                                    </div>
+                                    <div class="w-16 bg-slate-200 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-gradient-to-r from-amber-500 to-[#8F0A0D] h-full rounded-full" style="width: {{ min(100, max(5, $project->win_probability ?: 10)) }}%"></div>
+                                    </div>
+                                </div>
+
+                                <div class="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/80 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">TARGET CLOSING</span>
+                                        <strong class="text-xs font-bold text-slate-900 mt-0.5 block">{{ $project->expected_closing_date ? \Carbon\Carbon::parse($project->expected_closing_date)->format('d M Y') : 'Belum Ditentukan' }}</strong>
+                                    </div>
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
                             </div>
                         </div>
-                    </div>
+
+                        {{-- 2. Kolaborasi Tim Solusi (Clean 3-Card Grid - Step bar removed) --}}
+                        <div class="ipnet-card p-6 space-y-5">
+                            
+                            {{-- Header & Status --}}
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                                <div>
+                                    <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> TIM SOLUSI TEKNIS
+                                    </p>
+                                    <h3 class="text-sm sm:text-base font-bold text-slate-900">Kolaborasi Tim Solusi (BD, Pre-Sales &amp; Solution Architect)</h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">Workflow verifikasi kelayakan teknis, proposal SOW &amp; desain topologi arsitektur.</p>
+                                </div>
+                                <div class="shrink-0">
+                                    @if(($bdVerification['status'] ?? '') === 'Approved')
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            <span>Solusi Disetujui &amp; Disahkan BD</span>
+                                        </span>
+                                    @elseif(($bdVerification['status'] ?? '') === 'Revision Needed')
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
+                                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            <span>Perlu Revisi Dokumen Solusi</span>
+                                        </span>
+                                    @elseif($isPresalesDone || $isArchitectDone)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                            <span>Menunggu Verifikasi PIC BD</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                            <span>Tahap Penyusunan Solusi</span>
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- 3 Collaborative Person Workspace Cards --}}
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                                
+                                {{-- ══ CARD 1: BUSINESS DEVELOPMENT (PIC / PM) ══ --}}
+                                <div class="p-4 rounded-xl bg-white border {{ ($bdVerification['status'] ?? '') === 'Approved' ? 'border-emerald-200 ring-1 ring-emerald-100 shadow-2xs' : (($bdVerification['status'] ?? '') === 'Revision Needed' ? 'border-rose-200 ring-1 ring-rose-100 shadow-2xs' : 'border-slate-200 shadow-2xs') }} flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
+                                    <div class="space-y-3">
+                                        
+                                        {{-- Header --}}
+                                        <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                                PIC BUSINESS DEV
+                                            </span>
+                                            @php
+                                                $bdBadgeClass = match($bdVerification['status'] ?? '') {
+                                                    'Approved'            => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                                    'Revision Needed'     => 'bg-rose-50 text-rose-700 border-rose-200',
+                                                    'Pending Verification'=> 'bg-amber-50 text-amber-800 border-amber-300',
+                                                    'Waiting Uploads'     => 'bg-slate-100 text-slate-700 border-slate-200',
+                                                    default               => 'bg-slate-100 text-slate-500 border-slate-200',
+                                                };
+                                                $bdBadgeLabel = match($bdVerification['status'] ?? '') {
+                                                    'Approved'            => '✓ Disetujui BD',
+                                                    'Revision Needed'     => '⚠ Perlu Revisi',
+                                                    'Pending Verification'=> 'Menunggu Verifikasi',
+                                                    'Waiting Uploads'     => 'Menunggu Berkas',
+                                                    default               => 'Belum Di-assign',
+                                                };
+                                            @endphp
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $bdBadgeClass }}">
+                                                {{ $bdBadgeLabel }}
+                                            </span>
+                                        </div>
+
+                                        {{-- Person --}}
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-700 to-indigo-500 text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                                {{ $isBdmAssigned && !empty($bdmName) ? strtoupper(substr($bdmName, 0, 2)) : 'BD' }}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <h4 class="font-bold text-xs {{ $isBdmAssigned ? 'text-slate-900' : 'text-slate-400 italic' }} truncate">
+                                                    {{ $isBdmAssigned && !empty($bdmName) ? $bdmName : 'Belum Ditugaskan' }}
+                                                </h4>
+                                                <p class="text-[10.5px] text-slate-500 truncate">Product Manager &amp; Verifikator</p>
+                                            </div>
+                                        </div>
+
+                                        {{-- Verification Result Box --}}
+                                        <div>
+                                            @if(($bdVerification['status'] ?? '') === 'Approved')
+                                                <div class="p-3 rounded-lg bg-emerald-50/80 border border-emerald-200 text-emerald-900 space-y-1.5">
+                                                    <div class="flex items-center justify-between text-[11px] font-bold text-emerald-800">
+                                                        <span>Proposal Disetujui</span>
+                                                        <span class="text-[10px] text-emerald-700 font-normal">{{ $bdVerification['verified_at'] ?? 'Selesai' }}</span>
+                                                    </div>
+                                                    @if(!empty($bdVerification['notes']))
+                                                        <div class="text-[11px] text-emerald-950 bg-white/90 p-2 rounded border border-emerald-100 italic">
+                                                            "{{ $bdVerification['notes'] }}"
+                                                        </div>
+                                                    @endif
+                                                    <div class="text-[10.5px] text-emerald-700 font-semibold">
+                                                        ✓ Siap diajukan ke klien.
+                                                    </div>
+                                                </div>
+                                            @elseif(($bdVerification['status'] ?? '') === 'Revision Needed')
+                                                <div class="p-3 rounded-lg bg-rose-50/80 border border-rose-200 text-rose-900 space-y-1">
+                                                    <div class="font-bold text-[11px] text-rose-800">Catatan Revisi:</div>
+                                                    <div class="text-[11px] text-rose-950 bg-white/90 p-2 rounded border border-rose-100 italic">
+                                                        "{{ $bdVerification['notes'] ?? 'Mohon lakukan perbaikan.' }}"
+                                                    </div>
+                                                </div>
+                                            @elseif(($bdVerification['status'] ?? '') === 'Pending Verification')
+                                                <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1">
+                                                    <div class="font-bold text-[11px] text-amber-800">Menunggu Verifikasi</div>
+                                                    <p class="text-[10.5px] text-amber-800 leading-relaxed">Berkas telah siap untuk ditinjau oleh PIC BD.</p>
+                                                </div>
+                                            @elseif($isBdmAssigned)
+                                                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 text-[10.5px]">
+                                                    Menunggu upload dari Pre-Sales &amp; SA.
+                                                </div>
+                                            @else
+                                                <div class="p-3 rounded-lg border border-dashed border-slate-200 text-slate-400 text-center text-[10.5px]">
+                                                    Belum ada PIC BD yang ditunjuk.
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                    </div>
+
+                                    {{-- Actions Footer --}}
+                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                        @if(!$isBdmAssigned)
+                                            <button type="button" @click="openAssignTechnicalModal('bdm')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                <span>+ Tunjuk PIC BD</span>
+                                            </button>
+                                        @else
+                                            <button type="button" @click="openAssignTechnicalModal('bdm')" class="text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                Ubah PIC BD
+                                            </button>
+                                        @endif
+
+                                        @if($canVerifyBD && ($isPresalesDone || $isArchitectDone))
+                                            <button type="button" @click="openVerifyTechnicalModal()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-primary shadow-xs cursor-pointer ml-auto">
+                                                <span>Verifikasi Dokumen</span>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- ══ CARD 2: PRE-SALES SPECIALIST ══ --}}
+                                <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
+                                    <div class="space-y-3">
+                                        
+                                        {{-- Header --}}
+                                        <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                PRE-SALES
+                                            </span>
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $isPresalesDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isPresalesAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
+                                                {{ $isPresalesDone ? 'Berkas Diunggah' : ($isPresalesAssigned ? 'Menunggu Proposal' : 'Belum Di-assign') }}
+                                            </span>
+                                        </div>
+
+                                        {{-- Person --}}
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-700 to-emerald-500 text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                                {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? strtoupper(substr($presalesAssignment['assigned_to'], 0, 2)) : 'PS' }}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <h4 class="font-bold text-xs {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? 'text-slate-900' : 'text-slate-400 italic' }} truncate">
+                                                    {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? $presalesAssignment['assigned_to'] : 'Belum Ditugaskan' }}
+                                                </h4>
+                                                <p class="text-[10.5px] text-slate-500 truncate">Proposal &amp; BoQ Proyek</p>
+                                            </div>
+                                        </div>
+
+                                        {{-- Document Deliverable Box --}}
+                                        <div>
+                                            @if($isPresalesDone)
+                                                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+                                                    <div class="flex items-center justify-between gap-2">
+                                                        <div class="flex items-center gap-2 min-w-0">
+                                                            <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                            </div>
+                                                            <div class="min-w-0">
+                                                                <div class="font-bold text-slate-900 text-xs truncate">{{ $presalesAssignment['document_title'] ?? 'Proposal Teknis' }}</div>
+                                                                <div class="text-[10px] text-slate-500 truncate">{{ $presalesAssignment['document_name'] ?? 'Berkas terlampir' }}</div>
+                                                            </div>
+                                                        </div>
+                                                        @if(!empty($presalesAssignment['document_path']))
+                                                            <a href="{{ asset('storage/' . $presalesAssignment['document_path']) }}" target="_blank" 
+                                                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shrink-0 shadow-2xs" title="Unduh Proposal">
+                                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                                <span>Unduh</span>
+                                                            </a>
+                                                        @endif
+                                                    </div>
+                                                    <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 flex items-center justify-between">
+                                                        <span>SOW Terlampir</span>
+                                                        <span>{{ $presalesAssignment['completed_at'] ?? '-' }}</span>
+                                                    </div>
+                                                </div>
+                                            @elseif($isPresalesAssigned)
+                                                <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1">
+                                                    <div class="font-medium italic text-[11px]">"{{ !empty($presalesAssignment['sales_notes']) ? $presalesAssignment['sales_notes'] : 'Mohon dibuatkan proposal teknis.' }}"</div>
+                                                    <div class="text-[10px] text-amber-700 mt-1">Ditugaskan: {{ $presalesAssignment['assigned_at'] ?? '-' }}</div>
+                                                </div>
+                                            @else
+                                                <div class="p-3 rounded-lg border border-dashed border-slate-200 text-slate-400 text-center text-[10.5px]">
+                                                    Belum ada penugasan Pre-Sales.
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                    </div>
+
+                                    {{-- Actions Footer --}}
+                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                        @if(!$isPresalesAssigned)
+                                            <button type="button" @click="openAssignTechnicalModal('presales')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                <span>+ Tugaskan Presales</span>
+                                            </button>
+                                        @else
+                                            <button type="button" @click="openAssignTechnicalModal('presales')" class="text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                Ubah Penugasan
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- ══ CARD 3: SOLUTION ARCHITECT ══ --}}
+                                <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
+                                    <div class="space-y-3">
+                                        
+                                        {{-- Header --}}
+                                        <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                                                SOL. ARCHITECT
+                                            </span>
+                                            @php
+                                                $isBdApproved = (($bdVerification['status'] ?? '') === 'Approved');
+                                                $saIsCompleted = $isArchitectDone || ($isBdApproved && $isArchitectAssigned);
+                                            @endphp
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $saIsCompleted ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
+                                                {{ $isArchitectDone ? 'Desain Diunggah' : ($isBdApproved && $isArchitectAssigned ? '✓ Solusi Disahkan' : ($isArchitectAssigned ? 'Menunggu Desain' : 'Belum Di-assign')) }}
+                                            </span>
+                                        </div>
+
+                                        {{-- Person --}}
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-700 to-sky-500 text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                                {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? strtoupper(substr($architectAssignment['assigned_to'], 0, 2)) : 'SA' }}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <h4 class="font-bold text-xs {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? 'text-slate-900' : 'text-slate-400 italic' }} truncate">
+                                                    {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? $architectAssignment['assigned_to'] : 'Belum Ditugaskan' }}
+                                                </h4>
+                                                <p class="text-[10.5px] text-slate-500 truncate">Desain Topologi Arsitektur</p>
+                                            </div>
+                                        </div>
+
+                                        {{-- Document Deliverable Box --}}
+                                        <div>
+                                            @if($isArchitectDone)
+                                                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+                                                    <div class="flex items-center justify-between gap-2">
+                                                        <div class="flex items-center gap-2 min-w-0">
+                                                            <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+                                                            </div>
+                                                            <div class="min-w-0">
+                                                                <div class="font-bold text-slate-900 text-xs truncate">{{ $architectAssignment['document_title'] ?? 'Desain Arsitektur' }}</div>
+                                                                <div class="text-[10px] text-slate-500 truncate">{{ $architectAssignment['document_name'] ?? 'Berkas terlampir' }}</div>
+                                                            </div>
+                                                        </div>
+                                                        @if(!empty($architectAssignment['document_path']))
+                                                            <a href="{{ asset('storage/' . $architectAssignment['document_path']) }}" target="_blank" 
+                                                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition shrink-0 shadow-2xs" title="Unduh Desain">
+                                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                                <span>Unduh</span>
+                                                            </a>
+                                                        @endif
+                                                    </div>
+                                                    <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 flex items-center justify-between">
+                                                        <span>Diagram Valid</span>
+                                                        <span>{{ $architectAssignment['completed_at'] ?? '-' }}</span>
+                                                    </div>
+                                                </div>
+                                            @elseif($isBdApproved && $isArchitectAssigned)
+                                                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+                                                    <div class="flex items-center justify-between gap-2">
+                                                        <div class="flex items-center gap-2 min-w-0">
+                                                            <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                            </div>
+                                                            <div class="min-w-0">
+                                                                <div class="font-bold text-slate-900 text-xs truncate">Desain Disahkan</div>
+                                                                <div class="text-[10px] text-slate-500 truncate">{{ $presalesAssignment['document_name'] ?? 'Proposal & SOW' }}</div>
+                                                            </div>
+                                                        </div>
+                                                        @if(!empty($presalesAssignment['document_path']) || !empty($project->proposal_file))
+                                                            <a href="{{ asset('storage/' . ($presalesAssignment['document_path'] ?? $project->proposal_file)) }}" target="_blank" 
+                                                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition shrink-0 shadow-2xs" title="Unduh Berkas">
+                                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                                <span>Unduh</span>
+                                                            </a>
+                                                        @endif
+                                                    </div>
+                                                    <div class="text-[10px] text-emerald-600 pt-1.5 border-t border-slate-200/80 font-semibold">
+                                                        ✓ Disahkan dalam verifikasi BD.
+                                                    </div>
+                                                </div>
+                                            @elseif($isArchitectAssigned)
+                                                <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1">
+                                                    <div class="font-medium italic text-[11px]">"{{ !empty($architectAssignment['sales_notes']) ? $architectAssignment['sales_notes'] : 'Mohon dirancang topologi sistem.' }}"</div>
+                                                    <div class="text-[10px] text-amber-700 mt-1">Ditugaskan: {{ $architectAssignment['assigned_at'] ?? '-' }}</div>
+                                                </div>
+                                            @else
+                                                <div class="p-3 rounded-lg border border-dashed border-slate-200 text-slate-400 text-center text-[10.5px]">
+                                                    Belum ada penugasan Solution Architect.
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                    </div>
+
+                                    {{-- Actions Footer --}}
+                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                        @if(!$isArchitectAssigned)
+                                            <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                <span>+ Tugaskan SA</span>
+                                            </button>
+                                        @else
+                                            <button type="button" @click="openAssignTechnicalModal('architect')" class="text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                Ubah Penugasan
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    @elseif($currentStatus === 'Draft')
+                        {{-- DRAFT: Persetujuan Pimpinan (Review & Sign-Off) --}}
+                        <div class="ipnet-card p-6 space-y-5">
+                            <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                                <div>
+                                    <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> OTORISASI PIMPINAN
+                                    </p>
+                                    <h3 class="text-sm sm:text-base font-bold text-slate-900">Persetujuan Pimpinan (Review &amp; Sign-Off)</h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">Review kelayakan teknis oleh Head Divisi &amp; otorisasi kontrak oleh Direktur.</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                {{-- Reviewer 1: Pak Susanto --}}
+                                <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-3 flex flex-col justify-between">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">HEAD DIVISI</div>
+                                                <div class="font-bold text-slate-900 text-sm mt-0.5">{{ $headApproval['assigned_to'] ?? ($susantoUser ? $susantoUser->name : 'Pak Susanto Djaya') }}</div>
+                                            </div>
+                                            <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ !empty($headApproval['approved']) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isHeadAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
+                                                {{ !empty($headApproval['approved']) ? '✓ Disetujui' : ($isHeadAssigned ? 'Menunggu Review' : 'Belum Di-assign') }}
+                                            </span>
+                                        </div>
+
+                                        <div class="text-[11.5px] text-slate-600">
+                                            @if(!empty($headApproval['approved']))
+                                                <div class="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 text-emerald-800 font-medium">
+                                                    "{{ $headApproval['notes'] ?? 'Review kelayakan teknis & alokasi resource disetujui.' }}"
+                                                </div>
+                                                <div class="text-[10.5px] text-slate-400 mt-1">Disetujui: {{ $headApproval['date'] ?? '-' }}</div>
+                                            @elseif($isHeadAssigned)
+                                                <div class="p-2.5 rounded-lg bg-amber-50/60 border border-amber-200 text-amber-800 italic">
+                                                    "Menunggu review dari {{ $headApproval['assigned_to'] ?? 'Pak Susanto Djaya' }}."
+                                                </div>
+                                                @if(!empty($headApproval['assigned_at']))
+                                                    <div class="text-[10.5px] text-slate-400 mt-1">Ditugaskan: {{ $headApproval['assigned_at'] }}</div>
+                                                @endif
+                                            @else
+                                                <span class="text-slate-400">Belum diajukan ke Head Divisi.</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+                                        @if(!$isHeadAssigned)
+                                            <button type="button" @click="openAssignModal('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                <span>+ Assign ke Pak Susanto</span>
+                                            </button>
+                                        @elseif(!$headApproval['approved'])
+                                            <button type="button" @click="openAssignModal('head')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                Ubah Penugasan
+                                            </button>
+                                        @endif
+
+                                        @if($canApproveHead && $isHeadAssigned)
+                                            <button type="button" @click="openApproveModal('head')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-primary shadow-xs cursor-pointer ml-auto">
+                                                <span>{{ empty($headApproval['approved']) ? '✓ Beri Approval' : 'Ubah Catatan' }}</span>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- Reviewer 2: Pak Hariyadi --}}
+                                <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-3 flex flex-col justify-between">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">DIREKTUR</div>
+                                                <div class="font-bold text-slate-900 text-sm mt-0.5">{{ $directorApproval['assigned_to'] ?? ($hariyadiUser ? $hariyadiUser->name : 'Pak Hariyadi') }}</div>
+                                            </div>
+                                            <span class="px-2.5 py-0.5 rounded text-[10.5px] font-bold {{ !empty($directorApproval['approved']) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isDirectorAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
+                                                {{ !empty($directorApproval['approved']) ? '✓ Disahkan' : ($isDirectorAssigned ? 'Menunggu Otorisasi' : 'Belum Di-assign') }}
+                                            </span>
+                                        </div>
+
+                                        <div class="text-[11.5px] text-slate-600">
+                                            @if(!empty($directorApproval['approved']))
+                                                <div class="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 text-emerald-800 font-medium">
+                                                    "{{ $directorApproval['notes'] ?? 'Otorisasi finansial & validasi kontrak disahkan.' }}"
+                                                </div>
+                                                <div class="text-[10.5px] text-slate-400 mt-1">Disahkan: {{ $directorApproval['date'] ?? '-' }}</div>
+                                            @elseif($isDirectorAssigned)
+                                                <div class="p-2.5 rounded-lg bg-amber-50/60 border border-amber-200 text-amber-800 italic">
+                                                    "Menunggu otorisasi finansial dari {{ $directorApproval['assigned_to'] ?? 'Pak Hariyadi' }}."
+                                                </div>
+                                                @if(!empty($directorApproval['assigned_at']))
+                                                    <div class="text-[10.5px] text-slate-400 mt-1">Ditugaskan: {{ $directorApproval['assigned_at'] }}</div>
+                                                @endif
+                                            @else
+                                                <span class="text-slate-400">Belum diajukan ke Direktur.</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+                                        @if(!$isDirectorAssigned)
+                                            <button type="button" @click="openAssignModal('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                <span>+ Assign ke Pak Hariyadi</span>
+                                            </button>
+                                        @elseif(!$directorApproval['approved'])
+                                            <button type="button" @click="openAssignModal('director')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                Ubah Penugasan
+                                            </button>
+                                        @endif
+
+                                        @if($canApproveDirector && $isDirectorAssigned)
+                                            <button type="button" @click="openApproveModal('director')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-primary shadow-xs cursor-pointer ml-auto">
+                                                <span>{{ empty($directorApproval['approved']) ? '✓ Beri Otorisasi' : 'Ubah Catatan' }}</span>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    @elseif($currentStatus === 'In Progress')
+                        {{-- IN PROGRESS: Fase Delivery ke PMO & Monitoring Engineer --}}
+                        <div class="ipnet-card p-6 space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
+                                <div>
+                                    <p class="text-amber-600 text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block mr-1.5"></span> FASE DELIVERY PROYEK
+                                    </p>
+                                    <h3 class="text-sm font-bold text-slate-900">Alokasi Tim PMO &amp; Engineer Pelaksana</h3>
+                                </div>
+                                <div class="flex items-center gap-2.5">
+                                    <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="status" value="Completed">
+                                        <button type="submit" onclick="return confirm('Tandai proyek {{ addslashes($project->name) }} sebagai Selesai (Completed)?')"
+                                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            <span>✓ Selesaikan Proyek (Completed)</span>
+                                        </button>
+                                    </form>
+                                    <button type="button" @click="isHandoverModalOpen = true" class="text-xs font-bold text-[#8F0A0D] hover:underline cursor-pointer">
+                                        {{ $project->pm ? 'Ubah PMO (' . $project->pm->name . ')' : '+ Handover ke PMO' }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-1.5">
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PROJECT MANAGER (PMO)</div>
+                                    <div class="font-bold text-slate-900 text-sm">{{ $project->pm ? $project->pm->name : 'Belum Ada PM' }}</div>
+                                    <div class="text-[11.5px] text-slate-500">{{ $project->pm ? $project->pm->email : 'Sales silakan serahkan delivery ke tim PMO' }}</div>
+                                </div>
+                                <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">TIM ENGINEER PELAKSANA</span>
+                                        <span class="text-[10.5px] font-bold text-slate-600">{{ $uniqueEngineers->count() }} Personel</span>
+                                    </div>
+                                    @if($uniqueEngineers->count() > 0)
+                                        <div class="space-y-1 pt-0.5">
+                                            @foreach($uniqueEngineers as $eng)
+                                                <div class="flex items-center justify-between text-[11.5px]">
+                                                    <span class="font-semibold text-slate-800">{{ $eng->name }}</span>
+                                                    <span class="text-slate-400">{{ $eng->roles->pluck('name')->first() ?? 'Engineer' }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <div class="text-[11.5px] text-slate-400 italic">
+                                            Menunggu alokasi tim teknis oleh PMO.
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                    @elseif($currentStatus === 'Pending')
+                        {{-- PENDING --}}
+                        <div class="ipnet-card p-6 border-amber-200 bg-amber-50/50 space-y-2">
+                            <div class="font-bold text-amber-900 text-sm flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                Proyek Ditangguhkan (Pending)
+                            </div>
+                            <p class="text-xs text-amber-800 leading-relaxed">
+                                Pengerjaan proyek sedang di-pause sementara waktu menunggu konfirmasi akses site, perizinan, atau kelengkapan berkas kontrak.
+                            </p>
+                        </div>
+                    @elseif($currentStatus === 'Completed')
+                        {{-- COMPLETED --}}
+                        <div class="ipnet-card p-6 border-emerald-200 bg-emerald-50/50 space-y-2">
+                            <div class="font-bold text-emerald-900 text-sm flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                Proyek Selesai &amp; BAST Terbit (Completed)
+                            </div>
+                            <p class="text-xs text-emerald-800 leading-relaxed">
+                                Seluruh target milestone teknis telah selesai 100% dan Berita Acara Serah Terima (BAST) pekerjaan telah disahkan bersama klien.
+                            </p>
+                        </div>
+                    @endif
 
                     {{-- MILESTONES CARD --}}
                     <div class="ipnet-card p-6 space-y-4">
@@ -1233,40 +1113,10 @@
 
                 </div>
 
-                {{-- ══ RIGHT COLUMN: EXECUTIVE OVERVIEW & LIVE TIMELINE (col-span-5) ══ --}}
-                <div class="lg:col-span-5 space-y-6">
+                {{-- ══ RIGHT SIDEBAR COLUMN (lg:col-span-4) ══ --}}
+                <div class="lg:col-span-4 space-y-6">
                     
-                    {{-- EXECUTIVE SUMMARY & QUICK METRICS CARD --}}
-                    <div class="ipnet-card p-6 space-y-4">
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
-                                Ringkasan Eksekutif Proyek
-                            </h3>
-                            <span class="text-[11px] font-semibold text-slate-400">IPNET Overview</span>
-                        </div>
-
-                        <div class="space-y-3 text-xs">
-                            <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center justify-between">
-                                <span class="text-slate-500 font-medium">Status &amp; Kategori</span>
-                                <span class="font-bold text-slate-800">{{ $project->client_department ?: 'IPNET 01' }} / {{ $currentStatus }}</span>
-                            </div>
-                            <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center justify-between">
-                                <span class="text-slate-500 font-medium">Owner Sales Proyek</span>
-                                <span class="font-bold text-slate-800">{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}</span>
-                            </div>
-                            <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center justify-between">
-                                <span class="text-slate-500 font-medium">Lead PMO / Koordinator</span>
-                                <span class="font-bold text-slate-800">{{ $project->pm ? $project->pm->name : 'Belum Ditunjuk' }}</span>
-                            </div>
-                            <div class="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center justify-between">
-                                <span class="text-slate-500 font-medium">Progress Penyelesaian Milestone</span>
-                                <span class="font-bold text-[#8F0A0D]">{{ $project->tasks->count() > 0 ? round(($project->tasks->where('status', 'Completed')->count() / $project->tasks->count()) * 100) : 0 }}% Selesai</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- CARD: PROJECT ACTIVITY TIMELINE --}}
+                    {{-- 1. PROJECT ACTIVITIES TIMELINE (Directly visible at top right) --}}
                     <div class="ipnet-card p-6 space-y-5">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                             <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -1277,7 +1127,7 @@
                         </div>
                         
                         {{-- Timeline Flow with Vertical Connector --}}
-                        <div class="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 text-xs">
+                        <div class="relative pl-6 space-y-5 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 text-xs">
                             
                             {{-- 1. Project Creation --}}
                             <div class="relative">
@@ -1412,6 +1262,54 @@
                                 </div>
                             @endif
 
+                        </div>
+                    </div>
+
+                    {{-- 2. INFORMASI KLIEN CARD --}}
+                    <div class="ipnet-card p-6 space-y-4">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
+                            Informasi Klien
+                        </h3>
+                        <div class="space-y-3 text-xs">
+                            <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CLIENT NAME</span>
+                                <div class="font-bold text-slate-900 text-xs mt-0.5">{{ $project->client ?: '-' }}</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CLIENT EMAIL</span>
+                                <div class="font-bold text-slate-900 text-xs mt-0.5 truncate">{{ $project->customer_pic_finance ?: ($project->customer_pic_technical ?: '-') }}</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PIC KLIEN</span>
+                                <div class="font-bold text-slate-900 text-xs mt-0.5">{{ $project->customer_pic_name ?? ($project->sales_name ?? '-') }}</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CONTACT PIC</span>
+                                <div class="font-bold text-slate-900 text-xs mt-0.5">{{ $project->customer_pic_business ?: '-' }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. RINGKASAN PORTOFOLIO --}}
+                    <div class="ipnet-card p-6 space-y-3">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
+                            Ringkasan Proyek
+                        </h3>
+                        <div class="space-y-2 text-xs">
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                                <span class="text-slate-500">Divisi</span>
+                                <span class="font-bold text-slate-800">{{ $project->client_department ?: 'IPNET 01' }}</span>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                                <span class="text-slate-500">Sales Owner</span>
+                                <span class="font-bold text-slate-800">{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}</span>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                                <span class="text-slate-500">Status Penyelesaian</span>
+                                <span class="font-bold text-[#8F0A0D]">{{ $project->tasks->count() > 0 ? round(($project->tasks->where('status', 'Completed')->count() / $project->tasks->count()) * 100) : 0 }}% Selesai</span>
+                            </div>
                         </div>
                     </div>
 
