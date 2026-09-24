@@ -1402,664 +1402,632 @@
     {{-- ======================================================== --}}
 
     {{-- 1. ASSIGN / HANDOVER TO PMO MODAL --}}
-    <template x-teleport="body">
-        <div x-show="isHandoverModalOpen" x-cloak 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto"
-             style="display: none;">
-            <div @click.away="isHandoverModalOpen = false" 
-                 class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
-                
-                <div class="flex items-center justify-between border-b pb-3">
-                    <h3 class="text-base font-bold text-slate-900">Assign PMO (Handover Proyek)</h3>
-                    <button type="button" @click="isHandoverModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
-                </div>
-
-                <form action="{{ route('projects.assign', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
-                    @csrf
-                    <input type="hidden" name="role_type" value="pm">
-
-                    <p class="text-slate-500 font-normal leading-relaxed">
-                        Sales menyerahkan proyek ke PMO. Pilih Project Manager yang akan mengatur alokasi teknis dan tim engineer.
-                    </p>
-
-                    <div>
-                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">PILIH USER PMO</label>
-                        <select name="user_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-white">
-                            <option value="">Select a user</option>
-                            @foreach($pmoUsers as $pmo)
-                                <option value="{{ $pmo->id }}" {{ ($project->pm_id == $pmo->id || (empty($project->pm_id) && str_contains(strtolower($pmo->name), 'rizki'))) ? 'selected' : '' }}>
-                                    (PMO) {{ $pmo->name }}
-                                </option>
-                            @endforeach
-                            @php
-                                $otherUsers = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $pmoUsers->pluck('id'));
-                            @endphp
-                            @foreach($otherUsers as $ou)
-                                @php
-                                    $prefix = $ou->hasAnyRole(['Director', 'Direktur', 'Division Head']) ? '(Head)' : ($ou->hasAnyRole(['Sales']) ? '(Sales)' : '(Engineer)');
-                                @endphp
-                                <option value="{{ $ou->id }}" {{ $project->pm_id == $ou->id ? 'selected' : '' }}>
-                                    {{ $prefix }} {{ $ou->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t">
-                        <button type="button" @click="isHandoverModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                            Assign ke PMO
-                        </button>
-                    </div>
-                </form>
+    <div x-show="isHandoverModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isHandoverModalOpen = false" 
+             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="text-base font-bold text-slate-900">Assign PMO (Handover Proyek)</h3>
+                <button type="button" @click="isHandoverModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
-        </div>
-    </template>
 
-    {{-- 2. DRAFT APPROVAL MODAL --}}
-    <template x-teleport="body">
-        <div x-show="isApproveModalOpen" x-cloak 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto"
-             style="display: none;">
-            <div @click.away="isApproveModalOpen = false" 
-                 class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
-                
-                <div class="flex items-center justify-between border-b pb-3">
-                    <h3 class="text-base font-bold text-slate-900" x-text="approveRole === 'head' ? 'Approval Head Divisi (Pak Susanto)' : 'Approval Direktur (Pak Hariyadi)'"></h3>
-                    <button type="button" @click="isApproveModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
-                </div>
+            <form action="{{ route('projects.assign', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+                <input type="hidden" name="role_type" value="pm">
 
-                <form action="{{ route('projects.approve_draft', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
-                    @csrf
-                    <input type="hidden" name="approval_role" :value="approveRole">
-
-                    <div>
-                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">CATATAN PERSETUJUAN</label>
-                        <textarea name="notes" rows="3" 
-                                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
-                                  :placeholder="approveRole === 'head' ? 'Contoh: Kelayakan teknis & alokasi resource disetujui.' : 'Contoh: Otorisasi anggaran & kontrak disahkan.'"></textarea>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" name="auto_advance" id="auto_advance" value="1" checked class="rounded text-red-600">
-                        <label for="auto_advance" class="text-slate-600 font-normal">Otomatis ubah status saat kedua approval lengkap</label>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t">
-                        <button type="button" @click="isApproveModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                            Simpan Approval
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </template>
-
-    {{-- 3. ADD MILESTONE MODAL --}}
-    <template x-teleport="body">
-        <div x-show="isAddMilestoneModalOpen" x-cloak 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto"
-             style="display: none;">
-            <div @click.away="isAddMilestoneModalOpen = false" 
-                 class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
-                
-                <div class="flex items-center justify-between border-b pb-3">
-                    <h3 class="text-base font-bold text-slate-900">Tambah Milestone</h3>
-                    <button type="button" @click="isAddMilestoneModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
-                </div>
-
-                <form action="{{ route('tasks.store') }}" method="POST" class="space-y-4 text-xs font-semibold">
-                    @csrf
-                    <input type="hidden" name="project_id" value="{{ $project->id }}">
-                    <input type="hidden" name="status" value="Pending">
-
-                    <div>
-                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NAMA MILESTONE</label>
-                        <input type="text" name="title" required placeholder="Contoh: Pengiriman Aruba AP-505 dan APC" 
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PRIORITAS</label>
-                            <select name="priority" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
-                                <option value="Low">Low</option>
-                                <option value="Medium" selected>Medium</option>
-                                <option value="High">High</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">DEADLINE</label>
-                            <input type="date" name="deadline" value="{{ date('Y-m-d', strtotime('+7 days')) }}" 
-                                   class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t">
-                        <button type="button" @click="isAddMilestoneModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                            Simpan Milestone
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </template>
-
-    {{-- 4. EDIT META ESTIMATION MODAL --}}
-    <template x-teleport="body">
-        <div x-show="isEditMetaModalOpen" x-cloak 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto"
-             style="display: none;">
-            <div @click.away="isEditMetaModalOpen = false" 
-                 class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
-                
-                <div class="flex items-center justify-between border-b pb-3">
-                    <h3 class="text-base font-bold text-slate-900">Edit Estimasi &amp; Tanggal</h3>
-                    <button type="button" @click="isEditMetaModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
-                </div>
-
-                <form action="{{ route('projects.meta_update', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
-                    @csrf
-                    <div>
-                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NILAI ESTIMASI (RP)</label>
-                        <input type="number" name="contract_value" value="{{ $project->contract_value ?: 300000000 }}" required 
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PROJECT START</label>
-                            <input type="date" name="start_date" value="{{ $project->start_date ? $project->start_date->format('Y-m-d') : date('Y-m-d') }}" 
-                                   class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
-                        </div>
-                        <div>
-                            <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PROJECT END</label>
-                            <input type="date" name="deadline" value="{{ $project->deadline ? $project->deadline->format('Y-m-d') : '' }}" 
-                                   class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t">
-                        <button type="button" @click="isEditMetaModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                            Simpan Perubahan
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </template>
-
-    {{-- 5. UPLOAD DOCUMENT MODAL --}}
-    <template x-teleport="body">
-        <div x-show="isUploadDocModalOpen" x-cloak 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto"
-             style="display: none;">
-            <div @click.away="isUploadDocModalOpen = false" 
-                 class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
-                
-                <div class="flex items-center justify-between border-b pb-3">
-                    <h3 class="text-base font-bold text-slate-900">Upload Berkas Lampiran</h3>
-                    <button type="button" @click="isUploadDocModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
-                </div>
-
-                <form action="{{ route('projects.documents.upload', $project->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs font-semibold">
-                    @csrf
-                    <input type="hidden" name="stage_number" value="1">
-                    <input type="hidden" name="document_key" value="lampiran_pendukung">
-
-                    <div>
-                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PILIH BERKAS</label>
-                        <input type="file" name="document_files[]" multiple required 
-                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-slate-50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-[#8F0A0D] hover:file:bg-red-100">
-                        <p class="text-[10.5px] text-slate-400 mt-1">Format: PDF, XLSX, DOCX, ZIP, PNG, JPG (Maks 50MB)</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">CATATAN DOKUMEN</label>
-                        <input type="text" name="notes" placeholder="Contoh: BoQ dan Penawaran Resmi" 
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t">
-                        <button type="button" @click="isUploadDocModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                            Upload Berkas
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </template>
-
-    {{-- 6. MODAL ASSIGN APPROVAL KE PIMPINAN (HEAD & DIREKTUR) --}}
-    <template x-teleport="body">
-        <div x-show="isAssignModalOpen" x-cloak 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto"
-             style="display: none;">
-            <div @click.away="isAssignModalOpen = false" 
-                 class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
-                
-                <div class="flex items-center justify-between border-b pb-3">
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900" 
-                            x-text="assignRole === 'head' ? 'Assign Review ke Head Divisi' : (assignRole === 'director' ? 'Assign Otorisasi ke Direktur' : 'Assign Review ke Pimpinan')"></h3>
-                        <p class="text-[11.5px] text-slate-500 mt-0.5">Tugaskan peninjauan draft proyek ke pimpinan yang berwenang</p>
-                    </div>
-                    <button type="button" @click="isAssignModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
-                </div>
-
-                <form action="{{ route('projects.assign_approver', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
-                    @csrf
-                    <input type="hidden" name="role" :value="assignRole">
-
-                    {{-- Pilihan Head Divisi --}}
-                    <div x-show="assignRole === 'head' || assignRole === 'both'">
-                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH HEAD DIVISI (REVIEW TEKNIS)</label>
-                        <select name="head_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
-                            @foreach($leadershipUsers as $lu)
-                                <option value="{{ $lu->id }}" {{ ($susantoUser && $susantoUser->id == $lu->id) ? 'selected' : '' }}>
-                                    {{ $lu->name }} ({{ $lu->email }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    {{-- Pilihan Direktur --}}
-                    <div x-show="assignRole === 'director' || assignRole === 'both'">
-                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH DIREKTUR (OTORISASI KONTRAK)</label>
-                        <select name="director_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
-                            @foreach($leadershipUsers as $lu)
-                                <option value="{{ $lu->id }}" {{ ($hariyadiUser && $hariyadiUser->id == $lu->id) ? 'selected' : '' }}>
-                                    {{ $lu->name }} ({{ $lu->email }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">CATATAN DARI SALES (OPSIONAL)</label>
-                        <textarea name="notes" rows="3" 
-                                  placeholder="Contoh: Mohon review kelayakan teknis jaringan dan validasi estimasi nilai kontrak untuk penawaran klien."
-                                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t">
-                        <button type="button" @click="isAssignModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                            Tugaskan Sekarang
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </template>
-
-    {{-- 7. MODAL EDIT PIPELINE SALES & OPPORTUNITY --}}
-    <template x-teleport="body">
-        <div x-show="isEditPipelineModalOpen" x-cloak 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto"
-             style="display: none;">
-            <div @click.away="isEditPipelineModalOpen = false" 
-                 class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
-                
-                <div class="flex items-center justify-between border-b pb-3">
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900">Ubah Stage &amp; Pipeline Sales</h3>
-                        <p class="text-[11.5px] text-slate-500 mt-0.5">Perbarui progres tahapan prospek penjualan &amp; estimasi closing</p>
-                    </div>
-                    <button type="button" @click="isEditPipelineModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
-                </div>
-
-                <form action="{{ route('projects.update_pipeline', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
-                    @csrf
-
-                    <div>
-                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">SALES PIPELINE STAGE</label>
-                        <select name="sales_stage" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer font-bold">
-                            @php
-                                $stagesList = [
-                                    'Qualification'        => '1. Qualification (Kualifikasi Awal)',
-                                    'Discovery'            => '2. Discovery / Kebutuhan Klien',
-                                    'Proposal / Quoting'   => '3. Proposal &amp; Quoting (Penawaran Resmi)',
-                                    'Negotiation'          => '4. Negotiation / Pembahasan Kontrak',
-                                    'Closed Won'           => '5. Closed Won (Menang / Deal)',
-                                    'Closed Lost'          => '6. Closed Lost (Batal / Kalah Tender)',
-                                ];
-                                $currentSalesStage = $project->sales_stage ?: 'Qualification';
-                            @endphp
-                            @foreach($stagesList as $stKey => $stLabel)
-                                <option value="{{ $stKey }}" {{ $currentSalesStage === $stKey ? 'selected' : '' }}>
-                                    {!! $stLabel !!}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">WIN PROBABILITY (%)</label>
-                            <select name="win_probability" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer font-bold">
-                                @foreach([10 => '10% (Tahap Awal)', 25 => '25% (Riset Spek)', 50 => '50% (Proposal Masuk)', 75 => '75% (Negosiasi Final)', 90 => '90% (Menunggu PO)', 100 => '100% (Deal / Won)'] as $pct => $pctLabel)
-                                    <option value="{{ $pct }}" {{ ($project->win_probability ?: 10) == $pct ? 'selected' : '' }}>
-                                        {{ $pctLabel }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">TARGET CLOSING</label>
-                            <input type="date" name="expected_closing_date" 
-                                   value="{{ $project->expected_closing_date ? \Carbon\Carbon::parse($project->expected_closing_date)->format('Y-m-d') : '' }}" 
-                                   class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">ESTIMASI NILAI PROYEK (RP)</label>
-                        <input type="number" name="contract_value" value="{{ $project->contract_value ?: 0 }}" min="0" step="1000"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold">
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t">
-                        <button type="button" @click="isEditPipelineModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                            Simpan Perubahan Stage
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </template>
-
-    {{-- 8. MODAL ASSIGN KE TIM SOLUSI (PIC BD, PRESALES & SA) --}}
-    <template x-teleport="body">
-        <div x-show="isAssignTechnicalModalOpen" x-cloak 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto"
-             style="display: none;">
-            <div @click.away="isAssignTechnicalModalOpen = false" 
-                 class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
-                
-                <div class="flex items-center justify-between border-b pb-3">
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900" 
-                            x-text="assignTechnicalRole === 'bdm' ? 'Tunjuk PIC BD (Product Manager)' : (assignTechnicalRole === 'presales' ? 'Tugaskan Pre-Sales Specialist' : (assignTechnicalRole === 'architect' ? 'Tugaskan Solution Architect' : 'Tugaskan Tim Solusi &amp; BD'))"></h3>
-                        <p class="text-[11.5px] text-slate-500 mt-0.5">Penugasan PIC BD verifikator, penyusun proposal, dan perancang topologi</p>
-                    </div>
-                    <button type="button" @click="isAssignTechnicalModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
-                </div>
-
-                <form action="{{ route('projects.assign_technical', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
-                    @csrf
-                    <input type="hidden" name="role" :value="assignTechnicalRole">
-
-                    {{-- Pilihan PIC BD --}}
-                    <div x-show="assignTechnicalRole === 'bdm' || assignTechnicalRole === 'all' || assignTechnicalRole === 'both'">
-                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH PIC BUSINESS DEVELOPMENT (PRODUCT MANAGER &amp; VERIFIKATOR)</label>
-                        <select name="bdm_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer">
-                            <option value="">-- Pilih PIC Business Development --</option>
-                            @foreach($bdmUsers as $bu)
-                                <option value="{{ $bu->id }}" {{ ($project->bdm_id == $bu->id || (isset($bdmAssignment['assigned_user_id']) && $bdmAssignment['assigned_user_id'] == $bu->id)) ? 'selected' : '' }}>
-                                    (BD) {{ $bu->name }} ({{ $bu->email }})
-                                </option>
-                            @endforeach
-                            @php
-                                $otherUsersBD = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $bdmUsers->pluck('id'));
-                            @endphp
-                            @foreach($otherUsersBD as $ou)
-                                <option value="{{ $ou->id }}" {{ ($project->bdm_id == $ou->id) ? 'selected' : '' }}>
-                                    {{ $ou->name }} ({{ $ou->email }})
-                                </option>
-                            @endforeach
-                        </select>
-                        <span class="text-[10px] text-slate-400 mt-1 block">PIC BD akan menerima notifikasi dan memvalidasi berkas proposal sebelum diajukan ke klien.</span>
-                    </div>
-
-                    {{-- Pilihan Pre-Sales --}}
-                    <div x-show="assignTechnicalRole === 'presales' || assignTechnicalRole === 'all' || assignTechnicalRole === 'both'">
-                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH PRE-SALES SPECIALIST (PROPOSAL &amp; BOQ)</label>
-                        <select name="presales_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer">
-                            @foreach($presalesUsers as $pu)
-                                <option value="{{ $pu->id }}" {{ (isset($presalesAssignment['assigned_user_id']) && $presalesAssignment['assigned_user_id'] == $pu->id) || str_contains(strtolower($pu->name), 'akbar') ? 'selected' : '' }}>
-                                    (Pre-Sales) {{ $pu->name }} ({{ $pu->email }})
-                                </option>
-                            @endforeach
-                            @php
-                                $otherUsersPS = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $presalesUsers->pluck('id'));
-                            @endphp
-                            @foreach($otherUsersPS as $ou)
-                                <option value="{{ $ou->id }}" {{ (isset($presalesAssignment['assigned_user_id']) && $presalesAssignment['assigned_user_id'] == $ou->id) ? 'selected' : '' }}>
-                                    {{ $ou->name }} ({{ $ou->email }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    {{-- Pilihan Solution Architect --}}
-                    <div x-show="assignTechnicalRole === 'architect' || assignTechnicalRole === 'all' || assignTechnicalRole === 'both'">
-                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH SOLUTION ARCHITECT (DESAIN TOPOLOGI &amp; SIZING)</label>
-                        <select name="architect_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer">
-                            @foreach($architectUsers as $au)
-                                <option value="{{ $au->id }}" {{ (isset($architectAssignment['assigned_user_id']) && $architectAssignment['assigned_user_id'] == $au->id) || str_contains(strtolower($au->name), 'aris') ? 'selected' : '' }}>
-                                    (Solution Architect) {{ $au->name }} ({{ $au->email }})
-                                </option>
-                            @endforeach
-                            @php
-                                $otherUsersSA = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $architectUsers->pluck('id'));
-                            @endphp
-                            @foreach($otherUsersSA as $ou)
-                                <option value="{{ $ou->id }}" {{ (isset($architectAssignment['assigned_user_id']) && $architectAssignment['assigned_user_id'] == $ou->id) ? 'selected' : '' }}>
-                                    {{ $ou->name }} ({{ $ou->email }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">INSTRUKSI &amp; CATATAN TEKNIS SALES</label>
-                        <textarea name="notes" rows="3" 
-                                  placeholder="Contoh: Tolong buatkan desain topologi redundant switch &amp; estimasi BoQ untuk kebutuhan penawaran tender klien."
-                                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t">
-                        <button type="button" @click="isAssignTechnicalModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                            Simpan Penugasan Tim
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </template>
-
-    {{-- 9. MODAL VERIFIKASI SOLUSI OLEH PIC BD --}}
-    <template x-teleport="body">
-        <div x-show="isVerifyTechnicalModalOpen" x-cloak 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto"
-             style="display: none;">
-            <div @click.away="isVerifyTechnicalModalOpen = false" 
-                 class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
-                
-                <div class="flex items-center justify-between border-b pb-3">
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900">Verifikasi Kelayakan Dokumen Solusi</h3>
-                        <p class="text-[11.5px] text-slate-500 mt-0.5">Tinjau kesiapan proposal teknis, BoQ, dan desain topologi</p>
-                    </div>
-                    <button type="button" @click="isVerifyTechnicalModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
-                </div>
-
-                <form action="{{ route('projects.verify_technical', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
-                    @csrf
-
-                    {{-- Ringkasan Berkas yang Terunggah --}}
-                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-[11.5px]">
-                        <div class="font-bold text-slate-800 text-xs">Berkas yang Divalidasi:</div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-600">Proposal &amp; BoQ (Pre-Sales):</span>
-                            <span class="font-bold {{ $isPresalesDone ? 'text-emerald-700' : 'text-amber-700' }}">
-                                {{ $isPresalesDone ? ($presalesAssignment['document_name'] ?? 'Terunggah') : 'Belum Terunggah' }}
-                            </span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-600">Desain Topologi (Solution Architect):</span>
-                            <span class="font-bold {{ $isArchitectDone ? 'text-emerald-700' : 'text-amber-700' }}">
-                                {{ $isArchitectDone ? ($architectAssignment['document_name'] ?? 'Terunggah') : 'Belum Terunggah' }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-700 mb-2 uppercase tracking-wider text-[10.5px]">KEPUTUSAN VERIFIKASI BD</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="p-3.5 rounded-xl border-2 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 cursor-pointer flex flex-col justify-between transition">
-                                <div class="flex items-center gap-2">
-                                    <input type="radio" name="decision" value="approved" checked class="text-emerald-600 focus:ring-emerald-500 cursor-pointer">
-                                    <span class="font-extrabold text-emerald-900 text-xs">✓ Disetujui (Approve)</span>
-                                </div>
-                                <p class="text-[10px] text-emerald-700 mt-1 pl-5">Dokumen sah dan diteruskan ke Sales untuk dikirim ke klien.</p>
-                            </label>
-
-                            <label class="p-3.5 rounded-xl border-2 border-rose-200 bg-rose-50/50 hover:bg-rose-50 cursor-pointer flex flex-col justify-between transition">
-                                <div class="flex items-center gap-2">
-                                    <input type="radio" name="decision" value="revision" class="text-rose-600 focus:ring-rose-500 cursor-pointer">
-                                    <span class="font-extrabold text-rose-900 text-xs">⚠ Perlu Revisi</span>
-                                </div>
-                                <p class="text-[10px] text-rose-700 mt-1 pl-5">Kembalikan ke Presales &amp; SA dengan catatan revisi.</p>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">CATATAN / FEEDBACK VERIFIKASI (WAJIB JIKA REVISI)</label>
-                        <textarea name="notes" rows="3" 
-                                  placeholder="Contoh jika Disetujui: Spek BoQ dan margin sudah sesuai standar komersial.&#10;Contoh jika Revisi: BoQ switch core perlu disesuaikan dengan spek diskon terbaru."
-                                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t">
-                        <button type="button" @click="isVerifyTechnicalModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                            Simpan Keputusan Verifikasi
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </template>
-
-    {{-- 10. MODAL UNGGAH BERKAS SOLUSI TEKNIS (PRESALES / SA) --}}
-    <template x-teleport="body">
-        <div x-show="isUploadTechnicalDocModalOpen" x-cloak 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto"
-             style="display: none;">
-            <div @click.away="isUploadTechnicalDocModalOpen = false" 
-                 class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
-                
-                <div class="flex items-center justify-between border-b pb-3">
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900" 
-                            x-text="uploadTechnicalRole === 'presales' ? 'Unggah Berkas Proposal &amp; BoQ (Pre-Sales)' : 'Unggah Desain Arsitektur &amp; Topologi (Solution Architect)'"></h3>
-                        <p class="text-[11.5px] text-slate-500 mt-0.5">Unggah berkas dokumen teknis pendukung solusi proyek</p>
-                    </div>
-                    <button type="button" @click="isUploadTechnicalDocModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
-                </div>
-
-                <form action="{{ route('projects.upload_technical_doc', $project->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs font-semibold">
-                    @csrf
-                    <input type="hidden" name="role_type" :value="uploadTechnicalRole">
-
-                    <div>
-                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NAMA / JUDUL DOKUMEN</label>
-                        <input type="text" name="document_title" 
-                               :placeholder="uploadTechnicalRole === 'presales' ? 'Contoh: Proposal Teknis &amp; BoQ Estimasi Rev 1' : 'Contoh: Diagram Topologi Arsitektur &amp; Sizing Switch'" 
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PILIH BERKAS</label>
-                        <input type="file" name="document_files[]" multiple required
-                               class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-red-50 file:text-[#8F0A0D] hover:file:bg-red-100 cursor-pointer border border-slate-200 rounded-xl p-2 bg-slate-50/50">
-                        <span class="text-[10px] text-slate-400 mt-1 block">Format: PDF, DOCX, XLSX, VSDX, PNG, JPG (Maks 50MB)</span>
-                    </div>
-
-                    <div>
-                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">CATATAN / RINGKASAN TEKNIS (OPSIONAL)</label>
-                        <textarea name="notes" rows="2" 
-                                  placeholder="Contoh: Dokumen telah disesuaikan dengan spek tender dan estimasi diskon prinsipal."
-                                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-3 border-t">
-                        <button type="button" @click="isUploadTechnicalDocModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                            Unggah Dokumen Teknis
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </template>
-
-    {{-- 11. MODAL KONFIRMASI HAPUS --}}
-    <template x-teleport="body">
-        <div x-show="isDeleteModalOpen" x-cloak
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
-             @click.self="isDeleteModalOpen = false"
-             @keydown.escape.window="isDeleteModalOpen = false">
-            <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-2xl border border-slate-200">
-                <div class="w-12 h-12 rounded-full bg-rose-50 text-[#8F0A0D] flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                </div>
-                
-                <h3 class="text-center text-base font-bold text-slate-900 mb-1.5">Yakin Hapus Project?</h3>
-                <p class="text-center text-xs text-slate-500 mb-6 leading-relaxed">
-                    Project <strong class="text-slate-800">"{{ $project->name }}"</strong> beserta seluruh task dan milestone terkait akan dihapus secara permanen.
+                <p class="text-slate-500 font-normal leading-relaxed">
+                    Sales menyerahkan proyek ke PMO. Pilih Project Manager yang akan mengatur alokasi teknis dan tim engineer.
                 </p>
 
-                <div class="flex gap-2.5">
-                    <button type="button" @click="isDeleteModalOpen = false"
-                            class="flex-1 py-2.5 px-4 rounded-xl bg-white text-slate-600 border border-slate-300 font-bold text-xs hover:bg-slate-50 transition cursor-pointer text-center">
+                <div>
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">PILIH USER PMO</label>
+                    <select name="user_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-white">
+                        <option value="">Select a user</option>
+                        @foreach($pmoUsers as $pmo)
+                            <option value="{{ $pmo->id }}" {{ ($project->pm_id == $pmo->id || (empty($project->pm_id) && str_contains(strtolower($pmo->name), 'rizki'))) ? 'selected' : '' }}>
+                                (PMO) {{ $pmo->name }}
+                            </option>
+                        @endforeach
+                        @php
+                            $otherUsers = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $pmoUsers->pluck('id'));
+                        @endphp
+                        @foreach($otherUsers as $ou)
+                            @php
+                                $prefix = $ou->hasAnyRole(['Director', 'Direktur', 'Division Head']) ? '(Head)' : ($ou->hasAnyRole(['Sales']) ? '(Sales)' : '(Engineer)');
+                            @endphp
+                            <option value="{{ $ou->id }}" {{ $project->pm_id == $ou->id ? 'selected' : '' }}>
+                                {{ $prefix }} {{ $ou->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" @click="isHandoverModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
-                    <button type="button" @click="document.getElementById('deleteProjForm').submit()"
-                            class="flex-1 py-2.5 px-4 rounded-xl btn-ipnet-primary font-bold text-xs transition cursor-pointer shadow-sm text-white text-center">
-                        Ya, Hapus
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                        Assign ke PMO
                     </button>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 2. DRAFT APPROVAL MODAL --}}
+    <div x-show="isApproveModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isApproveModalOpen = false" 
+             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="text-base font-bold text-slate-900" x-text="approveRole === 'head' ? 'Approval Head Divisi (Pak Susanto)' : 'Approval Direktur (Pak Hariyadi)'"></h3>
+                <button type="button" @click="isApproveModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.approve_draft', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+                <input type="hidden" name="approval_role" :value="approveRole">
+
+                <div>
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">CATATAN PERSETUJUAN</label>
+                    <textarea name="notes" rows="3" 
+                              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+                              :placeholder="approveRole === 'head' ? 'Contoh: Kelayakan teknis & alokasi resource disetujui.' : 'Contoh: Otorisasi anggaran & kontrak disahkan.'"></textarea>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="auto_advance" id="auto_advance" value="1" checked class="rounded text-red-600">
+                    <label for="auto_advance" class="text-slate-600 font-normal">Otomatis ubah status saat kedua approval lengkap</label>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" @click="isApproveModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                        Simpan Approval
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 3. ADD MILESTONE MODAL --}}
+    <div x-show="isAddMilestoneModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isAddMilestoneModalOpen = false" 
+             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="text-base font-bold text-slate-900">Tambah Milestone</h3>
+                <button type="button" @click="isAddMilestoneModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('tasks.store') }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+                <input type="hidden" name="project_id" value="{{ $project->id }}">
+                <input type="hidden" name="status" value="Pending">
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NAMA MILESTONE</label>
+                    <input type="text" name="title" required placeholder="Contoh: Pengiriman Aruba AP-505 dan APC" 
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PRIORITAS</label>
+                        <select name="priority" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">DEADLINE</label>
+                        <input type="date" name="deadline" value="{{ date('Y-m-d', strtotime('+7 days')) }}" 
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" @click="isAddMilestoneModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                        Simpan Milestone
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 4. EDIT META ESTIMATION MODAL --}}
+    <div x-show="isEditMetaModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isEditMetaModalOpen = false" 
+             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="text-base font-bold text-slate-900">Edit Estimasi &amp; Tanggal</h3>
+                <button type="button" @click="isEditMetaModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.meta_update', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NILAI ESTIMASI (RP)</label>
+                    <input type="number" name="contract_value" value="{{ $project->contract_value ?: 300000000 }}" required 
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PROJECT START</label>
+                        <input type="date" name="start_date" value="{{ $project->start_date ? $project->start_date->format('Y-m-d') : date('Y-m-d') }}" 
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PROJECT END</label>
+                        <input type="date" name="deadline" value="{{ $project->deadline ? $project->deadline->format('Y-m-d') : '' }}" 
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" @click="isEditMetaModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 5. UPLOAD DOCUMENT MODAL --}}
+    <div x-show="isUploadDocModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isUploadDocModalOpen = false" 
+             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="text-base font-bold text-slate-900">Upload Berkas Lampiran</h3>
+                <button type="button" @click="isUploadDocModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.documents.upload', $project->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs font-semibold">
+                @csrf
+                <input type="hidden" name="stage_number" value="1">
+                <input type="hidden" name="document_key" value="lampiran_pendukung">
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PILIH BERKAS</label>
+                    <input type="file" name="document_files[]" multiple required 
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-slate-50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-[#8F0A0D] hover:file:bg-red-100">
+                    <p class="text-[10.5px] text-slate-400 mt-1">Format: PDF, XLSX, DOCX, ZIP, PNG, JPG (Maks 50MB)</p>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">CATATAN DOKUMEN</label>
+                    <input type="text" name="notes" placeholder="Contoh: BoQ dan Penawaran Resmi" 
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" @click="isUploadDocModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                        Upload Berkas
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 6. MODAL ASSIGN APPROVAL KE PIMPINAN (HEAD & DIREKTUR) --}}
+    <div x-show="isAssignModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isAssignModalOpen = false" 
+             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900" 
+                        x-text="assignRole === 'head' ? 'Assign Review ke Head Divisi' : (assignRole === 'director' ? 'Assign Otorisasi ke Direktur' : 'Assign Review ke Pimpinan')"></h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Tugaskan peninjauan draft proyek ke pimpinan yang berwenang</p>
+                </div>
+                <button type="button" @click="isAssignModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.assign_approver', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+                <input type="hidden" name="role" :value="assignRole">
+
+                {{-- Pilihan Head Divisi --}}
+                <div x-show="assignRole === 'head' || assignRole === 'both'">
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH HEAD DIVISI (REVIEW TEKNIS)</label>
+                    <select name="head_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
+                        @foreach($leadershipUsers as $lu)
+                            <option value="{{ $lu->id }}" {{ ($susantoUser && $susantoUser->id == $lu->id) ? 'selected' : '' }}>
+                                {{ $lu->name }} ({{ $lu->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Pilihan Direktur --}}
+                <div x-show="assignRole === 'director' || assignRole === 'both'">
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH DIREKTUR (OTORISASI KONTRAK)</label>
+                    <select name="director_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
+                        @foreach($leadershipUsers as $lu)
+                            <option value="{{ $lu->id }}" {{ ($hariyadiUser && $hariyadiUser->id == $lu->id) ? 'selected' : '' }}>
+                                {{ $lu->name }} ({{ $lu->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">CATATAN DARI SALES (OPSIONAL)</label>
+                    <textarea name="notes" rows="3" 
+                              placeholder="Contoh: Mohon review kelayakan teknis jaringan dan validasi estimasi nilai kontrak untuk penawaran klien."
+                              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" @click="isAssignModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                        Tugaskan Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 7. MODAL EDIT PIPELINE SALES & OPPORTUNITY --}}
+    <div x-show="isEditPipelineModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isEditPipelineModalOpen = false" 
+             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Ubah Stage &amp; Pipeline Sales</h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Perbarui progres tahapan prospek penjualan &amp; estimasi closing</p>
+                </div>
+                <button type="button" @click="isEditPipelineModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.update_pipeline', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+
+                <div>
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">SALES PIPELINE STAGE</label>
+                    <select name="sales_stage" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer font-bold">
+                        @php
+                            $stagesList = [
+                                'Qualification'        => '1. Qualification (Kualifikasi Awal)',
+                                'Discovery'            => '2. Discovery / Kebutuhan Klien',
+                                'Proposal / Quoting'   => '3. Proposal &amp; Quoting (Penawaran Resmi)',
+                                'Negotiation'          => '4. Negotiation / Pembahasan Kontrak',
+                                'Closed Won'           => '5. Closed Won (Menang / Deal)',
+                                'Closed Lost'          => '6. Closed Lost (Batal / Kalah Tender)',
+                            ];
+                            $currentSalesStage = $project->sales_stage ?: 'Qualification';
+                        @endphp
+                        @foreach($stagesList as $stKey => $stLabel)
+                            <option value="{{ $stKey }}" {{ $currentSalesStage === $stKey ? 'selected' : '' }}>
+                                {!! $stLabel !!}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">WIN PROBABILITY (%)</label>
+                        <select name="win_probability" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer font-bold">
+                            @foreach([10 => '10% (Tahap Awal)', 25 => '25% (Riset Spek)', 50 => '50% (Proposal Masuk)', 75 => '75% (Negosiasi Final)', 90 => '90% (Menunggu PO)', 100 => '100% (Deal / Won)'] as $pct => $pctLabel)
+                                <option value="{{ $pct }}" {{ ($project->win_probability ?: 10) == $pct ? 'selected' : '' }}>
+                                    {{ $pctLabel }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">TARGET CLOSING</label>
+                        <input type="date" name="expected_closing_date" 
+                               value="{{ $project->expected_closing_date ? \Carbon\Carbon::parse($project->expected_closing_date)->format('Y-m-d') : '' }}" 
+                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">ESTIMASI NILAI PROYEK (RP)</label>
+                    <input type="number" name="contract_value" value="{{ $project->contract_value ?: 0 }}" min="0" step="1000"
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" @click="isEditPipelineModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                        Simpan Perubahan Stage
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 8. MODAL ASSIGN KE TIM SOLUSI (PIC BD, PRESALES & SA) --}}
+    <div x-show="isAssignTechnicalModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isAssignTechnicalModalOpen = false" 
+             class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900" 
+                        x-text="assignTechnicalRole === 'bdm' ? 'Tunjuk PIC BD (Product Manager)' : (assignTechnicalRole === 'presales' ? 'Tugaskan Pre-Sales Specialist' : (assignTechnicalRole === 'architect' ? 'Tugaskan Solution Architect' : 'Tugaskan Tim Solusi &amp; BD'))"></h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Penugasan PIC BD verifikator, penyusun proposal, dan perancang topologi</p>
+                </div>
+                <button type="button" @click="isAssignTechnicalModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.assign_technical', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+                <input type="hidden" name="role" :value="assignTechnicalRole">
+
+                {{-- Pilihan PIC BD --}}
+                <div x-show="assignTechnicalRole === 'bdm' || assignTechnicalRole === 'all' || assignTechnicalRole === 'both'">
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH PIC BUSINESS DEVELOPMENT (PRODUCT MANAGER &amp; VERIFIKATOR)</label>
+                    <select name="bdm_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer">
+                        <option value="">-- Pilih PIC Business Development --</option>
+                        @foreach($bdmUsers as $bu)
+                            <option value="{{ $bu->id }}" {{ ($project->bdm_id == $bu->id || (isset($bdmAssignment['assigned_user_id']) && $bdmAssignment['assigned_user_id'] == $bu->id)) ? 'selected' : '' }}>
+                                (BD) {{ $bu->name }} ({{ $bu->email }})
+                            </option>
+                        @endforeach
+                        @php
+                            $otherUsersBD = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $bdmUsers->pluck('id'));
+                        @endphp
+                        @foreach($otherUsersBD as $ou)
+                            <option value="{{ $ou->id }}" {{ ($project->bdm_id == $ou->id) ? 'selected' : '' }}>
+                                {{ $ou->name }} ({{ $ou->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <span class="text-[10px] text-slate-400 mt-1 block">PIC BD akan menerima notifikasi dan memvalidasi berkas proposal sebelum diajukan ke klien.</span>
+                </div>
+
+                {{-- Pilihan Pre-Sales --}}
+                <div x-show="assignTechnicalRole === 'presales' || assignTechnicalRole === 'all' || assignTechnicalRole === 'both'">
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH PRE-SALES SPECIALIST (PROPOSAL &amp; BOQ)</label>
+                    <select name="presales_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer">
+                        @foreach($presalesUsers as $pu)
+                            <option value="{{ $pu->id }}" {{ (isset($presalesAssignment['assigned_user_id']) && $presalesAssignment['assigned_user_id'] == $pu->id) || str_contains(strtolower($pu->name), 'akbar') ? 'selected' : '' }}>
+                                (Pre-Sales) {{ $pu->name }} ({{ $pu->email }})
+                            </option>
+                        @endforeach
+                        @php
+                            $otherUsersPS = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $presalesUsers->pluck('id'));
+                        @endphp
+                        @foreach($otherUsersPS as $ou)
+                            <option value="{{ $ou->id }}" {{ (isset($presalesAssignment['assigned_user_id']) && $presalesAssignment['assigned_user_id'] == $ou->id) ? 'selected' : '' }}>
+                                {{ $ou->name }} ({{ $ou->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Pilihan Solution Architect --}}
+                <div x-show="assignTechnicalRole === 'architect' || assignTechnicalRole === 'all' || assignTechnicalRole === 'both'">
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH SOLUTION ARCHITECT (DESAIN TOPOLOGI &amp; SIZING)</label>
+                    <select name="architect_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer">
+                        @foreach($architectUsers as $au)
+                            <option value="{{ $au->id }}" {{ (isset($architectAssignment['assigned_user_id']) && $architectAssignment['assigned_user_id'] == $au->id) || str_contains(strtolower($au->name), 'aris') ? 'selected' : '' }}>
+                                (Solution Architect) {{ $au->name }} ({{ $au->email }})
+                            </option>
+                        @endforeach
+                        @php
+                            $otherUsersSA = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $architectUsers->pluck('id'));
+                        @endphp
+                        @foreach($otherUsersSA as $ou)
+                            <option value="{{ $ou->id }}" {{ (isset($architectAssignment['assigned_user_id']) && $architectAssignment['assigned_user_id'] == $ou->id) ? 'selected' : '' }}>
+                                {{ $ou->name }} ({{ $ou->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">INSTRUKSI &amp; CATATAN TEKNIS SALES</label>
+                    <textarea name="notes" rows="3" 
+                              placeholder="Contoh: Tolong buatkan desain topologi redundant switch &amp; estimasi BoQ untuk kebutuhan penawaran tender klien."
+                              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" @click="isAssignTechnicalModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                        Simpan Penugasan Tim
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 9. MODAL VERIFIKASI SOLUSI OLEH PIC BD --}}
+    <div x-show="isVerifyTechnicalModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isVerifyTechnicalModalOpen = false" 
+             class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Verifikasi Kelayakan Dokumen Solusi</h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Tinjau kesiapan proposal teknis, BoQ, dan desain topologi</p>
+                </div>
+                <button type="button" @click="isVerifyTechnicalModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.verify_technical', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+
+                {{-- Ringkasan Berkas yang Terunggah --}}
+                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-[11.5px]">
+                    <div class="font-bold text-slate-800 text-xs">Berkas yang Divalidasi:</div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-600">Proposal &amp; BoQ (Pre-Sales):</span>
+                        <span class="font-bold {{ $isPresalesDone ? 'text-emerald-700' : 'text-amber-700' }}">
+                            {{ $isPresalesDone ? ($presalesAssignment['document_name'] ?? 'Terunggah') : 'Belum Terunggah' }}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-600">Desain Topologi (Solution Architect):</span>
+                        <span class="font-bold {{ $isArchitectDone ? 'text-emerald-700' : 'text-amber-700' }}">
+                            {{ $isArchitectDone ? ($architectAssignment['document_name'] ?? 'Terunggah') : 'Belum Terunggah' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-2 uppercase tracking-wider text-[10.5px]">KEPUTUSAN VERIFIKASI BD</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="p-3.5 rounded-xl border-2 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 cursor-pointer flex flex-col justify-between transition">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="decision" value="approved" checked class="text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                <span class="font-extrabold text-emerald-900 text-xs">✓ Disetujui (Approve)</span>
+                            </div>
+                            <p class="text-[10px] text-emerald-700 mt-1 pl-5">Dokumen sah dan diteruskan ke Sales untuk dikirim ke klien.</p>
+                        </label>
+
+                        <label class="p-3.5 rounded-xl border-2 border-rose-200 bg-rose-50/50 hover:bg-rose-50 cursor-pointer flex flex-col justify-between transition">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="decision" value="revision" class="text-rose-600 focus:ring-rose-500 cursor-pointer">
+                                <span class="font-extrabold text-rose-900 text-xs">⚠ Perlu Revisi</span>
+                            </div>
+                            <p class="text-[10px] text-rose-700 mt-1 pl-5">Kembalikan ke Presales &amp; SA dengan catatan revisi.</p>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">CATATAN / FEEDBACK VERIFIKASI (WAJIB JIKA REVISI)</label>
+                    <textarea name="notes" rows="3" 
+                              placeholder="Contoh jika Disetujui: Spek BoQ dan margin sudah sesuai standar komersial.&#10;Contoh jika Revisi: BoQ switch core perlu disesuaikan dengan spek diskon terbaru."
+                              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" @click="isVerifyTechnicalModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                        Simpan Keputusan Verifikasi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 10. MODAL UNGGAH BERKAS SOLUSI TEKNIS (PRESALES / SA) --}}
+    <div x-show="isUploadTechnicalDocModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isUploadTechnicalDocModalOpen = false" 
+             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900" 
+                        x-text="uploadTechnicalRole === 'presales' ? 'Unggah Berkas Proposal &amp; BoQ (Pre-Sales)' : 'Unggah Desain Arsitektur &amp; Topologi (Solution Architect)'"></h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Unggah berkas dokumen teknis pendukung solusi proyek</p>
+                </div>
+                <button type="button" @click="isUploadTechnicalDocModalOpen = false" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.upload_technical_doc', $project->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs font-semibold">
+                @csrf
+                <input type="hidden" name="role_type" :value="uploadTechnicalRole">
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NAMA / JUDUL DOKUMEN</label>
+                    <input type="text" name="document_title" 
+                           :placeholder="uploadTechnicalRole === 'presales' ? 'Contoh: Proposal Teknis &amp; BoQ Estimasi Rev 1' : 'Contoh: Diagram Topologi Arsitektur &amp; Sizing Switch'" 
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PILIH BERKAS</label>
+                    <input type="file" name="document_files[]" multiple required
+                           class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-red-50 file:text-[#8F0A0D] hover:file:bg-red-100 cursor-pointer border border-slate-200 rounded-xl p-2 bg-slate-50/50">
+                    <span class="text-[10px] text-slate-400 mt-1 block">Format: PDF, DOCX, XLSX, VSDX, PNG, JPG (Maks 50MB)</span>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">CATATAN / RINGKASAN TEKNIS (OPSIONAL)</label>
+                    <textarea name="notes" rows="2" 
+                              placeholder="Contoh: Dokumen telah disesuaikan dengan spek tender dan estimasi diskon prinsipal."
+                              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" @click="isUploadTechnicalDocModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                        Unggah Dokumen Teknis
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 11. MODAL KONFIRMASI HAPUS --}}
+    <div x-show="isDeleteModalOpen" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+         @click.self="isDeleteModalOpen = false"
+         @keydown.escape.window="isDeleteModalOpen = false">
+        <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-2xl border border-slate-200">
+            <div class="w-12 h-12 rounded-full bg-rose-50 text-[#8F0A0D] flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </div>
+            
+            <h3 class="text-center text-base font-bold text-slate-900 mb-1.5">Yakin Hapus Project?</h3>
+            <p class="text-center text-xs text-slate-500 mb-6 leading-relaxed">
+                Project <strong class="text-slate-800">"{{ $project->name }}"</strong> beserta seluruh task dan milestone terkait akan dihapus secara permanen.
+            </p>
+
+            <div class="flex gap-2.5">
+                <button type="button" @click="isDeleteModalOpen = false"
+                        class="flex-1 py-2.5 px-4 rounded-xl bg-white text-slate-600 border border-slate-300 font-bold text-xs hover:bg-slate-50 transition cursor-pointer text-center">
+                    Batal
+                </button>
+                <button type="button" @click="document.getElementById('deleteProjForm').submit()"
+                        class="flex-1 py-2.5 px-4 rounded-xl btn-ipnet-primary font-bold text-xs transition cursor-pointer shadow-sm text-white text-center">
+                    Ya, Hapus
+                </button>
             </div>
         </div>
-    </template>
+    </div>
 
     {{-- DELETE PROJECT FORM --}}
     <form id="deleteProjForm" action="{{ route('projects.destroy', $project->id) }}" method="POST" style="display:none;">
