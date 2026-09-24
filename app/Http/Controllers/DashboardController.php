@@ -897,7 +897,8 @@ class DashboardController extends Controller
         // Lists
         $recentDesignProjects  = (clone $allProjectsQuery)->latest()->take(6)->get();
         $pendingSowProjects    = (clone $allProjectsQuery)->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->latest()->take(6)->get();
-        $inventoryHighlights   = \App\Models\InventoryItem::orderBy('stock', 'asc')->take(5)->get();
+        $inventoryHighlights   = \Illuminate\Support\Facades\Schema::hasTable('inventory_items') ? \App\Models\InventoryItem::orderBy('stock', 'asc')->take(5)->get() : collect();
+        $partnerVendors        = \Illuminate\Support\Facades\Schema::hasTable('partnerships') ? \App\Models\Partnership::latest()->take(5)->get() : collect();
         $user = auth()->user();
         $pocSchedules = Schedule::with(['project', 'engineer', 'engineers'])
             ->where(function($q) use ($user) {
