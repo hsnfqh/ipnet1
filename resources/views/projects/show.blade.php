@@ -229,17 +229,21 @@
     );
 
     // Hak otorisasi unggah berkas teknis solusi:
-    // Hanya akun yang ditugaskan atau role Presales / Solution Architect yang dapat mengunggah berkas.
+    // Terbuka untuk akun penugasan, role Presales, Solution Architect, Sales (pemilik proyek), PMO, dan Manajemen.
     $canUploadPresales = $authUser && (
         (!empty($presalesAssignment['assigned_user_id']) && $authUser->id == $presalesAssignment['assigned_user_id'])
-        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Super Admin', 'Admin'], $userRoles))
+        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Sales', 'Super Admin', 'Admin', 'PMO', 'Project Manager', 'Director', 'Direktur', 'HD / Direktur', 'Group Leader'], $userRoles))
         || str_contains(strtolower($authUser->name), 'akbar')
+        || $authUser->id == ($project->creator_id ?? $project->created_by)
+        || ($project->sales_name && str_contains(strtolower($authUser->name), strtolower($project->sales_name)))
     );
 
     $canUploadArchitect = $authUser && (
         (!empty($architectAssignment['assigned_user_id']) && $authUser->id == $architectAssignment['assigned_user_id'])
-        || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Super Admin', 'Admin'], $userRoles))
+        || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Sales', 'Super Admin', 'Admin', 'PMO', 'Project Manager', 'Director', 'Direktur', 'HD / Direktur', 'Group Leader'], $userRoles))
         || str_contains(strtolower($authUser->name), 'aris')
+        || $authUser->id == ($project->creator_id ?? $project->created_by)
+        || ($project->sales_name && str_contains(strtolower($authUser->name), strtolower($project->sales_name)))
     );
 @endphp
 
@@ -762,7 +766,7 @@
                                                 </button>
                                             @endif
 
-                                            @if($canUploadPresales && $isPresalesAssigned)
+                                            @if($isPresalesAssigned)
                                                 <button type="button" @click="openUploadTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                                     <span>{{ $isPresalesDone ? 'Unggah Ulang' : 'Unggah Proposal' }}</span>
@@ -781,8 +785,12 @@
                                                         {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? $architectAssignment['assigned_to'] : 'Belum Ditugaskan' }}
                                                     </div>
                                                 </div>
-                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $isArchitectDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
-                                                    {{ $isArchitectDone ? 'Desain Diunggah' : ($isArchitectAssigned ? 'Menunggu Desain Topologi' : 'Belum Di-assign') }}
+                                                @php
+                                                    $isBdApproved = (($bdVerification['status'] ?? '') === 'Approved');
+                                                    $saIsCompleted = $isArchitectDone || ($isBdApproved && $isArchitectAssigned);
+                                                @endphp
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $saIsCompleted ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200') }}">
+                                                    {{ $isArchitectDone ? 'Desain Diunggah' : ($isBdApproved && $isArchitectAssigned ? '✓ Solusi Disetujui BD' : ($isArchitectAssigned ? 'Menunggu Desain Topologi' : 'Belum Di-assign')) }}
                                                 </span>
                                             </div>
 
@@ -803,6 +811,20 @@
                                                         @if(!empty($architectAssignment['completed_at']))
                                                             <div class="text-[10px] text-emerald-600">Diunggah: {{ $architectAssignment['completed_at'] }}</div>
                                                         @endif
+                                                    </div>
+                                                @elseif($isBdApproved && $isArchitectAssigned)
+                                                    <div class="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200 text-emerald-800 space-y-1">
+                                                        <div class="font-bold flex items-center gap-1.5 text-xs">
+                                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                            <span>Desain Solusi Disahkan</span>
+                                                        </div>
+                                                        <div class="text-[10.5px] text-emerald-700 flex items-center justify-between">
+                                                            <span>Berkas: {{ $presalesAssignment['document_name'] ?? 'Proposal & SOW Teknis' }}</span>
+                                                            @if(!empty($presalesAssignment['document_path']) || !empty($project->proposal_file))
+                                                                <a href="{{ asset('storage/' . ($presalesAssignment['document_path'] ?? $project->proposal_file)) }}" target="_blank" class="font-bold underline text-emerald-800 hover:text-emerald-950">Unduh</a>
+                                                            @endif
+                                                        </div>
+                                                        <div class="text-[10px] text-emerald-600">✓ Tercakup dalam verifikasi dokumen solusi oleh PIC BD.</div>
                                                     </div>
                                                 @elseif($isArchitectAssigned)
                                                     <div class="p-2.5 rounded-lg bg-amber-50/60 border border-amber-200 text-amber-800">
@@ -826,7 +848,7 @@
                                                 </button>
                                             @endif
 
-                                            @if($canUploadArchitect && $isArchitectAssigned)
+                                            @if($isArchitectAssigned)
                                                 <button type="button" @click="openUploadTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-gradient shadow-xs cursor-pointer ml-auto">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                                     <span>{{ $isArchitectDone ? 'Unggah Ulang' : 'Unggah Desain' }}</span>

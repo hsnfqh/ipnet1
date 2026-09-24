@@ -194,6 +194,26 @@ class PresalesProposalController extends Controller
             // Sinkronkan ke penugasan tim solusi (handover_data) agar SA/Presales/Sales tidak perlu kerja 2x
             $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
             $technical = $handoverData['technical_assignments'] ?? [];
+
+            $isUploaderArchitect = $user && (
+                $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA'])
+                || str_contains(strtolower($user->name), 'aris')
+                || (!empty($technical['architect']['assigned_user_id']) && $user->id == $technical['architect']['assigned_user_id'])
+            );
+
+            // Jika yang mengunggah adalah SA (Aris)
+            if ($isUploaderArchitect) {
+                $technical['architect'] = array_merge($technical['architect'] ?? [], [
+                    'status'         => 'Completed',
+                    'document_path'  => $path,
+                    'document_name'  => $origName,
+                    'document_title' => 'Desain Arsitektur & SOW',
+                    'completed_at'   => $now,
+                    'notes'          => $validated['proposal_notes'],
+                ]);
+            }
+
+            // Selalu update presales juga jika belum ada berkas atau diunggah oleh Presales
             $technical['presales'] = array_merge($technical['presales'] ?? [], [
                 'status'         => 'Completed',
                 'document_path'  => $path,

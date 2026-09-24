@@ -750,6 +750,34 @@ class ProjectController extends Controller
             'notes'       => $validated['notes'] ?? null,
         ];
 
+        // Jika disetujui BD, sinkronkan status Presales & Solution Architect menjadi selesai / disetujui
+        if ($isApproved) {
+            $sharedDocPath = $technical['presales']['document_path'] ?? ($technical['architect']['document_path'] ?? $project->proposal_file);
+            $sharedDocName = $technical['presales']['document_name'] ?? ($technical['architect']['document_name'] ?? 'Proposal & Desain Teknis');
+
+            if (!empty($technical['presales']['assigned']) && (empty($technical['presales']['document_path']) || ($technical['presales']['status'] ?? '') !== 'Completed')) {
+                $technical['presales'] = array_merge($technical['presales'], [
+                    'status'         => 'Completed',
+                    'document_path'  => $technical['presales']['document_path'] ?? $sharedDocPath,
+                    'document_name'  => $technical['presales']['document_name'] ?? $sharedDocName,
+                    'document_title' => $technical['presales']['document_title'] ?? 'Proposal Teknis & Ruang Lingkup (SOW)',
+                    'completed_at'   => $technical['presales']['completed_at'] ?? $now,
+                    'notes'          => $technical['presales']['notes'] ?? 'Proposal disetujui oleh PIC BD.',
+                ]);
+            }
+
+            if (!empty($technical['architect']['assigned']) && (empty($technical['architect']['document_path']) || ($technical['architect']['status'] ?? '') !== 'Completed')) {
+                $technical['architect'] = array_merge($technical['architect'], [
+                    'status'         => 'Completed',
+                    'document_path'  => $technical['architect']['document_path'] ?? $sharedDocPath,
+                    'document_name'  => $technical['architect']['document_name'] ?? $sharedDocName,
+                    'document_title' => $technical['architect']['document_title'] ?? 'Desain Arsitektur & SOW (Terverifikasi BD)',
+                    'completed_at'   => $technical['architect']['completed_at'] ?? $now,
+                    'notes'          => $technical['architect']['notes'] ?? 'Desain arsitektur disetujui bersama paket proposal oleh PIC BD.',
+                ]);
+            }
+        }
+
         // Jika disetujui, update sales_stage ke Proposal Submission jika masih Qualification
         if ($isApproved && in_array($project->sales_stage, ['Qualification', 'Discovery', null])) {
             $project->sales_stage = 'Proposal / Quoting';
