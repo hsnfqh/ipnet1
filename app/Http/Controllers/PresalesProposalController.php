@@ -201,7 +201,7 @@ class PresalesProposalController extends Controller
                 || (!empty($technical['architect']['assigned_user_id']) && $user->id == $technical['architect']['assigned_user_id'])
             );
 
-            // Jika yang mengunggah adalah SA (Aris)
+            // Jika yang mengunggah adalah SA (Aris / Solution Architect)
             if ($isUploaderArchitect) {
                 $technical['architect'] = array_merge($technical['architect'] ?? [], [
                     'status'         => 'Completed',
@@ -211,17 +211,17 @@ class PresalesProposalController extends Controller
                     'completed_at'   => $now,
                     'notes'          => $validated['proposal_notes'],
                 ]);
+            } else {
+                // Jika yang mengunggah adalah Presales / Sales
+                $technical['presales'] = array_merge($technical['presales'] ?? [], [
+                    'status'         => 'Completed',
+                    'document_path'  => $path,
+                    'document_name'  => $origName,
+                    'document_title' => 'Proposal Teknis & Ruang Lingkup (SOW)',
+                    'completed_at'   => $now,
+                    'notes'          => $validated['proposal_notes'],
+                ]);
             }
-
-            // Selalu update presales juga jika belum ada berkas atau diunggah oleh Presales
-            $technical['presales'] = array_merge($technical['presales'] ?? [], [
-                'status'         => 'Completed',
-                'document_path'  => $path,
-                'document_name'  => $origName,
-                'document_title' => 'Proposal Teknis & Ruang Lingkup (SOW)',
-                'completed_at'   => $now,
-                'notes'          => $validated['proposal_notes'],
-            ]);
 
             // Status verifikasi BD otomatis beralih ke 'Pending Verification'
             $technical['bd_verification'] = [

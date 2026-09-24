@@ -206,6 +206,18 @@
                         <span>Tugaskan Pre-Sales</span>
                     </button>
                 </div>
+            @else
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto flex-wrap">
+                    @if($canUploadPresales)
+                        <button type="button" @click="openUploadTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer shadow-2xs">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                            <span>{{ $isPresalesDone ? 'Ubah Proposal' : 'Unggah Proposal' }}</span>
+                        </button>
+                    @endif
+                    <button type="button" @click="openAssignTechnicalModal('presales')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
+                        Ubah Penugasan
+                    </button>
+                </div>
             @endif
         </div>
 
@@ -264,38 +276,9 @@
                                 </div>
                             @endif
                         </div>
-                    @elseif($isBdApproved && $isArchitectAssigned)
-                        <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-2 min-w-0 flex-1">
-                                    <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="font-bold text-slate-900 text-xs truncate" title="Desain Disahkan">Desain Disahkan</div>
-                                        <div class="text-[10px] text-slate-500 font-mono truncate" title="{{ $presalesAssignment['document_name'] ?? 'Proposal & SOW' }}">{{ $presalesAssignment['document_name'] ?? 'Proposal & SOW' }}</div>
-                                    </div>
-                                </div>
-                                @php
-                                    $saDlPath = !empty($architectAssignment['document_path']) ? $architectAssignment['document_path'] : (!empty($presalesAssignment['document_path']) ? $presalesAssignment['document_path'] : ($project->proposal_file ?? null));
-                                @endphp
-                                @if(!empty($saDlPath))
-                                    <a href="{{ asset('storage/' . $saDlPath) }}" target="_blank" 
-                                       class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shrink-0 shadow-2xs" title="Unduh Berkas">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                        <span>Unduh</span>
-                                    </a>
-                                @endif
-                            </div>
-                            @if(!empty($bdVerification['verified_at']))
-                                <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 text-right font-mono">
-                                    {{ $bdVerification['verified_at'] }}
-                                </div>
-                            @endif
-                        </div>
                     @elseif($isArchitectAssigned)
                         <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1">
-                            <div class="font-medium italic text-[11px]">"{{ !empty($architectAssignment['sales_notes']) ? $architectAssignment['sales_notes'] : 'Mohon dirancang topologi sistem.' }}"</div>
+                            <div class="font-medium italic text-[11px]">"{{ !empty($architectAssignment['sales_notes']) ? $architectAssignment['sales_notes'] : 'Mohon dirancang topologi sistem & spesifikasi teknis.' }}"</div>
                             <div class="text-[10px] text-amber-700 mt-1">Ditugaskan: {{ $architectAssignment['assigned_at'] ?? '-' }}</div>
                         </div>
                     @else
@@ -313,6 +296,18 @@
                     <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         <span>Tugaskan SA</span>
+                    </button>
+                </div>
+            @else
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto flex-wrap">
+                    @if($canUploadArchitect)
+                        <button type="button" @click="openUploadTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer shadow-2xs">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                            <span>{{ $isArchitectDone ? 'Ubah Desain SA' : 'Unggah Desain SA' }}</span>
+                        </button>
+                    @endif
+                    <button type="button" @click="openAssignTechnicalModal('architect')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
+                        Ubah Penugasan
                     </button>
                 </div>
             @endif
