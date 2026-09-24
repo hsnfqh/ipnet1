@@ -5,8 +5,8 @@
     $bdmName = $bdmName ?? ($project->bdm->name ?? ($bdmAssignment['assigned_to'] ?? null));
     $isPresalesAssigned = $isPresalesAssigned ?? (!empty($presalesAssignment['assigned']));
     $isArchitectAssigned = $isArchitectAssigned ?? (!empty($architectAssignment['assigned']));
-    $isPresalesDone = $isPresalesDone ?? (!empty($presalesAssignment['document_path']) || ($presalesAssignment['status'] ?? '') === 'Completed');
-    $isArchitectDone = $isArchitectDone ?? (!empty($architectAssignment['document_path']) || ($architectAssignment['status'] ?? '') === 'Completed');
+    $isPresalesDone = $isPresalesDone ?? (!empty($presalesAssignment['document_path']));
+    $isArchitectDone = $isArchitectDone ?? (!empty($architectAssignment['document_path']));
     $canVerifyBD = $canVerifyBD ?? false;
     $canUploadPresales = $canUploadPresales ?? false;
     $canUploadArchitect = $canUploadArchitect ?? false;
