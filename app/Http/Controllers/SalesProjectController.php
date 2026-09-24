@@ -48,16 +48,24 @@ class SalesProjectController extends Controller
         // Calculate counts for tabs
         $counts = [
             'draft'       => $allProjects->where('status', 'Draft')->count(),
-            'opportunity' => $allProjects->whereIn('status', ['Opportunity', 'Planning'])->count(),
-            'in_progress' => $allProjects->where('status', 'On Progress')->count(),
+            'opportunity' => $allProjects->filter(function($p) {
+                return in_array($p->status, ['Opportunity', 'Planning']) && $p->sales_stage !== 'Closed Won' && !in_array($p->status, ['In Progress', 'On Progress']);
+            })->count(),
+            'in_progress' => $allProjects->filter(function($p) {
+                return in_array($p->status, ['In Progress', 'On Progress']) || $p->sales_stage === 'Closed Won';
+            })->count(),
             'pending'     => $allProjects->whereIn('status', ['Pending', 'Waiting Approval'])->count(),
         ];
 
         // Filter projects for active tab
         $filteredProjects = match($tab) {
             'Draft'       => $allProjects->where('status', 'Draft')->values(),
-            'Opportunity' => $allProjects->whereIn('status', ['Opportunity', 'Planning'])->values(),
-            'In Progress' => $allProjects->where('status', 'On Progress')->values(),
+            'Opportunity' => $allProjects->filter(function($p) {
+                return in_array($p->status, ['Opportunity', 'Planning']) && $p->sales_stage !== 'Closed Won' && !in_array($p->status, ['In Progress', 'On Progress']);
+            })->values(),
+            'In Progress' => $allProjects->filter(function($p) {
+                return in_array($p->status, ['In Progress', 'On Progress']) || $p->sales_stage === 'Closed Won';
+            })->values(),
             'Pending'     => $allProjects->whereIn('status', ['Pending', 'Waiting Approval'])->values(),
             default       => $allProjects->values(),
         };

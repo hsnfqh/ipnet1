@@ -866,10 +866,11 @@ class ProjectController extends Controller
 
         $stageLower = strtolower($validated['sales_stage']);
 
-        // Sinkronisasi otomatis jika stage Closed Won (Menang / Deal)
-        if (str_contains($stageLower, 'won')) {
+        // Sinkronisasi otomatis jika stage Closed Won (Menang / Deal) atau probabilitas 100%
+        if (str_contains($stageLower, 'won') || $validated['sales_stage'] === 'Closed Won' || (int)$validated['win_probability'] === 100) {
             $project->status = 'In Progress';
             $project->stage = 'Deliver';
+            $project->sales_stage = 'Closed Won';
             $project->win_probability = 100;
             if ($project->progress < 10) {
                 $project->progress = 15;
@@ -888,11 +889,15 @@ class ProjectController extends Controller
                     ]);
                 }
             }
+        } elseif (str_contains($stageLower, 'lost') || $validated['sales_stage'] === 'Closed Lost' || (int)$validated['win_probability'] === 0) {
+            $project->status = 'Cancelled';
+            $project->sales_stage = 'Closed Lost';
+            $project->win_probability = 0;
         }
 
         $project->save();
 
-        $msg = str_contains($stageLower, 'won') 
+        $msg = (str_contains($stageLower, 'won') || $validated['sales_stage'] === 'Closed Won')
             ? "Status proyek berhasil diubah ke Closed Won dan otomatis dipindahkan ke status In Progress!"
             : "Pipeline Sales & Opportunity berhasil diperbarui!";
         if ($request->wantsJson() || $request->ajax()) {

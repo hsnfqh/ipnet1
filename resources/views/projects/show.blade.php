@@ -372,14 +372,14 @@
             
             {{-- Flash Messages --}}
             @if(session('success'))
-                <div class="p-4 rounded-xl bg-slate-900 text-white text-xs font-semibold flex items-center justify-between shadow-sm">
+                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between shadow-xs">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                        <div class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                         </div>
                         <span>{{ session('success') }}</span>
                     </div>
-                    <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white font-bold px-2 cursor-pointer">✕</button>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-800 font-bold px-2 cursor-pointer">✕</button>
                 </div>
             @endif
 
@@ -1750,12 +1750,29 @@
                 <button type="button" @click="isEditPipelineModalOpen = false; window.closeModal('modal-edit-pipeline')" onclick="window.closeModal('modal-edit-pipeline')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
-            <form action="{{ route('projects.update_pipeline', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+            @php
+                $currentSalesStage = $project->sales_stage ?: 'Qualification';
+                $currentProb = $project->win_probability ?? 10;
+            @endphp
+            <form action="{{ route('projects.update_pipeline', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold"
+                  x-data="{
+                      stageVal: '{{ $currentSalesStage }}',
+                      probVal: {{ (int)$currentProb }},
+                      onStageChange(val) {
+                          this.stageVal = val;
+                          if (val === 'Closed Won') this.probVal = 100;
+                          else if (val === 'Closed Lost') this.probVal = 0;
+                          else if (val === 'Negotiation') this.probVal = 75;
+                          else if (val === 'Proposal / Quoting') this.probVal = 50;
+                          else if (val === 'Discovery') this.probVal = 25;
+                          else if (val === 'Qualification') this.probVal = 10;
+                      }
+                  }">
                 @csrf
 
                 <div>
                     <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">SALES PIPELINE STAGE</label>
-                    <select name="sales_stage" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer font-bold">
+                    <select name="sales_stage" x-model="stageVal" @change="onStageChange($event.target.value)" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer font-bold">
                         @php
                             $stagesList = [
                                 'Qualification'        => '1. Qualification (Kualifikasi Awal)',
@@ -1765,7 +1782,6 @@
                                 'Closed Won'           => '5. Closed Won (Menang / Deal)',
                                 'Closed Lost'          => '6. Closed Lost (Batal / Kalah Tender)',
                             ];
-                            $currentSalesStage = $project->sales_stage ?: 'Qualification';
                         @endphp
                         @foreach($stagesList as $stKey => $stLabel)
                             <option value="{{ $stKey }}" {{ $currentSalesStage === $stKey ? 'selected' : '' }}>
@@ -1778,9 +1794,9 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">WIN PROBABILITY (%)</label>
-                        <select name="win_probability" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer font-bold">
-                            @foreach([10 => '10% (Tahap Awal)', 25 => '25% (Riset Spek)', 50 => '50% (Proposal Masuk)', 75 => '75% (Negosiasi Final)', 90 => '90% (Menunggu PO)', 100 => '100% (Deal / Won)'] as $pct => $pctLabel)
-                                <option value="{{ $pct }}" {{ ($project->win_probability ?: 10) == $pct ? 'selected' : '' }}>
+                        <select name="win_probability" x-model="probVal" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer font-bold">
+                            @foreach([0 => '0% (Lost / Batal)', 10 => '10% (Tahap Awal)', 25 => '25% (Riset Spek)', 50 => '50% (Proposal Masuk)', 75 => '75% (Negosiasi Final)', 90 => '90% (Menunggu PO)', 100 => '100% (Deal / Won)'] as $pct => $pctLabel)
+                                <option value="{{ $pct }}" {{ ((int)$currentProb) === $pct ? 'selected' : '' }}>
                                     {{ $pctLabel }}
                                 </option>
                             @endforeach

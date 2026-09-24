@@ -126,11 +126,19 @@ class SalesCrmController extends Controller
             'opportunity' => $allProjects->filter(function($p) {
                 $st = strtolower($p->status ?? '');
                 $stage = strtolower($p->stage ?? '');
-                return $st === 'opportunity' || $st === 'prospect' || ($stage === 'acquire' && !in_array($st, ['draft', 'planning', 'completed', 'cancelled']));
+                $salesStage = strtolower($p->sales_stage ?? '');
+                if (in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing', 'completed', 'finished', 'delivered', 'done', 'cancelled']) || $salesStage === 'closed won' || $salesStage === 'closed lost') {
+                    return false;
+                }
+                return $st === 'opportunity' || $st === 'prospect' || ($stage === 'acquire' && !in_array($st, ['draft', 'planning']));
             }),
             'in_progress' => $allProjects->filter(function($p) {
                 $st = strtolower($p->status ?? '');
-                return in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing']);
+                $salesStage = strtolower($p->sales_stage ?? '');
+                if (in_array($st, ['completed', 'finished', 'delivered', 'done', 'cancelled']) || $salesStage === 'closed lost') {
+                    return false;
+                }
+                return in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing']) || $salesStage === 'closed won';
             }),
             'pending' => $allProjects->filter(function($p) {
                 $st = strtolower($p->status ?? '');
@@ -138,8 +146,7 @@ class SalesCrmController extends Controller
             }),
             'completed' => $allProjects->filter(function($p) {
                 $st = strtolower($p->status ?? '');
-                $salesStage = strtolower($p->sales_stage ?? '');
-                return in_array($st, ['completed', 'finished', 'delivered', 'done']) || $salesStage === 'closed won';
+                return in_array($st, ['completed', 'finished', 'delivered', 'done']);
             }),
         ];
 
@@ -318,7 +325,8 @@ class SalesCrmController extends Controller
 
         // Automatic Status Adjustment
         if ($validated['sales_stage'] === 'Closed Won') {
-            $updateData['status'] = 'Completed';
+            $updateData['status'] = 'In Progress';
+            $updateData['stage'] = 'Deliver';
             $updateData['win_probability'] = 100;
         } elseif ($validated['sales_stage'] === 'Closed Lost') {
             $updateData['status'] = 'Cancelled';
