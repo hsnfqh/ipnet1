@@ -178,22 +178,57 @@ class ProjectController extends Controller
     }
 
     /**
-     * Penugasan Tim (Project Manager atau Engineer)
+     * Penugasan Tim (Project Manager atau Engineer / Serah Terima PMO atau Managed Service)
      */
     public function assignTeam(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'role_type'  => 'required|in:pm,engineer',
-            'user_id'    => 'required|exists:users,id',
-            'task_title' => 'nullable|string|max:255',
-            'deadline'   => 'nullable|date',
+            'role_type'       => 'required|in:pm,engineer',
+            'user_id'         => 'required|exists:users,id',
+            'task_title'      => 'nullable|string|max:255',
+            'deadline'        => 'nullable|date',
+            'handover_target' => 'nullable|string|in:pmo,managed_service',
+            'sla_tier'        => 'nullable|string|max:50',
         ]);
 
         $user = User::findOrFail($validated['user_id']);
 
         if ($validated['role_type'] === 'pm') {
-            $project->update(['pm_id' => $user->id]);
-            $msg = "User '{$user->name}' berhasil ditugaskan sebagai Project Manager!";
+            $target = $validated['handover_target'] ?? ($project->handover_target ?: 'pmo');
+            $updateFields = [
+                'pm_id'           => $user->id,
+                'handover_target' => $target,
+            ];
+
+            if ($target === 'managed_service') {
+                $updateFields['stage'] = 'Operate';
+                if (!empty($validated['sla_tier'])) {
+                    $updateFields['sla_tier'] = $validated['sla_tier'];
+                }
+            } else {
+                $updateFields['stage'] = 'Deliver';
+            }
+
+            if (in_array($project->status, ['Draft', 'Planning', 'Opportunity'])) {
+                $updateFields['status'] = 'In Progress';
+            }
+
+            $project->update($updateFields);
+
+            // Send notification
+            if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                \App\Models\Notification::create([
+                    'user_id' => $user->id,
+                    'title'   => $target === 'managed_service' ? "Penugasan Lead Managed Service: {$project->name}" : "Penugasan Project Manager: {$project->name}",
+                    'message' => "Anda telah ditugaskan untuk memimpin serah terima proyek '{$project->name}' (Klien: " . ($project->client ?: '-') . ").",
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
+
+            $msg = $target === 'managed_service' 
+                ? "User '{$user->name}' berhasil ditugaskan sebagai Lead Managed Service!" 
+                : "User '{$user->name}' berhasil ditugaskan sebagai Project Manager (PMO)!";
         } else {
             $taskTitle = $validated['task_title'] ?: ('Implementasi Teknis: ' . $project->name);
             $task = Task::create([

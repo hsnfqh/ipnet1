@@ -915,6 +915,9 @@
                             </div>
                         </div>
 
+                        {{-- 3. Persetujuan Pimpinan (Review & Sign-Off) --}}
+                        @include('projects.partials.workflow-leadership')
+
                     @elseif($currentStatus === 'Draft')
                         {{-- DRAFT: Persetujuan Pimpinan (Review & Sign-Off) --}}
                         <div class="ipnet-card p-6 space-y-5">
@@ -1034,59 +1037,11 @@
                         </div>
 
                     @elseif($currentStatus === 'In Progress')
-                        {{-- IN PROGRESS: Fase Delivery ke PMO & Monitoring Engineer --}}
-                        <div class="ipnet-card p-6 space-y-4">
-                            <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
-                                <div>
-                                    <p class="text-amber-600 text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-1">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block mr-1.5"></span> FASE DELIVERY PROYEK
-                                    </p>
-                                    <h3 class="text-sm font-bold text-slate-900">Alokasi Tim PMO &amp; Engineer Pelaksana</h3>
-                                </div>
-                                <div class="flex items-center gap-2.5">
-                                    <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="status" value="Completed">
-                                        <button type="submit" onclick="return confirm('Tandai proyek {{ addslashes($project->name) }} sebagai Selesai (Completed)?')"
-                                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs cursor-pointer">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                            <span>✓ Selesaikan Proyek (Completed)</span>
-                                        </button>
-                                    </form>
-                                    <button type="button" @click="isHandoverModalOpen = true; openAssignModal('both')" onclick="window.openModal('modal-handover')" class="text-xs font-bold text-[#8F0A0D] hover:underline cursor-pointer">
-                                        {{ $project->pm ? 'Ubah PMO (' . $project->pm->name . ')' : '+ Handover ke PMO' }}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                                <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-1.5">
-                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PROJECT MANAGER (PMO)</div>
-                                    <div class="font-bold text-slate-900 text-sm">{{ $project->pm ? $project->pm->name : 'Belum Ada PM' }}</div>
-                                    <div class="text-[11.5px] text-slate-500">{{ $project->pm ? $project->pm->email : 'Sales silakan serahkan delivery ke tim PMO' }}</div>
-                                </div>
-                                <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200 space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">TIM ENGINEER PELAKSANA</span>
-                                        <span class="text-[10.5px] font-bold text-slate-600">{{ $uniqueEngineers->count() }} Personel</span>
-                                    </div>
-                                    @if($uniqueEngineers->count() > 0)
-                                        <div class="space-y-1 pt-0.5">
-                                            @foreach($uniqueEngineers as $eng)
-                                                <div class="flex items-center justify-between text-[11.5px]">
-                                                    <span class="font-semibold text-slate-800">{{ $eng->name }}</span>
-                                                    <span class="text-slate-400">{{ $eng->roles->pluck('name')->first() ?? 'Engineer' }}</span>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @else
-                                        <div class="text-[11.5px] text-slate-400 italic">
-                                            Menunggu alokasi tim teknis oleh PMO.
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
+                        {{-- IN PROGRESS: Delivery PMO/MS + Riwayat Pimpinan + Riwayat Solusi Teknis + Ringkasan Pipeline --}}
+                        @include('projects.partials.workflow-delivery')
+                        @include('projects.partials.workflow-leadership')
+                        @include('projects.partials.workflow-technical-solution')
+                        @include('projects.partials.workflow-pipeline')
 
                     @elseif($currentStatus === 'Pending')
                         {{-- PENDING --}}
@@ -1099,6 +1054,10 @@
                                 Pengerjaan proyek sedang di-pause sementara waktu menunggu konfirmasi akses site, perizinan, atau kelengkapan berkas kontrak.
                             </p>
                         </div>
+                        @include('projects.partials.workflow-delivery')
+                        @include('projects.partials.workflow-leadership')
+                        @include('projects.partials.workflow-technical-solution')
+
                     @elseif($currentStatus === 'Completed')
                         {{-- COMPLETED --}}
                         <div class="ipnet-card p-6 border-emerald-200 bg-emerald-50/50 space-y-2">
@@ -1110,6 +1069,10 @@
                                 Seluruh target milestone teknis telah selesai 100% dan Berita Acara Serah Terima (BAST) pekerjaan telah disahkan bersama klien.
                             </p>
                         </div>
+                        @include('projects.partials.workflow-delivery')
+                        @include('projects.partials.workflow-leadership')
+                        @include('projects.partials.workflow-technical-solution')
+                        @include('projects.partials.workflow-pipeline')
                     @endif
 
                     {{-- MILESTONES CARD --}}
@@ -1446,14 +1409,18 @@
     {{-- MODALS: CENTERED & CLEAN                                --}}
     {{-- ======================================================== --}}
 
-    {{-- 1. ASSIGN / HANDOVER TO PMO MODAL --}}
+    {{-- 1. ASSIGN / HANDOVER TO PMO OR MANAGED SERVICE MODAL --}}
     <div id="modal-handover" x-show="isHandoverModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
         <div @click.away="isHandoverModalOpen = false; window.closeModal('modal-handover')" 
-             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto"
+             x-data="{ targetType: '{{ ($project->handover_target === 'managed_service' || $project->stage === 'Operate') ? 'managed_service' : 'pmo' }}' }">
             
             <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="text-base font-bold text-slate-900">Assign PMO (Handover Proyek)</h3>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Serah Terima &amp; Handover Proyek</h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Tentukan jalur eksekusi proyek (Delivery PMO atau Operasional Managed Service)</p>
+                </div>
                 <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
@@ -1461,17 +1428,39 @@
                 @csrf
                 <input type="hidden" name="role_type" value="pm">
 
-                <p class="text-slate-500 font-normal leading-relaxed">
-                    Sales menyerahkan proyek ke PMO. Pilih Project Manager yang akan mengatur alokasi teknis dan tim engineer.
-                </p>
-
+                {{-- Pilihan Target Handover --}}
                 <div>
-                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">PILIH USER PMO</label>
-                    <select name="user_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-white">
-                        <option value="">Select a user</option>
+                    <label class="block text-slate-700 mb-2 uppercase tracking-wider text-[10.5px]">PILIH JALUR EKSEKUSI (TARGET HANDOVER)</label>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <label :class="targetType === 'pmo' ? 'border-[#8F0A0D] bg-red-50/50 text-[#8F0A0D]' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
+                               class="p-3 rounded-xl border flex flex-col gap-1 cursor-pointer transition">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="handover_target" value="pmo" x-model="targetType" class="text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                                <span class="font-bold text-xs">PMO Delivery</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 font-normal">Implementasi &amp; Deployment</span>
+                        </label>
+
+                        <label :class="targetType === 'managed_service' ? 'border-purple-600 bg-purple-50/50 text-purple-900' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
+                               class="p-3 rounded-xl border flex flex-col gap-1 cursor-pointer transition">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="handover_target" value="managed_service" x-model="targetType" class="text-purple-600 focus:ring-purple-500">
+                                <span class="font-bold text-xs">Managed Service</span>
+                            </div>
+                            <span class="text-[10px] text-slate-500 font-normal">Operasional, Helpdesk &amp; SLA</span>
+                        </label>
+                    </div>
+                </div>
+
+                {{-- User Selection --}}
+                <div>
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]" 
+                           x-text="targetType === 'managed_service' ? 'PILIH LEAD MANAGED SERVICE / OPERASIONAL' : 'PILIH PROJECT MANAGER (PMO)'"></label>
+                    <select name="user_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-white font-bold">
+                        <option value="">-- Pilih Penanggung Jawab --</option>
                         @foreach($pmoUsers as $pmo)
                             <option value="{{ $pmo->id }}" {{ ($project->pm_id == $pmo->id || (empty($project->pm_id) && str_contains(strtolower($pmo->name), 'rizki'))) ? 'selected' : '' }}>
-                                (PMO) {{ $pmo->name }}
+                                (PMO / Lead) {{ $pmo->name }}
                             </option>
                         @endforeach
                         @php
@@ -1488,12 +1477,23 @@
                     </select>
                 </div>
 
+                {{-- SLA Tier for Managed Service --}}
+                <div x-show="targetType === 'managed_service'" x-cloak>
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">SLA TIER KONTRAK</label>
+                    <select name="sla_tier" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 cursor-pointer bg-white font-bold">
+                        <option value="Gold" {{ ($project->sla_tier ?: 'Gold') === 'Gold' ? 'selected' : '' }}>Gold (SLA 99.5% - Response 15-30 Menit)</option>
+                        <option value="Platinum" {{ ($project->sla_tier ?? '') === 'Platinum' ? 'selected' : '' }}>Platinum (SLA 99.9% - Response 15 Menit 24x7)</option>
+                        <option value="Silver" {{ ($project->sla_tier ?? '') === 'Silver' ? 'selected' : '' }}>Silver (SLA 99.0% - Response 1-2 Jam 8x5)</option>
+                        <option value="Bronze" {{ ($project->sla_tier ?? '') === 'Bronze' ? 'selected' : '' }}>Bronze (SLA 98.0% - Best Effort)</option>
+                    </select>
+                </div>
+
                 <div class="flex justify-end gap-2 pt-3 border-t">
                     <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                        Assign ke PMO
+                        Simpan Handover
                     </button>
                 </div>
             </form>
