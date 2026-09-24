@@ -464,7 +464,7 @@
                             </div>
                         </div>
 
-                        {{-- 2. Kolaborasi Tim Solusi (Clean 3-Card Grid - Step bar removed) --}}
+                        {{-- 2. Kolaborasi Tim Solusi (Clean 3-Card Grid - Executive Architecture) --}}
                         <div class="ipnet-card p-6 space-y-5">
                             
                             {{-- Header & Status --}}
@@ -501,7 +501,7 @@
                             </div>
 
                             {{-- 3 Collaborative Person Workspace Cards --}}
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs items-stretch">
                                 
                                 {{-- ══ CARD 1: BUSINESS DEVELOPMENT (PIC / PM) ══ --}}
                                 <div class="p-4 rounded-xl bg-white border {{ ($bdVerification['status'] ?? '') === 'Approved' ? 'border-emerald-200 ring-1 ring-emerald-100 shadow-2xs' : (($bdVerification['status'] ?? '') === 'Revision Needed' ? 'border-rose-200 ring-1 ring-rose-100 shadow-2xs' : 'border-slate-200 shadow-2xs') }} flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
@@ -509,8 +509,8 @@
                                         
                                         {{-- Header --}}
                                         <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                                PIC BUSINESS DEV
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider whitespace-nowrap">
+                                                PIC BD
                                             </span>
                                             @php
                                                 $bdBadgeClass = match($bdVerification['status'] ?? '') {
@@ -528,7 +528,7 @@
                                                     default               => 'Belum Di-assign',
                                                 };
                                             @endphp
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $bdBadgeClass }}">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $bdBadgeClass }}">
                                                 {{ $bdBadgeLabel }}
                                             </span>
                                         </div>
@@ -538,8 +538,8 @@
                                             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-700 to-indigo-500 text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                                 {{ $isBdmAssigned && !empty($bdmName) ? strtoupper(substr($bdmName, 0, 2)) : 'BD' }}
                                             </div>
-                                            <div class="min-w-0">
-                                                <h4 class="font-bold text-xs {{ $isBdmAssigned ? 'text-slate-900' : 'text-slate-400 italic' }} truncate">
+                                            <div class="min-w-0 flex-1">
+                                                <h4 class="font-bold text-xs {{ $isBdmAssigned ? 'text-slate-900' : 'text-slate-400 italic' }} truncate" title="{{ $isBdmAssigned && !empty($bdmName) ? $bdmName : '' }}">
                                                     {{ $isBdmAssigned && !empty($bdmName) ? $bdmName : 'Belum Ditugaskan' }}
                                                 </h4>
                                                 <p class="text-[10.5px] text-slate-500 truncate">Product Manager &amp; Verifikator</p>
@@ -552,15 +552,16 @@
                                                 <div class="p-3 rounded-lg bg-emerald-50/80 border border-emerald-200 text-emerald-900 space-y-1.5">
                                                     <div class="flex items-center justify-between text-[11px] font-bold text-emerald-800">
                                                         <span>Proposal Disetujui</span>
-                                                        <span class="text-[10px] text-emerald-700 font-normal">{{ $bdVerification['verified_at'] ?? 'Selesai' }}</span>
+                                                        <span class="text-[10px] text-emerald-700 font-normal font-mono">{{ $bdVerification['verified_at'] ?? 'Selesai' }}</span>
                                                     </div>
                                                     @if(!empty($bdVerification['notes']))
                                                         <div class="text-[11px] text-emerald-950 bg-white/90 p-2 rounded border border-emerald-100 italic">
                                                             "{{ $bdVerification['notes'] }}"
                                                         </div>
                                                     @endif
-                                                    <div class="text-[10.5px] text-emerald-700 font-semibold">
-                                                        ✓ Siap diajukan ke klien.
+                                                    <div class="text-[10.5px] text-emerald-700 font-semibold flex items-center justify-between pt-0.5">
+                                                        <span>✓ Siap diajukan ke klien</span>
+                                                        <span class="text-emerald-600 text-[10px]">Verified</span>
                                                     </div>
                                                 </div>
                                             @elseif(($bdVerification['status'] ?? '') === 'Revision Needed')
@@ -589,14 +590,15 @@
                                     </div>
 
                                     {{-- Actions Footer --}}
-                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                                         @if(!$isBdmAssigned)
                                             <button type="button" @click="openAssignTechnicalModal('bdm')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                                                 <span>+ Tunjuk PIC BD</span>
                                             </button>
                                         @else
-                                            <button type="button" @click="openAssignTechnicalModal('bdm')" class="text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                                                Ubah PIC BD
+                                            <button type="button" @click="openAssignTechnicalModal('bdm')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                <span>Ubah PIC BD</span>
                                             </button>
                                         @endif
 
@@ -614,11 +616,11 @@
                                         
                                         {{-- Header --}}
                                         <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider whitespace-nowrap">
                                                 PRE-SALES
                                             </span>
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $isPresalesDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isPresalesAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
-                                                {{ $isPresalesDone ? 'Berkas Diunggah' : ($isPresalesAssigned ? 'Menunggu Proposal' : 'Belum Di-assign') }}
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $isPresalesDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isPresalesAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
+                                                {{ $isPresalesDone ? '✓ Berkas Diunggah' : ($isPresalesAssigned ? 'Menunggu Proposal' : 'Belum Di-assign') }}
                                             </span>
                                         </div>
 
@@ -627,8 +629,8 @@
                                             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-700 to-emerald-500 text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                                 {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? strtoupper(substr($presalesAssignment['assigned_to'], 0, 2)) : 'PS' }}
                                             </div>
-                                            <div class="min-w-0">
-                                                <h4 class="font-bold text-xs {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? 'text-slate-900' : 'text-slate-400 italic' }} truncate">
+                                            <div class="min-w-0 flex-1">
+                                                <h4 class="font-bold text-xs {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? 'text-slate-900' : 'text-slate-400 italic' }} truncate" title="{{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? $presalesAssignment['assigned_to'] : '' }}">
                                                     {{ $isPresalesAssigned && !empty($presalesAssignment['assigned_to']) ? $presalesAssignment['assigned_to'] : 'Belum Ditugaskan' }}
                                                 </h4>
                                                 <p class="text-[10.5px] text-slate-500 truncate">Proposal &amp; BoQ Proyek</p>
@@ -640,13 +642,13 @@
                                             @if($isPresalesDone)
                                                 <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
                                                     <div class="flex items-center justify-between gap-2">
-                                                        <div class="flex items-center gap-2 min-w-0">
+                                                        <div class="flex items-center gap-2 min-w-0 flex-1">
                                                             <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                             </div>
-                                                            <div class="min-w-0">
-                                                                <div class="font-bold text-slate-900 text-xs truncate">{{ $presalesAssignment['document_title'] ?? 'Proposal Teknis' }}</div>
-                                                                <div class="text-[10px] text-slate-500 truncate">{{ $presalesAssignment['document_name'] ?? 'Berkas terlampir' }}</div>
+                                                            <div class="min-w-0 flex-1">
+                                                                <div class="font-bold text-slate-900 text-xs truncate" title="{{ $presalesAssignment['document_title'] ?? 'Proposal Teknis' }}">{{ $presalesAssignment['document_title'] ?? 'Proposal Teknis' }}</div>
+                                                                <div class="text-[10px] text-slate-500 font-mono truncate" title="{{ $presalesAssignment['document_name'] ?? 'Berkas terlampir' }}">{{ $presalesAssignment['document_name'] ?? 'Berkas terlampir' }}</div>
                                                             </div>
                                                         </div>
                                                         @if(!empty($presalesAssignment['document_path']))
@@ -658,8 +660,11 @@
                                                         @endif
                                                     </div>
                                                     <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 flex items-center justify-between">
-                                                        <span>SOW Terlampir</span>
-                                                        <span>{{ $presalesAssignment['completed_at'] ?? '-' }}</span>
+                                                        <span class="inline-flex items-center gap-1 text-emerald-700 font-medium">
+                                                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                            SOW Terlampir
+                                                        </span>
+                                                        <span class="font-mono">{{ $presalesAssignment['completed_at'] ?? '-' }}</span>
                                                     </div>
                                                 </div>
                                             @elseif($isPresalesAssigned)
@@ -677,14 +682,15 @@
                                     </div>
 
                                     {{-- Actions Footer --}}
-                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                                         @if(!$isPresalesAssigned)
                                             <button type="button" @click="openAssignTechnicalModal('presales')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                                                 <span>+ Tugaskan Presales</span>
                                             </button>
                                         @else
-                                            <button type="button" @click="openAssignTechnicalModal('presales')" class="text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                                                Ubah Penugasan
+                                            <button type="button" @click="openAssignTechnicalModal('presales')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                <span>Ubah Penugasan</span>
                                             </button>
                                         @endif
                                     </div>
@@ -696,15 +702,15 @@
                                         
                                         {{-- Header --}}
                                         <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 uppercase tracking-wider whitespace-nowrap">
                                                 SOL. ARCHITECT
                                             </span>
                                             @php
                                                 $isBdApproved = (($bdVerification['status'] ?? '') === 'Approved');
                                                 $saIsCompleted = $isArchitectDone || ($isBdApproved && $isArchitectAssigned);
                                             @endphp
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $saIsCompleted ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
-                                                {{ $isArchitectDone ? 'Desain Diunggah' : ($isBdApproved && $isArchitectAssigned ? '✓ Solusi Disahkan' : ($isArchitectAssigned ? 'Menunggu Desain' : 'Belum Di-assign')) }}
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $saIsCompleted ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
+                                                {{ $isArchitectDone ? '✓ Desain Diunggah' : ($isBdApproved && $isArchitectAssigned ? '✓ Solusi Disahkan' : ($isArchitectAssigned ? 'Menunggu Desain' : 'Belum Di-assign')) }}
                                             </span>
                                         </div>
 
@@ -713,8 +719,8 @@
                                             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-700 to-sky-500 text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                                                 {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? strtoupper(substr($architectAssignment['assigned_to'], 0, 2)) : 'SA' }}
                                             </div>
-                                            <div class="min-w-0">
-                                                <h4 class="font-bold text-xs {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? 'text-slate-900' : 'text-slate-400 italic' }} truncate">
+                                            <div class="min-w-0 flex-1">
+                                                <h4 class="font-bold text-xs {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? 'text-slate-900' : 'text-slate-400 italic' }} truncate" title="{{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? $architectAssignment['assigned_to'] : '' }}">
                                                     {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? $architectAssignment['assigned_to'] : 'Belum Ditugaskan' }}
                                                 </h4>
                                                 <p class="text-[10.5px] text-slate-500 truncate">Desain Topologi Arsitektur</p>
@@ -726,13 +732,13 @@
                                             @if($isArchitectDone)
                                                 <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
                                                     <div class="flex items-center justify-between gap-2">
-                                                        <div class="flex items-center gap-2 min-w-0">
+                                                        <div class="flex items-center gap-2 min-w-0 flex-1">
                                                             <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
                                                             </div>
-                                                            <div class="min-w-0">
-                                                                <div class="font-bold text-slate-900 text-xs truncate">{{ $architectAssignment['document_title'] ?? 'Desain Arsitektur' }}</div>
-                                                                <div class="text-[10px] text-slate-500 truncate">{{ $architectAssignment['document_name'] ?? 'Berkas terlampir' }}</div>
+                                                            <div class="min-w-0 flex-1">
+                                                                <div class="font-bold text-slate-900 text-xs truncate" title="{{ $architectAssignment['document_title'] ?? 'Desain Arsitektur' }}">{{ $architectAssignment['document_title'] ?? 'Desain Arsitektur' }}</div>
+                                                                <div class="text-[10px] text-slate-500 font-mono truncate" title="{{ $architectAssignment['document_name'] ?? 'Berkas terlampir' }}">{{ $architectAssignment['document_name'] ?? 'Berkas terlampir' }}</div>
                                                             </div>
                                                         </div>
                                                         @if(!empty($architectAssignment['document_path']))
@@ -744,32 +750,39 @@
                                                         @endif
                                                     </div>
                                                     <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 flex items-center justify-between">
-                                                        <span>Diagram Valid</span>
-                                                        <span>{{ $architectAssignment['completed_at'] ?? '-' }}</span>
+                                                        <span class="inline-flex items-center gap-1 text-sky-700 font-medium">
+                                                            <svg class="w-3 h-3 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                            Diagram Valid
+                                                        </span>
+                                                        <span class="font-mono">{{ $architectAssignment['completed_at'] ?? '-' }}</span>
                                                     </div>
                                                 </div>
                                             @elseif($isBdApproved && $isArchitectAssigned)
                                                 <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
                                                     <div class="flex items-center justify-between gap-2">
-                                                        <div class="flex items-center gap-2 min-w-0">
+                                                        <div class="flex items-center gap-2 min-w-0 flex-1">
                                                             <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                             </div>
-                                                            <div class="min-w-0">
-                                                                <div class="font-bold text-slate-900 text-xs truncate">Desain Disahkan</div>
-                                                                <div class="text-[10px] text-slate-500 truncate">{{ $presalesAssignment['document_name'] ?? 'Proposal & SOW' }}</div>
+                                                            <div class="min-w-0 flex-1">
+                                                                <div class="font-bold text-slate-900 text-xs truncate" title="Desain Disahkan">Desain Disahkan</div>
+                                                                <div class="text-[10px] text-slate-500 font-mono truncate" title="{{ $presalesAssignment['document_name'] ?? 'Proposal & SOW' }}">{{ $presalesAssignment['document_name'] ?? 'Proposal & SOW' }}</div>
                                                             </div>
                                                         </div>
-                                                        @if(!empty($presalesAssignment['document_path']) || !empty($project->proposal_file))
-                                                            <a href="{{ asset('storage/' . ($presalesAssignment['document_path'] ?? $project->proposal_file)) }}" target="_blank" 
+                                                        @php
+                                                            $saDlPath = !empty($architectAssignment['document_path']) ? $architectAssignment['document_path'] : (!empty($presalesAssignment['document_path']) ? $presalesAssignment['document_path'] : ($project->proposal_file ?? null));
+                                                        @endphp
+                                                        @if(!empty($saDlPath))
+                                                            <a href="{{ asset('storage/' . $saDlPath) }}" target="_blank" 
                                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition shrink-0 shadow-2xs" title="Unduh Berkas">
                                                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                                 <span>Unduh</span>
                                                             </a>
                                                         @endif
                                                     </div>
-                                                    <div class="text-[10px] text-emerald-600 pt-1.5 border-t border-slate-200/80 font-semibold">
-                                                        ✓ Disahkan dalam verifikasi BD.
+                                                    <div class="text-[10px] text-emerald-600 pt-1.5 border-t border-slate-200/80 font-semibold flex items-center justify-between">
+                                                        <span>✓ Disahkan dalam verifikasi BD</span>
+                                                        <span class="text-slate-400 font-mono">{{ $bdVerification['verified_at'] ?? '-' }}</span>
                                                     </div>
                                                 </div>
                                             @elseif($isArchitectAssigned)
@@ -787,14 +800,15 @@
                                     </div>
 
                                     {{-- Actions Footer --}}
-                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                    <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                                         @if(!$isArchitectAssigned)
                                             <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                                                 <span>+ Tugaskan SA</span>
                                             </button>
                                         @else
-                                            <button type="button" @click="openAssignTechnicalModal('architect')" class="text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                                                Ubah Penugasan
+                                            <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
+                                                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                <span>Ubah Penugasan</span>
                                             </button>
                                         @endif
                                     </div>
