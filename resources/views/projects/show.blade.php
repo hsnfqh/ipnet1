@@ -250,6 +250,29 @@
         }
     };
 
+    window.startEditTitle = function() {
+        const display = document.getElementById('title-display-container');
+        const form = document.getElementById('title-edit-form');
+        const input = document.getElementById('project-title-input');
+        if (display && form && input) {
+            display.classList.add('hidden');
+            form.classList.remove('hidden');
+            form.classList.add('flex');
+            input.focus();
+            input.select();
+        }
+    };
+
+    window.cancelEditTitle = function() {
+        const display = document.getElementById('title-display-container');
+        const form = document.getElementById('title-edit-form');
+        if (display && form) {
+            form.classList.add('hidden');
+            form.classList.remove('flex');
+            display.classList.remove('hidden');
+        }
+    };
+
     function projectDetailPage(initialStage, currentDbStatus) {
         return {
             activeStageTab: initialStage || 'draft',
@@ -463,17 +486,34 @@
 
                 {{-- B. Project Title & Quick Actions --}}
                 <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2.5 flex-wrap">
-                            <h1 class="text-2xl sm:text-[26px] font-extrabold text-slate-900 tracking-tight leading-tight">
-                                {{ $project->name }}
+                    <div class="space-y-1 flex-1 min-w-0">
+                        {{-- 1. Display Mode (Default) --}}
+                        <div class="flex items-center gap-2.5 flex-wrap" id="title-display-container">
+                            <h1 class="text-2xl sm:text-[26px] font-extrabold text-slate-900 tracking-tight leading-tight cursor-pointer hover:text-[#8F0A0D] transition group flex items-center gap-2"
+                                onclick="window.startEditTitle()"
+                                title="Klik untuk edit nama proyek">
+                                <span>{{ $project->name }}</span>
+                                <span class="p-1.5 text-slate-400 group-hover:text-[#8F0A0D] group-hover:bg-red-50 border border-slate-200 group-hover:border-red-200 rounded-lg transition shadow-2xs">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                </span>
                             </h1>
-                            <button type="button" @click="openEditMetaModal()" onclick="window.openModal('modal-edit-meta')" 
-                                    class="p-1.5 text-slate-400 hover:text-[#8F0A0D] hover:bg-red-50/70 border border-transparent hover:border-red-100 rounded-lg transition cursor-pointer" 
-                                    title="Edit Nama & Informasi Proyek">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                            </button>
                         </div>
+
+                        {{-- 2. Direct Inline Edit Mode --}}
+                        <form id="title-edit-form" action="{{ route('projects.meta_update', $project->id) }}" method="POST" class="hidden items-center gap-2 flex-wrap pb-1">
+                            @csrf
+                            <input type="text" name="name" id="project-title-input" value="{{ $project->name }}" required
+                                   class="text-lg sm:text-xl font-bold text-slate-900 px-3.5 py-1.5 rounded-xl border-2 border-[#8F0A0D] focus:outline-none focus:ring-2 focus:ring-red-500/30 bg-white shadow-inner min-w-[260px] sm:min-w-[380px]"
+                                   onkeydown="if(event.key==='Escape') window.cancelEditTitle();">
+                            <button type="submit" class="px-4 py-2 rounded-xl btn-ipnet-primary text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                <span>Simpan</span>
+                            </button>
+                            <button type="button" onclick="window.cancelEditTitle()" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 text-xs font-semibold cursor-pointer">
+                                Batal
+                            </button>
+                        </form>
+
                         <p class="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-3xl">
                             {{ $project->description ?: 'Proyek pengadaan infrastruktur dan solusi teknologi terintegrasi.' }}
                         </p>
