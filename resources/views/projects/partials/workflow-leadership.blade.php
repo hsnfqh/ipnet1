@@ -41,7 +41,7 @@
     {{-- 2 Leadership Authorization Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs items-stretch">
         
-        {{-- ══ CARD 1: HEAD DIVISI ══ --}}
+        {{-- ══ CARD 1: HEAD DIVISI (SUSANTO DJAYA) ══ --}}
         <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
             <div class="space-y-3">
                 
@@ -68,18 +68,38 @@
                     </div>
                 </div>
 
-                {{-- Approval Notes Box --}}
+                {{-- Approval Deliverable Box --}}
                 <div>
                     @if(!empty($headApproval['approved']))
-                        <div class="p-3 rounded-lg bg-emerald-50/80 border border-emerald-200 text-emerald-800 space-y-1">
-                            <div class="font-medium italic text-[11px]">"{{ $headApproval['notes'] ?? 'Kelayakan teknis & alokasi resource disetujui.' }}"</div>
-                            <div class="text-[10px] text-emerald-600 mt-1 font-mono">Disetujui: {{ $headApproval['date'] ?? '-' }}</div>
+                        <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-bold text-slate-900 text-xs truncate">Kelayakan Disetujui</div>
+                                    <div class="text-[10.5px] text-slate-500 truncate">{{ $headApproval['notes'] ?? 'Review kelayakan teknis & alokasi resource lolos' }}</div>
+                                </div>
+                            </div>
+                            @if(!empty($headApproval['date']))
+                                <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 text-right font-mono">
+                                    {{ $headApproval['date'] }}
+                                </div>
+                            @endif
                         </div>
                     @elseif($isHeadAssigned)
-                        <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1">
-                            <div class="font-medium italic text-[11px]">"Menunggu review kelayakan dari {{ $headName }}."</div>
+                        <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1.5">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-bold text-amber-900 text-xs">Menunggu Review</div>
+                                    <div class="text-[10.5px] text-amber-800 truncate">Menunggu verifikasi Head Divisi</div>
+                                </div>
+                            </div>
                             @if(!empty($headApproval['assigned_at']))
-                                <div class="text-[10px] text-amber-700 font-mono mt-1">Ditugaskan: {{ $headApproval['assigned_at'] }}</div>
+                                <div class="text-[10px] text-amber-700 font-mono text-right pt-1 border-t border-amber-200/60">Ditugaskan: {{ $headApproval['assigned_at'] }}</div>
                             @endif
                         </div>
                     @else
@@ -92,28 +112,29 @@
             </div>
 
             {{-- Actions Footer --}}
-            <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                @if(!$isHeadAssigned)
-                    <button type="button" @click="openAssignModal('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        <span>Assign Head Divisi</span>
-                    </button>
-                @elseif(!$headApproval['approved'])
-                    <button type="button" @click="openAssignModal('head')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                        Ubah Penugasan
-                    </button>
-                @endif
+            @if(!$isHeadAssigned || ($canApproveHead && $isHeadAssigned))
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    @if(!$isHeadAssigned)
+                        <button type="button" @click="openAssignModal('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            <span>Assign Head Divisi</span>
+                        </button>
+                    @endif
 
-                @if($canApproveHead && $isHeadAssigned)
-                    <button type="button" @click="openApproveModal('head')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-primary shadow-xs cursor-pointer ml-auto">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        <span>{{ empty($headApproval['approved']) ? 'Beri Approval' : 'Ubah Catatan' }}</span>
-                    </button>
-                @endif
-            </div>
+                    @if($canApproveHead && $isHeadAssigned)
+                        <button type="button" @click="openApproveModal('head')" class="text-xs font-semibold text-slate-600 hover:text-[#8F0A0D] cursor-pointer inline-flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>{{ empty($headApproval['approved']) ? 'Beri Approval' : 'Ubah Approval' }}</span>
+                        </button>
+                        <button type="button" @click="openAssignModal('head')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
+                            Ubah Penugasan
+                        </button>
+                    @endif
+                </div>
+            @endif
         </div>
 
-        {{-- ══ CARD 2: DIREKTUR ══ --}}
+        {{-- ══ CARD 2: DIREKTUR (HARIYADI) ══ --}}
         <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
             <div class="space-y-3">
                 
@@ -140,18 +161,38 @@
                     </div>
                 </div>
 
-                {{-- Approval Notes Box --}}
+                {{-- Approval Deliverable Box --}}
                 <div>
                     @if(!empty($directorApproval['approved']))
-                        <div class="p-3 rounded-lg bg-emerald-50/80 border border-emerald-200 text-emerald-800 space-y-1">
-                            <div class="font-medium italic text-[11px]">"{{ $directorApproval['notes'] ?? 'Otorisasi anggaran dan persetujuan eksekusi kontrak disahkan.' }}"</div>
-                            <div class="text-[10px] text-emerald-600 mt-1 font-mono">Disahkan: {{ $directorApproval['date'] ?? '-' }}</div>
+                        <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-bold text-slate-900 text-xs truncate">Otorisasi Disahkan</div>
+                                    <div class="text-[10.5px] text-slate-500 truncate">{{ $directorApproval['notes'] ?? 'Otorisasi anggaran & eksekusi kontrak disahkan' }}</div>
+                                </div>
+                            </div>
+                            @if(!empty($directorApproval['date']))
+                                <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 text-right font-mono">
+                                    {{ $directorApproval['date'] }}
+                                </div>
+                            @endif
                         </div>
                     @elseif($isDirectorAssigned)
-                        <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1">
-                            <div class="font-medium italic text-[11px]">"Menunggu otorisasi anggaran dari {{ $directorName }}."</div>
+                        <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1.5">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-bold text-amber-900 text-xs">Menunggu Otorisasi</div>
+                                    <div class="text-[10.5px] text-amber-800 truncate">Menunggu otorisasi Direktur</div>
+                                </div>
+                            </div>
                             @if(!empty($directorApproval['assigned_at']))
-                                <div class="text-[10px] text-amber-700 font-mono mt-1">Ditugaskan: {{ $directorApproval['assigned_at'] }}</div>
+                                <div class="text-[10px] text-amber-700 font-mono text-right pt-1 border-t border-amber-200/60">Ditugaskan: {{ $directorApproval['assigned_at'] }}</div>
                             @endif
                         </div>
                     @else
@@ -164,25 +205,26 @@
             </div>
 
             {{-- Actions Footer --}}
-            <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                @if(!$isDirectorAssigned)
-                    <button type="button" @click="openAssignModal('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        <span>Assign Direktur</span>
-                    </button>
-                @elseif(!$directorApproval['approved'])
-                    <button type="button" @click="openAssignModal('director')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer">
-                        Ubah Penugasan
-                    </button>
-                @endif
+            @if(!$isDirectorAssigned || ($canApproveDirector && $isDirectorAssigned))
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    @if(!$isDirectorAssigned)
+                        <button type="button" @click="openAssignModal('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            <span>Assign Direktur</span>
+                        </button>
+                    @endif
 
-                @if($canApproveDirector && $isDirectorAssigned)
-                    <button type="button" @click="openApproveModal('director')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white btn-ipnet-primary shadow-xs cursor-pointer ml-auto">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        <span>{{ empty($directorApproval['approved']) ? 'Beri Otorisasi' : 'Ubah Catatan' }}</span>
-                    </button>
-                @endif
-            </div>
+                    @if($canApproveDirector && $isDirectorAssigned)
+                        <button type="button" @click="openApproveModal('director')" class="text-xs font-semibold text-slate-600 hover:text-[#8F0A0D] cursor-pointer inline-flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>{{ empty($directorApproval['approved']) ? 'Beri Otorisasi' : 'Ubah Otorisasi' }}</span>
+                        </button>
+                        <button type="button" @click="openAssignModal('director')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
+                            Ubah Penugasan
+                        </button>
+                    @endif
+                </div>
+            @endif
         </div>
 
     </div>
