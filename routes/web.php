@@ -527,20 +527,33 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/', function () {
     if (auth()->check()) {
         $user = auth()->user();
-        if ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D'])) {
+        $email = strtolower($user->email ?? '');
+        $name = strtolower($user->name ?? '');
+        $pos = strtolower($user->position ?? '');
+
+        if ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D']) || str_contains($email, 'aris') || str_contains($pos, 'solution architect') || str_contains($pos, 'architect')) {
             return redirect()->route('dashboard.architect');
         }
-        if ($user->hasAnyRole(['Presales', 'Pre-Sales'])) {
+        if ($user->hasAnyRole(['Presales', 'Pre-Sales']) || str_contains($email, 'akbar') || str_contains($name, 'akbar') || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
             return redirect()->route('dashboard.presales');
         }
-        if ($user->hasAnyRole(['BusDev', 'BDM', 'Business Development'])) {
+        if ($user->hasAnyRole(['BusDev', 'BDM', 'Business Development']) || str_contains($pos, 'business development') || str_contains($pos, 'bdm')) {
             return redirect()->route('dashboard.bdm');
         }
-        if ($user->hasAnyRole(['Sales', 'Account Manager', 'CRO', 'Customer Relation Officer', 'Group Leader Commercial & Solution'])) {
+        if ($user->hasAnyRole(['CRO', 'Customer Relation Officer', 'Customer Relationship Officer']) || str_contains($email, 'cro') || str_contains($pos, 'customer relation')) {
+            return redirect()->route('cro.dashboard');
+        }
+        if ($user->hasAnyRole(['Sales', 'Account Manager', 'Group Leader Commercial & Solution']) || str_contains($pos, 'sales') || str_contains($pos, 'account manager')) {
             return redirect()->route('dashboard.sales');
         }
-        if ($user->hasAnyRole(['PMO', 'Project Manager'])) {
+        if ($user->hasAnyRole(['PMO', 'Project Manager']) || str_contains($email, 'rizki') || str_contains($email, 'kuncoro') || str_contains($pos, 'project manager')) {
             return redirect()->route('pmo.dashboard');
+        }
+        if ($user->hasAnyRole(['Admin Support', 'Admin Logistik', 'Admin']) || str_contains($pos, 'admin support')) {
+            return redirect()->route('admin_support.dashboard');
+        }
+        if ($user->hasAnyRole(['Lead Maintenance', 'Maintenance']) || ($user->division && str_contains(strtolower($user->division->name), 'maintenance'))) {
+            return redirect()->route('ms.dashboard');
         }
         if (\App\Helpers\ScopeHelper::isManagerial($user)) {
             return redirect()->route('dashboard.lead');

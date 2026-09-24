@@ -34,7 +34,11 @@ class AuthController extends Controller
         if (Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']], $remember)) {
             $request->session()->regenerate();
             
+            $user = Auth::user();
             $user->update(['last_login_at' => now()]);
+
+            // Auto-heal role jika role Spatie belum ter-sync di database hosting
+            $this->ensureUserRoles($user);
 
             return redirect($this->redirectTo());
         }
@@ -52,42 +56,103 @@ class AuthController extends Controller
         return redirect('/login');
     }
 
+    protected function ensureUserRoles($user)
+    {
+        if (!$user) return;
+
+        $email = strtolower($user->email ?? '');
+        $name = strtolower($user->name ?? '');
+        $pos = strtolower($user->position ?? '');
+
+        // Jika roles kosong atau akun inti presales/sa/sales/bdm/cro/pmo
+        if ($user->roles->isEmpty() || str_contains($email, 'akbar') || str_contains($email, 'aris') || str_contains($email, 'cro')) {
+            try {
+                if (str_contains($email, 'akbar') || str_contains($name, 'akbar') || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
+                    Role::firstOrCreate(['name' => 'Presales', 'guard_name' => 'web']);
+                    Role::firstOrCreate(['name' => 'Pre-Sales', 'guard_name' => 'web']);
+                    $user->syncRoles(['Presales', 'Pre-Sales']);
+                } elseif (str_contains($email, 'aris') || str_contains($name, 'aris') || str_contains($pos, 'solution architect') || str_contains($pos, 'architect')) {
+                    Role::firstOrCreate(['name' => 'Solution Architect', 'guard_name' => 'web']);
+                    Role::firstOrCreate(['name' => 'Solutions Architect', 'guard_name' => 'web']);
+                    $user->syncRoles(['Solution Architect', 'Solutions Architect']);
+                } elseif (str_contains($email, 'cro') || str_contains($pos, 'cro') || str_contains($pos, 'customer relation')) {
+                    Role::firstOrCreate(['name' => 'CRO', 'guard_name' => 'web']);
+                    Role::firstOrCreate(['name' => 'Customer Relation Officer', 'guard_name' => 'web']);
+                    $user->syncRoles(['CRO', 'Customer Relation Officer']);
+                } elseif (str_contains($pos, 'business development') || str_contains($pos, 'bdm')) {
+                    Role::firstOrCreate(['name' => 'BDM', 'guard_name' => 'web']);
+                    Role::firstOrCreate(['name' => 'BusDev', 'guard_name' => 'web']);
+                    Role::firstOrCreate(['name' => 'Business Development', 'guard_name' => 'web']);
+                    $user->syncRoles(['BDM', 'BusDev', 'Business Development']);
+                } elseif (str_contains($pos, 'sales') || str_contains($pos, 'account manager') || str_contains($email, 'raiza')) {
+                    Role::firstOrCreate(['name' => 'Sales', 'guard_name' => 'web']);
+                    Role::firstOrCreate(['name' => 'Account Manager', 'guard_name' => 'web']);
+                    $user->syncRoles(['Sales', 'Account Manager']);
+                } elseif (str_contains($pos, 'project manager') || str_contains($email, 'rizki')) {
+                    Role::firstOrCreate(['name' => 'Project Manager', 'guard_name' => 'web']);
+                    Role::firstOrCreate(['name' => 'PMO', 'guard_name' => 'web']);
+                    $user->syncRoles(['PMO', 'Project Manager']);
+                } elseif (str_contains($email, 'kuncoro') || str_contains($pos, 'pmo')) {
+                    Role::firstOrCreate(['name' => 'PMO', 'guard_name' => 'web']);
+                    Role::firstOrCreate(['name' => 'Lead Divisi', 'guard_name' => 'web']);
+                    $user->syncRoles(['PMO', 'Project Manager', 'Lead Divisi']);
+                } elseif (str_contains($email, 'susanto') || str_contains($name, 'susanto')) {
+                    Role::firstOrCreate(['name' => 'Division Head', 'guard_name' => 'web']);
+                    $user->syncRoles(['Division Head', 'Group Leader Delivery & Operation', 'Lead Divisi']);
+                } elseif (str_contains($email, 'hariyadi') || str_contains($name, 'hariyadi')) {
+                    Role::firstOrCreate(['name' => 'Director', 'guard_name' => 'web']);
+                    $user->syncRoles(['Director', 'Direktur', 'HD / Direktur']);
+                }
+                $user->load('roles');
+            } catch (\Throwable $e) {
+                // Ignore if DB error
+            }
+        }
+    }
+
     protected function redirectTo()
     {
         $user = Auth::user();
+        if (!$user) return '/login';
+
+        $this->ensureUserRoles($user);
+
+        $email = strtolower($user->email ?? '');
+        $name  = strtolower($user->name ?? '');
+        $pos   = strtolower($user->position ?? '');
 
         // Admin Support / Admin Logistik -> Dashboard Admin Support
-        if ($user->hasAnyRole(['Admin Support', 'Admin Logistik', 'Admin'])) {
+        if ($user->hasAnyRole(['Admin Support', 'Admin Logistik', 'Admin']) || str_contains($pos, 'admin support')) {
             return route('admin_support.dashboard');
         }
 
         // CRO (Customer Relation Officer) -> Dashboard CRO
-        if ($user->hasAnyRole(['CRO', 'Customer Relation Officer', 'Customer Relationship Officer'])) {
+        if ($user->hasAnyRole(['CRO', 'Customer Relation Officer', 'Customer Relationship Officer']) || str_contains($email, 'cro') || str_contains($pos, 'customer relation')) {
             return route('cro.dashboard');
         }
 
         // BDM & BusDev -> Dashboard BDM
-        if ($user->hasAnyRole(['BDM', 'BusDev', 'Business Development'])) {
+        if ($user->hasAnyRole(['BDM', 'BusDev', 'Business Development']) || str_contains($pos, 'business development') || str_contains($pos, 'bdm')) {
             return route('dashboard.bdm');
         }
 
         // Solution Architect -> Dashboard Solution Architect
-        if ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA'])) {
+        if ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop']) || str_contains($email, 'aris') || str_contains($name, 'aris') || str_contains($pos, 'solution architect') || str_contains($pos, 'architect')) {
             return route('dashboard.architect');
         }
 
-        // Presales -> Dashboard Presales
-        if ($user->hasAnyRole(['Presales', 'Pre-Sales'])) {
+        // Presales -> Dashboard Presales (Akbar)
+        if ($user->hasAnyRole(['Presales', 'Pre-Sales']) || str_contains($email, 'akbar') || str_contains($name, 'akbar') || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
             return route('dashboard.presales');
         }
 
         // Sales & Account Manager -> Dashboard Sales
-        if ($user->hasAnyRole(['Sales', 'Account Manager'])) {
+        if ($user->hasAnyRole(['Sales', 'Account Manager']) || str_contains($pos, 'sales') || str_contains($pos, 'account manager')) {
             return route('dashboard.sales');
         }
 
         // PMO & Project Manager -> Dashboard PMO
-        if ($user->hasAnyRole(['PMO', 'Project Manager'])) {
+        if ($user->hasAnyRole(['PMO', 'Project Manager']) || str_contains($email, 'rizki') || str_contains($email, 'kuncoro') || str_contains($pos, 'project manager')) {
             return route('pmo.dashboard');
         }
 
