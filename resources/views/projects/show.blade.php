@@ -218,21 +218,17 @@
         || str_contains(strtolower($authUser->name), 'dony')
     );
 
-    // Hak otorisasi unggah berkas teknis solusi
+    // Hak otorisasi unggah berkas teknis solusi (Hanya Presales / SA terkait atau Admin / PMO)
     $canUploadPresales = $authUser && (
         (!empty($presalesAssignment['assigned_user_id']) && $authUser->id == $presalesAssignment['assigned_user_id'])
-        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Sales', 'Super Admin', 'Admin', 'PMO', 'Project Manager', 'Director', 'Direktur', 'HD / Direktur', 'Group Leader'], $userRoles))
+        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Super Admin', 'Admin'], $userRoles))
         || str_contains(strtolower($authUser->name), 'akbar')
-        || $authUser->id == ($project->creator_id ?? $project->created_by)
-        || ($project->sales_name && str_contains(strtolower($authUser->name), strtolower($project->sales_name)))
     );
 
     $canUploadArchitect = $authUser && (
         (!empty($architectAssignment['assigned_user_id']) && $authUser->id == $architectAssignment['assigned_user_id'])
-        || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Sales', 'Super Admin', 'Admin', 'PMO', 'Project Manager', 'Director', 'Direktur', 'HD / Direktur', 'Group Leader'], $userRoles))
+        || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Super Admin', 'Admin'], $userRoles))
         || str_contains(strtolower($authUser->name), 'aris')
-        || $authUser->id == ($project->creator_id ?? $project->created_by)
-        || ($project->sales_name && str_contains(strtolower($authUser->name), strtolower($project->sales_name)))
     );
 @endphp
 
@@ -260,6 +256,7 @@
             currentStatus: currentDbStatus || 'Draft',
             
             isHandoverModalOpen: false,
+            handoverTargetType: '{{ ($project->handover_target === 'managed_service' || $project->stage === 'Operate') ? 'managed_service' : 'pmo' }}',
             isApproveModalOpen: false,
             approveRole: 'head', // 'head' (Susanto) or 'director' (Hariyadi)
 
@@ -277,6 +274,14 @@
             isAddMilestoneModalOpen: false,
             isUploadDocModalOpen: false,
             isDeleteModalOpen: false,
+
+            openHandoverModal(target = null) {
+                if (target) {
+                    this.handoverTargetType = target;
+                }
+                this.isHandoverModalOpen = true;
+                window.openModal('modal-handover');
+            },
 
             openAssignModal(role = 'both') {
                 this.assignRole = role;
@@ -982,8 +987,7 @@
     <div id="modal-handover" x-show="isHandoverModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
         <div @click.away="isHandoverModalOpen = false; window.closeModal('modal-handover')" 
-             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto"
-             x-data="{ targetType: '{{ ($project->handover_target === 'managed_service' || $project->stage === 'Operate') ? 'managed_service' : 'pmo' }}' }">
+             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
                 <div>
@@ -997,23 +1001,23 @@
                 @csrf
                 <input type="hidden" name="role_type" value="pm">
 
-                {{-- Pilihan Target Handover --}}
+                {{-- Pilihan Target Handover (PMO vs Managed Service) --}}
                 <div>
-                    <label class="block text-slate-700 mb-2 uppercase tracking-wider text-[10.5px]">PILIH JALUR EKSEKUSI (TARGET HANDOVER)</label>
+                    <label class="block text-slate-700 mb-2 uppercase tracking-wider text-[10.5px]">PILIH TIPE PROYEK (JALUR EKSEKUSI)</label>
                     <div class="grid grid-cols-2 gap-2.5">
-                        <label :class="targetType === 'pmo' ? 'border-[#8F0A0D] bg-red-50/50 text-[#8F0A0D]' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
-                               class="p-3 rounded-xl border flex flex-col gap-1 cursor-pointer transition">
+                        <label :class="handoverTargetType === 'pmo' ? 'border-[#8F0A0D] bg-red-50/60 text-[#8F0A0D] shadow-xs' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
+                               class="p-3 rounded-xl border-2 flex flex-col gap-1 cursor-pointer transition">
                             <div class="flex items-center gap-2">
-                                <input type="radio" name="handover_target" value="pmo" x-model="targetType" class="text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                                <input type="radio" name="handover_target" value="pmo" x-model="handoverTargetType" class="text-[#8F0A0D] focus:ring-[#8F0A0D] cursor-pointer">
                                 <span class="font-bold text-xs">PMO Delivery</span>
                             </div>
                             <span class="text-[10px] text-slate-500 font-normal">Implementasi &amp; Deployment</span>
                         </label>
 
-                        <label :class="targetType === 'managed_service' ? 'border-purple-600 bg-purple-50/50 text-purple-900' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
-                               class="p-3 rounded-xl border flex flex-col gap-1 cursor-pointer transition">
+                        <label :class="handoverTargetType === 'managed_service' ? 'border-purple-600 bg-purple-50/60 text-purple-900 shadow-xs' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
+                                class="p-3 rounded-xl border-2 flex flex-col gap-1 cursor-pointer transition">
                             <div class="flex items-center gap-2">
-                                <input type="radio" name="handover_target" value="managed_service" x-model="targetType" class="text-purple-600 focus:ring-purple-500">
+                                <input type="radio" name="handover_target" value="managed_service" x-model="handoverTargetType" class="text-purple-600 focus:ring-purple-500 cursor-pointer">
                                 <span class="font-bold text-xs">Managed Service</span>
                             </div>
                             <span class="text-[10px] text-slate-500 font-normal">Operasional, Helpdesk &amp; SLA</span>
@@ -1024,7 +1028,7 @@
                 {{-- User Selection --}}
                 <div>
                     <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]" 
-                           x-text="targetType === 'managed_service' ? 'PILIH LEAD MANAGED SERVICE / OPERASIONAL' : 'PILIH PROJECT MANAGER (PMO)'"></label>
+                           x-text="handoverTargetType === 'managed_service' ? 'PILIH LEAD MANAGED SERVICE / OPERASIONAL' : 'PILIH PROJECT MANAGER (PMO)'"></label>
                     <select name="user_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-white font-bold">
                         <option value="">-- Pilih Penanggung Jawab --</option>
                         @foreach($pmoUsers as $pmo)

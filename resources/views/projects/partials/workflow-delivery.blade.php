@@ -16,10 +16,22 @@
                 Alokasi Tim {{ $isMs ? 'Managed Service' : 'PMO' }} &amp; Engineer Pelaksana
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">
-                Serah terima operasional, penetapan SLA, dan penugasan teknisi lapangan.
+                Pilih jalur penugasan proyek ke tim <strong class="text-slate-700">PMO Delivery</strong> atau <strong class="text-slate-700">Managed Service</strong>.
             </p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+            {{-- Toggle/Action to choose Track --}}
+            <div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-100 text-xs font-semibold">
+                <button type="button" @click="openHandoverModal('pmo')"
+                        class="px-2.5 py-1 rounded-md transition cursor-pointer {{ !$isMs ? 'bg-white text-[#8F0A0D] font-bold shadow-2xs' : 'text-slate-500 hover:text-slate-800' }}">
+                    PMO Delivery
+                </button>
+                <button type="button" @click="openHandoverModal('managed_service')"
+                        class="px-2.5 py-1 rounded-md transition cursor-pointer {{ $isMs ? 'bg-white text-purple-800 font-bold shadow-2xs' : 'text-slate-500 hover:text-slate-800' }}">
+                    Managed Service
+                </button>
+            </div>
+
             @if($currentStatus !== 'Completed')
                 <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
                     @csrf
@@ -37,7 +49,7 @@
     {{-- 2 Standardized Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs items-stretch">
         
-        {{-- ══ CARD 1: LEAD MANAGED SERVICE / PMO ══ --}}
+        {{-- ══ CARD 1: LEAD PMO / MANAGED SERVICE ══ --}}
         <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
             <div class="space-y-3">
                 
@@ -61,7 +73,7 @@
                             {{ $project->pm ? $project->pm->name : 'Belum Ditugaskan' }}
                         </h4>
                         <p class="text-[10.5px] text-slate-500 truncate">
-                            {{ $isMs ? 'Lead Operasional & Layanan' : 'Lead Project Delivery' }}
+                            {{ $isMs ? 'Lead Operasional (SLA ' . ($project->sla_tier ?: 'Gold') . ')' : 'Lead Project Delivery (PMO)' }}
                         </p>
                     </div>
                 </div>
@@ -93,7 +105,7 @@
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <div class="font-bold text-amber-900 text-xs">Menunggu Handover</div>
-                                    <div class="text-[10.5px] text-amber-800 truncate">Serahkan proyek ke tim pelaksana</div>
+                                    <div class="text-[10.5px] text-amber-800 truncate">Pilih penugasan PMO atau Managed Service</div>
                                 </div>
                             </div>
                         </div>
@@ -104,13 +116,22 @@
 
             {{-- Actions Footer --}}
             <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                <button type="button" 
-                        @click="isHandoverModalOpen = true; openAssignModal('both')" 
-                        onclick="window.openModal('modal-handover')" 
-                        class="text-xs font-semibold text-slate-600 hover:text-[#8F0A0D] cursor-pointer inline-flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                    <span>{{ $project->pm ? 'Ubah Handover' : '+ Handover Tim' }}</span>
-                </button>
+                @if(!$project->pm)
+                    <button type="button" @click="openHandoverModal('pmo')"
+                            class="text-xs font-semibold text-slate-700 hover:text-[#8F0A0D] cursor-pointer inline-flex items-center gap-1">
+                        <span>+ Assign PMO</span>
+                    </button>
+                    <button type="button" @click="openHandoverModal('managed_service')"
+                            class="text-xs font-semibold text-purple-700 hover:text-purple-900 cursor-pointer inline-flex items-center gap-1 ml-auto">
+                        <span>+ Assign Managed Service</span>
+                    </button>
+                @else
+                    <button type="button" @click="openHandoverModal('{{ $isMs ? 'managed_service' : 'pmo' }}')"
+                            class="text-xs font-semibold text-slate-600 hover:text-[#8F0A0D] cursor-pointer inline-flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                        <span>Ubah Jalur / Penugasan</span>
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -137,7 +158,9 @@
                         <h4 class="font-bold text-xs text-slate-900 truncate" title="{{ $uniqueEngineers->count() > 0 ? $uniqueEngineers->pluck('name')->join(', ') : '' }}">
                             {{ $uniqueEngineers->count() > 0 ? $uniqueEngineers->first()->name . ($uniqueEngineers->count() > 1 ? ' (+' . ($uniqueEngineers->count() - 1) . ' tim)' : '') : 'Teknisi Lapangan' }}
                         </h4>
-                        <p class="text-[10.5px] text-slate-500 truncate">Field Engineers &amp; Implementasi</p>
+                        <p class="text-[10.5px] text-slate-500 truncate">
+                            {{ $isMs ? 'Teknisi Operasional MS' : 'Field Engineers & Implementasi' }}
+                        </p>
                     </div>
                 </div>
 
@@ -170,8 +193,7 @@
             {{-- Actions Footer --}}
             <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                 <button type="button" 
-                        @click="isHandoverModalOpen = true; openAssignModal('both')" 
-                        onclick="window.openModal('modal-handover')" 
+                        @click="openHandoverModal('{{ $isMs ? 'managed_service' : 'pmo' }}')" 
                         class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
                     Kelola Personel
                 </button>
