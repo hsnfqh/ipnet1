@@ -2870,7 +2870,8 @@
 
                 openModal: function(schedule) {
                     if (schedule) {
-                        this.editing = true;
+                        var isRealSchedule = !!(schedule.id && this.schedules.some(function(s) { return s.id === schedule.id; }));
+                        this.editing = isRealSchedule;
                         var engIds = [];
                         if (schedule.engineer_ids && schedule.engineer_ids.length > 0) {
                             engIds = schedule.engineer_ids.slice();
@@ -2880,16 +2881,17 @@
                             engIds = [schedule.engineer_id];
                         }
 
-                        var schDate = schedule.date ? schedule.date.split('T')[0] : '';
-                        var schStart = schedule.start_time ? schedule.start_time.substring(0, 5) : (schedule.category === 'Day Off' ? '' : '09:00');
+                        var schDate = schedule.date ? schedule.date.split('T')[0] : (schedule.deadline ? schedule.deadline.split('T')[0].split(' ')[0] : this.formatDate(new Date()));
+                        var schStart = schedule.start_time ? schedule.start_time.substring(0, 5) : (schedule.deadline_time ? schedule.deadline_time.substring(0, 5) : (schedule.category === 'Day Off' ? '' : '09:00'));
                         var schEnd = schedule.end_time ? schedule.end_time.substring(0, 5) : '';
-                        var schLoc = schedule.location || '';
+                        var schLoc = schedule.location || (schedule.project ? (schedule.project.location || '') : '');
+                        var matchedProjId = schedule.project_id || (schedule.project ? schedule.project.id : null);
 
                         this.form = {
-                            id: schedule.id,
-                            title: schedule.title,
+                            id: isRealSchedule ? schedule.id : null,
+                            title: schedule.title || schedule._displayTitle || '',
                             category: schedule.category || 'Meeting',
-                            project_id: schedule.project_id,
+                            project_id: matchedProjId,
                             new_project_name: '',
                             engineer_id: engIds[0] || null,
                             engineer_ids: engIds,
@@ -3056,14 +3058,15 @@
 
                 handleEventClick: function(event) {
                     if (!event) return;
-                    if (event._type === 'task' || (event._uid && event._uid.startsWith('task-'))) {
-                        window.location.href = '/tasks';
-                        return;
-                    }
-                    if (event.id && this.schedules.some(function(s) { return s.id === event.id; })) {
-                        this.openModal(event);
+                    
+                    var matchingSchedule = this.schedules.find(function(s) {
+                        return (event.id && s.id === event.id) || (event._uid && ('sch-' + s.id) === event._uid);
+                    });
+
+                    if (matchingSchedule) {
+                        this.openModal(matchingSchedule);
                     } else {
-                        window.location.href = '/tasks';
+                        this.openModal(event);
                     }
                 },
 

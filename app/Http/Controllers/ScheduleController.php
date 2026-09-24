@@ -732,28 +732,34 @@ class ScheduleController extends Controller
                 : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
 
             // Sync / Update Task jika agenda ini memiliki task terkait atau kategori Task/Kegiatan
-            if ($schedule->category !== 'Day Off') {
-                $deadlineTime = $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : '23:59:00';
-                $dateStr = $schedule->date ? $schedule->date->format('Y-m-d') : now()->toDateString();
-                
-                // Cari task lama berdasarkan judul lama atau judul baru
-                $task = null;
-                if ($oldTitle) {
-                    $task = Task::where('title', $oldTitle)
-                        ->where('project_id', $oldProjectId)
-                        ->first();
-
-                    if (!$task) {
-                        $task = Task::where('title', $oldTitle)->first();
-                    }
-                }
+            $deadlineTime = $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : '23:59:00';
+            $dateStr = $schedule->date ? $schedule->date->format('Y-m-d') : now()->toDateString();
+            
+            // Cari task lama berdasarkan judul lama atau judul baru
+            $task = null;
+            if ($oldTitle) {
+                $task = Task::where('title', $oldTitle)
+                    ->where('project_id', $oldProjectId)
+                    ->first();
 
                 if (!$task) {
-                    $task = Task::where('title', $schedule->title)
-                        ->where('project_id', $schedule->project_id)
-                        ->first();
+                    $task = Task::where('title', $oldTitle)->first();
                 }
+            }
 
+            if (!$task) {
+                $task = Task::where('title', $schedule->title)
+                    ->where('project_id', $schedule->project_id)
+                    ->first();
+            }
+
+            if (in_array($schedule->category, ['Meeting', 'Day Off'])) {
+                // Jika jadwal diubah menjadi Meeting atau Day Off, hapus task penugasan tim terkait agar tidak muncul lagi di menu Penugasan Tim
+                if ($task) {
+                    $task->delete();
+                }
+            } else {
+                // Kategori adalah Task / Kegiatan / Preventive Maintenance
                 if ($task) {
                     // Update task yang sudah ada (termasuk rename judul baru)
                     $taskUpdateData = [
@@ -773,7 +779,7 @@ class ScheduleController extends Controller
                     if (Schema::hasTable('task_user') && !empty($engineerIdsList)) {
                         $task->engineers()->sync($engineerIdsList);
                     }
-                } elseif ((in_array($schedule->category, ['Task', 'Kegiatan']) || $request->boolean('create_task')) && !empty($schedule->project_id)) {
+                } elseif ((in_array($schedule->category, ['Task', 'Kegiatan', 'Preventive Maintenance']) || $request->boolean('create_task')) && !empty($schedule->project_id)) {
                     // Buat task baru hanya jika memang belum pernah ada, kategori adalah Task, dan project_id tidak null
                     $task = Task::create([
                         'title'         => $schedule->title,
