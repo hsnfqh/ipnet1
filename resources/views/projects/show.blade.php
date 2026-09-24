@@ -464,9 +464,16 @@
                 {{-- B. Project Title & Quick Actions --}}
                 <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div class="space-y-1">
-                        <h1 class="text-2xl sm:text-[26px] font-extrabold text-slate-900 tracking-tight leading-tight">
-                            {{ $project->name }}
-                        </h1>
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <h1 class="text-2xl sm:text-[26px] font-extrabold text-slate-900 tracking-tight leading-tight">
+                                {{ $project->name }}
+                            </h1>
+                            <button type="button" @click="openEditMetaModal()" onclick="window.openModal('modal-edit-meta')" 
+                                    class="p-1.5 text-slate-400 hover:text-[#8F0A0D] hover:bg-red-50/70 border border-transparent hover:border-red-100 rounded-lg transition cursor-pointer" 
+                                    title="Edit Nama & Informasi Proyek">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            </button>
+                        </div>
                         <p class="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-3xl">
                             {{ $project->description ?: 'Proyek pengadaan infrastruktur dan solusi teknologi terintegrasi.' }}
                         </p>
@@ -479,7 +486,7 @@
                                 @csrf
                                 <input type="hidden" name="status" value="Completed">
                                 <button type="submit" onclick="return confirm('Tandai proyek {{ addslashes($project->name) }} sebagai Selesai (Completed)?')"
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm cursor-pointer">
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl btn-ipnet-primary text-xs font-bold transition shadow-sm cursor-pointer">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                     <span>Tandai Selesai</span>
                                 </button>
@@ -1122,12 +1129,26 @@
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="text-base font-bold text-slate-900">Edit Estimasi &amp; Tanggal</h3>
+                <h3 class="text-base font-bold text-slate-900">Edit Informasi &amp; Estimasi Proyek</h3>
                 <button type="button" @click="isEditMetaModalOpen = false; window.closeModal('modal-edit-meta')" onclick="window.closeModal('modal-edit-meta')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.meta_update', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
                 @csrf
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NAMA PROYEK <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" value="{{ $project->name }}" required 
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold"
+                           placeholder="Masukkan nama proyek...">
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">DESKRIPSI PROYEK</label>
+                    <textarea name="description" rows="2" 
+                              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500" 
+                              placeholder="Deskripsi singkat proyek...">{{ $project->description }}</textarea>
+                </div>
+
                 <div>
                     <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NILAI ESTIMASI (RP)</label>
                     <input type="number" name="contract_value" value="{{ $project->contract_value ?: 300000000 }}" required 

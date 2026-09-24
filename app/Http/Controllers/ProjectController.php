@@ -987,6 +987,7 @@ class ProjectController extends Controller
     public function updateMeta(Request $request, Project $project)
     {
         $validated = $request->validate([
+            'name'           => 'required|string|max:255',
             'contract_value' => 'nullable|numeric|min:0',
             'start_date'     => 'nullable|date',
             'deadline'       => 'nullable|date',
@@ -996,10 +997,10 @@ class ProjectController extends Controller
         $project->update($validated);
 
         if ($request->wantsJson() || $request->ajax()) {
-            return response()->json(['success' => true, 'message' => 'Estimasi dan timeline proyek berhasil diperbarui.', 'project' => $project->fresh()]);
+            return response()->json(['success' => true, 'message' => 'Data dan estimasi proyek berhasil diperbarui.', 'project' => $project->fresh()]);
         }
 
-        return back()->with('success', 'Estimasi dan timeline proyek berhasil diperbarui.');
+        return back()->with('success', 'Data dan estimasi proyek berhasil diperbarui.');
     }
 
     public function getData()
