@@ -32,8 +32,18 @@ class ScheduleController extends Controller
 
         // Auto-heal / Sinkronkan Task ke Jadwal Kerja sesuai scope divisi user
         if (!$isArchitect) {
-            // 1. Bersihkan Jadwal kategori Task/Kegiatan yang task induknya sudah dihapus / sudah di-rename
+            // 1. Bersihkan Jadwal kategori Task/Kegiatan yang task induknya sudah dihapus / sudah di-rename, serta bersihkan task jika jadwal berkategori Meeting / Day Off
             try {
+                $meetingScheduleTitles = Schedule::where(function($q) {
+                    $q->whereIn('category', ['Meeting', 'Day Off', 'Meeting Klien / Principal', 'Sesi PoC & Lab', 'PoC & Demo'])
+                      ->orWhere('category', 'like', '%Meeting%')
+                      ->orWhere('category', 'like', '%meeting%');
+                })->pluck('title')->filter()->unique()->toArray();
+
+                if (!empty($meetingScheduleTitles)) {
+                    Task::whereIn('title', $meetingScheduleTitles)->delete();
+                }
+
                 $existingTaskTitles = Task::pluck('title')->toArray();
                 Schedule::where(function($q) {
                     $q->whereIn('category', ['Task', 'Kegiatan'])
@@ -55,6 +65,9 @@ class ScheduleController extends Controller
             }
 
             $taskQuery = Task::with('engineers')->whereNotNull('deadline');
+            if (!empty($meetingScheduleTitles)) {
+                $taskQuery->whereNotIn('title', $meetingScheduleTitles);
+            }
             if ($scopeIds !== null) {
                 $taskQuery->where(function($q) use ($scopeIds) {
                     $q->whereIn('engineer_id', $scopeIds)
@@ -753,11 +766,16 @@ class ScheduleController extends Controller
                     ->first();
             }
 
-            if (in_array($schedule->category, ['Meeting', 'Day Off'])) {
+            $isMeetingOrDayOff = in_array($schedule->category, ['Meeting', 'Day Off', 'Meeting Klien / Principal', 'Sesi PoC & Lab', 'PoC & Demo']) || str_contains(strtolower($schedule->category ?? ''), 'meeting');
+
+            if ($isMeetingOrDayOff) {
                 // Jika jadwal diubah menjadi Meeting atau Day Off, hapus task penugasan tim terkait agar tidak muncul lagi di menu Penugasan Tim
                 if ($task) {
                     $task->delete();
                 }
+                Task::where('title', $schedule->title)
+                    ->when(!empty($oldTitle), fn($q) => $q->orWhere('title', $oldTitle))
+                    ->delete();
             } else {
                 // Kategori adalah Task / Kegiatan / Preventive Maintenance
                 if ($task) {

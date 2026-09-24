@@ -41,6 +41,19 @@ class TaskController extends Controller
             }
         }
 
+        // Auto-cleanup: Hapus task penugasan tim jika jadwal agenda dengan judul tersebut berkategori Meeting / Day Off
+        try {
+            $meetingScheduleTitles = \App\Models\Schedule::where(function($q) {
+                $q->whereIn('category', ['Meeting', 'Day Off', 'Meeting Klien / Principal', 'Sesi PoC & Lab', 'PoC & Demo'])
+                  ->orWhere('category', 'like', '%Meeting%')
+                  ->orWhere('category', 'like', '%meeting%');
+            })->pluck('title')->filter()->unique()->toArray();
+
+            if (!empty($meetingScheduleTitles)) {
+                Task::whereIn('title', $meetingScheduleTitles)->delete();
+            }
+        } catch (\Exception $e) {}
+
         $tasks = Task::with($withRelations)
             ->when($scopeIds !== null, function($query) use ($scopeIds, $user, $hasTaskUser) {
                 return $query->where(function($q) use ($scopeIds, $user, $hasTaskUser) {
