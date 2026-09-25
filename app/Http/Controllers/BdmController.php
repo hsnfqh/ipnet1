@@ -54,10 +54,12 @@ class BdmController extends Controller
 
         if (!$isManagerial) {
             $projects = $projects->filter(function($p) use ($user) {
-                if ($p->bdm_id == $user->id || $p->created_by == $user->id) return true;
                 $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
                 $bdm = $hd['technical_assignments']['bdm'] ?? [];
-                return !empty($bdm['assigned']) && (empty($bdm['assigned_user_id']) || $bdm['assigned_user_id'] == $user->id || empty($bdm['assigned_to']) || str_contains(strtolower($bdm['assigned_to']), strtolower($user->name)));
+                if (!empty($bdm['assigned_user_id']) && $bdm['assigned_user_id'] == $user->id) return true;
+                if (!empty($bdm['assigned_to']) && strtolower(trim($bdm['assigned_to'])) === strtolower(trim($user->name))) return true;
+                if (!empty($p->bdm_id) && $p->bdm_id == $user->id) return true;
+                return false;
             })->values();
         }
 
@@ -69,8 +71,8 @@ class BdmController extends Controller
         $totalOpportunityCount = $opportunityProjects->count();
         $totalNilaiOpportunity = $opportunityProjects->sum('contract_value');
 
-        $handedOverCount = (clone $allProjectsQuery)->where('bdm_handover_status', 'Handed Over to Sales')->count();
-        $acceptedBySalesCount = (clone $allProjectsQuery)->where('bdm_handover_status', 'Accepted by Sales')->count();
+        $handedOverCount = $projects->where('bdm_handover_status', 'Handed Over to Sales')->count();
+        $acceptedBySalesCount = $projects->where('bdm_handover_status', 'Accepted by Sales')->count();
         $totalHandoverCount = $handedOverCount + $acceptedBySalesCount;
         $conversionRate = $totalOpportunityCount > 0 ? round(($totalHandoverCount / $totalOpportunityCount) * 100, 1) : 0;
 
@@ -120,8 +122,8 @@ class BdmController extends Controller
             return round($val / 1000000, 2);
         }, array_values($sectorCounts));
 
-        // Recent Highlights (Personalized for BDM)
-        $recentOpportunities = (clone $allProjectsQuery)->latest()->take(5)->get();
+        // Recent Highlights (Personalized strictly for the assigned BDM)
+        $recentOpportunities = $projects->sortByDesc('created_at')->take(5)->values();
         $recentIntels = (clone $intelQuery)->latest()->take(3)->get();
         $recentPartners = (clone $partnerQuery)->latest()->take(3)->get();
 
@@ -161,10 +163,17 @@ class BdmController extends Controller
             ->with(['bdm', 'creator']);
 
         if (!$isManagerial) {
-            $query->where(function($q) use ($user) {
-                $q->where('bdm_id', $user->id)
-                  ->orWhere('created_by', $user->id);
-            });
+            $allProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])->get();
+            $assignedIds = $allProjects->filter(function($p) use ($user) {
+                $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+                $bdm = $hd['technical_assignments']['bdm'] ?? [];
+                if (!empty($bdm['assigned_user_id']) && $bdm['assigned_user_id'] == $user->id) return true;
+                if (!empty($bdm['assigned_to']) && strtolower(trim($bdm['assigned_to'])) === strtolower(trim($user->name))) return true;
+                if (!empty($p->bdm_id) && $p->bdm_id == $user->id) return true;
+                return false;
+            })->pluck('id')->toArray();
+
+            $query->whereIn('id', $assignedIds);
         }
 
         if ($search) {

@@ -156,60 +156,45 @@ class SalesCrmController extends Controller
         if (!$isExecutive) {
             if ($user->hasAnyRole(['Presales', 'Pre-Sales'])) {
                 $allProjects = $allProjects->filter(function($p) use ($user) {
-                    if ($p->created_by == $user->id) return true;
                     $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
                     $ps = $hd['technical_assignments']['presales'] ?? [];
-                    if (!empty($ps['assigned'])) {
-                        if (!empty($ps['assigned_user_id']) && $ps['assigned_user_id'] == $user->id) {
-                            return true;
-                        }
-                        if (!empty($ps['assigned_to']) && str_contains(strtolower($ps['assigned_to']), strtolower($user->name))) {
-                            return true;
-                        }
-                        if (empty($ps['assigned_user_id']) && empty($ps['assigned_to']) && str_contains(strtolower($user->name), 'akbar')) {
-                            return true;
-                        }
+                    if (!empty($ps['assigned_user_id']) && $ps['assigned_user_id'] == $user->id) {
+                        return true;
+                    }
+                    if (!empty($ps['assigned_to']) && strtolower(trim($ps['assigned_to'])) === strtolower(trim($user->name))) {
+                        return true;
                     }
                     return false;
                 })->values();
             } elseif ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop'])) {
                 $allProjects = $allProjects->filter(function($p) use ($user) {
-                    if ($p->created_by == $user->id) return true;
                     $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
                     $sa = $hd['technical_assignments']['architect'] ?? [];
-                    if (!empty($sa['assigned'])) {
-                        if (!empty($sa['assigned_user_id']) && $sa['assigned_user_id'] == $user->id) {
-                            return true;
-                        }
-                        if (!empty($sa['assigned_to']) && str_contains(strtolower($sa['assigned_to']), strtolower($user->name))) {
-                            return true;
-                        }
-                        if (empty($sa['assigned_user_id']) && empty($sa['assigned_to']) && str_contains(strtolower($user->name), 'aris')) {
-                            return true;
-                        }
+                    if (!empty($sa['assigned_user_id']) && $sa['assigned_user_id'] == $user->id) {
+                        return true;
+                    }
+                    if (!empty($sa['assigned_to']) && strtolower(trim($sa['assigned_to'])) === strtolower(trim($user->name))) {
+                        return true;
                     }
                     return false;
                 })->values();
             } elseif ($user->hasAnyRole(['BDM', 'BusDev', 'Business Development'])) {
                 $allProjects = $allProjects->filter(function($p) use ($user) {
-                    if (!empty($p->bdm_id) && $p->bdm_id == $user->id) return true;
-                    if ($p->created_by == $user->id) return true;
-                    
                     $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
                     $bdm = $hd['technical_assignments']['bdm'] ?? [];
-                    if (!empty($bdm['assigned'])) {
-                        if (!empty($bdm['assigned_user_id']) && $bdm['assigned_user_id'] == $user->id) {
-                            return true;
-                        }
-                        if (!empty($bdm['assigned_to']) && str_contains(strtolower($bdm['assigned_to']), strtolower($user->name))) {
-                            return true;
-                        }
+                    if (!empty($bdm['assigned_user_id']) && $bdm['assigned_user_id'] == $user->id) {
+                        return true;
+                    }
+                    if (!empty($bdm['assigned_to']) && strtolower(trim($bdm['assigned_to'])) === strtolower(trim($user->name))) {
+                        return true;
+                    }
+                    if (!empty($p->bdm_id) && $p->bdm_id == $user->id) {
+                        return true;
                     }
                     return false;
                 })->values();
             } elseif ($user->hasAnyRole(['Sales', 'Account Manager'])) {
                 $allProjects = $allProjects->filter(function($p) use ($user) {
-                    if ($p->created_by == $user->id) return true;
                     return !empty($p->sales_name) && str_contains(strtolower($p->sales_name), strtolower($user->name));
                 })->values();
             }
