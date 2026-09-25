@@ -100,7 +100,7 @@ class SalesCrmController extends Controller
                       $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service']);
                   });
             })
-            ->with(['bdm', 'creator', 'salesActivities']);
+            ->with(['bdm', 'creator', 'salesActivities', 'tasks', 'projectDocuments']);
 
         if (!$isManagerial) {
             $allProjectsQuery->where(function($q) use ($user) {
