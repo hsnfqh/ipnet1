@@ -51,26 +51,31 @@
             {{-- Icon Counters --}}
             @php
                 $milestoneCount = $project->tasks ? $project->tasks->count() : 0;
-                $uploadedDocsCount = 0;
                 if ($project->relationLoaded('projectDocuments')) {
-                    $uploadedDocsCount += $project->projectDocuments->whereNotNull('file_path')->where('file_path', '!=', '')->count();
+                    $uploadedDocsCount = $project->projectDocuments
+                        ->where('stage_name', '!=', 'Sales')
+                        ->filter(function($doc) {
+                            $k = $doc->document_key ?? '';
+                            return !str_starts_with($k, 'sales_berkas') && !empty($doc->file_path);
+                        })
+                        ->count();
                 } else {
-                    $uploadedDocsCount += \App\Models\ProjectDocument::where('project_id', $project->id)->whereNotNull('file_path')->where('file_path', '!=', '')->count();
+                    $uploadedDocsCount = \App\Models\ProjectDocument::where('project_id', $project->id)
+                        ->where(function($q) {
+                            $q->where('stage_name', '!=', 'Sales')
+                              ->where('document_key', 'not like', 'sales_berkas%');
+                        })
+                        ->whereNotNull('file_path')
+                        ->where('file_path', '!=', '')
+                        ->count();
                 }
-                if (!empty($project->proposal_file)) $uploadedDocsCount++;
-                if (!empty($project->po_file)) $uploadedDocsCount++;
-                if (!empty($project->po_spk_file)) $uploadedDocsCount++;
-                if (!empty($project->quotation_file)) $uploadedDocsCount++;
-                if (!empty($project->handover_document_file)) $uploadedDocsCount++;
-                if (!empty($hd['technical_assignments']['presales']['document_path'])) $uploadedDocsCount++;
-                if (!empty($hd['technical_assignments']['architect']['document_path'])) $uploadedDocsCount++;
             @endphp
             <div class="flex items-center gap-3 text-slate-400 font-semibold text-[11px]">
                 <div class="flex items-center gap-1" title="Jumlah Milestones Pekerjaan">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     <span>{{ $milestoneCount }}</span>
                 </div>
-                <div class="flex items-center gap-1" title="Jumlah Berkas & Dokumen Terlampir">
+                <div class="flex items-center gap-1" title="Jumlah Berkas Lampiran Pendukung">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                     <span>{{ $uploadedDocsCount }}</span>
                 </div>
