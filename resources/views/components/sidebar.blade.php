@@ -53,7 +53,7 @@
             ['key' => 'acquire',          'label' => 'Peluang & Pipeline',  'route' => 'acquire.index'],
             ['key' => 'projects',         'label' => 'Daftar Proyek',       'route' => 'projects.index'],
             ['key' => 'tasks',            'label' => 'Daftar Tugas',        'route' => 'tasks.index'],
-            ['key' => 'schedules',        'label' => 'Jadwal Kerja',        'route' => 'schedules.index'],
+            ['key' => 'schedules',        'label' => 'Work Schedule',        'route' => 'schedules.index'],
             ['key' => 'timesheets',       'label' => 'Timesheet',           'route' => 'timesheets.index'],
             ['key' => 'attendance',       'label' => 'Presensi',            'route' => 'attendance.recap'],
             ['key' => 'users',            'label' => 'Pengguna',            'route' => 'users.index'],
@@ -87,7 +87,7 @@
             ['key' => 'ms_tickets',   'label' => 'Tiket & SLA',          'route' => 'ms.tickets.index'],
             ['key' => 'ms_assets',    'label' => 'Aset Perangkat',       'route' => 'ms.assets.index'],
             ['key' => 'tasks',        'label' => 'Daftar Tugas',         'route' => 'tasks.index'],
-            ['key' => 'schedules',    'label' => 'Jadwal Kerja',         'route' => 'schedules.index'],
+            ['key' => 'schedules',    'label' => 'Work Schedule',         'route' => 'schedules.index'],
             ['key' => 'timesheets',   'label' => 'Timesheet',            'route' => 'timesheets.index'],
             ['key' => 'attendance',   'label' => 'Presensi',             'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
         ];
@@ -100,15 +100,16 @@
             ['key' => 'pmo_dashboard',   'label' => 'Dashboard',           'route' => 'pmo.dashboard'],
             ['key' => 'projects',        'label' => 'Daftar Proyek',       'route' => 'projects.index'],
             ['key' => 'tasks',           'label' => 'Daftar Tugas',        'route' => 'tasks.index'],
-            ['key' => 'schedules',       'label' => 'Jadwal Kerja',        'route' => 'schedules.index'],
+            ['key' => 'schedules',       'label' => 'Work Schedule',        'route' => 'schedules.index'],
             ['key' => 'timesheets',      'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];
     } elseif ($isArchitect) {
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.architect'],
             ['key' => 'projects',   'label' => 'Project',            'route' => 'sales.pipeline.index'],
+            ['key' => 'clients',    'label' => 'Client',             'route' => 'clients.index'],
             ['key' => 'vendors',    'label' => 'Mitra Principal',    'route' => 'vendors.index'],
-            ['key' => 'schedules',  'label' => 'Jadwal Kerja',       'route' => 'schedules.index'],
+            ['key' => 'schedules',  'label' => 'Work Schedule',       'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',          'route' => 'timesheets.index'],
         ];
     } elseif ($isBdm) {
@@ -124,7 +125,8 @@
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.presales'],
             ['key' => 'projects',   'label' => 'Project',            'route' => 'sales.pipeline.index'],
-            ['key' => 'schedules',  'label' => 'Jadwal Kerja',        'route' => 'schedules.index'],
+            ['key' => 'clients',    'label' => 'Client',             'route' => 'clients.index'],
+            ['key' => 'schedules',  'label' => 'Work Schedule',      'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];
     } elseif ($isSales) {
@@ -143,7 +145,7 @@
             ['key' => 'dashboard',   'label' => 'Dashboard',         'route' => 'dashboard.lead'],
             ['key' => 'projects',    'label' => 'Daftar Proyek',     'route' => 'projects.index'],
             ['key' => 'tasks',       'label' => 'Penugasan Tim',     'route' => 'tasks.index'],
-            ['key' => 'schedules',   'label' => 'Jadwal Kerja',      'route' => 'schedules.index'],
+            ['key' => 'schedules',   'label' => 'Work Schedule',      'route' => 'schedules.index'],
             ['key' => 'timesheets',  'label' => 'Timesheet',         'route' => 'timesheets.index'],
             ['key' => 'attendance',  'label' => 'Presensi',          'route' => 'attendance.recap'],
             ['key' => 'users',       'label' => 'Pengguna',          'route' => 'users.index'],
@@ -152,7 +154,7 @@
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.engineer'],
             ['key' => 'tasks',      'label' => 'Tugas Saya',         'route' => 'tasks.index'],
-            ['key' => 'schedules',  'label' => 'Jadwal Kerja',       'route' => 'schedules.index'],
+            ['key' => 'schedules',  'label' => 'Work Schedule',       'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',          'route' => 'timesheets.index'],
             ['key' => 'attendance', 'label' => 'Presensi',           'route' => 'attendance.index'],
         ];
