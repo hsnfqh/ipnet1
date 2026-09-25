@@ -106,7 +106,7 @@
     } elseif ($isArchitect) {
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.architect'],
-            ['key' => 'proposals',  'label' => 'Desain & SOW',       'route' => 'presales.proposals.index'],
+            ['key' => 'projects',   'label' => 'Project',            'route' => 'sales.pipeline.index'],
             ['key' => 'vendors',    'label' => 'Mitra Principal',    'route' => 'vendors.index'],
             ['key' => 'schedules',  'label' => 'Jadwal Kerja',       'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',          'route' => 'timesheets.index'],
@@ -123,7 +123,7 @@
     } elseif ($isPresales) {
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.presales'],
-            ['key' => 'proposals',  'label' => 'Proposal & SOW',      'route' => 'presales.proposals.index'],
+            ['key' => 'projects',   'label' => 'Project',            'route' => 'sales.pipeline.index'],
             ['key' => 'schedules',  'label' => 'Jadwal Kerja',        'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];
@@ -294,7 +294,7 @@
                 if (isset($itemParams['status'])) {
                     $isActive = ($currentRoute === $item['route']) && (request('status') === $itemParams['status']);
                 } else {
-                    $isActive = ($currentRoute === $item['route']) && (!request()->has('status') || request('status') === '');
+                    $isActive = (($currentRoute === $item['route']) || ($item['key'] === 'projects' && in_array($currentRoute, ['sales.pipeline.index', 'sales.pipeline.show', 'sales.pipeline.create', 'projects.show', 'projects.index', 'sales.projects.show']))) && (!request()->has('status') || request('status') === '');
                 }
             @endphp
             <a href="{{ $itemUrl }}"

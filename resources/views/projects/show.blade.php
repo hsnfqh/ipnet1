@@ -207,10 +207,13 @@
         $architectUsers = \App\Models\User::where('email', 'like', '%aris%')->orWhere('position', 'like', '%Architect%')->get();
     }
 
-    // Hak otorisasi PIC BD untuk me-review & memverifikasi dokumen solusi
+    // Hak otorisasi PIC BD / Pak Santo (Susanto) / BDM / Head Divisi untuk me-review & memverifikasi dokumen solusi
     $canVerifyBD = $authUser && (
         ($project->bdm_id && $authUser->id == $project->bdm_id)
-        || !empty(array_intersect(['BDM', 'BusDev', 'Business Development', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles))
+        || !empty(array_intersect(['BDM', 'BusDev', 'Business Development', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles))
+        || str_contains(strtolower($authUser->name), 'susanto')
+        || str_contains(strtolower($authUser->name), 'santo')
+        || str_contains(strtolower($authUser->name), 'hariyadi')
         || str_contains(strtolower($authUser->name), 'kurnijanto')
         || str_contains(strtolower($authUser->name), 'novan')
         || str_contains(strtolower($authUser->name), 'kipsriyanto')
@@ -663,6 +666,15 @@
                                 </span>
                             </div>
                             
+                            @php
+                                $canAddMilestone = $authUser && (
+                                    $project->created_by === $authUser->id 
+                                    || $project->sales_name === $authUser->name 
+                                    || ($project->sales_id && $project->sales_id === $authUser->id)
+                                    || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager', 'Super Admin', 'Admin', 'Sales', 'Account Manager'], $userRoles))
+                                ) && empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles));
+                            @endphp
+                            @if($canAddMilestone)
                             <button type="button" 
                                     @click="isAddMilestoneModalOpen = true" 
                                     onclick="window.openModal('modal-add-milestone')"
@@ -670,6 +682,7 @@
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 <span>Tambah Milestone</span>
                             </button>
+                            @endif
                         </div>
 
                         @if($project->tasks->count() > 0)
@@ -704,7 +717,9 @@
                         $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
                         $authUserNameLower = strtolower($authUser->name ?? '');
 
-                        $canAccessSalesDocs = $authUser && (
+                        $isPresalesOrSaOnly = $authUser && !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles)) && empty(array_intersect(['Sales', 'Account Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles));
+
+                        $canAccessSalesDocs = $authUser && !$isPresalesOrSaOnly && (
                             $project->created_by === $authUser->id 
                             || $project->sales_name === $authUser->name 
                             || ($project->sales_id && $project->sales_id === $authUser->id)

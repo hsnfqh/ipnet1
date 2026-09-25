@@ -48,7 +48,10 @@ class SalesCrmController extends Controller
     public function pipeline(Request $request)
     {
         $user = auth()->user();
-        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager']) || str_contains(strtolower($user->name), 'susanto') || str_contains(strtolower($user->name), 'hariyadi');
+        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) 
+            || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager', 'Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'BDM', 'BusDev', 'Business Development']) 
+            || str_contains(strtolower($user->name), 'susanto') 
+            || str_contains(strtolower($user->name), 'hariyadi');
 
         $search = $request->input('search');
         $filterDivision = $request->input('division_id');
@@ -399,7 +402,10 @@ class SalesCrmController extends Controller
     public function activities(Request $request)
     {
         $user = auth()->user();
-        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager']);
+        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) 
+            || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager', 'Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'BDM', 'BusDev', 'Business Development']) 
+            || str_contains(strtolower($user->name), 'susanto') 
+            || str_contains(strtolower($user->name), 'hariyadi');
 
         $search = $request->input('search');
         $filterType = $request->input('type');
@@ -612,7 +618,10 @@ class SalesCrmController extends Controller
     public function commercialHandoverIndex(Request $request)
     {
         $user = auth()->user();
-        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager', 'Lead Maintenance', 'Managed Service']);
+        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) 
+            || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager', 'Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'BDM', 'BusDev', 'Business Development', 'Lead Maintenance', 'Managed Service']) 
+            || str_contains(strtolower($user->name), 'susanto') 
+            || str_contains(strtolower($user->name), 'hariyadi');
 
         $search = $request->input('search');
         $filterStatus = $request->input('status');
