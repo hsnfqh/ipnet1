@@ -700,7 +700,22 @@
 
                     {{-- ═══ 1. BERKAS SALES CARD (CONFIDENTIAL) ═══ --}}
                     @php
-                        $canAccessSalesDocs = \App\Http\Controllers\ProjectDocumentController::canAccessSalesDocs($project);
+                        $authUser = auth()->user();
+                        $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
+                        $authUserNameLower = strtolower($authUser->name ?? '');
+
+                        $canAccessSalesDocs = $authUser && (
+                            $project->created_by === $authUser->id 
+                            || $project->sales_name === $authUser->name 
+                            || ($project->sales_id && $project->sales_id === $authUser->id)
+                            || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin', 'BDM', 'BusDev', 'Business Development'], $userRoles))
+                            || str_contains($authUserNameLower, 'santoso') 
+                            || str_contains($authUserNameLower, 'susanto') 
+                            || str_contains($authUserNameLower, 'hari') 
+                            || str_contains($authUserNameLower, 'hary')
+                            || (method_exists($project, 'canAccessSalesDocs') && $project->canAccessSalesDocs($authUser))
+                        );
+
                         $salesDocs = \App\Models\ProjectDocument::where('project_id', $project->id)
                             ->where(function($q) {
                                 $q->where('stage_name', 'Sales')

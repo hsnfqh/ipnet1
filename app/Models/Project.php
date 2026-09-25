@@ -353,4 +353,35 @@ class Project extends Model
     {
         return $this->projectDocuments()->where('stage_number', $stageNumber);
     }
+
+    /**
+     * Cek otorisasi akses khusus Berkas Sales (Confidential)
+     * Hanya dapat diakses oleh:
+     * 1. Sales PIC / Pembuat Proyek
+     * 2. Pak Santoso (Susanto Djaya) & Pak Hari (Hariyadi)
+     * 3. Direktur / Management / Head Divisi / BDM / Super Admin
+     */
+    public function canAccessSalesDocs($user = null): bool
+    {
+        $user = $user ?: auth()->user();
+        if (!$user) return false;
+
+        // Sales creator / PIC
+        if ($this->created_by === $user->id || $this->sales_name === $user->name || ($this->sales_id && $this->sales_id === $user->id)) {
+            return true;
+        }
+
+        // Role Pimpinan / Management
+        if (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin', 'BDM', 'BusDev', 'Business Development'])) {
+            return true;
+        }
+
+        // Otorisasi Pimpinan Eksekutif
+        $lowerName = strtolower($user->name ?? '');
+        if (str_contains($lowerName, 'santoso') || str_contains($lowerName, 'susanto') || str_contains($lowerName, 'hari') || str_contains($lowerName, 'hary')) {
+            return true;
+        }
+
+        return false;
+    }
 }
