@@ -451,6 +451,83 @@ class SalesCrmController extends Controller
     }
 
     /**
+     * Store Multiple / Bulk CRM Activities (Spreadsheet / Kronologi Table Mode)
+     */
+    public function storeBulkActivities(Request $request)
+    {
+        $validated = $request->validate([
+            'project_id'                 => 'required|exists:projects,id',
+            'activities'                 => 'required|array|min:1',
+            'activities.*.subject'       => 'required|string|max:500',
+            'activities.*.activity_type' => 'nullable|string|max:100',
+            'activities.*.activity_date' => 'nullable|string',
+            'activities.*.time_str'      => 'nullable|string|max:50',
+            'activities.*.client_pic'    => 'nullable|string|max:255',
+            'activities.*.ipnet_pic'     => 'nullable|string|max:255',
+            'activities.*.notes'         => 'nullable|string',
+            'activities.*.next_action'   => 'nullable|string|max:255',
+        ]);
+
+        $projectId = $validated['project_id'];
+        $createdCount = 0;
+        $now = now();
+
+        foreach ($validated['activities'] as $row) {
+            $subj = trim($row['subject'] ?? '');
+            if (empty($subj)) {
+                continue;
+            }
+
+            // Parse datetime
+            $dateStr = !empty($row['activity_date']) ? $row['activity_date'] : $now->toDateString();
+            $timeInput = !empty($row['time_str']) ? trim($row['time_str']) : $now->format('H:i');
+            $cleanTime = str_replace('.', ':', preg_replace('/[^\d\.\:]/', '', $timeInput));
+            if (empty($cleanTime)) {
+                $cleanTime = '00:00';
+            } elseif (!str_contains($cleanTime, ':')) {
+                $cleanTime = $cleanTime . ':00';
+            }
+
+            try {
+                $fullDateTime = \Carbon\Carbon::parse("{$dateStr} {$cleanTime}");
+            } catch (\Exception $e) {
+                $fullDateTime = $now;
+            }
+
+            // Gabungkan PIC Klien, PIC Internal, & Catatan Aksi ke field notes
+            $noteParts = [];
+            if (!empty($row['client_pic'])) {
+                $noteParts[] = "PIC Klien: " . trim($row['client_pic']);
+            }
+            if (!empty($row['ipnet_pic'])) {
+                $noteParts[] = "PIC IPNET: " . trim($row['ipnet_pic']);
+            }
+            if (!empty($row['time_str'])) {
+                $noteParts[] = "Waktu: " . trim($row['time_str']);
+            }
+            if (!empty($row['notes'])) {
+                $noteParts[] = trim($row['notes']);
+            }
+            $finalNotes = implode(" | ", $noteParts);
+
+            SalesActivity::create([
+                'project_id'       => $projectId,
+                'sales_id'         => auth()->id(),
+                'activity_type'    => !empty($row['activity_type']) ? $row['activity_type'] : 'Troubleshooting',
+                'subject'          => $subj,
+                'activity_date'    => $fullDateTime,
+                'notes'            => $finalNotes ?: null,
+                'next_action'      => !empty($row['next_action']) ? trim($row['next_action']) : null,
+                'status'           => 'Completed',
+            ]);
+            $createdCount++;
+        }
+
+        return redirect()->back()
+            ->with('success', "Luar biasa! Berhasil mencatat {$createdCount} log kronologi aktivitas sekaligus!");
+    }
+
+    /**
      * Update Existing CRM Activity
      */
     public function updateActivity(Request $request, SalesActivity $activity)

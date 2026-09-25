@@ -202,6 +202,7 @@ Route::middleware(['auth'])->group(function () {
         // Dedicated Menu 2: Sales Activity Log (CRM)
         Route::get('/activities', [\App\Http\Controllers\SalesCrmController::class, 'activities'])->name('sales.activities.index');
         Route::post('/activities', [\App\Http\Controllers\SalesCrmController::class, 'storeActivity'])->name('sales.activities.store');
+        Route::post('/activities/bulk', [\App\Http\Controllers\SalesCrmController::class, 'storeBulkActivities'])->name('sales.activities.bulk');
         Route::put('/activities/{activity}', [\App\Http\Controllers\SalesCrmController::class, 'updateActivity'])->name('sales.activities.update');
         Route::delete('/activities/{activity}', [\App\Http\Controllers\SalesCrmController::class, 'destroyActivity'])->name('sales.activities.destroy');
 

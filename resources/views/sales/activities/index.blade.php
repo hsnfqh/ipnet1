@@ -76,8 +76,8 @@
             @endif
 
             <!-- Filter & Action Bar -->
-            <div class="flex flex-col sm:flex-row sm:flex-wrap sm:justify-between sm:items-center gap-3 anim-fade-up anim-delay-1">
-                <form method="GET" action="{{ route('sales.activities.index') }}" class="flex flex-col sm:flex-row flex-wrap gap-2.5 w-full sm:w-auto">
+            <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3 anim-fade-up anim-delay-1">
+                <form method="GET" action="{{ route('sales.activities.index') }}" class="flex flex-col sm:flex-row flex-wrap gap-2.5 w-full lg:w-auto">
                     <div class="relative">
                         <svg class="w-4 h-4 absolute left-3.5 top-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -99,7 +99,7 @@
 
                     <select name="project_id" onchange="this.form.submit()" 
                             class="w-full sm:w-56 px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all cursor-pointer shadow-xs truncate">
-                        <option value="">Semua Prospek</option>
+                        <option value="">Semua Prospek / Proyek</option>
                         @foreach($activeProjects as $p)
                             <option value="{{ $p->id }}" {{ $filterProject == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
                         @endforeach
@@ -113,13 +113,25 @@
                     @endif
                 </form>
 
-                <button type="button" @click="openAddModal()" 
-                        class="btn-ipnet-primary w-full sm:w-auto justify-center shadow-md px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span>Catat Aktivitas CRM</span>
-                </button>
+                <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                    {{-- Tombol Mode Excel / Kronologi Massal --}}
+                    <button type="button" @click="openBulkModal()" 
+                            class="w-full sm:w-auto justify-center bg-emerald-700 hover:bg-emerald-800 text-white shadow-md px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer">
+                        <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 4h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span>Input Kronologi (Mode Excel)</span>
+                    </button>
+
+                    {{-- Tombol Tambah Satuan --}}
+                    <button type="button" @click="openAddModal()" 
+                            class="btn-ipnet-primary w-full sm:w-auto justify-center shadow-md px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Catat Satuan</span>
+                    </button>
+                </div>
             </div>
 
             {{-- Activity Feed Grid --}}
@@ -190,7 +202,7 @@
                 @empty
                     <div class="col-span-full ipnet-card p-12 text-center text-xs text-gray-400 space-y-2">
                         <p class="font-bold text-gray-900">Belum ada aktivitas CRM yang tercatat.</p>
-                        <p>Klik tombol "+ Catat Aktivitas CRM" di atas untuk mencatat interaksi klien pertama.</p>
+                        <p>Klik tombol "Input Kronologi (Mode Excel)" untuk mencatat runtutan agenda aktivitas sekaligus.</p>
                     </div>
                 @endforelse
             </div>
@@ -205,7 +217,196 @@
         </div>
     </div>
 
-    {{-- MODAL TAMBAH / EDIT SALES CRM ACTIVITY --}}
+    {{-- MODAL TAMBAH MASSAL (EXCEL / KRONOLOGI SPREADSHEET MODE) --}}
+    <template x-teleport="body">
+        <div x-show="isBulkModalOpen" 
+             x-cloak 
+             class="fixed inset-0 z-50 bg-[#0F172A]/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
+             @click.self="isBulkModalOpen = false">
+            <div class="bg-white rounded-2xl max-w-7xl w-full shadow-2xl border border-[#E2E8F0] max-h-[95vh] flex flex-col overflow-hidden anim-fade-up">
+                
+                {{-- Fixed Header --}}
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-gradient-to-r from-emerald-900 via-[#1E293B] to-[#8F0A0D] text-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
+                            <svg class="w-6 h-6 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 4h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-emerald-300 text-[11px] font-bold uppercase tracking-wider">Spreadsheet Mode • Sekali Input Langsung Banyak</p>
+                            <h3 class="text-[17px] font-bold text-white">Input Kronologis Agenda &amp; Catatan Aktivitas</h3>
+                        </div>
+                    </div>
+                    <button type="button" @click="isBulkModalOpen = false" class="text-white/70 hover:text-white p-2 rounded-xl hover:bg-white/10 transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                {{-- Form with Scrollable Table Body & Fixed Footer --}}
+                <form action="{{ route('sales.activities.bulk') }}" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                    @csrf
+                    
+                    {{-- Global Selection Bar --}}
+                    <div class="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-12 gap-3.5 shrink-0">
+                        <div class="sm:col-span-8">
+                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
+                                Pilih Prospek / Proyek Tujuan <span class="text-[#8F0A0D]">*</span>
+                            </label>
+                            <select name="project_id" x-model="bulkProjectId" required
+                                    class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition cursor-pointer shadow-xs">
+                                <option value="">-- Pilih Prospek / Proyek --</option>
+                                @foreach($activeProjects as $p)
+                                    <option value="{{ $p->id }}" {{ ($filterProject == $p->id || (count($activeProjects) == 1 && $activeProjects[0]->id == $p->id)) ? 'selected' : '' }}>
+                                        {{ $p->name }} ({{ $p->client }}) - PIC: {{ $p->sales_name ?: 'Sales' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="sm:col-span-4">
+                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">
+                                Kategori Aktivitas Default
+                            </label>
+                            <select name="default_type" x-model="bulkDefaultType"
+                                    class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition cursor-pointer shadow-xs">
+                                @foreach($activityTypes as $typeKey => $typeLabel)
+                                    <option value="{{ $typeKey }}" {{ $typeKey == 'Troubleshooting' ? 'selected' : '' }}>{{ $typeLabel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Table Spreadsheet Body --}}
+                    <div class="flex-1 overflow-x-auto overflow-y-auto p-4 sm:p-5 bg-slate-100/60">
+                        <table class="w-full border-collapse bg-white rounded-xl shadow-xs border border-slate-200 text-left text-xs min-w-[1050px]">
+                            <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[10.5px] tracking-wider border-b border-slate-200">
+                                <tr>
+                                    <th class="py-3 px-3 w-12 text-center">No</th>
+                                    <th class="py-3 px-3 w-72">Kronologis Agenda / Aktivitas <span class="text-rose-600">*</span></th>
+                                    <th class="py-3 px-3 w-36">Tanggal</th>
+                                    <th class="py-3 px-3 w-32">Waktu (Jam)</th>
+                                    <th class="py-3 px-3 w-36">PIC Klien</th>
+                                    <th class="py-3 px-3 w-36">PIC IPNET</th>
+                                    <th class="py-3 px-3 min-w-[200px]">Catatan Aksi / Durasi</th>
+                                    <th class="py-3 px-2 w-12 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200">
+                                <template x-for="(row, index) in bulkRows" :key="index">
+                                    <tr class="hover:bg-slate-50/80 transition-colors">
+                                        {{-- No --}}
+                                        <td class="py-2.5 px-3 text-center font-bold text-slate-500 text-xs" x-text="index + 1"></td>
+                                        
+                                        {{-- Agenda / Subject --}}
+                                        <td class="py-2 px-2.5">
+                                            <input type="hidden" :name="'activities[' + index + '][activity_type]'" :value="bulkDefaultType">
+                                            <textarea :name="'activities[' + index + '][subject]'" 
+                                                      x-model="row.subject" 
+                                                      rows="2" 
+                                                      placeholder="Contoh: Koordinasi dengan Tim terkait penambahan VLAN..." 
+                                                      class="w-full p-2 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-emerald-50/30 transition resize-none"></textarea>
+                                        </td>
+
+                                        {{-- Tanggal --}}
+                                        <td class="py-2 px-2.5">
+                                            <input type="date" 
+                                                   :name="'activities[' + index + '][activity_date]'" 
+                                                   x-model="row.activity_date" 
+                                                   class="w-full p-2 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-emerald-600 transition cursor-pointer">
+                                        </td>
+
+                                        {{-- Waktu --}}
+                                        <td class="py-2 px-2.5">
+                                            <input type="text" 
+                                                   :name="'activities[' + index + '][time_str]'" 
+                                                   x-model="row.time_str" 
+                                                   placeholder="Contoh: 22.41 WIB" 
+                                                   class="w-full p-2 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-emerald-600 transition">
+                                        </td>
+
+                                        {{-- PIC Klien --}}
+                                        <td class="py-2 px-2.5">
+                                            <input type="text" 
+                                                   :name="'activities[' + index + '][client_pic]'" 
+                                                   x-model="row.client_pic" 
+                                                   placeholder="Galang, Maulana..." 
+                                                   class="w-full p-2 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-emerald-600 transition">
+                                        </td>
+
+                                        {{-- PIC IPNET --}}
+                                        <td class="py-2 px-2.5">
+                                            <input type="text" 
+                                                   :name="'activities[' + index + '][ipnet_pic]'" 
+                                                   x-model="row.ipnet_pic" 
+                                                   placeholder="Syaiful, Raiza..." 
+                                                   class="w-full p-2 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-emerald-600 transition">
+                                        </td>
+
+                                        {{-- Catatan Aksi --}}
+                                        <td class="py-2 px-2.5">
+                                            <textarea :name="'activities[' + index + '][notes]'" 
+                                                      x-model="row.notes" 
+                                                      rows="2" 
+                                                      placeholder="Eksekusi dilakukan selama ±1 jam, on schedule..." 
+                                                      class="w-full p-2 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-emerald-600 transition resize-none"></textarea>
+                                        </td>
+
+                                        {{-- Hapus Baris --}}
+                                        <td class="py-2 px-2 text-center">
+                                            <button type="button" 
+                                                    @click="removeBulkRow(index)" 
+                                                    title="Hapus baris ini"
+                                                    class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition cursor-pointer">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+
+                        {{-- Quick Add Rows Controls --}}
+                        <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-2">
+                                <button type="button" 
+                                        @click="addBulkRow()" 
+                                        class="px-4 py-2 bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-300 hover:border-emerald-400 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span>+ Tambah 1 Baris</span>
+                                </button>
+                                <button type="button" 
+                                        @click="addBulkMultiple(5)" 
+                                        class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold rounded-xl text-xs transition cursor-pointer">
+                                    <span>+ Tambah 5 Baris Sekaligus</span>
+                                </button>
+                            </div>
+                            <div class="text-xs text-slate-500 font-medium">
+                                Total Baris Terisi: <strong class="text-slate-800 font-bold" x-text="filledRowsCount"></strong> dari <strong class="text-slate-800" x-text="bulkRows.length"></strong> baris
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Fixed Footer --}}
+                    <div class="flex items-center justify-between p-4 px-6 border-t border-slate-200 bg-white shrink-0">
+                        <button type="button" 
+                                @click="isBulkModalOpen = false" 
+                                class="px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-300 rounded-xl transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" 
+                                class="px-6 py-2.5 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>Simpan Semua Kronologi Aktivitas</span>
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </template>
+
+    {{-- MODAL TAMBAH / EDIT SALES CRM ACTIVITY (SATUAN) --}}
     <template x-teleport="body">
         <div x-show="isModalOpen" 
              x-cloak 
@@ -348,6 +549,60 @@
                 notes: '',
                 next_action: '',
                 next_action_date: ''
+            },
+
+            // Spreadsheet Multi-Row Bulk Entry
+            isBulkModalOpen: false,
+            bulkProjectId: '{{ $filterProject ?: ($activeProjects->first()->id ?? '') }}',
+            bulkDefaultType: 'Troubleshooting',
+            bulkRows: [
+                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '', client_pic: '', ipnet_pic: '', notes: 'On Schedule' },
+                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '', client_pic: '', ipnet_pic: '', notes: '' },
+                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '', client_pic: '', ipnet_pic: '', notes: '' },
+                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '', client_pic: '', ipnet_pic: '', notes: '' },
+                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '', client_pic: '', ipnet_pic: '', notes: '' }
+            ],
+
+            get filledRowsCount() {
+                return this.bulkRows.filter(r => r.subject && r.subject.trim() !== '').length;
+            },
+
+            openBulkModal() {
+                this.isBulkModalOpen = true;
+            },
+
+            addBulkRow() {
+                const lastDate = this.bulkRows.length > 0 ? this.bulkRows[this.bulkRows.length - 1].activity_date : '{{ date('Y-m-d') }}';
+                this.bulkRows.push({
+                    subject: '',
+                    activity_date: lastDate,
+                    time_str: '',
+                    client_pic: '',
+                    ipnet_pic: '',
+                    notes: ''
+                });
+            },
+
+            addBulkMultiple(count) {
+                const lastDate = this.bulkRows.length > 0 ? this.bulkRows[this.bulkRows.length - 1].activity_date : '{{ date('Y-m-d') }}';
+                for (let i = 0; i < count; i++) {
+                    this.bulkRows.push({
+                        subject: '',
+                        activity_date: lastDate,
+                        time_str: '',
+                        client_pic: '',
+                        ipnet_pic: '',
+                        notes: ''
+                    });
+                }
+            },
+
+            removeBulkRow(index) {
+                if (this.bulkRows.length > 1) {
+                    this.bulkRows.splice(index, 1);
+                } else {
+                    this.bulkRows[0] = { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '', client_pic: '', ipnet_pic: '', notes: '' };
+                }
             },
 
             openAddModal() {

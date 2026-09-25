@@ -130,6 +130,7 @@
     } elseif ($isSales) {
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',           'route' => 'dashboard.sales'],
+            ['key' => 'activities', 'label' => 'Activity Log',        'route' => 'sales.activities.index'],
             ['key' => 'clients',    'label' => 'Client',              'route' => 'clients.index'],
             ['key' => 'projects',   'label' => 'Project',             'route' => 'sales.pipeline.index'],
             ['key' => 'inventory',  'label' => 'Inventory',           'route' => 'inventory.index'],
