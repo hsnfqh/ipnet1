@@ -47,16 +47,18 @@ class BdmController extends Controller
 
         $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
 
-        if (!$isManagerial) {
-            $allProjectsQuery->where(function($q) use ($user) {
-                $q->where('bdm_id', $user->id)
-                  ->orWhere('created_by', $user->id);
-            });
-        }
-        
         $projects = (clone $allProjectsQuery)->whereYear('created_at', $selectedYear)->get();
         if ($projects->isEmpty()) {
             $projects = (clone $allProjectsQuery)->get();
+        }
+
+        if (!$isManagerial) {
+            $projects = $projects->filter(function($p) use ($user) {
+                if ($p->bdm_id == $user->id || $p->created_by == $user->id) return true;
+                $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+                $bdm = $hd['technical_assignments']['bdm'] ?? [];
+                return !empty($bdm['assigned']) && (empty($bdm['assigned_user_id']) || $bdm['assigned_user_id'] == $user->id || empty($bdm['assigned_to']) || str_contains(strtolower($bdm['assigned_to']), strtolower($user->name)));
+            })->values();
         }
 
         // 5 Summary Metrics

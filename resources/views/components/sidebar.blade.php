@@ -113,12 +113,11 @@
         ];
     } elseif ($isBdm) {
         $navItems = [
-            ['key' => 'dashboard',     'label' => 'Dashboard',           'route' => 'dashboard.bdm'],
-            ['key' => 'opportunities', 'label' => 'Inisiasi Peluang',    'route' => 'bdm.opportunities.index'],
-            ['key' => 'intelligence',  'label' => 'Market Intelligence', 'route' => 'bdm.intelligence.index'],
-            ['key' => 'partnerships',  'label' => 'Mitra Vendor',        'route' => 'bdm.partnerships.index'],
-            ['key' => 'clients',       'label' => 'Database Klien',      'route' => 'clients.index'],
-            ['key' => 'timesheets',    'label' => 'Timesheet',           'route' => 'timesheets.index'],
+            ['key' => 'dashboard',  'label' => 'Dashboard',     'route' => 'dashboard.bdm'],
+            ['key' => 'projects',   'label' => 'Project',       'route' => 'sales.pipeline.index'],
+            ['key' => 'clients',    'label' => 'Client',        'route' => 'clients.index'],
+            ['key' => 'schedules',  'label' => 'Work Schedule', 'route' => 'schedules.index'],
+            ['key' => 'timesheets', 'label' => 'Timesheet',     'route' => 'timesheets.index'],
         ];
     } elseif ($isPresales) {
         $navItems = [

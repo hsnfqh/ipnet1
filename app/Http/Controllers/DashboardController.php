@@ -737,6 +737,21 @@ class DashboardController extends Controller
             $tendersYear = (clone $allTendersQuery)->get();
         }
 
+        $isExecutive = \App\Helpers\ScopeHelper::isGlobal($user) 
+            || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager']) 
+            || str_contains(strtolower($user->name), 'susanto') 
+            || str_contains(strtolower($user->name), 'hariyadi');
+
+        // Pre-Sales hanya menghitung & menampilkan tender yang ditugaskan kepada Pre-Sales
+        if (!$isExecutive && $user->hasAnyRole(['Presales', 'Pre-Sales'])) {
+            $tendersYear = $tendersYear->filter(function($p) use ($user) {
+                if ($p->created_by == $user->id) return true;
+                $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+                $ps = $hd['technical_assignments']['presales'] ?? [];
+                return !empty($ps['assigned']) && (empty($ps['assigned_user_id']) || $ps['assigned_user_id'] == $user->id || empty($ps['assigned_to']) || str_contains(strtolower($ps['assigned_to']), strtolower($user->name)));
+            })->values();
+        }
+
         // 2. Kategori Status Pre-Sales & Tender
         $pendingProposalTenders = $tendersYear->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
             ->whereNull('proposal_file')
@@ -857,11 +872,26 @@ class DashboardController extends Controller
         $user = auth()->user();
         $selectedYear = (int) $request->input('year', date('Y'));
 
+        $isExecutive = \App\Helpers\ScopeHelper::isGlobal($user) 
+            || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager']) 
+            || str_contains(strtolower($user->name), 'susanto') 
+            || str_contains(strtolower($user->name), 'hariyadi');
+
         $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
         
         $projects = (clone $allProjectsQuery)->whereYear('created_at', $selectedYear)->get();
         if ($projects->isEmpty()) {
             $projects = (clone $allProjectsQuery)->get();
+        }
+
+        // BD hanya menghitung & menampilkan tender yang ditugaskan kepada BD
+        if (!$isExecutive && $user->hasAnyRole(['BDM', 'BusDev', 'Business Development'])) {
+            $projects = $projects->filter(function($p) use ($user) {
+                if ($p->bdm_id == $user->id || $p->created_by == $user->id) return true;
+                $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+                $bdm = $hd['technical_assignments']['bdm'] ?? [];
+                return !empty($bdm['assigned']) && (empty($bdm['assigned_user_id']) || $bdm['assigned_user_id'] == $user->id || empty($bdm['assigned_to']) || str_contains(strtolower($bdm['assigned_to']), strtolower($user->name)));
+            })->values();
         }
 
         // Summary Pipeline BDM
@@ -874,8 +904,8 @@ class DashboardController extends Controller
         $totalNilaiOpportunity = $opportunityProjects->sum('contract_value');
 
         // 2. Proposal SOW Siap / Tender Siap
-        $proposalsReadyCount = (clone $allProjectsQuery)->whereNotNull('proposal_file')->count();
-        $proposalsPendingCount = (clone $allProjectsQuery)->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->count();
+        $proposalsReadyCount = $projects->whereNotNull('proposal_file')->count();
+        $proposalsPendingCount = $projects->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->count();
 
         // 3. Tender Menang (Won) & Proyek Berjalan
         $inProgressProjects = $projects->whereIn('status', ['On Progress', 'In Progress']);
@@ -923,11 +953,11 @@ class DashboardController extends Controller
         }, array_values($sectorCounts));
 
         // Lists
-        $recentProjects        = (clone $allProjectsQuery)->latest()->take(6)->get();
+        $recentProjects        = $projects->sortByDesc('updated_at')->take(6)->values();
         $recentClients         = \App\Models\Client::latest()->take(5)->get();
         $recentVendors         = \App\Models\Vendor::latest()->take(5)->get();
         $inventoryHighlights   = \App\Models\InventoryItem::orderBy('stock', 'asc')->take(5)->get();
-        $recentProposals       = (clone $allProjectsQuery)->whereNotNull('proposal_file')->latest('updated_at')->take(5)->get();
+        $recentProposals       = $projects->whereNotNull('proposal_file')->sortByDesc('updated_at')->take(5)->values();
 
         $data = [
             'selectedYear'          => $selectedYear,
@@ -1000,6 +1030,21 @@ class DashboardController extends Controller
         $tendersYear = (clone $allTendersQuery)->whereYear('created_at', $selectedYear)->get();
         if ($tendersYear->isEmpty()) {
             $tendersYear = (clone $allTendersQuery)->get();
+        }
+
+        $isExecutive = \App\Helpers\ScopeHelper::isGlobal($user) 
+            || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager']) 
+            || str_contains(strtolower($user->name), 'susanto') 
+            || str_contains(strtolower($user->name), 'hariyadi');
+
+        // Solution Architect hanya menghitung & menampilkan tender yang ditugaskan kepada SA
+        if (!$isExecutive && $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop'])) {
+            $tendersYear = $tendersYear->filter(function($p) use ($user) {
+                if ($p->created_by == $user->id) return true;
+                $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+                $sa = $hd['technical_assignments']['architect'] ?? [];
+                return !empty($sa['assigned']) && (empty($sa['assigned_user_id']) || $sa['assigned_user_id'] == $user->id || empty($sa['assigned_to']) || str_contains(strtolower($sa['assigned_to']), strtolower($user->name)));
+            })->values();
         }
 
         // Helper cek kelengkapan dokumen desain/topologi SA

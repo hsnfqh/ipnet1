@@ -48,10 +48,11 @@ class SalesCrmController extends Controller
     public function pipeline(Request $request)
     {
         $user = auth()->user();
-        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) 
-            || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager', 'Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'BDM', 'BusDev', 'Business Development']) 
+        $isExecutive = \App\Helpers\ScopeHelper::isGlobal($user) 
+            || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager']) 
             || str_contains(strtolower($user->name), 'susanto') 
             || str_contains(strtolower($user->name), 'hariyadi');
+        $isManagerial = $isExecutive;
 
         $search = $request->input('search');
         $filterDivision = $request->input('division_id');
@@ -102,13 +103,6 @@ class SalesCrmController extends Controller
             })
             ->with(['bdm', 'creator', 'salesActivities', 'tasks', 'projectDocuments']);
 
-        if (!$isManagerial) {
-            $allProjectsQuery->where(function($q) use ($user) {
-                $q->where('sales_name', $user->name)
-                  ->orWhere('created_by', $user->id);
-            });
-        }
-
         if ($search) {
             $allProjectsQuery->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -157,6 +151,37 @@ class SalesCrmController extends Controller
         }
 
         $allProjects = $allProjectsQuery->latest('updated_at')->get();
+
+        // Strict Role-Based Visibility: BD, Pre-Sales, and SA only see projects where they have been officially assigned
+        if (!$isExecutive) {
+            if ($user->hasAnyRole(['Presales', 'Pre-Sales'])) {
+                $allProjects = $allProjects->filter(function($p) use ($user) {
+                    if ($p->created_by == $user->id) return true;
+                    $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+                    $ps = $hd['technical_assignments']['presales'] ?? [];
+                    return !empty($ps['assigned']) && (empty($ps['assigned_user_id']) || $ps['assigned_user_id'] == $user->id || empty($ps['assigned_to']) || str_contains(strtolower($ps['assigned_to']), strtolower($user->name)));
+                })->values();
+            } elseif ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop'])) {
+                $allProjects = $allProjects->filter(function($p) use ($user) {
+                    if ($p->created_by == $user->id) return true;
+                    $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+                    $sa = $hd['technical_assignments']['architect'] ?? [];
+                    return !empty($sa['assigned']) && (empty($sa['assigned_user_id']) || $sa['assigned_user_id'] == $user->id || empty($sa['assigned_to']) || str_contains(strtolower($sa['assigned_to']), strtolower($user->name)));
+                })->values();
+            } elseif ($user->hasAnyRole(['BDM', 'BusDev', 'Business Development'])) {
+                $allProjects = $allProjects->filter(function($p) use ($user) {
+                    if ($p->bdm_id == $user->id || $p->created_by == $user->id) return true;
+                    $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+                    $bdm = $hd['technical_assignments']['bdm'] ?? [];
+                    return !empty($bdm['assigned']) && (empty($bdm['assigned_user_id']) || $bdm['assigned_user_id'] == $user->id || empty($bdm['assigned_to']) || str_contains(strtolower($bdm['assigned_to']), strtolower($user->name)));
+                })->values();
+            } elseif ($user->hasAnyRole(['Sales', 'Account Manager'])) {
+                $allProjects = $allProjects->filter(function($p) use ($user) {
+                    if ($p->created_by == $user->id) return true;
+                    return !empty($p->sales_name) && str_contains(strtolower($p->sales_name), strtolower($user->name));
+                })->values();
+            }
+        }
 
         // 5 Kanban Columns
         $kanban = [
