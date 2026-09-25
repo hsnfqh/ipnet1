@@ -748,7 +748,18 @@ class DashboardController extends Controller
                 if ($p->created_by == $user->id) return true;
                 $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
                 $ps = $hd['technical_assignments']['presales'] ?? [];
-                return !empty($ps['assigned']) && (empty($ps['assigned_user_id']) || $ps['assigned_user_id'] == $user->id || empty($ps['assigned_to']) || str_contains(strtolower($ps['assigned_to']), strtolower($user->name)));
+                if (!empty($ps['assigned'])) {
+                    if (!empty($ps['assigned_user_id']) && $ps['assigned_user_id'] == $user->id) {
+                        return true;
+                    }
+                    if (!empty($ps['assigned_to']) && str_contains(strtolower($ps['assigned_to']), strtolower($user->name))) {
+                        return true;
+                    }
+                    if (empty($ps['assigned_user_id']) && empty($ps['assigned_to']) && str_contains(strtolower($user->name), 'akbar')) {
+                        return true;
+                    }
+                }
+                return false;
             })->values();
         }
 
@@ -887,10 +898,19 @@ class DashboardController extends Controller
         // BD hanya menghitung & menampilkan tender yang ditugaskan kepada BD
         if (!$isExecutive && $user->hasAnyRole(['BDM', 'BusDev', 'Business Development'])) {
             $projects = $projects->filter(function($p) use ($user) {
-                if ($p->bdm_id == $user->id || $p->created_by == $user->id) return true;
+                if (!empty($p->bdm_id) && $p->bdm_id == $user->id) return true;
+                if ($p->created_by == $user->id) return true;
                 $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
                 $bdm = $hd['technical_assignments']['bdm'] ?? [];
-                return !empty($bdm['assigned']) && (empty($bdm['assigned_user_id']) || $bdm['assigned_user_id'] == $user->id || empty($bdm['assigned_to']) || str_contains(strtolower($bdm['assigned_to']), strtolower($user->name)));
+                if (!empty($bdm['assigned'])) {
+                    if (!empty($bdm['assigned_user_id']) && $bdm['assigned_user_id'] == $user->id) {
+                        return true;
+                    }
+                    if (!empty($bdm['assigned_to']) && str_contains(strtolower($bdm['assigned_to']), strtolower($user->name))) {
+                        return true;
+                    }
+                }
+                return false;
             })->values();
         }
 
@@ -1043,7 +1063,18 @@ class DashboardController extends Controller
                 if ($p->created_by == $user->id) return true;
                 $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
                 $sa = $hd['technical_assignments']['architect'] ?? [];
-                return !empty($sa['assigned']) && (empty($sa['assigned_user_id']) || $sa['assigned_user_id'] == $user->id || empty($sa['assigned_to']) || str_contains(strtolower($sa['assigned_to']), strtolower($user->name)));
+                if (!empty($sa['assigned'])) {
+                    if (!empty($sa['assigned_user_id']) && $sa['assigned_user_id'] == $user->id) {
+                        return true;
+                    }
+                    if (!empty($sa['assigned_to']) && str_contains(strtolower($sa['assigned_to']), strtolower($user->name))) {
+                        return true;
+                    }
+                    if (empty($sa['assigned_user_id']) && empty($sa['assigned_to']) && str_contains(strtolower($user->name), 'aris')) {
+                        return true;
+                    }
+                }
+                return false;
             })->values();
         }
 
