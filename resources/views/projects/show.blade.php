@@ -1013,12 +1013,13 @@
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {{-- Option 1: PMO Implementasi --}}
-                            <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition"
-                                   :class="handoverTargetType === 'pmo' ? 'border-[#8F0A0D] bg-red-50/30 text-gray-900 shadow-xs' : 'border-gray-200 hover:border-slate-300 text-gray-600 bg-white'">
-                                <input type="radio" name="handover_target" value="pmo" x-model="handoverTargetType" class="mt-0.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                            <label @click="handoverTargetType = 'pmo'"
+                                   class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition"
+                                   :class="handoverTargetType === 'pmo' ? '!border-[#8F0A0D] !bg-red-50/40 text-gray-900 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-400 text-gray-600 bg-white'">
+                                <input type="radio" name="handover_target" value="pmo" x-model="handoverTargetType" class="mt-0.5 accent-[#8F0A0D] cursor-pointer">
                                 <div>
                                     <div class="font-bold text-xs flex items-center gap-1.5">
-                                        <span>Proyek Implementasi</span>
+                                        <span :class="handoverTargetType === 'pmo' ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-800'">Proyek Implementasi</span>
                                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-bold">PMO Delivery</span>
                                     </div>
                                     <p class="text-[11px] text-gray-500 mt-1 leading-snug font-normal">
@@ -1028,12 +1029,13 @@
                             </label>
 
                             {{-- Option 2: Managed Service --}}
-                            <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition"
-                                   :class="handoverTargetType === 'managed_service' ? 'border-[#8F0A0D] bg-red-50/30 text-gray-900 shadow-xs' : 'border-gray-200 hover:border-slate-300 text-gray-600 bg-white'">
-                                <input type="radio" name="handover_target" value="managed_service" x-model="handoverTargetType" class="mt-0.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                            <label @click="handoverTargetType = 'managed_service'"
+                                   class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition"
+                                   :class="handoverTargetType === 'managed_service' ? '!border-[#8F0A0D] !bg-red-50/40 text-gray-900 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-400 text-gray-600 bg-white'">
+                                <input type="radio" name="handover_target" value="managed_service" x-model="handoverTargetType" class="mt-0.5 accent-[#8F0A0D] cursor-pointer">
                                 <div>
                                     <div class="font-bold text-xs flex items-center gap-1.5">
-                                        <span>Kontrak Managed Service</span>
+                                        <span :class="handoverTargetType === 'managed_service' ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-800'">Kontrak Managed Service</span>
                                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-bold">Operate MS</span>
                                     </div>
                                     <p class="text-[11px] text-gray-500 mt-1 leading-snug font-normal">
