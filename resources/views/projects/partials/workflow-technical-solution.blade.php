@@ -251,7 +251,7 @@
                 {{-- Header --}}
                 <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider whitespace-nowrap">
-                        SOL. ARCHITECT
+                        SA
                     </span>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $isArchitectDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
                         {{ $isArchitectDone ? '✓ Solusi Disahkan' : ($isArchitectAssigned ? 'Menunggu Topologi' : 'Belum Di-assign') }}
@@ -261,7 +261,7 @@
                 {{-- Person --}}
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                        {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? strtoupper(substr($architectAssignment['assigned_to'], 0, 2)) : 'AR' }}
+                        {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? strtoupper(substr($architectAssignment['assigned_to'], 0, 2)) : 'SA' }}
                     </div>
                     <div class="min-w-0 flex-1">
                         <h4 class="font-bold text-xs {{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? 'text-slate-900' : 'text-slate-400 italic' }} truncate" title="{{ $isArchitectAssigned && !empty($architectAssignment['assigned_to']) ? $architectAssignment['assigned_to'] : '' }}">
