@@ -55,30 +55,46 @@ class SalesCrmController extends Controller
         $filterApproval = $request->input('approval_status');
         $filterSales = $request->input('sales');
 
-        $salesTeam = BdmController::$salesTeam;
+        $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
+        $salesTeam = $validSalesNames;
 
-        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            // Standalone Sales: HANYA proyek peluang/pipeline sales (belum terhubung ke teknikal/engineer)
-            ->where(function($q) use ($salesTeam, $user) {
-                $q->where('stage', 'Acquire')
-                  ->orWhere('opportunity_source', 'Direct Sales Prospecting')
-                  ->orWhereNotNull('opportunity_source')
-                  ->orWhereNotNull('bdm_id')
-                  ->orWhere('bdm_handover_status', 'Self-Sourced Sales')
-                  ->orWhereIn('sales_name', $salesTeam)
-                  ->orWhere('created_by', $user->id)
-                  ->orWhereHas('creator', function($c) {
-                      $c->whereHas('roles', function($r) {
-                          $r->whereIn('name', ['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']);
-                      });
-                  });
-            })
-            // JANGAN menyangkut teknikal / engineer / maintenance
+        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+            ->where('client', '!=', 'Internal / Umum')
             ->where('name', 'not like', '%Preventive Maintenance%')
             ->where('name', 'not like', '%Corrective Maintenance%')
+            ->where('name', 'not like', '%SLA%')
+            ->where('name', 'not like', '%Training%')
+            ->where('name', 'not like', '%Meeting%')
+            ->where('name', 'not like', '%On Going Project%')
+            ->where('name', 'not like', '%Closed Project%')
+            ->where(function($q) use ($validSalesNames) {
+                $q->whereIn('sales_name', $validSalesNames)
+                  ->orWhere('sales_name', 'like', '%Raiza%')
+                  ->orWhere('sales_name', 'like', '%Nabylla%')
+                  ->orWhereHas('creator', function($c) {
+                      $c->where('name', 'like', '%Raiza%')
+                        ->orWhere('name', 'like', '%Nabylla%')
+                        ->orWhere('email', 'like', '%raiza%')
+                        ->orWhere('email', 'like', '%nabylla%');
+                  });
+            })
+            ->where(function ($ex) {
+                $ex->whereNull('sales_name')
+                   ->orWhere(function ($sn) {
+                       $sn->where('sales_name', 'not like', '%Sales Team%')
+                          ->where('sales_name', 'not like', '%Via%')
+                          ->where('sales_name', 'not like', '%Widodo%')
+                          ->where('sales_name', 'not like', '%Donny%')
+                          ->where('sales_name', 'not like', '%Erie%')
+                          ->where('sales_name', 'not like', '%Hendry%')
+                          ->where('sales_name', 'not like', '%Nelvia%')
+                          ->where('sales_name', 'not like', '%Ribka%')
+                          ->where('sales_name', 'not like', '%Sabar%');
+                   });
+            })
             ->whereDoesntHave('creator', function($c) {
                 $c->whereHas('roles', function($r) {
-                    $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance']);
+                    $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service']);
                 });
             })
             ->with(['bdm', 'creator', 'salesActivities']);

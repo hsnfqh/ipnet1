@@ -26,33 +26,42 @@ class PresalesProposalController extends Controller
         $tab        = $request->input('tab', 'pending'); // pending, submitted, won, lost
         $divisionId = $request->input('division_id');
 
-        $salesTeam = \App\Http\Controllers\BdmController::$salesTeam;
+        $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
 
-        $applyBaseFilters = function ($q) use ($salesTeam, $user, $isManagerialOrPresales) {
+        $applyBaseFilters = function ($q) use ($validSalesNames, $user, $isManagerialOrPresales) {
             $q->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
               ->where('client', '!=', 'Internal / Umum')
               ->where('name', 'not like', '%Preventive Maintenance%')
               ->where('name', 'not like', '%Corrective Maintenance%')
-              ->where('name', 'not like', '%SLA %')
-              ->where('name', 'not like', '%Layanan SLA%')
-              ->where('name', 'not like', '%Cisco Training%')
+              ->where('name', 'not like', '%SLA%')
               ->where('name', 'not like', '%Training%')
+              ->where('name', 'not like', '%Meeting%')
               ->where('name', 'not like', '%On Going Project%')
               ->where('name', 'not like', '%Closed Project%')
-              ->where(function ($sub) use ($salesTeam, $user) {
-                  $sub->whereIn('sales_name', $salesTeam)
-                      ->orWhere('stage', 'Acquire')
-                      ->orWhere('opportunity_source', 'Direct Sales Prospecting')
-                      ->orWhereNotNull('opportunity_source')
-                      ->orWhereNotNull('bdm_id')
-                      ->orWhere('bdm_handover_status', 'Self-Sourced Sales')
-                      ->orWhereNotNull('proposal_file')
-                      ->orWhere('created_by', $user->id)
+              ->where(function ($sub) use ($validSalesNames, $user) {
+                  $sub->whereIn('sales_name', $validSalesNames)
+                      ->orWhere('sales_name', 'like', '%Raiza%')
+                      ->orWhere('sales_name', 'like', '%Nabylla%')
                       ->orWhereHas('creator', function ($c) {
-                          $c->whereHas('roles', function ($r) {
-                              $r->whereIn('name', ['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'Presales', 'Pre-Sales']);
-                          });
+                          $c->where('name', 'like', '%Raiza%')
+                            ->orWhere('name', 'like', '%Nabylla%')
+                            ->orWhere('email', 'like', '%raiza%')
+                            ->orWhere('email', 'like', '%nabylla%');
                       });
+              })
+              ->where(function ($ex) {
+                  $ex->whereNull('sales_name')
+                     ->orWhere(function ($sn) {
+                         $sn->where('sales_name', 'not like', '%Sales Team%')
+                            ->where('sales_name', 'not like', '%Via%')
+                            ->where('sales_name', 'not like', '%Widodo%')
+                            ->where('sales_name', 'not like', '%Donny%')
+                            ->where('sales_name', 'not like', '%Erie%')
+                            ->where('sales_name', 'not like', '%Hendry%')
+                            ->where('sales_name', 'not like', '%Nelvia%')
+                            ->where('sales_name', 'not like', '%Ribka%')
+                            ->where('sales_name', 'not like', '%Sabar%');
+                     });
               })
               ->whereDoesntHave('creator', function ($c) {
                   $c->whereHas('roles', function ($r) {

@@ -396,27 +396,43 @@ class DashboardController extends Controller
         $selectedYear = (int) $request->input('year', date('Y'));
         $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager']) || str_contains(strtolower($user->name), 'susanto') || str_contains(strtolower($user->name), 'hariyadi');
 
-        $salesTeam = \App\Http\Controllers\BdmController::$salesTeam;
+        $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
 
-        // Standalone Sales: HANYA proyek peluang / komersial / sales pipeline (terpisah dari eksekusi teknikal / engineer)
+        // Standalone Sales: HANYA proyek peluang / komersial / sales pipeline (Raiza & Nabylla Berlianita)
         $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
             ->where('client', '!=', 'Internal / Umum')
-            ->where(function($q) use ($user) {
-                $q->where('stage', 'Acquire')
-                  ->orWhere('opportunity_source', 'Direct Sales Prospecting')
-                  ->orWhereNotNull('opportunity_source')
-                  ->orWhereNotNull('bdm_id')
-                  ->orWhere('bdm_handover_status', 'Self-Sourced Sales')
-                  ->orWhere('created_by', $user->id)
-                  ->orWhereHas('creator', function($c) {
-                      $c->whereHas('roles', function($r) {
-                          $r->whereIn('name', ['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']);
-                      });
-                  });
-            })
-            // JANGAN menyangkut teknikal / engineer / maintenance
             ->where('name', 'not like', '%Preventive Maintenance%')
             ->where('name', 'not like', '%Corrective Maintenance%')
+            ->where('name', 'not like', '%SLA%')
+            ->where('name', 'not like', '%Training%')
+            ->where('name', 'not like', '%Meeting%')
+            ->where('name', 'not like', '%On Going Project%')
+            ->where('name', 'not like', '%Closed Project%')
+            ->where(function($q) use ($validSalesNames) {
+                $q->whereIn('sales_name', $validSalesNames)
+                  ->orWhere('sales_name', 'like', '%Raiza%')
+                  ->orWhere('sales_name', 'like', '%Nabylla%')
+                  ->orWhereHas('creator', function($c) {
+                      $c->where('name', 'like', '%Raiza%')
+                        ->orWhere('name', 'like', '%Nabylla%')
+                        ->orWhere('email', 'like', '%raiza%')
+                        ->orWhere('email', 'like', '%nabylla%');
+                  });
+            })
+            ->where(function ($ex) {
+                $ex->whereNull('sales_name')
+                   ->orWhere(function ($sn) {
+                       $sn->where('sales_name', 'not like', '%Sales Team%')
+                          ->where('sales_name', 'not like', '%Via%')
+                          ->where('sales_name', 'not like', '%Widodo%')
+                          ->where('sales_name', 'not like', '%Donny%')
+                          ->where('sales_name', 'not like', '%Erie%')
+                          ->where('sales_name', 'not like', '%Hendry%')
+                          ->where('sales_name', 'not like', '%Nelvia%')
+                          ->where('sales_name', 'not like', '%Ribka%')
+                          ->where('sales_name', 'not like', '%Sabar%');
+                   });
+            })
             ->whereDoesntHave('creator', function($c) {
                 $c->whereHas('roles', function($r) {
                     $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi']);
@@ -678,32 +694,42 @@ class DashboardController extends Controller
         $user = auth()->user();
         $selectedYear = (int) $request->input('year', date('Y'));
 
-        $salesTeam = \App\Http\Controllers\BdmController::$salesTeam;
+        $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
 
-        // 1. Ambil seluruh data proyek/tender pre-sales resmi (Sales Raiza & Nabylla Berlianita / BD / Presales)
+        // 1. Ambil seluruh data proyek/tender pre-sales resmi (Sales Raiza & Nabylla Berlianita)
         $allTendersQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
             ->where('client', '!=', 'Internal / Umum')
             ->where('name', 'not like', '%Preventive Maintenance%')
             ->where('name', 'not like', '%Corrective Maintenance%')
-            ->where('name', 'not like', '%SLA %')
-            ->where('name', 'not like', '%Layanan SLA%')
-            ->where('name', 'not like', '%Cisco Training%')
+            ->where('name', 'not like', '%SLA%')
             ->where('name', 'not like', '%Training%')
+            ->where('name', 'not like', '%Meeting%')
             ->where('name', 'not like', '%On Going Project%')
             ->where('name', 'not like', '%Closed Project%')
-            ->where(function($q) use ($salesTeam) {
-                $q->whereIn('sales_name', $salesTeam)
-                  ->orWhere('stage', 'Acquire')
-                  ->orWhere('opportunity_source', 'Direct Sales Prospecting')
-                  ->orWhereNotNull('opportunity_source')
-                  ->orWhereNotNull('bdm_id')
-                  ->orWhere('bdm_handover_status', 'Self-Sourced Sales')
-                  ->orWhereNotNull('proposal_file')
+            ->where(function($q) use ($validSalesNames) {
+                $q->whereIn('sales_name', $validSalesNames)
+                  ->orWhere('sales_name', 'like', '%Raiza%')
+                  ->orWhere('sales_name', 'like', '%Nabylla%')
                   ->orWhereHas('creator', function($c) {
-                      $c->whereHas('roles', function($r) {
-                          $r->whereIn('name', ['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'Presales', 'Pre-Sales']);
-                      });
+                      $c->where('name', 'like', '%Raiza%')
+                        ->orWhere('name', 'like', '%Nabylla%')
+                        ->orWhere('email', 'like', '%raiza%')
+                        ->orWhere('email', 'like', '%nabylla%');
                   });
+            })
+            ->where(function ($ex) {
+                $ex->whereNull('sales_name')
+                   ->orWhere(function ($sn) {
+                       $sn->where('sales_name', 'not like', '%Sales Team%')
+                          ->where('sales_name', 'not like', '%Via%')
+                          ->where('sales_name', 'not like', '%Widodo%')
+                          ->where('sales_name', 'not like', '%Donny%')
+                          ->where('sales_name', 'not like', '%Erie%')
+                          ->where('sales_name', 'not like', '%Hendry%')
+                          ->where('sales_name', 'not like', '%Nelvia%')
+                          ->where('sales_name', 'not like', '%Ribka%')
+                          ->where('sales_name', 'not like', '%Sabar%');
+                   });
             })
             ->whereDoesntHave('creator', function($c) {
                 $c->whereHas('roles', function($r) {
