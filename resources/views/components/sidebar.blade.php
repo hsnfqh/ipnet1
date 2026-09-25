@@ -134,7 +134,7 @@
             ['key' => 'projects',   'label' => 'Project',             'route' => 'sales.pipeline.index'],
             ['key' => 'inventory',  'label' => 'Inventory',           'route' => 'inventory.index'],
             ['key' => 'vendors',    'label' => 'Vendor',              'route' => 'vendors.index'],
-            ['key' => 'schedules',  'label' => 'Jadwal Kerja',        'route' => 'schedules.index'],
+            ['key' => 'schedules',  'label' => 'Work Schedule',       'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',            'route' => 'timesheets.index'],
         ];
     } elseif (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
