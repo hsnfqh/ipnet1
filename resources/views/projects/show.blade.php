@@ -198,11 +198,11 @@
     })->orWhere('name', 'like', '%Rizki%')->orWhere('name', 'like', '%Kuncoro%')->orderBy('name')->get();
 
     // Ambil daftar user Presales & Solution Architect (Terkoneksi ke Sales, BD, SA, Direktur, Head Divisi)
-    $presalesUsers = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Presales', 'Pre-Sales', 'Sales', 'BDM', 'BusDev', 'Group Leader Commercial & Solution']))->orderBy('name')->get();
+    $presalesUsers = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Presales', 'Pre-Sales']))->orderBy('name')->get();
     if ($presalesUsers->isEmpty()) {
-        $presalesUsers = \App\Models\User::where('email', 'akbar@ipnetsolusindo.com')->orWhere('position', 'like', '%Pre-Sales%')->get();
+        $presalesUsers = \App\Models\User::where('email', 'akbar@ipnetsolusindo.com')->orWhere('position', 'like', '%Pre-Sales%')->orWhere('position', 'like', '%Presales%')->get();
     }
-    $architectUsers = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop']))->orderBy('name')->get();
+    $architectUsers = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Solution Architect', 'Solutions Architect', 'SA']))->orderBy('name')->get();
     if ($architectUsers->isEmpty()) {
         $architectUsers = \App\Models\User::where('email', 'like', '%aris%')->orWhere('position', 'like', '%Architect%')->get();
     }

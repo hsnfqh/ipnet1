@@ -159,7 +159,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance');
 
     // BDM & Business Development (Dashboard + Dedicated Sub-Menus)
-    Route::prefix('bdm')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|BusDev|BDM|Business Development|Sales|Account Manager|Presales|Pre-Sales|Solution Architect|PMO|Project Manager')->group(function () {
+    Route::prefix('bdm')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|BusDev|BDM|Business Development|Sales|Account Manager|Presales|Pre-Sales|Solution Architect')->group(function () {
         Route::get('/dashboard', [BdmController::class, 'dashboard'])->name('dashboard.bdm');
         
         // Dedicated Menu 1: Inisiasi Peluang & Handover
@@ -184,15 +184,15 @@ Route::middleware(['auth'])->group(function () {
 
     // Fallback alias for /dashboard/bdm
     Route::get('/dashboard/bdm', [BdmController::class, 'dashboard'])
-        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|BusDev|BDM|Business Development|Sales|Account Manager|Presales|Pre-Sales|Solution Architect|PMO|Project Manager');
+        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|BusDev|BDM|Business Development|Sales|Account Manager|Presales|Pre-Sales|Solution Architect');
 
     // Dashboard Sales & Account Manager (Dashboard 3)
     Route::get('/dashboard/sales', [DashboardController::class, 'sales'])
         ->name('dashboard.sales')
-        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Sales|Account Manager|BusDev|BDM|Business Development|CRO|Customer Relation Officer|Presales|Pre-Sales|Solution Architect|PMO|Project Manager');
+        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Sales|Account Manager|BusDev|BDM|Business Development|Presales|Pre-Sales|Solution Architect');
 
     // Modul 2: SALES / CRM (Pipeline, Activities, Commercial Handover)
-    Route::prefix('sales')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Sales|Account Manager|BusDev|BDM|Business Development|CRO|Customer Relation Officer|Presales|Pre-Sales|Solution Architect|PMO|Project Manager')->group(function () {
+    Route::prefix('sales')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Sales|Account Manager|BusDev|BDM|Business Development|Presales|Pre-Sales|Solution Architect')->group(function () {
         // Dedicated Menu 1: Pipeline & Opportunity Register
         Route::get('/pipeline', [\App\Http\Controllers\SalesCrmController::class, 'pipeline'])->name('sales.pipeline.index');
         Route::get('/pipeline/create', [\App\Http\Controllers\SalesCrmController::class, 'createOpportunity'])->name('sales.pipeline.create');
@@ -230,7 +230,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Modul 4: MANAGED SERVICE (SERVICE DELIVERY - OPERATE & MAINTAIN)
-    Route::prefix('managed-service')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Group Leader Commercial & Solution|Lead Maintenance|Maintenance|PMO|Project Manager|Lead Engineer|Lead Divisi|Team Leader Engineering|Team Leader|Sales|Account Manager|BusDev|BDM')->group(function () {
+    Route::prefix('managed-service')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Group Leader Commercial & Solution|Lead Maintenance|Maintenance|PMO|Project Manager|Lead Engineer|Lead Divisi|Team Leader Engineering|Team Leader')->group(function () {
         Route::get('/', [\App\Http\Controllers\ManagedServiceController::class, 'dashboard'])->name('ms.dashboard');
         Route::get('/dashboard', [\App\Http\Controllers\ManagedServiceController::class, 'dashboard'])->name('ms.dashboard.alias');
         
@@ -264,7 +264,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('dashboard.ms');
 
     // Modul 7: CUSTOMER MANAGEMENT / CRO (Customer Relationship Officer)
-    Route::prefix('cro')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|CRO|Customer Relation Officer|Sales|Account Manager|BusDev|BDM|Business Development|PMO|Project Manager|Lead Maintenance|Maintenance|Lead Engineer|Lead Divisi|Team Leader Engineering|Team Leader')->group(function () {
+    Route::prefix('cro')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Group Leader Delivery & Operation|CRO|Customer Relation Officer|Sales|Account Manager|PMO|Project Manager|Lead Maintenance|Maintenance|Lead Engineer|Lead Divisi|Team Leader Engineering|Team Leader')->group(function () {
         Route::get('/', [CroController::class, 'dashboard'])->name('cro.dashboard');
         Route::get('/dashboard', [CroController::class, 'dashboard'])->name('cro.dashboard.alias');
 
