@@ -12,18 +12,11 @@ use App\Helpers\FileUploadHelper;
 class AcquireController extends Controller
 {
     /**
-     * Sales names options (9 official sales members)
+     * Sales names options (Raiza & Nabylla Berlianita)
      */
     protected array $salesTeam = [
-        'Donny Burnan',
-        'Erie',
-        'Hendry Wibowo',
-        'Nabylla Berlianita',
-        'Nelvia Nataliandi',
         'Raiza',
-        'Ribka Junita',
-        'Sabar Sianturi',
-        'Widodo'
+        'Nabylla Berlianita',
     ];
 
     public function index(Request $request)

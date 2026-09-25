@@ -26,14 +26,50 @@ class PresalesProposalController extends Controller
         $tab        = $request->input('tab', 'pending'); // pending, submitted, won, lost
         $divisionId = $request->input('division_id');
 
-        $query = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+        $salesTeam = \App\Http\Controllers\BdmController::$salesTeam;
 
-        if (!$isManagerialOrPresales) {
-            $query->where(function ($q) use ($user) {
-                $q->where('sales_name', $user->name)
-                  ->orWhere('created_by', $user->id);
-            });
-        }
+        $applyBaseFilters = function ($q) use ($salesTeam, $user, $isManagerialOrPresales) {
+            $q->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+              ->where('client', '!=', 'Internal / Umum')
+              ->where('name', 'not like', '%Preventive Maintenance%')
+              ->where('name', 'not like', '%Corrective Maintenance%')
+              ->where('name', 'not like', '%SLA %')
+              ->where('name', 'not like', '%Layanan SLA%')
+              ->where('name', 'not like', '%Cisco Training%')
+              ->where('name', 'not like', '%Training%')
+              ->where('name', 'not like', '%On Going Project%')
+              ->where('name', 'not like', '%Closed Project%')
+              ->where(function ($sub) use ($salesTeam, $user) {
+                  $sub->whereIn('sales_name', $salesTeam)
+                      ->orWhere('stage', 'Acquire')
+                      ->orWhere('opportunity_source', 'Direct Sales Prospecting')
+                      ->orWhereNotNull('opportunity_source')
+                      ->orWhereNotNull('bdm_id')
+                      ->orWhere('bdm_handover_status', 'Self-Sourced Sales')
+                      ->orWhereNotNull('proposal_file')
+                      ->orWhere('created_by', $user->id)
+                      ->orWhereHas('creator', function ($c) {
+                          $c->whereHas('roles', function ($r) {
+                              $r->whereIn('name', ['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'Presales', 'Pre-Sales']);
+                          });
+                      });
+              })
+              ->whereDoesntHave('creator', function ($c) {
+                  $c->whereHas('roles', function ($r) {
+                      $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service']);
+                  });
+              });
+
+            if (!$isManagerialOrPresales) {
+                $q->where(function ($sq) use ($user) {
+                    $sq->where('sales_name', $user->name)
+                      ->orWhere('created_by', $user->id);
+                });
+            }
+        };
+
+        $query = Project::query();
+        $applyBaseFilters($query);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -48,75 +84,33 @@ class PresalesProposalController extends Controller
         }
 
         // Tab Filtering (Role-Aware)
-        if ($isArchitect && !$isPresales && !$isManagerial) {
-            // Solution Architect specific filtering
-            if ($tab === 'pending') {
-                $query->where(function ($q) {
-                    $q->whereNull('handover_data->technical_assignments->architect->document_path')
-                      ->orWhere('handover_data->technical_assignments->architect->document_path', '');
-                })->whereIn('status', ['Opportunity', 'Draft', 'Planning', 'Deliver'])
-                  ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
-                  ->where('name', 'not like', '%On Going Project%')
-                  ->where('name', 'not like', '%Closed Project%')
-                  ->where('name', 'not like', '%Preventive Maintenance%');
-            } elseif ($tab === 'submitted') {
-                $query->whereNotNull('handover_data->technical_assignments->architect->document_path')
-                      ->where('handover_data->technical_assignments->architect->document_path', '!=', '')
-                      ->where('sales_stage', '!=', 'Closed Lost');
-            }
-        } elseif ($isPresales && !$isArchitect && !$isManagerial) {
-            // Pre-Sales specific filtering
-            if ($tab === 'pending') {
-                $query->where(function ($q) {
-                    $q->whereNull('proposal_file')
-                      ->where(function ($sq) {
-                          $sq->whereNull('handover_data->technical_assignments->presales->document_path')
-                             ->orWhere('handover_data->technical_assignments->presales->document_path', '');
-                      });
-                })->whereIn('status', ['Opportunity', 'Draft', 'Planning'])
-                  ->where('stage', '!=', 'Deliver')
-                  ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
-                  ->where('name', 'not like', '%On Going Project%')
-                  ->where('name', 'not like', '%Closed Project%')
-                  ->where('name', 'not like', '%Preventive Maintenance%');
-            } elseif ($tab === 'submitted') {
-                $query->where(function ($q) {
-                    $q->whereNotNull('proposal_file')
-                      ->orWhere(function ($sq) {
-                          $sq->whereNotNull('handover_data->technical_assignments->presales->document_path')
-                             ->where('handover_data->technical_assignments->presales->document_path', '!=', '');
-                      });
-                })->where('sales_stage', '!=', 'Closed Lost');
-            }
-        } else {
-            // Global / Managerial / Admin
-            if ($tab === 'pending') {
-                $query->where(function ($q) {
-                    $q->whereNull('proposal_file')
-                      ->orWhereNull('handover_data->technical_assignments->architect->document_path');
-                })->whereIn('status', ['Opportunity', 'Draft', 'Planning', 'Deliver'])
-                  ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
-                  ->where('name', 'not like', '%On Going Project%')
-                  ->where('name', 'not like', '%Closed Project%')
-                  ->where('name', 'not like', '%Preventive Maintenance%');
-            } elseif ($tab === 'submitted') {
-                $query->where(function ($q) {
-                    $q->whereNotNull('proposal_file')
-                      ->orWhereNotNull('handover_data->technical_assignments->architect->document_path')
-                      ->orWhereNotNull('handover_data->technical_assignments->presales->document_path');
-                })->where('sales_stage', '!=', 'Closed Lost');
-            }
-        }
-
-        if ($tab === 'won') {
+        if ($tab === 'pending') {
             $query->where(function ($q) {
-                $q->where('stage', 'Deliver')
-                  ->orWhereIn('status', ['On Progress', 'Completed', 'Closed Won'])
-                  ->orWhere('sales_stage', 'Closed Won')
-                  ->orWhere('name', 'like', '%On Going Project%')
-                  ->orWhere('name', 'like', '%Closed Project%')
-                  ->orWhere('name', 'like', '%Preventive Maintenance%');
-            })->where('sales_stage', '!=', 'Closed Lost');
+                $q->whereNull('proposal_file')
+                  ->where(function ($sq) {
+                      $sq->whereNull('handover_data->technical_assignments->presales->document_path')
+                         ->orWhere('handover_data->technical_assignments->presales->document_path', '');
+                  });
+            })->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost']);
+        } elseif ($tab === 'submitted') {
+            $query->where(function ($q) {
+                $q->whereNotNull('proposal_file')
+                  ->orWhere(function ($sq) {
+                      $sq->whereNotNull('handover_data->technical_assignments->presales->document_path')
+                         ->where('handover_data->technical_assignments->presales->document_path', '!=', '');
+                  })
+                  ->orWhere(function ($sq) {
+                      $sq->whereNotNull('handover_data->technical_assignments->architect->document_path')
+                         ->where('handover_data->technical_assignments->architect->document_path', '!=', '');
+                  });
+            })->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost']);
+        } elseif ($tab === 'won') {
+            $query->where(function ($q) {
+                $q->where('sales_stage', 'Closed Won')
+                  ->orWhere('status', 'Closed Won')
+                  ->orWhere('acquire_status', 'Deal / PO Terbit')
+                  ->orWhere('acquire_status', 'Closed');
+            });
         } elseif ($tab === 'lost') {
             $query->where(function ($q) {
                 $q->where('sales_stage', 'Closed Lost')
@@ -131,89 +125,57 @@ class PresalesProposalController extends Controller
 
         $projects = $query->latest()->paginate($perPage)->withQueryString();
 
-        // Counter stats (Role-Aware)
-        $baseQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
-        if (!$isManagerialOrPresales) {
-            $baseQuery->where(function ($q) use ($user) {
-                $q->where('sales_name', $user->name)
-                  ->orWhere('created_by', $user->id);
-            });
-        }
+        // Counter stats
+        $basePending = Project::query();
+        $applyBaseFilters($basePending);
+        $pendingCount = $basePending->where(function ($q) {
+            $q->whereNull('proposal_file')
+              ->where(function ($sq) {
+                  $sq->whereNull('handover_data->technical_assignments->presales->document_path')
+                     ->orWhere('handover_data->technical_assignments->presales->document_path', '');
+              });
+        })->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])->count();
 
-        $pendingCount = 0;
-        $submittedCount = 0;
+        $baseSubmitted = Project::query();
+        $applyBaseFilters($baseSubmitted);
+        $submittedCount = $baseSubmitted->where(function ($q) {
+            $q->whereNotNull('proposal_file')
+              ->orWhere(function ($sq) {
+                  $sq->whereNotNull('handover_data->technical_assignments->presales->document_path')
+                     ->where('handover_data->technical_assignments->presales->document_path', '!=', '');
+              })
+              ->orWhere(function ($sq) {
+                  $sq->whereNotNull('handover_data->technical_assignments->architect->document_path')
+                     ->where('handover_data->technical_assignments->architect->document_path', '!=', '');
+              });
+        })->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])->count();
 
-        if ($isArchitect && !$isPresales && !$isManagerial) {
-            $pendingCount = (clone $baseQuery)->where(function ($q) {
-                $q->whereNull('handover_data->technical_assignments->architect->document_path')
-                  ->orWhere('handover_data->technical_assignments->architect->document_path', '');
-            })->whereIn('status', ['Opportunity', 'Draft', 'Planning', 'Deliver'])
-              ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
-              ->where('name', 'not like', '%On Going Project%')
-              ->where('name', 'not like', '%Closed Project%')
-              ->where('name', 'not like', '%Preventive Maintenance%')
-              ->count();
+        $baseWon = Project::query();
+        $applyBaseFilters($baseWon);
+        $wonCount = $baseWon->where(function ($q) {
+            $q->where('sales_stage', 'Closed Won')
+              ->orWhere('status', 'Closed Won')
+              ->orWhere('acquire_status', 'Deal / PO Terbit')
+              ->orWhere('acquire_status', 'Closed');
+        })->count();
 
-            $submittedCount = (clone $baseQuery)->whereNotNull('handover_data->technical_assignments->architect->document_path')
-                                                ->where('handover_data->technical_assignments->architect->document_path', '!=', '')
-                                                ->where('sales_stage', '!=', 'Closed Lost')
-                                                ->count();
-        } elseif ($isPresales && !$isArchitect && !$isManagerial) {
-            $pendingCount = (clone $baseQuery)->where(function ($q) {
-                $q->whereNull('proposal_file')
-                  ->where(function ($sq) {
-                      $sq->whereNull('handover_data->technical_assignments->presales->document_path')
-                         ->orWhere('handover_data->technical_assignments->presales->document_path', '');
-                  });
-            })->whereIn('status', ['Opportunity', 'Draft', 'Planning'])
-              ->where('stage', '!=', 'Deliver')
-              ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
-              ->where('name', 'not like', '%On Going Project%')
-              ->where('name', 'not like', '%Closed Project%')
-              ->where('name', 'not like', '%Preventive Maintenance%')
-              ->count();
+        $baseLost = Project::query();
+        $applyBaseFilters($baseLost);
+        $lostCount = $baseLost->where(function ($q) {
+            $q->where('sales_stage', 'Closed Lost')
+              ->orWhereIn('status', ['Cancelled', 'Rejected', 'Closed Lost', 'Lost', 'Drop']);
+        })->count();
 
-            $submittedCount = (clone $baseQuery)->where(function ($q) {
-                $q->whereNotNull('proposal_file')
-                  ->orWhere(function ($sq) {
-                      $sq->whereNotNull('handover_data->technical_assignments->presales->document_path')
-                         ->where('handover_data->technical_assignments->presales->document_path', '!=', '');
-                  });
-            })->where('sales_stage', '!=', 'Closed Lost')->count();
-        } else {
-            $pendingCount = (clone $baseQuery)->where(function ($q) {
-                $q->whereNull('proposal_file')
-                  ->orWhereNull('handover_data->technical_assignments->architect->document_path');
-            })->whereIn('status', ['Opportunity', 'Draft', 'Planning', 'Deliver'])
-              ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
-              ->where('name', 'not like', '%On Going Project%')
-              ->where('name', 'not like', '%Closed Project%')
-              ->where('name', 'not like', '%Preventive Maintenance%')
-              ->count();
-
-            $submittedCount = (clone $baseQuery)->where(function ($q) {
-                $q->whereNotNull('proposal_file')
-                  ->orWhereNotNull('handover_data->technical_assignments->architect->document_path')
-                  ->orWhereNotNull('handover_data->technical_assignments->presales->document_path');
-            })->where('sales_stage', '!=', 'Closed Lost')->count();
-        }
+        $baseAll = Project::query();
+        $applyBaseFilters($baseAll);
+        $allCount = $baseAll->count();
 
         $counts = [
-            'all'       => (clone $baseQuery)->count(),
+            'all'       => $allCount,
             'pending'   => $pendingCount,
             'submitted' => $submittedCount,
-            'won'       => (clone $baseQuery)->where(function ($q) {
-                                $q->where('stage', 'Deliver')
-                                  ->orWhereIn('status', ['On Progress', 'Completed', 'Closed Won'])
-                                  ->orWhere('sales_stage', 'Closed Won')
-                                  ->orWhere('name', 'like', '%On Going Project%')
-                                  ->orWhere('name', 'like', '%Closed Project%')
-                                  ->orWhere('name', 'like', '%Preventive Maintenance%');
-                            })->where('sales_stage', '!=', 'Closed Lost')->count(),
-            'lost'      => (clone $baseQuery)->where(function ($q) {
-                $q->where('sales_stage', 'Closed Lost')
-                  ->orWhereIn('status', ['Cancelled', 'Rejected', 'Closed Lost', 'Lost', 'Drop']);
-            })->count(),
+            'won'       => $wonCount,
+            'lost'      => $lostCount,
         ];
 
         $divisions = Division::all();

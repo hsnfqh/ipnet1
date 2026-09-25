@@ -678,19 +678,32 @@ class DashboardController extends Controller
         $user = auth()->user();
         $selectedYear = (int) $request->input('year', date('Y'));
 
-        // 1. Ambil seluruh data proyek/tender pre-sales (Kompresi Komersial & Solusi Teknis, tanpa task lapangan engineer)
+        $salesTeam = \App\Http\Controllers\BdmController::$salesTeam;
+
+        // 1. Ambil seluruh data proyek/tender pre-sales resmi (Sales Raiza & Nabylla Berlianita / BD / Presales)
         $allTendersQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
             ->where('client', '!=', 'Internal / Umum')
             ->where('name', 'not like', '%Preventive Maintenance%')
             ->where('name', 'not like', '%Corrective Maintenance%')
-            ->where(function($q) {
-                $q->where('stage', 'Acquire')
+            ->where('name', 'not like', '%SLA %')
+            ->where('name', 'not like', '%Layanan SLA%')
+            ->where('name', 'not like', '%Cisco Training%')
+            ->where('name', 'not like', '%Training%')
+            ->where('name', 'not like', '%On Going Project%')
+            ->where('name', 'not like', '%Closed Project%')
+            ->where(function($q) use ($salesTeam) {
+                $q->whereIn('sales_name', $salesTeam)
+                  ->orWhere('stage', 'Acquire')
                   ->orWhere('opportunity_source', 'Direct Sales Prospecting')
                   ->orWhereNotNull('opportunity_source')
                   ->orWhereNotNull('bdm_id')
                   ->orWhere('bdm_handover_status', 'Self-Sourced Sales')
-                  ->orWhereNotNull('sales_stage')
-                  ->orWhereNotNull('proposal_file');
+                  ->orWhereNotNull('proposal_file')
+                  ->orWhereHas('creator', function($c) {
+                      $c->whereHas('roles', function($r) {
+                          $r->whereIn('name', ['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'Presales', 'Pre-Sales']);
+                      });
+                  });
             })
             ->whereDoesntHave('creator', function($c) {
                 $c->whereHas('roles', function($r) {
@@ -698,29 +711,27 @@ class DashboardController extends Controller
                 });
             })
             ->with(['division', 'creator']);
+
         $tendersYear = (clone $allTendersQuery)->whereYear('created_at', $selectedYear)->get();
         if ($tendersYear->isEmpty()) {
             $tendersYear = (clone $allTendersQuery)->get();
         }
 
         // 2. Kategori Status Pre-Sales & Tender
-        $pendingProposalTenders = $tendersYear->whereIn('status', ['Opportunity', 'Draft', 'Planning'])
-            ->where('stage', '!=', 'Deliver')
-            ->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
-            ->filter(fn($p) => !str_contains($p->name, 'On Going Project') && !str_contains($p->name, 'Closed Project') && !str_contains($p->name, 'Preventive Maintenance'))
+        $pendingProposalTenders = $tendersYear->whereNotIn('sales_stage', ['Closed Won', 'Closed Lost'])
+            ->whereNull('proposal_file')
             ->values();
-        $inReviewTenders        = $tendersYear->whereIn('status', ['Pending', 'Waiting Approval'])->values();
+
+        $inReviewTenders        = $tendersYear->whereIn('status', ['Pending', 'Waiting Approval', 'In Review'])->values();
+
         $wonTenders             = $tendersYear->filter(function($p) {
-            return $p->stage === 'Deliver' 
-                || in_array($p->status, ['On Progress', 'Completed', 'Closed Won']) 
-                || $p->sales_stage === 'Closed Won'
-                || str_contains($p->name, 'On Going Project')
-                || str_contains($p->name, 'Closed Project')
-                || str_contains($p->name, 'Preventive Maintenance');
+            return $p->sales_stage === 'Closed Won' 
+                || $p->status === 'Closed Won'
+                || in_array($p->acquire_status, ['Deal / PO Terbit', 'Closed']);
         })->values();
 
         $totalTenderCount        = $tendersYear->count();
-        $totalProposalNeeded     = $pendingProposalTenders->whereNull('proposal_file')->count();
+        $totalProposalNeeded     = $pendingProposalTenders->count();
         $proposalsReadyCount     = $tendersYear->whereNotNull('proposal_file')->count();
         $totalPipelineValue      = $pendingProposalTenders->sum('contract_value');
         $totalReviewValue        = $inReviewTenders->sum('contract_value');
@@ -729,8 +740,8 @@ class DashboardController extends Controller
 
         // Lifecycle Stages Breakdown
         $lifecycleStats = [
-            'requirement' => $tendersYear->whereIn('status', ['Opportunity', 'Draft'])->count(),
-            'sizing'      => $tendersYear->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->count(),
+            'requirement' => $tendersYear->whereIn('sales_stage', ['Prospecting', 'Qualification', 'Requirement Analysis'])->count(),
+            'sizing'      => $tendersYear->whereNull('proposal_file')->count(),
             'proposal'    => $proposalsReadyCount,
             'handover'    => $wonTenders->count(),
         ];

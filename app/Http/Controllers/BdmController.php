@@ -17,18 +17,11 @@ use Carbon\Carbon;
 class BdmController extends Controller
 {
     /**
-     * 9 Personil Sales Resmi IP Network
+     * Personil Sales Resmi IP Network (Raiza & Nabylla Berlianita)
      */
     public static $salesTeam = [
-        'Donny Burnan',
-        'Erie',
-        'Hendry Wibowo',
-        'Nabylla Berlianita',
-        'Nelvia Nataliandi',
         'Raiza',
-        'Ribka Junita',
-        'Sabar Sianturi',
-        'Widodo',
+        'Nabylla Berlianita',
     ];
 
     /**
