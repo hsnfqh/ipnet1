@@ -238,13 +238,13 @@
                         @endforeach
                     </select>
 
-                    {{-- Select Status Approval Dropdown --}}
+                    {{-- Select Status Kanban Dropdown --}}
                     <select name="approval_status" onchange="this.form.submit()" 
-                            class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="">Select status approval</option>
+                            class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="">Semua Status Kanban</option>
                         <option value="Draft" {{ $filterApproval == 'Draft' ? 'selected' : '' }}>Draft</option>
-                        <option value="Submitted" {{ $filterApproval == 'Submitted' ? 'selected' : '' }}>Submitted</option>
-                        <option value="Approved" {{ $filterApproval == 'Approved' ? 'selected' : '' }}>Approved</option>
+                        <option value="Opportunity" {{ $filterApproval == 'Opportunity' ? 'selected' : '' }}>Opportunity</option>
+                        <option value="In Progress" {{ $filterApproval == 'In Progress' ? 'selected' : '' }}>In Progress</option>
                         <option value="Pending" {{ $filterApproval == 'Pending' ? 'selected' : '' }}>Pending</option>
                         <option value="Completed" {{ $filterApproval == 'Completed' ? 'selected' : '' }}>Completed</option>
                     </select>

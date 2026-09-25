@@ -123,11 +123,33 @@ class SalesCrmController extends Controller
         }
 
         if ($filterApproval) {
-            $allProjectsQuery->where(function($q) use ($filterApproval) {
-                $q->where('handover_status', $filterApproval)
-                  ->orWhere('status', $filterApproval)
-                  ->orWhere('sales_stage', $filterApproval);
-            });
+            $f = strtolower($filterApproval);
+            if ($f === 'draft') {
+                $allProjectsQuery->whereIn('status', ['Draft', 'Planning', 'Qualification', 'draft', 'planning']);
+            } elseif ($f === 'opportunity') {
+                $allProjectsQuery->where(function($q) {
+                    $q->whereIn('status', ['Opportunity', 'Prospect', 'opportunity', 'prospect'])
+                      ->orWhere(function($sq) {
+                          $sq->where('stage', 'Acquire')
+                             ->whereNotIn('status', ['Draft', 'Planning', 'In Progress', 'Completed', 'Finished']);
+                      });
+                })->where('sales_stage', '!=', 'Closed Won');
+            } elseif ($f === 'in progress' || $f === 'in_progress') {
+                $allProjectsQuery->where(function($q) {
+                    $q->whereIn('status', ['In Progress', 'On Progress', 'Active', 'Development', 'Testing', 'in progress'])
+                      ->orWhere('sales_stage', 'Closed Won');
+                })->whereNotIn('status', ['Completed', 'Finished', 'Delivered']);
+            } elseif ($f === 'pending') {
+                $allProjectsQuery->whereIn('status', ['Pending', 'On Hold', 'Review', 'pending']);
+            } elseif ($f === 'completed') {
+                $allProjectsQuery->whereIn('status', ['Completed', 'Finished', 'Delivered', 'Done', 'completed']);
+            } else {
+                $allProjectsQuery->where(function($q) use ($filterApproval) {
+                    $q->where('handover_status', $filterApproval)
+                      ->orWhere('status', $filterApproval)
+                      ->orWhere('sales_stage', $filterApproval);
+                });
+            }
         }
 
         if ($filterSales && $isManagerial) {
