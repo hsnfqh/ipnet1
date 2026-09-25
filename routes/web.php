@@ -56,25 +56,37 @@ Route::get('/setup-hosting-database-2026', function () {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         Artisan::call('db:seed', ['--class' => 'RoleSeeder', '--force' => true]);
         Artisan::call('db:seed', ['--class' => 'DummyUserSeeder', '--force' => true]);
+        Artisan::call('db:seed', ['--class' => 'SalesInitialSeeder', '--force' => true]);
+        Artisan::call('db:seed', ['--class' => 'BdmInitialSeeder', '--force' => true]);
+        Artisan::call('db:seed', ['--class' => 'SalesCrmActivitySeeder', '--force' => true]);
 
-        // Auto-sinkronisasi proyek yang sudah di fase Deliver/Selesai agar sales_stage menjadi Closed Won (bukan Qualification 10%)
+        // Auto-sinkronisasi proyek yang sudah di fase Deliver/Selesai agar sales_stage menjadi Closed Won
         \App\Models\Project::where(function($q) {
             $q->where('stage', 'Deliver')
               ->orWhereIn('status', ['On Progress', 'Completed', 'Maintenance', 'Active'])
               ->orWhere('name', 'like', '%On Going Project%')
               ->orWhere('name', 'like', '%Closed Project%')
               ->orWhere('name', 'like', '%Preventive Maintenance%');
-        })->update([
-            'stage' => 'Deliver',
+        })->whereNull('sales_stage')->update([
             'sales_stage' => 'Closed Won',
             'win_probability' => 100,
+        ]);
+
+        // Pastikan semua proyek memiliki contract_value jika masih NULL atau 0
+        \App\Models\Project::whereNull('contract_value')->orWhere('contract_value', 0)->update([
+            'contract_value' => 450000000
+        ]);
+
+        // Pastikan proyek tanpa sales_name terisi sales resmi (default Raiza)
+        \App\Models\Project::whereNull('sales_name')->orWhere('sales_name', '')->orWhereIn('sales_name', ['Riko Wijaya', 'Anita Lestari', 'Hendra Gunawan', 'Maya Safitri'])->update([
+            'sales_name' => 'Raiza'
         ]);
 
         Artisan::call('optimize:clear');
         
         return response()->json([
             'status' => 'success',
-            'message' => 'Luar biasa! Seluruh migrasi database (kolom contract_value, sales_stage, dsb.) dan seluruh akun resmi (Akbar Presales, Aris SA, 9 Sales, 5 BDM, Rangga Lead Engineer, PMO, Direktur) BERHASIL dibuat & siap digunakan!',
+            'message' => 'Luar biasa! Seluruh migrasi database (kolom contract_value, sales_stage, dsb.) dan seluruh akun resmi (Akbar Presales, Aris SA, 9 Sales termasuk Raiza, 5 BDM, PMO, Direktur) BERHASIL dibuat & disinkronisasi!',
             'migration_output' => $migrationOutput
         ]);
     } catch (\Throwable $e) {
