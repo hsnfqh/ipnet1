@@ -273,8 +273,7 @@
                                             <textarea :name="'activities[' + index + '][subject]'" 
                                                       x-model="row.subject" 
                                                       rows="2" 
-                                                      placeholder="Contoh: Koordinasi dengan Tim terkait penambahan VLAN..." 
-                                                      class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"></textarea>
+                                                      class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition resize-none"></textarea>
                                         </td>
 
                                         {{-- Tanggal --}}
@@ -282,7 +281,7 @@
                                             <input type="date" 
                                                    :name="'activities[' + index + '][activity_date]'" 
                                                    x-model="row.activity_date" 
-                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
+                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition cursor-pointer">
                                         </td>
 
                                         {{-- Waktu (Time Picker with AM/PM & 24h native support) --}}
@@ -290,7 +289,7 @@
                                             <input type="time" 
                                                    :name="'activities[' + index + '][time_str]'" 
                                                    x-model="row.time_str" 
-                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
+                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition cursor-pointer">
                                         </td>
 
                                         {{-- PIC Klien --}}
@@ -298,8 +297,7 @@
                                             <input type="text" 
                                                    :name="'activities[' + index + '][client_pic]'" 
                                                    x-model="row.client_pic" 
-                                                   placeholder="Galang, Maulana..." 
-                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition">
                                         </td>
 
                                         {{-- PIC IPNET --}}
@@ -307,8 +305,7 @@
                                             <input type="text" 
                                                    :name="'activities[' + index + '][ipnet_pic]'" 
                                                    x-model="row.ipnet_pic" 
-                                                   placeholder="Syaiful, Raiza..." 
-                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition">
                                         </td>
 
                                         {{-- Catatan Aksi --}}
@@ -316,8 +313,7 @@
                                             <textarea :name="'activities[' + index + '][notes]'" 
                                                       x-model="row.notes" 
                                                       rows="2" 
-                                                      placeholder="Eksekusi dilakukan selama ±1 jam, on schedule..." 
-                                                      class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"></textarea>
+                                                      class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition resize-none"></textarea>
                                         </td>
 
                                         {{-- Hapus Baris --}}
@@ -525,7 +521,7 @@
             bulkProjectId: '{{ $filterProject ?: ($activeProjects->first()->id ?? '') }}',
             bulkDefaultType: 'Troubleshooting',
             bulkRows: [
-                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: 'On Schedule' },
+                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
                 { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
                 { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
                 { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
