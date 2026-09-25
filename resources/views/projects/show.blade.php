@@ -296,6 +296,7 @@
             isEditMetaModalOpen: false,
             isAddMilestoneModalOpen: false,
             isUploadDocModalOpen: false,
+            isUploadSalesDocModalOpen: false,
             isDeleteModalOpen: false,
 
             openHandoverModal(target = null) {
@@ -697,9 +698,102 @@
                         @endif
                     </div>
 
-                    {{-- ATTACHMENTS CARD --}}
+                    {{-- ═══ 1. BERKAS SALES CARD (CONFIDENTIAL) ═══ --}}
+                    @php
+                        $canAccessSalesDocs = \App\Http\Controllers\ProjectDocumentController::canAccessSalesDocs($project);
+                        $salesDocs = \App\Models\ProjectDocument::where('project_id', $project->id)
+                            ->where(function($q) {
+                                $q->where('stage_name', 'Sales')
+                                  ->orWhere('document_key', 'like', 'sales_berkas%');
+                            })
+                            ->whereNotNull('file_path')
+                            ->where('file_path', '!=', '')
+                            ->latest()
+                            ->get();
+                    @endphp
+
+                    @if($canAccessSalesDocs)
+                        <div class="ipnet-card p-6 space-y-4 border-l-4 border-l-[#8F0A0D]">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <div class="flex items-center gap-2.5">
+                                    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                        <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
+                                        Berkas Sales
+                                    </h3>
+                                    <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200">
+                                        {{ $salesDocs->count() }} Berkas
+                                    </span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="Hanya dapat diakses oleh Sales terkait dan Pimpinan">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                        Confidential
+                                    </span>
+                                </div>
+                                
+                                <button type="button" 
+                                        @click="isUploadSalesDocModalOpen = true" 
+                                        onclick="window.openModal('modal-upload-sales-doc')"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200 shadow-2xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Upload Berkas Sales</span>
+                                </button>
+                            </div>
+
+                            @if($salesDocs->count() > 0)
+                                <div class="space-y-2">
+                                    @foreach($salesDocs as $doc)
+                                        <div class="p-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
+                                            <div class="flex items-center gap-3 min-w-0">
+                                                <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 border border-red-100">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <span class="font-bold text-slate-900 truncate block">{{ $doc->document_title ?? ($doc->document_name ?? 'Berkas Sales') }}</span>
+                                                    <div class="flex items-center gap-2 mt-0.5 text-[11px] text-slate-500 truncate">
+                                                        @if($doc->file_name)
+                                                            <span class="truncate font-mono">{{ $doc->file_name }}</span>
+                                                        @endif
+                                                        @if($doc->file_size)
+                                                            <span>&bull; {{ round($doc->file_size / 1024, 1) }} KB</span>
+                                                        @endif
+                                                        @if($doc->notes)
+                                                            <span class="text-slate-400 italic">({{ $doc->notes }})</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @if($doc->file_path)
+                                                <div class="flex items-center gap-2 shrink-0">
+                                                    <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition" title="Unduh Berkas Sales">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                        <span>Unduh</span>
+                                                    </a>
+                                                    <form action="{{ route('projects.documents.delete', [$project->id, $doc->id]) }}" method="POST" onsubmit="return confirm('Hapus berkas sales ini?')" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Hapus Berkas Sales">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="p-5 rounded-xl border border-dashed border-red-200 bg-red-50/30 text-center text-xs text-slate-500">
+                                    Belum ada berkas sales. Klik <strong class="text-[#8F0A0D] font-semibold">Upload Berkas Sales</strong> untuk mengunggah penawaran, BoQ, atau dokumen internal sales.
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- ═══ 2. ATTACHMENTS CARD (UMUM / TEKNIS) ═══ --}}
                     @php
                         $uploadedDocs = \App\Models\ProjectDocument::where('project_id', $project->id)
+                            ->where(function($q) {
+                                $q->where('stage_name', '!=', 'Sales')
+                                  ->where('document_key', 'not like', 'sales_berkas%');
+                            })
                             ->whereNotNull('file_path')
                             ->where('file_path', '!=', '')
                             ->latest()
@@ -737,7 +831,7 @@
                                             <div class="min-w-0">
                                                 <span class="font-bold text-slate-900 truncate block">{{ $doc->document_title ?? ($doc->document_name ?? 'Lampiran Proyek') }}</span>
                                                 @if($doc->file_name)
-                                                    <span class="text-[11px] text-slate-500 block truncate">{{ $doc->file_name }}</span>
+                                                    <span class="text-[11px] text-slate-500 block truncate font-mono">{{ $doc->file_name }}</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -1458,6 +1552,58 @@
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
                         Upload Berkas
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 5B. UPLOAD SALES DOCUMENT MODAL (CONFIDENTIAL) --}}
+    <div id="modal-upload-sales-doc" x-show="isUploadSalesDocModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isUploadSalesDocModalOpen = false; window.closeModal('modal-upload-sales-doc')" 
+             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
+                        Upload Berkas Sales
+                    </h3>
+                    <p class="text-[11px] text-amber-700 mt-0.5 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        Akses terbatas: Sales PIC, Pak Susanto &amp; Pak Hariyadi
+                    </p>
+                </div>
+                <button type="button" @click="isUploadSalesDocModalOpen = false; window.closeModal('modal-upload-sales-doc')" onclick="window.closeModal('modal-upload-sales-doc')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.documents.upload', $project->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs font-semibold">
+                @csrf
+                <input type="hidden" name="stage_number" value="1">
+                <input type="hidden" name="stage_name" value="Sales">
+                <input type="hidden" name="document_category" value="sales">
+                <input type="hidden" name="document_key" value="sales_berkas">
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PILIH BERKAS SALES</label>
+                    <input type="file" name="document_files[]" multiple required 
+                           class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-slate-50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-[#8F0A0D] hover:file:bg-red-100">
+                    <p class="text-[10.5px] text-slate-400 mt-1">Format: PDF, XLSX, DOCX, ZIP, PNG, JPG (Maks 50MB)</p>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">CATATAN / KETERANGAN DOKUMEN</label>
+                    <input type="text" name="notes" placeholder="Contoh: BoQ Kesepakatan, Penawaran Final, PO Klien" 
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" @click="isUploadSalesDocModalOpen = false; window.closeModal('modal-upload-sales-doc')" onclick="window.closeModal('modal-upload-sales-doc')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                        Upload Berkas Sales
                     </button>
                 </div>
             </form>

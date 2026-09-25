@@ -32,18 +32,51 @@ class ProjectDocumentController extends Controller
     }
 
     /**
+     * Cek otorisasi akses khusus Berkas Sales (Confidential)
+     * Hanya dapat diakses oleh:
+     * 1. Sales PIC / Pembuat Proyek
+     * 2. Pak Santoso (Susanto Djaya) & Pak Hari (Hariyadi)
+     * 3. Direktur / Management / Head Divisi / BDM / Super Admin
+     */
+    public static function canAccessSalesDocs(Project $project, $user = null): bool
+    {
+        $user = $user ?: auth()->user();
+        if (!$user) return false;
+
+        // Sales creator / PIC
+        if ($project->created_by === $user->id || $project->sales_name === $user->name || ($project->sales_id && $project->sales_id === $user->id)) {
+            return true;
+        }
+
+        // Role Pimpinan / Management
+        if ($user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin', 'BDM', 'BusDev', 'Business Development'])) {
+            return true;
+        }
+
+        // Otorisasi Pimpinan Eksekutif
+        $lowerName = strtolower($user->name);
+        if (str_contains($lowerName, 'santoso') || str_contains($lowerName, 'susanto') || str_contains($lowerName, 'hari') || str_contains($lowerName, 'hary')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Upload / Perbarui Dokumen untuk slot tertentu atau upload multiple attachment
      */
     public function upload(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'document_id'      => 'nullable',
-            'stage_number'     => 'nullable|integer|min:1|max:6',
-            'document_key'     => 'nullable|string|max:100',
-            'document_file'    => 'nullable|file|max:51200', // max 50MB
-            'document_files'   => 'nullable|array',
-            'document_files.*' => 'file|max:51200',
-            'notes'            => 'nullable|string|max:1000',
+            'document_id'       => 'nullable',
+            'stage_number'      => 'nullable|integer|min:1|max:6',
+            'stage_name'        => 'nullable|string|max:100',
+            'document_category' => 'nullable|string|max:50',
+            'document_key'      => 'nullable|string|max:100',
+            'document_file'     => 'nullable|file|max:51200', // max 50MB
+            'document_files'    => 'nullable|array',
+            'document_files.*'  => 'file|max:51200',
+            'notes'             => 'nullable|string|max:1000',
         ]);
 
         $files = [];
@@ -60,10 +93,22 @@ class ProjectDocumentController extends Controller
             return redirect()->back()->with('error', 'Silakan pilih berkas untuk diunggah.');
         }
 
+        $isSalesUpload = $request->input('document_category') === 'sales'
+            || $request->input('stage_name') === 'Sales'
+            || ($validated['document_key'] ?? '') === 'sales_berkas'
+            || str_starts_with($validated['document_key'] ?? '', 'sales_berkas');
+
+        if ($isSalesUpload && !self::canAccessSalesDocs($project)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses untuk mengunggah Berkas Sales.'], 403);
+            }
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk mengunggah Berkas Sales.');
+        }
+
         $stageNumber = !empty($validated['stage_number']) ? (int)$validated['stage_number'] : 1;
-        $documentKey = !empty($validated['document_key']) ? $validated['document_key'] : 'lampiran_pendukung';
+        $documentKey = !empty($validated['document_key']) ? $validated['document_key'] : ($isSalesUpload ? 'sales_berkas' : 'lampiran_pendukung');
         $stages = ProjectDocumentFlowService::getStagesDefinition();
-        $stageInfo = $stages[$stageNumber] ?? ['stage_name' => 'Commercial'];
+        $stageInfo = $isSalesUpload ? ['stage_name' => 'Sales'] : ($stages[$stageNumber] ?? ['stage_name' => 'Commercial']);
 
         $hasNameCol        = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'name');
         $hasDocTitleCol    = \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'document_title');
@@ -92,7 +137,7 @@ class ProjectDocumentController extends Controller
             $doc = null;
             if (count($files) === 1 && !empty($validated['document_id'])) {
                 $doc = ProjectDocument::find($validated['document_id']);
-            } elseif (count($files) === 1 && $documentKey !== 'lampiran_pendukung' && $hasDocKeyCol && $hasStageNumCol) {
+            } elseif (count($files) === 1 && !in_array($documentKey, ['lampiran_pendukung', 'sales_berkas']) && $hasDocKeyCol && $hasStageNumCol) {
                 $doc = ProjectDocument::where('project_id', $project->id)
                     ->where('stage_number', $stageNumber)
                     ->where('document_key', $documentKey)
@@ -103,13 +148,15 @@ class ProjectDocumentController extends Controller
                 $doc = new ProjectDocument();
                 $doc->project_id = $project->id;
                 if ($hasDocKeyCol) {
-                    $doc->document_key = 'attachment_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid();
+                    $doc->document_key = $isSalesUpload
+                        ? ('sales_berkas_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid())
+                        : ('attachment_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid());
                 }
                 if ($hasStageNumCol) {
                     $doc->stage_number = $stageNumber;
                 }
                 if ($hasStageNameCol) {
-                    $doc->stage_name = $stageInfo['stage_name'] ?? 'Commercial';
+                    $doc->stage_name = $isSalesUpload ? 'Sales' : ($stageInfo['stage_name'] ?? 'Commercial');
                 }
                 if ($hasIsMandatoryCol) {
                     $doc->is_mandatory = false;
@@ -121,7 +168,8 @@ class ProjectDocumentController extends Controller
                 }
             }
 
-            $path = $file->store("project_documents/{$project->id}/stage_{$stageNumber}", 'public');
+            $storageFolder = $isSalesUpload ? "project_documents/{$project->id}/sales" : "project_documents/{$project->id}/stage_{$stageNumber}";
+            $path = $file->store($storageFolder, 'public');
 
             $doc->file_path = $path;
             if ($hasNameCol) {
@@ -131,7 +179,7 @@ class ProjectDocumentController extends Controller
                 $doc->document_title = $cleanTitle ?: ('Attachment ' . ($index + 1));
             }
             if ($hasDocTypeCol) {
-                $doc->document_type = 'Attachment';
+                $doc->document_type = $isSalesUpload ? 'Sales Attachment' : 'Attachment';
             }
             if ($hasFileNameCol) {
                 $doc->file_name = $originalName;
@@ -161,8 +209,8 @@ class ProjectDocumentController extends Controller
         $count = count($uploadedDocs);
         $displayTitle = $uploadedDocs[0]->document_title ?? ($uploadedDocs[0]->name ?? 'Berkas');
         $msg = $count > 1 
-            ? "{$count} berkas lampiran berhasil diunggah!" 
-            : "Dokumen '{$displayTitle}' berhasil diunggah!";
+            ? "{$count} berkas berhasil diunggah!" 
+            : "Berkas '{$displayTitle}' berhasil diunggah!";
 
         if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
             return response()->json([
@@ -224,6 +272,11 @@ class ProjectDocumentController extends Controller
             abort(404, 'Berkas dokumen tidak ditemukan.');
         }
 
+        $isSalesDoc = ($document->stage_name === 'Sales') || str_starts_with($document->document_key ?? '', 'sales_berkas');
+        if ($isSalesDoc && !self::canAccessSalesDocs($project)) {
+            abort(403, 'Akses ditolak. Berkas Sales ini bersifat rahasia dan hanya dapat diakses oleh Sales terkait dan Pimpinan.');
+        }
+
         if (!Storage::disk('public')->exists($document->file_path)) {
             abort(404, 'Berkas fisik tidak ditemukan di server.');
         }
@@ -241,6 +294,14 @@ class ProjectDocumentController extends Controller
                 return response()->json(['success' => false, 'message' => 'Dokumen tidak valid.'], 403);
             }
             return redirect()->back()->with('error', 'Dokumen tidak valid.');
+        }
+
+        $isSalesDoc = ($document->stage_name === 'Sales') || str_starts_with($document->document_key ?? '', 'sales_berkas');
+        if ($isSalesDoc && !self::canAccessSalesDocs($project)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses untuk menghapus Berkas Sales ini.'], 403);
+            }
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk menghapus Berkas Sales ini.');
         }
 
         if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
