@@ -622,7 +622,9 @@
                             @include('projects.partials.workflow-leadership')
                         @endif
                         @include('projects.partials.workflow-technical-solution')
-                        @include('projects.partials.workflow-delivery')
+                        @if($isAnyTechnicalAssigned || !empty($project->pm) || in_array($currentStatus, ['In Progress', 'Completed']))
+                            @include('projects.partials.workflow-delivery')
+                        @endif
 
                     @elseif($currentStatus === 'Draft')
                         {{-- DRAFT: Pipeline + Otorisasi Pimpinan + Tim Solusi Teknis + Alokasi Kategori Proyek --}}
@@ -631,7 +633,9 @@
                             @include('projects.partials.workflow-leadership')
                         @endif
                         @include('projects.partials.workflow-technical-solution')
-                        @include('projects.partials.workflow-delivery')
+                        @if($isAnyTechnicalAssigned || !empty($project->pm) || in_array($currentStatus, ['In Progress', 'Completed']))
+                            @include('projects.partials.workflow-delivery')
+                        @endif
 
                     @elseif($currentStatus === 'In Progress')
                         {{-- IN PROGRESS: Pipeline + Otorisasi Pimpinan + Tim Solusi Teknis + Alokasi Kategori Proyek --}}
@@ -640,7 +644,9 @@
                             @include('projects.partials.workflow-leadership')
                         @endif
                         @include('projects.partials.workflow-technical-solution')
-                        @include('projects.partials.workflow-delivery')
+                        @if($isAnyTechnicalAssigned || !empty($project->pm) || in_array($currentStatus, ['In Progress', 'Completed']))
+                            @include('projects.partials.workflow-delivery')
+                        @endif
 
                     @elseif($currentStatus === 'Pending')
                         {{-- PENDING --}}
@@ -658,7 +664,9 @@
                             @include('projects.partials.workflow-leadership')
                         @endif
                         @include('projects.partials.workflow-technical-solution')
-                        @include('projects.partials.workflow-delivery')
+                        @if($isAnyTechnicalAssigned || !empty($project->pm) || in_array($currentStatus, ['In Progress', 'Completed']))
+                            @include('projects.partials.workflow-delivery')
+                        @endif
 
                     @elseif($currentStatus === 'Completed')
                         {{-- COMPLETED --}}
@@ -676,7 +684,9 @@
                             @include('projects.partials.workflow-leadership')
                         @endif
                         @include('projects.partials.workflow-technical-solution')
-                        @include('projects.partials.workflow-delivery')
+                        @if($isAnyTechnicalAssigned || !empty($project->pm) || in_array($currentStatus, ['In Progress', 'Completed']))
+                            @include('projects.partials.workflow-delivery')
+                        @endif
                     @endif
 
                     {{-- MILESTONES CARD --}}
