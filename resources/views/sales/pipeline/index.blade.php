@@ -197,16 +197,6 @@
                             </svg>
                             <span>Add New Project</span>
                         </a>
-
-                        {{-- Add Complete Project (Emerald) --}}
-                        <button type="button" 
-                                @click="openAddProjectModal('Completed')"
-                                class="px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md hover:shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] transition-all">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span>Add Complete Project</span>
-                        </button>
                     </div>
                 </div>
 
