@@ -959,48 +959,83 @@ class DashboardController extends Controller
         $user = auth()->user();
         $selectedYear = (int) $request->input('year', date('Y'));
 
-        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+        $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
+
+        // 1. Ambil seluruh data proyek/tender arsitektur resmi (sinkron dengan Sales CRM & Presales)
+        $allTendersQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+            ->where('client', '!=', 'Internal / Umum')
+            ->where('name', 'not like', '%Preventive Maintenance%')
+            ->where('name', 'not like', '%Corrective Maintenance%')
+            ->where('name', 'not like', '%SLA%')
+            ->where('name', 'not like', '%Training%')
+            ->where('name', 'not like', '%Meeting%')
+            ->where('name', 'not like', '%On Going Project%')
+            ->where('name', 'not like', '%Closed Project%')
+            ->where(function($q) use ($validSalesNames) {
+                $q->whereIn('sales_name', $validSalesNames)
+                  ->orWhere('sales_name', 'like', '%Raiza%')
+                  ->orWhere('sales_name', 'like', '%Nabylla%')
+                  ->orWhere('sales_name', 'like', '%raiza%')
+                  ->orWhere('sales_name', 'like', '%nabylla%');
+            })
+            ->where(function ($ex) {
+                $ex->where('sales_name', 'not like', '%Widodo%')
+                   ->where('sales_name', 'not like', '%widodo%')
+                   ->where('sales_name', 'not like', '%Via%')
+                   ->where('sales_name', 'not like', '%Sales Team%')
+                   ->where('sales_name', 'not like', '%Donny%')
+                   ->where('sales_name', 'not like', '%Erie%')
+                   ->where('sales_name', 'not like', '%Hendry%')
+                   ->where('sales_name', 'not like', '%Nelvia%')
+                   ->where('sales_name', 'not like', '%Ribka%')
+                   ->where('sales_name', 'not like', '%Sabar%');
+            })
+            ->whereDoesntHave('creator', function($c) {
+                $c->whereHas('roles', function($r) {
+                    $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service']);
+                });
+            })
             ->with(['division', 'creator']);
-        
-        $projects = (clone $allProjectsQuery)->whereYear('created_at', $selectedYear)->get();
-        if ($projects->isEmpty()) {
-            $projects = (clone $allProjectsQuery)->get();
+
+        $tendersYear = (clone $allTendersQuery)->whereYear('created_at', $selectedYear)->get();
+        if ($tendersYear->isEmpty()) {
+            $tendersYear = (clone $allTendersQuery)->get();
         }
 
-        // Summary Solution Architect
-        $totalProjectsCount = $projects->count();
-        $totalPipelineValue = $projects->sum('contract_value');
+        // Helper cek kelengkapan dokumen desain/topologi SA
+        $hasSaDoc = function($p) {
+            $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+            return !empty($hd['technical_assignments']['architect']['document_path']);
+        };
 
-        // 1. Dokumen Desain & Proposal Siap (HLD / LLD / SOW)
-        $proposalsReady = (clone $allProjectsQuery)->whereNotNull('proposal_file')->get();
-        $proposalsReadyCount = $proposalsReady->count();
-        $totalMandays = (clone $allProjectsQuery)->sum('mandays') ?: 185;
+        // 2. Kategori Status Solution Architect & Tender
+        $pendingDesignTenders = $tendersYear->filter(function($p) use ($hasSaDoc) {
+            return !$hasSaDoc($p) && !in_array($p->sales_stage, ['Closed Won', 'Closed Lost']);
+        })->values();
 
-        // 2. Desain & BoQ Dalam Proses (In Progress / Review)
-        $designPending = (clone $allProjectsQuery)->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->get();
-        $designPendingCount = $designPending->count();
+        $readyDesignTenders = $tendersYear->filter(function($p) use ($hasSaDoc) {
+            return $hasSaDoc($p);
+        })->values();
 
-        // 3. Proyek Implementasi Aktif (Design Handed Over)
-        $activeProjects = $projects->whereIn('status', ['On Progress', 'In Progress']);
-        $activeProjectsCount = $activeProjects->count();
+        $inReviewTenders = $tendersYear->whereIn('status', ['Pending', 'Waiting Approval', 'In Review'])->values();
 
-        // 4. Proyek Selesai / Deal Won
-        $wonProjects = $projects->whereIn('status', ['Completed', 'Closed Won']);
-        $wonProjectsCount = $wonProjects->count();
+        $wonTenders = $tendersYear->filter(function($p) {
+            return $p->sales_stage === 'Closed Won' 
+                || $p->status === 'Closed Won'
+                || in_array($p->acquire_status, ['Deal / PO Terbit', 'Closed']);
+        })->values();
 
-        // 5. Technical Handover 6 Pillars Validation
-        $handoverPillars = [
-            'approved_solution' => $proposalsReadyCount,
-            'hld_lld_design'    => $proposalsReadyCount,
-            'boq_bom_specs'     => $projects->where('contract_value', '>', 0)->count(),
-            'feasibility_risk'  => $totalProjectsCount,
-            'assumptions'       => $proposalsReadyCount,
-            'exclusions'        => $proposalsReadyCount,
-        ];
+        $totalTenderCount        = $tendersYear->count();
+        $totalDesignNeeded       = $pendingDesignTenders->count();
+        $designsReadyCount       = $readyDesignTenders->count();
+        $totalPipelineValue      = $pendingDesignTenders->sum('contract_value');
+        $totalReviewValue        = $inReviewTenders->sum('contract_value');
+        $totalWonValue           = $wonTenders->sum('contract_value');
+        $technicalWinRate        = $totalTenderCount > 0 ? round(($wonTenders->count() / $totalTenderCount) * 100, 1) : 0;
 
-        // Monthly Trend Desain Arsitektur
+        // Monthly data for chart (Jan - Dec)
         $monthlyValues = array_fill(1, 12, 0);
-        foreach ($projects as $p) {
+        foreach ($tendersYear as $p) {
             $date = $p->created_at ?? $p->start_date;
             if ($date) {
                 $m = (int) \Carbon\Carbon::parse($date)->format('n');
@@ -1011,77 +1046,59 @@ class DashboardController extends Controller
             return round($val / 1000000, 2);
         }, array_values($monthlyValues));
 
-        // Domain Arsitektur Breakdown
-        $domainCounts = [
-            'Enterprise Campus Network'    => 0,
-            'Next-Gen Security & SOC'      => 0,
-            'Data Center & Server Storage' => 0,
-            'SD-WAN & Cloud Infra'         => 0,
+        // Status Distribution data for Doughnut Chart (in Millions)
+        $distributionData = [
+            round($totalPipelineValue / 1000000, 2),
+            round($totalReviewValue / 1000000, 2),
+            round($totalWonValue / 1000000, 2),
         ];
-        foreach ($projects as $p) {
-            $pNameLower = strtolower($p->name . ' ' . ($p->description ?? ''));
-            if (str_contains($pNameLower, 'firewall') || str_contains($pNameLower, 'fortinet') || str_contains($pNameLower, 'security') || str_contains($pNameLower, 'soc')) {
-                $domainCounts['Next-Gen Security & SOC'] += 1;
-            } elseif (str_contains($pNameLower, 'server') || str_contains($pNameLower, 'storage') || str_contains($pNameLower, 'data center') || str_contains($pNameLower, 'dell') || str_contains($pNameLower, 'nutanix')) {
-                $domainCounts['Data Center & Server Storage'] += 1;
-            } elseif (str_contains($pNameLower, 'sd-wan') || str_contains($pNameLower, 'cloud') || str_contains($pNameLower, 'wan') || str_contains($pNameLower, 'cisco')) {
-                $domainCounts['SD-WAN & Cloud Infra'] += 1;
-            } else {
-                $domainCounts['Enterprise Campus Network'] += 1;
-            }
-        }
-        $domainData = array_values($domainCounts);
 
-        // Lists
-        $recentDesignProjects  = (clone $allProjectsQuery)->latest()->take(6)->get();
-        $pendingSowProjects    = (clone $allProjectsQuery)->whereNull('proposal_file')->whereIn('status', ['Opportunity', 'Draft', 'Planning'])->latest()->take(6)->get();
-        $inventoryHighlights   = \Illuminate\Support\Facades\Schema::hasTable('inventory_items') ? \App\Models\InventoryItem::orderBy('stock', 'asc')->take(5)->get() : collect();
-        $partnerVendors        = \Illuminate\Support\Facades\Schema::hasTable('partnerships') ? \App\Models\Partnership::latest()->take(5)->get() : collect();
-        $user = auth()->user();
+        // 3. Ringkasan Request Desain & Topologi Terbaru (6 items)
+        $recentRequests = $tendersYear->sortByDesc('updated_at')->take(6)->values();
+
+        // 4. Jadwal Demo / POC Terdekat (Hanya jadwal riil yang terhubung ke tender arsitektur)
+        $architectProjectIds = $tendersYear->pluck('id')->filter()->unique();
         $pocSchedules = Schedule::with(['project', 'engineer', 'engineers'])
-            ->where(function($q) use ($user) {
-                $q->where('engineer_id', $user->id)
-                  ->orWhere('created_by', $user->id)
-                  ->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $user->id));
-            })
             ->where('date', '>=', now()->toDateString())
+            ->where(function($q) use ($architectProjectIds, $user) {
+                $q->where(function($sq) use ($architectProjectIds) {
+                    if ($architectProjectIds->isNotEmpty()) {
+                        $sq->whereIn('project_id', $architectProjectIds);
+                    } else {
+                        $sq->whereRaw('0 = 1');
+                    }
+                })->orWhere('engineer_id', $user->id)
+                  ->orWhere('created_by', $user->id)
+                  ->orWhereHas('engineers', fn($sq2) => $sq2->where('users.id', $user->id))
+                  ->orWhere('category', 'like', '%POC%')
+                  ->orWhere('category', 'like', '%Demo%')
+                  ->orWhere('category', 'like', '%Presales%')
+                  ->orWhere('category', 'like', '%Desain%')
+                  ->orWhere('title', 'like', '%POC%')
+                  ->orWhere('title', 'like', '%Demo%');
+            })
             ->orderBy('date', 'asc')
-            ->take(5)
+            ->take(4)
             ->get();
 
-        if ($pocSchedules->isEmpty()) {
-            $pocSchedules = Schedule::with(['project', 'engineer', 'engineers'])
-                ->where(function($q) {
-                    $q->where('category', 'like', '%PoC%')
-                      ->orWhere('category', 'like', '%Lab%')
-                      ->orWhere('category', 'like', '%Desain%')
-                      ->orWhere('category', 'like', '%SOW%')
-                      ->orWhere('category', 'like', '%Review%');
-                })
-                ->where('date', '>=', now()->toDateString())
-                ->orderBy('date', 'asc')
-                ->take(5)
-                ->get();
-        }
-
         $data = [
-            'selectedYear'          => $selectedYear,
-            'totalProjectsCount'    => $totalProjectsCount,
-            'totalPipelineValue'    => $totalPipelineValue,
-            'proposalsReadyCount'   => $proposalsReadyCount,
-            'designPendingCount'    => $designPendingCount,
-            'totalMandays'          => $totalMandays,
-            'activeProjectsCount'   => $activeProjectsCount,
-            'wonProjectsCount'      => $wonProjectsCount,
-            'handoverPillars'       => $handoverPillars,
-            'monthlyChartData'      => $monthlyDataInMillions,
-            'domainChartData'       => $domainData,
-            'domainLabels'          => array_keys($domainCounts),
-            'recentDesignProjects'  => $recentDesignProjects,
-            'pendingSowProjects'    => $pendingSowProjects,
-            'inventoryHighlights'   => $inventoryHighlights,
-            'partnerVendors'        => $partnerVendors,
-            'pocSchedules'          => $pocSchedules,
+            'user'                   => $user,
+            'selectedYear'           => $selectedYear,
+            'totalTenderCount'       => $totalTenderCount,
+            'totalDesignNeeded'      => $totalDesignNeeded,
+            'totalProposalNeeded'    => $totalDesignNeeded,
+            'designsReadyCount'      => $designsReadyCount,
+            'proposalsReadyCount'    => $designsReadyCount,
+            'totalPipelineValue'     => $totalPipelineValue,
+            'totalReviewValue'       => $totalReviewValue,
+            'totalWonValue'          => $totalWonValue,
+            'technicalWinRate'       => $technicalWinRate,
+            'monthlyChartData'       => $monthlyDataInMillions,
+            'distributionData'       => $distributionData,
+            'recentRequests'         => $recentRequests,
+            'pocSchedules'           => $pocSchedules,
+            'inReviewCount'          => $inReviewTenders->count(),
+            'wonCount'               => $wonTenders->count(),
         ];
 
         return view('architect.dashboard', $data);

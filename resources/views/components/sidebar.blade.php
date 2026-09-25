@@ -108,9 +108,8 @@
             ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.architect'],
             ['key' => 'projects',   'label' => 'Project',            'route' => 'sales.pipeline.index'],
             ['key' => 'clients',    'label' => 'Client',             'route' => 'clients.index'],
-            ['key' => 'vendors',    'label' => 'Mitra Principal',    'route' => 'vendors.index'],
-            ['key' => 'schedules',  'label' => 'Work Schedule',       'route' => 'schedules.index'],
-            ['key' => 'timesheets', 'label' => 'Timesheet',          'route' => 'timesheets.index'],
+            ['key' => 'schedules',  'label' => 'Work Schedule',      'route' => 'schedules.index'],
+            ['key' => 'timesheets', 'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];
     } elseif ($isBdm) {
         $navItems = [

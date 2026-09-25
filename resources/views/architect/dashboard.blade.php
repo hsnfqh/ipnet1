@@ -7,6 +7,8 @@
     /* ========================================================
        IPNET Official Brand Design System (ipnetsolusindo.com)
        ======================================================== */
+    [x-cloak] { display: none !important; }
+
     :root {
         --ipnet-primary: #8F0A0D;
         --ipnet-primary-hover: #73080A;
@@ -100,7 +102,7 @@
 @endpush
 
 @section('content')
-<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" x-data="architectDashboard()">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans">
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
@@ -109,7 +111,7 @@
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
             
             {{-- ======================================================== --}}
-            {{-- 1. EXECUTIVE HERO BANNER (IPNET OFFICIAL BRAND PATTERN)  --}}
+            {{-- 1. EXECUTIVE HERO BANNER (IPNET BRAND PATTERN)           --}}
             {{-- ======================================================== --}}
             <div class="ipnet-hero-banner rounded-2xl px-5 py-4 sm:px-6 sm:py-4.5 text-white shadow-md shadow-red-950/15 relative anim-hero-reveal">
                 {{-- Layered Geometric Faceted Red Planes --}}
@@ -168,7 +170,7 @@
                             Selamat Datang, {{ auth()->user()->name }}
                         </h1>
                         <p class="mt-0.5 text-[12.5px] text-white/80 leading-relaxed line-clamp-1">
-                            Pantau perancangan arsitektur sistem, validasi BoQ/SOW, dan agenda pengujian konsep lab PoC.
+                            Kelola perancangan topologi arsitektur, sizing teknis, estimasi mandays, dan koordinasi agenda PoC.
                         </p>
                     </div>
 
@@ -192,14 +194,14 @@
                             <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                             </svg>
-                            <span>Kelola Project</span>
+                            <span>Daftar Project</span>
                         </a>
 
                         <a href="{{ route('schedules.index') }}" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 hover:scale-[1.02] border border-white/25 text-white font-bold text-[12.5px] transition-all flex items-center gap-1.5 backdrop-blur-sm">
                             <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
-                            <span>Jadwal Kerja</span>
+                            <span>Work Schedule</span>
                         </a>
                     </div>
                 </div>
@@ -212,109 +214,109 @@
                 <div class="flex items-center justify-between mb-3.5">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> RINGKASAN ARSITEKTUR &amp; SOW
+                            <span class="ipnet-badge-dot"></span> RINGKASAN SOLUTION ARCHITECT &amp; TENDER
                         </p>
-                        <h2 class="text-[18px] font-bold text-[#292929] tracking-tight">Status &amp; Distribusi Desain Solusi</h2>
+                        <h2 class="text-[18px] font-bold text-[#292929] tracking-tight">Status &amp; Distribusi Desain Topologi Solusi</h2>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
                     
-                    {{-- Metric 1: Total Proyek --}}
-                    <a href="{{ route('presales.proposals.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-1">
+                    {{-- Metric 1: Total Tender --}}
+                    <a href="{{ route('sales.pipeline.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-1">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Total Proyek</span>
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Total Tender</span>
                             <div class="w-7 h-7 rounded-lg bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center group-hover:bg-[#8F0A0D] group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-extrabold text-[#292929] tracking-tight">{{ $totalProjectsCount }}</div>
-                        <p class="text-[11px] text-[#75727C] mt-0.5">Portofolio peluang</p>
+                        <div class="text-[22px] font-extrabold text-[#292929] tracking-tight">{{ $totalTenderCount }}</div>
+                        <p class="text-[11px] text-[#75727C] mt-0.5">Portofolio tender</p>
                     </a>
 
-                    {{-- Metric 2: Perlu BoQ & SOW --}}
-                    <a href="{{ route('presales.proposals.index', ['tab' => 'pending']) }}" class="ipnet-metric-card group block anim-fade-up anim-delay-2">
+                    {{-- Metric 2: Perlu Desain SA --}}
+                    <a href="{{ route('sales.pipeline.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-2">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Perlu BoQ &amp; SOW</span>
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Perlu Desain SA</span>
                             <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-extrabold text-amber-600 tracking-tight">{{ $designPendingCount }}</div>
-                        <p class="text-[11px] text-amber-600 font-semibold mt-0.5">Antrean perancangan</p>
+                        <div class="text-[22px] font-extrabold text-amber-600 tracking-tight">{{ $totalDesignNeeded }}</div>
+                        <p class="text-[11px] text-amber-600 font-semibold mt-0.5">Antrean topologi SA</p>
                     </a>
 
-                    {{-- Metric 3: Desain SOW Siap --}}
-                    <a href="{{ route('presales.proposals.index', ['tab' => 'submitted']) }}" class="ipnet-metric-card group block anim-fade-up anim-delay-3">
+                    {{-- Metric 3: Desain SA Siap --}}
+                    <a href="{{ route('sales.pipeline.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-3">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">SOW Siap</span>
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Desain SA Siap</span>
                             <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-extrabold text-emerald-600 tracking-tight">{{ $proposalsReadyCount }}</div>
-                        <p class="text-[11px] text-[#75727C] mt-0.5">Dokumen siap tender</p>
+                        <div class="text-[22px] font-extrabold text-emerald-600 tracking-tight">{{ $designsReadyCount }}</div>
+                        <p class="text-[11px] text-[#75727C] mt-0.5">Topologi &amp; BoQ valid</p>
                     </a>
 
-                    {{-- Metric 4: Proyek Berjalan --}}
-                    <a href="{{ route('presales.proposals.index', ['tab' => 'won']) }}" class="ipnet-metric-card group block anim-fade-up anim-delay-4">
+                    {{-- Metric 4: Tender Menang --}}
+                    <a href="{{ route('sales.pipeline.index', ['stage' => 'Completed']) }}" class="ipnet-metric-card group block anim-fade-up anim-delay-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Implementasi</span>
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Tender Menang</span>
                             <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-extrabold text-blue-600 tracking-tight">{{ $activeProjectsCount }}</div>
-                        <p class="text-[11px] text-[#75727C] mt-0.5">Desain diimplementasi</p>
+                        <div class="text-[22px] font-extrabold text-blue-600 tracking-tight">{{ $wonCount }}</div>
+                        <p class="text-[11px] text-[#75727C] mt-0.5">Deal won / delivery</p>
                     </a>
 
-                    {{-- Metric 5: Agenda PoC & Lab --}}
+                    {{-- Metric 5: Agenda PoC & Demo --}}
                     <a href="{{ route('schedules.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-5">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Sesi PoC &amp; Lab</span>
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Agenda PoC</span>
                             <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
                             </div>
                         </div>
                         <div class="text-[22px] font-extrabold text-purple-600 tracking-tight">{{ $pocSchedules->count() }}</div>
-                        <p class="text-[11px] text-[#75727C] mt-0.5">Uji coba konsep lab</p>
+                        <p class="text-[11px] text-[#75727C] mt-0.5">Uji coba konsep</p>
                     </a>
 
-                    {{-- Metric 6: Total Nilai Pipeline --}}
+                    {{-- Metric 6: Technical Win Rate --}}
                     <div class="ipnet-metric-card group block anim-fade-up anim-delay-6">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Nilai Solusi</span>
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Win Rate Teknis</span>
                             <div class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[20px] font-extrabold text-[#8F0A0D] tracking-tight truncate">
-                            Rp {{ number_format($totalPipelineValue / 1000000000, 1, ',', '.') }} M
+                        <div class="text-[22px] font-extrabold text-[#8F0A0D] tracking-tight truncate">
+                            {{ $technicalWinRate }}%
                         </div>
-                        <p class="text-[11px] text-[#75727C] mt-0.5 truncate">Total estimasi proyek</p>
+                        <p class="text-[11px] text-[#75727C] mt-0.5 truncate">Konversi tender won</p>
                     </div>
 
                 </div>
             </div>
 
             {{-- ======================================================== --}}
-            {{-- 3. CHARTS: TREN VOLUME SOLUSI & DOMAIN PORTOFOLIO        --}}
+            {{-- 3. CHARTS: TREN NILAI PROYEK & DISTRIBUSI PIPELINE       --}}
             {{-- ======================================================== --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 anim-fade-up anim-delay-3">
                 
-                {{-- Chart 1: Tren Nilai Solusi Bulanan --}}
+                {{-- Chart 1: Tren Nilai Proyek Bulanan --}}
                 <div class="lg:col-span-2 ipnet-card p-5 sm:p-6 flex flex-col justify-between">
                     <div>
                         <div class="flex flex-wrap justify-between items-center gap-2 mb-4 pb-3 border-b border-[#E2E8F0]">
@@ -322,9 +324,9 @@
                                 <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                                     <span class="ipnet-badge-dot"></span> TREN VOLUME DESAIN
                                 </p>
-                                <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Tren Perancangan Solusi Arsitektur ({{ $selectedYear }})</h3>
+                                <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Nilai Pipeline Solution Architect per Bulan ({{ $selectedYear }})</h3>
                             </div>
-                            <span class="text-[11.5px] font-medium text-[#64748B]">Akumulasi nilai solusi teknis (Juta Rp)</span>
+                            <span class="text-[11.5px] font-medium text-[#64748B]">Akumulasi nilai tender (Juta Rp)</span>
                         </div>
                         <div class="w-full overflow-x-auto">
                             <div style="height: 230px; min-width: 280px;">
@@ -334,247 +336,134 @@
                     </div>
                 </div>
                 
-                {{-- Chart 2: Komposisi Domain Teknologi --}}
+                {{-- Chart 2: Komposisi Distribusi Pipeline --}}
                 <div class="ipnet-card p-5 sm:p-6 flex flex-col justify-between">
                     <div>
                         <div class="mb-4 pb-3 border-b border-[#E2E8F0]">
                             <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                                <span class="ipnet-badge-dot"></span> PORTOFOLIO TEKNOLOGI
+                                <span class="ipnet-badge-dot"></span> DISTRIBUSI PIPELINE
                             </p>
-                            <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Domain Solusi Jaringan</h3>
+                            <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Distribusi Status Desain Solusi</h3>
                         </div>
                         <div style="height: 190px;" class="flex items-center justify-center">
-                            <canvas id="domainDoughnutChart"></canvas>
+                            <canvas id="architectDistributionChart"></canvas>
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2.5 justify-center mt-3 pt-3 border-t border-[#F1F5F9]">
                         <span class="text-[11.5px] font-medium flex items-center gap-1.5 text-[#64748B]">
-                            <span class="w-2 h-2 rounded-xs bg-[#8F0A0D]"></span> Campus Network
+                            <span class="w-2 h-2 rounded-xs bg-[#8F0A0D]"></span> Perlu Desain SA
                         </span>
                         <span class="text-[11.5px] font-medium flex items-center gap-1.5 text-[#64748B]">
-                            <span class="w-2 h-2 rounded-xs bg-[#3B82F6]"></span> Security &amp; SOC
+                            <span class="w-2 h-2 rounded-xs bg-[#3B82F6]"></span> Desain SA Siap
                         </span>
                         <span class="text-[11.5px] font-medium flex items-center gap-1.5 text-[#64748B]">
-                            <span class="w-2 h-2 rounded-xs bg-[#10B981]"></span> Data Center
-                        </span>
-                        <span class="text-[11.5px] font-medium flex items-center gap-1.5 text-[#64748B]">
-                            <span class="w-2 h-2 rounded-xs bg-[#8B5CF6]"></span> SD-WAN Cloud
+                            <span class="w-2 h-2 rounded-xs bg-[#10B981]"></span> Deal Won
                         </span>
                     </div>
                 </div>
             </div>
 
             {{-- ======================================================== --}}
-            {{-- 4. RECENT ACTIVITY: 3-COLUMN BALANCED WIDGETS            --}}
+            {{-- 4. RECENT ACTIVITY TABLE: PERMINTAAN DESAIN TERKINI      --}}
             {{-- ======================================================== --}}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 anim-fade-up anim-delay-4">
-                
-                {{-- Column 1: Proyek Solusi Terbaru --}}
-                <div class="ipnet-card overflow-hidden flex flex-col">
-                    <div class="flex justify-between items-center gap-2 p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-4 bg-[#8F0A0D] rounded-full inline-block"></span>
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Proyek Desain Terbaru</h3>
+            <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-5 border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2.5 h-4.5 bg-[#8F0A0D] rounded-full inline-block"></span>
+                        <div>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Pipeline Dokumen Arsitektur &amp; Desain Solusi Terkini</h3>
+                            <p class="text-[11.5px] text-[#64748B]">Daftar tender aktif yang memerlukan kajian topologi arsitektur, sizing perangkat, dan asistensi teknis SA</p>
                         </div>
-                        <a href="{{ route('presales.proposals.index') }}" class="text-[#8F0A0D] text-[12px] font-bold hover:underline">Lihat semua</a>
                     </div>
-                    <div class="p-2 divide-y divide-[#F1F5F9] flex-1">
-                        @forelse($recentDesignProjects as $project)
-                        <div @click="openSpecModal({{ json_encode($project) }})" 
-                             class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors cursor-pointer group">
-                            <div class="min-w-0 flex-1">
-                                <div class="text-[13px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D] transition-colors truncate" title="{{ $project->name }}">{{ $project->name }}</div>
-                                <div class="text-[11.5px] text-[#64748B] truncate mt-0.5" title="{{ $project->client }}">
-                                    {{ $project->client ?: 'Prospek Umum' }}
-                                    @if($project->division)
-                                        <span class="text-gray-400">·</span> {{ $project->division->name }}
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="shrink-0">
-                                <x-status-badge status="{{ $project->status }}" />
-                            </div>
-                        </div>
-                        @empty
-                        <div class="text-center py-8 text-[#64748B]">
-                            <p class="text-[13px]">Belum ada proyek desain</p>
-                        </div>
-                        @endforelse
-                    </div>
+                    <a href="{{ route('sales.pipeline.index') }}" class="px-3.5 py-1.5 text-xs font-bold text-[#8F0A0D] bg-white border border-[#CBD5E1] rounded-xl hover:bg-[#FFF7F6] hover:border-[#8F0A0D] transition shadow-2xs inline-flex items-center gap-1.5">
+                        <span>Buka Daftar Project</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
                 </div>
 
-                {{-- Column 2: Antrean BoQ & SOW --}}
-                <div class="ipnet-card overflow-hidden flex flex-col">
-                    <div class="flex justify-between items-center gap-2 p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-4 bg-amber-500 rounded-full inline-block"></span>
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Antrean BoQ &amp; SOW</h3>
-                        </div>
-                        <a href="{{ route('presales.proposals.index', ['tab' => 'pending']) }}" class="text-[#8F0A0D] text-[12px] font-bold hover:underline">Lihat semua</a>
-                    </div>
-                    <div class="p-2 divide-y divide-[#F1F5F9] flex-1">
-                        @forelse($pendingSowProjects as $pTask)
-                        <div @click="openSpecModal({{ json_encode($pTask) }})"
-                             class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors cursor-pointer group">
-                            <div class="min-w-0 flex-1">
-                                <div class="text-[13px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D] transition-colors truncate" title="{{ $pTask->name }}">{{ $pTask->name }}</div>
-                                <div class="text-[11.5px] text-[#64748B] truncate mt-0.5">
-                                    {{ $pTask->sales_name ? 'PIC: ' . $pTask->sales_name : ($pTask->client ?: 'Prospek Baru') }}
-                                    @if($pTask->contract_value)
-                                        <span class="text-gray-400">·</span> Rp {{ number_format($pTask->contract_value / 1000000, 0, ',', '.') }} Jt
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="shrink-0">
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-[10.5px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-md">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                    Perlu BoQ
-                                </span>
-                            </div>
-                        </div>
-                        @empty
-                        <div class="text-center py-8 text-[#64748B]">
-                            <p class="text-[13px]">Tidak ada antrean BoQ</p>
-                        </div>
-                        @endforelse
-                    </div>
-                </div>
-
-                {{-- Column 3: Agenda PoC & Uji Lab --}}
-                <div class="ipnet-card overflow-hidden flex flex-col">
-                    <div class="flex justify-between items-center gap-2 p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-4 bg-emerald-600 rounded-full inline-block"></span>
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Jadwal PoC &amp; Lab</h3>
-                        </div>
-                        <a href="{{ route('schedules.index') }}" class="text-[#8F0A0D] text-[12px] font-bold hover:underline">Lihat semua</a>
-                    </div>
-                    <div class="p-2 divide-y divide-[#F1F5F9] flex-1">
-                        @forelse($pocSchedules as $sch)
-                        @php
-                            $isToday = $sch->date && $sch->date->isToday();
-                            $dateLabel = $sch->date ? ($isToday ? 'Hari ini' : $sch->date->format('d M')) : '-';
-                            $timeLabel = $sch->start_time ? substr($sch->start_time, 0, 5) . ' WIB' : '';
-                            $badgeCategory = $sch->category ?: 'Sesi PoC & Lab';
-                            
-                            $engineerNames = '';
-                            if ($sch->relationLoaded('engineers') && $sch->engineers->isNotEmpty()) {
-                                $engineerNames = $sch->engineers->pluck('name')->join(', ');
-                            } elseif ($sch->engineer) {
-                                $engineerNames = $sch->engineer->name;
-                            }
-                        @endphp
-                        <a href="{{ route('schedules.index') }}" class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors group">
-                            <div class="min-w-0 flex-1">
-                                <div class="text-[13px] font-bold text-[#292929] group-hover:text-[#8F0A0D] transition-colors truncate" title="{{ $sch->title }}">
-                                    {{ $sch->title }}
-                                </div>
-                                <div class="text-[11.5px] text-[#75727C] flex items-center gap-1.5 mt-0.5 min-w-0">
-                                    <span class="shrink-0 whitespace-nowrap {{ $isToday ? 'text-[#8F0A0D] font-bold' : 'font-medium' }}">
-                                        {{ $dateLabel }}{{ $timeLabel ? ', ' . $timeLabel : '' }}
-                                    </span>
-                                    @if($engineerNames || $sch->project)
-                                        <span class="text-gray-400 shrink-0">·</span>
-                                        <span class="truncate" title="{{ $engineerNames ?: $sch->project?->name }}">
-                                             {{ $engineerNames ?: $sch->project?->name }}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-[#F8FAFC] text-[#64748B] uppercase text-[11px] font-bold border-b border-[#E2E8F0]">
+                            <tr>
+                                <th class="py-3 px-4">Nama Tender &amp; Klien</th>
+                                <th class="py-3 px-4">Sales PIC</th>
+                                <th class="py-3 px-4 text-right">Nilai Kontrak</th>
+                                <th class="py-3 px-4 text-center">Status Desain SA</th>
+                                <th class="py-3 px-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#F1F5F9] font-medium text-[#1E293B]">
+                            @forelse($recentRequests as $rp)
+                                @php
+                                    $hd = is_array($rp->handover_data) ? $rp->handover_data : (json_decode($rp->handover_data ?? '', true) ?: []);
+                                    $saDocPath = $hd['technical_assignments']['architect']['document_path'] ?? null;
+                                    $saDocTitle = $hd['technical_assignments']['architect']['document_title'] ?? 'Desain Topologi SA';
+                                @endphp
+                                <tr class="hover:bg-[#F8FAFC] transition-colors">
+                                    <td class="py-3.5 px-4">
+                                        <div class="font-bold text-[#1E293B] text-[13px] line-clamp-1" title="{{ $rp->name }}">{{ $rp->name }}</div>
+                                        <div class="text-[11px] text-[#64748B] mt-0.5">{{ $rp->client ?: 'Prospek Umum' }}</div>
+                                    </td>
+                                    <td class="py-3.5 px-4 whitespace-nowrap">
+                                        <span class="inline-flex px-2 py-0.5 text-[11px] font-semibold rounded-md bg-[#F1F5F9] text-[#1E293B] border border-[#E2E8F0]">
+                                            {{ $rp->sales_name ?: 'Sales Rep' }}
                                         </span>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="shrink-0">
-                                <x-status-badge :status="$badgeCategory" />
-                            </div>
-                        </a>
-                        @empty
-                        <div class="text-center py-8 text-[#75727C]">
-                            <p class="text-[13px]">Belum ada jadwal PoC</p>
-                        </div>
-                        @endforelse
-                    </div>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-right whitespace-nowrap font-extrabold text-[#1E293B]">
+                                        {{ $rp->contract_value > 0 ? 'Rp ' . number_format($rp->contract_value / 1000000, 1, ',', '.') . ' Jt' : '—' }}
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                        @if(!empty($saDocPath))
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                Desain SA Siap
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                Perlu Desain SA
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                        <div class="flex items-center justify-center gap-1.5">
+                                            @if(!empty($saDocPath))
+                                                <a href="{{ asset('storage/' . $saDocPath) }}" 
+                                                   target="_blank"
+                                                   title="Unduh Berkas Desain SA"
+                                                   class="p-1.5 rounded-lg text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 border border-emerald-200 transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                </a>
+                                            @endif
+                                            <a href="{{ route('projects.show', $rp->id) }}" 
+                                               title="Kelola Project &amp; Unggah Topologi"
+                                               class="p-1.5 rounded-lg text-[#1E293B] hover:text-[#8F0A0D] hover:bg-gray-100 border border-gray-200 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="py-8 text-center text-[#64748B]">
+                                        <p class="text-[12.5px] font-semibold">Tidak ada data tender aktif saat ini.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-
             </div>
 
         </div>
     </div>
 </div>
 
-    {{-- MODAL SPESIFIKASI PROYEK SOLUTION ARCHITECT --}}
-    <template x-teleport="body">
-        <div x-show="isSpecModalOpen" 
-             x-cloak 
-             class="fixed inset-0 z-50 bg-[#0E0D12]/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto" @click.away="isSpecModalOpen = false">
-                <div class="flex items-start justify-between border-b border-gray-100 pb-3">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-[#8F0A0D]">Detail Spesifikasi Proyek &amp; Solusi</span>
-                        <h3 class="text-base font-bold text-[#1E293B]" x-text="activeProject.name || '-'"></h3>
-                        <p class="text-xs text-[#64748B]" x-text="(activeProject.client ? activeProject.client + ' • ' : '') + (activeProject.project_code || '')"></p>
-                    </div>
-                    <button @click="isSpecModalOpen = false" class="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-
-                <div class="space-y-3.5 text-xs text-[#1E293B]">
-                    <div class="grid grid-cols-2 gap-3 p-3 bg-[#F8FAFC] rounded-xl border border-gray-100">
-                        <div>
-                            <span class="text-gray-400 block text-[10px] uppercase font-bold">Klien / Instansi</span>
-                            <span class="font-semibold text-gray-800" x-text="activeProject.client || '-'"></span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-[10px] uppercase font-bold">Sales PIC</span>
-                            <span class="font-semibold text-gray-800" x-text="activeProject.sales_name || '-'"></span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-[10px] uppercase font-bold">Nilai Kontrak / Estimasi</span>
-                            <span class="font-extrabold text-[#8F0A0D]" x-text="activeProject.contract_value ? 'Rp ' + Number(activeProject.contract_value).toLocaleString('id-ID') : 'Rp 0'"></span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-[10px] uppercase font-bold">Estimasi Mandays</span>
-                            <span class="font-semibold text-gray-800" x-text="activeProject.mandays ? activeProject.mandays + ' Mandays' : 'Belum diisi'"></span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <span class="text-gray-500 font-bold block mb-1">Deskripsi Proyek:</span>
-                        <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-700 leading-relaxed max-h-36 overflow-y-auto whitespace-pre-line" x-text="activeProject.description || 'Tidak ada deskripsi spesifik.'"></div>
-                    </div>
-
-                    <div x-show="activeProject.proposal_notes">
-                        <span class="text-gray-500 font-bold block mb-1">Ruang Lingkup Teknis / SOW (Catatan SA):</span>
-                        <div class="p-3 bg-red-50/50 rounded-xl border border-red-100 text-gray-800 leading-relaxed whitespace-pre-line" x-text="activeProject.proposal_notes"></div>
-                    </div>
-
-                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
-                        <button type="button" @click="isSpecModalOpen = false" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition">
-                            Tutup
-                        </button>
-                        <a :href="'/presales/proposals'" class="px-4 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold rounded-xl text-xs transition">
-                            Kelola Dokumen SOW
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </template>
-
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    function architectDashboard() {
-        return {
-            isSpecModalOpen: false,
-            activeProject: {},
-            openSpecModal(project) {
-                this.activeProject = project;
-                this.isSpecModalOpen = true;
-            }
-        };
-    }
-
     document.addEventListener('DOMContentLoaded', function () {
-        // Chart 1: Monthly Chart with IPNET Crimson Gradient
+        // Chart 1: Monthly Trend Bar Chart with IPNET Crimson Gradient
         const monthlyCtx = document.getElementById('architectMonthlyChart');
         if (monthlyCtx) {
             const ctx = monthlyCtx.getContext('2d');
@@ -587,7 +476,7 @@
                 data: {
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
                     datasets: [{
-                        label: 'Nilai Solusi (Juta Rp)',
+                        label: 'Nilai Pipeline (Juta Rp)',
                         data: {!! json_encode($monthlyChartData) !!},
                         backgroundColor: gradient,
                         hoverBackgroundColor: '#73080A',
@@ -635,16 +524,16 @@
             });
         }
 
-        // Chart 2: Domain Doughnut Chart
-        const domainCtx = document.getElementById('domainDoughnutChart');
-        if (domainCtx) {
-            new Chart(domainCtx.getContext('2d'), {
+        // Chart 2: Distribution Doughnut Chart
+        const distCtx = document.getElementById('architectDistributionChart');
+        if (distCtx) {
+            new Chart(distCtx.getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: {!! json_encode($domainLabels) !!},
+                    labels: ['Perlu Desain SA', 'Desain SA Siap', 'Deal Won'],
                     datasets: [{
-                        data: {!! json_encode($domainChartData) !!},
-                        backgroundColor: ['#8F0A0D', '#3B82F6', '#10B981', '#8B5CF6'],
+                        data: {!! json_encode($distributionData) !!},
+                        backgroundColor: ['#8F0A0D', '#3B82F6', '#10B981'],
                         borderWidth: 2,
                         borderColor: '#ffffff',
                         hoverOffset: 4
@@ -661,7 +550,12 @@
                             titleFont: { size: 12, weight: 'bold' },
                             bodyFont: { size: 11 },
                             padding: 10,
-                            cornerRadius: 8
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': Rp ' + Number(context.raw).toLocaleString('id-ID') + ' Jt';
+                                }
+                            }
                         }
                     }
                 }
