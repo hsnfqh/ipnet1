@@ -189,6 +189,14 @@
                             <span class="text-[#8F0A0D] font-extrabold text-sm">{{ $allProjects->count() }}</span>
                         </div>
 
+                        @php
+                            $authUser = auth()->user();
+                            $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
+                            $canCreateProject = $authUser && (
+                                !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles))
+                            ) && empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles));
+                        @endphp
+                        @if($canCreateProject)
                         {{-- Add New Project (Red) --}}
                         <a href="{{ route('sales.pipeline.create') }}"
                            class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.98] transition-all no-underline">
@@ -197,6 +205,7 @@
                             </svg>
                             <span>Add New Project</span>
                         </a>
+                        @endif
                     </div>
                 </div>
 

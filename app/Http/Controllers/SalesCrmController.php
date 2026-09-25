@@ -58,43 +58,22 @@ class SalesCrmController extends Controller
         $filterApproval = $request->input('approval_status');
         $filterSales = $request->input('sales');
 
-        $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
-        $salesTeam = $validSalesNames;
+        $salesTeam = Project::whereNotNull('sales_name')
+            ->where('sales_name', '!=', '')
+            ->distinct()
+            ->pluck('sales_name')
+            ->filter(fn($name) => !in_array(strtolower($name), ['day off', 'cuti', 'sales team']))
+            ->values()
+            ->all();
+        if (empty($salesTeam)) {
+            $salesTeam = ['Raiza', 'Nabylla Berlianita'];
+        }
 
         $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
             ->where('client', '!=', 'Internal / Umum')
             ->where('name', 'not like', '%Preventive Maintenance%')
             ->where('name', 'not like', '%Corrective Maintenance%')
             ->where('name', 'not like', '%SLA%')
-            ->where('name', 'not like', '%Training%')
-            ->where('name', 'not like', '%Meeting%')
-            ->where('name', 'not like', '%On Going Project%')
-            ->where('name', 'not like', '%Closed Project%')
-            ->where(function($q) use ($validSalesNames) {
-                $q->whereIn('sales_name', $validSalesNames)
-                  ->orWhere('sales_name', 'like', '%Raiza%')
-                  ->orWhere('sales_name', 'like', '%Nabylla%')
-                  ->orWhereHas('creator', function($c) {
-                      $c->where('name', 'like', '%Raiza%')
-                        ->orWhere('name', 'like', '%Nabylla%')
-                        ->orWhere('email', 'like', '%raiza%')
-                        ->orWhere('email', 'like', '%nabylla%');
-                  });
-            })
-            ->where(function ($ex) {
-                $ex->whereNull('sales_name')
-                   ->orWhere(function ($sn) {
-                       $sn->where('sales_name', 'not like', '%Sales Team%')
-                          ->where('sales_name', 'not like', '%Via%')
-                          ->where('sales_name', 'not like', '%Widodo%')
-                          ->where('sales_name', 'not like', '%Donny%')
-                          ->where('sales_name', 'not like', '%Erie%')
-                          ->where('sales_name', 'not like', '%Hendry%')
-                          ->where('sales_name', 'not like', '%Nelvia%')
-                          ->where('sales_name', 'not like', '%Ribka%')
-                          ->where('sales_name', 'not like', '%Sabar%');
-                   });
-            })
             ->whereDoesntHave('creator', function($c) {
                 $c->whereHas('roles', function($r) {
                     $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service']);

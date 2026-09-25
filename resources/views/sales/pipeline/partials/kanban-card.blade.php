@@ -8,17 +8,33 @@
             </a>
         </h4>
 
-        {{-- Milestone Status Badge --}}
-        <div class="mt-2.5">
+        {{-- Milestone & Proposal Status Badges --}}
+        <div class="mt-2.5 flex items-center flex-wrap gap-1.5">
             @if($project->tasks && $project->tasks->count() > 0)
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                     {{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }} Milestones
                 </span>
             @else
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold text-white shadow-xs"
-                      style="background: linear-gradient(135deg, #EF4444 0%, #B81525 55%, #8F0A0D 100%); box-shadow: 0 2px 6px rgba(184, 21, 37, 0.35);">
-                    No milestones found
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-xs"
+                      style="background: linear-gradient(135deg, #EF4444 0%, #B81525 55%, #8F0A0D 100%);">
+                    No milestones
                 </span>
+            @endif
+
+            @php
+                $hd = is_array($project->handover_data) ? $project->handover_data : [];
+                $hasProposal = !empty($project->proposal_file) || !empty($hd['technical_assignments']['presales']['document_path']) || !empty($hd['technical_assignments']['architect']['document_path']);
+            @endphp
+            @if($hasProposal)
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                    <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>Proposal Ready</span>
+                </span>
+            @else
+                <a href="{{ route('projects.show', $project->id) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition" title="Upload proposal teknis di detail project">
+                    <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span>Upload Proposal</span>
+                </a>
             @endif
         </div>
     </div>

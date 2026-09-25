@@ -233,6 +233,8 @@
         || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Super Admin', 'Admin'], $userRoles))
         || str_contains(strtolower($authUser->name), 'aris')
     );
+
+    $isPresalesOrSaOnly = $authUser && !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles)) && empty(array_intersect(['Sales', 'Account Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles));
 @endphp
 
 <script>
@@ -602,21 +604,27 @@
                     @if($currentStatus === 'Opportunity')
                         {{-- OPPORTUNITY: Pipeline + Otorisasi Pimpinan + Tim Solusi Teknis + Alokasi Kategori Proyek --}}
                         @include('projects.partials.workflow-pipeline')
-                        @include('projects.partials.workflow-leadership')
+                        @if(!$isPresalesOrSaOnly)
+                            @include('projects.partials.workflow-leadership')
+                        @endif
                         @include('projects.partials.workflow-technical-solution')
                         @include('projects.partials.workflow-delivery')
 
                     @elseif($currentStatus === 'Draft')
                         {{-- DRAFT: Pipeline + Otorisasi Pimpinan + Tim Solusi Teknis + Alokasi Kategori Proyek --}}
                         @include('projects.partials.workflow-pipeline')
-                        @include('projects.partials.workflow-leadership')
+                        @if(!$isPresalesOrSaOnly)
+                            @include('projects.partials.workflow-leadership')
+                        @endif
                         @include('projects.partials.workflow-technical-solution')
                         @include('projects.partials.workflow-delivery')
 
                     @elseif($currentStatus === 'In Progress')
                         {{-- IN PROGRESS: Pipeline + Otorisasi Pimpinan + Tim Solusi Teknis + Alokasi Kategori Proyek --}}
                         @include('projects.partials.workflow-pipeline')
-                        @include('projects.partials.workflow-leadership')
+                        @if(!$isPresalesOrSaOnly)
+                            @include('projects.partials.workflow-leadership')
+                        @endif
                         @include('projects.partials.workflow-technical-solution')
                         @include('projects.partials.workflow-delivery')
 
@@ -632,7 +640,9 @@
                             </p>
                         </div>
                         @include('projects.partials.workflow-pipeline')
-                        @include('projects.partials.workflow-leadership')
+                        @if(!$isPresalesOrSaOnly)
+                            @include('projects.partials.workflow-leadership')
+                        @endif
                         @include('projects.partials.workflow-technical-solution')
                         @include('projects.partials.workflow-delivery')
 
@@ -648,7 +658,9 @@
                             </p>
                         </div>
                         @include('projects.partials.workflow-pipeline')
-                        @include('projects.partials.workflow-leadership')
+                        @if(!$isPresalesOrSaOnly)
+                            @include('projects.partials.workflow-leadership')
+                        @endif
                         @include('projects.partials.workflow-technical-solution')
                         @include('projects.partials.workflow-delivery')
                     @endif
