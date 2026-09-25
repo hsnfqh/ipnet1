@@ -45,7 +45,18 @@ class BdmController extends Controller
 
         $selectedYear = (int) $request->input('year', date('Y'));
 
-        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where(function ($ex) {
+                $ex->whereNull('sales_name')
+                   ->orWhere(function ($sn) {
+                       $sn->where('sales_name', 'not like', '%Widodo%')
+                          ->where('sales_name', 'not like', '%widodo%')
+                          ->where('sales_name', 'not like', '%Donny%')
+                          ->where('sales_name', 'not like', '%donny%')
+                          ->where('sales_name', 'not like', '%Antonius%')
+                          ->where('sales_name', 'not like', '%antonius%');
+                   });
+            });
 
         $projects = (clone $allProjectsQuery)->whereYear('created_at', $selectedYear)->get();
         if ($projects->isEmpty()) {
@@ -160,10 +171,33 @@ class BdmController extends Controller
         $filterStatus = $request->input('status');
 
         $query = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where(function ($ex) {
+                $ex->whereNull('sales_name')
+                   ->orWhere(function ($sn) {
+                       $sn->where('sales_name', 'not like', '%Widodo%')
+                          ->where('sales_name', 'not like', '%widodo%')
+                          ->where('sales_name', 'not like', '%Donny%')
+                          ->where('sales_name', 'not like', '%donny%')
+                          ->where('sales_name', 'not like', '%Antonius%')
+                          ->where('sales_name', 'not like', '%antonius%');
+                   });
+            })
             ->with(['bdm', 'creator']);
 
         if (!$isManagerial) {
-            $allProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])->get();
+            $allProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+                ->where(function ($ex) {
+                    $ex->whereNull('sales_name')
+                       ->orWhere(function ($sn) {
+                           $sn->where('sales_name', 'not like', '%Widodo%')
+                              ->where('sales_name', 'not like', '%widodo%')
+                              ->where('sales_name', 'not like', '%Donny%')
+                              ->where('sales_name', 'not like', '%donny%')
+                              ->where('sales_name', 'not like', '%Antonius%')
+                              ->where('sales_name', 'not like', '%antonius%');
+                       });
+                })
+                ->get();
             $assignedIds = $allProjects->filter(function($p) use ($user) {
                 $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
                 $bdm = $hd['technical_assignments']['bdm'] ?? [];
