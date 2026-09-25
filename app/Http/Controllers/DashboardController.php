@@ -581,45 +581,41 @@ class DashboardController extends Controller
         $totalProjectCount = $projects->count();
         $totalProjectValue = $projects->sum($valOf);
 
-        // 1. Opportunity: prospek/kualifikasi awal
-        $oppProjects = $projects->filter(function($p) {
-            $st = strtolower($p->status ?? '');
-            $sst = $p->sales_stage ?? '';
-            return in_array($st, ['opportunity', 'prospect', 'inisiasi', 'draft', 'planning']) 
-                || in_array($sst, ['Qualification', 'Qualified Opportunity', 'Proposal Request', 'Quotation']);
+        // 4. Complete: benar-benar sudah selesai dikerjakan (Completed / Finished / Done / Selesai)
+        $completeProjects = $projects->filter(function($p) {
+            $st = strtolower(trim($p->status ?? ''));
+            return in_array($st, ['completed', 'finished', 'delivered', 'done', 'selesai', 'closed']);
         });
-        $totalOppCount = $oppProjects->count();
-        $totalOppValue = $oppProjects->sum($valOf);
+        $totalCompleteCount = $completeProjects->count();
+        $totalCompleteValue = $completeProjects->sum($valOf);
 
-        // 2. In Progress: negosiasi & kontrak aktif
-        $inProgressProjects = $projects->filter(function($p) {
-            $st = strtolower($p->status ?? '');
-            $sst = $p->sales_stage ?? '';
-            $isComplete = in_array($st, ['completed', 'finished', 'delivered', 'done', 'selesai']) || $sst === 'Closed Won';
-            if ($isComplete) return false;
-            return in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing']) 
-                || in_array($sst, ['Negotiation', 'Approval', 'Contract / PO / SPK']);
-        });
-        $totalInProgressCount = $inProgressProjects->count();
-        $totalInProgressValue = $inProgressProjects->sum($valOf);
-
-        // 3. Pending: review / tertunda
-        $pendingProjects = $projects->filter(function($p) {
-            $st = strtolower($p->status ?? '');
-            return in_array($st, ['pending', 'on hold', 'review', 'clarification', 'waiting review']);
+        // 3. Pending: review / tertunda / on hold
+        $pendingProjects = $projects->filter(function($p) use ($completeProjects) {
+            if ($completeProjects->contains('id', $p->id)) return false;
+            $st = strtolower(trim($p->status ?? ''));
+            return in_array($st, ['pending', 'on hold', 'review', 'clarification', 'waiting review', 'hold']);
         });
         $totalPendingCount = $pendingProjects->count();
         $totalPendingValue = $pendingProjects->sum($valOf);
 
-        // 4. Complete: Closed Won / selesai
-        $completeProjects = $projects->filter(function($p) {
-            $st = strtolower($p->status ?? '');
+        // 2. In Progress: project yang sedang aktif berjalan / dikerjakan / delivery
+        $inProgressProjects = $projects->filter(function($p) use ($completeProjects, $pendingProjects) {
+            if ($completeProjects->contains('id', $p->id) || $pendingProjects->contains('id', $p->id)) return false;
+            $st = strtolower(trim($p->status ?? ''));
             $sst = $p->sales_stage ?? '';
-            return in_array($st, ['completed', 'finished', 'delivered', 'done', 'selesai', 'closed']) 
-                || strtolower($sst) === 'closed won';
+            return in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing', 'progress', 'ongoing'])
+                || in_array($sst, ['Contract / PO / SPK', 'Closed Won', 'Negotiation', 'Approval']);
         });
-        $totalCompleteCount = $completeProjects->count();
-        $totalCompleteValue = $completeProjects->sum($valOf);
+        $totalInProgressCount = $inProgressProjects->count();
+        $totalInProgressValue = $inProgressProjects->sum($valOf);
+
+        // 1. Opportunity: prospek / kualifikasi awal (belum masuk pengerjaan)
+        $oppProjects = $projects->filter(function($p) use ($completeProjects, $pendingProjects, $inProgressProjects) {
+            if ($completeProjects->contains('id', $p->id) || $pendingProjects->contains('id', $p->id) || $inProgressProjects->contains('id', $p->id)) return false;
+            return true;
+        });
+        $totalOppCount = $oppProjects->count();
+        $totalOppValue = $oppProjects->sum($valOf);
 
         // Monthly chart data (in Billion IDR & raw amounts)
         $monthlyChartData = [];
@@ -635,8 +631,8 @@ class DashboardController extends Controller
             $monthlyChartRaw[]  = (float) $val;
         }
 
-        // Project List Table
-        $projectList = (clone $allProjectsQuery)->with(['division', 'creator'])->latest('updated_at')->paginate(10)->withQueryString();
+        // Project List Table (5 project terbaru)
+        $projectList = (clone $allProjectsQuery)->with(['division', 'creator'])->latest('updated_at')->paginate(5)->withQueryString();
 
         $data = [
             'selectedYear'               => $selectedYear,

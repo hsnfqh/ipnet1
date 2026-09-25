@@ -124,11 +124,9 @@
 @section('content')
 <div class="flex h-screen overflow-hidden bg-[#F5F7FA] font-sans" x-data="{
     searchQuery: '',
-    statusFilter: 'ALL',
-    filterRow(rowStatus, rowText) {
-        const matchStatus = this.statusFilter === 'ALL' || rowStatus.toUpperCase().includes(this.statusFilter);
-        const matchSearch = !this.searchQuery || rowText.toLowerCase().includes(this.searchQuery.toLowerCase());
-        return matchStatus && matchSearch;
+    filterRow(rowText) {
+        if (!this.searchQuery) return true;
+        return rowText.toLowerCase().includes(this.searchQuery.toLowerCase());
     }
 }">
     @include('components.sidebar')
@@ -374,23 +372,23 @@
                             <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
                             Daftar Project Terdaftar
                         </h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Semua project tercatat tahun {{ $selectedYear }}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">5 project terbaru tercatat tahun {{ $selectedYear }}</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="flex flex-wrap items-center gap-3">
                         <div class="relative">
                             <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
                             </svg>
-                            <input type="text" x-model="searchQuery" placeholder="Cari project, client, sales..."
-                                   class="pl-8 pr-3 py-1.5 w-56 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 transition">
+                            <input type="text" x-model="searchQuery" placeholder="Cari project atau client..."
+                                   class="pl-8 pr-3 py-1.5 w-60 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 transition">
                         </div>
 
-                        <div class="pill-group">
-                            <button type="button" @click="statusFilter = 'ALL'" :class="statusFilter === 'ALL' ? 'active' : ''" class="pill-btn">Semua</button>
-                            <button type="button" @click="statusFilter = 'OPPORTUNITY'" :class="statusFilter === 'OPPORTUNITY' ? 'active' : ''" class="pill-btn">Opportunity</button>
-                            <button type="button" @click="statusFilter = 'PROGRESS'" :class="statusFilter === 'PROGRESS' ? 'active' : ''" class="pill-btn">Progress</button>
-                            <button type="button" @click="statusFilter = 'COMPLET'" :class="statusFilter === 'COMPLET' ? 'active' : ''" class="pill-btn">Complete</button>
-                        </div>
+                        <a href="{{ route('projects.index') }}"
+                           style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:10px; font-size:11.5px; font-weight:700; color:#8F0A0D; background:#FFF1F2; border:1px solid #FECACA; text-decoration:none; transition:all .15s ease;"
+                           onmouseover="this.style.background='#FEE2E2';"
+                           onmouseout="this.style.background='#FFF1F2';">
+                            Lihat Semua Project →
+                        </a>
                     </div>
                 </div>
 
@@ -420,14 +418,14 @@
                                         str_contains($sLow,'pending') || str_contains($sLow,'hold')         => 'bg-orange-50 text-orange-700 border-orange-200',
                                         default                                                              => 'bg-slate-100 text-slate-600 border-slate-200',
                                     };
-                                    $blob = strtolower($p->name.' '.$p->client.' '.$salesName.' '.($p->po_number ?? '').' '.($p->quotation_number ?? ''));
+                                    $blob = strtolower($p->name.' '.$p->client.' '.($p->po_number ?? '').' '.($p->quotation_number ?? ''));
                                 @endphp
                                 <tr class="project-row border-b border-slate-100 transition-colors group"
-                                    x-show="filterRow('{{ addslashes($p->status ?? '') }}', '{{ addslashes($blob) }}')">
+                                    x-show="filterRow('{{ addslashes($blob) }}')">
 
                                     <td class="py-3 px-4 whitespace-nowrap">
                                         <div style="display:flex; align-items:center; gap:8px;">
-                                            <div style="width:28px; height:28px; border-radius:50%; background:#F1F5F9; border:1px solid #E2E8F0; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800; color:#475569; text-transform:uppercase; flex-shrink:0;">
+                                            <div style="width:28px; height:28px; border-radius:50%; background:#FFF1F2; border:1px solid #FECACA; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800; color:#8F0A0D; text-transform:uppercase; flex-shrink:0;">
                                                 {{ substr($salesName, 0, 2) }}
                                             </div>
                                             <span style="font-weight:600; color:#1E293B; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $salesName }}</span>
