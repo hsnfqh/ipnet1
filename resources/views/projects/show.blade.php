@@ -1026,13 +1026,37 @@
                     </div>
 
                     @php
-                        $clientRecord = $project->clientRecord ?? \App\Models\Client::where('name', $project->client)
-                            ->orWhere('department', $project->client)
-                            ->orWhere('id', $project->client)
-                            ->first();
+                        $clientRecord = $project->clientRecord;
+
+                        if (!$clientRecord || empty($clientRecord->pic_name)) {
+                            // Search by department or name words inside project name / client string
+                            $searchWords = array_filter(explode(' ', preg_replace('/[^a-zA-Z0-9\s]/', ' ', $project->name . ' ' . $project->client)));
+                            foreach ($searchWords as $w) {
+                                if (strlen($w) >= 3) {
+                                    $found = \App\Models\Client::where('department', 'like', "%{$w}%")
+                                        ->orWhere('name', 'like', "%{$w}%")
+                                        ->whereNotNull('pic_name')
+                                        ->first();
+                                    if ($found) {
+                                        $clientRecord = $found;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!$clientRecord) {
+                            $clientRecord = \App\Models\Client::where('name', $project->client)
+                                ->orWhere('department', $project->client)
+                                ->first();
+                        }
+
+                        if (!$clientRecord && \App\Models\Client::whereNotNull('pic_name')->count() === 1) {
+                            $clientRecord = \App\Models\Client::whereNotNull('pic_name')->first();
+                        }
 
                         $clientDisplayName = $clientRecord ? $clientRecord->name : ($project->client ?: '-');
-                        $clientDept = $clientRecord && $clientRecord->department ? $clientRecord->department : null;
+                        $clientDept = $clientRecord && $clientRecord->department ? $clientRecord->department : ($project->client_department ?: null);
                         $clientEmail = $clientRecord && !empty($clientRecord->email) ? $clientRecord->email : ($project->customer_pic_finance ?: ($project->customer_pic_technical ?: '-'));
                         $clientPicName = $clientRecord && !empty($clientRecord->pic_name) ? $clientRecord->pic_name : ($project->customer_pic_name ?: '-');
                         $clientPhone = $clientRecord && !empty($clientRecord->phone) ? $clientRecord->phone : ($project->customer_pic_business ?: '-');
@@ -1044,12 +1068,17 @@
                                 <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
                                 Informasi Klien
                             </h3>
-                            @if($clientRecord)
-                                <a href="{{ route('clients.index') }}" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
-                                    <span>Database Klien</span>
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                </a>
-                            @endif
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="window.openModal('modal-edit-client')" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 rounded-lg text-[11px] font-bold shadow-2xs transition flex items-center gap-1 cursor-pointer">
+                                    <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    <span>Edit / Hubungkan</span>
+                                </button>
+                                @if($clientRecord)
+                                    <a href="{{ route('clients.index') }}" class="text-[11px] font-bold text-slate-400 hover:text-[#8F0A0D] transition flex items-center gap-0.5" title="Lihat Database Klien">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                         <div class="space-y-3 text-xs">
                             <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
@@ -2059,6 +2088,117 @@
                     Ya, Hapus
                 </button>
             </div>
+        </div>
+    </div>
+
+    {{-- 12. MODAL EDIT & HUBUNGKAN INFORMASI KLIEN --}}
+    @php
+        $clientsCollection = isset($allClients) ? $allClients : \App\Models\Client::orderBy('name')->get();
+    @endphp
+    <div id="modal-edit-client" style="display:none;"
+         class="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-[540px] max-w-full p-6 text-left shadow-2xl border border-slate-200 anim-fade-up"
+             x-data="{
+                 clientsData: {{ Js::from($clientsCollection) }},
+                 clientName: '{{ addslashes($clientDisplayName !== '-' ? $clientDisplayName : $project->client) }}',
+                 dept: '{{ addslashes($clientDept ?: '') }}',
+                 picName: '{{ addslashes($clientPicName !== '-' ? $clientPicName : '') }}',
+                 email: '{{ addslashes($clientEmail !== '-' ? $clientEmail : '') }}',
+                 phone: '{{ addslashes($clientPhone !== '-' ? $clientPhone : '') }}',
+                 onSelectChange(nameVal) {
+                     const found = this.clientsData.find(c => c.name === nameVal);
+                     if (found) {
+                         this.clientName = found.name;
+                         this.dept = found.department || '';
+                         this.picName = found.pic_name || '';
+                         this.email = found.email || '';
+                         this.phone = found.phone || '';
+                     }
+                 }
+             }">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4">
+                <div>
+                    <span class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">DATABASE KLIEN CRM</span>
+                    <h3 class="text-base font-bold text-slate-900">Hubungkan / Edit Informasi Klien</h3>
+                </div>
+                <button type="button" onclick="window.closeModal('modal-edit-client')" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form action="{{ route('projects.update_client', $project->id) }}" method="POST" class="space-y-3.5 text-xs">
+                @csrf
+                
+                {{-- Quick Picker from Database Klien --}}
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Pilih Cepat dari Database Klien
+                    </label>
+                    <select @change="onSelectChange($event.target.value)" 
+                            class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] cursor-pointer">
+                        <option value="">-- Pilih Rekanan / Klien Terdaftar --</option>
+                        @foreach($clientsCollection as $cl)
+                            <option value="{{ $cl->name }}" {{ ($clientRecord && $clientRecord->id == $cl->id) ? 'selected' : '' }}>
+                                {{ $cl->name }} {{ $cl->department ? "({$cl->department})" : "" }} - PIC: {{ $cl->pic_name ?: '-' }} ({{ $cl->phone ?: '-' }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Nama Klien / Instansi Perusahaan <span class="text-[#8F0A0D]">*</span>
+                    </label>
+                    <input type="text" name="client" x-model="clientName" required
+                           class="w-full px-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Departemen / Divisi Klien
+                        </label>
+                        <input type="text" name="client_department" x-model="dept"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Nama PIC Klien (Customer)
+                        </label>
+                        <input type="text" name="customer_pic_name" x-model="picName"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Email PIC Klien
+                        </label>
+                        <input type="email" name="customer_pic_finance" x-model="email"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            No. Telepon / WA PIC Klien
+                        </label>
+                        <input type="text" name="customer_pic_business" x-model="phone"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 focus:bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 mt-4">
+                    <button type="button" onclick="window.closeModal('modal-edit-client')"
+                            class="px-4 py-2.5 rounded-xl bg-white text-slate-600 border border-slate-300 font-bold text-xs hover:bg-slate-50 transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit"
+                            class="px-5 py-2.5 rounded-xl btn-ipnet-primary font-bold text-xs transition cursor-pointer shadow-md text-white flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Simpan &amp; Hubungkan Klien</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

@@ -174,8 +174,57 @@ class ProjectController extends Controller
         }
 
         $allUsers = User::with('roles')->orderBy('name')->get();
+        $allClients = \App\Models\Client::orderBy('name')->get();
 
-        return view('projects.show', compact('project', 'documentFlow', 'allUsers'));
+        return view('projects.show', compact('project', 'documentFlow', 'allUsers', 'allClients'));
+    }
+
+    /**
+     * Update & Hubungkan Informasi Klien Proyek dengan Database Klien
+     */
+    public function updateClientInfo(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'client'                 => 'required|string|max:255',
+            'client_department'      => 'nullable|string|max:255',
+            'customer_pic_name'      => 'nullable|string|max:255',
+            'customer_pic_business'  => 'nullable|string|max:255',
+            'customer_pic_finance'   => 'nullable|string|max:255',
+        ]);
+
+        $clientRecord = \App\Models\Client::where('name', $validated['client'])
+            ->orWhere('department', $validated['client'])
+            ->first();
+
+        if ($clientRecord) {
+            $clientRecord->update([
+                'department' => $validated['client_department'] ?: $clientRecord->department,
+                'pic_name'   => $validated['customer_pic_name'] ?: $clientRecord->pic_name,
+                'phone'      => $validated['customer_pic_business'] ?: $clientRecord->phone,
+                'email'      => $validated['customer_pic_finance'] ?: $clientRecord->email,
+            ]);
+            $clientName = $clientRecord->name;
+        } else {
+            $newClient = \App\Models\Client::create([
+                'name'        => $validated['client'],
+                'department'  => $validated['client_department'] ?? null,
+                'pic_name'    => $validated['customer_pic_name'] ?? null,
+                'phone'       => $validated['customer_pic_business'] ?? null,
+                'email'       => $validated['customer_pic_finance'] ?? null,
+                'created_by'  => auth()->id(),
+            ]);
+            $clientName = $newClient->name;
+        }
+
+        $project->update([
+            'client'                 => $clientName,
+            'customer_pic_name'      => $validated['customer_pic_name'] ?? ($clientRecord->pic_name ?? null),
+            'customer_pic_business'  => $validated['customer_pic_business'] ?? ($clientRecord->phone ?? null),
+            'customer_pic_finance'   => $validated['customer_pic_finance'] ?? ($clientRecord->email ?? null),
+            'customer_pic_technical' => $validated['customer_pic_finance'] ?? ($clientRecord->email ?? null),
+        ]);
+
+        return redirect()->back()->with('success', 'Informasi klien proyek berhasil diperbarui dan disinkronkan ke Database Klien!');
     }
 
     /**

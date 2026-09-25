@@ -383,6 +383,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{project}/update-pipeline', [ProjectController::class, 'updatePipeline'])->name('projects.update_pipeline');
         Route::post('/{project}/stage-update', [ProjectController::class, 'updateStageDirect'])->name('projects.stage_update');
         Route::post('/{project}/meta-update', [ProjectController::class, 'updateMeta'])->name('projects.meta_update');
+        Route::post('/{project}/update-client', [ProjectController::class, 'updateClientInfo'])->name('projects.update_client');
 
         // 6-Stage Handover & Document Flow (Commercial to Operation)
         Route::get('/{project}/document-flow', [\App\Http\Controllers\ProjectDocumentController::class, 'getProjectFlow'])->name('projects.document_flow');
