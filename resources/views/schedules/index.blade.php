@@ -2231,7 +2231,7 @@
                         return '#7C3AED';
                     }
                     // 2. Presales / Solution Architect -> Emerald (#0D9488)
-                    if (pos.includes('presales') || role.includes('presales') || pos.includes('architect') || role.includes('architect') || ['akbar', 'aris sadewo', 'aris'].includes(cleanName)) {
+                    if (pos.includes('presales') || role.includes('presales') || pos.includes('architect') || role.includes('architect') || ['aris sadewo', 'aris'].includes(cleanName)) {
                         return '#0D9488';
                     }
                     // 3. Engineer L2 / Senior -> Deep Blue (#2563EB)

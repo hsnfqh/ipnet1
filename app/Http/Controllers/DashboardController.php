@@ -678,8 +678,25 @@ class DashboardController extends Controller
         $user = auth()->user();
         $selectedYear = (int) $request->input('year', date('Y'));
 
-        // 1. Ambil seluruh data proyek/tender pre-sales
-        $allTendersQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+        // 1. Ambil seluruh data proyek/tender pre-sales (Kompresi Komersial & Solusi Teknis, tanpa task lapangan engineer)
+        $allTendersQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+            ->where('client', '!=', 'Internal / Umum')
+            ->where('name', 'not like', '%Preventive Maintenance%')
+            ->where('name', 'not like', '%Corrective Maintenance%')
+            ->where(function($q) {
+                $q->where('stage', 'Acquire')
+                  ->orWhere('opportunity_source', 'Direct Sales Prospecting')
+                  ->orWhereNotNull('opportunity_source')
+                  ->orWhereNotNull('bdm_id')
+                  ->orWhere('bdm_handover_status', 'Self-Sourced Sales')
+                  ->orWhereNotNull('sales_stage')
+                  ->orWhereNotNull('proposal_file');
+            })
+            ->whereDoesntHave('creator', function($c) {
+                $c->whereHas('roles', function($r) {
+                    $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service']);
+                });
+            })
             ->with(['division', 'creator']);
         $tendersYear = (clone $allTendersQuery)->whereYear('created_at', $selectedYear)->get();
         if ($tendersYear->isEmpty()) {

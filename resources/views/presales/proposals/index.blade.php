@@ -4,13 +4,13 @@
 
 @php
     $user = auth()->user();
-    $isArchitect = $isArchitect ?? ($user && ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']) || str_contains(strtolower($user->name), 'aris')));
-    $isPresales  = $isPresales ?? ($user && ($user->hasAnyRole(['Presales', 'Pre-Sales']) || str_contains(strtolower($user->name), 'akbar')));
+    $isArchitect = $isArchitect ?? ($user && $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop']));
+    $isPresales  = $isPresales ?? ($user && $user->hasAnyRole(['Presales', 'Pre-Sales']));
     $isManagerial = $isManagerial ?? (\App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole([
         'Director', 'Direktur', 'HD / Direktur', 'Division Head', 
-        'Lead Presales', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager', 'Super Admin', 'Admin'
+        'Lead Presales', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'
     ]));
-    $canManageProposal = $user && ($isPresales || $isArchitect || $isManagerial) && !$user->hasAnyRole(['Sales', 'BDM']);
+    $canManageProposal = $user && ($isPresales || $isArchitect || $isManagerial || $user->hasAnyRole(['Sales', 'Account Manager', 'BDM', 'BusDev']));
 @endphp
 
 @push('styles')

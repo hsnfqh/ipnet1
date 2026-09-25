@@ -641,9 +641,8 @@ class ProjectController extends Controller
         if (in_array($validated['role'], ['presales', 'both', 'all'])) {
             $presalesUser = !empty($validated['presales_user_id'])
                 ? \App\Models\User::find($validated['presales_user_id'])
-                : \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Presales', 'Pre-Sales']))->first()
-                   ?? \App\Models\User::where('name', 'like', '%Akbar%')->first();
-            $presalesName = $presalesUser ? $presalesUser->name : 'Akbar (Pre-Sales)';
+                : \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Presales', 'Pre-Sales', 'Sales', 'BDM', 'BusDev']))->first();
+            $presalesName = $presalesUser ? $presalesUser->name : 'Pre-Sales Specialist';
 
             $technical['presales'] = array_merge($technical['presales'] ?? [], [
                 'assigned'         => true,

@@ -65,9 +65,9 @@ class AuthController extends Controller
         $pos = strtolower($user->position ?? '');
 
         // Jika roles kosong atau akun inti presales/sa/sales/bdm/cro/pmo
-        if ($user->roles->isEmpty() || str_contains($email, 'akbar') || str_contains($email, 'aris') || str_contains($email, 'cro')) {
+        if ($user->roles->isEmpty() || str_contains($email, 'akbar@ipnetsolusindo.com') || str_contains($email, 'aris') || str_contains($email, 'cro')) {
             try {
-                if (str_contains($email, 'akbar') || str_contains($name, 'akbar') || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
+                if ($email === 'akbar@ipnetsolusindo.com' || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
                     Role::firstOrCreate(['name' => 'Presales', 'guard_name' => 'web']);
                     Role::firstOrCreate(['name' => 'Pre-Sales', 'guard_name' => 'web']);
                     $user->syncRoles(['Presales', 'Pre-Sales']);
@@ -121,6 +121,11 @@ class AuthController extends Controller
         $name  = strtolower($user->name ?? '');
         $pos   = strtolower($user->position ?? '');
 
+        // Engineer (Field / Technical Delivery) selalu ke dashboard engineer
+        if ($user->hasRole('Engineer') && !$user->hasAnyRole(['Director', 'Direktur', 'Division Head', 'Group Leader', 'Sales', 'BDM', 'Presales', 'Solution Architect'])) {
+            return route('dashboard.engineer');
+        }
+
         // Admin Support / Admin Logistik -> Dashboard Admin Support
         if ($user->hasAnyRole(['Admin Support', 'Admin Logistik', 'Admin']) || str_contains($pos, 'admin support')) {
             return route('admin_support.dashboard');
@@ -137,12 +142,12 @@ class AuthController extends Controller
         }
 
         // Solution Architect -> Dashboard Solution Architect
-        if ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop']) || str_contains($email, 'aris') || str_contains($name, 'aris') || str_contains($pos, 'solution architect') || str_contains($pos, 'architect')) {
+        if ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop']) || str_contains($email, 'aris') || str_contains($pos, 'solution architect') || str_contains($pos, 'architect')) {
             return route('dashboard.architect');
         }
 
-        // Presales -> Dashboard Presales (Akbar)
-        if ($user->hasAnyRole(['Presales', 'Pre-Sales']) || str_contains($email, 'akbar') || str_contains($name, 'akbar') || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
+        // Presales (Hubungan dengan Sales, BD, SA, Direktur, Head Division) -> Dashboard Presales
+        if ($user->hasAnyRole(['Presales', 'Pre-Sales']) || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
             return route('dashboard.presales');
         }
 

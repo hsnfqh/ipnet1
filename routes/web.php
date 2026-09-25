@@ -214,15 +214,15 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard Solution Architect & R&D (Dashboard 6)
     Route::get('/dashboard/solution-architect', [DashboardController::class, 'solutionArchitect'])
         ->name('dashboard.architect')
-        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Solution Architect|Solutions Architect|Tech Develop|Tech.Develp (R&D)|R&D|Presales|Pre-Sales|Sales|Account Manager|PMO|Project Manager');
+        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Solution Architect|Solutions Architect|Tech Develop|Tech.Develp (R&D)|R&D|Presales|Pre-Sales|Sales|Account Manager|BusDev|BDM');
 
-    // Dashboard Presales Engineering (Dashboard 5)
+    // Dashboard Presales (Hubungan dengan Sales, BD, SA, Direktur, Head Division)
     Route::get('/dashboard/presales', [DashboardController::class, 'presales'])
         ->name('dashboard.presales')
-        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Presales|Pre-Sales|Solution Architect|Solutions Architect|Sales|Account Manager|BusDev|BDM|PMO|Project Manager');
+        ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Presales|Pre-Sales|Solution Architect|Solutions Architect|Sales|Account Manager|BusDev|BDM');
 
     // Modul Presales: Proposal & SOW
-    Route::prefix('presales')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Presales|Pre-Sales|Solution Architect|Solutions Architect|Sales|Account Manager|BusDev|BDM|PMO|Project Manager')->group(function () {
+    Route::prefix('presales')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|Presales|Pre-Sales|Solution Architect|Solutions Architect|Sales|Account Manager|BusDev|BDM')->group(function () {
         Route::get('/proposals', [\App\Http\Controllers\PresalesProposalController::class, 'index'])->name('presales.proposals.index');
         Route::post('/proposals/{project}', [\App\Http\Controllers\PresalesProposalController::class, 'store'])->name('presales.proposals.store');
         Route::delete('/proposals/{project}/file', [\App\Http\Controllers\PresalesProposalController::class, 'destroyFile'])->name('presales.proposals.file.delete');
@@ -537,10 +537,15 @@ Route::get('/', function () {
         $name = strtolower($user->name ?? '');
         $pos = strtolower($user->position ?? '');
 
+        // Engineer (Field / Technical Delivery) selalu diarahkan ke dashboard engineer
+        if ($user->hasRole('Engineer') && !$user->hasAnyRole(['Director', 'Direktur', 'Division Head', 'Group Leader', 'Sales', 'BDM', 'Presales', 'Solution Architect'])) {
+            return redirect()->route('dashboard.engineer');
+        }
+
         if ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D']) || str_contains($email, 'aris') || str_contains($pos, 'solution architect') || str_contains($pos, 'architect')) {
             return redirect()->route('dashboard.architect');
         }
-        if ($user->hasAnyRole(['Presales', 'Pre-Sales']) || str_contains($email, 'akbar') || str_contains($name, 'akbar') || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
+        if ($user->hasAnyRole(['Presales', 'Pre-Sales']) || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
             return redirect()->route('dashboard.presales');
         }
         if ($user->hasAnyRole(['BusDev', 'BDM', 'Business Development']) || str_contains($pos, 'business development') || str_contains($pos, 'bdm')) {

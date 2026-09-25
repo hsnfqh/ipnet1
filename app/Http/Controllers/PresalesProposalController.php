@@ -14,11 +14,11 @@ class PresalesProposalController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $isArchitect = $user && ($user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']) || str_contains(strtolower($user->name), 'aris'));
-        $isPresales = $user && ($user->hasAnyRole(['Presales', 'Pre-Sales']) || str_contains(strtolower($user->name), 'akbar'));
+        $isArchitect = $user && $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop']);
+        $isPresales = $user && $user->hasAnyRole(['Presales', 'Pre-Sales']);
         $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole([
             'Director', 'Direktur', 'HD / Direktur', 'Division Head', 
-            'Lead Presales', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager', 'Super Admin', 'Admin'
+            'Lead Presales', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'
         ]);
         $isManagerialOrPresales = $isManagerial || $isPresales || $isArchitect;
 

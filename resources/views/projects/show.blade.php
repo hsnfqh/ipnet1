@@ -197,20 +197,20 @@
         $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Divisi', 'Group Leader', 'Direktur', 'HD / Direktur']);
     })->orWhere('name', 'like', '%Rizki%')->orWhere('name', 'like', '%Kuncoro%')->orderBy('name')->get();
 
-    // Ambil daftar user Presales & Solution Architect
-    $presalesUsers = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Presales', 'Pre-Sales']))->orderBy('name')->get();
+    // Ambil daftar user Presales & Solution Architect (Terkoneksi ke Sales, BD, SA, Direktur, Head Divisi)
+    $presalesUsers = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Presales', 'Pre-Sales', 'Sales', 'BDM', 'BusDev', 'Group Leader Commercial & Solution']))->orderBy('name')->get();
     if ($presalesUsers->isEmpty()) {
-        $presalesUsers = \App\Models\User::where('name', 'like', '%Akbar%')->get();
+        $presalesUsers = \App\Models\User::where('email', 'akbar@ipnetsolusindo.com')->orWhere('position', 'like', '%Pre-Sales%')->get();
     }
     $architectUsers = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop']))->orderBy('name')->get();
     if ($architectUsers->isEmpty()) {
-        $architectUsers = \App\Models\User::where('name', 'like', '%Aris%')->get();
+        $architectUsers = \App\Models\User::where('email', 'like', '%aris%')->orWhere('position', 'like', '%Architect%')->get();
     }
 
     // Hak otorisasi PIC BD untuk me-review & memverifikasi dokumen solusi
     $canVerifyBD = $authUser && (
         ($project->bdm_id && $authUser->id == $project->bdm_id)
-        || !empty(array_intersect(['BDM', 'BusDev', 'Business Development', 'Director', 'Direktur', 'HD / Direktur', 'Super Admin', 'Admin'], $userRoles))
+        || !empty(array_intersect(['BDM', 'BusDev', 'Business Development', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles))
         || str_contains(strtolower($authUser->name), 'kurnijanto')
         || str_contains(strtolower($authUser->name), 'novan')
         || str_contains(strtolower($authUser->name), 'kipsriyanto')
@@ -218,16 +218,16 @@
         || str_contains(strtolower($authUser->name), 'dony')
     );
 
-    // Hak otorisasi unggah berkas teknis solusi (Hanya Presales / SA terkait atau Admin / PMO)
+    // Hak otorisasi unggah berkas teknis solusi (Presales, SA, Sales, BD, Direktur, Head Divisi)
     $canUploadPresales = $authUser && (
         (!empty($presalesAssignment['assigned_user_id']) && $authUser->id == $presalesAssignment['assigned_user_id'])
-        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Super Admin', 'Admin'], $userRoles))
-        || str_contains(strtolower($authUser->name), 'akbar')
+        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Sales', 'BDM', 'BusDev', 'Solution Architect', 'Super Admin', 'Admin'], $userRoles))
+        || ($authUser->email === 'akbar@ipnetsolusindo.com')
     );
 
     $canUploadArchitect = $authUser && (
         (!empty($architectAssignment['assigned_user_id']) && $authUser->id == $architectAssignment['assigned_user_id'])
-        || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Super Admin', 'Admin'], $userRoles))
+        || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Super Admin', 'Admin'], $userRoles))
         || str_contains(strtolower($authUser->name), 'aris')
     );
 @endphp
