@@ -581,6 +581,7 @@
                         </div>
                     </div>
 
+                    @if(!$isPresalesOrSaOnly)
                     <div class="shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
                         <button type="button" 
                                 @click="isEditMetaModalOpen = true; openEditMetaModal()" 
@@ -590,6 +591,7 @@
                             <span>Edit Estimasi</span>
                         </button>
                     </div>
+                    @endif
                 </div>
 
             </div>
@@ -1096,10 +1098,12 @@
                                 Informasi Klien
                             </h3>
                             <div class="flex items-center gap-2">
+                                @if(!$isPresalesOrSaOnly)
                                 <button type="button" onclick="window.openModal('modal-edit-client')" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 rounded-lg text-[11px] font-bold shadow-2xs transition flex items-center gap-1 cursor-pointer">
                                     <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     <span>Edit / Hubungkan</span>
                                 </button>
+                                @endif
                                 @if($clientRecord)
                                     <a href="{{ route('clients.index') }}" class="text-[11px] font-bold text-slate-400 hover:text-[#8F0A0D] transition flex items-center gap-0.5" title="Lihat Database Klien">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>

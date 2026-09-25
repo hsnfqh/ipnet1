@@ -46,11 +46,16 @@ class PresalesProposalController extends Controller
                       ->orWhere('sales_name', 'like', '%raiza%');
               })
               ->where(function ($ex) {
-                  $ex->where('sales_name', 'not like', '%Widodo%')
+                  $ex->where('sales_name', 'not like', '%Nugraha%')
+                     ->where('sales_name', 'not like', '%nugraha%')
+                     ->where('sales_name', 'not like', '%Donny%')
+                     ->where('sales_name', 'not like', '%donny%')
+                     ->where('sales_name', 'not like', '%Antonius%')
+                     ->where('sales_name', 'not like', '%antonius%')
+                     ->where('sales_name', 'not like', '%Widodo%')
                      ->where('sales_name', 'not like', '%widodo%')
                      ->where('sales_name', 'not like', '%Via%')
                      ->where('sales_name', 'not like', '%Sales Team%')
-                     ->where('sales_name', 'not like', '%Donny%')
                      ->where('sales_name', 'not like', '%Erie%')
                      ->where('sales_name', 'not like', '%Hendry%')
                      ->where('sales_name', 'not like', '%Nelvia%')
@@ -58,9 +63,16 @@ class PresalesProposalController extends Controller
                      ->where('sales_name', 'not like', '%Sabar%');
               })
               ->whereDoesntHave('creator', function ($c) {
-                  $c->whereHas('roles', function ($r) {
-                      $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service']);
-                  });
+                  $c->where('name', 'like', '%Nugraha%')
+                    ->orWhere('name', 'like', '%nugraha%')
+                    ->orWhere('name', 'like', '%Donny%')
+                    ->orWhere('name', 'like', '%donny%')
+                    ->orWhere('name', 'like', '%Antonius%')
+                    ->orWhere('name', 'like', '%antonius%')
+                    ->orWhere('name', 'like', '%Widodo%')
+                    ->orWhereHas('roles', function ($r) {
+                        $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service']);
+                    });
               });
 
             if (!$isManagerialOrPresales) {

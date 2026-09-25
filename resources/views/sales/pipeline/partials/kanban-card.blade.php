@@ -68,7 +68,18 @@
             </span>
         </div>
 
-        @if(($column ?? '') === 'In Progress' || $project->status === 'In Progress')
+        @php
+            $authCardUser = auth()->user();
+            $authCardUserRoles = $authCardUser && method_exists($authCardUser, 'roles') ? $authCardUser->roles->pluck('name')->toArray() : [];
+            $canMarkComplete = $authCardUser && (
+                $project->created_by === $authCardUser->id
+                || $project->sales_name === $authCardUser->name
+                || ($project->sales_id && $project->sales_id === $authCardUser->id)
+                || !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $authCardUserRoles))
+            ) && empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $authCardUserRoles));
+        @endphp
+
+        @if($canMarkComplete && (($column ?? '') === 'In Progress' || $project->status === 'In Progress'))
             <form action="{{ route('projects.stage_update', $project->id) }}" method="POST" class="pt-2 border-t border-[#F1F5F9]" onclick="event.stopPropagation();">
                 @csrf
                 <input type="hidden" name="status" value="Completed">
