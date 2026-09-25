@@ -71,12 +71,18 @@
         @php
             $authCardUser = auth()->user();
             $authCardUserRoles = $authCardUser && method_exists($authCardUser, 'roles') ? $authCardUser->roles->pluck('name')->toArray() : [];
-            $canMarkComplete = $authCardUser && (
+            $isPresalesUser = $authCardUser && (
+                !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $authCardUserRoles))
+                || in_array(strtolower($authCardUser->position ?? ''), ['presales', 'pre-sales', 'solution architect', 'sa', 'pre sales'])
+                || str_contains(strtolower($authCardUser->email ?? ''), 'akbar')
+                || str_contains(strtolower($authCardUser->email ?? ''), 'aris')
+            );
+            $canMarkComplete = $authCardUser && !$isPresalesUser && (
                 $project->created_by === $authCardUser->id
                 || $project->sales_name === $authCardUser->name
                 || ($project->sales_id && $project->sales_id === $authCardUser->id)
                 || !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $authCardUserRoles))
-            ) && empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $authCardUserRoles));
+            );
         @endphp
 
         @if($canMarkComplete && (($column ?? '') === 'In Progress' || $project->status === 'In Progress'))

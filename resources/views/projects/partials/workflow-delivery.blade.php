@@ -98,7 +98,7 @@
             </div>
 
             {{-- Actions Footer --}}
-            @if(!$project->pm)
+            @if(!$project->pm && empty($isPresalesOrSaOnly))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     <button type="button" @click="openHandoverModal('{{ $isMs ? 'managed_service' : 'pmo' }}')"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">

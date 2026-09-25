@@ -234,7 +234,14 @@
         || str_contains(strtolower($authUser->name), 'aris')
     );
 
-    $isPresalesOrSaOnly = $authUser && !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles)) && empty(array_intersect(['Sales', 'Account Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles));
+    $isPresalesOrSaOnly = $authUser && (
+        !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles))
+        || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'solution architect', 'sa', 'pre sales'])
+        || str_contains(strtolower($authUser->email ?? ''), 'akbar')
+        || str_contains(strtolower($authUser->email ?? ''), 'aris')
+        || str_contains(strtolower($authUser->name ?? ''), 'akbar')
+        || str_contains(strtolower($authUser->name ?? ''), 'aris')
+    ) && empty(array_intersect(['Sales', 'Account Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles));
 @endphp
 
 <script>
@@ -495,17 +502,19 @@
                     <div class="space-y-1 flex-1 min-w-0">
                         {{-- 1. Display Mode (Default) --}}
                         <div class="flex items-center gap-2.5 flex-wrap" id="title-display-container">
-                            <h1 class="text-2xl sm:text-[26px] font-extrabold text-slate-900 tracking-tight leading-tight cursor-pointer hover:text-[#8F0A0D] transition group flex items-center gap-2"
-                                onclick="window.startEditTitle()"
-                                title="Klik untuk edit nama proyek">
+                            <h1 class="text-2xl sm:text-[26px] font-extrabold text-slate-900 tracking-tight leading-tight @if(!$isPresalesOrSaOnly) cursor-pointer hover:text-[#8F0A0D] transition group @endif flex items-center gap-2"
+                                @if(!$isPresalesOrSaOnly) onclick="window.startEditTitle()" title="Klik untuk edit nama proyek" @endif>
                                 <span>{{ $project->name }}</span>
-                                <span class="p-1.5 text-slate-400 group-hover:text-[#8F0A0D] group-hover:bg-red-50 border border-slate-200 group-hover:border-red-200 rounded-lg transition shadow-2xs">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                </span>
+                                @if(!$isPresalesOrSaOnly)
+                                    <span class="p-1.5 text-slate-400 group-hover:text-[#8F0A0D] group-hover:bg-red-50 border border-slate-200 group-hover:border-red-200 rounded-lg transition shadow-2xs">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    </span>
+                                @endif
                             </h1>
                         </div>
 
                         {{-- 2. Direct Inline Edit Mode --}}
+                        @if(!$isPresalesOrSaOnly)
                         <form id="title-edit-form" action="{{ route('projects.meta_update', $project->id) }}" method="POST" class="hidden items-center gap-2 flex-wrap pb-1">
                             @csrf
                             <input type="text" name="name" id="project-title-input" value="{{ $project->name }}" required
@@ -519,6 +528,7 @@
                                 Batal
                             </button>
                         </form>
+                        @endif
 
                         <p class="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-3xl">
                             {{ $project->description ?: 'Proyek pengadaan infrastruktur dan solusi teknologi terintegrasi.' }}
@@ -526,6 +536,7 @@
                     </div>
 
                     {{-- Action Buttons --}}
+                    @if(!$isPresalesOrSaOnly)
                     <div class="flex items-center gap-2 shrink-0">
                         @if($currentStatus === 'In Progress')
                             <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
@@ -552,6 +563,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
                     </div>
+                    @endif
                 </div>
 
                 {{-- C. Project Estimation Banner (Clean Metric Strip) --}}
@@ -851,6 +863,7 @@
                                 </span>
                             </div>
                             
+                            @if(!$isPresalesOrSaOnly)
                             <button type="button" 
                                     @click="isUploadDocModalOpen = true" 
                                     onclick="window.openModal('modal-upload-doc')"
@@ -858,6 +871,7 @@
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 <span>Upload Berkas</span>
                             </button>
+                            @endif
                         </div>
 
                         @if($uploadedDocs->count() > 0)

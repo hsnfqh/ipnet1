@@ -192,9 +192,15 @@
                         @php
                             $authUser = auth()->user();
                             $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
-                            $canCreateProject = $authUser && (
+                            $isPresalesUser = $authUser && (
+                                !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles))
+                                || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'solution architect', 'sa', 'pre sales'])
+                                || str_contains(strtolower($authUser->email ?? ''), 'akbar')
+                                || str_contains(strtolower($authUser->email ?? ''), 'aris')
+                            );
+                            $canCreateProject = $authUser && !$isPresalesUser && (
                                 !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles))
-                            ) && empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles));
+                            );
                         @endphp
                         @if($canCreateProject)
                         {{-- Add New Project (Red) --}}
