@@ -394,33 +394,44 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $selectedYear = (int) $request->input('year', date('Y'));
-        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'Group Leader', 'PMO', 'Project Manager']) || str_contains(strtolower($user->name), 'susanto') || str_contains(strtolower($user->name), 'hariyadi');
+        $isManagerial = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager']) || str_contains(strtolower($user->name), 'susanto') || str_contains(strtolower($user->name), 'hariyadi');
 
-        $baseProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+        $salesTeam = \App\Http\Controllers\BdmController::$salesTeam;
+
+        // Standalone Sales: HANYA proyek peluang / komersial / sales pipeline (terpisah dari eksekusi teknikal / engineer)
+        $allProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
             ->where('client', '!=', 'Internal / Umum')
+            ->where(function($q) use ($user) {
+                $q->where('stage', 'Acquire')
+                  ->orWhere('opportunity_source', 'Direct Sales Prospecting')
+                  ->orWhereNotNull('opportunity_source')
+                  ->orWhereNotNull('bdm_id')
+                  ->orWhere('bdm_handover_status', 'Self-Sourced Sales')
+                  ->orWhere('created_by', $user->id)
+                  ->orWhereHas('creator', function($c) {
+                      $c->whereHas('roles', function($r) {
+                          $r->whereIn('name', ['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']);
+                      });
+                  });
+            })
+            // JANGAN menyangkut teknikal / engineer / maintenance
+            ->where('name', 'not like', '%Preventive Maintenance%')
+            ->where('name', 'not like', '%Corrective Maintenance%')
+            ->whereDoesntHave('creator', function($c) {
+                $c->whereHas('roles', function($r) {
+                    $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi']);
+                });
+            })
             ->with(['bdm', 'creator', 'salesActivities']);
 
-        $allProjectsQuery = clone $baseProjectsQuery;
-        
         if (!$isManagerial) {
-            // Check if user has direct assigned projects or created projects
-            $hasPersonal = (clone $baseProjectsQuery)->where(function($q) use ($user) {
+            $allProjectsQuery->where(function($q) use ($user) {
                 $q->where('sales_name', $user->name)
                   ->orWhereRaw('LOWER(sales_name) = ?', [strtolower($user->name)])
                   ->orWhere('sales_name', 'like', '%' . $user->name . '%')
                   ->orWhere('created_by', $user->id)
                   ->orWhere('bdm_id', $user->id);
-            })->exists();
-
-            if ($hasPersonal) {
-                $allProjectsQuery->where(function($q) use ($user) {
-                    $q->where('sales_name', $user->name)
-                      ->orWhereRaw('LOWER(sales_name) = ?', [strtolower($user->name)])
-                      ->orWhere('sales_name', 'like', '%' . $user->name . '%')
-                      ->orWhere('created_by', $user->id)
-                      ->orWhere('bdm_id', $user->id);
-                });
-            }
+            });
         }
 
         $projects = (clone $allProjectsQuery)->where(function($q) use ($selectedYear) {
@@ -464,7 +475,7 @@ class DashboardController extends Controller
         $wonProjects = $projects->filter(function($p) {
             $salesStage = $p->sales_stage ?? '';
             $status = strtolower($p->status ?? '');
-            return $salesStage === 'Closed Won' || in_array($status, ['completed', 'finished', 'delivered', 'done']);
+            return $salesStage === 'Closed Won' || in_array($status, ['completed', 'finished', 'delivered', 'done', 'selesai']);
         });
         $totalWonCount = $wonProjects->count();
         $totalWonValue = $wonProjects->sum($valOf);
@@ -503,7 +514,7 @@ class DashboardController extends Controller
                 if ($p->sales_stage === $stageKey) return true;
                 if (empty($p->sales_stage)) {
                     $st = strtolower($p->status ?? '');
-                    if ($stageKey === 'Closed Won' && in_array($st, ['completed', 'finished', 'delivered', 'done'])) return true;
+                    if ($stageKey === 'Closed Won' && in_array($st, ['completed', 'finished', 'delivered', 'done', 'selesai'])) return true;
                     if ($stageKey === 'Contract / PO / SPK' && in_array($st, ['in progress', 'on progress'])) return true;
                     if ($stageKey === 'Qualification' && in_array($st, ['opportunity', 'prospect', 'draft', 'planning'])) return true;
                 }
@@ -531,7 +542,7 @@ class DashboardController extends Controller
                 $val = $valOf($p);
                 $prob = ($p->win_probability ?? 25) / 100;
                 $monthlyForecast[$m] += ($val * $prob);
-                if ($p->sales_stage === 'Closed Won' || in_array(strtolower($p->status ?? ''), ['completed', 'finished', 'delivered', 'done'])) {
+                if ($p->sales_stage === 'Closed Won' || in_array(strtolower($p->status ?? ''), ['completed', 'finished', 'delivered', 'done', 'selesai'])) {
                     $monthlyActual[$m] += $val;
                 }
             }
@@ -566,23 +577,47 @@ class DashboardController extends Controller
             })
             ->count();
 
-        // 5 Summary Metric Cards (Matching Screenshot)
+        // 5 Summary Metric Cards (Distinct & Non-overlapping)
         $totalProjectCount = $projects->count();
         $totalProjectValue = $projects->sum($valOf);
 
-        $oppProjects = $projects->filter(fn($p) => in_array(strtolower($p->status ?? ''), ['opportunity', 'prospect', 'inisiasi', 'draft', 'planning']) || in_array($p->sales_stage ?? '', ['Qualification', 'Qualified Opportunity', 'Proposal Request', 'Quotation']));
+        // 1. Opportunity: prospek/kualifikasi awal
+        $oppProjects = $projects->filter(function($p) {
+            $st = strtolower($p->status ?? '');
+            $sst = $p->sales_stage ?? '';
+            return in_array($st, ['opportunity', 'prospect', 'inisiasi', 'draft', 'planning']) 
+                || in_array($sst, ['Qualification', 'Qualified Opportunity', 'Proposal Request', 'Quotation']);
+        });
         $totalOppCount = $oppProjects->count();
         $totalOppValue = $oppProjects->sum($valOf);
 
-        $inProgressProjects = $projects->filter(fn($p) => in_array(strtolower($p->status ?? ''), ['in progress', 'on progress', 'active', 'development', 'testing']) || in_array($p->sales_stage ?? '', ['Negotiation', 'Approval', 'Contract / PO / SPK']));
+        // 2. In Progress: negosiasi & kontrak aktif
+        $inProgressProjects = $projects->filter(function($p) {
+            $st = strtolower($p->status ?? '');
+            $sst = $p->sales_stage ?? '';
+            $isComplete = in_array($st, ['completed', 'finished', 'delivered', 'done', 'selesai']) || $sst === 'Closed Won';
+            if ($isComplete) return false;
+            return in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing']) 
+                || in_array($sst, ['Negotiation', 'Approval', 'Contract / PO / SPK']);
+        });
         $totalInProgressCount = $inProgressProjects->count();
         $totalInProgressValue = $inProgressProjects->sum($valOf);
 
-        $pendingProjects = $projects->filter(fn($p) => in_array(strtolower($p->status ?? ''), ['pending', 'on hold', 'review', 'clarification', 'waiting review']));
+        // 3. Pending: review / tertunda
+        $pendingProjects = $projects->filter(function($p) {
+            $st = strtolower($p->status ?? '');
+            return in_array($st, ['pending', 'on hold', 'review', 'clarification', 'waiting review']);
+        });
         $totalPendingCount = $pendingProjects->count();
         $totalPendingValue = $pendingProjects->sum($valOf);
 
-        $completeProjects = $projects->filter(fn($p) => in_array(strtolower($p->status ?? ''), ['completed', 'finished', 'delivered', 'done', 'closed']) || strtolower($p->sales_stage ?? '') === 'closed won');
+        // 4. Complete: Closed Won / selesai
+        $completeProjects = $projects->filter(function($p) {
+            $st = strtolower($p->status ?? '');
+            $sst = $p->sales_stage ?? '';
+            return in_array($st, ['completed', 'finished', 'delivered', 'done', 'selesai', 'closed']) 
+                || strtolower($sst) === 'closed won';
+        });
         $totalCompleteCount = $completeProjects->count();
         $totalCompleteValue = $completeProjects->sum($valOf);
 

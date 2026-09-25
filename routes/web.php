@@ -77,9 +77,9 @@ Route::get('/setup-hosting-database-2026', function () {
             'contract_value' => 450000000
         ]);
 
-        // Pastikan proyek tanpa sales_name terisi sales resmi (default Raiza)
-        \App\Models\Project::whereNull('sales_name')->orWhere('sales_name', '')->orWhereIn('sales_name', ['Riko Wijaya', 'Anita Lestari', 'Hendra Gunawan', 'Maya Safitri'])->update([
-            'sales_name' => 'Raiza'
+        // Pastikan proyek tanpa sales_name terisi default yang sesuai
+        \App\Models\Project::whereNull('sales_name')->orWhere('sales_name', '')->update([
+            'sales_name' => 'Direct Sales'
         ]);
 
         Artisan::call('optimize:clear');

@@ -588,7 +588,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Upgrade Jaringan WAN & SD-WAN Adira Finance',
                 'client'         => 'PT Adira Dinamika Multi Finance Tbk',
-                'sales_name'     => 'Raiza',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Kantor Pusat Adira & 15 Cabang',
@@ -604,7 +604,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Hardening Firewall & SIEM Monitoring Bank Mandiri',
                 'client'         => 'PT Bank Mandiri (Persero) Tbk',
-                'sales_name'     => 'Ribka Junita',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Data Center Plaza Mandiri, Jakarta',
@@ -620,7 +620,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Instalasi Fiber Optik Backbone - Gedung BCA Thamrin',
                 'client'         => 'PT Bank Central Asia Tbk',
-                'sales_name'     => 'Widodo',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Menara BCA Lt. 12-24, Jakarta Pusat',
@@ -636,7 +636,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Preventive Maintenance SLA Bulanan Jaringan - RS Siloam Kebon Jeruk',
                 'client'         => 'RS Siloam Hospitals Group',
-                'sales_name'     => 'Donny Burnan',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'Maintenance Berkala',
                 'visit_schedule' => 'Bulanan (Monthly)',
                 'location'       => 'RS Siloam Kebon Jeruk, Jakarta Barat',
@@ -652,7 +652,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Upgrade Bandwidth & WiFi 6 - Mall Kelapa Gading',
                 'client'         => 'Summarecon Mall Group',
-                'sales_name'     => 'Raiza',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Mall Kelapa Gading 1-5, Jakarta Utara',
@@ -668,7 +668,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Rollout WiFi Corporate & Radius Server - Menara BTPN',
                 'client'         => 'PT Bank BTPN Tbk',
-                'sales_name'     => 'Erie',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'CBD Mega Kuningan, Jakarta Selatan',
@@ -684,7 +684,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Security Vulnerability Assessment - Shopee Data Center',
                 'client'         => 'PT Shopee International Indonesia',
-                'sales_name'     => 'Hendry Wibowo',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Tersentrik Cyber 2 Tower, Jakarta',
@@ -700,7 +700,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'CCTV IP & Network Infrastructure - Gudang Logistik Lazada',
                 'client'         => 'PT Lazada Express Indonesia',
-                'sales_name'     => 'Nabylla Berlianita',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Kawasan Industri MM2100, Cikarang',
@@ -716,7 +716,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Kontrak Pemeliharaan Rutin Triwulanan Firewall & Switch - BCA Thamrin',
                 'client'         => 'PT Bank Central Asia Tbk',
-                'sales_name'     => 'Nelvia Nataliandi',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'Maintenance Berkala',
                 'visit_schedule' => 'Triwulanan (Quarterly)',
                 'location'       => 'Menara BCA Thamrin Lt. 12, Jakarta Pusat',
@@ -732,7 +732,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Managed Services & Maintenance Mingguan - Mall Kelapa Gading',
                 'client'         => 'Summarecon Mall Group',
-                'sales_name'     => 'Raiza',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'Managed Service',
                 'visit_schedule' => 'Mingguan (Weekly)',
                 'location'       => 'Mall Kelapa Gading 1-5, Jakarta Utara',
@@ -748,7 +748,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Maintenance & SLA Support WiFi Corporate - Menara BTPN',
                 'client'         => 'PT Bank BTPN Tbk',
-                'sales_name'     => 'Sabar Sianturi',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'Maintenance Berkala',
                 'visit_schedule' => 'Bulanan (Monthly)',
                 'location'       => 'CBD Mega Kuningan, Jakarta Selatan',
@@ -764,7 +764,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Inspeksi & Pemeliharaan Berkala CCTV NVR - Gudang Lazada',
                 'client'         => 'PT Lazada Express Indonesia',
-                'sales_name'     => 'Donny Burnan',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'Maintenance Berkala',
                 'visit_schedule' => 'Bulanan (Monthly)',
                 'location'       => 'Kawasan Industri MM2100, Cikarang',
@@ -780,7 +780,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Redundant BGP Peering & Routing - Data Center Telkomsigma',
                 'client'         => 'PT Sigma Cipta Caraka (Telkomsigma)',
-                'sales_name'     => 'Raiza',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Serpong Data Center, Tangerang Selatan',
@@ -796,7 +796,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Disaster Recovery Network Setup - Astra International',
                 'client'         => 'PT Astra International Tbk',
-                'sales_name'     => 'Ribka Junita',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Menara Astra & Cibitung DR Site',
@@ -812,7 +812,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Deployment Core Switch Nexus 9K - Data Center Indosat',
                 'client'         => 'PT Indosat Ooredoo Hutchison Tbk',
-                'sales_name'     => 'Widodo',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Data Center Jatiluhur, Jawa Barat',
@@ -828,7 +828,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'WAF (Web Application Firewall) Implementation - Tokopedia',
                 'client'         => 'PT Tokopedia (GoTo Group)',
-                'sales_name'     => 'Erie',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Tokopedia Tower, Jakarta Selatan',
@@ -844,7 +844,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Migrasi Cloud Interconnect AWS DirectConnect - Tiket.com',
                 'client'         => 'PT Global Tiket Network',
-                'sales_name'     => 'Hendry Wibowo',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Equinix Data Center JK1, Jakarta',
@@ -860,7 +860,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Implementasi Zero Trust Network Access (ZTNA) - Telkomsel',
                 'client'         => 'PT Telekomunikasi Selular',
-                'sales_name'     => 'Raiza',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Telkomsel Smart Office, Jakarta',
@@ -876,7 +876,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Audit Kepatuhan PCI-DSS & Endpoint Security - DANA Indonesia',
                 'client'         => 'PT Espay Debit Indonesia Koe',
-                'sales_name'     => 'Nelvia Nataliandi',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Capital Place, Gatot Subroto, Jakarta',
@@ -892,7 +892,7 @@ class DummyUserSeeder extends Seeder
             [
                 'name'           => 'Infrastruktur Jaringan Core & Data Center - BNI Pusat',
                 'client'         => 'PT Bank Negara Indonesia (Persero) Tbk',
-                'sales_name'     => 'Raiza',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
                 'location'       => 'Grha BNI Lt. 15-28, Sudirman, Jakarta',
@@ -929,12 +929,11 @@ class DummyUserSeeder extends Seeder
             $projects[] = $p;
         }
 
-        // Safety guarantee: pastikan jika ada sisa data lama yang sales_name-nya NULL atau kosong, langsung diisi default Raiza
+        // Safety guarantee: pastikan jika ada sisa data lama yang sales_name-nya NULL atau kosong, diisi default
         Project::whereNull('sales_name')
             ->orWhere('sales_name', '')
-            ->orWhereIn('sales_name', ['Riko Wijaya', 'Anita Lestari', 'Hendra Gunawan', 'Maya Safitri'])
             ->update([
-                'sales_name'     => 'Raiza',
+                'sales_name'     => 'Direct Sales',
                 'project_type'   => 'One-Time Project',
                 'visit_schedule' => 'None',
             ]);
