@@ -384,4 +384,21 @@ class Project extends Model
 
         return false;
     }
+
+    public function clientModel()
+    {
+        return $this->belongsTo(Client::class, 'client', 'name');
+    }
+
+    public function getClientRecordAttribute()
+    {
+        if (empty($this->client)) {
+            return null;
+        }
+
+        return Client::where('name', $this->client)
+            ->orWhere('department', $this->client)
+            ->orWhere('id', $this->client)
+            ->first();
+    }
 }

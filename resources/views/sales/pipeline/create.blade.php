@@ -82,22 +82,35 @@
                             <textarea name="sales_notes" class="cf-textarea" placeholder="Detail kebutuhan klien, spesifikasi teknis, atau catatan penting lainnya...">{{ old('sales_notes') }}</textarea>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="cf-label">Client Name <span class="text-[#8F0A0D]">*</span></label>
-                            <input type="text" name="client" required list="clientListCreate" class="cf-input" placeholder="Contoh: PT Telkom Indonesia / Bank BRI" value="{{ old('client') }}">
+                        <div class="mb-4" x-data="{
+                            clientList: {{ Js::from($clients) }},
+                            selectedClient: '{{ old('client') }}',
+                            deptVal: '{{ old('client_department') }}',
+                            onSelect(val) {
+                                const matched = this.clientList.find(c => c.name === val);
+                                if (matched) {
+                                    this.selectedClient = matched.name;
+                                    if (matched.department) this.deptVal = matched.department;
+                                }
+                            }
+                        }">
+                            <label class="cf-label">Client Name (Instansi / Perusahaan) <span class="text-[#8F0A0D]">*</span></label>
+                            <input type="text" name="client" x-model="selectedClient" @input="onSelect($event.target.value)" required list="clientListCreate" class="cf-input" placeholder="Pilih dari database atau ketik baru (Contoh: Ahmad Hasan Faqih Aulia / Autopia / BRI)" value="{{ old('client') }}">
                             <datalist id="clientListCreate">
-                                @foreach($clients as $cl)<option value="{{ $cl->name }}">{{ $cl->department ? "({$cl->department})" : "" }}</option>@endforeach
+                                @foreach($clients as $cl)
+                                    <option value="{{ $cl->name }}">{{ $cl->department ? "({$cl->department}) - PIC: {$cl->pic_name}" : ($cl->pic_name ? "PIC: {$cl->pic_name}" : "") }}</option>
+                                @endforeach
                             </datalist>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label class="cf-label">Client Department</label>
-                                <input type="text" name="client_department" class="cf-input" placeholder="Contoh: IT Division, Network Dept..." value="{{ old('client_department') }}">
+                                <label class="cf-label">Client Department / Divisi</label>
+                                <input type="text" name="client_department" x-model="deptVal" class="cf-input" placeholder="Contoh: AUTOPIA, IT Division..." value="{{ old('client_department') }}">
                             </div>
                             <div>
-                                <label class="cf-label">Sales / Client PIC</label>
-                                <input type="text" name="sales_pic" class="cf-input" placeholder="Nama Sales / Account Manager" value="{{ old('sales_pic', auth()->user()->name) }}">
+                                <label class="cf-label">Sales Person (Account Manager)</label>
+                                <input type="text" name="sales_name" class="cf-input" placeholder="Nama Sales / Account Manager" value="{{ old('sales_name', auth()->user()->name) }}">
                             </div>
                         </div>
 

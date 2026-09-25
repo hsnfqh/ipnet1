@@ -229,33 +229,53 @@ class SalesCrmController extends Controller
 
         $closingDate = !empty($validated['expected_closing_date']) ? $validated['expected_closing_date'] : now()->addMonths(1)->toDateString();
         $contractValue = $validated['contract_value'] ?? 0;
+        $salesName = $request->input('sales_name') ?: $user->name;
+
+        // Check matching Client in DB
+        $clientRecord = Client::where('name', $validated['client'])
+            ->orWhere('department', $validated['client'])
+            ->orWhere('id', $validated['client'])
+            ->first();
+
+        $clientName = $clientRecord ? $clientRecord->name : $validated['client'];
+        $clientDept = $request->input('client_department') ?: ($clientRecord ? $clientRecord->department : null);
+        $customerPicName = $request->input('customer_pic_name') ?: ($clientRecord ? $clientRecord->pic_name : null);
+        $customerPicPhone = $request->input('customer_pic_phone') ?: ($clientRecord ? $clientRecord->phone : null);
+        $customerPicEmail = $request->input('customer_pic_email') ?: ($clientRecord ? $clientRecord->email : null);
 
         $project = Project::create([
-            'name'                  => $validated['name'],
-            'client'                => $validated['client'],
-            'contract_value'        => $contractValue,
-            'division_id'           => $validated['division_id'] ?? null,
-            'sales_stage'           => $salesStage,
-            'win_probability'       => $prob,
-            'expected_closing_date' => $closingDate,
-            'opportunity_source'    => $validated['opportunity_source'] ?? 'Direct Sales Prospecting',
-            'sales_name'            => $user->name,
-            'created_by'            => $user->id,
-            'sales_notes'           => $validated['sales_notes'] ?? null,
-            'status'                => $status,
-            'stage'                 => $stage,
-            'progress'              => $progress,
-            'acquire_status'        => $status === 'Completed' ? 'Closed' : ($status === 'Draft' ? 'Draft' : 'Prospecting'),
-            'bdm_handover_status'   => 'Self-Sourced Sales',
-            'start_date'            => now(),
-            'deadline'              => $closingDate,
+            'name'                   => $validated['name'],
+            'client'                 => $clientName,
+            'contract_value'         => $contractValue,
+            'division_id'            => $validated['division_id'] ?? null,
+            'sales_stage'            => $salesStage,
+            'win_probability'        => $prob,
+            'expected_closing_date'  => $closingDate,
+            'opportunity_source'     => $validated['opportunity_source'] ?? 'Direct Sales Prospecting',
+            'sales_name'             => $salesName,
+            'created_by'             => $user->id,
+            'sales_notes'            => $validated['sales_notes'] ?? null,
+            'status'                 => $status,
+            'stage'                  => $stage,
+            'progress'               => $progress,
+            'acquire_status'         => $status === 'Completed' ? 'Closed' : ($status === 'Draft' ? 'Draft' : 'Prospecting'),
+            'bdm_handover_status'    => 'Self-Sourced Sales',
+            'start_date'             => now(),
+            'deadline'               => $closingDate,
+            'customer_pic_technical' => $customerPicEmail,
+            'customer_pic_business'  => $customerPicPhone,
+            'customer_pic_finance'   => $customerPicEmail,
         ]);
 
-        // Auto add Client if not exists
-        if (!Client::where('name', $validated['client'])->exists()) {
+        // Auto add Client to database if not exists
+        if (!$clientRecord && !empty($validated['client'])) {
             Client::create([
-                'name'       => $validated['client'],
-                'created_by' => $user->id,
+                'name'        => $validated['client'],
+                'department'  => $clientDept,
+                'pic_name'    => $customerPicName,
+                'phone'       => $customerPicPhone,
+                'email'       => $customerPicEmail,
+                'created_by'  => $user->id,
             ]);
         }
 

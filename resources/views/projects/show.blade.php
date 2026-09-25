@@ -1025,28 +1025,53 @@
                         </div>
                     </div>
 
+                    @php
+                        $clientRecord = $project->clientRecord ?? \App\Models\Client::where('name', $project->client)
+                            ->orWhere('department', $project->client)
+                            ->orWhere('id', $project->client)
+                            ->first();
+
+                        $clientDisplayName = $clientRecord ? $clientRecord->name : ($project->client ?: '-');
+                        $clientDept = $clientRecord && $clientRecord->department ? $clientRecord->department : null;
+                        $clientEmail = $clientRecord && !empty($clientRecord->email) ? $clientRecord->email : ($project->customer_pic_finance ?: ($project->customer_pic_technical ?: '-'));
+                        $clientPicName = $clientRecord && !empty($clientRecord->pic_name) ? $clientRecord->pic_name : ($project->customer_pic_name ?: '-');
+                        $clientPhone = $clientRecord && !empty($clientRecord->phone) ? $clientRecord->phone : ($project->customer_pic_business ?: '-');
+                    @endphp
                     {{-- 2. INFORMASI KLIEN CARD --}}
                     <div class="ipnet-card p-6 space-y-4">
-                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                            <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
-                            Informasi Klien
-                        </h3>
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
+                                Informasi Klien
+                            </h3>
+                            @if($clientRecord)
+                                <a href="{{ route('clients.index') }}" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
+                                    <span>Database Klien</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                </a>
+                            @endif
+                        </div>
                         <div class="space-y-3 text-xs">
                             <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CLIENT NAME</span>
-                                <div class="font-bold text-slate-900 text-xs mt-0.5">{{ $project->client ?: '-' }}</div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CLIENT NAME / INSTANSI</span>
+                                <div class="font-bold text-slate-900 text-xs mt-0.5">
+                                    {{ $clientDisplayName }}
+                                    @if($clientDept)
+                                        <span class="text-slate-500 font-semibold text-[11px]">({{ $clientDept }})</span>
+                                    @endif
+                                </div>
                             </div>
                             <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CLIENT EMAIL</span>
-                                <div class="font-bold text-slate-900 text-xs mt-0.5 truncate">{{ $project->customer_pic_finance ?: ($project->customer_pic_technical ?: '-') }}</div>
+                                <div class="font-bold text-slate-900 text-xs mt-0.5 truncate">{{ $clientEmail }}</div>
                             </div>
                             <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PIC KLIEN</span>
-                                <div class="font-bold text-slate-900 text-xs mt-0.5">{{ $project->customer_pic_name ?? ($project->sales_name ?? '-') }}</div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PIC KLIEN (CUSTOMER)</span>
+                                <div class="font-bold text-slate-900 text-xs mt-0.5">{{ $clientPicName }}</div>
                             </div>
                             <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-200">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CONTACT PIC</span>
-                                <div class="font-bold text-slate-900 text-xs mt-0.5">{{ $project->customer_pic_business ?: '-' }}</div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">CONTACT / PHONE PIC</span>
+                                <div class="font-bold text-slate-900 text-xs mt-0.5">{{ $clientPhone }}</div>
                             </div>
                         </div>
                     </div>
