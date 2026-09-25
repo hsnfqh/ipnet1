@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Models\Task;
 use App\Http\Requests\ProjectRequest;
+use App\Helpers\FileUploadHelper;
 
 class ProjectController extends Controller
 {
@@ -191,7 +192,7 @@ class ProjectController extends Controller
             'po_spk_number'         => 'nullable|string|max:255',
             'po_spk_date'           => 'nullable|date',
             'contract_value'        => 'nullable|numeric|min:0',
-            'po_spk_file'           => \AppHelpers\FileUploadHelper::fileValidationRule(25600),
+            'po_spk_file'           => FileUploadHelper::fileValidationRule(25600),
             'billing_terms'         => 'nullable|string',
             'sla_commitment'        => 'nullable|string',
             'commercial_terms'      => 'nullable|string',
