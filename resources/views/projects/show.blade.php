@@ -693,7 +693,7 @@
                             </div>
                         @else
                             <div class="p-5 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center text-xs text-slate-400">
-                                Belum ada milestone yang dibuat. Klik <strong class="text-[#8F0A0D] font-semibold">Tambah Milestone</strong> untuk menyusun target proyek.
+                                Belum ada milestone yang dibuat.
                             </div>
                         @endif
                     </div>
@@ -792,7 +792,7 @@
                                 </div>
                             @else
                                 <div class="p-5 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center text-xs text-slate-400">
-                                    Belum ada berkas sales. Klik <strong class="text-[#8F0A0D] font-semibold">Upload Berkas Sales</strong> untuk mengunggah dokumen penawaran, BoQ, atau dokumen internal sales.
+                                    Belum ada berkas sales.
                                 </div>
                             @endif
                         </div>
@@ -866,7 +866,7 @@
                             </div>
                         @else
                             <div class="p-5 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center text-xs text-slate-400">
-                                Belum ada berkas lampiran. Klik <strong class="text-[#8F0A0D] font-semibold">Upload Berkas</strong> untuk mengunggah dokumen pendukung.
+                                Belum ada dokumen pendukung.
                             </div>
                         @endif
                     </div>
