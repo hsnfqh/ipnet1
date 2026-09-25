@@ -728,19 +728,15 @@
                     @endphp
 
                     @if($canAccessSalesDocs)
-                        <div class="ipnet-card p-6 space-y-4 border-l-4 border-l-[#8F0A0D]">
+                        <div class="ipnet-card p-6 space-y-4">
                             <div class="flex items-center justify-between flex-wrap gap-2">
                                 <div class="flex items-center gap-2.5">
                                     <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
                                         <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
                                         Berkas Sales
                                     </h3>
-                                    <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200">
+                                    <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
                                         {{ $salesDocs->count() }} Berkas
-                                    </span>
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200" title="Hanya dapat diakses oleh Sales terkait dan Pimpinan">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                        Confidential
                                     </span>
                                 </div>
                                 
@@ -758,7 +754,7 @@
                                     @foreach($salesDocs as $doc)
                                         <div class="p-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
                                             <div class="flex items-center gap-3 min-w-0">
-                                                <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0 border border-red-100">
+                                                <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                 </div>
                                                 <div class="min-w-0">
@@ -795,8 +791,8 @@
                                     @endforeach
                                 </div>
                             @else
-                                <div class="p-5 rounded-xl border border-dashed border-red-200 bg-red-50/30 text-center text-xs text-slate-500">
-                                    Belum ada berkas sales. Klik <strong class="text-[#8F0A0D] font-semibold">Upload Berkas Sales</strong> untuk mengunggah penawaran, BoQ, atau dokumen internal sales.
+                                <div class="p-5 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center text-xs text-slate-400">
+                                    Belum ada berkas sales. Klik <strong class="text-[#8F0A0D] font-semibold">Upload Berkas Sales</strong> untuk mengunggah dokumen penawaran, BoQ, atau dokumen internal sales.
                                 </div>
                             @endif
                         </div>
