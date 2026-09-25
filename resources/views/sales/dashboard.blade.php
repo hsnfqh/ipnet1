@@ -330,140 +330,40 @@
                 </div>
             </div>
 
-            {{-- ═══ ANALYTICS: CHART + PIPELINE ═══ --}}
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-
-                {{-- Chart --}}
-                <div class="lg:col-span-7 dash-card p-5">
-                    <div class="flex items-start justify-between mb-4 pb-4 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block"></span>
-                                Tren Nilai Project Bulanan
-                            </h2>
-                            <p class="text-xs text-slate-500 mt-0.5">Total perolehan project per bulan — {{ $selectedYear }}</p>
-                        </div>
-                        <div class="text-right shrink-0">
-                            <p class="text-xs font-semibold text-slate-400">Total YTD</p>
-                            <p class="text-sm font-black text-slate-900">{{ \App\Helpers\CurrencyHelper::formatCompact($totalProjectValue) }}</p>
-                        </div>
+            {{-- ═══ ANALYTICS: TREN NILAI PROJECT BULANAN (FULL WIDTH) ═══ --}}
+            <div class="dash-card p-5 lg:p-6">
+                <div class="flex items-start justify-between mb-4 pb-4 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D] inline-block"></span>
+                            Tren Nilai Project Bulanan
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Total perolehan project komersial per bulan — Tahun {{ $selectedYear }}</p>
                     </div>
-
-                    <div style="height: 230px; position: relative;">
-                        <canvas id="salesMonthlyChart"></canvas>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
-                        <div class="bg-slate-50 rounded-xl p-3 text-center">
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide" style="margin-bottom:4px;">Rata-rata/Bln</p>
-                            <p class="text-sm font-black text-slate-800">{{ \App\Helpers\CurrencyHelper::formatCompact($totalProjectValue / 12) }}</p>
-                        </div>
-                        <div class="bg-indigo-50 rounded-xl p-3 text-center">
-                            <p class="text-xs font-bold text-indigo-400 uppercase tracking-wide" style="margin-bottom:4px;">Weighted Pipeline</p>
-                            <p class="text-sm font-black text-indigo-700">{{ \App\Helpers\CurrencyHelper::formatCompact($totalWeightedForecast ?? 0) }}</p>
-                        </div>
-                        <div class="bg-emerald-50 rounded-xl p-3 text-center">
-                            <p class="text-xs font-bold text-emerald-500 uppercase tracking-wide" style="margin-bottom:4px;">Win Rate</p>
-                            <p class="text-sm font-black text-emerald-700">{{ $winRate ?? 0 }}%</p>
-                        </div>
+                    <div class="text-right shrink-0">
+                        <p class="text-xs font-semibold text-slate-400">Total YTD</p>
+                        <p class="text-base font-black text-slate-900">{{ \App\Helpers\CurrencyHelper::formatCompact($totalProjectValue) }}</p>
                     </div>
                 </div>
 
-                {{-- Pipeline Panel --}}
-                <div class="lg:col-span-5 dash-card p-5" style="display:flex; flex-direction:column;">
-                    <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
-                                Pipeline & Closing Horizon
-                            </h2>
-                            <p class="text-xs text-slate-500 mt-0.5">Status prospek & peluang closing</p>
-                        </div>
-                        <a href="{{ route('sales.pipeline.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline shrink-0">Lihat →</a>
-                    </div>
-
-                    <div style="display:flex; flex-direction:column; gap:10px; flex:1;">
-                        {{-- Weighted --}}
-                        <div class="metric-tile">
-                            <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-                                <div class="icon-box bg-indigo-50 border-indigo-100 shrink-0">
-                                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/>
-                                    </svg>
-                                </div>
-                                <div style="min-width:0;">
-                                    <p class="text-xs font-bold text-slate-600 uppercase tracking-wide">Weighted Forecast</p>
-                                    <p class="text-xs text-slate-400 mt-0.5">Estimasi nilai × probabilitas</p>
-                                </div>
-                            </div>
-                            <div style="text-align:right; flex-shrink:0;">
-                                <p class="text-sm font-black text-indigo-700" title="{{ \App\Helpers\CurrencyHelper::formatRupiah($totalWeightedForecast ?? 0) }}">
-                                    {{ \App\Helpers\CurrencyHelper::formatCompact($totalWeightedForecast ?? 0) }}
-                                </p>
-                                <p class="text-xs text-slate-400 font-semibold">{{ $totalPipelineCount ?? $totalOppCount }} deals</p>
-                            </div>
-                        </div>
-
-                        {{-- Negosiasi --}}
-                        <div class="metric-tile">
-                            <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-                                <div class="icon-box bg-amber-50 border-amber-100 shrink-0">
-                                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12"/>
-                                    </svg>
-                                </div>
-                                <div style="min-width:0;">
-                                    <p class="text-xs font-bold text-slate-600 uppercase tracking-wide">Negosiasi / SPK</p>
-                                    <p class="text-xs text-slate-400 mt-0.5">Closing dalam waktu dekat</p>
-                                </div>
-                            </div>
-                            <div style="text-align:right; flex-shrink:0;">
-                                <p class="text-sm font-black text-amber-700" title="{{ \App\Helpers\CurrencyHelper::formatRupiah($totalNegotiationValue ?? 0) }}">
-                                    {{ \App\Helpers\CurrencyHelper::formatCompact($totalNegotiationValue ?? 0) }}
-                                </p>
-                                <p class="text-xs text-slate-400 font-semibold">{{ $totalNegotiationCount ?? 0 }} prospek</p>
-                            </div>
-                        </div>
-
-                        {{-- Handover --}}
-                        <div class="metric-tile">
-                            <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-                                <div class="icon-box bg-red-50 border-red-100 shrink-0">
-                                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 7.5h-.75A2.25 2.25 0 004.5 9.75v7.5a2.25 2.25 0 002.25 2.25h7.5a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75m0-3l-3-3m0 0l-3 3m3-3v11.25m6-2.25h.75a2.25 2.25 0 012.25 2.25v7.5a2.25 2.25 0 01-2.25 2.25h-7.5a2.25 2.25 0 01-2.25-2.25v-.75"/>
-                                    </svg>
-                                </div>
-                                <div style="min-width:0;">
-                                    <p class="text-xs font-bold text-slate-600 uppercase tracking-wide">Commercial Handover</p>
-                                    <p class="text-xs text-slate-400 mt-0.5">Siap serahkan ke Delivery</p>
-                                </div>
-                            </div>
-                            <div style="text-align:right; flex-shrink:0;">
-                                <p class="text-sm font-black text-slate-800">{{ $pendingHandoverCount ?? 0 }} Draft</p>
-                                <a href="{{ route('sales.handover.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">Kelola →</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Win Rate --}}
-                    <div style="margin-top:16px; padding-top:14px; border-top:1px solid #F1F5F9;">
-                        <div style="display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:8px;">
-                            <span style="color:#475569; display:flex; align-items:center; gap:6px;">
-                                <span style="width:6px; height:6px; border-radius:50%; background:#10B981; display:inline-block;"></span>
-                                Win Rate Conversion
-                            </span>
-                            <span style="color:#059669;">{{ $winRate ?? 0 }}%</span>
-                        </div>
-                        <div style="width:100%; background:#F1F5F9; border-radius:999px; overflow:hidden; height:8px;">
-                            <div style="height:100%; background:#10B981; border-radius:999px; transition:width .7s ease; width:{{ min(100, max(0, $winRate ?? 0)) }}%;"></div>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; font-size:11px; color:#94A3B8; font-weight:500; margin-top:6px;">
-                            <span>Won: <strong style="color:#334155;">{{ $totalWonCount ?? 0 }}</strong></span>
-                            <span>Lost: <strong style="color:#334155;">{{ $totalLostCount ?? 0 }}</strong></span>
-                        </div>
-                    </div>
+                <div style="height: 270px; position: relative;">
+                    <canvas id="salesMonthlyChart"></canvas>
                 </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
+                    <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wide" style="margin-bottom:4px;">Rata-rata / Bulan</p>
+                        <p class="text-sm font-black text-slate-800">{{ \App\Helpers\CurrencyHelper::formatCompact($totalProjectValue / 12) }}</p>
+                    </div>
+                    <div class="bg-indigo-50/70 rounded-xl p-3 text-center border border-indigo-100/60">
+                        <p class="text-xs font-bold text-indigo-400 uppercase tracking-wide" style="margin-bottom:4px;">Weighted Pipeline</p>
+                        <p class="text-sm font-black text-indigo-700">{{ \App\Helpers\CurrencyHelper::formatCompact($totalWeightedForecast ?? 0) }}</p>
+                    </div>
+                    <div class="bg-emerald-50/70 rounded-xl p-3 text-center border border-emerald-100/60">
+                        <p class="text-xs font-bold text-emerald-500 uppercase tracking-wide" style="margin-bottom:4px;">Win Rate</p>
+                        <p class="text-sm font-black text-emerald-700">{{ $winRate ?? 0 }}%</p>
+                    </div>
+                </div>
             </div>
 
             {{-- ═══ PROJECT TABLE ═══ --}}
