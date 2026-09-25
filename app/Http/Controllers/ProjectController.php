@@ -183,12 +183,25 @@ class ProjectController extends Controller
     public function assignTeam(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'role_type'       => 'required|in:pm,engineer',
-            'user_id'         => 'required|exists:users,id',
-            'task_title'      => 'nullable|string|max:255',
-            'deadline'        => 'nullable|date',
-            'handover_target' => 'nullable|string|in:pmo,managed_service',
-            'sla_tier'        => 'nullable|string|max:50',
+            'role_type'             => 'required|in:pm,engineer',
+            'user_id'               => 'required|exists:users,id',
+            'task_title'            => 'nullable|string|max:255',
+            'deadline'              => 'nullable|date',
+            'handover_target'       => 'nullable|string|in:pmo,managed_service',
+            'po_spk_number'         => 'nullable|string|max:255',
+            'po_spk_date'           => 'nullable|date',
+            'contract_value'        => 'nullable|numeric|min:0',
+            'po_spk_file'           => \AppHelpers\FileUploadHelper::fileValidationRule(25600),
+            'billing_terms'         => 'nullable|string',
+            'sla_commitment'        => 'nullable|string',
+            'commercial_terms'      => 'nullable|string',
+            'special_commitment'    => 'nullable|string',
+            'exclusions'            => 'nullable|string',
+            'sla_tier'              => 'nullable|string|max:50',
+            'sla_coverage_hours'    => 'nullable|string|max:100',
+            'maintenance_frequency' => 'nullable|string|max:100',
+            'service_start_date'    => 'nullable|date',
+            'service_end_date'      => 'nullable|date',
         ]);
 
         $user = User::findOrFail($validated['user_id']);
@@ -200,10 +213,76 @@ class ProjectController extends Controller
                 'handover_target' => $target,
             ];
 
+            if ($request->filled('po_spk_number')) {
+                $updateFields['po_spk_number'] = $request->input('po_spk_number');
+            }
+            if ($request->filled('po_spk_date')) {
+                $updateFields['po_spk_date'] = $request->input('po_spk_date');
+            }
+            if ($request->filled('contract_value')) {
+                $updateFields['contract_value'] = $request->input('contract_value');
+            }
+            if ($request->filled('billing_terms')) {
+                $updateFields['billing_terms'] = $request->input('billing_terms');
+            }
+            if ($request->filled('commercial_terms')) {
+                $updateFields['commercial_terms'] = $request->input('commercial_terms');
+            }
+            if ($request->filled('sla_commitment')) {
+                $updateFields['sla_commitment'] = $request->input('sla_commitment');
+            }
+            if ($request->filled('special_commitment')) {
+                $updateFields['special_commitment'] = $request->input('special_commitment');
+            }
+            if ($request->filled('exclusions')) {
+                $updateFields['exclusions'] = $request->input('exclusions');
+            }
+
+            if ($request->hasFile('po_spk_file')) {
+                $uploadedPo = $request->file('po_spk_file');
+                $poFilePath = \App\Helpers\FileUploadHelper::storePublicly($uploadedPo, 'commercial_contracts');
+                $updateFields['po_spk_file'] = $poFilePath;
+
+                if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+                    \App\Models\ProjectDocument::updateOrCreate(
+                        [
+                            'project_id'   => $project->id,
+                            'stage_number' => 1,
+                            'document_key' => 'contract_po_so',
+                        ],
+                        [
+                            'stage_name'     => 'Commercial',
+                            'document_title' => 'Contract / PO / SO (Signed)',
+                            'file_path'      => $poFilePath,
+                            'file_name'      => $uploadedPo->getClientOriginalName(),
+                            'file_size'      => $uploadedPo->getSize(),
+                            'file_mime'      => $uploadedPo->getClientMimeType(),
+                            'status'         => 'Uploaded',
+                            'uploaded_by'    => auth()->id(),
+                            'version'        => 1,
+                            'is_mandatory'   => true,
+                            'notes'          => 'PO/SPK No: ' . ($request->input('po_spk_number') ?: $project->po_spk_number),
+                        ]
+                    );
+                }
+            }
+
             if ($target === 'managed_service') {
                 $updateFields['stage'] = 'Operate';
-                if (!empty($validated['sla_tier'])) {
-                    $updateFields['sla_tier'] = $validated['sla_tier'];
+                if ($request->filled('sla_tier')) {
+                    $updateFields['sla_tier'] = $request->input('sla_tier');
+                }
+                if ($request->filled('sla_coverage_hours')) {
+                    $updateFields['sla_coverage_hours'] = $request->input('sla_coverage_hours');
+                }
+                if ($request->filled('maintenance_frequency')) {
+                    $updateFields['maintenance_frequency'] = $request->input('maintenance_frequency');
+                }
+                if ($request->filled('service_start_date')) {
+                    $updateFields['service_start_date'] = $request->input('service_start_date');
+                }
+                if ($request->filled('service_end_date')) {
+                    $updateFields['service_end_date'] = $request->input('service_end_date');
                 }
             } else {
                 $updateFields['stage'] = 'Deliver';
@@ -212,6 +291,10 @@ class ProjectController extends Controller
             if (in_array($project->status, ['Draft', 'Planning', 'Opportunity'])) {
                 $updateFields['status'] = 'In Progress';
             }
+
+            $updateFields['commercial_handover_status'] = 'Approved';
+            $updateFields['commercial_handover_at'] = now();
+            $updateFields['commercial_handover_by'] = auth()->id();
 
             $project->update($updateFields);
 
@@ -227,8 +310,8 @@ class ProjectController extends Controller
             }
 
             $msg = $target === 'managed_service' 
-                ? "User '{$user->name}' berhasil ditugaskan sebagai Lead Managed Service!" 
-                : "User '{$user->name}' berhasil ditugaskan sebagai Project Manager (PMO)!";
+                ? "Serah terima berhasil & User '{$user->name}' ditugaskan sebagai Lead Managed Service!" 
+                : "Serah terima berhasil & User '{$user->name}' ditugaskan sebagai Project Manager (PMO)!";
         } else {
             $taskTitle = $validated['task_title'] ?: ('Implementasi Teknis: ' . $project->name);
             $task = Task::create([

@@ -983,91 +983,266 @@
     {{-- MODALS: CENTERED & CLEAN                                --}}
     {{-- ======================================================== --}}
 
-    {{-- 1. ASSIGN / HANDOVER TO PMO OR MANAGED SERVICE MODAL --}}
+    {{-- 1. FORMULIR SERAH TERIMA PROYEK & PENUGASAN MODAL --}}
     <div id="modal-handover" x-show="isHandoverModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
         <div @click.away="isHandoverModalOpen = false; window.closeModal('modal-handover')" 
-             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+             class="relative bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-5 m-auto max-h-[90vh] overflow-y-auto">
             
-            <div class="flex items-center justify-between border-b pb-3">
+            {{-- Header --}}
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900">Pilih Kategori Proyek &amp; Penugasan</h3>
-                    <p class="text-[11.5px] text-slate-500 mt-0.5">Tentukan jalur proyek: Implementasi ke PMO atau Managed Service ke Maintenance</p>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900">Serah Terima &amp; Alokasi Kategori Proyek</h3>
+                    <p class="text-[12px] text-slate-500 mt-0.5">Penetapan legalitas kontrak PO, pemilihan alur (PMO vs Managed Service) &amp; penugasan tim pelaksana.</p>
                 </div>
-                <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="text-slate-400 hover:text-slate-700 text-xl font-bold p-1 cursor-pointer">✕</button>
             </div>
 
-            <form action="{{ route('projects.assign', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+            <form action="{{ route('projects.assign', $project->id) }}" method="POST" enctype="multipart/form-data" class="space-y-5 text-xs font-semibold">
                 @csrf
                 <input type="hidden" name="role_type" value="pm">
 
-                {{-- Pilihan Target Handover (PMO vs Managed Service) --}}
-                <div>
-                    <label class="block text-slate-700 mb-2 uppercase tracking-wider text-[10.5px]">PILIH KATEGORI PROYEK</label>
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <label :class="handoverTargetType === 'pmo' ? 'border-[#8F0A0D] bg-red-50/60 text-[#8F0A0D] shadow-xs' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
-                               class="p-3 rounded-xl border-2 flex flex-col gap-1 cursor-pointer transition">
-                            <div class="flex items-center gap-2">
-                                <input type="radio" name="handover_target" value="pmo" x-model="handoverTargetType" class="text-[#8F0A0D] focus:ring-[#8F0A0D] cursor-pointer">
-                                <span class="font-bold text-xs">Implementasi (PMO)</span>
+                {{-- 1. PILIHAN KARAKTERISTIK & TARGET SERAH TERIMA --}}
+                <div class="space-y-2">
+                    <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
+                        1. Pilih Karakteristik &amp; Target Serah Terima <span class="text-[#8F0A0D]">*</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {{-- Option 1: PMO Implementasi --}}
+                        <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition"
+                               :class="handoverTargetType === 'pmo' ? 'border-[#8F0A0D] bg-red-50/30 text-gray-900 shadow-xs' : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-white'">
+                            <input type="radio" name="handover_target" value="pmo" x-model="handoverTargetType" class="mt-0.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                            <div>
+                                <div class="font-bold text-xs flex items-center gap-1.5">
+                                    <span>Proyek Implementasi</span>
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-bold">PMO Delivery</span>
+                                </div>
+                                <p class="text-[11px] text-gray-500 mt-1 leading-snug font-normal">
+                                    Capex / Deployment: Pengadaan perangkat, instalasi kabel/rack, konfigurasi, migrasi, UAT, dan BAST 1.
+                                </p>
                             </div>
-                            <span class="text-[10px] text-slate-500 font-normal">Delivery &amp; Deployment Proyek</span>
                         </label>
 
-                        <label :class="handoverTargetType === 'managed_service' ? 'border-purple-600 bg-purple-50/60 text-purple-900 shadow-xs' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'"
-                                class="p-3 rounded-xl border-2 flex flex-col gap-1 cursor-pointer transition">
-                            <div class="flex items-center gap-2">
-                                <input type="radio" name="handover_target" value="managed_service" x-model="handoverTargetType" class="text-purple-600 focus:ring-purple-500 cursor-pointer">
-                                <span class="font-bold text-xs">Managed Service</span>
+                        {{-- Option 2: Managed Service --}}
+                        <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition"
+                               :class="handoverTargetType === 'managed_service' ? 'border-[#8F0A0D] bg-red-50/30 text-gray-900 shadow-xs' : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-white'">
+                            <input type="radio" name="handover_target" value="managed_service" x-model="handoverTargetType" class="mt-0.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                            <div>
+                                <div class="font-bold text-xs flex items-center gap-1.5">
+                                    <span>Kontrak Managed Service</span>
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-bold">Operate MS</span>
+                                </div>
+                                <p class="text-[11px] text-gray-500 mt-1 leading-snug font-normal">
+                                    Opex / Retainer: Pemeliharaan rutin, monitoring, Preventive Maintenance berkala, SLA Uptime, &amp; On-Call Support.
+                                </p>
                             </div>
-                            <span class="text-[10px] text-slate-500 font-normal">Maintenance, Helpdesk &amp; SLA</span>
                         </label>
                     </div>
                 </div>
 
-                {{-- User Selection --}}
-                <div>
-                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]" 
-                           x-text="handoverTargetType === 'managed_service' ? 'PILIH LEAD MAINTENANCE / MANAGED SERVICE' : 'PILIH PROJECT MANAGER (PMO)'"></label>
-                    <select name="user_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-white font-bold">
-                        <option value="">-- Pilih Penanggung Jawab --</option>
-                        @foreach($pmoUsers as $pmo)
-                            <option value="{{ $pmo->id }}" {{ ($project->pm_id == $pmo->id || (empty($project->pm_id) && str_contains(strtolower($pmo->name), 'rizki'))) ? 'selected' : '' }}>
-                                (Lead) {{ $pmo->name }}
-                            </option>
-                        @endforeach
-                        @php
-                            $otherUsers = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $pmoUsers->pluck('id'));
-                        @endphp
-                        @foreach($otherUsers as $ou)
+                {{-- 2. LEGALITAS KONTRAK & FINANSIAL --}}
+                <div class="pt-3 border-t border-gray-100 space-y-3">
+                    <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
+                        2. Legalitas Kontrak &amp; Finansial
+                    </label>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
+                                Nomor PO / SPK / Kontrak <span class="text-[#8F0A0D]">*</span>
+                            </label>
+                            <input type="text" name="po_spk_number" value="{{ $project->po_spk_number }}" placeholder="Contoh: PO-CLI/2026/09/001" required
+                                   class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
+                                Tanggal PO / SPK <span class="text-[#8F0A0D]">*</span>
+                            </label>
+                            <input type="date" name="po_spk_date" value="{{ $project->po_spk_date ? \Carbon\Carbon::parse($project->po_spk_date)->format('Y-m-d') : date('Y-m-d') }}" required
+                                   class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
+                                Nilai Final Kontrak (Rp) <span class="text-[#8F0A0D]">*</span>
+                            </label>
+                            <input type="number" name="contract_value" value="{{ $project->contract_value ?: '' }}" min="0" step="1000" placeholder="Contoh: 50000000" required
+                                   class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
+                                Upload PO / Kontrak (PDF/ZIP)
+                            </label>
+                            <input type="file" name="po_spk_file" accept=".pdf,.docx,.xlsx,.zip,.rar"
+                                   class="w-full px-3 py-1.5 bg-white border border-[#CBD5E1] rounded-xl text-[11px] text-[#64748B] file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-[#8F0A0D] file:text-white hover:file:bg-[#73080A] cursor-pointer">
+                            @if(!empty($project->po_spk_file))
+                                <div class="text-[10px] text-emerald-600 mt-1 font-semibold">✓ Berkas PO tersimpan di sistem</div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
+                            Billing Terms (Termin &amp; Skema Pembayaran) <span class="text-[#8F0A0D]">*</span>
+                        </label>
+                        <textarea name="billing_terms" rows="2" placeholder="Contoh: DP 30% setelah PO terbit, 50% setelah delivery barang on-site, 20% pelunasan setelah BAST selesai." required
+                                  class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none">{{ $project->billing_terms }}</textarea>
+                    </div>
+                </div>
+
+                {{-- 3. PENUGASAN & KOMITMEN SCOPE PROYEK --}}
+                <div class="pt-3 border-t border-gray-100 space-y-3.5">
+                    <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
+                        3. Penugasan &amp; Komitmen Layanan
+                    </label>
+
+                    {{-- User Selection --}}
+                    <div>
+                        <label class="block font-semibold text-[#64748B] text-[11px] mb-1" 
+                               x-text="handoverTargetType === 'managed_service' ? 'PILIH LEAD MAINTENANCE / MANAGED SERVICE *' : 'PILIH PROJECT MANAGER (PMO) *'"></label>
+                        <select name="user_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer bg-white font-bold">
+                            <option value="">-- Pilih Penanggung Jawab --</option>
+                            @foreach($pmoUsers as $pmo)
+                                <option value="{{ $pmo->id }}" {{ ($project->pm_id == $pmo->id || (empty($project->pm_id) && str_contains(strtolower($pmo->name), 'rizki'))) ? 'selected' : '' }}>
+                                    (Lead) {{ $pmo->name }}
+                                </option>
+                            @endforeach
                             @php
-                                $prefix = $ou->hasAnyRole(['Director', 'Direktur', 'Division Head']) ? '(Head)' : ($ou->hasAnyRole(['Sales']) ? '(Sales)' : '(Engineer)');
+                                $otherUsers = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $pmoUsers->pluck('id'));
                             @endphp
-                            <option value="{{ $ou->id }}" {{ $project->pm_id == $ou->id ? 'selected' : '' }}>
-                                {{ $prefix }} {{ $ou->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                            @foreach($otherUsers as $ou)
+                                @php
+                                    $prefix = $ou->hasAnyRole(['Director', 'Direktur', 'Division Head']) ? '(Head)' : ($ou->hasAnyRole(['Sales']) ? '(Sales)' : '(Engineer)');
+                                @endphp
+                                <option value="{{ $ou->id }}" {{ $project->pm_id == $ou->id ? 'selected' : '' }}>
+                                    {{ $prefix }} {{ $ou->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Khusus Managed Service Parameter --}}
+                    <div x-show="handoverTargetType === 'managed_service'" x-cloak class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3.5">
+                        <div class="flex items-center gap-2 text-gray-800 font-bold text-xs uppercase tracking-wider">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                            <span>Parameter Khusus Layanan Managed Service &amp; SLA</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div>
+                                <label class="block font-semibold text-gray-700 text-[11px] mb-1">
+                                    SLA Tier <span class="text-[#8F0A0D]">*</span>
+                                </label>
+                                <select name="sla_tier"
+                                        class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-gray-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
+                                    <option value="Platinum" {{ ($project->sla_tier ?? '') === 'Platinum' ? 'selected' : '' }}>Platinum (24x7 MTTR 2 Jam, Uptime 99.9%)</option>
+                                    <option value="Gold" {{ ($project->sla_tier ?: 'Gold') === 'Gold' ? 'selected' : '' }}>Gold (8x5 MTTR 4 Jam, Uptime 99.5%)</option>
+                                    <option value="Silver" {{ ($project->sla_tier ?? '') === 'Silver' ? 'selected' : '' }}>Silver (8x5 Next Business Day, Uptime 99.0%)</option>
+                                    <option value="Bronze" {{ ($project->sla_tier ?? '') === 'Bronze' ? 'selected' : '' }}>Bronze (Best Effort On-Call Support)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold text-gray-700 text-[11px] mb-1">
+                                    Coverage Support Hours
+                                </label>
+                                <select name="sla_coverage_hours"
+                                        class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-gray-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
+                                    <option value="24x7">24x7 (24 Jam 7 Hari - Termasuk Hari Libur)</option>
+                                    <option value="8x5">8x5 (Jam Kerja Senin - Jumat 08:00 - 17:00)</option>
+                                    <option value="12x7">12x7 (08:00 - 20:00 Setiap Hari)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                            <div>
+                                <label class="block font-semibold text-gray-700 text-[11px] mb-1">
+                                    Frekuensi Preventive Maint.
+                                </label>
+                                <select name="maintenance_frequency"
+                                        class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-gray-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
+                                    <option value="Monthly">Bulanan (Monthly Routine)</option>
+                                    <option value="Quarterly">Triwulanan (Quarterly - 3 Bulan)</option>
+                                    <option value="Bi-Annual">Semesteran (Bi-Annual - 6 Bulan)</option>
+                                    <option value="Annual">Tahunan (Annual)</option>
+                                    <option value="On-Demand">On-Demand / Incident Based</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold text-gray-700 text-[11px] mb-1">
+                                    Tanggal Mulai Layanan
+                                </label>
+                                <input type="date" name="service_start_date" value="{{ $project->service_start_date ? \Carbon\Carbon::parse($project->service_start_date)->format('Y-m-d') : '' }}"
+                                       class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold text-gray-700 text-[11px] mb-1">
+                                    Tanggal Akhir Kontrak
+                                </label>
+                                <input type="date" name="service_end_date" value="{{ $project->service_end_date ? \Carbon\Carbon::parse($project->service_end_date)->format('Y-m-d') : '' }}"
+                                       class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- SLA & Terms --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
+                                SLA &amp; Garansi Komitmen
+                            </label>
+                            <input type="text" name="sla_commitment" value="{{ $project->sla_commitment }}" placeholder="Contoh: SLA Garansi Resmi Prinsipal 1 Tahun, Support Jam Kerja"
+                                   class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
+                                Commercial Terms
+                            </label>
+                            <input type="text" name="commercial_terms" value="{{ $project->commercial_terms }}" placeholder="Franco Jakarta, TOP 30 Hari"
+                                   class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
+                                Komitmen Khusus dari Sales
+                            </label>
+                            <textarea name="special_commitment" rows="2" placeholder="Termasuk pendampingan User Acceptance Testing (UAT) dan transfer knowledge..."
+                                      class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none">{{ $project->special_commitment }}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
+                                Exclusions (Batasan di Luar Scope)
+                            </label>
+                            <textarea name="exclusions" rows="2" placeholder="Pengadaan kabel, rack, atau perangkat tambahan di luar BoQ dikenakan PO terpisah..."
+                                      class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none">{{ $project->exclusions }}</textarea>
+                        </div>
+                    </div>
                 </div>
 
-                {{-- SLA Tier for Managed Service --}}
-                <div x-show="handoverTargetType === 'managed_service'" x-cloak>
-                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">SLA TIER KONTRAK</label>
-                    <select name="sla_tier" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 cursor-pointer bg-white font-bold">
-                        <option value="Gold" {{ ($project->sla_tier ?: 'Gold') === 'Gold' ? 'selected' : '' }}>Gold (SLA 99.5% - Response 15-30 Menit)</option>
-                        <option value="Platinum" {{ ($project->sla_tier ?? '') === 'Platinum' ? 'selected' : '' }}>Platinum (SLA 99.9% - Response 15 Menit 24x7)</option>
-                        <option value="Silver" {{ ($project->sla_tier ?? '') === 'Silver' ? 'selected' : '' }}>Silver (SLA 99.0% - Response 1-2 Jam 8x5)</option>
-                        <option value="Bronze" {{ ($project->sla_tier ?? '') === 'Bronze' ? 'selected' : '' }}>Bronze (SLA 98.0% - Best Effort)</option>
-                    </select>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                        Batal
-                    </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                        Simpan Kategori &amp; Penugasan
-                    </button>
+                {{-- Submit Buttons --}}
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                    <span class="text-[11px] text-slate-500 font-medium">
+                        Target: <strong class="text-slate-800" x-text="handoverTargetType === 'managed_service' ? 'Tim Managed Service (Operate)' : 'Tim PMO & Delivery (Deliver)'"></strong>
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition shadow-sm">
+                            Simpan &amp; Serah Terimakan Proyek
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
