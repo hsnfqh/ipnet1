@@ -241,7 +241,10 @@ class ProjectController extends Controller
 
             if ($request->hasFile('po_spk_file')) {
                 $uploadedPo = $request->file('po_spk_file');
-                $poFilePath = \App\Helpers\FileUploadHelper::storePublicly($uploadedPo, 'commercial_contracts');
+                $poFileName = $uploadedPo->getClientOriginalName();
+                $poFileSize = $uploadedPo->getSize();
+                $poFileMime = $uploadedPo->getClientMimeType();
+                $poFilePath = FileUploadHelper::storePublicly($uploadedPo, 'commercial_contracts');
                 $updateFields['po_spk_file'] = $poFilePath;
 
                 if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
@@ -255,9 +258,9 @@ class ProjectController extends Controller
                             'stage_name'     => 'Commercial',
                             'document_title' => 'Contract / PO / SO (Signed)',
                             'file_path'      => $poFilePath,
-                            'file_name'      => $uploadedPo->getClientOriginalName(),
-                            'file_size'      => $uploadedPo->getSize(),
-                            'file_mime'      => $uploadedPo->getClientMimeType(),
+                            'file_name'      => $poFileName,
+                            'file_size'      => $poFileSize ?: 0,
+                            'file_mime'      => $poFileMime ?: 'application/octet-stream',
                             'status'         => 'Uploaded',
                             'uploaded_by'    => auth()->id(),
                             'version'        => 1,

@@ -579,6 +579,9 @@ class SalesCrmController extends Controller
         $poFilePath = $project->po_spk_file;
         if ($request->hasFile('po_spk_file')) {
             $uploadedPo = $request->file('po_spk_file');
+            $poFileName = $uploadedPo->getClientOriginalName();
+            $poFileSize = $uploadedPo->getSize();
+            $poFileMime = $uploadedPo->getClientMimeType();
             $poFilePath = FileUploadHelper::storePublicly($uploadedPo, 'commercial_contracts');
             
             // Record to project_documents table (Stage 1: Signed Contract / PO)
@@ -592,9 +595,9 @@ class SalesCrmController extends Controller
                     'stage_name'     => 'Commercial',
                     'document_title' => 'Contract / PO / SO (Signed)',
                     'file_path'      => $poFilePath,
-                    'file_name'      => $uploadedPo->getClientOriginalName(),
-                    'file_size'      => $uploadedPo->getSize(),
-                    'file_mime'      => $uploadedPo->getClientMimeType(),
+                    'file_name'      => $poFileName,
+                    'file_size'      => $poFileSize ?: 0,
+                    'file_mime'      => $poFileMime ?: 'application/octet-stream',
                     'status'         => 'Uploaded',
                     'uploaded_by'    => auth()->id(),
                     'version'        => 1,
