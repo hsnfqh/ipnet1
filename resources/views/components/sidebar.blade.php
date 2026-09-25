@@ -134,7 +134,6 @@
             ['key' => 'projects',   'label' => 'Project',             'route' => 'sales.pipeline.index'],
             ['key' => 'inventory',  'label' => 'Inventory',           'route' => 'inventory.index'],
             ['key' => 'vendors',    'label' => 'Vendor',              'route' => 'vendors.index'],
-            ['key' => 'handover',   'label' => 'Serah Terima Proyek',  'route' => 'sales.handover.index'],
             ['key' => 'schedules',  'label' => 'Jadwal Kerja',        'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',            'route' => 'timesheets.index'],
         ];

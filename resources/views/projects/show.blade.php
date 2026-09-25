@@ -991,7 +991,7 @@
             
             <div class="flex items-center justify-between border-b pb-3">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900">Pilih Kategori Proyek &amp; Serah Terima</h3>
+                    <h3 class="text-base font-bold text-slate-900">Pilih Kategori Proyek &amp; Penugasan</h3>
                     <p class="text-[11.5px] text-slate-500 mt-0.5">Tentukan jalur proyek: Implementasi ke PMO atau Managed Service ke Maintenance</p>
                 </div>
                 <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>

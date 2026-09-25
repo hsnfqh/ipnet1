@@ -271,6 +271,76 @@
                 </form>
             </div>
 
+            {{-- 3 SUMMARY METRIC CARDS (TOTAL KONTRAK CLOSED DEAL, PMO DELIVERY, MANAGED SERVICE) --}}
+            @php
+                $closedDeals = $allProjects->filter(function($p) {
+                    return in_array($p->status, ['In Progress', 'Completed']) || !empty($p->po_spk_number) || $p->stage === 'Won';
+                });
+                $totalClosedCount = $closedDeals->count();
+                $pmoTargetCount = $closedDeals->where('handover_target', '!=', 'managed_service')->count();
+                $msTargetCount = $closedDeals->where('handover_target', 'managed_service')->count();
+                if ($totalClosedCount === 0 && $allProjects->count() > 0) {
+                    $totalClosedCount = $allProjects->whereIn('status', ['Opportunity', 'In Progress', 'Completed'])->count();
+                    $pmoTargetCount = $allProjects->where('handover_target', '!=', 'managed_service')->count();
+                    $msTargetCount = $allProjects->where('handover_target', 'managed_service')->count();
+                }
+            @endphp
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 anim-fade-up anim-delay-1">
+                {{-- Card 1: Total Kontrak Closed Deal --}}
+                <div class="ipnet-metric-card flex flex-col justify-between space-y-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#E2E8F0] shadow-xs hover:border-slate-300 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Total Kontrak Closed Deal</span>
+                        <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-100 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+                            {{ $totalClosedCount }} <span class="text-xs font-semibold text-gray-400">Kontrak PO</span>
+                        </div>
+                        <p class="text-[11.5px] text-gray-500 font-medium mt-1">Siap diserahterimakan ke tim teknis</p>
+                    </div>
+                </div>
+
+                {{-- Card 2: PMO Delivery (Tipe 1) --}}
+                <div class="ipnet-metric-card flex flex-col justify-between space-y-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#E2E8F0] shadow-xs hover:border-slate-300 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">PMO Delivery (Tipe 1)</span>
+                        <div class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+                            {{ $pmoTargetCount }} <span class="text-xs font-semibold text-gray-400">Proyek Implementasi</span>
+                        </div>
+                        <p class="text-[11.5px] text-gray-500 font-medium mt-1">Tahap Deliver &bull; Instalasi &amp; UAT</p>
+                    </div>
+                </div>
+
+                {{-- Card 3: Managed Service (Tipe 2) --}}
+                <div class="ipnet-metric-card flex flex-col justify-between space-y-3 bg-white p-4 sm:p-5 rounded-2xl border border-[#E2E8F0] shadow-xs hover:border-slate-300 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Managed Service (Tipe 2)</span>
+                        <div class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+                            {{ $msTargetCount }} <span class="text-xs font-semibold text-gray-400">Kontrak Layanan</span>
+                        </div>
+                        <p class="text-[11.5px] text-gray-500 font-medium mt-1">Tahap Operate &bull; Monitoring &amp; SLA</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- ========================================================== -->
             <!-- 2. KANBAN BOARD VIEW (COHESIVE & CLEAN)                     -->
             <!-- ========================================================== -->
