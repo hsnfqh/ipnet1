@@ -33,13 +33,42 @@ class ScheduleController extends Controller
         $scopeIds     = $isExecutive ? null : ScopeHelper::getScopeUserIds($user);
         $hasScheduleUser = Schema::hasTable('schedule_user');
 
-        $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
-        $salesUsers = User::where(function($q) use ($validSalesNames) {
-            $q->whereIn('name', $validSalesNames)
-              ->orWhere('name', 'like', '%Raiza%')
-              ->orWhere('name', 'like', '%Nabylla%');
-        })->get();
-        $salesUserIds = $salesUsers->pluck('id')->toArray();
+        $commercialRoles = [
+            'Presales', 'Pre-Sales',
+            'Sales', 'Account Manager',
+            'BDM', 'BusDev', 'Business Development',
+            'PMO', 'Project Manager',
+            'Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop',
+            'CRO', 'Customer Relation Officer'
+        ];
+
+        $validSalesNames = [
+            'Raiza', 'Nabylla Berlianita', 'Akbar', 'Aris', 'Kurnijanto Edy',
+            'Novan Pudjirachmanto', 'M. Kipsriyanto', 'Armen Yuldi', 'Hasan'
+        ];
+
+        $executiveTeamUsers = User::where(function($q) use ($commercialRoles) {
+            $q->whereHas('roles', fn($r) => $r->whereIn('name', $commercialRoles))
+              ->orWhereIn('name', ['Raiza', 'Nabylla Berlianita', 'Akbar', 'Aris', 'Kurnijanto Edy', 'Novan Pudjirachmanto', 'M. Kipsriyanto', 'Armen Yuldi', 'Hasan'])
+              ->orWhere('position', 'like', '%Sales%')
+              ->orWhere('position', 'like', '%Presales%')
+              ->orWhere('position', 'like', '%Business Development%')
+              ->orWhere('position', 'like', '%BDM%')
+              ->orWhere('position', 'like', '%PMO%')
+              ->orWhere('position', 'like', '%Project Manager%')
+              ->orWhere('position', 'like', '%Solution Architect%');
+        })
+        ->whereDoesntHave('roles', function($r) {
+            $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Field Support']);
+        })
+        ->whereNotIn('name', [
+            'Eka Kurnia', 'Ardiansyah', 'Dafa Rizqullah', 'Rorik', 'Helmi Shiamsyah', 'Doris', 'Mario', 'Eris',
+            'Ignatius Rizky', 'Syaiful Amin', 'Raihan Ghiffary', 'Panca Pangga Ramadhan', 'Dedy Suryana', 'Nugraha Pratama',
+            'Shiamsyah Azis', 'Agus Prasetyo'
+        ])
+        ->orderBy('name')
+        ->get();
+        $executiveTeamUserIds = $executiveTeamUsers->pluck('id')->toArray();
 
         // Auto-heal / Sinkronkan Task ke Jadwal Kerja sesuai scope divisi user
         if (!$isArchitect && !$isExecutive) {
@@ -184,10 +213,10 @@ class ScheduleController extends Controller
 
         $schedulesQuery = Schedule::with($withRelations);
         if ($isExecutive) {
-            // Executive (Hariyadi & Susanto): Hanya terhubung ke jadwal Commercial & Sales (Raiza & Nabylla), terputus dari tugas engineer teknis
-            $schedulesQuery->where(function($q) use ($salesUserIds, $validSalesNames) {
-                $q->whereIn('engineer_id', $salesUserIds)
-                  ->orWhereHas('creator', fn($cq) => $cq->whereIn('id', $salesUserIds))
+            // Executive (Hariyadi & Susanto): Hanya terhubung ke jadwal Presales, Sales, BD/BDM, dan PMO
+            $schedulesQuery->where(function($q) use ($executiveTeamUserIds, $validSalesNames) {
+                $q->whereIn('engineer_id', $executiveTeamUserIds)
+                  ->orWhereHas('creator', fn($cq) => $cq->whereIn('id', $executiveTeamUserIds))
                   ->orWhereHas('project', function($pq) use ($validSalesNames) {
                       $pq->whereIn('sales_name', $validSalesNames)
                          ->orWhere('sales_name', 'like', '%Raiza%')
@@ -305,7 +334,7 @@ class ScheduleController extends Controller
                 })
                 ->orderBy('name')
                 ->get();
-            $rawEngineers = $salesUsers;
+            $rawEngineers = $executiveTeamUsers;
         } else {
             $projectsQuery = Project::query();
             if ($divisionId && !$isGlobal) {
@@ -442,7 +471,7 @@ class ScheduleController extends Controller
                 ->get();
         }
 
-        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect', 'isMaintenance', 'msTickets', 'isCommercial'));
+        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect', 'isMaintenance', 'msTickets', 'isCommercial', 'isExecutive'));
     }
 
     /**

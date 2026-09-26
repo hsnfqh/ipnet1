@@ -46,7 +46,13 @@
             <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
                     <div>
-                        @if($isArchitect ?? false)
+                        @if($isExecutive ?? false)
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> PENJADWALAN PRESALES, SALES, BD &amp; PMO
+                        </p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Jadwal Kerja Tim Komersial, Presales, BD &amp; PMO</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Monitoring agenda koordinasi Presales, Sales, Business Development, dan PMO</p>
+                        @elseif($isArchitect ?? false)
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                             <span class="ipnet-badge-dot"></span> AGENDA & JADWAL KERJA MANDIRI
                         </p>
@@ -134,8 +140,44 @@
                 </div>
             </div>
 
-            {{-- PANEL KETERSEDIAAN ENGINEER — Hanya Managerial/Lead Teknis (Bukan Sales/Commercial) --}}
-            @if($isLead && !($isCommercial ?? false))
+            {{-- PANEL KETERSEDIAAN TIM / ENGINEER --}}
+            @if($isExecutive ?? false)
+            <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2"
+                 x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
+                <div class="jkw-avail-head">
+                    <span class="jkw-eyebrow">Ketersediaan Tim Presales, Sales, BD &amp; PMO — <span x-text="periodLabel"></span></span>
+                    <label class="jkw-check">
+                        <input type="checkbox" x-model="showOnlyAvailable">
+                        <span>Hanya yang tersedia</span>
+                    </label>
+                </div>
+                <div class="jkw-avail-body">
+                    <template x-for="eng in filteredEngineerAvailability" :key="eng.id">
+                        <button type="button" 
+                                class="jkw-eng-chip" 
+                                :class="{
+                                    'is-free': eng.available,
+                                    'is-single': !eng.available && !eng.isDayOff && eng.scheduleCount === 1,
+                                    'is-busy': !eng.available && !eng.isDayOff && eng.scheduleCount > 1,
+                                    'is-dayoff': eng.isDayOff,
+                                    'is-selected': engineerFilter == eng.id
+                                }" 
+                                @click="engineerFilter = (engineerFilter == eng.id ? '' : eng.id)"
+                                :title="eng.name + ' (' + eng.statusLabel + ') - Klik untuk filter jadwal'">
+                            <span class="jkw-avatar shadow-xs" :style="'background:' + colorFromName(eng.name)" x-text="initials(eng.name)"></span>
+                            <span class="jkw-eng-info">
+                                <span class="jkw-eng-name" x-text="eng.name"></span>
+                                <span class="jkw-eng-status" x-text="eng.statusLabel"></span>
+                            </span>
+                            <span class="jkw-dot"></span>
+                        </button>
+                    </template>
+                    <div class="jkw-empty-inline" x-show="filteredEngineerAvailability.length === 0" x-cloak>
+                        Tidak ada personel pada periode ini.
+                    </div>
+                </div>
+            </div>
+            @elseif($isLead && !($isCommercial ?? false))
             <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2"
                  x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-avail-head">
