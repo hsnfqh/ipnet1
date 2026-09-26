@@ -214,15 +214,32 @@ class ScheduleController extends Controller
         $schedulesQuery = Schedule::with($withRelations);
         if ($isExecutive) {
             // Executive (Hariyadi & Susanto): Hanya terhubung ke jadwal Presales, Sales, BD/BDM, dan PMO
-            $schedulesQuery->where(function($q) use ($executiveTeamUserIds, $validSalesNames) {
-                $q->whereIn('engineer_id', $executiveTeamUserIds)
-                  ->orWhereHas('creator', fn($cq) => $cq->whereIn('id', $executiveTeamUserIds))
-                  ->orWhereHas('project', function($pq) use ($validSalesNames) {
-                      $pq->whereIn('sales_name', $validSalesNames)
-                         ->orWhere('sales_name', 'like', '%Raiza%')
-                         ->orWhere('sales_name', 'like', '%Nabylla%');
-                  });
-            });
+            // Putus total dari jadwal maintenance/troubleshooting lapangan yang melibatkan tim engineer delivery
+            $deliveryEngineerIds = User::where(function($q) {
+                $q->whereHas('roles', fn($r) => $r->whereIn('name', [
+                    'Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 
+                    'Network Engineer', 'Security Engineer', 'Managed Service', 'Field Support', 'Field Support (EOS)'
+                ]))
+                ->orWhereIn('name', [
+                    'Eka Kurnia', 'Ardiansyah', 'Dafa Rizqullah', 'Rorik', 'Helmi Shiamsyah', 'Doris', 'Mario', 'Eris',
+                    'Ignatius Rizky', 'Syaiful Amin', 'Raihan Ghiffary', 'Panca Pangga Ramadhan', 'Dedy Suryana', 'Nugraha Pratama',
+                    'Shiamsyah Azis', 'Agus Prasetyo'
+                ]);
+            })->pluck('id')->toArray();
+
+            $schedulesQuery->where(function($q) use ($executiveTeamUserIds, $hasScheduleUser) {
+                $q->whereIn('engineer_id', $executiveTeamUserIds);
+                if ($hasScheduleUser) {
+                    $q->orWhereHas('engineers', fn($eq) => $eq->whereIn('users.id', $executiveTeamUserIds));
+                }
+            })
+            ->whereNotIn('engineer_id', $deliveryEngineerIds);
+
+            if ($hasScheduleUser) {
+                $schedulesQuery->whereDoesntHave('engineers', fn($eq) => $eq->whereIn('users.id', $deliveryEngineerIds));
+            }
+
+            $schedulesQuery->whereNotIn('category', ['Task', 'Preventive Maintenance', 'Corrective Maintenance', 'Troubleshoot', 'Ticket', 'Kegiatan']);
         } elseif ($isArchitect) {
             // Solution Architect mengelola jadwal/agenda kerja mandiri (diary SA)
             $schedulesQuery->where(function($q) use ($user, $hasScheduleUser) {
