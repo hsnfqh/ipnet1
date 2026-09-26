@@ -66,9 +66,12 @@
         'notes' => null
     ];
 
-    $isHeadAssigned = !empty($headApproval['assigned']) || !empty($headApproval['approved']);
-    $isDirectorAssigned = !empty($directorApproval['assigned']) || !empty($directorApproval['approved']);
-    $isBothApproved = !empty($headApproval['approved']) && !empty($directorApproval['approved']);
+    $isHeadApproved = !empty($headApproval['approved']);
+    $isDirectorApproved = !empty($directorApproval['approved']);
+    $isBothApproved = $isHeadApproved && $isDirectorApproved;
+    $isAnyApproved = $isHeadApproved || $isDirectorApproved;
+    $isHeadAssigned = !empty($headApproval['assigned']) || $isHeadApproved;
+    $isDirectorAssigned = !empty($directorApproval['assigned']) || $isDirectorApproved;
     $isAnyAssigned = $isHeadAssigned || $isDirectorAssigned;
 
     // Data Penugasan Tim Solusi Teknis (PIC BD, Presales Specialist & Solution Architect)
@@ -652,25 +655,25 @@
                         @if(!$isPresalesOrSaOnly)
                             @include('projects.partials.workflow-leadership')
                         @endif
-                        @if($isAnyAssigned || $isAnyTechnicalAssigned || $isPresalesOrSaOnly)
+                        @if($isAnyApproved || $isAnyTechnicalAssigned || in_array($currentStatus, ['In Progress', 'Completed']) || $isPresalesOrSaOnly)
                             @include('projects.partials.workflow-technical-solution')
                         @else
-                            {{-- Tahap Kolaborasi Tim Solusi Teknis Terkunci (Step-by-Step) --}}
+                            {{-- Tahap Kolaborasi Tim Solusi Teknis Terkunci (Menunggu Persetujuan Pimpinan) --}}
                             <div class="ipnet-card p-5 border-dashed border-slate-200 bg-slate-50/60 space-y-3 rounded-2xl">
                                 <div class="flex items-center justify-between flex-wrap gap-2">
                                     <div class="flex items-center gap-2.5">
-                                        <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
                                         <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider">
                                             Tahap 2: Kolaborasi Tim Solusi Teknis (BD, Pre-Sales &amp; SA)
                                         </h4>
                                     </div>
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-200/80 text-slate-600 border border-slate-300/60">
-                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                        Menunggu Assign Pimpinan
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                        <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Menunggu Persetujuan Pimpinan
                                     </span>
                                 </div>
                                 <p class="text-[12.5px] text-slate-500 leading-relaxed">
-                                    Form penugasan PIC BD, Pre-Sales Specialist, dan Solution Architect akan aktif secara bertahap setelah proyek diajukan atau di-assign ke <strong class="text-slate-700 font-semibold">Head Divisi (Pak Susanto)</strong> atau <strong class="text-slate-700 font-semibold">Direktur (Pak Hariyadi)</strong> pada panel Otorisasi Pimpinan di atas.
+                                    Form penugasan PIC BD, Pre-Sales Specialist, dan Solution Architect akan aktif secara bertahap setelah draft proyek disetujui atau diotorisasi oleh <strong class="text-slate-700 font-semibold">Head Divisi (Pak Susanto)</strong> atau <strong class="text-slate-700 font-semibold">Direktur (Pak Hariyadi)</strong> pada panel Otorisasi Pimpinan di atas.
                                 </p>
                             </div>
                         @endif
@@ -684,25 +687,25 @@
                         @if(!$isPresalesOrSaOnly)
                             @include('projects.partials.workflow-leadership')
                         @endif
-                        @if($isAnyAssigned || $isAnyTechnicalAssigned || $isPresalesOrSaOnly)
+                        @if($isAnyApproved || $isAnyTechnicalAssigned || in_array($currentStatus, ['In Progress', 'Completed']) || $isPresalesOrSaOnly)
                             @include('projects.partials.workflow-technical-solution')
                         @else
-                            {{-- Tahap Kolaborasi Tim Solusi Teknis Terkunci (Step-by-Step) --}}
+                            {{-- Tahap Kolaborasi Tim Solusi Teknis Terkunci (Menunggu Persetujuan Pimpinan) --}}
                             <div class="ipnet-card p-5 border-dashed border-slate-200 bg-slate-50/60 space-y-3 rounded-2xl">
                                 <div class="flex items-center justify-between flex-wrap gap-2">
                                     <div class="flex items-center gap-2.5">
-                                        <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
                                         <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider">
                                             Tahap 2: Kolaborasi Tim Solusi Teknis (BD, Pre-Sales &amp; SA)
                                         </h4>
                                     </div>
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-200/80 text-slate-600 border border-slate-300/60">
-                                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                        Menunggu Assign Pimpinan
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                        <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Menunggu Persetujuan Pimpinan
                                     </span>
                                 </div>
                                 <p class="text-[12.5px] text-slate-500 leading-relaxed">
-                                    Form penugasan PIC BD, Pre-Sales Specialist, dan Solution Architect akan aktif secara bertahap setelah proyek diajukan atau di-assign ke <strong class="text-slate-700 font-semibold">Head Divisi (Pak Susanto)</strong> atau <strong class="text-slate-700 font-semibold">Direktur (Pak Hariyadi)</strong> pada panel Otorisasi Pimpinan di atas.
+                                    Form penugasan PIC BD, Pre-Sales Specialist, dan Solution Architect akan aktif secara bertahap setelah draft proyek disetujui atau diotorisasi oleh <strong class="text-slate-700 font-semibold">Head Divisi (Pak Susanto)</strong> atau <strong class="text-slate-700 font-semibold">Direktur (Pak Hariyadi)</strong> pada panel Otorisasi Pimpinan di atas.
                                 </p>
                             </div>
                         @endif
