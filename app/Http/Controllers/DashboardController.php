@@ -11,9 +11,192 @@ use App\Helpers\FileUploadHelper;
 
 class DashboardController extends Controller
 {
-    public function lead()
+    public function lead(Request $request)
     {
-        $user      = auth()->user();
+        $user = auth()->user();
+        $isSusanto = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
+        $isHariyadi = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
+        $isExecutive = $isSusanto || $isHariyadi || \App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::isGroupLeader($user);
+
+        // Permohonan persetujuan draft untuk pimpinan (Susanto & Hariyadi)
+        $pendingDraftApprovals = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('projects')) {
+            $pendingDraftApprovals = Project::where(function($q) {
+                    $q->whereNotNull('handover_data')
+                      ->orWhere('status', 'Draft')
+                      ->orWhere('stage', 'Draft');
+                })
+                ->whereNull('deleted_at')
+                ->latest()
+                ->get()
+                ->filter(function($p) use ($isSusanto, $isHariyadi) {
+                    $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+                    $approvals = $hd['draft_approvals'] ?? [];
+                    $needHead = !empty($approvals['head']['assigned']) && empty($approvals['head']['approved']);
+                    $needDirector = !empty($approvals['director']['assigned']) && empty($approvals['director']['approved']);
+
+                    if ($isSusanto && $needHead) return true;
+                    if ($isHariyadi && $needDirector) return true;
+
+                    // Jika status proyek masih Draft dan belum disetujui
+                    $isDraftState = in_array(strtolower($p->status ?? ''), ['draft']) || in_array(strtolower($p->stage ?? ''), ['draft']);
+                    if ($isDraftState) {
+                        if ($isSusanto && empty($approvals['head']['approved'])) return true;
+                        if ($isHariyadi && empty($approvals['director']['approved'])) return true;
+                    }
+
+                    return false;
+                })->values();
+        }
+
+        // JIKA USER ADALAH DIREKTUR / DIVISION HEAD (HARIYADI & SUSANTO): HANYA KONEKSIKAN KE SALES & DRAFT
+        if ($isExecutive) {
+            $selectedYear = (int) $request->input('year', date('Y'));
+            $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
+
+            $salesProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+                ->where('client', '!=', 'Internal / Umum')
+                ->where('name', 'not like', '%Preventive Maintenance%')
+                ->where('name', 'not like', '%Corrective Maintenance%')
+                ->where('name', 'not like', '%SLA%')
+                ->where('name', 'not like', '%Training%')
+                ->where('name', 'not like', '%Meeting%')
+                ->where('name', 'not like', '%On Going Project%')
+                ->where('name', 'not like', '%Closed Project%')
+                ->whereDoesntHave('creator', function($c) {
+                    $c->whereHas('roles', function($r) {
+                        $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi']);
+                    });
+                })
+                ->with(['bdm', 'creator', 'salesActivities']);
+
+            $salesProjects = (clone $salesProjectsQuery)->where(function($q) use ($selectedYear) {
+                $q->whereYear('created_at', $selectedYear)
+                  ->orWhereYear('start_date', $selectedYear)
+                  ->orWhereYear('po_spk_date', $selectedYear);
+            })->get();
+
+            if ($salesProjects->isEmpty()) {
+                $salesProjects = (clone $salesProjectsQuery)->get();
+            }
+
+            $valOf = fn($p) => (float) ($p->contract_value ?: ($p->quotation_amount ?: 0));
+
+            // Summary metrics
+            $totalProjectCount = $salesProjects->count();
+            $totalProjectValue = $salesProjects->sum($valOf);
+
+            // Complete / Closed Won
+            $completeProjects = $salesProjects->filter(function($p) {
+                $st = strtolower(trim($p->status ?? ''));
+                $sst = $p->sales_stage ?? '';
+                return $sst === 'Closed Won' || in_array($st, ['completed', 'finished', 'delivered', 'done', 'selesai', 'closed']);
+            });
+            $totalCompleteCount = $completeProjects->count();
+            $totalCompleteValue = $completeProjects->sum($valOf);
+
+            // Pending (Review / Draft)
+            $pendingProjects = $salesProjects->filter(function($p) use ($completeProjects) {
+                if ($completeProjects->contains('id', $p->id)) return false;
+                $st = strtolower(trim($p->status ?? ''));
+                return in_array($st, ['pending', 'on hold', 'review', 'clarification', 'waiting review', 'hold', 'draft']);
+            });
+            $totalPendingCount = $pendingProjects->count();
+            $totalPendingValue = $pendingProjects->sum($valOf);
+
+            // In Progress
+            $inProgressProjects = $salesProjects->filter(function($p) use ($completeProjects, $pendingProjects) {
+                if ($completeProjects->contains('id', $p->id) || $pendingProjects->contains('id', $p->id)) return false;
+                $st = strtolower(trim($p->status ?? ''));
+                $sst = $p->sales_stage ?? '';
+                return in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing', 'progress', 'ongoing'])
+                    || in_array($sst, ['Contract / PO / SPK', 'Negotiation', 'Approval']);
+            });
+            $totalInProgressCount = $inProgressProjects->count();
+            $totalInProgressValue = $inProgressProjects->sum($valOf);
+
+            // Opportunity / Active Pipeline
+            $oppProjects = $salesProjects->filter(function($p) use ($completeProjects, $pendingProjects, $inProgressProjects) {
+                if ($completeProjects->contains('id', $p->id) || $pendingProjects->contains('id', $p->id) || $inProgressProjects->contains('id', $p->id)) return false;
+                return true;
+            });
+            $totalOppCount = $oppProjects->count();
+            $totalOppValue = $oppProjects->sum($valOf);
+
+            // Active Pipeline sum
+            $activePipelineProjects = $salesProjects->filter(function($p) {
+                $salesStage = $p->sales_stage ?? '';
+                $status = strtolower($p->status ?? '');
+                return !in_array($salesStage, ['Closed Won', 'Closed Lost']) && !in_array($status, ['completed', 'cancelled', 'selesai']);
+            });
+            $totalPipelineCount = $activePipelineProjects->count();
+            $totalPipelineValue = $activePipelineProjects->sum($valOf);
+
+            // Win Rate
+            $lostProjects = $salesProjects->where('sales_stage', 'Closed Lost');
+            $totalLostCount = $lostProjects->count();
+            $totalClosedDeals = $totalCompleteCount + $totalLostCount;
+            $winRate = $totalClosedDeals > 0 ? round(($totalCompleteCount / $totalClosedDeals) * 100, 1) : ($totalCompleteCount > 0 ? 100 : 0);
+
+            // Recent CRM Activities
+            $recentActivities = \App\Models\SalesActivity::with(['project', 'sales'])->latest('activity_date')->take(5)->get();
+
+            // 8-Stage Funnel
+            $stages = class_exists(\App\Http\Controllers\SalesCrmController::class) && property_exists(\App\Http\Controllers\SalesCrmController::class, 'stages') ? \App\Http\Controllers\SalesCrmController::$stages : [];
+            $stageFunnel = [];
+            foreach ($stages as $stageKey => $meta) {
+                $stageProjects = $salesProjects->filter(function($p) use ($stageKey) {
+                    if ($p->sales_stage === $stageKey) return true;
+                    if (empty($p->sales_stage)) {
+                        $st = strtolower($p->status ?? '');
+                        if ($stageKey === 'Closed Won' && in_array($st, ['completed', 'finished', 'delivered', 'done', 'selesai'])) return true;
+                        if ($stageKey === 'Contract / PO / SPK' && in_array($st, ['in progress', 'on progress'])) return true;
+                        if ($stageKey === 'Qualification' && in_array($st, ['opportunity', 'prospect', 'draft', 'planning'])) return true;
+                    }
+                    return false;
+                });
+                $stageFunnel[$stageKey] = [
+                    'label'          => $meta['label'],
+                    'color'          => $meta['color'],
+                    'bg'             => $meta['bg'],
+                    'default_prob'   => $meta['default_prob'],
+                    'count'          => $stageProjects->count(),
+                    'value'          => $stageProjects->sum($valOf),
+                ];
+            }
+
+            // Priority Deals & Projects list
+            $priorityDeals = (clone $salesProjectsQuery)
+                ->latest('updated_at')
+                ->take(6)
+                ->get();
+
+            return view('dashboard.lead', [
+                'isExecutive'           => true,
+                'isSusanto'             => $isSusanto,
+                'isHariyadi'            => $isHariyadi,
+                'selectedYear'          => $selectedYear,
+                'pendingDraftApprovals' => $pendingDraftApprovals,
+                'totalProjectCount'     => $totalProjectCount,
+                'totalProjectValue'     => $totalProjectValue,
+                'totalOppCount'         => $totalOppCount,
+                'totalOppValue'         => $totalOppValue,
+                'totalInProgressCount'  => $totalInProgressCount,
+                'totalInProgressValue'  => $totalInProgressValue,
+                'totalPendingCount'     => $totalPendingCount,
+                'totalPendingValue'     => $totalPendingValue,
+                'totalCompleteCount'    => $totalCompleteCount,
+                'totalCompleteValue'    => $totalCompleteValue,
+                'totalPipelineCount'    => $totalPipelineCount,
+                'totalPipelineValue'    => $totalPipelineValue,
+                'winRate'               => $winRate,
+                'recentActivities'      => $recentActivities,
+                'stageFunnel'           => $stageFunnel,
+                'priorityDeals'         => $priorityDeals,
+            ]);
+        }
+
+        // UNTUK TEAM LEADER NON-EKSEKUTIF (LEAD ENGINEER TEKNIKAL)
         $scopeIds  = \App\Helpers\ScopeHelper::getScopeUserIds($user);
         $engineers = \App\Helpers\ScopeHelper::getAssignableEngineers($user);
         $hasTaskUser = \Illuminate\Support\Facades\Schema::hasTable('task_user');
@@ -88,7 +271,7 @@ class DashboardController extends Controller
         }
         $schedules = $schedulesQuery->get();
 
-        // Ambil 5 project terbaru yang sedang aktif (diurutkan berdasarkan yang paling baru dibuat)
+        // Ambil 5 project terbaru yang sedang aktif
         $selectedProjects = $projects->where('status', 'On Progress')
             ->sortByDesc('created_at')
             ->take(5);
@@ -117,12 +300,6 @@ class DashboardController extends Controller
             ['name' => 'Completed', 'value' => $tasks->where('status', 'Completed')->count(), 'color' => '#10B981'],
         ];
 
-        // ============================================================
-        // DATA CHART LOAD PEKERJAAN ENGINEER (Bulan Ini & Minggu Ini)
-        // ============================================================
-        // DATA CHART LOAD PEKERJAAN ENGINEER (Bulan Ini & Minggu Ini)
-        // Menghitung Task Aktif vs Selesai (Eksklusif: Meeting & Day Off tidak masuk beban penugasan)
-        // ============================================================
         $startOfWeek  = now()->startOfWeek(\Carbon\Carbon::MONDAY)->startOfDay();
         $endOfWeek    = now()->endOfWeek(\Carbon\Carbon::SUNDAY)->endOfDay();
         $startOfMonth = now()->startOfMonth()->startOfDay();
@@ -138,7 +315,6 @@ class DashboardController extends Controller
                     return false;
                 });
 
-                // Task aktif & Task selesai (Status Completed = Selesai, Status selain Completed = Aktif)
                 $activeTasks = $engineerTasks->where('status', '!=', 'Completed')->count();
                 $completedTasks = $engineerTasks->where('status', 'Completed')->count();
 
@@ -166,21 +342,18 @@ class DashboardController extends Controller
             })->values();
         };
 
-        // Data Minggu Ini: Task pada rentang pekan ini (Senin - Minggu)
         $weekTasks = $tasks->filter(function($t) use ($startOfWeek, $endOfWeek) {
             $taskDate = $t->deadline ?? $t->created_at;
             return $taskDate && $taskDate >= $startOfWeek && $taskDate <= $endOfWeek;
         });
         $engineerLoadWeekData = $buildEngineerLoad($weekTasks);
 
-        // Data Bulan Ini: Task pada rentang bulan ini (Tanggal 1 - 30/31)
         $monthTasks = $tasks->filter(function($t) use ($startOfMonth, $endOfMonth) {
             $taskDate = $t->deadline ?? $t->created_at;
             return $taskDate && $taskDate >= $startOfMonth && $taskDate <= $endOfMonth;
         });
         $engineerLoadMonthData = $buildEngineerLoad($monthTasks);
 
-        // Penentuan Filter Tim Default (Doris -> Maintenance, Leader lain -> divisinya, Global -> Semua)
         $canFilterTeams = \App\Helpers\ScopeHelper::isGlobal($user) || $user->hasRole('Lead Maintenance');
         $defaultTeamFilter = 'All';
         if ($user->hasRole('Lead Maintenance')) {
@@ -193,22 +366,18 @@ class DashboardController extends Controller
             }
         }
 
-        // Filter task yang belum selesai dan memiliki deadline
         $incompleteTasksWithDeadline = $tasks->where('status', '!=', 'Completed')
             ->whereNotNull('deadline');
 
-        // Deadline terdekat: cari yang hari ini atau di masa depan (>= today)
         $upcomingDeadline = $incompleteTasksWithDeadline
             ->filter(fn($t) => $t->deadline->startOfDay() >= now()->startOfDay())
             ->sortBy('deadline')
             ->first();
 
-        // Hitung total task overdue (belum selesai dan tanggal sudah terlewat)
         $overdueTasksCount = $incompleteTasksWithDeadline
             ->filter(fn($t) => $t->deadline->startOfDay() < now()->startOfDay())
             ->count();
 
-        // Data Presensi Personil Hari Ini (Live Monitoring Lead & Direktur)
         $today = now()->toDateString();
         $todayAttendancesQuery = \App\Models\Attendance::with('user')
             ->where('attendance_date', $today);
@@ -219,13 +388,6 @@ class DashboardController extends Controller
         $todayAttendances = $allTodayAttendances->unique('user_id')->values();
         $clockInCount = $todayAttendances->where('type', 'clock_in')->count();
         $outOfRangeCount = $todayAttendances->where('is_within_range', false)->count();
-
-        // Jadwal Terdekat / Hari Ini untuk Widget Dashboard Lead (Kecualikan Day Off)
-        $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
-        $scheduleRelations = ['project', 'engineer', 'creator'];
-        if ($hasScheduleUser) {
-            $scheduleRelations[] = 'engineers';
-        }
 
         $upcomingSchedulesQuery = Schedule::with($scheduleRelations)
             ->where('category', '!=', 'Day Off');
@@ -246,7 +408,6 @@ class DashboardController extends Controller
             });
         }
 
-        // Ambil jadwal mulai hari ini ke depan (terdekat), jika kurang dari 4 ambil yang terbaru
         $upcomingSchedules = (clone $upcomingSchedulesQuery)
             ->where('date', '>=', $today)
             ->orderBy('date', 'asc')
@@ -267,6 +428,7 @@ class DashboardController extends Controller
         }
 
         $data = [
+            'isExecutive'            => false,
             'projectsCount'          => $projects->count(),
             'tasksCount'             => $tasks->count(),
             'tasksAssigned'          => $tasks->where('status', 'Assigned')->count(),
@@ -287,41 +449,8 @@ class DashboardController extends Controller
             'todayAttendances'       => $todayAttendances->take(5),
             'clockInCount'           => $clockInCount,
             'outOfRangeCount'        => $outOfRangeCount,
+            'pendingDraftApprovals'  => $pendingDraftApprovals,
         ];
-
-        // Permohonan persetujuan draft untuk pimpinan (Susanto & Hariyadi)
-        $isSusanto = str_contains(strtolower($user->name), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
-        $isHariyadi = str_contains(strtolower($user->name), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
-        $pendingDraftApprovals = collect();
-        if (($isSusanto || $isHariyadi) && \Illuminate\Support\Facades\Schema::hasTable('projects')) {
-            $pendingDraftApprovals = Project::where(function($q) {
-                    $q->whereNotNull('handover_data')
-                      ->orWhere('status', 'Draft')
-                      ->orWhere('stage', 'Draft');
-                })
-                ->whereNull('deleted_at')
-                ->latest()
-                ->get()
-                ->filter(function($p) use ($isSusanto, $isHariyadi) {
-                    $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
-                    $approvals = $hd['draft_approvals'] ?? [];
-                    $needHead = !empty($approvals['head']['assigned']) && empty($approvals['head']['approved']);
-                    $needDirector = !empty($approvals['director']['assigned']) && empty($approvals['director']['approved']);
-
-                    if ($isSusanto && $needHead) return true;
-                    if ($isHariyadi && $needDirector) return true;
-
-                    // Jika status proyek masih Draft dan belum disetujui
-                    $isDraftState = in_array(strtolower($p->status ?? ''), ['draft']) || in_array(strtolower($p->stage ?? ''), ['draft']);
-                    if ($isDraftState) {
-                        if ($isSusanto && empty($approvals['head']['approved'])) return true;
-                        if ($isHariyadi && empty($approvals['director']['approved'])) return true;
-                    }
-
-                    return false;
-                })->values();
-        }
-        $data['pendingDraftApprovals'] = $pendingDraftApprovals;
 
         return view('dashboard.lead', $data);
     }
