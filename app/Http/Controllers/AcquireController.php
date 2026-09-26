@@ -88,36 +88,49 @@ class AcquireController extends Controller
         })->count();
 
         // Format projects for table view
-        $projects = $query->get()->map(function ($p) {
-            return [
-                'id'              => $p->id,
-                'name'            => $p->name,
-                'client'          => $p->client,
-                'sales_name'      => $p->sales_name ?: ($p->creator?->name ?? 'Raiza'),
-                'contract_value'  => (float) ($p->contract_value ?? 0),
-                'contract_formatted' => $p->contract_value ? 'Rp ' . number_format($p->contract_value, 0, ',', '.') : '-',
-                'po_number'       => $p->po_number ?: '-',
-                'po_file'         => $p->po_file ? asset('storage/' . $p->po_file) : null,
-                'po_file_raw'     => $p->po_file,
-                'acquire_status'  => $p->acquire_status ?: 'Deal / PO Terbit',
-                'stage'           => $p->stage ?: 'Acquire',
-                'start_date'      => $p->start_date ? $p->start_date->format('Y-m-d') : null,
-                'deadline'        => $p->deadline ? $p->deadline->format('Y-m-d') : null,
-                'deadline_formatted' => $p->deadline ? $p->deadline->format('d M Y') : '-',
-                'division_id'     => $p->division_id,
-                'division_name'   => $p->division?->name ?? 'Lintas Divisi',
-                'description'     => $p->description,
-                'is_ready_handover' => in_array($p->acquire_status, ['Deal / PO Terbit', 'Handover to Design']) || !empty($p->po_number),
-                'handover_status' => $p->handover_status ?: 'Draft',
-                'handover_data'   => is_array($p->handover_data) ? $p->handover_data : [],
-                'special_notes'   => $p->special_notes ?: '',
-                'handover_conditional_notes' => $p->handover_conditional_notes ?: '',
-                'handover_conditional_deadline' => $p->handover_conditional_deadline ? $p->handover_conditional_deadline->format('d M Y H:i') : null,
-                'customer_pic_technical' => $p->customer_pic_technical ?: '',
-                'customer_pic_business'  => $p->customer_pic_business ?: '',
-                'customer_pic_finance'   => $p->customer_pic_finance ?: '',
-            ];
-        });
+        $projects = $query->get()
+            ->filter(function($p) {
+                $pName = strtolower($p->name ?? '');
+                $sName = strtolower($p->sales_name ?? '');
+                $cName = strtolower($p->creator->name ?? '');
+                $blacklisted = ['widodo', 'pengadaaan', 'pengadaan', 'donny', 'dony', 'antonius', 'nugraha', 'sales team', 'via', 'erie', 'hendry', 'nelvia', 'ribka', 'sabar'];
+                foreach ($blacklisted as $bl) {
+                    if (str_contains($sName, $bl) || str_contains($cName, $bl) || str_contains($pName, 'pengadaaan')) {
+                        return false;
+                    }
+                }
+                return str_contains($sName, 'raiza') || str_contains($sName, 'nabylla') || str_contains($cName, 'raiza') || str_contains($cName, 'nabylla');
+            })
+            ->map(function ($p) {
+                return [
+                    'id'              => $p->id,
+                    'name'            => $p->name,
+                    'client'          => $p->client,
+                    'sales_name'      => $p->sales_name ?: ($p->creator?->name ?? 'Raiza'),
+                    'contract_value'  => (float) ($p->contract_value ?? 0),
+                    'contract_formatted' => $p->contract_value ? 'Rp ' . number_format($p->contract_value, 0, ',', '.') : '-',
+                    'po_number'       => $p->po_number ?: '-',
+                    'po_file'         => $p->po_file ? asset('storage/' . $p->po_file) : null,
+                    'po_file_raw'     => $p->po_file,
+                    'acquire_status'  => $p->acquire_status ?: 'Deal / PO Terbit',
+                    'stage'           => $p->stage ?: 'Acquire',
+                    'start_date'      => $p->start_date ? $p->start_date->format('Y-m-d') : null,
+                    'deadline'        => $p->deadline ? $p->deadline->format('Y-m-d') : null,
+                    'deadline_formatted' => $p->deadline ? $p->deadline->format('d M Y') : '-',
+                    'division_id'     => $p->division_id,
+                    'division_name'   => $p->division?->name ?? 'Lintas Divisi',
+                    'description'     => $p->description,
+                    'is_ready_handover' => in_array($p->acquire_status, ['Deal / PO Terbit', 'Handover to Design']) || !empty($p->po_number),
+                    'handover_status' => $p->handover_status ?: 'Draft',
+                    'handover_data'   => is_array($p->handover_data) ? $p->handover_data : [],
+                    'special_notes'   => $p->special_notes ?: '',
+                    'handover_conditional_notes' => $p->handover_conditional_notes ?: '',
+                    'handover_conditional_deadline' => $p->handover_conditional_deadline ? $p->handover_conditional_deadline->format('d M Y H:i') : null,
+                    'customer_pic_technical' => $p->customer_pic_technical ?: '',
+                    'customer_pic_business'  => $p->customer_pic_business ?: '',
+                    'customer_pic_finance'   => $p->customer_pic_finance ?: '',
+                ];
+            });
 
         $divisions = Division::orderBy('name')->get();
         $salesList = $this->salesTeam;

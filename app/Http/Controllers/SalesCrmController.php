@@ -157,6 +157,21 @@ class SalesCrmController extends Controller
 
         $allProjects = $allProjectsQuery->latest('updated_at')->get();
 
+        $isValidSalesProject = function($p) {
+            $pName = strtolower($p->name ?? '');
+            $sName = strtolower($p->sales_name ?? '');
+            $cName = strtolower($p->creator->name ?? '');
+            $blacklisted = ['widodo', 'pengadaaan', 'pengadaan', 'donny', 'dony', 'antonius', 'nugraha', 'sales team', 'via', 'erie', 'hendry', 'nelvia', 'ribka', 'sabar'];
+            foreach ($blacklisted as $bl) {
+                if (str_contains($sName, $bl) || str_contains($cName, $bl) || str_contains($pName, 'pengadaaan')) {
+                    return false;
+                }
+            }
+            return str_contains($sName, 'raiza') || str_contains($sName, 'nabylla') || str_contains($cName, 'raiza') || str_contains($cName, 'nabylla');
+        };
+
+        $allProjects = $allProjects->filter($isValidSalesProject)->values();
+
         // Strict Role-Based Visibility: BD, Pre-Sales, SA, and Sales only see projects where they have been explicitly assigned
         if (!$isExecutive) {
             if ($user->hasAnyRole(['Presales', 'Pre-Sales'])) {

@@ -48,6 +48,8 @@ class ProjectController extends Controller
                 ->where('name', 'not like', '%Meeting%')
                 ->where('name', 'not like', '%On Going Project%')
                 ->where('name', 'not like', '%Closed Project%')
+                ->where('name', 'not like', '%Pengadaaan%')
+                ->where('name', 'not like', '%Pengadaan%')
                 ->where(function($q) use ($validSalesNames) {
                     $q->whereIn('sales_name', $validSalesNames)
                       ->orWhere('sales_name', 'like', '%Raiza%')
@@ -59,33 +61,38 @@ class ProjectController extends Controller
                             ->orWhere('email', 'like', '%nabylla%');
                       });
                 })
-                ->where(function ($ex) {
-                    $ex->whereNull('sales_name')
-                       ->orWhere(function ($sn) {
-                           $sn->where('sales_name', 'not like', '%Sales Team%')
-                              ->where('sales_name', 'not like', '%Via%')
-                              ->where('sales_name', 'not like', '%Widodo%')
-                              ->where('sales_name', 'not like', '%widodo%')
-                              ->where('sales_name', 'not like', '%Donny%')
-                              ->where('sales_name', 'not like', '%donny%')
-                              ->where('sales_name', 'not like', '%Erie%')
-                              ->where('sales_name', 'not like', '%Hendry%')
-                              ->where('sales_name', 'not like', '%Nelvia%')
-                              ->where('sales_name', 'not like', '%Ribka%')
-                              ->where('sales_name', 'not like', '%Sabar%')
-                              ->where('sales_name', 'not like', '%Antonius%')
-                              ->where('sales_name', 'not like', '%Nugraha%');
-                       });
+                ->where(function ($sn) {
+                    $sn->where('sales_name', 'not like', '%Sales Team%')
+                       ->where('sales_name', 'not like', '%Via%')
+                       ->where('sales_name', 'not like', '%Widodo%')
+                       ->where('sales_name', 'not like', '%widodo%')
+                       ->where('sales_name', 'not like', '%Donny%')
+                       ->where('sales_name', 'not like', '%donny%')
+                       ->where('sales_name', 'not like', '%Dony%')
+                       ->where('sales_name', 'not like', '%dony%')
+                       ->where('sales_name', 'not like', '%Erie%')
+                       ->where('sales_name', 'not like', '%Hendry%')
+                       ->where('sales_name', 'not like', '%Nelvia%')
+                       ->where('sales_name', 'not like', '%Ribka%')
+                       ->where('sales_name', 'not like', '%Sabar%')
+                       ->where('sales_name', 'not like', '%Antonius%')
+                       ->where('sales_name', 'not like', '%antonius%')
+                       ->where('sales_name', 'not like', '%Nugraha%')
+                       ->where('sales_name', 'not like', '%nugraha%');
                 })
                 ->whereDoesntHave('creator', function($c) {
                     $c->where('name', 'like', '%Widodo%')
                       ->orWhere('name', 'like', '%widodo%')
                       ->orWhere('name', 'like', '%Donny%')
                       ->orWhere('name', 'like', '%donny%')
+                      ->orWhere('name', 'like', '%Dony%')
+                      ->orWhere('name', 'like', '%dony%')
                       ->orWhere('name', 'like', '%Antonius%')
+                      ->orWhere('name', 'like', '%antonius%')
                       ->orWhere('name', 'like', '%Nugraha%')
+                      ->orWhere('name', 'like', '%nugraha%')
                       ->orWhereHas('roles', function($r) {
-                          $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi']);
+                          $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi', 'BDM', 'BusDev', 'Business Development']);
                       });
                 });
         } elseif (!$isSales && !$isDirektur && !$isSupervisor) {
@@ -133,6 +140,22 @@ class ProjectController extends Controller
                 })
                 ->latest()
                 ->get();
+        }
+
+        if ($isExecutive) {
+            $isValidSalesProject = function($p) {
+                $pName = strtolower($p->name ?? '');
+                $sName = strtolower($p->sales_name ?? '');
+                $cName = strtolower($p->creator->name ?? '');
+                $blacklisted = ['widodo', 'pengadaaan', 'pengadaan', 'donny', 'dony', 'antonius', 'nugraha', 'sales team', 'via', 'erie', 'hendry', 'nelvia', 'ribka', 'sabar'];
+                foreach ($blacklisted as $bl) {
+                    if (str_contains($sName, $bl) || str_contains($cName, $bl) || str_contains($pName, 'pengadaaan')) {
+                        return false;
+                    }
+                }
+                return str_contains($sName, 'raiza') || str_contains($sName, 'nabylla') || str_contains($cName, 'raiza') || str_contains($cName, 'nabylla');
+            };
+            $projects = $projects->filter($isValidSalesProject)->values();
         }
 
         return view('projects.index', compact('projects', 'isLead', 'canManage', 'canCreate', 'isDirektur', 'isSupervisor', 'canEditProgress'));
