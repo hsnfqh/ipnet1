@@ -319,6 +319,38 @@
         window.openModal('modal-assign');
     };
 
+    window.openAssignTechnicalModalCustom = function(role) {
+        const roleInput = document.getElementById('assign-technical-role-input');
+        const boxBdm = document.getElementById('box-assign-bdm');
+        const boxPresales = document.getElementById('box-assign-presales');
+        const boxArchitect = document.getElementById('box-assign-architect');
+        const titleEl = document.getElementById('assign-technical-modal-title');
+        const subtitleEl = document.getElementById('assign-technical-modal-subtitle');
+        const submitBtn = document.getElementById('assign-technical-submit-btn');
+
+        if (roleInput) roleInput.value = role;
+
+        if (boxBdm) boxBdm.style.setProperty('display', role === 'bdm' ? 'block' : 'none', 'important');
+        if (boxPresales) boxPresales.style.setProperty('display', role === 'presales' ? 'block' : 'none', 'important');
+        if (boxArchitect) boxArchitect.style.setProperty('display', role === 'architect' ? 'block' : 'none', 'important');
+
+        if (role === 'bdm') {
+            if (titleEl) titleEl.innerText = 'Penunjukan PIC Business Development';
+            if (subtitleEl) subtitleEl.innerText = 'Penetapan Product Manager & Penanggung Jawab Verifikasi Solusi Teknis';
+            if (submitBtn) submitBtn.innerText = 'Simpan Penunjukan PIC BD';
+        } else if (role === 'presales') {
+            if (titleEl) titleEl.innerText = 'Penugasan Pre-Sales Specialist';
+            if (subtitleEl) subtitleEl.innerText = 'Penetapan Personel Pre-Sales untuk Penyusunan Proposal & BoQ';
+            if (submitBtn) submitBtn.innerText = 'Simpan Penugasan Pre-Sales';
+        } else if (role === 'architect') {
+            if (titleEl) titleEl.innerText = 'Penugasan Solution Architect';
+            if (subtitleEl) subtitleEl.innerText = 'Penetapan Solution Architect untuk Desain Topologi & Sizing Solusi';
+            if (submitBtn) submitBtn.innerText = 'Simpan Penugasan Solution Architect';
+        }
+
+        window.openModal('modal-assign-technical');
+    };
+
     function projectDetailPage(initialStage, currentDbStatus) {
         return {
             activeStageTab: initialStage || 'draft',
@@ -334,7 +366,7 @@
 
             isEditPipelineModalOpen: false,
             isAssignTechnicalModalOpen: false,
-            assignTechnicalRole: 'all', // 'bdm', 'presales', 'architect', 'all'
+            assignTechnicalRole: 'bdm', // 'bdm', 'presales', 'architect'
             isUploadTechnicalDocModalOpen: false,
             uploadTechnicalRole: 'presales', // 'presales' or 'architect'
             isVerifyTechnicalModalOpen: false,
@@ -370,10 +402,10 @@
                 window.openModal('modal-edit-pipeline');
             },
 
-            openAssignTechnicalModal(role = 'all') {
+            openAssignTechnicalModal(role = 'bdm') {
                 this.assignTechnicalRole = role;
                 this.isAssignTechnicalModalOpen = true;
-                window.openModal('modal-assign-technical');
+                window.openAssignTechnicalModalCustom(role);
             },
 
             openUploadTechnicalModal(role = 'presales') {
@@ -1980,22 +2012,27 @@
         <div @click.away="isAssignTechnicalModalOpen = false; window.closeModal('modal-assign-technical')" 
              class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
-            <div class="flex items-center justify-between border-b pb-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900" 
-                        x-text="assignTechnicalRole === 'bdm' ? 'Tunjuk PIC BD (Product Manager)' : (assignTechnicalRole === 'presales' ? 'Tugaskan Pre-Sales Specialist' : (assignTechnicalRole === 'architect' ? 'Tugaskan Solution Architect' : 'Tugaskan Tim Solusi &amp; BD'))"></h3>
-                    <p class="text-[11.5px] text-slate-500 mt-0.5">Penugasan PIC BD verifikator, penyusun proposal, dan perancang topologi</p>
+                    <h3 id="assign-technical-modal-title" class="text-base font-bold text-slate-900" 
+                        x-text="assignTechnicalRole === 'bdm' ? 'Penunjukan PIC Business Development' : (assignTechnicalRole === 'presales' ? 'Penugasan Pre-Sales Specialist' : 'Penugasan Solution Architect')">
+                        Penunjukan Tim Solusi Teknis
+                    </h3>
+                    <p id="assign-technical-modal-subtitle" class="text-[11.5px] text-slate-500 mt-0.5"
+                       x-text="assignTechnicalRole === 'bdm' ? 'Penetapan Product Manager & Penanggung Jawab Verifikasi Solusi Teknis' : (assignTechnicalRole === 'presales' ? 'Penetapan Personel Pre-Sales untuk Penyusunan Proposal & BoQ' : 'Penetapan Solution Architect untuk Desain Topologi & Sizing Solusi')">
+                        Penugasan personel teknis untuk perancangan &amp; validasi solusi proyek.
+                    </p>
                 </div>
                 <button type="button" @click="isAssignTechnicalModalOpen = false; window.closeModal('modal-assign-technical')" onclick="window.closeModal('modal-assign-technical')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.assign_technical', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
                 @csrf
-                <input type="hidden" name="role" :value="assignTechnicalRole">
+                <input type="hidden" name="role" id="assign-technical-role-input" :value="assignTechnicalRole">
 
                 {{-- Pilihan PIC BD --}}
-                <div x-show="assignTechnicalRole === 'bdm' || assignTechnicalRole === 'all' || assignTechnicalRole === 'both'">
-                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH PIC BUSINESS DEVELOPMENT (PRODUCT MANAGER &amp; VERIFIKATOR)</label>
+                <div id="box-assign-bdm" x-show="assignTechnicalRole === 'bdm'" class="space-y-1.5">
+                    <label class="block text-slate-700 uppercase tracking-wider text-[10.5px]">PILIH PIC BUSINESS DEVELOPMENT (PRODUCT MANAGER &amp; VERIFIKATOR) <span class="text-[#8F0A0D]">*</span></label>
                     <select name="bdm_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer">
                         <option value="">-- Pilih PIC Business Development --</option>
                         @foreach($bdmUsers as $bu)
@@ -2012,13 +2049,16 @@
                             </option>
                         @endforeach
                     </select>
-                    <span class="text-[10px] text-slate-400 mt-1 block">PIC BD akan menerima notifikasi dan memvalidasi berkas proposal sebelum diajukan ke klien.</span>
+                    <span class="text-[10.5px] text-slate-500 leading-relaxed block">
+                        PIC BD yang ditunjuk akan menerima notifikasi dan bertanggung jawab memverifikasi kelayakan solusi teknis sebelum diajukan ke tahap serah terima.
+                    </span>
                 </div>
 
                 {{-- Pilihan Pre-Sales --}}
-                <div x-show="assignTechnicalRole === 'presales' || assignTechnicalRole === 'all' || assignTechnicalRole === 'both'">
-                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH PRE-SALES SPECIALIST (PROPOSAL &amp; BOQ)</label>
+                <div id="box-assign-presales" x-show="assignTechnicalRole === 'presales'" class="space-y-1.5">
+                    <label class="block text-slate-700 uppercase tracking-wider text-[10.5px]">PILIH PRE-SALES SPECIALIST (PROPOSAL &amp; BOQ) <span class="text-[#8F0A0D]">*</span></label>
                     <select name="presales_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer">
+                        <option value="">-- Pilih Pre-Sales Specialist --</option>
                         @foreach($presalesUsers as $pu)
                             <option value="{{ $pu->id }}" {{ (isset($presalesAssignment['assigned_user_id']) && $presalesAssignment['assigned_user_id'] == $pu->id) || str_contains(strtolower($pu->name), 'akbar') ? 'selected' : '' }}>
                                 (Pre-Sales) {{ $pu->name }} ({{ $pu->email }})
@@ -2033,12 +2073,16 @@
                             </option>
                         @endforeach
                     </select>
+                    <span class="text-[10.5px] text-slate-500 leading-relaxed block">
+                        Pre-Sales Specialist bertugas menyusun proposal teknis, bill of quantity (BoQ), dan scope of work (SOW) penawaran.
+                    </span>
                 </div>
 
                 {{-- Pilihan Solution Architect --}}
-                <div x-show="assignTechnicalRole === 'architect' || assignTechnicalRole === 'all' || assignTechnicalRole === 'both'">
-                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH SOLUTION ARCHITECT (DESAIN TOPOLOGI &amp; SIZING)</label>
+                <div id="box-assign-architect" x-show="assignTechnicalRole === 'architect'" class="space-y-1.5">
+                    <label class="block text-slate-700 uppercase tracking-wider text-[10.5px]">PILIH SOLUTION ARCHITECT (DESAIN TOPOLOGI &amp; SIZING) <span class="text-[#8F0A0D]">*</span></label>
                     <select name="architect_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white cursor-pointer">
+                        <option value="">-- Pilih Solution Architect --</option>
                         @foreach($architectUsers as $au)
                             <option value="{{ $au->id }}" {{ (isset($architectAssignment['assigned_user_id']) && $architectAssignment['assigned_user_id'] == $au->id) || str_contains(strtolower($au->name), 'aris') ? 'selected' : '' }}>
                                 (Solution Architect) {{ $au->name }} ({{ $au->email }})
@@ -2053,21 +2097,29 @@
                             </option>
                         @endforeach
                     </select>
+                    <span class="text-[10.5px] text-slate-500 leading-relaxed block">
+                        Solution Architect bertugas merancang skema arsitektur sistem, topologi jaringan, serta validasi kompatibilitas teknis.
+                    </span>
                 </div>
 
                 <div>
-                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">INSTRUKSI &amp; CATATAN TEKNIS SALES</label>
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">
+                        <span x-show="assignTechnicalRole === 'bdm'">CATATAN / INSTRUKSI PENUGASAN PIC BD (OPSIONAL)</span>
+                        <span x-show="assignTechnicalRole === 'presales'">INSTRUKSI &amp; CATATAN TEKNIS SALES</span>
+                        <span x-show="assignTechnicalRole === 'architect'">INSTRUKSI &amp; SPESIFIKASI TEKNIS SALES</span>
+                    </label>
                     <textarea name="notes" rows="3" 
-                              placeholder="Contoh: Tolong buatkan desain topologi redundant switch &amp; estimasi BoQ untuk kebutuhan penawaran tender klien."
+                              :placeholder="assignTechnicalRole === 'bdm' ? 'Contoh: Mohon koordinasikan verifikasi kelayakan produk dan review margin penawaran sebelum diserahkan ke klien.' : (assignTechnicalRole === 'presales' ? 'Contoh: Mohon buatkan estimasi BoQ dan rincian spesifikasi perangkat sesuai kebutuhan penawaran tender klien.' : 'Contoh: Tolong buatkan desain topologi redundant switch &amp; estimasi sizing kapasitas untuk kebutuhan penawaran tender.')"
                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-3 border-t">
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
                     <button type="button" @click="isAssignTechnicalModalOpen = false; window.closeModal('modal-assign-technical')" onclick="window.closeModal('modal-assign-technical')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                        Simpan Penugasan Tim
+                    <button type="submit" id="assign-technical-submit-btn" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition text-white"
+                            x-text="assignTechnicalRole === 'bdm' ? 'Simpan Penunjukan PIC BD' : (assignTechnicalRole === 'presales' ? 'Simpan Penugasan Pre-Sales' : 'Simpan Penugasan Solution Architect')">
+                        Simpan Penugasan
                     </button>
                 </div>
             </form>
