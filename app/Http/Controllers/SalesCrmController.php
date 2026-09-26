@@ -298,6 +298,11 @@ class SalesCrmController extends Controller
      */
     public function storeOpportunity(Request $request)
     {
+        if ($request->has('contract_value')) {
+            $rawContract = preg_replace('/[^\d]/', '', (string)$request->input('contract_value'));
+            $request->merge(['contract_value' => $rawContract !== '' ? (float)$rawContract : 0]);
+        }
+
         $validated = $request->validate([
             'name'                  => 'required|string|max:255',
             'client'                => 'required|string|max:255',
@@ -411,6 +416,11 @@ class SalesCrmController extends Controller
      */
     public function updateStage(Request $request, Project $project)
     {
+        if ($request->has('contract_value')) {
+            $rawContract = preg_replace('/[^\d]/', '', (string)$request->input('contract_value'));
+            $request->merge(['contract_value' => $rawContract !== '' ? (float)$rawContract : null]);
+        }
+
         $validated = $request->validate([
             'sales_stage'           => 'required|string',
             'win_probability'       => 'required|integer|min:0|max:100',

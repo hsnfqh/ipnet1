@@ -126,7 +126,24 @@
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="cf-label">Project Estimation (Nilai Kontrak)</label>
-                                <div class="rp-wrap"><span class="rp-prefix">Rp</span><input type="number" name="contract_value" min="0" class="cf-input rp-input" placeholder="0" value="{{ old('contract_value',0) }}"></div>
+                                <div class="rp-wrap" x-data="{
+                                    rawVal: '{{ old('contract_value', 0) }}',
+                                    displayVal: '{{ old('contract_value') ? number_format((float)old('contract_value'), 0, ',', '.') : '' }}',
+                                    formatRupiah(val) {
+                                        let clean = val.replace(/\D/g, '');
+                                        this.rawVal = clean;
+                                        this.displayVal = clean ? new Intl.NumberFormat('id-ID').format(clean) : '';
+                                    }
+                                }">
+                                    <span class="rp-prefix">Rp</span>
+                                    <input type="text"
+                                           x-model="displayVal"
+                                           @input="formatRupiah($event.target.value)"
+                                           class="cf-input rp-input font-bold"
+                                           placeholder="0"
+                                           autocomplete="off">
+                                    <input type="hidden" name="contract_value" :value="rawVal">
+                                </div>
                             </div>
                             <div>
                                 <label class="cf-label">Tahapan Sales</label>

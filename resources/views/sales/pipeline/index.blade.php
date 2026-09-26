@@ -655,12 +655,25 @@
                                 </div>
                                 <div>
                                     <label class="block text-[11.5px] font-bold text-[#475569] uppercase tracking-wider mb-1.5">Nilai Kontrak (Rp)</label>
-                                    <div class="relative">
+                                    <div class="relative" x-data="{
+                                        rawVal: '',
+                                        displayVal: '',
+                                        formatRupiah(val) {
+                                            let clean = val.replace(/\D/g, '');
+                                            this.rawVal = clean;
+                                            this.displayVal = clean ? new Intl.NumberFormat('id-ID').format(clean) : '';
+                                        }
+                                    }">
                                         <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
                                             <span class="text-[12px] font-bold text-[#94A3B8]">Rp</span>
                                         </div>
-                                        <input type="number" name="contract_value" min="0" placeholder="0"
-                                               class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] text-[#1E293B] bg-[#F8FAFC] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:border-[#8F0A0D] focus:bg-white outline-none transition placeholder-[#94A3B8]">
+                                        <input type="text"
+                                               x-model="displayVal"
+                                               @input="formatRupiah($event.target.value)"
+                                               placeholder="0"
+                                               autocomplete="off"
+                                               class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[13px] font-bold text-[#1E293B] bg-[#F8FAFC] focus:ring-2 focus:ring-[#8F0A0D]/10 focus:border-[#8F0A0D] focus:bg-white outline-none transition placeholder-[#94A3B8]">
+                                        <input type="hidden" name="contract_value" :value="rawVal">
                                     </div>
                                 </div>
                             </div>

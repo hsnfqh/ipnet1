@@ -1651,11 +1651,26 @@
                               placeholder="Deskripsi singkat proyek...">{{ $project->description }}</textarea>
                 </div>
 
-                <div>
+                <div x-data="{
+                    rawVal: '{{ $project->contract_value ? (int)$project->contract_value : '' }}',
+                    displayVal: '{{ $project->contract_value ? number_format((float)$project->contract_value, 0, ',', '.') : '' }}',
+                    formatRupiah(val) {
+                        let clean = val.replace(/\D/g, '');
+                        this.rawVal = clean;
+                        this.displayVal = clean ? new Intl.NumberFormat('id-ID').format(clean) : '';
+                    }
+                }">
                     <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NILAI ESTIMASI (RP)</label>
-                    <input type="number" step="any" name="contract_value" value="{{ $project->contract_value ? (float)$project->contract_value : '' }}" 
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold"
-                           placeholder="Contoh: 300000000">
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs pointer-events-none">Rp</span>
+                        <input type="text"
+                               x-model="displayVal"
+                               @input="formatRupiah($event.target.value)"
+                               autocomplete="off"
+                               class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold"
+                               placeholder="Contoh: 300.000.000">
+                        <input type="hidden" name="contract_value" :value="rawVal">
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -1912,10 +1927,26 @@
                     </div>
                 </div>
 
-                <div>
+                <div x-data="{
+                    rawVal: '{{ $project->contract_value ? (int)$project->contract_value : '' }}',
+                    displayVal: '{{ $project->contract_value ? number_format((float)$project->contract_value, 0, ',', '.') : '' }}',
+                    formatRupiah(val) {
+                        let clean = val.replace(/\D/g, '');
+                        this.rawVal = clean;
+                        this.displayVal = clean ? new Intl.NumberFormat('id-ID').format(clean) : '';
+                    }
+                }">
                     <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">ESTIMASI NILAI PROYEK (RP)</label>
-                    <input type="number" name="contract_value" value="{{ $project->contract_value ?: 0 }}" min="0" step="1000"
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold">
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs pointer-events-none">Rp</span>
+                        <input type="text"
+                               x-model="displayVal"
+                               @input="formatRupiah($event.target.value)"
+                               autocomplete="off"
+                               class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold"
+                               placeholder="0">
+                        <input type="hidden" name="contract_value" :value="rawVal">
+                    </div>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t">

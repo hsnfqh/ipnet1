@@ -327,6 +327,11 @@ class ProjectController extends Controller
      */
     public function assignTeam(Request $request, Project $project)
     {
+        if ($request->has('contract_value')) {
+            $rawContract = preg_replace('/[^\d]/', '', (string)$request->input('contract_value'));
+            $request->merge(['contract_value' => $rawContract !== '' ? (float)$rawContract : null]);
+        }
+
         $validated = $request->validate([
             'role_type'             => 'required|in:pm,engineer',
             'user_id'               => 'required|exists:users,id',
@@ -1115,6 +1120,11 @@ class ProjectController extends Controller
      */
     public function updatePipeline(Request $request, Project $project)
     {
+        if ($request->has('contract_value')) {
+            $rawContract = preg_replace('/[^\d]/', '', (string)$request->input('contract_value'));
+            $request->merge(['contract_value' => $rawContract !== '' ? (float)$rawContract : null]);
+        }
+
         $validated = $request->validate([
             'sales_stage'          => 'required|string|max:100',
             'win_probability'      => 'required|numeric|min:0|max:100',
@@ -1216,6 +1226,11 @@ class ProjectController extends Controller
      */
     public function updateMeta(Request $request, Project $project)
     {
+        if ($request->has('contract_value')) {
+            $rawContract = preg_replace('/[^\d]/', '', (string)$request->input('contract_value'));
+            $request->merge(['contract_value' => $rawContract !== '' ? (float)$rawContract : null]);
+        }
+
         $validated = $request->validate([
             'name'           => 'required|string|max:255',
             'contract_value' => 'nullable|numeric|min:0',
