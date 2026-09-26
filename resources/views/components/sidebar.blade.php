@@ -46,17 +46,15 @@
 
     if ($isExecutiveOrGl) {
         $navItems = [
-            ['key' => 'dashboard',        'label' => 'Dashboard Utama',     'route' => 'dashboard.lead'],
-            ['key' => 'draft_approvals',  'label' => 'Persetujuan Draft',   'route' => 'projects.index', 'params' => ['status' => 'Draft'], 'badge' => $pendingApprovalsCount],
-            ['key' => 'pmo_dashboard',    'label' => 'Dashboard PMO',       'route' => 'pmo.dashboard'],
-            ['key' => 'managed_service',  'label' => 'Managed Service',     'route' => 'ms.dashboard'],
-            ['key' => 'acquire',          'label' => 'Peluang & Pipeline',  'route' => 'acquire.index'],
-            ['key' => 'projects',         'label' => 'Daftar Proyek',       'route' => 'projects.index'],
-            ['key' => 'tasks',            'label' => 'Daftar Tugas',        'route' => 'tasks.index'],
-            ['key' => 'schedules',        'label' => 'Work Schedule',        'route' => 'schedules.index'],
-            ['key' => 'timesheets',       'label' => 'Timesheet',           'route' => 'timesheets.index'],
-            ['key' => 'attendance',       'label' => 'Presensi',            'route' => 'attendance.recap'],
-            ['key' => 'users',            'label' => 'Pengguna',            'route' => 'users.index'],
+            ['key' => 'dashboard',       'label' => 'Dashboard',         'route' => 'dashboard.lead'],
+            ['key' => 'draft_approvals', 'label' => 'Persetujuan Draft', 'route' => 'projects.index', 'params' => ['status' => 'Draft'], 'badge' => $pendingApprovalsCount],
+            ['key' => 'projects',        'label' => 'Project',           'route' => 'sales.pipeline.index'],
+            ['key' => 'activities',      'label' => 'Activity Log',      'route' => 'sales.activities.index'],
+            ['key' => 'clients',         'label' => 'Client',            'route' => 'clients.index'],
+            ['key' => 'inventory',       'label' => 'Inventory',         'route' => 'inventory.index'],
+            ['key' => 'vendors',         'label' => 'Vendor',            'route' => 'vendors.index'],
+            ['key' => 'schedules',       'label' => 'Work Schedule',     'route' => 'schedules.index'],
+            ['key' => 'timesheets',      'label' => 'Timesheet',         'route' => 'timesheets.index'],
         ];
     } elseif ($isAdminSupport) {
         $navItems = [
