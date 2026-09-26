@@ -453,35 +453,39 @@ class ScheduleController extends Controller
         }
 
         // Projects dengan deadline untuk ditampilkan di kalender
-        $calendarProjects = Project::with('creator')
-            ->when($divisionId && !$isGlobal, function($query) use ($divisionId, $user, $scopeIds) {
-                return $query->where(function($q) use ($divisionId, $user, $scopeIds) {
-                    $q->where('division_id', $divisionId)
-                      ->orWhereNull('division_id')
-                      ->orWhere('created_by', $user->id);
-                    if (!empty($scopeIds)) {
-                        $teamTaskProjectIds = Task::whereIn('engineer_id', $scopeIds)->pluck('project_id')->filter()->unique();
-                        if ($teamTaskProjectIds->isNotEmpty()) {
-                            $q->orWhereIn('id', $teamTaskProjectIds);
+        if ($isExecutive) {
+            $calendarProjects = collect([]);
+        } else {
+            $calendarProjects = Project::with('creator')
+                ->when($divisionId && !$isGlobal, function($query) use ($divisionId, $user, $scopeIds) {
+                    return $query->where(function($q) use ($divisionId, $user, $scopeIds) {
+                        $q->where('division_id', $divisionId)
+                          ->orWhereNull('division_id')
+                          ->orWhere('created_by', $user->id);
+                        if (!empty($scopeIds)) {
+                            $teamTaskProjectIds = Task::whereIn('engineer_id', $scopeIds)->pluck('project_id')->filter()->unique();
+                            if ($teamTaskProjectIds->isNotEmpty()) {
+                                $q->orWhereIn('id', $teamTaskProjectIds);
+                            }
                         }
-                    }
+                    });
+                })
+                ->whereNotNull('deadline')
+                ->get()
+                ->map(function($project) {
+                    return [
+                        'id'       => $project->id,
+                        'name'     => $project->name,
+                        'deadline' => $project->deadline ? $project->deadline->format('Y-m-d') : null,
+                        'status'   => $project->status,
+                        'client'   => $project->client,
+                    ];
                 });
-            })
-            ->whereNotNull('deadline')
-            ->get()
-            ->map(function($project) {
-                return [
-                    'id'       => $project->id,
-                    'name'     => $project->name,
-                    'deadline' => $project->deadline ? $project->deadline->format('Y-m-d') : null,
-                    'status'   => $project->status,
-                    'client'   => $project->client,
-                ];
-            });
+        }
 
         $isMaintenance = ScopeHelper::isMaintenance($user);
         $msTickets = collect([]);
-        if ($isMaintenance || ScopeHelper::isGlobal($user)) {
+        if (!$isExecutive && ($isMaintenance || ScopeHelper::isGlobal($user))) {
             $msTickets = \App\Models\ManagedServiceTicket::with(['assignedEngineer', 'asset', 'project'])
                 ->whereIn('status', ['Open', 'In Progress', 'Pending Vendor'])
                 ->latest()

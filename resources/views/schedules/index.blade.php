@@ -48,10 +48,10 @@
                     <div>
                         @if($isExecutive ?? false)
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> PENJADWALAN PRESALES, SALES, BD &amp; PMO
+                            <span class="ipnet-badge-dot"></span> PENJADWALAN TIM
                         </p>
-                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Jadwal Kerja Tim Komersial, Presales, BD &amp; PMO</h2>
-                        <p class="text-[13px] text-[#64748B] mt-0.5">Monitoring agenda koordinasi Presales, Sales, Business Development, dan PMO</p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Jadwal Kerja Tim</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Monitoring agenda kerja dan koordinasi tim</p>
                         @elseif($isArchitect ?? false)
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                             <span class="ipnet-badge-dot"></span> AGENDA & JADWAL KERJA MANDIRI
@@ -145,7 +145,7 @@
             <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2"
                  x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-avail-head">
-                    <span class="jkw-eyebrow">Ketersediaan Tim Presales, Sales, BD &amp; PMO — <span x-text="periodLabel"></span></span>
+                    <span class="jkw-eyebrow">Ketersediaan Tim — <span x-text="periodLabel"></span></span>
                     <label class="jkw-check">
                         <input type="checkbox" x-model="showOnlyAvailable">
                         <span>Hanya yang tersedia</span>
