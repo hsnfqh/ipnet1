@@ -500,6 +500,16 @@ class ProjectController extends Controller
      */
     public function assignApprover(Request $request, Project $project)
     {
+        if (!$request->has('role') || empty($request->input('role'))) {
+            if ($request->filled('head_user_id') && !$request->filled('director_user_id')) {
+                $request->merge(['role' => 'head']);
+            } elseif ($request->filled('director_user_id') && !$request->filled('head_user_id')) {
+                $request->merge(['role' => 'director']);
+            } else {
+                $request->merge(['role' => 'head']);
+            }
+        }
+
         $validated = $request->validate([
             'role'             => 'required|in:head,director,both',
             'head_user_id'     => 'nullable|exists:users,id',

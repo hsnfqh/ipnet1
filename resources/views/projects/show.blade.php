@@ -287,6 +287,35 @@
         }
     };
 
+    window.openAssignModalCustom = function(role) {
+        const roleInput = document.getElementById('assign-role-input');
+        const headBox = document.getElementById('assign-head-box');
+        const directorBox = document.getElementById('assign-director-box');
+        const titleEl = document.getElementById('assign-modal-title');
+        const submitBtn = document.getElementById('assign-submit-btn');
+
+        if (roleInput) roleInput.value = role;
+
+        if (role === 'head') {
+            if (headBox) headBox.style.setProperty('display', 'block', 'important');
+            if (directorBox) directorBox.style.setProperty('display', 'none', 'important');
+            if (titleEl) titleEl.innerText = 'Assign Review ke Head Divisi (Pak Susanto)';
+            if (submitBtn) submitBtn.innerText = 'Tugaskan ke Head Divisi';
+        } else if (role === 'director') {
+            if (headBox) headBox.style.setProperty('display', 'none', 'important');
+            if (directorBox) directorBox.style.setProperty('display', 'block', 'important');
+            if (titleEl) titleEl.innerText = 'Assign Otorisasi ke Direktur (Pak Hariyadi)';
+            if (submitBtn) submitBtn.innerText = 'Tugaskan ke Direktur';
+        } else {
+            if (headBox) headBox.style.setProperty('display', 'block', 'important');
+            if (directorBox) directorBox.style.setProperty('display', 'block', 'important');
+            if (titleEl) titleEl.innerText = 'Assign Review ke Pimpinan';
+            if (submitBtn) submitBtn.innerText = 'Tugaskan Sekarang';
+        }
+
+        window.openModal('modal-assign');
+    };
+
     function projectDetailPage(initialStage, currentDbStatus) {
         return {
             activeStageTab: initialStage || 'draft',
@@ -298,7 +327,7 @@
             approveRole: 'head', // 'head' (Susanto) or 'director' (Hariyadi)
 
             isAssignModalOpen: false,
-            assignRole: 'both', // 'head', 'director', 'both'
+            assignRole: 'head', // 'head', 'director', 'both'
 
             isEditPipelineModalOpen: false,
             isAssignTechnicalModalOpen: false,
@@ -321,10 +350,10 @@
                 window.openModal('modal-handover');
             },
 
-            openAssignModal(role = 'both') {
+            openAssignModal(role = 'head') {
                 this.assignRole = role;
                 this.isAssignModalOpen = true;
-                window.openModal('modal-assign');
+                window.openAssignModalCustom(role);
             },
 
             openApproveModal(role = 'head') {
@@ -1799,8 +1828,10 @@
             
             <div class="flex items-center justify-between border-b pb-3">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900" 
-                        x-text="assignRole === 'head' ? 'Assign Review ke Head Divisi' : (assignRole === 'director' ? 'Assign Otorisasi ke Direktur' : 'Assign Review ke Pimpinan')"></h3>
+                    <h3 id="assign-modal-title" class="text-base font-bold text-slate-900" 
+                        x-text="assignRole === 'head' ? 'Assign Review ke Head Divisi (Pak Susanto)' : (assignRole === 'director' ? 'Assign Otorisasi ke Direktur (Pak Hariyadi)' : 'Assign Review ke Pimpinan')">
+                        Assign Review ke Head Divisi (Pak Susanto)
+                    </h3>
                     <p class="text-[11.5px] text-slate-500 mt-0.5">Tugaskan peninjauan draft proyek ke pimpinan yang berwenang</p>
                 </div>
                 <button type="button" @click="isAssignModalOpen = false; window.closeModal('modal-assign')" onclick="window.closeModal('modal-assign')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
@@ -1808,10 +1839,10 @@
 
             <form action="{{ route('projects.assign_approver', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
                 @csrf
-                <input type="hidden" name="role" :value="assignRole">
+                <input type="hidden" name="role" id="assign-role-input" :value="assignRole" value="head">
 
                 {{-- Pilihan Head Divisi --}}
-                <div x-show="assignRole === 'head' || assignRole === 'both'">
+                <div id="assign-head-box" x-show="assignRole === 'head' || assignRole === 'both'">
                     <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH HEAD DIVISI (REVIEW TEKNIS)</label>
                     <select name="head_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
                         @foreach($leadershipUsers as $lu)
@@ -1823,7 +1854,7 @@
                 </div>
 
                 {{-- Pilihan Direktur --}}
-                <div x-show="assignRole === 'director' || assignRole === 'both'">
+                <div id="assign-director-box" x-show="assignRole === 'director' || assignRole === 'both'" style="display:none;">
                     <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[10.5px]">PILIH DIREKTUR (OTORISASI KONTRAK)</label>
                     <select name="director_user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
                         @foreach($leadershipUsers as $lu)
@@ -1845,7 +1876,7 @@
                     <button type="button" @click="isAssignModalOpen = false; window.closeModal('modal-assign')" onclick="window.closeModal('modal-assign')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                    <button type="submit" id="assign-submit-btn" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
                         Tugaskan Sekarang
                     </button>
                 </div>

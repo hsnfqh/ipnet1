@@ -115,7 +115,7 @@
             @if((!$isHeadAssigned && ($canAssignSales ?? false)) || ($canApproveHead && $isHeadAssigned) || ($isHeadAssigned && ($canAssignSales ?? false)))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isHeadAssigned && ($canAssignSales ?? false))
-                        <button type="button" @click="openAssignModal('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                        <button type="button" @click="openAssignModal('head')" onclick="window.openAssignModalCustom('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             <span>Assign Head Divisi</span>
                         </button>
@@ -129,7 +129,7 @@
                     @endif
 
                     @if($isHeadAssigned && ($canAssignSales ?? false))
-                        <button type="button" @click="openAssignModal('head')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
+                        <button type="button" @click="openAssignModal('head')" onclick="window.openAssignModalCustom('head')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
                             Ubah Penugasan
                         </button>
                     @endif
@@ -211,7 +211,7 @@
             @if((!$isDirectorAssigned && ($canAssignSales ?? false)) || ($canApproveDirector && $isDirectorAssigned) || ($isDirectorAssigned && ($canAssignSales ?? false)))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isDirectorAssigned && ($canAssignSales ?? false))
-                        <button type="button" @click="openAssignModal('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                        <button type="button" @click="openAssignModal('director')" onclick="window.openAssignModalCustom('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             <span>Assign Direktur</span>
                         </button>
@@ -225,7 +225,7 @@
                     @endif
 
                     @if($isDirectorAssigned && ($canAssignSales ?? false))
-                        <button type="button" @click="openAssignModal('director')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
+                        <button type="button" @click="openAssignModal('director')" onclick="window.openAssignModalCustom('director')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
                             Ubah Penugasan
                         </button>
                     @endif
