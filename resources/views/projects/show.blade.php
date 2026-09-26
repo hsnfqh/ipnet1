@@ -351,6 +351,26 @@
         window.openModal('modal-assign-technical');
     };
 
+    window.openApproveModalCustom = function(role) {
+        const input = document.getElementById('modal-approve-role-input');
+        const title = document.getElementById('modal-approve-title');
+        if (input) input.value = role;
+        if (title) {
+            title.innerText = role === 'director' ? 'Approval Direktur (Pak Hariyadi)' : 'Approval Head Divisi (Pak Susanto)';
+        }
+        window.openModal('modal-approve');
+    };
+
+    window.openUploadTechnicalModalCustom = function(role) {
+        const input = document.getElementById('modal-upload-technical-role-input');
+        const title = document.getElementById('modal-upload-technical-title');
+        if (input) input.value = role;
+        if (title) {
+            title.innerText = role === 'presales' ? 'Unggah Berkas Proposal & BoQ (Pre-Sales)' : 'Unggah Desain Arsitektur & Topologi (Solution Architect)';
+        }
+        window.openModal('modal-upload-technical-doc');
+    };
+
     function projectDetailPage(initialStage, currentDbStatus) {
         return {
             activeStageTab: initialStage || 'draft',
@@ -394,7 +414,7 @@
             openApproveModal(role = 'head') {
                 this.approveRole = role;
                 this.isApproveModalOpen = true;
-                window.openModal('modal-approve');
+                window.openApproveModalCustom(role);
             },
 
             openEditPipelineModal() {
@@ -411,7 +431,7 @@
             openUploadTechnicalModal(role = 'presales') {
                 this.uploadTechnicalRole = role;
                 this.isUploadTechnicalDocModalOpen = true;
-                window.openModal('modal-upload-technical-doc');
+                window.openUploadTechnicalModalCustom(role);
             },
 
             openVerifyTechnicalModal() {
@@ -1582,13 +1602,13 @@
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="text-base font-bold text-slate-900" x-text="approveRole === 'head' ? 'Approval Head Divisi (Pak Susanto)' : 'Approval Direktur (Pak Hariyadi)'"></h3>
+                <h3 id="modal-approve-title" class="text-base font-bold text-slate-900" x-text="approveRole === 'head' ? 'Approval Head Divisi (Pak Susanto)' : 'Approval Direktur (Pak Hariyadi)'">Approval Head Divisi (Pak Susanto)</h3>
                 <button type="button" @click="isApproveModalOpen = false; window.closeModal('modal-approve')" onclick="window.closeModal('modal-approve')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('projects.approve_draft', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
                 @csrf
-                <input type="hidden" name="approval_role" :value="approveRole">
+                <input type="hidden" name="approval_role" id="modal-approve-role-input" :value="approveRole" value="head">
 
                 <div>
                     <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">CATATAN PERSETUJUAN</label>
@@ -2208,8 +2228,8 @@
             
             <div class="flex items-center justify-between border-b pb-3">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900" 
-                        x-text="uploadTechnicalRole === 'presales' ? 'Unggah Berkas Proposal &amp; BoQ (Pre-Sales)' : 'Unggah Desain Arsitektur &amp; Topologi (Solution Architect)'"></h3>
+                    <h3 id="modal-upload-technical-title" class="text-base font-bold text-slate-900" 
+                        x-text="uploadTechnicalRole === 'presales' ? 'Unggah Berkas Proposal &amp; BoQ (Pre-Sales)' : 'Unggah Desain Arsitektur &amp; Topologi (Solution Architect)'">Unggah Berkas Solusi Teknis</h3>
                     <p class="text-[11.5px] text-slate-500 mt-0.5">Unggah berkas dokumen teknis pendukung solusi proyek</p>
                 </div>
                 <button type="button" @click="isUploadTechnicalDocModalOpen = false; window.closeModal('modal-upload-technical-doc')" onclick="window.closeModal('modal-upload-technical-doc')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
@@ -2217,7 +2237,7 @@
 
             <form action="{{ route('projects.upload_technical_doc', $project->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs font-semibold">
                 @csrf
-                <input type="hidden" name="role_type" :value="uploadTechnicalRole">
+                <input type="hidden" name="role_type" id="modal-upload-technical-role-input" :value="uploadTechnicalRole" value="presales">
 
                 <div>
                     <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NAMA / JUDUL DOKUMEN</label>

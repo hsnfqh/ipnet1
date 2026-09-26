@@ -597,6 +597,17 @@ class ProjectController extends Controller
      */
     public function approveDraft(Request $request, Project $project)
     {
+        $role = $request->input('approval_role') ?: $request->input('role');
+        if (!$role) {
+            $userRoles = auth()->user() && method_exists(auth()->user(), 'roles') ? auth()->user()->roles->pluck('name')->toArray() : [];
+            if (!empty(array_intersect(['Director', 'Direktur', 'HD / Direktur'], $userRoles)) || str_contains(strtolower(auth()->user()->name ?? ''), 'hari')) {
+                $role = 'director';
+            } else {
+                $role = 'head';
+            }
+        }
+        $request->merge(['approval_role' => $role]);
+
         $validated = $request->validate([
             'approval_role' => 'required|in:head,director',
             'notes'         => 'nullable|string|max:1000',
