@@ -177,14 +177,19 @@
     // Hak otorisasi persetujuan pimpinan (Pak Susanto & Pak Hariyadi)
     $authUser = auth()->user();
     $userRoles = $authUser ? $authUser->roles->pluck('name')->toArray() : [];
-    $canApproveHead = $authUser && (
-        !empty(array_intersect(['Director', 'Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Lead Divisi'], $userRoles)) 
-        || str_contains(strtolower($authUser->name), 'susanto')
+    $isSusanto = $authUser && (str_contains(strtolower($authUser->name), 'susanto') || !empty(array_intersect(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution', 'Lead Divisi'], $userRoles)));
+    $isHariyadi = $authUser && (str_contains(strtolower($authUser->name), 'hariyadi') || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur'], $userRoles)));
+    $isExecutive = $isSusanto || $isHariyadi || \App\Helpers\ScopeHelper::isExecutive($authUser);
+
+    // Pimpinan tertinggi hanya menyetujui, assignment dilakukan oleh tim Sales/AM/Admin
+    $canAssignSales = !$isExecutive && $authUser && (
+        !empty(array_intersect(['Sales', 'Account Manager', 'Admin', 'Super Admin', 'Admin Support'], $userRoles))
+        || ($project->created_by == $authUser->id)
+        || ($project->sales_name && str_contains(strtolower($project->sales_name), strtolower($authUser->name)))
     );
-    $canApproveDirector = $authUser && (
-        !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur'], $userRoles)) 
-        || str_contains(strtolower($authUser->name), 'hariyadi')
-    );
+
+    $canApproveHead = $isSusanto;
+    $canApproveDirector = $isHariyadi;
 
     // Ambil daftar user BD (Business Development Managers)
     $bdmUsers = \App\Models\User::whereHas('roles', fn($q) => $q->whereIn('name', ['BDM', 'BusDev', 'Business Development']))->orderBy('name')->get();
@@ -224,13 +229,13 @@
     // Hak otorisasi unggah berkas teknis solusi (Presales, SA, Sales, BD, Direktur, Head Divisi)
     $canUploadPresales = $authUser && (
         (!empty($presalesAssignment['assigned_user_id']) && $authUser->id == $presalesAssignment['assigned_user_id'])
-        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Sales', 'BDM', 'BusDev', 'Solution Architect', 'Super Admin', 'Admin'], $userRoles))
+        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Sales', 'BDM', 'BusDev', 'Solution Architect', 'Super Admin', 'Admin'], $userRoles))
         || ($authUser->email === 'akbar@ipnetsolusindo.com')
     );
 
     $canUploadArchitect = $authUser && (
         (!empty($architectAssignment['assigned_user_id']) && $authUser->id == $architectAssignment['assigned_user_id'])
-        || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Super Admin', 'Admin'], $userRoles))
+        || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Super Admin', 'Admin'], $userRoles))
         || str_contains(strtolower($authUser->name), 'aris')
     );
 
@@ -1122,7 +1127,7 @@
                                 Informasi Klien
                             </h3>
                             <div class="flex items-center gap-2">
-                                @if(!$isPresalesOrSaOnly)
+                                @if(!$isPresalesOrSaOnly && ($canAssignSales ?? false))
                                 <button type="button" onclick="window.openModal('modal-edit-client')" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 rounded-lg text-[11px] font-bold shadow-2xs transition flex items-center gap-1 cursor-pointer">
                                     <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     <span>Edit / Hubungkan</span>
