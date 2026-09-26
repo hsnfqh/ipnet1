@@ -22,16 +22,27 @@ class ScheduleController extends Controller
      */
     public function index()
     {
-        $user     = auth()->user();
-        $scopeIds = ScopeHelper::getScopeUserIds($user);
+        $user         = auth()->user();
+        $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
+        $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
+        $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
+        $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
+        $isCommercial = $isExecutive || $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO', 'Customer Relation Officer']);
+        $isLead       = (ScopeHelper::isManagerial($user) || $isCommercial) && !$isArchitect;
+        $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect);
+        $scopeIds     = $isExecutive ? null : ScopeHelper::getScopeUserIds($user);
         $hasScheduleUser = Schema::hasTable('schedule_user');
-        $isArchitect = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
-        $isCommercial = $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO', 'Customer Relation Officer']);
-        $isLead = (ScopeHelper::isManagerial($user) || $isCommercial) && !$isArchitect;
-        $canManageSchedule = ScopeHelper::canManageSchedules($user) || $isArchitect;
+
+        $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
+        $salesUsers = User::where(function($q) use ($validSalesNames) {
+            $q->whereIn('name', $validSalesNames)
+              ->orWhere('name', 'like', '%Raiza%')
+              ->orWhere('name', 'like', '%Nabylla%');
+        })->get();
+        $salesUserIds = $salesUsers->pluck('id')->toArray();
 
         // Auto-heal / Sinkronkan Task ke Jadwal Kerja sesuai scope divisi user
-        if (!$isArchitect) {
+        if (!$isArchitect && !$isExecutive) {
             // 1. Bersihkan Jadwal kategori Task/Kegiatan yang task induknya sudah dihapus / sudah di-rename, serta bersihkan task jika jadwal berkategori Meeting / Day Off
             try {
                 $meetingScheduleTitles = Schedule::where(function($q) {
@@ -172,7 +183,18 @@ class ScheduleController extends Controller
         }
 
         $schedulesQuery = Schedule::with($withRelations);
-        if ($isArchitect) {
+        if ($isExecutive) {
+            // Executive (Hariyadi & Susanto): Hanya terhubung ke jadwal Commercial & Sales (Raiza & Nabylla), terputus dari tugas engineer teknis
+            $schedulesQuery->where(function($q) use ($salesUserIds, $validSalesNames) {
+                $q->whereIn('engineer_id', $salesUserIds)
+                  ->orWhereHas('creator', fn($cq) => $cq->whereIn('id', $salesUserIds))
+                  ->orWhereHas('project', function($pq) use ($validSalesNames) {
+                      $pq->whereIn('sales_name', $validSalesNames)
+                         ->orWhere('sales_name', 'like', '%Raiza%')
+                         ->orWhere('sales_name', 'like', '%Nabylla%');
+                  });
+            });
+        } elseif ($isArchitect) {
             // Solution Architect mengelola jadwal/agenda kerja mandiri (diary SA)
             $schedulesQuery->where(function($q) use ($user, $hasScheduleUser) {
                 $q->where('created_by', $user->id)
@@ -264,31 +286,53 @@ class ScheduleController extends Controller
 
         $divisionId = $user->division_id;
         $isGlobal = ScopeHelper::isGlobal($user);
-        $projectsQuery = Project::query();
-        if ($divisionId && !$isGlobal) {
-            $projectsQuery->where(function($q) use ($divisionId, $user, $scopeIds) {
-                $q->where('division_id', $divisionId)
-                  ->orWhereNull('division_id')
-                  ->orWhere('created_by', $user->id);
-                if (!empty($scopeIds)) {
-                    $teamTaskProjectIds = Task::whereIn('engineer_id', $scopeIds)->pluck('project_id')->filter()->unique();
-                    if ($teamTaskProjectIds->isNotEmpty()) {
-                        $q->orWhereIn('id', $teamTaskProjectIds);
+        if ($isExecutive) {
+            $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+                ->where('client', '!=', 'Internal / Umum')
+                ->where('name', 'not like', '%Preventive Maintenance%')
+                ->where('name', 'not like', '%Corrective Maintenance%')
+                ->where('name', 'not like', '%SLA%')
+                ->where('name', 'not like', '%Training%')
+                ->where('name', 'not like', '%Meeting%')
+                ->where('name', 'not like', '%On Going Project%')
+                ->where('name', 'not like', '%Closed Project%')
+                ->where('name', 'not like', '%Pengadaaan%')
+                ->where('name', 'not like', '%Pengadaan%')
+                ->where(function($q) use ($validSalesNames) {
+                    $q->whereIn('sales_name', $validSalesNames)
+                      ->orWhere('sales_name', 'like', '%Raiza%')
+                      ->orWhere('sales_name', 'like', '%Nabylla%');
+                })
+                ->orderBy('name')
+                ->get();
+            $rawEngineers = $salesUsers;
+        } else {
+            $projectsQuery = Project::query();
+            if ($divisionId && !$isGlobal) {
+                $projectsQuery->where(function($q) use ($divisionId, $user, $scopeIds) {
+                    $q->where('division_id', $divisionId)
+                      ->orWhereNull('division_id')
+                      ->orWhere('created_by', $user->id);
+                    if (!empty($scopeIds)) {
+                        $teamTaskProjectIds = Task::whereIn('engineer_id', $scopeIds)->pluck('project_id')->filter()->unique();
+                        if ($teamTaskProjectIds->isNotEmpty()) {
+                            $q->orWhereIn('id', $teamTaskProjectIds);
+                        }
                     }
-                }
-            });
-        }
-        $projects = $projectsQuery
-            ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->orderBy('name')
-            ->get();
-        $rawEngineers = $isArchitect ? collect([$user]) : ScopeHelper::getAssignableEngineers($user);
-        if ($isCommercial) {
-            // Urutkan Presales & Solution Architect di urutan teratas agar Sales langsung menemukan partner untuk POC / meeting
-            $rawEngineers = $rawEngineers->sortByDesc(function($e) {
-                $isPresalesOrSA = method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA']);
-                return $isPresalesOrSA ? 2 : (method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Sales', 'Account Manager', 'BDM']) ? 1 : 0);
-            })->values();
+                });
+            }
+            $projects = $projectsQuery
+                ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+                ->orderBy('name')
+                ->get();
+            $rawEngineers = $isArchitect ? collect([$user]) : ScopeHelper::getAssignableEngineers($user);
+            if ($isCommercial) {
+                // Urutkan Presales & Solution Architect di urutan teratas agar Sales langsung menemukan partner untuk POC / meeting
+                $rawEngineers = $rawEngineers->sortByDesc(function($e) {
+                    $isPresalesOrSA = method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA']);
+                    return $isPresalesOrSA ? 2 : (method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Sales', 'Account Manager', 'BDM']) ? 1 : 0);
+                })->values();
+            }
         }
         $engineers = $rawEngineers->map(function($e) {
             $isMaint = ($e->division_id == 3) || (method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)']));

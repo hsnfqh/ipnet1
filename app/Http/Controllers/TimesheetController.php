@@ -19,9 +19,24 @@ class TimesheetController extends Controller
      */
     public function index(Request $request)
     {
-        $user     = auth()->user();
-        $isLead   = \App\Helpers\ScopeHelper::isManagerial($user);
-        $scopeIds = \App\Helpers\ScopeHelper::getScopeUserIds($user);
+        $user         = auth()->user();
+        $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
+        $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
+        $isExecutive  = $isSusanto || $isHariyadi || \App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::isGroupLeader($user);
+        $isLead       = \App\Helpers\ScopeHelper::isManagerial($user);
+        $scopeIds     = \App\Helpers\ScopeHelper::getScopeUserIds($user);
+
+        $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
+        $salesUsers = User::where(function($q) use ($validSalesNames) {
+            $q->whereIn('name', $validSalesNames)
+              ->orWhere('name', 'like', '%Raiza%')
+              ->orWhere('name', 'like', '%Nabylla%');
+        })->get();
+        $salesUserIds = $salesUsers->pluck('id')->toArray();
+
+        if ($isExecutive) {
+            $scopeIds = $salesUserIds;
+        }
 
         // Filter Inputs
         $engineerId = $request->get('engineer_id');
@@ -83,9 +98,32 @@ class TimesheetController extends Controller
         $totalOvertimeHours = round($allStatLogs->where('category', 'Overtime')->sum('duration_minutes') / 60, 1);
 
         // Active projects and available engineers
-        $projects = Project::orderBy('name')->get();
-        $engineers = $isLead ? \App\Helpers\ScopeHelper::getAssignableEngineers($user) : collect();
-        $myTasks = Task::when(!$isLead, fn($q) => $q->where('engineer_id', $user->id))->orderBy('title')->get();
+        if ($isExecutive) {
+            $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+                ->where('client', '!=', 'Internal / Umum')
+                ->where('name', 'not like', '%Preventive Maintenance%')
+                ->where('name', 'not like', '%Corrective Maintenance%')
+                ->where('name', 'not like', '%SLA%')
+                ->where('name', 'not like', '%Training%')
+                ->where('name', 'not like', '%Meeting%')
+                ->where('name', 'not like', '%On Going Project%')
+                ->where('name', 'not like', '%Closed Project%')
+                ->where('name', 'not like', '%Pengadaaan%')
+                ->where('name', 'not like', '%Pengadaan%')
+                ->where(function($q) use ($validSalesNames) {
+                    $q->whereIn('sales_name', $validSalesNames)
+                      ->orWhere('sales_name', 'like', '%Raiza%')
+                      ->orWhere('sales_name', 'like', '%Nabylla%');
+                })
+                ->orderBy('name')
+                ->get();
+            $engineers = $salesUsers;
+            $myTasks = collect([]);
+        } else {
+            $projects = Project::orderBy('name')->get();
+            $engineers = $isLead ? \App\Helpers\ScopeHelper::getAssignableEngineers($user) : collect();
+            $myTasks = Task::when(!$isLead, fn($q) => $q->where('engineer_id', $user->id))->orderBy('title')->get();
+        }
 
         return view('timesheets.index', compact(
             'timesheets',
