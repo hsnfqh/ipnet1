@@ -1,5 +1,6 @@
 {{-- KOLABORASI TIM SOLUSI TEKNIS (PIC BD, PRE-SALES & SOLUTION ARCHITECT) --}}
 @php
+    $isAnyApproved = $isAnyApproved ?? (!empty($headApproval['approved']) || !empty($directorApproval['approved']));
     $isBdApproved = $isBdApproved ?? ((($bdVerification['status'] ?? '') === 'Approved'));
     $isBdmAssigned = $isBdmAssigned ?? (!empty($project->bdm_id) || !empty($bdmAssignment['assigned']));
     $bdmName = $bdmName ?? ($project->bdm->name ?? ($bdmAssignment['assigned_to'] ?? null));
@@ -21,7 +22,12 @@
             <h3 class="text-sm sm:text-base font-bold text-slate-900">Kolaborasi Tim Solusi (BD, Pre-Sales &amp; Solution Architect)</h3>
             <p class="text-xs text-slate-500 mt-0.5">Workflow verifikasi kelayakan teknis, proposal SOW &amp; desain topologi arsitektur.</p>
         </div>
-        @if(($bdVerification['status'] ?? '') === 'Approved')
+        @if(!$isAnyApproved)
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5 shadow-2xs">
+                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Menunggu Persetujuan Pimpinan</span>
+            </span>
+        @elseif(($bdVerification['status'] ?? '') === 'Approved')
             <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 shadow-2xs">
                 <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                 <span>Solusi Disahkan BD</span>
@@ -136,7 +142,14 @@
                 $showBdAssign = empty($isPresalesOrSaOnly) && ($canAssignSales ?? false) && !$isBdmAssigned;
                 $showBdVerify = $canVerifyBD && ($isPresalesDone || $isArchitectDone);
             @endphp
-            @if($showBdAssign || $showBdVerify)
+            @if(!$isAnyApproved && !$isBdmAssigned && empty($isPresalesOrSaOnly) && ($canAssignSales ?? false))
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    <button type="button" disabled class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-75 shadow-2xs" title="Terkunci: Menunggu persetujuan pimpinan (Pak Susanto / Pak Hariyadi)">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <span>Tunjuk PIC BD</span>
+                    </button>
+                </div>
+            @elseif($showBdAssign || $showBdVerify)
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if($showBdAssign)
                         <button type="button" @click="openAssignTechnicalModal('bdm')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
@@ -223,11 +236,7 @@
                             Belum ada penugasan Pre-Sales.
                         </div>
                     @endif
-                </div>
-
-            </div>
-
-            {{-- Actions Footer --}}
+                </div>            {{-- Actions Footer --}}
             @php
                 $showPresalesAssign = ($canAssignSales ?? false) && !$isPresalesAssigned;
                 $showPresalesReassign = ($canAssignSales ?? false) && $isPresalesAssigned;
@@ -235,7 +244,14 @@
                 $showPresalesUpload = $isPresalesAssigned && !$isPresalesDone && $canUploadPresales && !$showPresalesUploadRevision;
                 $showPresalesReupload = $isPresalesAssigned && $isPresalesDone && $canUploadPresales && !$showPresalesUploadRevision;
             @endphp
-            @if($showPresalesAssign || $showPresalesReassign || $showPresalesUploadRevision || $showPresalesUpload || $showPresalesReupload)
+            @if(!$isAnyApproved && !$isPresalesAssigned && ($canAssignSales ?? false))
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    <button type="button" disabled class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-75 shadow-2xs" title="Terkunci: Menunggu persetujuan pimpinan (Pak Susanto / Pak Hariyadi)">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <span>Tugaskan Pre-Sales</span>
+                    </button>
+                </div>
+            @elseif($showPresalesAssign || $showPresalesReassign || $showPresalesUploadRevision || $showPresalesUpload || $showPresalesReupload)
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if($showPresalesAssign)
                         <button type="button" @click="openAssignTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
@@ -311,7 +327,7 @@
                                              {{ \Illuminate\Support\Str::limit($architectAssignment['document_title'] ?? 'Desain Topologi', 10, '...') }}
                                         </div>
                                         <div class="text-[10px] text-slate-500 font-mono truncate" title="{{ $architectAssignment['document_name'] ?? 'jurnal.pdf' }}">
-                                            {{ $architectAssignment['document_name'] ?? 'jurnal.pdf' }}
+                                             {{ $architectAssignment['document_name'] ?? 'jurnal.pdf' }}
                                         </div>
                                     </div>
                                 </div>
@@ -351,7 +367,14 @@
                 $showArchitectUpload = $isArchitectAssigned && !$isArchitectDone && $canUploadArchitect && !$showArchitectUploadRevision;
                 $showArchitectReupload = $isArchitectAssigned && $isArchitectDone && $canUploadArchitect && !$showArchitectUploadRevision;
             @endphp
-            @if($showArchitectAssign || $showArchitectReassign || $showArchitectUploadRevision || $showArchitectUpload || $showArchitectReupload)
+            @if(!$isAnyApproved && !$isArchitectAssigned && ($canAssignSales ?? false))
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    <button type="button" disabled class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-75 shadow-2xs" title="Terkunci: Menunggu persetujuan pimpinan (Pak Susanto / Pak Hariyadi)">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        <span>Tugaskan SA</span>
+                    </button>
+                </div>
+            @elseif($showArchitectAssign || $showArchitectReassign || $showArchitectUploadRevision || $showArchitectUpload || $showArchitectReupload)
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if($showArchitectAssign)
                         <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
