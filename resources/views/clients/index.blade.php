@@ -55,6 +55,14 @@
                     </div>
                     <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700 font-bold px-2">✕</button>
                 </div>
+            @if(session('error'))
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between shadow-xs anim-fade-up">
+                    <div class="flex items-center gap-2.5">
+                        <svg class="w-4 h-4 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 font-bold px-2">✕</button>
+                </div>
             @endif
 
             <!-- ========================================================== -->
@@ -112,6 +120,13 @@
             <!-- ========================================================== -->
             <!-- 2. DATA TABLE CARD                                         -->
             <!-- ========================================================== -->
+            @php
+                $authClientUser = auth()->user();
+                $authClientUserRoles = $authClientUser && method_exists($authClientUser, 'roles') ? $authClientUser->roles->pluck('name')->toArray() : [];
+                $isSusantoClient = $authClientUser && (str_contains(strtolower($authClientUser->name), 'susanto') || !empty(array_intersect(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution', 'Lead Divisi'], $authClientUserRoles)));
+                $isHariyadiClient = $authClientUser && (str_contains(strtolower($authClientUser->name), 'hariyadi') || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur'], $authClientUserRoles)));
+                $isExecutiveClient = $isSusantoClient || $isHariyadiClient || \App\Helpers\ScopeHelper::isExecutive($authClientUser) || !empty(array_intersect(['Super Admin', 'Admin'], $authClientUserRoles));
+            @endphp
             <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-2">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse">
@@ -123,18 +138,26 @@
                                 </th>
                                 <th class="py-3.5 px-6 font-bold">DEPARTMENT</th>
                                 <th class="py-3.5 px-6 font-bold">PIC &amp; KONTAK</th>
-                                <th class="py-3.5 px-6 font-bold text-right">AKSI</th>
+                                <th class="py-3.5 px-6 font-bold text-right">{{ $isExecutiveClient ? 'AKSI' : 'PIC / AKSI' }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#F1F5F9] font-medium text-[#1E293B]">
                             @forelse($clients as $client)
+                                @php
+                                    $canManageThisClient = $isExecutiveClient || ($authClientUser && $client->created_by === $authClientUser->id);
+                                    $creatorName = $client->creator ? $client->creator->name : ($client->created_by ? 'User #' . $client->created_by : 'Sales/BD');
+                                @endphp
                                 <tr class="hover:bg-[#F8FAFC] transition">
                                     {{-- Name --}}
                                     <td class="py-4 px-6 font-bold text-[#1E293B] text-[13px]">
-                                        <a href="{{ route('clients.show', $client->id) }}" class="hover:text-[#8F0A0D] transition inline-flex items-center gap-1.5 group">
-                                            <span>{{ $client->name }}</span>
-                                            <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-[#8F0A0D] opacity-0 group-hover:opacity-100 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                        </a>
+                                        @if($canManageThisClient)
+                                            <a href="{{ route('clients.show', $client->id) }}" class="hover:text-[#8F0A0D] transition inline-flex items-center gap-1.5 group">
+                                                <span>{{ $client->name }}</span>
+                                                <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-[#8F0A0D] opacity-0 group-hover:opacity-100 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            </a>
+                                        @else
+                                            <span class="text-[#1E293B]">{{ $client->name }}</span>
+                                        @endif
                                     </td>
 
                                     {{-- Department --}}
@@ -150,22 +173,31 @@
                                         <div class="text-[11px] text-[#94A3B8]">{{ $client->phone ?: ($client->email ?: 'Tidak ada kontak') }}</div>
                                     </td>
 
-                                    {{-- Action Buttons --}}
+                                    {{-- Action Buttons / PIC Pembuat --}}
                                     <td class="py-4 px-6 text-right whitespace-nowrap">
-                                        <div class="inline-flex items-center gap-2">
-                                            <a href="{{ route('clients.show', $client->id) }}" 
-                                               class="px-3.5 py-1.5 rounded-lg border border-[#CBD5E1] text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#8F0A0D] hover:text-[#8F0A0D] text-[11px] font-bold uppercase transition cursor-pointer inline-flex items-center justify-center">
-                                                DETAILS
-                                            </a>
+                                        @if($canManageThisClient)
+                                            <div class="inline-flex items-center gap-2">
+                                                <a href="{{ route('clients.show', $client->id) }}" 
+                                                   class="px-3.5 py-1.5 rounded-lg border border-[#CBD5E1] text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#8F0A0D] hover:text-[#8F0A0D] text-[11px] font-bold uppercase transition cursor-pointer inline-flex items-center justify-center">
+                                                    DETAILS
+                                                </a>
 
-                                            <button type="button" 
-                                                    @click="confirmDelete({{ $client->id }}, '{{ addslashes($client->name) }}')"
-                                                    style="padding:6px 14px; border-radius:8px; font-size:11px; font-weight:700; text-transform:uppercase; color:#FFFFFF; background:linear-gradient(135deg,#8F0A0D 0%,#B81525 100%); border:none; cursor:pointer; transition:all .15s; box-shadow:0 2px 6px rgba(143,10,13,0.20);"
-                                                    onmouseover="this.style.background='linear-gradient(135deg,#73080A 0%,#9E0E1D 100%)'; this.style.boxShadow='0 3px 10px rgba(143,10,13,0.32)';"
-                                                    onmouseout="this.style.background='linear-gradient(135deg,#8F0A0D 0%,#B81525 100%)'; this.style.boxShadow='0 2px 6px rgba(143,10,13,0.20)';">
-                                                Hapus
-                                            </button>
-                                        </div>
+                                                <button type="button" 
+                                                        @click="confirmDelete({{ $client->id }}, '{{ addslashes($client->name) }}')"
+                                                        style="padding:6px 14px; border-radius:8px; font-size:11px; font-weight:700; text-transform:uppercase; color:#FFFFFF; background:linear-gradient(135deg,#8F0A0D 0%,#B81525 100%); border:none; cursor:pointer; transition:all .15s; box-shadow:0 2px 6px rgba(143,10,13,0.20);"
+                                                        onmouseover="this.style.background='linear-gradient(135deg,#73080A 0%,#9E0E1D 100%)'; this.style.boxShadow='0 3px 10px rgba(143,10,13,0.32)';"
+                                                        onmouseout="this.style.background='linear-gradient(135deg,#8F0A0D 0%,#B81525 100%)'; this.style.boxShadow='0 2px 6px rgba(143,10,13,0.20)';">
+                                                    Hapus
+                                                </button>
+                                            </div>
+                                        @else
+                                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold shadow-2xs">
+                                                <div class="w-5 h-5 rounded-full bg-red-50 text-[#8F0A0D] border border-red-200 flex items-center justify-center text-[9px] font-extrabold uppercase shrink-0">
+                                                    {{ strtoupper(substr($creatorName, 0, 2)) }}
+                                                </div>
+                                                <span class="font-bold text-slate-800 truncate max-w-[140px]" title="Dibuat oleh {{ $creatorName }}">{{ $creatorName }}</span>
+                                            </div>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
