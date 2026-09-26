@@ -147,7 +147,14 @@
                             @forelse($clients as $client)
                                 @php
                                     $canManageThisClient = $isExecutiveClient || ($authClientUser && $client->created_by === $authClientUser->id);
-                                    $creatorName = $client->creator ? $client->creator->name : ($client->created_by ? 'User #' . $client->created_by : 'Sales/BD');
+                                    $creatorName = $client->creator ? $client->creator->name : ($client->created_by ? 'User #' . $client->created_by : null);
+                                    if (!$creatorName && $client->projects && $client->projects->isNotEmpty()) {
+                                        $firstProj = $client->projects->first();
+                                        $creatorName = $firstProj->sales_name ?: ($firstProj->creator ? $firstProj->creator->name : null);
+                                    }
+                                    if (!$creatorName) {
+                                        $creatorName = 'Raiza';
+                                    }
                                 @endphp
                                 <tr class="hover:bg-[#F8FAFC] transition">
                                     {{-- Name --}}
@@ -159,6 +166,18 @@
                                             </a>
                                         @else
                                             <span class="text-[#1E293B]">{{ $client->name }}</span>
+                                        @endif
+
+                                        @if($isExecutiveClient)
+                                            <div class="text-[10.5px] font-medium text-slate-400 mt-1 flex items-center gap-1">
+                                                <span>Dibuat oleh:</span>
+                                                <span class="text-[#8F0A0D] font-bold inline-flex items-center gap-1">
+                                                    <span class="w-4 h-4 rounded-full bg-red-100 text-[#8F0A0D] flex items-center justify-center text-[8.5px] font-extrabold uppercase">
+                                                        {{ strtoupper(substr($creatorName, 0, 2)) }}
+                                                    </span>
+                                                    {{ $creatorName }}
+                                                </span>
+                                            </div>
                                         @endif
                                     </td>
 

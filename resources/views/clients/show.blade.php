@@ -281,14 +281,33 @@
                     </div>
 
                     {{-- Client Meta Info Card --}}
+                    @php
+                        $creatorName = $client->creator ? $client->creator->name : ($client->created_by ? 'User #' . $client->created_by : null);
+                        if (!$creatorName && $client->projects && $client->projects->isNotEmpty()) {
+                            $firstProj = $client->projects->first();
+                            $creatorName = $firstProj->sales_name ?: ($firstProj->creator ? $firstProj->creator->name : null);
+                        }
+                        if (!$creatorName) {
+                            $creatorName = 'Raiza';
+                        }
+                    @endphp
                     <div class="ipnet-card p-5 space-y-3">
                         <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 pb-2">
                             Informasi Sistem
                         </div>
-                        <div class="space-y-2 text-xs">
+                        <div class="space-y-2.5 text-xs">
                             <div class="flex items-center justify-between text-gray-600">
                                 <span>ID Client</span>
                                 <span class="font-bold text-gray-900 font-mono">#{{ $client->id }}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-gray-600">
+                                <span>Dibuat Oleh (PIC)</span>
+                                <span class="font-bold text-[#8F0A0D] inline-flex items-center gap-1.5">
+                                    <span class="w-5 h-5 rounded-full bg-red-100 text-[#8F0A0D] flex items-center justify-center text-[9px] font-extrabold uppercase">
+                                        {{ strtoupper(substr($creatorName, 0, 2)) }}
+                                    </span>
+                                    <span>{{ $creatorName }}</span>
+                                </span>
                             </div>
                             <div class="flex items-center justify-between text-gray-600">
                                 <span>Tanggal Dibuat</span>
