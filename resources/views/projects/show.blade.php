@@ -2179,16 +2179,20 @@
                 Project <strong class="text-slate-800">"{{ $project->name }}"</strong> beserta seluruh task dan milestone terkait akan dihapus secara permanen.
             </p>
 
-            <div class="flex gap-2.5">
-                <button type="button" @click="isDeleteModalOpen = false; window.closeModal('modal-delete')" onclick="window.closeModal('modal-delete')"
-                        class="flex-1 py-2.5 px-4 rounded-xl bg-white text-slate-600 border border-slate-300 font-bold text-xs hover:bg-slate-50 transition cursor-pointer text-center">
-                    Batal
-                </button>
-                <button type="button" @click="document.getElementById('deleteProjForm').submit()"
-                        class="flex-1 py-2.5 px-4 rounded-xl btn-ipnet-primary font-bold text-xs transition cursor-pointer shadow-sm text-white text-center">
-                    Ya, Hapus
-                </button>
-            </div>
+            <form id="deleteProjForm" action="{{ route('projects.destroy', $project->id) }}" method="POST">
+                @csrf
+                @method('DELETE')
+                <div class="flex gap-2.5">
+                    <button type="button" @click="isDeleteModalOpen = false; window.closeModal('modal-delete')" onclick="window.closeModal('modal-delete')"
+                            class="flex-1 py-2.5 px-4 rounded-xl bg-white text-slate-600 border border-slate-300 font-bold text-xs hover:bg-slate-50 transition cursor-pointer text-center">
+                        Batal
+                    </button>
+                    <button type="submit"
+                            class="flex-1 py-2.5 px-4 rounded-xl btn-ipnet-primary font-bold text-xs transition cursor-pointer shadow-sm text-white text-center">
+                        Ya, Hapus
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -2302,12 +2306,6 @@
             </form>
         </div>
     </div>
-
-    {{-- DELETE PROJECT FORM --}}
-    <form id="deleteProjForm" action="{{ route('projects.destroy', $project->id) }}" method="POST" style="display:none;">
-        @csrf
-        @method('DELETE')
-    </form>
 
 </div>
 @endsection

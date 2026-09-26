@@ -200,25 +200,35 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
-        abort_unless(\App\Helpers\ScopeHelper::canCreateProjects(auth()->user()), 403, 'Anda tidak memiliki hak akses untuk menghapus project.');
+        $user = auth()->user();
+        $isCreator = $user && (
+            $project->created_by == $user->id 
+            || ($project->sales_name && str_contains(strtolower($project->sales_name), strtolower($user->name)))
+        );
+        $canDelete = $isCreator || \App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::canCreateProjects($user);
+
+        abort_unless($canDelete, 403, 'Anda tidak memiliki hak akses untuk menghapus project.');
 
         try {
-            // Cascade soft delete tasks & schedules
+            // Cascade delete tasks, schedules, and documents
             $project->tasks()->delete();
             $project->schedules()->delete();
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+                \App\Models\ProjectDocument::where('project_id', $project->id)->delete();
+            }
             $project->delete();
 
             if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
                 return response()->json(['message' => 'Project berhasil dihapus!'], 200);
             }
 
-            return redirect()->route('projects.index')
+            return redirect()->route('sales.pipeline.index')
                 ->with('success', 'Project berhasil dihapus!');
         } catch (\Exception $e) {
             if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
                 return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
             }
-            return redirect()->route('projects.index')
+            return redirect()->route('sales.pipeline.index')
                 ->with('error', 'Gagal menghapus project: ' . $e->getMessage());
         }
     }
