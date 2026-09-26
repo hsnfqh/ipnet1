@@ -93,17 +93,21 @@
         @php
             $authCardUser = auth()->user();
             $authCardUserRoles = $authCardUser && method_exists($authCardUser, 'roles') ? $authCardUser->roles->pluck('name')->toArray() : [];
+            $isSusantoCard = $authCardUser && (str_contains(strtolower($authCardUser->name), 'susanto') || !empty(array_intersect(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution', 'Lead Divisi'], $authCardUserRoles)));
+            $isHariyadiCard = $authCardUser && (str_contains(strtolower($authCardUser->name), 'hariyadi') || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur'], $authCardUserRoles)));
+            $isExecutiveCard = $isSusantoCard || $isHariyadiCard || \App\Helpers\ScopeHelper::isExecutive($authCardUser);
+
             $isPresalesUser = $authCardUser && (
                 !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $authCardUserRoles))
                 || in_array(strtolower($authCardUser->position ?? ''), ['presales', 'pre-sales', 'solution architect', 'sa', 'pre sales'])
                 || str_contains(strtolower($authCardUser->email ?? ''), 'akbar')
                 || str_contains(strtolower($authCardUser->email ?? ''), 'aris')
             );
-            $canMarkComplete = $authCardUser && !$isPresalesUser && (
+            $canMarkComplete = $authCardUser && !$isExecutiveCard && !$isPresalesUser && (
                 $project->created_by === $authCardUser->id
                 || $project->sales_name === $authCardUser->name
                 || ($project->sales_id && $project->sales_id === $authCardUser->id)
-                || !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $authCardUserRoles))
+                || !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Super Admin', 'Admin'], $authCardUserRoles))
             );
         @endphp
 

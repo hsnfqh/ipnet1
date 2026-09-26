@@ -538,7 +538,7 @@
                     </div>
 
                     {{-- Action Buttons --}}
-                    @if(!$isPresalesOrSaOnly)
+                    @if(!$isPresalesOrSaOnly && ($canAssignSales ?? false))
                     <div class="flex items-center gap-2 shrink-0">
                         @if($currentStatus === 'In Progress')
                             <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
