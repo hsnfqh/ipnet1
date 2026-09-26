@@ -15,15 +15,20 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $user         = auth()->user();
+        $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
+        $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
+        $isExecutive  = $isSusanto || $isHariyadi || \App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::isGroupLeader($user);
+
         $isLead       = \App\Helpers\ScopeHelper::isManagerial($user);
-        $isDirektur   = $user->hasAnyRole(['Direktur', 'HD / Direktur']);
-        $isSupervisor = \App\Helpers\ScopeHelper::isGroupLeader($user);
-        $isSales      = $user->hasAnyRole(['Sales', 'BusDev']);
+        $isDirektur   = $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']) || $isHariyadi;
+        $isSupervisor = \App\Helpers\ScopeHelper::isGroupLeader($user) || $isSusanto;
+        $isSales      = $user->hasAnyRole(['Sales', 'BusDev', 'Account Manager', 'BDM']);
         $isPmo        = $user->hasAnyRole(['PMO', 'Project Manager']);
 
-        $canManage    = \App\Helpers\ScopeHelper::isManagerial($user) || $isSales;
-        $canCreate    = \App\Helpers\ScopeHelper::canCreateProjects($user) || $isSales;
-        $canEditProgress = \App\Helpers\ScopeHelper::isTeamLeader($user) || \App\Helpers\ScopeHelper::isManagerial($user);
+        // Pimpinan eksekutif (Direktur & Head Divisi) tidak menambah project langsung (hanya approval draft & monitor)
+        $canCreate    = !$isExecutive && (\App\Helpers\ScopeHelper::canCreateProjects($user) || $isSales);
+        $canManage    = !$isExecutive && (\App\Helpers\ScopeHelper::isManagerial($user) || $isSales);
+        $canEditProgress = !$isExecutive && (\App\Helpers\ScopeHelper::isTeamLeader($user) || \App\Helpers\ScopeHelper::isManagerial($user));
         $scopeIds     = \App\Helpers\ScopeHelper::getScopeUserIds($user);
 
         $baseQuery = Project::with(['tasks.engineer:id,name', 'creator:id,name'])
@@ -31,9 +36,24 @@ class ProjectController extends Controller
                 $q->whereNull('project_type')->orWhere('project_type', '!=', 'Meeting / Internal');
             });
 
-        // Jangan tampilkan project Draft sales ke Lead Engineer / Engineer biasa,
-        // TETAPI pimpinan (Direktur, Group Leader / Head Divisi seperti Susanto) dan Sales harus bisa melihatnya
-        if (!$isSales && !$isDirektur && !$isSupervisor && !str_contains(strtolower($user->name), 'susanto') && !str_contains(strtolower($user->name), 'hariyadi')) {
+        // JIKA USER ADALAH DIREKTUR / DIVISION HEAD (HARIYADI & SUSANTO): HANYA TAMPILKAN PROYEK SALES (PUTUS DARI ENGINEER / MAINTENANCE)
+        if ($isExecutive) {
+            $baseQuery->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+                ->where('client', '!=', 'Internal / Umum')
+                ->where('name', 'not like', '%Preventive Maintenance%')
+                ->where('name', 'not like', '%Corrective Maintenance%')
+                ->where('name', 'not like', '%SLA%')
+                ->where('name', 'not like', '%Training%')
+                ->where('name', 'not like', '%Meeting%')
+                ->where('name', 'not like', '%On Going Project%')
+                ->where('name', 'not like', '%Closed Project%')
+                ->whereDoesntHave('creator', function($c) {
+                    $c->whereHas('roles', function($r) {
+                        $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi']);
+                    });
+                });
+        } elseif (!$isSales && !$isDirektur && !$isSupervisor) {
+            // Jangan tampilkan project Draft sales ke Lead Engineer / Engineer biasa
             $baseQuery->whereNotIn('status', ['Draft', 'draft'])
                       ->where('stage', '!=', 'Draft');
         }
@@ -45,9 +65,9 @@ class ProjectController extends Controller
             });
         }
 
-        if ($isDirektur || $isSupervisor || $isSales || $isPmo) {
-            // Direktur, Group Leader, Sales, PMO: Memantau seluruh portofolio proyek
-            $projects = $baseQuery->get();
+        if ($isExecutive || $isSales || $isPmo) {
+            // Direktur, Group Leader, Sales, PMO: Memantau seluruh portofolio proyek yang relevan
+            $projects = $baseQuery->latest()->get();
         } elseif ($user->hasRole('Team Leader') && $user->division_id) {
             // Team Leader: Proyek divisi, proyek yang dibuatnya, atau yang ada task anggotanya
             $teamUserIds = \App\Helpers\ScopeHelper::getScopeUserIds($user) ?? [];
@@ -61,9 +81,10 @@ class ProjectController extends Controller
                         $q->orWhereIn('id', $projectIdsWithTeamTasks);
                     }
                 })
+                ->latest()
                 ->get();
         } elseif ($isLead) {
-            $projects = $baseQuery->get();
+            $projects = $baseQuery->latest()->get();
         } else {
             // Engineer non-lead: Hanya project yang ada task untuk dirinya
             $projectIds = \App\Models\Task::whereIn('engineer_id', $scopeIds)
@@ -74,6 +95,7 @@ class ProjectController extends Controller
                     $q->whereIn('id', $projectIds)
                       ->orWhere('created_by', $user->id);
                 })
+                ->latest()
                 ->get();
         }
 

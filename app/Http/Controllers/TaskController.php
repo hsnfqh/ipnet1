@@ -18,10 +18,14 @@ class TaskController extends Controller
     public function index()
     {
         $user         = auth()->user();
+        $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
+        $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
+        $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
+
         $isLead       = ScopeHelper::isManagerial($user);
-        $isDirektur   = $user->hasAnyRole(['Direktur', 'HD / Direktur']);
-        $isSupervisor = ScopeHelper::isGlobal($user);
-        $canManage    = ScopeHelper::canManageTasks($user);
+        $isDirektur   = $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']) || $isHariyadi;
+        $isSupervisor = ScopeHelper::isGlobal($user) || $isSusanto;
+        $canManage    = !$isExecutive && ScopeHelper::canManageTasks($user);
         $scopeIds     = ScopeHelper::getScopeUserIds($user);
         $hasTaskUser  = Schema::hasTable('task_user');
 

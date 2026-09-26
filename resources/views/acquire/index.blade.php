@@ -129,6 +129,7 @@
                         </select>
 
                         {{-- Add Button --}}
+                        @if($canCreate ?? false)
                         <button @click="openCreateModal()"
                                 class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#C81E2C] hover:brightness-105 active:translate-y-[1px] text-white text-xs font-semibold rounded-lg shadow-[0_8px_20px_rgba(200,30,44,0.24)] transition-all cursor-pointer whitespace-nowrap">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
@@ -136,6 +137,7 @@
                             </svg>
                             <span>Tambah Peluang</span>
                         </button>
+                        @endif
                     </div>
                 </div>
 

@@ -22,15 +22,37 @@ class AcquireController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+        $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
+        $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
+        $isExecutive  = $isSusanto || $isHariyadi || \App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::isGroupLeader($user);
+        $isSales      = $user->hasAnyRole(['Sales', 'BusDev', 'Account Manager', 'BDM']);
+        $canCreate    = !$isExecutive && ($isSales || \App\Helpers\ScopeHelper::canCreateProjects($user));
 
-        // Query projects in Acquire stage (or all pipeline projects)
-        $query = Project::query()->with(['division', 'creator'])->latest();
+        // Query projects in Acquire stage (or all commercial pipeline projects, filter out maintenance)
+        $query = Project::query()->with(['division', 'creator'])
+            ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+            ->where('client', '!=', 'Internal / Umum')
+            ->where('name', 'not like', '%Preventive Maintenance%')
+            ->where('name', 'not like', '%Corrective Maintenance%')
+            ->where('name', 'not like', '%SLA%')
+            ->where('name', 'not like', '%Training%')
+            ->where('name', 'not like', '%Meeting%')
+            ->where('name', 'not like', '%On Going Project%')
+            ->where('name', 'not like', '%Closed Project%')
+            ->whereDoesntHave('creator', function($c) {
+                $c->whereHas('roles', function($r) {
+                    $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi']);
+                });
+            })
+            ->latest();
 
         // Global KPI Stats for Acquire Pipeline
-        $totalLeads = Project::count();
-        $inNegotiationCount = Project::whereIn('acquire_status', ['Kualifikasi Kebutuhan', 'Penawaran Komersial'])->count();
-        $dealPoCount = Project::where('acquire_status', 'Deal / PO Terbit')->count();
-        $handoverDesignCount = Project::where('stage', 'Design')->orWhere('acquire_status', 'Handover to Design')->count();
+        $totalLeads = (clone $query)->count();
+        $inNegotiationCount = (clone $query)->whereIn('acquire_status', ['Kualifikasi Kebutuhan', 'Penawaran Komersial'])->count();
+        $dealPoCount = (clone $query)->where('acquire_status', 'Deal / PO Terbit')->count();
+        $handoverDesignCount = (clone $query)->where(function($q) {
+            $q->where('stage', 'Design')->orWhere('acquire_status', 'Handover to Design');
+        })->count();
 
         // Format projects for table view
         $projects = $query->get()->map(function ($p) {
@@ -74,7 +96,8 @@ class AcquireController extends Controller
             'dealPoCount',
             'handoverDesignCount',
             'divisions',
-            'salesList'
+            'salesList',
+            'canCreate'
         ));
     }
 
