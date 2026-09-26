@@ -383,7 +383,7 @@
                                    class="pl-8 pr-3 py-1.5 w-60 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400 transition">
                         </div>
 
-                        <a href="{{ route('projects.index') }}"
+                        <a href="{{ route('sales.pipeline.index') }}"
                            style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:10px; font-size:11.5px; font-weight:700; color:#8F0A0D; background:#FFF1F2; border:1px solid #FECACA; text-decoration:none; transition:all .15s ease;"
                            onmouseover="this.style.background='#FEE2E2';"
                            onmouseout="this.style.background='#FFF1F2';">

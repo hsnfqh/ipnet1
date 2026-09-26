@@ -15,6 +15,10 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $user         = auth()->user();
+        if ($user && ($user->hasAnyRole(['Sales', 'Account Manager', 'Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA', 'BDM', 'BusDev', 'Business Development']) || \App\Helpers\ScopeHelper::isExecutive($user) || str_contains(strtolower($user->name ?? ''), 'nabylla') || str_contains(strtolower($user->name ?? ''), 'raiza'))) {
+            return redirect()->route('sales.pipeline.index');
+        }
+
         $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
         $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
         $isExecutive  = $isSusanto || $isHariyadi || \App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::isGroupLeader($user);
