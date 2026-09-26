@@ -1030,7 +1030,59 @@
                                 </div>
                             </div>
 
-                            {{-- 2. Handover PMO --}}
+                            {{-- 2. Head Review Assignment --}}
+                            @if(!empty($headApproval['assigned']) && empty($headApproval['approved']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-amber-400 ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Diajukan ke Head Divisi: <strong class="font-semibold text-slate-900">{{ $headApproval['assigned_to'] ?? 'Pak Susanto' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $headApproval['assigned_at'] ?? 'Menunggu review' }} (oleh {{ $headApproval['assigned_by'] ?? 'Sales' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 3. Head Approval --}}
+                            @if(!empty($headApproval['approved']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Approval Head Divisi: <strong class="font-semibold text-slate-900">{{ $headApproval['assigned_to'] ?? 'Pak Susanto' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $headApproval['date'] ?? 'Disetujui' }}
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 4. Director Otorisasi Assignment --}}
+                            @if(!empty($directorApproval['assigned']) && empty($directorApproval['approved']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-amber-400 ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Diajukan ke Direktur: <strong class="font-semibold text-slate-900">{{ $directorApproval['assigned_to'] ?? 'Pak Hariyadi' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $directorApproval['assigned_at'] ?? 'Menunggu otorisasi' }} (oleh {{ $directorApproval['assigned_by'] ?? 'Sales' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 5. Director Approval --}}
+                            @if(!empty($directorApproval['approved']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Approval Direktur: <strong class="font-semibold text-slate-900">{{ $directorApproval['assigned_to'] ?? 'Pak Hariyadi' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $directorApproval['date'] ?? 'Disahkan' }}
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 6. Handover PMO --}}
                             @if($project->pm)
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1043,33 +1095,7 @@
                                 </div>
                             @endif
 
-                            {{-- 3. Head Approval --}}
-                            @if(!empty($headApproval['approved']))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Approval Head Divisi: <strong class="font-semibold text-slate-900">Pak Susanto</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        {{ $headApproval['date'] ?? 'Disetujui' }}
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- 4. Director Approval --}}
-                            @if(!empty($directorApproval['approved']))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Approval Direktur: <strong class="font-semibold text-slate-900">Pak Hariyadi</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        {{ $directorApproval['date'] ?? 'Disahkan' }}
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- 5. BD Appointment --}}
+                            {{-- 7. BD Appointment --}}
                             @if($isBdmAssigned && !empty($bdmName))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1082,7 +1108,7 @@
                                 </div>
                             @endif
 
-                            {{-- 6. Presales Assignment --}}
+                            {{-- 8. Presales Assignment --}}
                             @if(!empty($presalesAssignment['assigned']))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1095,7 +1121,7 @@
                                 </div>
                             @endif
 
-                            {{-- 7. Solution Architect Assignment --}}
+                            {{-- 9. Solution Architect Assignment --}}
                             @if(!empty($architectAssignment['assigned']))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1108,7 +1134,7 @@
                                 </div>
                             @endif
 
-                            {{-- 8. Presales Doc Uploaded --}}
+                            {{-- 10. Presales Doc Uploaded --}}
                             @if(!empty($presalesAssignment['document_path']))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1121,7 +1147,7 @@
                                 </div>
                             @endif
 
-                            {{-- 9. Architect Doc Uploaded --}}
+                            {{-- 11. Architect Doc Uploaded --}}
                             @if(!empty($architectAssignment['document_path']))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1134,8 +1160,8 @@
                                 </div>
                             @endif
 
-                            {{-- 10. BD Solution Verification --}}
-                            @if(!empty($bdVerification['status']) && $bdVerification['status'] !== 'Pending')
+                            {{-- 12. BD Solution Verification --}}
+                            @if(!empty($bdVerification['verified_at']) || (!empty($bdVerification['status']) && in_array($bdVerification['status'], ['Approved', 'Revision Needed']) && !empty($bdVerification['verified_by'])))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
                                     <div class="font-normal text-slate-700">
