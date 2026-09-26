@@ -495,7 +495,29 @@ class SalesCrmController extends Controller
         $filterType = $request->input('type');
         $filterProject = $request->input('project_id');
 
+        $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
+
         $query = SalesActivity::with(['project', 'sales'])->latest('activity_date');
+
+        // Always restrict CRM activity feed to valid sales projects only
+        $query->whereHas('project', function($pq) use ($validSalesNames) {
+            $pq->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+               ->where('client', '!=', 'Internal / Umum')
+               ->where('name', 'not like', '%Preventive Maintenance%')
+               ->where('name', 'not like', '%Corrective Maintenance%')
+               ->where('name', 'not like', '%SLA%')
+               ->where('name', 'not like', '%Training%')
+               ->where('name', 'not like', '%Meeting%')
+               ->where('name', 'not like', '%On Going Project%')
+               ->where('name', 'not like', '%Closed Project%')
+               ->where('name', 'not like', '%Pengadaaan%')
+               ->where('name', 'not like', '%Pengadaan%')
+               ->where(function($q) use ($validSalesNames) {
+                   $q->whereIn('sales_name', $validSalesNames)
+                     ->orWhere('sales_name', 'like', '%Raiza%')
+                     ->orWhere('sales_name', 'like', '%Nabylla%');
+               });
+        });
 
         if (!$isManagerial) {
             $query->where(function($q) use ($user) {
@@ -522,14 +544,81 @@ class SalesCrmController extends Controller
 
         $activities = $query->paginate(12)->withQueryString();
 
-        $activeProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+        $activeProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+            ->where('client', '!=', 'Internal / Umum')
+            ->where('name', 'not like', '%Preventive Maintenance%')
+            ->where('name', 'not like', '%Corrective Maintenance%')
+            ->where('name', 'not like', '%SLA%')
+            ->where('name', 'not like', '%Training%')
+            ->where('name', 'not like', '%Meeting%')
+            ->where('name', 'not like', '%On Going Project%')
+            ->where('name', 'not like', '%Closed Project%')
+            ->where('name', 'not like', '%Pengadaaan%')
+            ->where('name', 'not like', '%Pengadaan%')
+            ->where(function($q) use ($validSalesNames) {
+                $q->whereIn('sales_name', $validSalesNames)
+                  ->orWhere('sales_name', 'like', '%Raiza%')
+                  ->orWhere('sales_name', 'like', '%Nabylla%')
+                  ->orWhereHas('creator', function($c) {
+                      $c->where('name', 'like', '%Raiza%')
+                        ->orWhere('name', 'like', '%Nabylla%');
+                  });
+            })
+            ->where(function ($sn) {
+                $sn->where('sales_name', 'not like', '%Sales Team%')
+                   ->where('sales_name', 'not like', '%Via%')
+                   ->where('sales_name', 'not like', '%Widodo%')
+                   ->where('sales_name', 'not like', '%widodo%')
+                   ->where('sales_name', 'not like', '%Donny%')
+                   ->where('sales_name', 'not like', '%donny%')
+                   ->where('sales_name', 'not like', '%Dony%')
+                   ->where('sales_name', 'not like', '%dony%')
+                   ->where('sales_name', 'not like', '%Erie%')
+                   ->where('sales_name', 'not like', '%Hendry%')
+                   ->where('sales_name', 'not like', '%Nelvia%')
+                   ->where('sales_name', 'not like', '%Ribka%')
+                   ->where('sales_name', 'not like', '%Sabar%')
+                   ->where('sales_name', 'not like', '%Antonius%')
+                   ->where('sales_name', 'not like', '%antonius%')
+                   ->where('sales_name', 'not like', '%Nugraha%')
+                   ->where('sales_name', 'not like', '%nugraha%');
+            })
+            ->whereDoesntHave('creator', function($c) {
+                $c->where('name', 'like', '%Widodo%')
+                  ->orWhere('name', 'like', '%widodo%')
+                  ->orWhere('name', 'like', '%Donny%')
+                  ->orWhere('name', 'like', '%donny%')
+                  ->orWhere('name', 'like', '%Dony%')
+                  ->orWhere('name', 'like', '%dony%')
+                  ->orWhere('name', 'like', '%Antonius%')
+                  ->orWhere('name', 'like', '%antonius%')
+                  ->orWhere('name', 'like', '%Nugraha%')
+                  ->orWhere('name', 'like', '%nugraha%')
+                  ->orWhereHas('roles', function($r) {
+                      $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi', 'BDM', 'BusDev', 'Business Development']);
+                  });
+            });
+
         if (!$isManagerial) {
             $activeProjectsQuery->where(function($q) use ($user) {
                 $q->where('sales_name', $user->name)
                   ->orWhere('created_by', $user->id);
             });
         }
-        $activeProjects = $activeProjectsQuery->orderBy('name')->get(['id', 'name', 'client', 'sales_name']);
+
+        $activeProjects = $activeProjectsQuery->orderBy('name')->get(['id', 'name', 'client', 'sales_name'])
+            ->filter(function($p) {
+                $pName = strtolower($p->name ?? '');
+                $sName = strtolower($p->sales_name ?? '');
+                $cName = strtolower($p->creator->name ?? '');
+                $blacklisted = ['widodo', 'pengadaaan', 'pengadaan', 'donny', 'dony', 'antonius', 'nugraha', 'sales team', 'via', 'erie', 'hendry', 'nelvia', 'ribka', 'sabar'];
+                foreach ($blacklisted as $bl) {
+                    if (str_contains($sName, $bl) || str_contains($cName, $bl) || str_contains($pName, 'pengadaaan')) {
+                        return false;
+                    }
+                }
+                return str_contains($sName, 'raiza') || str_contains($sName, 'nabylla') || str_contains($cName, 'raiza') || str_contains($cName, 'nabylla');
+            })->values();
 
         $activityTypes = self::$activityTypes;
 

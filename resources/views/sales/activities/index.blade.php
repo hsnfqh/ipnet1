@@ -111,8 +111,16 @@
                             Reset Filter
                         </a>
                     @endif
-                </form>
+                </form>                @php
+                    $authUser = auth()->user();
+                    $isExecutiveOrPimpinan = $authUser && (
+                        str_contains(strtolower($authUser->name ?? ''), 'hariyadi')
+                        || str_contains(strtolower($authUser->name ?? ''), 'susanto')
+                        || $authUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation'])
+                    );
+                @endphp
 
+                @if(!$isExecutiveOrPimpinan)
                 <button type="button" @click="openBulkModal()" 
                         class="btn-ipnet-primary w-full sm:w-auto justify-center shadow-md px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
@@ -120,6 +128,7 @@
                     </svg>
                     <span>Input Kronologi</span>
                 </button>
+                @endif
             </div>
 
             {{-- Activity Feed Grid --}}
@@ -170,6 +179,7 @@
                                 <span>Dicatat oleh: <strong class="text-gray-800">{{ $act->sales->name ?? 'Sales' }}</strong></span>
                             </div>
 
+                            @if(!$isExecutiveOrPimpinan)
                             {{-- Action buttons: Edit & Hapus --}}
                             <div class="flex items-center gap-1.5">
                                 <button type="button" 
@@ -181,16 +191,19 @@
                                 <button type="button" 
                                         @click="confirmDelete({{ $act->id }}, '{{ addslashes($act->subject) }}')" 
                                         class="px-2.5 py-1 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-semibold rounded-lg border border-red-200 shadow-xs transition inline-flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     <span>Hapus</span>
                                 </button>
                             </div>
+                            @endif
                         </div>
                     </div>
                 @empty
                     <div class="col-span-full ipnet-card p-12 text-center text-xs text-gray-400 space-y-2">
                         <p class="font-bold text-gray-900">Belum ada aktivitas CRM yang tercatat.</p>
+                        @if(!$isExecutiveOrPimpinan)
                         <p>Klik tombol "Input Kronologi" di atas untuk mencatat interaksi dan runtutan agenda aktivitas.</p>
+                        @endif
                     </div>
                 @endforelse
             </div>
