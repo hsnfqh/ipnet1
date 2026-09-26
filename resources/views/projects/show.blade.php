@@ -1033,7 +1033,20 @@
                                 </div>
                             </div>
 
-                            {{-- 2. Head Approval --}}
+                            {{-- 2. Head Review Assignment --}}
+                            @if(!empty($headApproval['assigned']) && empty($headApproval['approved']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Diajukan ke Head Divisi: <strong class="font-semibold text-slate-900">{{ $headApproval['assigned_to'] ?? 'Pak Susanto' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $headApproval['assigned_at'] ?? 'Menunggu review' }} (oleh {{ $headApproval['assigned_by'] ?? 'Sales' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 3. Head Approval --}}
                             @if(!empty($headApproval['approved']))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1046,7 +1059,20 @@
                                 </div>
                             @endif
 
-                            {{-- 3. Director Approval --}}
+                            {{-- 4. Director Otorisasi Assignment --}}
+                            @if(!empty($directorApproval['assigned']) && empty($directorApproval['approved']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Diajukan ke Direktur: <strong class="font-semibold text-slate-900">{{ $directorApproval['assigned_to'] ?? 'Pak Hariyadi' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $directorApproval['assigned_at'] ?? 'Menunggu otorisasi' }} (oleh {{ $directorApproval['assigned_by'] ?? 'Sales' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 5. Director Approval --}}
                             @if(!empty($directorApproval['approved']))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
