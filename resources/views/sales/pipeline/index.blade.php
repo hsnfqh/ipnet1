@@ -198,8 +198,13 @@
                                 || str_contains(strtolower($authUser->email ?? ''), 'akbar')
                                 || str_contains(strtolower($authUser->email ?? ''), 'aris')
                             );
-                            $canCreateProject = $authUser && !$isPresalesUser && (
-                                !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles))
+                            $isExecutiveOrPimpinan = $authUser && (
+                                str_contains(strtolower($authUser->name ?? ''), 'hariyadi')
+                                || str_contains(strtolower($authUser->name ?? ''), 'susanto')
+                                || $authUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation'])
+                            );
+                            $canCreateProject = $authUser && !$isPresalesUser && !$isExecutiveOrPimpinan && (
+                                !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Super Admin', 'Admin'], $userRoles))
                             );
                         @endphp
                         @if($canCreateProject)

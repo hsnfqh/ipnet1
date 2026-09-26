@@ -63,10 +63,45 @@ class DashboardController extends Controller
                 ->where('name', 'not like', '%Meeting%')
                 ->where('name', 'not like', '%On Going Project%')
                 ->where('name', 'not like', '%Closed Project%')
+                ->where(function($q) use ($validSalesNames) {
+                    $q->whereIn('sales_name', $validSalesNames)
+                      ->orWhere('sales_name', 'like', '%Raiza%')
+                      ->orWhere('sales_name', 'like', '%Nabylla%')
+                      ->orWhereHas('creator', function($c) {
+                          $c->where('name', 'like', '%Raiza%')
+                            ->orWhere('name', 'like', '%Nabylla%')
+                            ->orWhere('email', 'like', '%raiza%')
+                            ->orWhere('email', 'like', '%nabylla%');
+                      });
+                })
+                ->where(function ($ex) {
+                    $ex->whereNull('sales_name')
+                       ->orWhere(function ($sn) {
+                           $sn->where('sales_name', 'not like', '%Sales Team%')
+                              ->where('sales_name', 'not like', '%Via%')
+                              ->where('sales_name', 'not like', '%Widodo%')
+                              ->where('sales_name', 'not like', '%widodo%')
+                              ->where('sales_name', 'not like', '%Donny%')
+                              ->where('sales_name', 'not like', '%donny%')
+                              ->where('sales_name', 'not like', '%Erie%')
+                              ->where('sales_name', 'not like', '%Hendry%')
+                              ->where('sales_name', 'not like', '%Nelvia%')
+                              ->where('sales_name', 'not like', '%Ribka%')
+                              ->where('sales_name', 'not like', '%Sabar%')
+                              ->where('sales_name', 'not like', '%Antonius%')
+                              ->where('sales_name', 'not like', '%Nugraha%');
+                       });
+                })
                 ->whereDoesntHave('creator', function($c) {
-                    $c->whereHas('roles', function($r) {
-                        $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi']);
-                    });
+                    $c->where('name', 'like', '%Widodo%')
+                      ->orWhere('name', 'like', '%widodo%')
+                      ->orWhere('name', 'like', '%Donny%')
+                      ->orWhere('name', 'like', '%donny%')
+                      ->orWhere('name', 'like', '%Antonius%')
+                      ->orWhere('name', 'like', '%Nugraha%')
+                      ->orWhereHas('roles', function($r) {
+                          $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi']);
+                      });
                 })
                 ->with(['bdm', 'creator', 'salesActivities']);
 

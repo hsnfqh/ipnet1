@@ -28,6 +28,8 @@ class AcquireController extends Controller
         $isSales      = $user->hasAnyRole(['Sales', 'BusDev', 'Account Manager', 'BDM']);
         $canCreate    = !$isExecutive && ($isSales || \App\Helpers\ScopeHelper::canCreateProjects($user));
 
+        $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
+
         // Query projects in Acquire stage (or all commercial pipeline projects, filter out maintenance)
         $query = Project::query()->with(['division', 'creator'])
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
@@ -39,10 +41,41 @@ class AcquireController extends Controller
             ->where('name', 'not like', '%Meeting%')
             ->where('name', 'not like', '%On Going Project%')
             ->where('name', 'not like', '%Closed Project%')
+            ->where(function($q) use ($validSalesNames) {
+                $q->whereIn('sales_name', $validSalesNames)
+                  ->orWhereHas('creator', function($c) use ($validSalesNames) {
+                      $c->whereIn('name', $validSalesNames);
+                  });
+            })
+            ->where(function ($ex) {
+                $ex->where('sales_name', 'not like', '%Nugraha%')
+                   ->where('sales_name', 'not like', '%nugraha%')
+                   ->where('sales_name', 'not like', '%Donny%')
+                   ->where('sales_name', 'not like', '%donny%')
+                   ->where('sales_name', 'not like', '%Antonius%')
+                   ->where('sales_name', 'not like', '%antonius%')
+                   ->where('sales_name', 'not like', '%Widodo%')
+                   ->where('sales_name', 'not like', '%widodo%')
+                   ->where('sales_name', 'not like', '%Sales Team%')
+                   ->where('sales_name', 'not like', '%Via%')
+                   ->where('sales_name', 'not like', '%Erie%')
+                   ->where('sales_name', 'not like', '%Hendry%')
+                   ->where('sales_name', 'not like', '%Nelvia%')
+                   ->where('sales_name', 'not like', '%Ribka%')
+                   ->where('sales_name', 'not like', '%Sabar%');
+            })
             ->whereDoesntHave('creator', function($c) {
-                $c->whereHas('roles', function($r) {
-                    $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi']);
-                });
+                $c->where('name', 'like', '%Nugraha%')
+                  ->orWhere('name', 'like', '%nugraha%')
+                  ->orWhere('name', 'like', '%Donny%')
+                  ->orWhere('name', 'like', '%donny%')
+                  ->orWhere('name', 'like', '%Antonius%')
+                  ->orWhere('name', 'like', '%antonius%')
+                  ->orWhere('name', 'like', '%Widodo%')
+                  ->orWhere('name', 'like', '%widodo%')
+                  ->orWhereHas('roles', function($r) {
+                      $r->whereIn('name', ['Engineer', 'Field Engineer', 'Lead Maintenance', 'Maintenance', 'Lead Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi']);
+                  });
             })
             ->latest();
 
@@ -60,7 +93,7 @@ class AcquireController extends Controller
                 'id'              => $p->id,
                 'name'            => $p->name,
                 'client'          => $p->client,
-                'sales_name'      => $p->sales_name ?: 'Ribka',
+                'sales_name'      => $p->sales_name ?: ($p->creator?->name ?? 'Raiza'),
                 'contract_value'  => (float) ($p->contract_value ?? 0),
                 'contract_formatted' => $p->contract_value ? 'Rp ' . number_format($p->contract_value, 0, ',', '.') : '-',
                 'po_number'       => $p->po_number ?: '-',
