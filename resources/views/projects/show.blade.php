@@ -212,18 +212,15 @@
         $architectUsers = \App\Models\User::where('email', 'like', '%aris%')->orWhere('position', 'like', '%Architect%')->get();
     }
 
-    // Hak otorisasi PIC BD / Pak Santo (Susanto) / BDM / Head Divisi untuk me-review & memverifikasi dokumen solusi
-    $canVerifyBD = $authUser && (
+    // Hak otorisasi PIC BD / BDM untuk me-review & memverifikasi dokumen solusi (Eksklusif tim BD/PIC BD, bukan Pimpinan Eksekutif)
+    $canVerifyBD = !$isExecutive && $authUser && (
         ($project->bdm_id && $authUser->id == $project->bdm_id)
-        || !empty(array_intersect(['BDM', 'BusDev', 'Business Development', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles))
-        || str_contains(strtolower($authUser->name), 'susanto')
-        || str_contains(strtolower($authUser->name), 'santo')
-        || str_contains(strtolower($authUser->name), 'hariyadi')
+        || (!empty($bdmAssignment['assigned_user_id']) && $authUser->id == $bdmAssignment['assigned_user_id'])
+        || !empty(array_intersect(['BDM', 'BusDev', 'Business Development', 'Product Manager'], $userRoles))
         || str_contains(strtolower($authUser->name), 'kurnijanto')
         || str_contains(strtolower($authUser->name), 'novan')
         || str_contains(strtolower($authUser->name), 'kipsriyanto')
         || str_contains(strtolower($authUser->name), 'armen')
-        || str_contains(strtolower($authUser->name), 'dony')
     );
 
     // Hak otorisasi unggah berkas teknis solusi (Presales, SA, Sales, BD, Direktur, Head Divisi)
