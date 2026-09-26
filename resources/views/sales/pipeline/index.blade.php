@@ -750,10 +750,10 @@
             viewMode: 'kanban',
             isAddModalOpen: false,
             modalTitle: 'Tambah Project Baru',
-            formStatus: 'Opportunity',
+            formStatus: 'Draft',
 
             openAddProjectModal(statusType) {
-                this.formStatus = statusType;
+                this.formStatus = statusType || 'Draft';
                 if (statusType === 'Completed') {
                     this.modalTitle = 'Tambah Project Selesai (Completed)';
                 } else {
