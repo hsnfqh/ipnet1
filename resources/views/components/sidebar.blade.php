@@ -13,41 +13,9 @@
 
     $navItems = [];
 
-    // Hitung permohonan persetujuan draft untuk pimpinan (Susanto & Hariyadi)
-    $pendingApprovalsCount = 0;
-    if ($isExecutiveOrGl && \Illuminate\Support\Facades\Schema::hasTable('projects')) {
-        $isSusanto = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
-        $isHariyadi = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
-
-        $pendingApprovalsCount = \App\Models\Project::where(function($q) {
-                $q->whereNotNull('handover_data')
-                  ->orWhere('status', 'Draft')
-                  ->orWhere('stage', 'Draft');
-            })
-            ->whereNull('deleted_at')
-            ->get()
-            ->filter(function($p) use ($isSusanto, $isHariyadi) {
-                $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
-                $approvals = $hd['draft_approvals'] ?? [];
-                $needHead = !empty($approvals['head']['assigned']) && empty($approvals['head']['approved']);
-                $needDirector = !empty($approvals['director']['assigned']) && empty($approvals['director']['approved']);
-
-                if ($isSusanto && $needHead) return true;
-                if ($isHariyadi && $needDirector) return true;
-
-                $isDraftState = in_array(strtolower($p->status ?? ''), ['draft']) || in_array(strtolower($p->stage ?? ''), ['draft']);
-                if ($isDraftState) {
-                    if ($isSusanto && empty($approvals['head']['approved'])) return true;
-                    if ($isHariyadi && empty($approvals['director']['approved'])) return true;
-                }
-                return false;
-            })->count();
-    }
-
     if ($isExecutiveOrGl) {
         $navItems = [
             ['key' => 'dashboard',       'label' => 'Dashboard',         'route' => 'dashboard.lead'],
-            ['key' => 'draft_approvals', 'label' => 'Persetujuan Draft', 'route' => 'projects.index', 'params' => ['status' => 'Draft'], 'badge' => $pendingApprovalsCount],
             ['key' => 'projects',        'label' => 'Project',           'route' => 'sales.pipeline.index'],
             ['key' => 'activities',      'label' => 'Activity Log',      'route' => 'sales.activities.index'],
             ['key' => 'clients',         'label' => 'Client',            'route' => 'clients.index'],
