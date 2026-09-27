@@ -18,13 +18,25 @@ class PmoController extends Controller
     {
         $user = auth()->user();
 
-        // 1. Ambil data proyek aktif PMO (Hanya Tahap Deliver & Operate)
+        // 1. Ambil data proyek aktif PMO (Hanya proyek komersial resmi tahap Deliver, Operate, atau berkas Handover dari Sales)
         $query = Project::with([
             'pm:id,name,email',
             'division:id,name,code',
             'tasks.engineer:id,name',
             'creator:id,name',
-        ])->whereIn('stage', ['Deliver', 'Operate']);
+        ])
+        ->whereNotIn('name', [
+            'DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti',
+            'SLA aa', 'SLA a', 'Layanan SLA & Maintenance Support', 'Cisco Training', 'Internal / Umum'
+        ])
+        ->where('client', '!=', 'Internal / Umum')
+        ->where('name', 'not like', '%SLA a%')
+        ->where('name', 'not like', '%Training%')
+        ->where('name', 'not like', '%Meeting%')
+        ->where(function($q) {
+            $q->whereIn('stage', ['Deliver', 'Operate'])
+              ->orWhereIn('handover_status', ['Submitted', 'Conditional']);
+        });
 
         // Filter divisi jika dipilih
         if ($request->filled('division_id') && $request->division_id !== 'all') {

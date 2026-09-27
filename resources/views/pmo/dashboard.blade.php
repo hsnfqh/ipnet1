@@ -48,16 +48,16 @@
                     </div>
                     <div>
                         <div class="text-2xl font-black text-gray-900 tracking-tight">
-                            <span x-text="stageCounts.Deliver"></span> <span class="text-xs font-semibold text-gray-400">Proyek</span>
+                            <span x-text="stageCounts.Deliver || 0"></span> <span class="text-xs font-semibold text-gray-400">Proyek Aktif</span>
                         </div>
-                        <p class="text-[11.5px] text-gray-500 font-medium mt-1">Fase Implementasi Teknis</p>
+                        <p class="text-[11.5px] text-gray-500 font-medium mt-1">Fase Implementasi Teknis Lapangan</p>
                     </div>
                 </div>
 
                 {{-- Card 2: Kesehatan Timeline --}}
                 <div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition">
                     <div class="flex items-center justify-between">
-                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Kepatuhan Jadwal</span>
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Kepatuhan Timeline</span>
                         <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -66,10 +66,10 @@
                     </div>
                     <div>
                         <div class="text-2xl font-black text-gray-900 tracking-tight">
-                            <span x-text="onTrackCount"></span> <span class="text-xs font-semibold text-emerald-600">Sesuai Jadwal</span>
+                            <span x-text="onTrackCount"></span> <span class="text-xs font-semibold text-emerald-600">Tepat Waktu</span>
                         </div>
-                        <p class="text-[11.5px] font-medium mt-1" :class="delayedCount > 0 ? 'text-red-600' : 'text-gray-500'">
-                            <span x-text="delayedCount > 0 ? delayedCount + ' Proyek Terlambat' : 'Semua Jadwal Aman'"></span>
+                        <p class="text-[11.5px] font-medium mt-1" :class="delayedCount > 0 ? 'text-red-600 font-semibold' : 'text-gray-500'">
+                            <span x-text="delayedCount > 0 ? delayedCount + ' Proyek Perlu Mitigasi' : 'Seluruh Proyek Sesuai Jadwal'"></span>
                         </p>
                     </div>
                 </div>
@@ -77,7 +77,7 @@
                 {{-- Card 3: Gerbang Handover Gateway --}}
                 <div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition">
                     <div class="flex items-center justify-between">
-                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Review Serah Terima</span>
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Gateway Serah Terima</span>
                         <div class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 text-amber-700 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -86,16 +86,16 @@
                     </div>
                     <div>
                         <div class="text-2xl font-black text-gray-900 tracking-tight">
-                            <span x-text="handoverPendingCount"></span> <span class="text-xs font-semibold text-amber-600">Menunggu Review</span>
+                            <span x-text="handoverPendingCount"></span> <span class="text-xs font-semibold text-amber-600">Menunggu Verifikasi</span>
                         </div>
-                        <p class="text-[11.5px] text-gray-500 font-medium mt-1">Commercial Sales &rarr; PMO</p>
+                        <p class="text-[11.5px] text-gray-500 font-medium mt-1">Verifikasi Berkas Sales &rarr; PMO</p>
                     </div>
                 </div>
 
                 {{-- Card 4: Transisi Operasional & Managed Service --}}
                 <div class="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between space-y-3 hover:border-slate-300 transition">
                     <div class="flex items-center justify-between">
-                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tahap Operate (MS)</span>
+                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Transisi Operasional (MS)</span>
                         <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 flex items-center justify-center shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -104,7 +104,7 @@
                     </div>
                     <div>
                         <div class="text-2xl font-black text-gray-900 tracking-tight">
-                            <span x-text="stageCounts.Operate || 0"></span> <span class="text-xs font-semibold text-blue-600">Proyek Aktif</span>
+                            <span x-text="stageCounts.Operate || 0"></span> <span class="text-xs font-semibold text-blue-600">Proyek Berjalan</span>
                         </div>
                         <p class="text-[11.5px] text-gray-500 font-medium mt-1">
                             <span class="text-blue-700 font-bold" x-text="readyToOperateCount + ' Siap Handover MS'"></span> &bull; Managed Service
@@ -124,9 +124,9 @@
                             </svg>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-gray-900">Perhatian Gatekeeper Serah Terima Proyek (PMO & Kadiv)</h4>
+                            <h4 class="text-xs font-bold text-gray-900">Pemberitahuan Gatekeeper Handover Proyek (PMO &amp; Kadiv)</h4>
                             <p class="text-[11.5px] text-gray-500 mt-0.5">
-                                Terdapat <strong class="text-gray-900" x-text="handoverPendingCount"></strong> berkas serah terima baru yang menunggu verifikasi, dan <strong class="text-gray-900" x-text="handoverConditionalCount"></strong> berkas dengan catatan bersyarat.
+                                Terdapat <strong class="text-gray-900" x-text="handoverPendingCount"></strong> berkas serah terima dari Sales yang menunggu verifikasi PMO, dan <strong class="text-gray-900" x-text="handoverConditionalCount"></strong> berkas dalam perbaikan bersyarat.
                             </p>
                         </div>
                     </div>
@@ -187,10 +187,10 @@
                             <tr class="border-b border-gray-100 bg-gray-50/50 text-[10.5px] font-bold text-gray-500 uppercase tracking-wider">
                                 <th class="py-3.5 px-4 sm:px-6">NAMA PROYEK &amp; KLIEN</th>
                                 <th class="py-3.5 px-4">DIVISI &amp; PM</th>
-                                <th class="py-3.5 px-4">TAHAP &amp; STATUS PROSES</th>
+                                <th class="py-3.5 px-4">TAHAP &amp; STATUS SIKLUS</th>
                                 <th class="py-3.5 px-4">TARGET DEADLINE</th>
-                                <th class="py-3.5 px-4">PROGRESS FISIK</th>
-                                <th class="py-3.5 px-4">CHECKLIST HANDOVER</th>
+                                <th class="py-3.5 px-4">PROGRES FISIK</th>
+                                <th class="py-3.5 px-4">CHECKLIST BERKAS</th>
                                 <th class="py-3.5 px-4 sm:px-6 text-right">AKSI</th>
                             </tr>
                         </thead>
