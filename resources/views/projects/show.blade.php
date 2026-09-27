@@ -226,17 +226,17 @@
         || str_contains(strtolower($authUser->name), 'armen')
     );
 
-    // Hak otorisasi unggah berkas teknis solusi (Presales, SA, Sales, BD, Direktur, Head Divisi)
+    // Hak otorisasi unggah berkas teknis solusi (Eksklusif: Presales upload Proposal, SA upload Topologi - Sales TIDAK BISA unggah)
     $canUploadPresales = $authUser && (
         (!empty($presalesAssignment['assigned_user_id']) && $authUser->id == $presalesAssignment['assigned_user_id'])
-        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Sales', 'BDM', 'BusDev', 'Solution Architect', 'Super Admin', 'Admin'], $userRoles))
-        || ($authUser->email === 'akbar@ipnetsolusindo.com')
+        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Super Admin', 'Admin'], $userRoles))
+        || (in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales']) && empty(array_intersect(['Sales', 'Account Manager'], $userRoles)))
     );
 
     $canUploadArchitect = $authUser && (
         (!empty($architectAssignment['assigned_user_id']) && $authUser->id == $architectAssignment['assigned_user_id'])
         || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Super Admin', 'Admin'], $userRoles))
-        || str_contains(strtolower($authUser->name), 'aris')
+        || (in_array(strtolower($authUser->position ?? ''), ['solution architect', 'solutions architect', 'sa', 'architect']) && empty(array_intersect(['Sales', 'Account Manager'], $userRoles)))
     );
 
     $isPresalesOrSaOnly = $authUser && (

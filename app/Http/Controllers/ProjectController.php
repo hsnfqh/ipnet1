@@ -898,6 +898,31 @@ class ProjectController extends Controller
         $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
         $technical = $handoverData['technical_assignments'] ?? [];
 
+        $userRoles = $user && method_exists($user, 'roles') ? $user->roles->pluck('name')->toArray() : [];
+
+        // Validasi hak akses unggah: Sales dilarang upload proposal/topologi
+        if ($validated['role_type'] === 'presales') {
+            $assignedUserId = $technical['presales']['assigned_user_id'] ?? null;
+            $canUpload = $user && (
+                ($assignedUserId && $user->id == $assignedUserId)
+                || !empty(array_intersect(['Presales', 'Pre-Sales', 'Super Admin', 'Admin'], $userRoles))
+                || (in_array(strtolower($user->position ?? ''), ['presales', 'pre-sales', 'pre sales']) && empty(array_intersect(['Sales', 'Account Manager'], $userRoles)))
+            );
+            if (!$canUpload) {
+                return back()->with('error', 'Akses ditolak. Hanya Pre-Sales yang ditugaskan atau role Pre-Sales yang berhak mengunggah Proposal.');
+            }
+        } elseif ($validated['role_type'] === 'architect') {
+            $assignedUserId = $technical['architect']['assigned_user_id'] ?? null;
+            $canUpload = $user && (
+                ($assignedUserId && $user->id == $assignedUserId)
+                || !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA', 'Super Admin', 'Admin'], $userRoles))
+                || (in_array(strtolower($user->position ?? ''), ['solution architect', 'solutions architect', 'sa', 'architect']) && empty(array_intersect(['Sales', 'Account Manager'], $userRoles)))
+            );
+            if (!$canUpload) {
+                return back()->with('error', 'Akses ditolak. Hanya Solution Architect (SA) yang ditugaskan atau role SA yang berhak mengunggah Desain Topologi.');
+            }
+        }
+
         $roleKey = $validated['role_type'];
         $defaultDocKey = ($roleKey === 'presales') ? 'technical_proposal' : 'solution_architecture';
         $defaultDocTitle = ($roleKey === 'presales') ? 'Proposal Teknis & BoQ' : 'Desain Arsitektur & Topologi';
