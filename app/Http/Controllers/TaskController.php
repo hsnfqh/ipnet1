@@ -60,6 +60,47 @@ class TaskController extends Controller
             }
         } catch (\Exception $e) {}
 
+        // Auto-ensure: Buat task penugasan awal di kolom ASSIGNED untuk setiap proyek yang sudah didelegasikan ke divisi tapi belum memiliki task
+        try {
+            $assignedProjectsWithoutTask = Project::whereNotNull('division_id')
+                ->whereDoesntHave('tasks')
+                ->with('division')
+                ->get();
+
+            foreach ($assignedProjectsWithoutTask as $ap) {
+                $divName = $ap->division ? $ap->division->name : 'Divisi Pelaksana';
+                $leadUser = null;
+                if (str_contains(strtolower($divName), 'net')) {
+                    $leadUser = User::where('name', 'like', '%Nugraha%')->first();
+                } elseif (str_contains(strtolower($divName), 'sec')) {
+                    $leadUser = User::where('name', 'like', '%Ignatius%')->first();
+                }
+                if (!$leadUser && $ap->division_id) {
+                    $leadUser = User::where('division_id', $ap->division_id)
+                        ->whereHas('roles', fn($q) => $q->whereIn('name', ['Team Leader Engineering', 'Team Leader', 'Lead Engineer', 'Lead Divisi']))
+                        ->first();
+                }
+                $targetEngId = $leadUser ? $leadUser->id : ($user->id ?: 1);
+
+                $newTask = Task::create([
+                    'title'       => 'Implementasi Teknis: ' . $ap->name,
+                    'description' => 'Tugas penyerahan proyek dari PMO ke ' . $divName . ' untuk klien ' . ($ap->client ?: '-') . '. Menunggu penugasan Field Engineer (PIC) dan jadwal pelaksanaan oleh Lead Engineer.',
+                    'status'      => 'Assigned',
+                    'priority'    => 'High',
+                    'progress'    => 0,
+                    'start_date'  => $ap->start_date ?: now()->toDateString(),
+                    'deadline'    => $ap->deadline ?: now()->addDays(14)->toDateString(),
+                    'engineer_id' => $targetEngId,
+                    'project_id'  => $ap->id,
+                    'created_by'  => $ap->created_by ?: ($user->id ?: 1),
+                ]);
+
+                if ($hasTaskUser && $targetEngId) {
+                    $newTask->engineers()->sync([$targetEngId]);
+                }
+            }
+        } catch (\Exception $e) {}
+
         $tasks = Task::with($withRelations)
             ->when($scopeIds !== null, function($query) use ($scopeIds, $user, $hasTaskUser) {
                 return $query->where(function($q) use ($scopeIds, $user, $hasTaskUser) {
