@@ -228,8 +228,12 @@ class PmoController extends Controller
             'Operate' => $allProjects->where('stage', 'Operate')->count(),
         ];
 
-        // 6. Data Master untuk Filter & Form
-        $divisions = Division::all();
+        // 6. Data Master untuk Filter & Form (Hanya Divisi Network & Divisi Security)
+        $divisions = Division::where(function($q) {
+            $q->where('name', 'like', '%Network%')
+              ->orWhere('name', 'like', '%Security%');
+        })->orderBy('name')->get();
+
         $pmList = User::whereHas('roles', function($q) {
             $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Divisi', 'Group Leader', 'Direktur', 'HD / Direktur']);
         })->orWhere('name', 'like', '%Rizki%')->orWhere('name', 'like', '%Kuncoro%')->get(['id', 'name', 'email']);

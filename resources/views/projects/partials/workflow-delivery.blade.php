@@ -178,13 +178,23 @@
                         </div>
                     @else
                         <div class="p-3 rounded-lg border border-dashed border-slate-200 text-slate-400 text-center text-[10.5px]">
-                            Menunggu alokasi tim teknisi oleh Lead {{ $isMs ? 'Maintenance' : 'PMO' }}.
+                            Menunggu alokasi tim teknisi oleh Lead Engineer {{ $project->division ? '(' . $project->division->name . ')' : 'Divisi Terkait' }}.
                         </div>
                     @endif
                 </div>
 
             </div>
 
+            {{-- Actions Footer: Delegasi Tugas Lapangan --}}
+            @if(\App\Helpers\ScopeHelper::isTeamLeader(auth()->user()) || \App\Helpers\ScopeHelper::isManagerial(auth()->user()) || \App\Helpers\ScopeHelper::isPmo(auth()->user()))
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    <a href="{{ route('tasks.index') }}"
+                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        <span>Delegasikan di Board Tugas</span>
+                    </a>
+                </div>
+            @endif
         </div>
 
     </div>
