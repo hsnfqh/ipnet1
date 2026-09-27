@@ -1595,8 +1595,8 @@
             
             <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900">Disposisi ke Divisi Pelaksana</h3>
-                    <p class="text-[11.5px] text-slate-500 mt-0.5">Pilih divisi pelaksana proyek (Network, Security, atau Keduanya) untuk diserahkan ke Lead Engineer.</p>
+                    <h3 class="text-base font-bold text-slate-900">Delegasi Divisi Pelaksana Teknis</h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Pilih alokasi divisi penanggung jawab untuk diserahkan ke Lead Engineer terkait.</p>
                 </div>
                 <button type="button" @click="isAssignDivisionModalOpen = false; window.closeModal('modal-assign-division')" onclick="window.closeModal('modal-assign-division')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -1606,51 +1606,57 @@
                 
                 <div class="space-y-2.5">
                     <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px]">
-                        PILIH DIVISI TERKAIT <span class="text-[#8F0A0D]">*</span>
+                        PILIH DIVISI PENANGGUNG JAWAB <span class="text-[#8F0A0D]">*</span>
                     </label>
 
-                    <div class="space-y-2">
+                    <div class="space-y-2.5">
                         {{-- Opsi 1: Divisi Network --}}
-                        <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-slate-50/50 has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition">
-                            <input type="radio" name="target_division" value="network" required {{ ($project->division && str_contains(strtolower($project->division->name), 'net')) ? 'checked' : '' }} class="mt-0.5 accent-[#8F0A0D]">
+                        <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-white has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition shadow-2xs">
+                            <input type="radio" name="target_division" value="network" required {{ ($project->division && str_contains(strtolower($project->division->name), 'net')) ? 'checked' : '' }} class="mt-1 accent-[#8F0A0D]">
                             <div>
                                 <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                                    <span>Divisi Network</span>
-                                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 font-bold">Lead: Nugraha Pratama</span>
+                                    <span>Divisi Jaringan &amp; Infrastruktur (Network)</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold">Lead: Nugraha Pratama</span>
                                 </div>
-                                <p class="text-[11px] text-slate-500 font-normal mt-0.5">Implementasi routing, switching, wireless, cabling, firewall basic, dan konfigurasi network.</p>
+                                <p class="text-[11px] text-slate-500 font-normal mt-1 leading-relaxed">
+                                    Implementasi routing, switching, wireless enterprise, cabling structure, gateway, dan konfigurasi network infrastructure.
+                                </p>
                             </div>
                         </label>
 
                         {{-- Opsi 2: Divisi Security --}}
-                        <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-slate-50/50 has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition">
-                            <input type="radio" name="target_division" value="security" required {{ ($project->division && str_contains(strtolower($project->division->name), 'sec')) ? 'checked' : '' }} class="mt-0.5 accent-[#8F0A0D]">
+                        <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-white has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition shadow-2xs">
+                            <input type="radio" name="target_division" value="security" required {{ ($project->division && str_contains(strtolower($project->division->name), 'sec')) ? 'checked' : '' }} class="mt-1 accent-[#8F0A0D]">
                             <div>
                                 <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                                    <span>Divisi Security</span>
-                                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-purple-100 text-purple-800 font-bold">Lead: Ignatius Rizky</span>
+                                    <span>Divisi Keamanan Siber (Security)</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-bold">Lead: Ignatius Rizky</span>
                                 </div>
-                                <p class="text-[11px] text-slate-500 font-normal mt-0.5">Implementasi NGFW, SOC/SIEM, Endpoint Security, EDR, Vulnerability Assessment, & Security Hardening.</p>
+                                <p class="text-[11px] text-slate-500 font-normal mt-1 leading-relaxed">
+                                    Implementasi Next-Generation Firewall (NGFW), SIEM/SOC, Endpoint Protection (EDR), Vulnerability Assessment, &amp; Hardening.
+                                </p>
                             </div>
                         </label>
 
                         {{-- Opsi 3: Keduanya / Lintas Divisi --}}
-                        <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-slate-50/50 has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition">
-                            <input type="radio" name="target_division" value="both" required {{ (!$project->division && $project->stage === 'Deliver') ? 'checked' : '' }} class="mt-0.5 accent-[#8F0A0D]">
+                        <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-white has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition shadow-2xs">
+                            <input type="radio" name="target_division" value="both" required {{ (!$project->division && $project->stage === 'Deliver') ? 'checked' : '' }} class="mt-1 accent-[#8F0A0D]">
                             <div>
                                 <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                                    <span>Keduanya (Network &amp; Security - Lintas Divisi)</span>
-                                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">Kedua Lead</span>
+                                    <span>Kolaborasi Lintas Divisi (Network &amp; Security)</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">Multi-Disiplin</span>
                                 </div>
-                                <p class="text-[11px] text-slate-500 font-normal mt-0.5">Proyek membutuhkan kolaborasi teknis kedua bidang sekaligus (Network Engineer &amp; Security Engineer).</p>
+                                <p class="text-[11px] text-slate-500 font-normal mt-1 leading-relaxed">
+                                    Solusi terpadu berskala penuh yang memerlukan alokasi dan koordinasi teknis gabungan dari kedua divisi.
+                                </p>
                             </div>
                         </label>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">Catatan Khusus untuk Lead Engineer (Opsional)</label>
-                    <textarea name="special_notes" rows="2" placeholder="Tuliskan komitmen khusus atau batasan teknis yang perlu diketahui Lead..." class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-[#8F0A0D]">{{ $project->special_notes }}</textarea>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">INSTRUKSI KHUSUS / SCOPE DELIVERY (OPSIONAL)</label>
+                    <textarea name="special_notes" rows="2" placeholder="Cantumkan catatan operasional, SLA prioritas, atau komitmen teknis dari Sales..." class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-[#8F0A0D] transition">{{ $project->special_notes }}</textarea>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
@@ -1658,7 +1664,7 @@
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition shadow-xs">
-                        Disposisikan &amp; Buat Tiket Assigned
+                        Konfirmasi &amp; Delegasikan Divisi
                     </button>
                 </div>
             </form>

@@ -137,19 +137,16 @@
                 {{-- Header --}}
                 <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider whitespace-nowrap">
-                        TIM ENGINEER
+                        DIVISI PELAKSANA TEKNIS
                     </span>
-                    @if($uniqueEngineers->count() > 0)
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200">
-                            ✓ {{ $uniqueEngineers->count() }} Personel Ditugaskan
-                        </span>
-                    @elseif($project->division_id || $project->handover_status === 'Approved' || in_array($project->stage, ['Deliver', 'Operate']))
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-indigo-50 text-indigo-700 border-indigo-200">
-                            ✓ Assigned ke Lead {{ $project->division ? $project->division->name : 'Network & Security' }}
+                    @if($project->division_id || $project->handover_status === 'Approved' || in_array($project->stage, ['Deliver', 'Operate']))
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
+                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>{{ $project->division ? $project->division->name : 'Lintas Divisi (Network & Security)' }}</span>
                         </span>
                     @else
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-amber-50 text-amber-800 border-amber-200">
-                            Menunggu Disposisi Divisi
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-amber-50 text-amber-800 border-amber-200">
+                            Menunggu Delegasi
                         </span>
                     @endif
                 </div>
@@ -170,95 +167,59 @@
                             @elseif($project->stage === 'Deliver' || $project->handover_status === 'Approved')
                                 Lead Network &amp; Lead Security (Lintas Divisi)
                             @else
-                                Belum Didisposisikan ke Divisi
+                                Belum Didelegasikan ke Divisi
                             @endif
                         </h4>
                         <p class="text-[10.5px] text-slate-500 truncate">
-                            {{ $uniqueEngineers->count() > 0 ? $uniqueEngineers->pluck('name')->join(', ') : 'Field Engineers & Pelaksana Lapangan' }}
+                            Lead Engineering Delivery &amp; Operational
                         </p>
                     </div>
                 </div>
 
-                {{-- Engineers List / Status Box --}}
+                {{-- Status / Information Box --}}
                 <div>
-                    @if($uniqueEngineers->count() > 0)
+                    @if($project->division_id || $project->handover_status === 'Approved' || in_array($project->stage, ['Deliver', 'Operate']))
                         <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1.5">
-                            <div class="text-[10.5px] font-bold text-slate-700 mb-1 flex items-center justify-between">
-                                <span>Personel Teknisi Terdaftar</span>
-                                <span class="text-slate-400 font-mono">{{ $uniqueEngineers->count() }} Orang</span>
-                            </div>
-                            <div class="space-y-1 max-h-24 overflow-y-auto pr-0.5">
-                                @foreach($uniqueEngineers as $eng)
-                                    <div class="flex items-center justify-between text-[11px] bg-white p-1.5 rounded border border-slate-200/60 shadow-2xs">
-                                        <div class="flex items-center gap-1.5 min-w-0">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                            <span class="font-semibold text-slate-800 truncate">{{ $eng->name }}</span>
-                                        </div>
-                                        <span class="text-[9.5px] text-slate-400 shrink-0 font-medium">{{ $eng->roles->pluck('name')->first() ?? 'Engineer' }}</span>
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-bold text-slate-900 text-xs truncate">
+                                        {{ $project->division ? $project->division->name : 'Kolaborasi Lintas Divisi' }}
                                     </div>
-                                @endforeach
+                                    <div class="text-[10.5px] text-emerald-700 font-semibold truncate">
+                                        ✓ Status: Terdisposisi ke Lead Engineer (ASSIGNED)
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    @elseif($project->division_id || $project->handover_status === 'Approved' || in_array($project->stage, ['Deliver', 'Operate']))
-                        <div class="p-3 rounded-lg bg-indigo-50/50 border border-indigo-200/70 text-indigo-950 space-y-1">
-                            <div class="font-bold text-xs flex items-center gap-1.5 text-indigo-900">
-                                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <span>Status: Assigned ke Lead Engineer</span>
-                            </div>
-                            <p class="text-[10.5px] text-indigo-800/80 leading-relaxed">
-                                Proyek telah masuk ke antrean kerja. Lead Engineer dapat memilih dan menugaskan teknisi lapangan (Field Engineer) pelaksana di bawah ini.
-                            </p>
                         </div>
                     @else
-                        <div class="p-3 rounded-lg border border-dashed border-amber-300 bg-amber-50/40 text-amber-900 text-center text-[10.5px] space-y-1">
-                            <div class="font-bold text-amber-900">Belum Ada Disposisi Divisi</div>
-                            <p class="text-amber-800/80">Silakan tentukan divisi pelaksana (Network, Security, atau Keduanya) untuk menyerahkan tugas ke Lead Engineer.</p>
+                        <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1.5">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-bold text-amber-900 text-xs">Pilih Divisi Pelaksana</div>
+                                    <div class="text-[10.5px] text-amber-800 truncate">Serahkan wewenang teknis ke Divisi Network, Security, atau Keduanya</div>
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </div>
 
             </div>
 
-            {{-- Actions Footer: Disposisi Divisi & Penugasan Teknisi Lapangan --}}
-            <div class="pt-2.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 mt-auto">
-                @if(!$project->division_id && $project->stage !== 'Deliver' && $project->handover_status !== 'Approved')
-                    {{-- Belum Ada Divisi: Tombol Disposisi Utama --}}
-                    <button type="button" 
-                            @click="openAssignDivisionModal()" 
-                            onclick="window.openModal('modal-assign-division')"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] transition cursor-pointer shadow-xs">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        <span>Assign ke Divisi Terkait</span>
-                    </button>
-                @else
-                    {{-- Sudah Ada Divisi: Tombol Pilih Teknisi & Board Tugas --}}
-                    <div class="flex flex-wrap items-center gap-1.5 w-full justify-between">
-                        <div class="flex items-center gap-1.5">
-                            <button type="button" 
-                                    @click="openAssignEngineerModal()" 
-                                    onclick="window.openModal('modal-assign-engineer')"
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] transition cursor-pointer shadow-xs">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                                <span>+ Pilih Teknisi</span>
-                            </button>
-
-                            <a href="{{ route('tasks.index') }}"
-                               class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition cursor-pointer">
-                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                <span>Board Tugas</span>
-                            </a>
-                        </div>
-
-                        {{-- Tombol Ubah Divisi --}}
-                        <button type="button" 
-                                @click="openAssignDivisionModal()" 
-                                onclick="window.openModal('modal-assign-division')"
-                                title="Ubah Divisi Pelaksana Proyek"
-                                class="text-[11px] text-slate-500 hover:text-[#8F0A0D] font-semibold underline underline-offset-2 transition cursor-pointer">
-                            Ubah Divisi
-                        </button>
-                    </div>
-                @endif
+            {{-- Actions Footer: Single Red Button matching Card 1 --}}
+            <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                <button type="button" 
+                        @click="openAssignDivisionModal()" 
+                        onclick="window.openModal('modal-assign-division')"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    <span>{{ ($project->division_id || $project->handover_status === 'Approved' || in_array($project->stage, ['Deliver', 'Operate'])) ? 'Ubah Divisi Pelaksana' : 'Pilih Divisi Pelaksana' }}</span>
+                </button>
             </div>
         </div>
 
