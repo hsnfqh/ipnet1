@@ -16,111 +16,111 @@
     if ($isExecutiveOrGl) {
         $navItems = [
             ['key' => 'dashboard',       'label' => 'Dashboard',         'route' => 'dashboard.lead'],
-            ['key' => 'projects',        'label' => 'Project',           'route' => 'sales.pipeline.index'],
+            ['key' => 'projects',        'label' => 'Projects',          'route' => 'sales.pipeline.index'],
             ['key' => 'activities',      'label' => 'Activity Log',      'route' => 'sales.activities.index'],
-            ['key' => 'clients',         'label' => 'Client',            'route' => 'clients.index'],
+            ['key' => 'clients',         'label' => 'Clients',           'route' => 'clients.index'],
             ['key' => 'inventory',       'label' => 'Inventory',         'route' => 'inventory.index'],
-            ['key' => 'vendors',         'label' => 'Vendor',            'route' => 'vendors.index'],
+            ['key' => 'vendors',         'label' => 'Vendors',           'route' => 'vendors.index'],
             ['key' => 'schedules',       'label' => 'Work Schedule',     'route' => 'schedules.index'],
             ['key' => 'timesheets',      'label' => 'Timesheet',         'route' => 'timesheets.index'],
         ];
     } elseif ($isAdminSupport) {
         $navItems = [
             ['key' => 'admin_dashboard',  'label' => 'Dashboard',             'route' => 'admin_support.dashboard'],
-            ['key' => 'admin_documents',  'label' => 'Register Dokumen',      'route' => 'admin_support.documents.index'],
-            ['key' => 'admin_checklists', 'label' => 'Kelengkapan Dokumen',   'route' => 'admin_support.checklists.index'],
-            ['key' => 'admin_logistics',  'label' => 'Surat Jalan & DO',      'route' => 'admin_support.logistics.index'],
-            ['key' => 'admin_inventory',  'label' => 'Master Serial Number',  'route' => 'admin_support.inventory.index'],
-            ['key' => 'admin_assets',     'label' => 'Aset & Alat Kerja',     'route' => 'admin_support.assets.index'],
-            ['key' => 'admin_handovers',  'label' => 'Arsip & Handover',      'route' => 'admin_support.handovers.index'],
+            ['key' => 'admin_documents',  'label' => 'Document Register',     'route' => 'admin_support.documents.index'],
+            ['key' => 'admin_checklists', 'label' => 'Document Checklists',   'route' => 'admin_support.checklists.index'],
+            ['key' => 'admin_logistics',  'label' => 'Logistics & DO',        'route' => 'admin_support.logistics.index'],
+            ['key' => 'admin_inventory',  'label' => 'Serial Number Master',  'route' => 'admin_support.inventory.index'],
+            ['key' => 'admin_assets',     'label' => 'Assets & Work Tools',   'route' => 'admin_support.assets.index'],
+            ['key' => 'admin_handovers',  'label' => 'Archives & Handover',   'route' => 'admin_support.handovers.index'],
             ['key' => 'timesheets',       'label' => 'Timesheet',             'route' => 'timesheets.index'],
         ];
     } elseif ($isCro) {
         $navItems = [
-            ['key' => 'cro',               'label' => 'Dashboard',         'route' => 'cro.dashboard'],
-            ['key' => 'cro_engagements',   'label' => 'Relasi & Meeting',  'route' => 'cro.engagements.index'],
-            ['key' => 'cro_satisfaction',  'label' => 'Kepuasan (CSAT)',   'route' => 'cro.satisfaction.index'],
-            ['key' => 'cro_concerns',      'label' => 'Concern & Isu',     'route' => 'cro.concerns.index'],
-            ['key' => 'cro_retention',     'label' => 'Retensi Akun',      'route' => 'cro.retention.index'],
-            ['key' => 'cro_opportunities', 'label' => 'Peluang Ekspansi',  'route' => 'cro.opportunities.index'],
-            ['key' => 'clients',           'label' => 'Database Klien',    'route' => 'clients.index'],
-            ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
+            ['key' => 'cro',               'label' => 'Dashboard',             'route' => 'cro.dashboard'],
+            ['key' => 'cro_engagements',   'label' => 'Engagements & Meetings','route' => 'cro.engagements.index'],
+            ['key' => 'cro_satisfaction',  'label' => 'Satisfaction (CSAT)',   'route' => 'cro.satisfaction.index'],
+            ['key' => 'cro_concerns',      'label' => 'Concerns & Issues',     'route' => 'cro.concerns.index'],
+            ['key' => 'cro_retention',     'label' => 'Account Retention',     'route' => 'cro.retention.index'],
+            ['key' => 'cro_opportunities', 'label' => 'Expansion Leads',       'route' => 'cro.opportunities.index'],
+            ['key' => 'clients',           'label' => 'Client Database',       'route' => 'clients.index'],
+            ['key' => 'timesheets',        'label' => 'Timesheet',             'route' => 'timesheets.index'],
         ];
     } elseif ($isMaintenance) {
         // Dedicated Managed Service & Maintenance Portal (Doris, Mario, Eris)
         $navItems = [
             ['key' => 'ms_dashboard', 'label' => 'Dashboard',         'route' => 'ms.dashboard'],
-            ['key' => 'ms_tickets',   'label' => 'Tiket & SLA',          'route' => 'ms.tickets.index'],
-            ['key' => 'ms_assets',    'label' => 'Aset Perangkat',       'route' => 'ms.assets.index'],
-            ['key' => 'tasks',        'label' => 'Daftar Tugas',         'route' => 'tasks.index'],
-            ['key' => 'schedules',    'label' => 'Work Schedule',         'route' => 'schedules.index'],
-            ['key' => 'timesheets',   'label' => 'Timesheet',            'route' => 'timesheets.index'],
-            ['key' => 'attendance',   'label' => 'Presensi',             'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
+            ['key' => 'ms_tickets',   'label' => 'Tickets & SLA',     'route' => 'ms.tickets.index'],
+            ['key' => 'ms_assets',    'label' => 'Assets & Devices',  'route' => 'ms.assets.index'],
+            ['key' => 'tasks',        'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
+            ['key' => 'schedules',    'label' => 'Work Schedule',     'route' => 'schedules.index'],
+            ['key' => 'timesheets',   'label' => 'Timesheet',         'route' => 'timesheets.index'],
+            ['key' => 'attendance',   'label' => 'Attendance',        'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
         ];
         if (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
-            $navItems[] = ['key' => 'users', 'label' => 'Pengguna', 'route' => 'users.index'];
+            $navItems[] = ['key' => 'users', 'label' => 'Users', 'route' => 'users.index'];
         }
     } elseif ($isPmoUser) {
         // Project Manager & PMO: Kontrol pengiriman proyek (Deliver) & Monitoring Penugasan
         $navItems = [
             ['key' => 'pmo_dashboard',   'label' => 'Dashboard',           'route' => 'pmo.dashboard'],
-            ['key' => 'projects',        'label' => 'Daftar Proyek',       'route' => 'projects.index'],
-            ['key' => 'tasks',           'label' => 'Penugasan Tim',       'route' => 'tasks.index'],
-            ['key' => 'schedules',       'label' => 'Work Schedule',        'route' => 'schedules.index'],
+            ['key' => 'projects',        'label' => 'Projects',            'route' => 'projects.index'],
+            ['key' => 'tasks',           'label' => 'Team Tasks',          'route' => 'tasks.index'],
+            ['key' => 'schedules',       'label' => 'Work Schedule',       'route' => 'schedules.index'],
             ['key' => 'timesheets',      'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];
     } elseif ($isArchitect) {
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.architect'],
-            ['key' => 'projects',   'label' => 'Project',            'route' => 'sales.pipeline.index'],
-            ['key' => 'clients',    'label' => 'Client',             'route' => 'clients.index'],
+            ['key' => 'projects',   'label' => 'Projects',           'route' => 'sales.pipeline.index'],
+            ['key' => 'clients',    'label' => 'Clients',            'route' => 'clients.index'],
             ['key' => 'schedules',  'label' => 'Work Schedule',      'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];
     } elseif ($isBdm) {
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',     'route' => 'dashboard.bdm'],
-            ['key' => 'projects',   'label' => 'Project',       'route' => 'sales.pipeline.index'],
-            ['key' => 'clients',    'label' => 'Client',        'route' => 'clients.index'],
+            ['key' => 'projects',   'label' => 'Projects',      'route' => 'sales.pipeline.index'],
+            ['key' => 'clients',    'label' => 'Clients',       'route' => 'clients.index'],
             ['key' => 'schedules',  'label' => 'Work Schedule', 'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',     'route' => 'timesheets.index'],
         ];
     } elseif ($isPresales) {
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.presales'],
-            ['key' => 'projects',   'label' => 'Project',            'route' => 'sales.pipeline.index'],
-            ['key' => 'clients',    'label' => 'Client',             'route' => 'clients.index'],
+            ['key' => 'projects',   'label' => 'Projects',           'route' => 'sales.pipeline.index'],
+            ['key' => 'clients',    'label' => 'Clients',            'route' => 'clients.index'],
             ['key' => 'schedules',  'label' => 'Work Schedule',      'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];
     } elseif ($isSales) {
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',           'route' => 'dashboard.sales'],
-            ['key' => 'projects',   'label' => 'Project',             'route' => 'sales.pipeline.index'],
+            ['key' => 'projects',   'label' => 'Projects',            'route' => 'sales.pipeline.index'],
             ['key' => 'activities', 'label' => 'Activity Log',        'route' => 'sales.activities.index'],
-            ['key' => 'clients',    'label' => 'Client',              'route' => 'clients.index'],
+            ['key' => 'clients',    'label' => 'Clients',             'route' => 'clients.index'],
             ['key' => 'inventory',  'label' => 'Inventory',           'route' => 'inventory.index'],
-            ['key' => 'vendors',    'label' => 'Vendor',              'route' => 'vendors.index'],
+            ['key' => 'vendors',    'label' => 'Vendors',             'route' => 'vendors.index'],
             ['key' => 'schedules',  'label' => 'Work Schedule',       'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',            'route' => 'timesheets.index'],
         ];
     } elseif (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
         $navItems = [
             ['key' => 'dashboard',   'label' => 'Dashboard',         'route' => 'dashboard.lead'],
-            ['key' => 'projects',    'label' => 'Daftar Proyek',     'route' => 'projects.index'],
-            ['key' => 'tasks',       'label' => 'Penugasan Tim',     'route' => 'tasks.index'],
-            ['key' => 'schedules',   'label' => 'Work Schedule',      'route' => 'schedules.index'],
+            ['key' => 'projects',    'label' => 'Projects',          'route' => 'projects.index'],
+            ['key' => 'tasks',       'label' => 'Team Tasks',        'route' => 'tasks.index'],
+            ['key' => 'schedules',   'label' => 'Work Schedule',     'route' => 'schedules.index'],
             ['key' => 'timesheets',  'label' => 'Timesheet',         'route' => 'timesheets.index'],
-            ['key' => 'attendance',  'label' => 'Presensi',          'route' => 'attendance.recap'],
-            ['key' => 'users',       'label' => 'Pengguna',          'route' => 'users.index'],
+            ['key' => 'attendance',  'label' => 'Attendance',        'route' => 'attendance.recap'],
+            ['key' => 'users',       'label' => 'Users',             'route' => 'users.index'],
         ];
     } else {
         $navItems = [
             ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.engineer'],
-            ['key' => 'tasks',      'label' => 'Tugas Saya',         'route' => 'tasks.index'],
-            ['key' => 'schedules',  'label' => 'Work Schedule',       'route' => 'schedules.index'],
+            ['key' => 'tasks',      'label' => 'My Tasks',           'route' => 'tasks.index'],
+            ['key' => 'schedules',  'label' => 'Work Schedule',      'route' => 'schedules.index'],
             ['key' => 'timesheets', 'label' => 'Timesheet',          'route' => 'timesheets.index'],
-            ['key' => 'attendance', 'label' => 'Presensi',           'route' => 'attendance.index'],
+            ['key' => 'attendance', 'label' => 'Attendance',         'route' => 'attendance.index'],
         ];
     }
 @endphp
@@ -251,7 +251,7 @@
 
     <!-- NAVIGATION -->
     <div style="position:relative; z-index:10; flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:3px; overflow-y:auto;">
-        <div x-show="!collapsed" x-cloak style="font-size:10.5px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.48); padding:0 10px 8px;">MENU UTAMA</div>
+        <div x-show="!collapsed" x-cloak style="font-size:10.5px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.48); padding:0 10px 8px;">MAIN MENU</div>
 
         @foreach($navItems as $item)
             @php
