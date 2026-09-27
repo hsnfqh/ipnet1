@@ -357,35 +357,37 @@ class Project extends Model
     /**
      * Cek otorisasi akses khusus Berkas Sales (Confidential)
      * Hanya dapat diakses oleh:
-     * 1. Sales PIC / Pembuat Proyek / Role Sales / Account Manager
-     * 2. Pak Santoso (Susanto Djaya) & Pak Hari (Hariyadi)
-     * 3. Direktur / Management / Head Divisi / BDM / Super Admin / BD
+     * 1. Sales itu sendiri (Sales PIC / Pembuat Proyek / Role Sales / Account Manager)
+     * 2. Head Division / Head Divisi
+     * 3. Direktur / Pimpinan Eksekutif (Pak Santoso, Pak Hariyadi) / Super Admin
+     * (Catatan: BD, Presales, SA, PM, Engineer, dll. TIDAK memiliki akses ke Berkas Sales)
      */
     public function canAccessSalesDocs($user = null): bool
     {
         $user = $user ?: auth()->user();
         if (!$user) return false;
 
-        // Sales creator / PIC
+        $userRoles = method_exists($user, 'roles') ? $user->roles->pluck('name')->toArray() : [];
+
+        // 1. Sales creator / PIC proyek
         if ($this->created_by === $user->id || $this->sales_name === $user->name || ($this->sales_id && $this->sales_id === $user->id)) {
             return true;
         }
 
-        // Role Sales / Account Manager
-        if (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['Sales', 'Account Manager'])) {
+        // 2. Role Sales / Account Manager
+        if (!empty(array_intersect(['Sales', 'Account Manager'], $userRoles))) {
             return true;
         }
 
-        // Role Pimpinan / Management / BD
-        if (method_exists($user, 'hasAnyRole') && $user->hasAnyRole([
+        // 3. Head Division & Direktur / Manajemen Eksekutif / Super Admin
+        if (!empty(array_intersect([
             'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Head Division',
-            'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin',
-            'BDM', 'BusDev', 'Business Development', 'BD'
-        ])) {
+            'Group Leader Commercial & Solution', 'Super Admin', 'Admin'
+        ], $userRoles))) {
             return true;
         }
 
-        // Otorisasi Pimpinan Eksekutif
+        // 4. Otorisasi Pimpinan Eksekutif (Berdasarkan Nama)
         $lowerName = strtolower($user->name ?? '');
         if (str_contains($lowerName, 'santoso') || str_contains($lowerName, 'susanto') || str_contains($lowerName, 'hari') || str_contains($lowerName, 'hary')) {
             return true;
