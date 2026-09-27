@@ -132,17 +132,15 @@
 
         {{-- ══ CARD 2: TIM ENGINEER PELAKSANA ══ --}}
         <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
-            <div class="space-y-3">
-                
-                {{-- Header --}}
+            <div class="space-y-3">                {{-- Header --}}
                 <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider whitespace-nowrap">
                         DIVISI PELAKSANA TEKNIS
                     </span>
-                    @if($project->division_id || $project->handover_status === 'Approved' || in_array($project->stage, ['Deliver', 'Operate']))
+                    @if(!empty($project->division_id) && !empty($project->division))
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
                             <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>{{ $project->division ? $project->division->name : 'Lintas Divisi (Network & Security)' }}</span>
+                            <span>{{ $project->division->name }}</span>
                         </span>
                     @else
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-amber-50 text-amber-800 border-amber-200">
@@ -158,14 +156,14 @@
                     </div>
                     <div class="min-w-0 flex-1">
                         <h4 class="font-bold text-xs text-slate-900 truncate">
-                            @if($project->division && str_contains(strtolower($project->division->name), 'net'))
-                                Nugraha Pratama (Lead Network)
-                            @elseif($project->division && str_contains(strtolower($project->division->name), 'sec'))
-                                Ignatius Rizky (Lead Security)
-                            @elseif($project->division)
-                                {{ $project->division->name }}
-                            @elseif($project->stage === 'Deliver' || $project->handover_status === 'Approved')
-                                Lead Network &amp; Lead Security (Lintas Divisi)
+                            @if(!empty($project->division_id) && !empty($project->division))
+                                @if(str_contains(strtolower($project->division->name), 'net') && !str_contains(strtolower($project->division->name), 'lintas') && !str_contains(strtolower($project->division->name), 'security'))
+                                    Nugraha Pratama (Lead Network)
+                                @elseif(str_contains(strtolower($project->division->name), 'sec') && !str_contains(strtolower($project->division->name), 'lintas') && !str_contains(strtolower($project->division->name), 'network'))
+                                    Ignatius Rizky (Lead Security)
+                                @else
+                                    Lead Network &amp; Lead Security (Lintas Divisi)
+                                @endif
                             @else
                                 Belum Didelegasikan ke Divisi
                             @endif
@@ -178,7 +176,7 @@
 
                 {{-- Status / Information Box --}}
                 <div>
-                    @if($project->division_id || $project->handover_status === 'Approved' || in_array($project->stage, ['Deliver', 'Operate']))
+                    @if(!empty($project->division_id) && !empty($project->division))
                         <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1.5">
                             <div class="flex items-center gap-2 min-w-0">
                                 <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
@@ -186,7 +184,7 @@
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <div class="font-bold text-slate-900 text-xs truncate">
-                                        {{ $project->division ? $project->division->name : 'Kolaborasi Lintas Divisi' }}
+                                        {{ $project->division->name }}
                                     </div>
                                     <div class="text-[10.5px] text-emerald-700 font-semibold truncate">
                                         ✓ Status: Terdisposisi ke Lead Engineer (ASSIGNED)
@@ -198,7 +196,7 @@
                         <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1.5">
                             <div class="flex items-center gap-2 min-w-0">
                                 <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <svg class="w-3.5 h-3.5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <div class="font-bold text-amber-900 text-xs">Pilih Divisi Pelaksana</div>
@@ -218,7 +216,7 @@
                         onclick="window.openModal('modal-assign-division')"
                         class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    <span>{{ ($project->division_id || $project->handover_status === 'Approved' || in_array($project->stage, ['Deliver', 'Operate'])) ? 'Ubah Divisi Pelaksana' : 'Pilih Divisi Pelaksana' }}</span>
+                    <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Ubah Divisi Pelaksana' : 'Pilih Divisi Pelaksana' }}</span>
                 </button>
             </div>
         </div>

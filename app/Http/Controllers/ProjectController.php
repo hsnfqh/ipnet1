@@ -512,8 +512,12 @@ class ProjectController extends Controller
             'special_notes'   => 'nullable|string|max:1000',
         ]);
 
-        $netDiv = \App\Models\Division::where('name', 'like', '%Network%')->first();
-        $secDiv = \App\Models\Division::where('name', 'like', '%Security%')->first();
+        $netDiv   = \App\Models\Division::where('name', 'like', '%Network%')->first();
+        $secDiv   = \App\Models\Division::where('name', 'like', '%Security%')->first();
+        $crossDiv = \App\Models\Division::firstOrCreate(
+            ['name' => 'Lintas Divisi (Network & Security)'],
+            ['code' => 'CROSS', 'description' => 'Kolaborasi Lintas Divisi Network & Security']
+        );
 
         $divName = '';
         $leaderIds = [];
@@ -535,7 +539,7 @@ class ProjectController extends Controller
                 ->get();
             $leaderIds = $leaders->pluck('id')->toArray();
         } else { // both
-            $project->division_id = null; // Lintas Divisi
+            $project->division_id = $crossDiv ? $crossDiv->id : null;
             $divName = 'Lintas Divisi (Network & Security)';
             $leaders = User::where(function($q) use ($netDiv, $secDiv) {
                 if ($netDiv || $secDiv) {
