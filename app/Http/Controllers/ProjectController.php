@@ -29,9 +29,9 @@ class ProjectController extends Controller
         $isSales      = $user->hasAnyRole(['Sales', 'BusDev', 'Account Manager', 'BDM']);
         $isPmo        = $user->hasAnyRole(['PMO', 'Project Manager']);
 
-        // Pimpinan eksekutif, PMO, dan Sales yang berhak membuat proyek
-        $canCreate       = !$isExecutive && (\App\Helpers\ScopeHelper::canCreateProjects($user) || $isSales || $isPmo);
-        $canDelete       = $isExecutive || $isPmo || $isSales;
+        // Proyek dibuat oleh Sales / Commercial, PMO fokus pada serah terima & governance
+        $canCreate       = !$isExecutive && !$isPmo && (\App\Helpers\ScopeHelper::canCreateProjects($user) || $isSales);
+        $canDelete       = $isExecutive || $isSales;
         $canManage       = !$isExecutive && (\App\Helpers\ScopeHelper::isManagerial($user) || $isSales);
         $canEditProgress = !$isExecutive && (\App\Helpers\ScopeHelper::isTeamLeader($user) || \App\Helpers\ScopeHelper::isManagerial($user));
         $scopeIds        = \App\Helpers\ScopeHelper::getScopeUserIds($user);
