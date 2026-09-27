@@ -375,6 +375,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Stage Lifecycle & Team Actions
         Route::post('/{project}/assign', [ProjectController::class, 'assignTeam'])->name('projects.assign');
+        Route::post('/{project}/assign-division', [ProjectController::class, 'assignDivision'])->name('projects.assign_division');
         Route::post('/{project}/assign-approver', [ProjectController::class, 'assignApprover'])->name('projects.assign_approver');
         Route::post('/{project}/approve-draft', [ProjectController::class, 'approveDraft'])->name('projects.approve_draft');
         Route::post('/{project}/assign-technical', [ProjectController::class, 'assignTechnical'])->name('projects.assign_technical');

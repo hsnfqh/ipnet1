@@ -502,6 +502,106 @@ class ProjectController extends Controller
     }
 
     /**
+     * Disposisi Proyek ke Divisi Pelaksana (Network, Security, atau Keduanya)
+     * Otomatis membuat tiket penugasan awal di kolom ASSIGNED & notifikasi ke Lead Engineer
+     */
+    public function assignDivision(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'target_division' => 'required|in:network,security,both',
+            'special_notes'   => 'nullable|string|max:1000',
+        ]);
+
+        $netDiv = \App\Models\Division::where('name', 'like', '%Network%')->first();
+        $secDiv = \App\Models\Division::where('name', 'like', '%Security%')->first();
+
+        $divName = '';
+        $leaderIds = [];
+
+        if ($validated['target_division'] === 'network') {
+            $project->division_id = $netDiv ? $netDiv->id : null;
+            $divName = 'Divisi Network';
+            $leaders = User::whereHas('roles', fn($q) => $q->whereIn('name', ['Team Leader Engineering', 'Team Leader', 'Lead Engineer', 'Lead Divisi']))
+                ->where('division_id', $netDiv ? $netDiv->id : 0)
+                ->orWhere('name', 'like', '%Nugraha%')
+                ->get();
+            $leaderIds = $leaders->pluck('id')->toArray();
+        } elseif ($validated['target_division'] === 'security') {
+            $project->division_id = $secDiv ? $secDiv->id : null;
+            $divName = 'Divisi Security';
+            $leaders = User::whereHas('roles', fn($q) => $q->whereIn('name', ['Team Leader Engineering', 'Team Leader', 'Lead Engineer', 'Lead Divisi']))
+                ->where('division_id', $secDiv ? $secDiv->id : 0)
+                ->orWhere('name', 'like', '%Ignatius%')
+                ->get();
+            $leaderIds = $leaders->pluck('id')->toArray();
+        } else { // both
+            $project->division_id = null; // Lintas Divisi
+            $divName = 'Lintas Divisi (Network & Security)';
+            $leaders = User::where(function($q) use ($netDiv, $secDiv) {
+                if ($netDiv || $secDiv) {
+                    $q->whereIn('division_id', array_filter([$netDiv?->id, $secDiv?->id]));
+                }
+                $q->orWhere('name', 'like', '%Nugraha%')
+                  ->orWhere('name', 'like', '%Ignatius%');
+            })->get();
+            $leaderIds = $leaders->pluck('id')->toArray();
+        }
+
+        if ($request->filled('special_notes')) {
+            $project->special_notes = $request->input('special_notes');
+        }
+
+        $project->handover_status = 'Approved';
+        $project->stage = 'Deliver';
+        if (in_array($project->status, ['Draft', 'Planning', 'Opportunity'])) {
+            $project->status = 'In Progress';
+        }
+        $project->save();
+
+        // Otomatis buat Task Implementasi awal pada kolom ASSIGNED (tanpa PIC, siap didelegasikan oleh Lead Engineer)
+        $existingTask = Task::where('project_id', $project->id)->first();
+        if (!$existingTask) {
+            Task::create([
+                'title'       => 'Implementasi Teknis: ' . $project->name,
+                'description' => 'Tugas penyerahan proyek dari PMO ke ' . $divName . ' untuk klien ' . ($project->client ?: '-') . '. Menunggu penugasan Field Engineer (PIC) dan jadwal pelaksanaan oleh Lead Engineer.',
+                'status'      => 'Assigned',
+                'priority'    => 'High',
+                'progress'    => 0,
+                'start_date'  => $project->start_date ?: now()->toDateString(),
+                'deadline'    => $project->deadline ?: now()->addDays(14)->toDateString(),
+                'engineer_id' => null, // Belum ada PIC, Lead Engineer yang akan menentukan
+                'project_id'  => $project->id,
+                'created_by'  => auth()->id(),
+            ]);
+        }
+
+        // Kirim notifikasi ke Lead Engineer
+        if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            foreach (array_unique($leaderIds) as $lId) {
+                \App\Models\Notification::create([
+                    'user_id' => $lId,
+                    'title'   => 'Disposisi Proyek Baru: ' . $project->name,
+                    'message' => 'Proyek "' . $project->name . '" (Klien: ' . ($project->client ?: '-') . ') telah didisposisikan ke ' . $divName . '. Silakan pilih dan delegasikan personel teknisi lapangan Anda.',
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
+        }
+
+        $msg = "Proyek berhasil didisposisikan ke {$divName}! Tiket pekerjaan otomatis berstatus ASSIGNED untuk Lead Engineer.";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'project' => $project->fresh(['pm', 'division', 'tasks.engineer'])
+            ]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
      * Penugasan Review Draft ke Pimpinan (Head Divisi / Direktur) oleh Sales
      */
     public function assignApprover(Request $request, Project $project)

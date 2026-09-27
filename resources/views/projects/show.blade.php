@@ -396,6 +396,18 @@
             isUploadDocModalOpen: false,
             isUploadSalesDocModalOpen: false,
             isDeleteModalOpen: false,
+            isAssignDivisionModalOpen: false,
+            isAssignEngineerModalOpen: false,
+
+            openAssignDivisionModal() {
+                this.isAssignDivisionModalOpen = true;
+                window.openModal('modal-assign-division');
+            },
+
+            openAssignEngineerModal() {
+                this.isAssignEngineerModalOpen = true;
+                window.openModal('modal-assign-engineer');
+            },
 
             openHandoverModal(target = null) {
                 if (target) {
@@ -1570,6 +1582,139 @@
                             Simpan &amp; Serah Terimakan Proyek
                         </button>
                     </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL DISPOSISI KE DIVISI PELAKSANA (NETWORK, SECURITY, ATAU KEDUANYA) --}}
+    <div id="modal-assign-division" x-show="isAssignDivisionModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isAssignDivisionModalOpen = false; window.closeModal('modal-assign-division')" 
+             class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Disposisi ke Divisi Pelaksana</h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Pilih divisi pelaksana proyek (Network, Security, atau Keduanya) untuk diserahkan ke Lead Engineer.</p>
+                </div>
+                <button type="button" @click="isAssignDivisionModalOpen = false; window.closeModal('modal-assign-division')" onclick="window.closeModal('modal-assign-division')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.assign_division', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+                
+                <div class="space-y-2.5">
+                    <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px]">
+                        PILIH DIVISI TERKAIT <span class="text-[#8F0A0D]">*</span>
+                    </label>
+
+                    <div class="space-y-2">
+                        {{-- Opsi 1: Divisi Network --}}
+                        <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-slate-50/50 has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition">
+                            <input type="radio" name="target_division" value="network" required {{ ($project->division && str_contains(strtolower($project->division->name), 'net')) ? 'checked' : '' }} class="mt-0.5 accent-[#8F0A0D]">
+                            <div>
+                                <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                                    <span>Divisi Network</span>
+                                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 font-bold">Lead: Nugraha Pratama</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 font-normal mt-0.5">Implementasi routing, switching, wireless, cabling, firewall basic, dan konfigurasi network.</p>
+                            </div>
+                        </label>
+
+                        {{-- Opsi 2: Divisi Security --}}
+                        <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-slate-50/50 has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition">
+                            <input type="radio" name="target_division" value="security" required {{ ($project->division && str_contains(strtolower($project->division->name), 'sec')) ? 'checked' : '' }} class="mt-0.5 accent-[#8F0A0D]">
+                            <div>
+                                <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                                    <span>Divisi Security</span>
+                                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-purple-100 text-purple-800 font-bold">Lead: Ignatius Rizky</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 font-normal mt-0.5">Implementasi NGFW, SOC/SIEM, Endpoint Security, EDR, Vulnerability Assessment, & Security Hardening.</p>
+                            </div>
+                        </label>
+
+                        {{-- Opsi 3: Keduanya / Lintas Divisi --}}
+                        <label class="flex items-start gap-3 p-3 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-slate-50/50 has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition">
+                            <input type="radio" name="target_division" value="both" required {{ (!$project->division && $project->stage === 'Deliver') ? 'checked' : '' }} class="mt-0.5 accent-[#8F0A0D]">
+                            <div>
+                                <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                                    <span>Keduanya (Network &amp; Security - Lintas Divisi)</span>
+                                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">Kedua Lead</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 font-normal mt-0.5">Proyek membutuhkan kolaborasi teknis kedua bidang sekaligus (Network Engineer &amp; Security Engineer).</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">Catatan Khusus untuk Lead Engineer (Opsional)</label>
+                    <textarea name="special_notes" rows="2" placeholder="Tuliskan komitmen khusus atau batasan teknis yang perlu diketahui Lead..." class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-[#8F0A0D]">{{ $project->special_notes }}</textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" @click="isAssignDivisionModalOpen = false; window.closeModal('modal-assign-division')" onclick="window.closeModal('modal-assign-division')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition shadow-xs">
+                        Disposisikan &amp; Buat Tiket Assigned
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL PENUGASAN TEKNISI LAPANGAN (FIELD ENGINEER) OLEH LEAD ENGINEER --}}
+    <div id="modal-assign-engineer" x-show="isAssignEngineerModalOpen" x-cloak 
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.away="isAssignEngineerModalOpen = false; window.closeModal('modal-assign-engineer')" 
+             class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Pilih Teknisi Pelaksana Lapangan</h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Pilih Field Engineer penanggung jawab (PIC) untuk mengeksekusi proyek ini.</p>
+                </div>
+                <button type="button" @click="isAssignEngineerModalOpen = false; window.closeModal('modal-assign-engineer')" onclick="window.closeModal('modal-assign-engineer')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.assign', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+                <input type="hidden" name="role_type" value="engineer">
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">PILIH FIELD ENGINEER (PIC) <span class="text-[#8F0A0D]">*</span></label>
+                    <select name="user_id" required class="w-full px-3 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#8F0A0D]">
+                        <option value="">-- Pilih Teknisi Pelaksana --</option>
+                        @php
+                            $engineers = ($allUsers ?? \App\Models\User::orderBy('name')->get())->filter(function($u) {
+                                return $u->hasAnyRole(['Engineer', 'Field Engineer', 'Network Engineer', 'Security Engineer', 'Team Leader Engineering', 'Team Leader', 'Lead Engineer', 'Lead Divisi', 'Managed Service']);
+                            });
+                        @endphp
+                        @foreach($engineers as $eng)
+                            <option value="{{ $eng->id }}">{{ $eng->name }} ({{ $eng->roles->pluck('name')->first() ?? 'Engineer' }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">Judul Tugas / Pekerjaan Lapangan</label>
+                    <input type="text" name="task_title" value="Implementasi Teknis: {{ $project->name }}" class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:border-[#8F0A0D]">
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">Target Selesai / Deadline</label>
+                    <input type="date" name="deadline" value="{{ $project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('Y-m-d') : date('Y-m-d', strtotime('+14 days')) }}" class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:border-[#8F0A0D]">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" @click="isAssignEngineerModalOpen = false; window.closeModal('modal-assign-engineer')" onclick="window.closeModal('modal-assign-engineer')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition shadow-xs">
+                        Tugaskan Engineer
+                    </button>
                 </div>
             </form>
         </div>
