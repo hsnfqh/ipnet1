@@ -1169,7 +1169,7 @@
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
                                     <div class="font-normal text-slate-700">
-                                        Status Tender / Deal: <strong class="font-semibold text-emerald-700">Menang (Closed Won)</strong>
+                                        Status Tender / Deal: <strong class="font-semibold text-slate-900">Menang (Closed Won)</strong>
                                     </div>
                                     <div class="text-[11px] text-slate-500 mt-0.5">
                                         @if(!empty($project->po_spk_number) || !empty($project->po_number))
@@ -1213,7 +1213,7 @@
                                         Disposisi Divisi: <strong class="font-semibold text-slate-900">{{ $divName }}</strong>
                                     </div>
                                     <div class="text-[11px] text-slate-500 mt-0.5">
-                                        Didelegasikan ke <strong class="font-semibold text-slate-800">{{ $leadName }}</strong> &bull; <span class="text-emerald-600 font-semibold">Status: Terdisposisi (ASSIGNED)</span>
+                                        Didelegasikan ke <strong class="font-semibold text-slate-800">{{ $leadName }}</strong>
                                     </div>
                                 </div>
                             @endif
