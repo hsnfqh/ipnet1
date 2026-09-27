@@ -2187,7 +2187,7 @@
                 <div>
                     <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">CATATAN / FEEDBACK VERIFIKASI (WAJIB JIKA REVISI)</label>
                     <textarea name="notes" rows="3" 
-                              placeholder="Contoh jika Disetujui: Spek BoQ dan margin sudah sesuai standar komersial.&#10;Contoh jika Revisi: BoQ switch core perlu disesuaikan dengan spek diskon terbaru."
+                              placeholder="Masukkan catatan / feedback verifikasi..."
                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
                 </div>
 
