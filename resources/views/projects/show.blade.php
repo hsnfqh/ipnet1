@@ -1171,9 +1171,9 @@
                                     <div class="font-normal text-slate-700">
                                         Status Tender / Deal: <strong class="font-semibold text-slate-900">Menang (Closed Won)</strong>
                                     </div>
-                                    <div class="text-[11px] text-slate-500 mt-0.5">
+                                    <div class="text-[11px] text-slate-400 mt-0.5">
                                         @if(!empty($project->po_spk_number) || !empty($project->po_number))
-                                            PO/SPK Kontrak: <span class="font-mono font-semibold text-slate-800">{{ $project->po_spk_number ?: $project->po_number }}</span>
+                                            PO/SPK Kontrak: {{ $project->po_spk_number ?: $project->po_number }}
                                         @else
                                             Kontrak &amp; PO Resmi Terbit
                                         @endif
@@ -1212,8 +1212,8 @@
                                     <div class="font-normal text-slate-700">
                                         Disposisi Divisi: <strong class="font-semibold text-slate-900">{{ $divName }}</strong>
                                     </div>
-                                    <div class="text-[11px] text-slate-500 mt-0.5">
-                                        Didelegasikan ke <strong class="font-semibold text-slate-800">{{ $leadName }}</strong>
+                                    <div class="text-[11px] text-slate-400 mt-0.5">
+                                        Didelegasikan ke {{ $leadName }}
                                     </div>
                                 </div>
                             @endif
