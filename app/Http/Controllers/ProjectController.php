@@ -562,7 +562,9 @@ class ProjectController extends Controller
         }
         $project->save();
 
-        // Otomatis buat Task Implementasi awal pada kolom ASSIGNED (tanpa PIC, siap didelegasikan oleh Lead Engineer)
+        $targetLeadId = !empty($leaderIds) ? $leaderIds[0] : (auth()->id() ?: 1);
+
+        // Otomatis buat Task Implementasi awal pada kolom ASSIGNED (ditugaskan ke Lead Engineer untuk didelegasikan ke PIC)
         $existingTask = Task::where('project_id', $project->id)->first();
         if (!$existingTask) {
             Task::create([
@@ -573,7 +575,7 @@ class ProjectController extends Controller
                 'progress'    => 0,
                 'start_date'  => $project->start_date ?: now()->toDateString(),
                 'deadline'    => $project->deadline ?: now()->addDays(14)->toDateString(),
-                'engineer_id' => null, // Belum ada PIC, Lead Engineer yang akan menentukan
+                'engineer_id' => $targetLeadId,
                 'project_id'  => $project->id,
                 'created_by'  => auth()->id(),
             ]);

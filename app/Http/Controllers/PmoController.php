@@ -323,24 +323,7 @@ class PmoController extends Controller
             'division_id'          => $validated['division_id'],
         ]);
 
-        // Otomatis buat Task Implementasi awal pada kolom ASSIGNED (tanpa PIC, siap didelegasikan oleh Lead Engineer)
-        $existingTask = Task::where('project_id', $project->id)->first();
-        if (!$existingTask) {
-            Task::create([
-                'title'       => 'Implementasi Teknis: ' . $project->name,
-                'description' => 'Tugas penyerahan proyek dari PMO (' . ($project->division ? $project->division->name : 'Lintas Divisi') . ') untuk klien ' . $project->client . '. Menunggu pembagian Field Engineer (PIC) dan jadwal oleh Lead Engineer.',
-                'status'      => 'Assigned',
-                'priority'    => 'High',
-                'progress'    => 0,
-                'start_date'  => $project->start_date ?: now()->toDateString(),
-                'deadline'    => $project->deadline ?: now()->addDays(14)->toDateString(),
-                'engineer_id' => null, // Belum ada PIC, Lead Engineer yang akan menentukan
-                'project_id'  => $project->id,
-                'created_by'  => auth()->id(),
-            ]);
-        }
-
-        // Notifikasi ke Lead Engineer divisi terkait (Lead Network, Lead Security, Lead Maintenance)
+        // Notifikasi & Penugasan Awal ke Lead Engineer divisi terkait (Lead Network / Lead Security)
         $divisionName = $project->division ? $project->division->name : 'Lintas Divisi';
         $leadersQuery = User::whereHas('roles', function($q) {
             $q->whereIn('name', ['Team Leader Engineering', 'Team Leader', 'Lead Engineer', 'Lead Divisi', 'Lead Maintenance', 'Managed Service']);
@@ -351,6 +334,25 @@ class PmoController extends Controller
         }
 
         $leaders = $leadersQuery->get();
+        $targetLeadId = $leaders->isNotEmpty() ? $leaders->first()->id : (auth()->id() ?: 1);
+
+        // Otomatis buat Task Implementasi awal pada kolom ASSIGNED
+        $existingTask = Task::where('project_id', $project->id)->first();
+        if (!$existingTask) {
+            Task::create([
+                'title'       => 'Implementasi Teknis: ' . $project->name,
+                'description' => 'Tugas penyerahan proyek dari PMO (' . $divisionName . ') untuk klien ' . $project->client . '. Menunggu pembagian Field Engineer (PIC) dan jadwal oleh Lead Engineer.',
+                'status'      => 'Assigned',
+                'priority'    => 'High',
+                'progress'    => 0,
+                'start_date'  => $project->start_date ?: now()->toDateString(),
+                'deadline'    => $project->deadline ?: now()->addDays(14)->toDateString(),
+                'engineer_id' => $targetLeadId,
+                'project_id'  => $project->id,
+                'created_by'  => auth()->id(),
+            ]);
+        }
+
         foreach ($leaders as $leader) {
             \App\Models\Notification::create([
                 'user_id' => $leader->id,
