@@ -70,6 +70,14 @@ class ScheduleController extends Controller
         ->get();
         $executiveTeamUserIds = $executiveTeamUsers->pluck('id')->toArray();
 
+        // Otomatis bersihkan seluruh riwayat spam jadwal proyek (Implementasi Teknis / Task) agar kalender bersih & mandiri
+        try {
+            Schedule::where(function($q) {
+                $q->where('title', 'like', 'Implementasi Teknis%')
+                  ->orWhereIn('category', ['Task', 'Kegiatan']);
+            })->delete();
+        } catch (\Exception $e) {}
+
         // Auto-deduplikasi data ganda di database berdasarkan judul dan tanggal yang sama persis
         try {
             $duplicates = Schedule::select('title', 'date')
@@ -103,7 +111,9 @@ class ScheduleController extends Controller
             $withRelations[] = 'engineers';
         }
 
-        $schedulesQuery = Schedule::with($withRelations);
+        $schedulesQuery = Schedule::with($withRelations)
+            ->where('title', 'not like', 'Implementasi Teknis%')
+            ->whereNotIn('category', ['Task', 'Kegiatan']);
         if ($isExecutive) {
             // Executive (Hariyadi & Susanto): Hanya terhubung ke jadwal Presales, Sales, BD/BDM, dan PMO
             // Putus total dari jadwal maintenance/troubleshooting lapangan yang melibatkan tim engineer delivery
