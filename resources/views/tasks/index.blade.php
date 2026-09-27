@@ -1197,12 +1197,10 @@
                         return matchStatus && matchProject && matchPriority && matchEngineer && matchMonth && matchYear;
                     });
 
-                    // Untuk kolom Completed, urutkan dari tanggal terbaru di paling atas (descending)
-                    if (status === 'Completed') {
-                        filtered.sort(function(a, b) {
-                            return self.getTaskTime(b) - self.getTaskTime(a);
-                        });
-                    }
+                    // Urutkan task terbaru (ID terbesar / created_at terbaru) di paling atas
+                    filtered.sort(function(a, b) {
+                        return (Number(b.id) || 0) - (Number(a.id) || 0);
+                    });
 
                     return filtered;
                 },

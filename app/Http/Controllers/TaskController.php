@@ -131,7 +131,7 @@ class TaskController extends Controller
                     $q->orWhere('created_by', $user->id);
                 });
             })
-            ->orderByDesc('deadline')
+            ->orderByDesc('id')
             ->orderByDesc('created_at')
             ->get();
 
