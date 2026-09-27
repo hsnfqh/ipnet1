@@ -1561,10 +1561,7 @@
                 </div>
 
                 {{-- Footer (Fixed / Non-Scrollable) --}}
-                <div class="flex items-center justify-between p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 shrink-0">
-                    <span class="text-[11.5px] text-slate-500 font-medium">
-                        Target: <strong class="text-slate-800" x-text="handoverTargetType === 'managed_service' ? 'Tim Managed Service (Operate)' : 'Tim PMO & Delivery (Deliver)'"></strong>
-                    </span>
+                <div class="flex items-center justify-end p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 shrink-0">
                     <div class="flex items-center gap-2.5">
                         <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="px-4 py-2 text-xs rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-white hover:border-slate-300 cursor-pointer transition">
                             Batal
