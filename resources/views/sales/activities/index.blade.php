@@ -134,12 +134,31 @@
             {{-- Activity Feed Grid --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 anim-fade-up anim-delay-2">
                 @forelse($activities as $act)
-                    <div class="ipnet-card p-5 flex flex-col justify-between space-y-3.5">
+                    @php
+                        $isBatch = false;
+                        $batchData = null;
+                        if (!empty($act->notes) && is_string($act->notes) && str_starts_with(trim($act->notes), '{')) {
+                            $decoded = json_decode($act->notes, true);
+                            if (is_array($decoded) && isset($decoded['type']) && $decoded['type'] === 'kronologi_batch') {
+                                $isBatch = true;
+                                $batchData = $decoded;
+                            }
+                        }
+                    @endphp
+
+                    <div class="ipnet-card p-5 flex flex-col justify-between space-y-3.5 {{ $isBatch ? 'border-red-200/80 bg-gradient-to-b from-white to-red-50/20' : '' }}">
                         <div class="space-y-2.5">
                             <div class="flex items-center justify-between">
-                                <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-[#F8FAFC] border border-gray-200 text-gray-800">
-                                    {{ $act->activity_type }}
-                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold {{ $isBatch ? 'bg-red-50 text-[#8F0A0D] border border-red-200' : 'bg-[#F8FAFC] border border-gray-200 text-gray-800' }}">
+                                        {{ $act->activity_type }}
+                                    </span>
+                                    @if($isBatch)
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                            {{ count($batchData['items'] ?? []) }} Rangkaian Agenda
+                                        </span>
+                                    @endif
+                                </div>
                                 <span class="text-xs font-bold text-gray-400">
                                     {{ \Carbon\Carbon::parse($act->activity_date)->format('d M Y, H:i') }}
                                 </span>
@@ -155,7 +174,38 @@
                                 <span>{{ $act->project->client ?? 'Klien' }}</span>
                             </div>
 
-                            @if($act->notes)
+                            {{-- Card Body Preview --}}
+                            @if($isBatch && !empty($batchData['items']))
+                                <div class="bg-[#F8FAFC] p-3.5 rounded-xl border border-gray-200/80 space-y-2.5">
+                                    <p class="text-[11px] font-bold text-gray-600 uppercase tracking-wider">
+                                        Rangkuman Kronologis Agenda:
+                                    </p>
+                                    <div class="space-y-1.5 text-xs text-gray-700">
+                                        @foreach(array_slice($batchData['items'], 0, 3) as $item)
+                                            <div class="flex items-start gap-2 text-[11.5px] leading-tight">
+                                                <span class="font-bold text-[#8F0A0D] shrink-0">{{ $item['time'] ?: '-' }}</span>
+                                                <span class="text-gray-400">|</span>
+                                                <span class="font-semibold text-gray-800 truncate flex-1">{{ $item['subject'] }}</span>
+                                                @if(!empty($item['client_pic']) || !empty($item['ipnet_pic']))
+                                                    <span class="text-[10.5px] text-gray-500 shrink-0">({{ $item['client_pic'] ?: '-' }})</span>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                        @if(count($batchData['items']) > 3)
+                                            <p class="text-[11px] font-semibold text-gray-400 italic pt-1">
+                                                + {{ count($batchData['items']) - 3 }} agenda kronologis lainnya...
+                                            </p>
+                                        @endif
+                                    </div>
+
+                                    <button type="button" 
+                                            @click="openDetailModal({{ json_encode($act) }}, {{ json_encode($batchData) }})"
+                                            class="w-full mt-2 py-2 px-3 bg-white hover:bg-red-50 text-[#8F0A0D] border border-red-200 hover:border-red-300 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs">
+                                        <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        <span>Lihat Detail Lengkap ({{ count($batchData['items']) }} Agenda)</span>
+                                    </button>
+                                </div>
+                            @elseif($act->notes)
                                 <p class="text-xs text-gray-700 bg-[#F8FAFC] p-3 rounded-xl border border-gray-100 leading-relaxed whitespace-pre-line font-medium">
                                     {{ $act->notes }}
                                 </p>
@@ -182,12 +232,14 @@
                             @if(!$isExecutiveOrPimpinan)
                             {{-- Action buttons: Edit & Hapus --}}
                             <div class="flex items-center gap-1.5">
+                                @if(!$isBatch)
                                 <button type="button" 
                                         @click="openEditModal({{ json_encode($act) }})" 
                                         class="px-2.5 py-1 bg-white hover:bg-gray-50 text-gray-700 text-[11px] font-semibold rounded-lg border border-gray-200 shadow-xs transition inline-flex items-center gap-1">
                                     <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     <span>Edit</span>
                                 </button>
+                                @endif
                                 <button type="button" 
                                         @click="confirmDelete({{ $act->id }}, '{{ addslashes($act->subject) }}')" 
                                         class="px-2.5 py-1 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-semibold rounded-lg border border-red-200 shadow-xs transition inline-flex items-center gap-1">
@@ -218,6 +270,104 @@
         </div>
     </div>
 
+    {{-- MODAL POP-UP DETAIL KRONOLOGIS --}}
+    <template x-teleport="body">
+        <div x-show="isDetailModalOpen" 
+             x-cloak 
+             class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
+             @click.self="isDetailModalOpen = false">
+            <div class="bg-white rounded-2xl max-w-5xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden anim-fade-up">
+                
+                {{-- Header --}}
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">DETAIL KRONOLOGIS CRM</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200"
+                                  x-text="(selectedDetail?.batch?.items?.length || 0) + ' Rangkaian Agenda'"></span>
+                        </div>
+                        <h3 class="text-[17px] font-bold text-[#1E293B]" x-text="selectedDetail?.activity?.subject || 'Detail Aktivitas'"></h3>
+                    </div>
+                    <button type="button" @click="isDetailModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                {{-- Meta Info Bar --}}
+                <div class="px-5 sm:px-6 py-3 bg-[#F8FAFC] border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <div>
+                            <span class="text-gray-400 font-medium">Prospek / Proyek:</span>
+                            <strong class="text-gray-800 ml-1" x-text="selectedDetail?.activity?.project?.name || '-'"></strong>
+                        </div>
+                        <span class="text-gray-300">•</span>
+                        <div>
+                            <span class="text-gray-400 font-medium">Klien:</span>
+                            <strong class="text-gray-800 ml-1" x-text="selectedDetail?.activity?.project?.client || '-'"></strong>
+                        </div>
+                        <span class="text-gray-300">•</span>
+                        <div>
+                            <span class="text-gray-400 font-medium">Tipe:</span>
+                            <span class="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800 font-bold ml-1" x-text="selectedDetail?.activity?.activity_type || 'Troubleshooting'"></span>
+                        </div>
+                    </div>
+                    <div class="text-gray-500 text-[11px]">
+                        Dicatat oleh: <strong class="text-gray-800" x-text="selectedDetail?.activity?.sales?.name || 'Sales'"></strong>
+                    </div>
+                </div>
+
+                {{-- Table Content Body --}}
+                <div class="flex-1 overflow-y-auto overflow-x-auto p-5 sm:p-6 bg-white">
+                    <table class="w-full border-collapse rounded-xl border border-[#E2E8F0] text-left text-xs min-w-[750px]">
+                        <thead class="bg-[#F8FAFC] text-[#475569] font-bold uppercase text-[10.5px] tracking-wider border-b border-[#E2E8F0]">
+                            <tr>
+                                <th class="py-3 px-3.5 w-12 text-center">No</th>
+                                <th class="py-3 px-3.5 w-36">Waktu &amp; Tanggal</th>
+                                <th class="py-3 px-3.5 min-w-[220px]">Kronologis Agenda / Aktivitas</th>
+                                <th class="py-3 px-3.5 w-36">PIC Klien</th>
+                                <th class="py-3 px-3.5 w-36">PIC IPNET</th>
+                                <th class="py-3 px-3.5 min-w-[200px]">Catatan Aksi / Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#E2E8F0]">
+                            <template x-for="(item, idx) in (selectedDetail?.batch?.items || [])" :key="idx">
+                                <tr class="hover:bg-[#F8FAFC]/80 transition-colors">
+                                    <td class="py-3 px-3.5 text-center font-bold text-[#8F0A0D]" x-text="item.no || (idx + 1)"></td>
+                                    <td class="py-3 px-3.5 whitespace-nowrap">
+                                        <div class="font-bold text-[#1E293B]" x-text="item.time || '-'"></div>
+                                        <div class="text-[11px] text-gray-500 font-medium" x-text="item.date || '-'"></div>
+                                    </td>
+                                    <td class="py-3 px-3.5">
+                                        <p class="font-bold text-[#1E293B] leading-relaxed" x-text="item.subject || '-'"></p>
+                                    </td>
+                                    <td class="py-3 px-3.5">
+                                        <span class="inline-block px-2.5 py-1 bg-[#F1F5F9] text-[#334155] rounded-md font-semibold text-[11px]" x-text="item.client_pic || '-'"></span>
+                                    </td>
+                                    <td class="py-3 px-3.5">
+                                        <span class="inline-block px-2.5 py-1 bg-red-50 text-[#8F0A0D] border border-red-100 rounded-md font-semibold text-[11px]" x-text="item.ipnet_pic || '-'"></span>
+                                    </td>
+                                    <td class="py-3 px-3.5">
+                                        <p class="text-gray-700 whitespace-pre-line leading-relaxed font-medium" x-text="item.notes || '-'"></p>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- Footer --}}
+                <div class="flex items-center justify-end p-4 px-6 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
+                    <button type="button" 
+                            @click="isDetailModalOpen = false" 
+                            class="px-5 py-2.5 text-xs font-bold text-[#1E293B] bg-white hover:bg-gray-100 border border-[#CBD5E1] rounded-xl transition cursor-pointer shadow-xs">
+                        Tutup
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </template>
+
     {{-- MODAL INPUT KRONOLOGI MASSAL (SPREADSHEET MODE) --}}
     <template x-teleport="body">
         <div x-show="isBulkModalOpen" 
@@ -241,21 +391,30 @@
                 <form action="{{ route('sales.activities.bulk') }}" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
                     
-                    {{-- Global Selection Bar (Single Clean Selector) --}}
+                    {{-- Global Selection Bar (Single Clean Selector + Optional Custom Title) --}}
                     <div class="p-4 sm:p-5 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0">
-                        <div>
-                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                                Pilih Prospek / Proyek Tujuan <span class="text-[#8F0A0D]">*</span>
-                            </label>
-                            <select name="project_id" x-model="bulkProjectId" required
-                                    class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer shadow-xs">
-                                <option value="">-- Pilih Prospek / Proyek --</option>
-                                @foreach($activeProjects as $p)
-                                    <option value="{{ $p->id }}" {{ ($filterProject == $p->id || (count($activeProjects) == 1 && $activeProjects[0]->id == $p->id)) ? 'selected' : '' }}>
-                                        {{ $p->name }} ({{ $p->client }}) - PIC: {{ $p->sales_name ?: 'Sales' }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                            <div class="md:col-span-2">
+                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                                    Pilih Prospek / Proyek Tujuan <span class="text-[#8F0A0D]">*</span>
+                                </label>
+                                <select name="project_id" x-model="bulkProjectId" required
+                                        class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer shadow-xs">
+                                    <option value="">-- Pilih Prospek / Proyek --</option>
+                                    @foreach($activeProjects as $p)
+                                        <option value="{{ $p->id }}" {{ ($filterProject == $p->id || (count($activeProjects) == 1 && $activeProjects[0]->id == $p->id)) ? 'selected' : '' }}>
+                                            {{ $p->name }} ({{ $p->client }}) - PIC: {{ $p->sales_name ?: 'Sales' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                                    Judul / Topik Kronologi (Opsional)
+                                </label>
+                                <input type="text" name="activity_title" placeholder="Contoh: Troubleshooting Jaringan..." 
+                                       class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-xs">
+                            </div>
                         </div>
                     </div>
 
@@ -527,6 +686,18 @@
                 notes: '',
                 next_action: '',
                 next_action_date: ''
+            },
+
+            // Detail Modal Pop-up State
+            isDetailModalOpen: false,
+            selectedDetail: null,
+
+            openDetailModal(act, batchData) {
+                this.selectedDetail = {
+                    activity: act,
+                    batch: batchData
+                };
+                this.isDetailModalOpen = true;
             },
 
             // Spreadsheet Multi-Row Bulk Entry

@@ -676,14 +676,16 @@ class SalesCrmController extends Controller
     }
 
     /**
-     * Store Multiple / Bulk CRM Activities (Spreadsheet / Kronologi Table Mode)
+     * Store Multiple / Bulk CRM Activities into ONE Consolidated Card with Detail Breakdown
      */
     public function storeBulkActivities(Request $request)
     {
         $validated = $request->validate([
             'project_id'                 => 'required|exists:projects,id',
+            'activity_title'             => 'nullable|string|max:255',
+            'activity_type'              => 'nullable|string|max:100',
             'activities'                 => 'required|array|min:1',
-            'activities.*.subject'       => 'required|string|max:500',
+            'activities.*.subject'       => 'nullable|string|max:500',
             'activities.*.activity_type' => 'nullable|string|max:100',
             'activities.*.activity_date' => 'nullable|string',
             'activities.*.time_str'      => 'nullable|string|max:50',
@@ -694,8 +696,8 @@ class SalesCrmController extends Controller
         ]);
 
         $projectId = $validated['project_id'];
-        $createdCount = 0;
         $now = now();
+        $items = [];
 
         foreach ($validated['activities'] as $row) {
             $subj = trim($row['subject'] ?? '');
@@ -703,53 +705,64 @@ class SalesCrmController extends Controller
                 continue;
             }
 
-            // Parse datetime
             $dateStr = !empty($row['activity_date']) ? $row['activity_date'] : $now->toDateString();
             $timeInput = !empty($row['time_str']) ? trim($row['time_str']) : $now->format('H:i');
-            $cleanTime = str_replace('.', ':', preg_replace('/[^\d\.\:]/', '', $timeInput));
-            if (empty($cleanTime)) {
-                $cleanTime = '00:00';
-            } elseif (!str_contains($cleanTime, ':')) {
-                $cleanTime = $cleanTime . ':00';
-            }
 
-            try {
-                $fullDateTime = \Carbon\Carbon::parse("{$dateStr} {$cleanTime}");
-            } catch (\Exception $e) {
-                $fullDateTime = $now;
-            }
-
-            // Gabungkan PIC Klien, PIC Internal, & Catatan Aksi ke field notes
-            $noteParts = [];
-            if (!empty($row['client_pic'])) {
-                $noteParts[] = "PIC Klien: " . trim($row['client_pic']);
-            }
-            if (!empty($row['ipnet_pic'])) {
-                $noteParts[] = "PIC IPNET: " . trim($row['ipnet_pic']);
-            }
-            if (!empty($row['time_str'])) {
-                $noteParts[] = "Waktu: " . trim($row['time_str']);
-            }
-            if (!empty($row['notes'])) {
-                $noteParts[] = trim($row['notes']);
-            }
-            $finalNotes = implode(" | ", $noteParts);
-
-            SalesActivity::create([
-                'project_id'       => $projectId,
-                'sales_id'         => auth()->id(),
-                'activity_type'    => !empty($row['activity_type']) ? $row['activity_type'] : 'Troubleshooting',
-                'subject'          => $subj,
-                'activity_date'    => $fullDateTime,
-                'notes'            => $finalNotes ?: null,
-                'next_action'      => !empty($row['next_action']) ? trim($row['next_action']) : null,
-                'status'           => 'Completed',
-            ]);
-            $createdCount++;
+            $items[] = [
+                'no'          => count($items) + 1,
+                'subject'     => $subj,
+                'date'        => $dateStr,
+                'time'        => $timeInput,
+                'client_pic'  => trim($row['client_pic'] ?? ''),
+                'ipnet_pic'   => trim($row['ipnet_pic'] ?? ''),
+                'notes'       => trim($row['notes'] ?? ''),
+                'next_action' => trim($row['next_action'] ?? ''),
+            ];
         }
 
+        if (empty($items)) {
+            return redirect()->back()->with('error', 'Silakan isi setidaknya satu baris kronologis aktivitas.');
+        }
+
+        $firstItem = $items[0];
+        try {
+            $firstDateTime = \Carbon\Carbon::parse("{$firstItem['date']} " . ($firstItem['time'] ?: '00:00'));
+        } catch (\Exception $e) {
+            $firstDateTime = $now;
+        }
+
+        $totalItems = count($items);
+        $actType = !empty($validated['activity_type']) ? $validated['activity_type'] : 'Troubleshooting';
+
+        // Tentukan Subject / Judul Card
+        if (!empty($validated['activity_title'])) {
+            $finalSubject = trim($validated['activity_title']);
+        } elseif ($totalItems === 1) {
+            $finalSubject = $firstItem['subject'];
+        } else {
+            $finalSubject = "Kronologi Aktivitas: {$firstItem['subject']} (+ " . ($totalItems - 1) . " agenda lainnya)";
+        }
+
+        // Susun payload JSON terstruktur
+        $payload = [
+            'type'        => 'kronologi_batch',
+            'title'       => $finalSubject,
+            'total_items' => $totalItems,
+            'items'       => $items,
+        ];
+
+        SalesActivity::create([
+            'project_id'       => $projectId,
+            'sales_id'         => auth()->id(),
+            'activity_type'    => $actType,
+            'subject'          => $finalSubject,
+            'activity_date'    => $firstDateTime,
+            'notes'            => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            'status'           => 'Completed',
+        ]);
+
         return redirect()->back()
-            ->with('success', "Luar biasa! Berhasil mencatat {$createdCount} log kronologi aktivitas sekaligus!");
+            ->with('success', "Berhasil mencatat 1 kronologi aktivitas ({$totalItems} rangkaian agenda) untuk proyek ini.");
     }
 
     /**
