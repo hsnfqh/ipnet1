@@ -137,7 +137,7 @@
                         <select x-model="selectedDivision" @change="currentPage = 1" 
                                 class="px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 outline-none hover:border-gray-300 focus:border-[#8F0A0D] transition cursor-pointer">
                             <option value="all">Semua Divisi</option>
-                            @foreach($divisions as $div)
+                            @foreach($divisions ?? [] as $div)
                                 <option value="{{ $div->id }}">{{ $div->name }}</option>
                             @endforeach
                         </select>
@@ -146,7 +146,7 @@
                         <select x-model="selectedPm" @change="currentPage = 1" 
                                 class="px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 outline-none hover:border-gray-300 focus:border-[#8F0A0D] transition cursor-pointer">
                             <option value="all">Semua Project Manager</option>
-                            @foreach($pmList as $pm)
+                            @foreach($pmList ?? [] as $pm)
                                 <option value="{{ $pm->id }}">{{ $pm->name }}</option>
                             @endforeach
                         </select>
@@ -525,7 +525,7 @@
                                 <label class="block text-[11.5px] font-bold text-gray-700 mb-1">Tugaskan Project Manager (PM) <span class="text-red-500">*</span></label>
                                 <select x-model="handoverAssign.pm_id" class="w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs outline-none focus:border-[#C81E2C]">
                                     <option value="">-- Pilih Project Manager --</option>
-                                    @foreach($pmList as $pm)
+                                    @foreach($pmList ?? [] as $pm)
                                         <option value="{{ $pm->id }}">{{ $pm->name }} ({{ $pm->email }})</option>
                                     @endforeach
                                 </select>
@@ -534,7 +534,7 @@
                                 <label class="block text-[11.5px] font-bold text-gray-700 mb-1">Divisi Pelaksana Proyek <span class="text-red-500">*</span></label>
                                 <select x-model="handoverAssign.division_id" class="w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs outline-none focus:border-[#C81E2C]">
                                     <option value="">-- Pilih Divisi --</option>
-                                    @foreach($divisions as $div)
+                                    @foreach($divisions ?? [] as $div)
                                         <option value="{{ $div->id }}">{{ $div->name }}</option>
                                     @endforeach
                                 </select>
@@ -810,16 +810,16 @@
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('pmoDashboard', () => ({
-            projects: @json($formattedProjects),
-            handoverFormStructure: @json($handoverFormStructure),
-            stageCounts: @json($stageCounts),
-            onTrackCount: {{ $onTrackCount }},
-            delayedCount: {{ $delayedCount }},
-            ho2Count: {{ $ho2Count }},
-            ho3Count: {{ $ho3Count }},
-            handoverPendingCount: {{ $handoverPendingCount }},
-            handoverConditionalCount: {{ $handoverConditionalCount }},
-            readyToOperateCount: {{ $readyToOperateCount }},
+            projects: @json($formattedProjects ?? []),
+            handoverFormStructure: @json($handoverFormStructure ?? []),
+            stageCounts: @json($stageCounts ?? []),
+            onTrackCount: {{ $onTrackCount ?? 0 }},
+            delayedCount: {{ $delayedCount ?? 0 }},
+            ho2Count: {{ $ho2Count ?? 0 }},
+            ho3Count: {{ $ho3Count ?? 0 }},
+            handoverPendingCount: {{ $handoverPendingCount ?? 0 }},
+            handoverConditionalCount: {{ $handoverConditionalCount ?? 0 }},
+            readyToOperateCount: {{ $readyToOperateCount ?? 0 }},
 
             search: '',
             selectedDivision: 'all',
