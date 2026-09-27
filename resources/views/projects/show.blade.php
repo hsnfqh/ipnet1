@@ -1630,7 +1630,7 @@
                             <div>
                                 <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
                                     <span>Divisi Keamanan Siber (Security)</span>
-                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-bold">Lead: Ignatius Rizky</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold">Lead: Ignatius Rizky</span>
                                 </div>
                                 <p class="text-[11px] text-slate-500 font-normal mt-1 leading-relaxed">
                                     Implementasi Next-Generation Firewall (NGFW), SIEM/SOC, Endpoint Protection (EDR), Vulnerability Assessment, &amp; Hardening.
@@ -1644,7 +1644,7 @@
                             <div>
                                 <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
                                     <span>Kolaborasi Lintas Divisi (Network &amp; Security)</span>
-                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">Multi-Disiplin</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold">Multi-Disiplin</span>
                                 </div>
                                 <p class="text-[11px] text-slate-500 font-normal mt-1 leading-relaxed">
                                     Solusi terpadu berskala penuh yang memerlukan alokasi dan koordinasi teknis gabungan dari kedua divisi.
@@ -1652,11 +1652,6 @@
                             </div>
                         </label>
                     </div>
-                </div>
-
-                <div>
-                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">INSTRUKSI KHUSUS / SCOPE DELIVERY (OPSIONAL)</label>
-                    <textarea name="special_notes" rows="2" placeholder="Cantumkan catatan operasional, SLA prioritas, atau komitmen teknis dari Sales..." class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-[#8F0A0D] transition">{{ $project->special_notes }}</textarea>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
