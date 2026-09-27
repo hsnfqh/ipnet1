@@ -711,38 +711,8 @@
                 
                 {{-- ══ LEFT MAIN COLUMN (lg:col-span-8) ══ --}}
                 <div class="lg:col-span-8 space-y-6">
-                           {{-- WORKFLOW SECTION BY PROJECT STATUS --}}
-                    @if($currentStatus === 'Opportunity')
-                        {{-- OPPORTUNITY: Pipeline + Otorisasi Pimpinan + Tim Solusi Teknis + Alokasi Kategori Proyek --}}
-                        @include('projects.partials.workflow-pipeline')
-                        @if(!$isPresalesOrSaOnly)
-                            @include('projects.partials.workflow-leadership')
-                        @endif
-                        @include('projects.partials.workflow-technical-solution')
-                        @include('projects.partials.workflow-delivery')
-
-                    @elseif($currentStatus === 'Draft')
-                        {{-- DRAFT: Pipeline + Otorisasi Pimpinan + Tim Solusi Teknis + Alokasi Kategori Proyek --}}
-                        @include('projects.partials.workflow-pipeline')
-                        @if(!$isPresalesOrSaOnly)
-                            @include('projects.partials.workflow-leadership')
-                        @endif
-                        @include('projects.partials.workflow-technical-solution')
-                        @include('projects.partials.workflow-delivery')
-
-                    @elseif($currentStatus === 'In Progress')
-                        {{-- IN PROGRESS: Pipeline + Otorisasi Pimpinan + Tim Solusi Teknis + Alokasi Kategori Proyek --}}
-                        @include('projects.partials.workflow-pipeline')
-                        @if(!$isPresalesOrSaOnly)
-                            @include('projects.partials.workflow-leadership')
-                        @endif
-                        @include('projects.partials.workflow-technical-solution')
-                        @if($isAnyTechnicalAssigned || !empty($project->pm) || in_array($currentStatus, ['In Progress', 'Completed']))
-                            @include('projects.partials.workflow-delivery')
-                        @endif
-
-                    @elseif($currentStatus === 'Pending')
-                        {{-- PENDING --}}
+                           {{-- WORKFLOW STATUS NOTICE (FOR PENDING / COMPLETED) --}}
+                    @if($currentStatus === 'Pending')
                         <div class="ipnet-card p-6 border-amber-200 bg-amber-50/50 space-y-2">
                             <div class="font-bold text-amber-900 text-sm flex items-center gap-2">
                                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
@@ -752,19 +722,7 @@
                                 Pengerjaan proyek sedang di-pause sementara waktu menunggu konfirmasi akses site, perizinan, atau kelengkapan berkas kontrak.
                             </p>
                         </div>
-                        @include('projects.partials.workflow-pipeline')
-                        @if(!$isPresalesOrSaOnly)
-                            @include('projects.partials.workflow-leadership')
-                        @endif
-                        @if($isAnyAssigned || $isAnyTechnicalAssigned || $isPresalesOrSaOnly)
-                            @include('projects.partials.workflow-technical-solution')
-                        @endif
-                        @if($isAnyTechnicalAssigned || !empty($project->pm) || in_array($currentStatus, ['In Progress', 'Completed']))
-                            @include('projects.partials.workflow-delivery')
-                        @endif
-
                     @elseif($currentStatus === 'Completed')
-                        {{-- COMPLETED --}}
                         <div class="ipnet-card p-6 border-emerald-200 bg-emerald-50/50 space-y-2">
                             <div class="font-bold text-emerald-900 text-sm flex items-center gap-2">
                                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -774,15 +732,19 @@
                                 Seluruh target milestone teknis telah selesai 100% dan Berita Acara Serah Terima (BAST) pekerjaan telah disahkan bersama klien.
                             </p>
                         </div>
-                        @include('projects.partials.workflow-pipeline')
-                        @if(!$isPresalesOrSaOnly)
-                            @include('projects.partials.workflow-leadership')
-                        @endif
-                        @include('projects.partials.workflow-technical-solution')
-                        @if($isAnyTechnicalAssigned || !empty($project->pm) || in_array($currentStatus, ['In Progress', 'Completed']))
-                            @include('projects.partials.workflow-delivery')
-                        @endif
                     @endif
+
+                    {{-- 1. Status Pipeline & Penjualan --}}
+                    @include('projects.partials.workflow-pipeline')
+
+                    {{-- 2. Otorisasi Pimpinan (Pak Susanto Djaya & Pak Hariyadi) --}}
+                    @include('projects.partials.workflow-leadership')
+
+                    {{-- 3. Tim Solusi Teknis (PIC BD, Presales Akbar, SA Aris Sadewo) --}}
+                    @include('projects.partials.workflow-technical-solution')
+
+                    {{-- 4. Serah Terima & Divisi Pelaksana (PMO Rizki & Lead Engineer Nugraha Pratama) --}}
+                    @include('projects.partials.workflow-delivery')
 
                     {{-- MILESTONES CARD --}}
                     <div class="ipnet-card p-6 space-y-4">
