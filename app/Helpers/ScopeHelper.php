@@ -172,15 +172,13 @@ class ScopeHelper
             'Group Leader Delivery & Operation',
             'PMO',
             'Project Manager',
-            'Lead Divisi',
-            'Team Leader Engineering',
-            'Team Leader',
-            'Lead Engineer',
             'Sales',
             'Account Manager',
             'BusDev',
             'BDM',
+            'Business Development',
             'Presales',
+            'Pre-Sales',
             'Solution Architect',
         ]);
     }

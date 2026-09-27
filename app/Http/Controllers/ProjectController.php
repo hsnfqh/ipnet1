@@ -29,13 +29,14 @@ class ProjectController extends Controller
         $isSales      = $user->hasAnyRole(['Sales', 'BusDev', 'Account Manager', 'BDM']);
         $isPmo        = $user->hasAnyRole(['PMO', 'Project Manager']);
 
-        // Pimpinan eksekutif (Direktur & Head Divisi) tidak menambah project langsung (hanya approval draft & monitor)
-        $canCreate    = !$isExecutive && (\App\Helpers\ScopeHelper::canCreateProjects($user) || $isSales);
-        $canManage    = !$isExecutive && (\App\Helpers\ScopeHelper::isManagerial($user) || $isSales);
+        // Pimpinan eksekutif, PMO, dan Sales yang berhak membuat proyek
+        $canCreate       = !$isExecutive && (\App\Helpers\ScopeHelper::canCreateProjects($user) || $isSales || $isPmo);
+        $canDelete       = $isExecutive || $isPmo || $isSales;
+        $canManage       = !$isExecutive && (\App\Helpers\ScopeHelper::isManagerial($user) || $isSales);
         $canEditProgress = !$isExecutive && (\App\Helpers\ScopeHelper::isTeamLeader($user) || \App\Helpers\ScopeHelper::isManagerial($user));
-        $scopeIds     = \App\Helpers\ScopeHelper::getScopeUserIds($user);
+        $scopeIds        = \App\Helpers\ScopeHelper::getScopeUserIds($user);
 
-        $baseQuery = Project::with(['tasks.engineer:id,name', 'creator:id,name'])
+        $baseQuery = Project::with(['tasks.engineer:id,name', 'creator:id,name', 'division:id,name', 'pm:id,name'])
             ->where(function($q) {
                 $q->whereNull('project_type')->orWhere('project_type', '!=', 'Meeting / Internal');
             });
@@ -115,15 +116,18 @@ class ProjectController extends Controller
         if ($isExecutive || $isSales || $isPmo) {
             // Direktur, Group Leader, Sales, PMO: Memantau seluruh portofolio proyek yang relevan
             $projects = $baseQuery->latest()->get();
-        } elseif ($user->hasRole('Team Leader') && $user->division_id) {
-            // Team Leader: Proyek divisi, proyek yang dibuatnya, atau yang ada task anggotanya
+        } elseif (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
+            // Team Leader / Lead Engineer (Lead Network, Lead Security, Lead Maintenance):
+            // Otomatis menampilkan proyek hasil handover PMO sesuai bidang divisinya atau Lintas Divisi
             $teamUserIds = \App\Helpers\ScopeHelper::getScopeUserIds($user) ?? [];
             $projectIdsWithTeamTasks = \App\Models\Task::whereIn('engineer_id', $teamUserIds)->pluck('project_id')->filter()->unique();
 
             $projects = $baseQuery
                 ->where(function($q) use ($user, $projectIdsWithTeamTasks) {
-                    $q->where('division_id', $user->division_id)
-                      ->orWhere('created_by', $user->id);
+                    if ($user->division_id) {
+                        $q->where('division_id', $user->division_id)
+                          ->orWhereNull('division_id'); // Lintas Divisi
+                    }
                     if ($projectIdsWithTeamTasks->isNotEmpty()) {
                         $q->orWhereIn('id', $projectIdsWithTeamTasks);
                     }
@@ -133,15 +137,12 @@ class ProjectController extends Controller
         } elseif ($isLead) {
             $projects = $baseQuery->latest()->get();
         } else {
-            // Engineer non-lead: Hanya project yang ada task untuk dirinya
+            // Field Engineer non-lead: Hanya melihat project yang ditugaskan Lead kepadanya
             $projectIds = \App\Models\Task::whereIn('engineer_id', $scopeIds)
                 ->pluck('project_id')
                 ->unique();
             $projects = $baseQuery
-                ->where(function($q) use ($projectIds, $user) {
-                    $q->whereIn('id', $projectIds)
-                      ->orWhere('created_by', $user->id);
-                })
+                ->whereIn('id', $projectIds)
                 ->latest()
                 ->get();
         }
@@ -162,11 +163,16 @@ class ProjectController extends Controller
             $projects = $projects->filter($isValidSalesProject)->values();
         }
 
-        return view('projects.index', compact('projects', 'isLead', 'canManage', 'canCreate', 'isDirektur', 'isSupervisor', 'canEditProgress'));
+        return view('projects.index', compact('projects', 'isLead', 'canManage', 'canCreate', 'canDelete', 'isDirektur', 'isSupervisor', 'canEditProgress'));
     }
 
     public function store(ProjectRequest $request)
     {
+        $user = auth()->user();
+        if (!\App\Helpers\ScopeHelper::canCreateProjects($user) && !$user->hasAnyRole(['PMO', 'Project Manager', 'Sales', 'Account Manager'])) {
+            abort(403, 'Engineer tidak dapat membuat proyek baru secara manual. Proyek dikelola dan diserahkan oleh PMO / Project Manager.');
+        }
+
         $data = $request->validated();
         $data['created_by'] = auth()->id();
         $data['status'] = $data['status'] ?? 'Draft';

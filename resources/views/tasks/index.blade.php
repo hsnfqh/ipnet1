@@ -213,10 +213,20 @@
                                             </div>
 
                                             <div class="truncate text-[11.5px] text-[#334155] font-medium">
-                                                <span x-text="task.engineer?.name || 'Belum diassign'"></span>
-                                                <template x-if="task.engineers && task.engineers.length > 1">
-                                                    <span class="text-[9.5px] font-bold text-[#1D4ED8] bg-[#EFF6FF] border border-[#DBEAFE] px-1.5 py-0.5 rounded-md ml-1"
-                                                          x-text="'+' + (task.engineers.length - 1) + ' tim'"></span>
+                                                <template x-if="task.engineer || (task.engineers && task.engineers.length > 0)">
+                                                    <div>
+                                                        <span class="font-semibold text-gray-800" x-text="task.engineer?.name || task.engineers[0]?.name"></span>
+                                                        <template x-if="task.engineers && task.engineers.length > 1">
+                                                            <span class="text-[9.5px] font-bold text-[#1D4ED8] bg-[#EFF6FF] border border-[#DBEAFE] px-1.5 py-0.5 rounded-md ml-1"
+                                                                  x-text="'+' + (task.engineers.length - 1) + ' tim'"></span>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                                <template x-if="!task.engineer && (!task.engineers || task.engineers.length === 0)">
+                                                    <span class="inline-flex items-center gap-1 text-[10.5px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                        <span>Belum Ditugaskan PIC</span>
+                                                    </span>
                                                 </template>
                                             </div>
                                         </div>

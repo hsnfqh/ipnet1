@@ -25,7 +25,9 @@ class TaskController extends Controller
         $isLead       = ScopeHelper::isManagerial($user);
         $isDirektur   = $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']) || $isHariyadi;
         $isSupervisor = ScopeHelper::isGlobal($user) || $isSusanto;
-        $canManage    = !$isExecutive && ScopeHelper::canManageTasks($user);
+        $isPmo        = ScopeHelper::isPmo($user);
+        // PMO dapat memantau penugasan seluruh divisi, namun delegasi teknis dilakukan oleh Lead Engineer
+        $canManage    = !$isExecutive && !$isPmo && ScopeHelper::canManageTasks($user);
         $scopeIds     = ScopeHelper::getScopeUserIds($user);
         $hasTaskUser  = Schema::hasTable('task_user');
 
@@ -61,7 +63,7 @@ class TaskController extends Controller
         $tasks = Task::with($withRelations)
             ->when($scopeIds !== null, function($query) use ($scopeIds, $user, $hasTaskUser) {
                 return $query->where(function($q) use ($scopeIds, $user, $hasTaskUser) {
-                    if (count($scopeIds) === 1) {
+                    if (count($scopeIds) === 1 && !ScopeHelper::isTeamLeader($user)) {
                         $q->where('engineer_id', $scopeIds[0]);
                         if ($hasTaskUser) {
                             $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
@@ -70,6 +72,18 @@ class TaskController extends Controller
                         $q->whereIn('engineer_id', $scopeIds);
                         if ($hasTaskUser) {
                             $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                        }
+                        // Sertakan juga task baru dari PMO yang belum di-assign (engineer_id = null) untuk proyek divisinya
+                        if (ScopeHelper::isTeamLeader($user)) {
+                            $q->orWhere(function($nq) use ($user) {
+                                $nq->whereNull('engineer_id')
+                                   ->whereHas('project', function($pq) use ($user) {
+                                       if ($user->division_id) {
+                                           $pq->where('division_id', $user->division_id)
+                                              ->orWhereNull('division_id');
+                                       }
+                                   });
+                            });
                         }
                     }
                     $q->orWhere('created_by', $user->id);

@@ -6,11 +6,33 @@
 <div class="flex h-screen overflow-hidden" x-data="pmoDashboard()" x-cloak>
     @include('components.sidebar')
     
-    <div class="flex-1 min-w-0 overflow-y-auto bg-[#FAF9F8]">
-        @include('components.topbar', ['title' => 'Dashboard'])
+    <div class="flex-1 min-w-0 overflow-y-auto bg-[#F8FAFC]">
+        @include('components.topbar', ['title' => 'Dashboard PMO'])
         
-        <div class="p-4 sm:p-5 lg:p-7 animate-fade-in space-y-6 max-w-[1680px] mx-auto">
+        <div class="p-4 sm:p-5 lg:p-7 space-y-5 max-w-[1680px] mx-auto">
             
+            <!-- ========================================================== -->
+            <!-- SECTION HEADER BANNER (IP-NET DESIGN SYSTEM)               -->
+            <!-- ========================================================== -->
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-[#E2E8F0] shadow-xs">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> PMO CONTROL TOWER &amp; HANDOVER GATEWAY
+                        </p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Dashboard PMO &amp; Serah Terima Proyek</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Pantau siklus implementasi teknis (Deliver), kepatuhan jadwal, dan serah terima proyek ke Lead Engineer &amp; Managed Service</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 shrink-0">
+                        <div class="px-3.5 py-1.5 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] text-[12px] font-bold text-[#1E293B] flex items-center gap-1.5 shadow-xs">
+                            <span class="text-[#64748B]">Total Proyek Deliver:</span>
+                            <span class="text-[#8F0A0D] font-extrabold" x-text="stageCounts.Deliver || 0"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- 4 Metric Cards --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 
@@ -382,7 +404,7 @@
              @click.self="handoverReviewModalOpen = false">
             <div class="bg-white rounded-2xl w-[720px] max-w-full max-h-[92vh] flex flex-col shadow-[0_20px_50px_rgba(14,13,18,0.25)] overflow-hidden my-6">
                 {{-- Modal Header --}}
-                <div class="p-5 sm:p-6 bg-[#FAF9F8] border-b border-gray-100 flex items-start justify-between">
+                <div class="p-5 sm:p-6 bg-[#F8FAFC] border-b border-gray-100 flex items-start justify-between">
                     <div>
                         <span class="text-[10.5px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
                             SOP Gatekeeper Handover Approval
@@ -553,7 +575,7 @@
                 </div>
 
                 {{-- Modal Footer Actions --}}
-                <div class="p-4 sm:px-6 border-t border-gray-100 bg-[#FAF9F8] flex flex-wrap items-center justify-between gap-2">
+                <div class="p-4 sm:px-6 border-t border-gray-100 bg-[#F8FAFC] flex flex-wrap items-center justify-between gap-2">
                     <button type="button" @click="handoverReviewModalOpen = false" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 transition cursor-pointer">
                         Tutup
                     </button>
@@ -588,7 +610,7 @@
             <div class="bg-white rounded-2xl w-[860px] max-w-full max-h-[92vh] flex flex-col shadow-[0_20px_50px_rgba(14,13,18,0.25)] overflow-hidden my-6">
                 
                 {{-- Modal Header --}}
-                <div class="p-5 sm:p-6 bg-[#FAF9F8] border-b border-gray-100 flex items-center justify-between">
+                <div class="p-5 sm:p-6 bg-[#F8FAFC] border-b border-gray-100 flex items-center justify-between">
                     <div class="flex items-center gap-4">
                         <img src="{{ asset('images/ipnet1.png') }}" alt="IP Network Solusindo" class="h-11 w-auto object-contain shrink-0" onerror="this.src='/images/ipnet.png'">
                         <div>

@@ -307,6 +307,44 @@ class PmoController extends Controller
             'division_id'          => $validated['division_id'],
         ]);
 
+        // Otomatis buat Task Implementasi awal pada kolom ASSIGNED (tanpa PIC, siap didelegasikan oleh Lead Engineer)
+        $existingTask = Task::where('project_id', $project->id)->first();
+        if (!$existingTask) {
+            Task::create([
+                'title'       => 'Implementasi Teknis: ' . $project->name,
+                'description' => 'Tugas penyerahan proyek dari PMO (' . ($project->division ? $project->division->name : 'Lintas Divisi') . ') untuk klien ' . $project->client . '. Menunggu pembagian Field Engineer (PIC) dan jadwal oleh Lead Engineer.',
+                'status'      => 'Assigned',
+                'priority'    => 'High',
+                'progress'    => 0,
+                'start_date'  => $project->start_date ?: now()->toDateString(),
+                'deadline'    => $project->deadline ?: now()->addDays(14)->toDateString(),
+                'engineer_id' => null, // Belum ada PIC, Lead Engineer yang akan menentukan
+                'project_id'  => $project->id,
+                'created_by'  => auth()->id(),
+            ]);
+        }
+
+        // Notifikasi ke Lead Engineer divisi terkait (Lead Network, Lead Security, Lead Maintenance)
+        $divisionName = $project->division ? $project->division->name : 'Lintas Divisi';
+        $leadersQuery = User::whereHas('roles', function($q) {
+            $q->whereIn('name', ['Team Leader Engineering', 'Team Leader', 'Lead Engineer', 'Lead Divisi', 'Lead Maintenance', 'Managed Service']);
+        });
+
+        if ($project->division_id) {
+            $leadersQuery->where('division_id', $project->division_id);
+        }
+
+        $leaders = $leadersQuery->get();
+        foreach ($leaders as $leader) {
+            \App\Models\Notification::create([
+                'user_id' => $leader->id,
+                'title'   => 'Proyek Masuk dari PMO: ' . $project->name,
+                'message' => 'PMO telah menyerahkan proyek "' . $project->name . '" (Klien: ' . $project->client . ') ke ' . $divisionName . '. Silakan tentukan Field Engineer dan delegasikan tugas tim.',
+                'url'     => route('tasks.index'),
+                'is_read' => false,
+            ]);
+        }
+
         // Notifikasi ke Sales & PIC PM
         $salesUser = User::where('name', $project->sales_name)->first();
         if ($salesUser) {
@@ -322,7 +360,7 @@ class PmoController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Handover berhasil disahkan! Proyek resmi memasuki tahap Deliver.',
+                'message' => 'Handover berhasil disahkan! Proyek resmi masuk ke tahap Deliver dan siap didelegasikan oleh Lead Engineer.',
                 'project' => $project->fresh(['pm', 'division']),
             ]);
         }
