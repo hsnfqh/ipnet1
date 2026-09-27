@@ -290,54 +290,6 @@ class TaskController extends Controller
             ]);
         }
 
-        // Otomatis sinkronkan Task baru ke Jadwal Kerja (Schedule) untuk setiap hari dalam rentang
-        if ($task->deadline) {
-            $taskStartDate = $task->start_date ? $task->start_date->format('Y-m-d') : $task->deadline->format('Y-m-d');
-            $taskEndDate   = $task->deadline->format('Y-m-d');
-            $taskTime = $task->deadline_time 
-                ? substr($task->deadline_time, 0, 5) 
-                : ($task->deadline->format('H:i') !== '00:00' ? $task->deadline->format('H:i') : null);
-
-            $schedCategory = (ScopeHelper::isMaintenance(auth()->user()) || preg_match('/^\[(PM|CM|INC|REQ|CR|TCK)-[0-9\-]+\]/', $task->title)) 
-                ? 'Preventive Maintenance' 
-                : 'Task';
-
-            $curDate = \Carbon\Carbon::parse($taskStartDate);
-            $endDate = \Carbon\Carbon::parse($taskEndDate);
-            if ($curDate->gt($endDate)) {
-                $temp = $curDate;
-                $curDate = $endDate;
-                $endDate = $temp;
-            }
-
-            while ($curDate->lte($endDate)) {
-                if ($taskStartDate === $taskEndDate || !$curDate->isSunday()) {
-                    $curStr = $curDate->toDateString();
-                    $newSchedule = \App\Models\Schedule::updateOrCreate(
-                        [
-                            'title' => $task->title,
-                            'date'  => $curStr,
-                        ],
-                        [
-                            'project_id'  => $task->project_id,
-                            'category'    => $schedCategory,
-                            'engineer_id' => $task->engineer_id,
-                            'start_time'  => $taskTime ? $taskTime . ':00' : null,
-                            'end_time'    => $taskTime ? date('H:i:s', strtotime($taskTime . ' +3 hours')) : null,
-                            'location'    => $task->project ? ($task->project->location ?? 'On-Site Client') : 'On-Site Client',
-                            'description' => $task->description ?? ('Pengerjaan task: ' . $task->title),
-                            'created_by'  => $task->created_by ?? auth()->id(),
-                        ]
-                    );
-
-                    if (Schema::hasTable('schedule_user') && !empty($engineerIds)) {
-                        $newSchedule->engineers()->sync($engineerIds);
-                    }
-                }
-                $curDate->addDay();
-            }
-        }
-
         if ($request->wantsJson() || $request->isJson() || $request->ajax()) {
             return response()->json($task, 201);
         }
@@ -490,57 +442,6 @@ class TaskController extends Controller
             $allAssigneeIds = [$task->engineer_id];
         }
         $allAssigneeIds = array_values(array_unique(array_filter(array_map('intval', (array) $allAssigneeIds))));
-
-        // Sinkronkan perubahan judul, tanggal/jam task, dan engineer ke Jadwal untuk setiap hari dalam rentang
-        if ($task->deadline) {
-            $schedCategory = (ScopeHelper::isMaintenance(auth()->user()) || preg_match('/^\[(PM|CM|INC|REQ|CR|TCK)-[0-9\-]+\]/', $task->title)) 
-                ? 'Preventive Maintenance' 
-                : 'Task';
-            
-            $startTime = $task->deadline_time ? substr($task->deadline_time, 0, 5) : ($task->deadline->format('H:i') !== '00:00' ? $task->deadline->format('H:i') : null);
-            $taskStartDate = $task->start_date ? $task->start_date->format('Y-m-d') : $task->deadline->format('Y-m-d');
-            $taskEndDate   = $task->deadline->format('Y-m-d');
-
-            $curDate = \Carbon\Carbon::parse($taskStartDate);
-            $endDate = \Carbon\Carbon::parse($taskEndDate);
-            if ($curDate->gt($endDate)) {
-                $temp = $curDate;
-                $curDate = $endDate;
-                $endDate = $temp;
-            }
-
-            // Update title lama jika di-rename
-            if (!empty($oldTaskTitle) && $oldTaskTitle !== $task->title) {
-                \App\Models\Schedule::where('title', $oldTaskTitle)->update(['title' => $task->title]);
-            }
-
-            while ($curDate->lte($endDate)) {
-                if ($taskStartDate === $taskEndDate || !$curDate->isSunday()) {
-                    $curStr = $curDate->toDateString();
-                    $sched = \App\Models\Schedule::updateOrCreate(
-                        [
-                            'title' => $task->title,
-                            'date'  => $curStr,
-                        ],
-                        [
-                            'project_id'  => $task->project_id,
-                            'category'    => $schedCategory,
-                            'engineer_id' => $task->engineer_id,
-                            'start_time'  => $startTime ? $startTime . ':00' : null,
-                            'end_time'    => $startTime ? date('H:i:s', strtotime($startTime . ' +3 hours')) : null,
-                            'location'    => $task->project ? ($task->project->location ?? 'On-Site Client') : 'On-Site Client',
-                            'description' => $task->description ?? ('Pengerjaan task: ' . $task->title),
-                            'created_by'  => $task->created_by ?? auth()->id(),
-                        ]
-                    );
-
-                    if (Schema::hasTable('schedule_user') && !empty($allAssigneeIds)) {
-                        $sched->engineers()->sync($allAssigneeIds);
-                    }
-                }
-                $curDate->addDay();
-            }
-        }
 
         // Sinkronkan kembali ke Tiket SLA jika task berasal dari tiket (termasuk PM dan CM)
         if (preg_match('/^\[(PM|CM|INC|REQ|CR|TCK)-[0-9\-]+\]/', $task->title, $matches)) {
