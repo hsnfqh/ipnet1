@@ -40,26 +40,7 @@ class ProjectDocumentController extends Controller
      */
     public static function canAccessSalesDocs(Project $project, $user = null): bool
     {
-        $user = $user ?: auth()->user();
-        if (!$user) return false;
-
-        // Sales creator / PIC
-        if ($project->created_by === $user->id || $project->sales_name === $user->name || ($project->sales_id && $project->sales_id === $user->id)) {
-            return true;
-        }
-
-        // Role Pimpinan / Management
-        if ($user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin', 'BDM', 'BusDev', 'Business Development'])) {
-            return true;
-        }
-
-        // Otorisasi Pimpinan Eksekutif
-        $lowerName = strtolower($user->name);
-        if (str_contains($lowerName, 'santoso') || str_contains($lowerName, 'susanto') || str_contains($lowerName, 'hari') || str_contains($lowerName, 'hary')) {
-            return true;
-        }
-
-        return false;
+        return $project->canAccessSalesDocs($user);
     }
 
     /**

@@ -830,25 +830,10 @@
                         @endif
                     </div>
 
-                    {{-- ═══ 1. BERKAS SALES CARD (CONFIDENTIAL) ═══ --}}
+                    {{-- ═══ 1. BERKAS SALES CARD (CONFIDENTIAL - HANYA SALES & MANAGEMENT) ═══ --}}
                     @php
                         $authUser = auth()->user();
-                        $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
-                        $authUserNameLower = strtolower($authUser->name ?? '');
-
-                        $isPresalesOrSaOnly = $authUser && !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles)) && empty(array_intersect(['Sales', 'Account Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles));
-
-                        $canAccessSalesDocs = $authUser && !$isPresalesOrSaOnly && (
-                            $project->created_by === $authUser->id 
-                            || $project->sales_name === $authUser->name 
-                            || ($project->sales_id && $project->sales_id === $authUser->id)
-                            || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin', 'BDM', 'BusDev', 'Business Development'], $userRoles))
-                            || str_contains($authUserNameLower, 'santoso') 
-                            || str_contains($authUserNameLower, 'susanto') 
-                            || str_contains($authUserNameLower, 'hari') 
-                            || str_contains($authUserNameLower, 'hary')
-                            || (method_exists($project, 'canAccessSalesDocs') && $project->canAccessSalesDocs($authUser))
-                        );
+                        $canAccessSalesDocs = $authUser && $project->canAccessSalesDocs($authUser);
 
                         $salesDocs = \App\Models\ProjectDocument::where('project_id', $project->id)
                             ->where(function($q) {
@@ -932,7 +917,7 @@
                         </div>
                     @endif
 
-                    {{-- ═══ 2. ATTACHMENTS CARD (UMUM / TEKNIS) ═══ --}}
+                    {{-- ═══ 2. ATTACHMENTS CARD (BERKAS PENDUKUNG - BISA DILIHAT OLEH SEMUA ROLE) ═══ --}}
                     @php
                         $uploadedDocs = \App\Models\ProjectDocument::where('project_id', $project->id)
                             ->where(function($q) {
@@ -956,7 +941,6 @@
                                 </span>
                             </div>
                             
-                            @if(!$isPresalesOrSaOnly)
                             <button type="button" 
                                     @click="isUploadDocModalOpen = true" 
                                     onclick="window.openModal('modal-upload-doc')"
@@ -964,7 +948,6 @@
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 <span>Upload Berkas</span>
                             </button>
-                            @endif
                         </div>
 
                         @if($uploadedDocs->count() > 0)

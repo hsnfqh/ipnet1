@@ -357,9 +357,9 @@ class Project extends Model
     /**
      * Cek otorisasi akses khusus Berkas Sales (Confidential)
      * Hanya dapat diakses oleh:
-     * 1. Sales PIC / Pembuat Proyek
+     * 1. Sales PIC / Pembuat Proyek / Role Sales / Account Manager
      * 2. Pak Santoso (Susanto Djaya) & Pak Hari (Hariyadi)
-     * 3. Direktur / Management / Head Divisi / BDM / Super Admin
+     * 3. Direktur / Management / Head Divisi / BDM / Super Admin / BD
      */
     public function canAccessSalesDocs($user = null): bool
     {
@@ -371,8 +371,17 @@ class Project extends Model
             return true;
         }
 
-        // Role Pimpinan / Management
-        if (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin', 'BDM', 'BusDev', 'Business Development'])) {
+        // Role Sales / Account Manager
+        if (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['Sales', 'Account Manager'])) {
+            return true;
+        }
+
+        // Role Pimpinan / Management / BD
+        if (method_exists($user, 'hasAnyRole') && $user->hasAnyRole([
+            'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Head Division',
+            'Group Leader', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin',
+            'BDM', 'BusDev', 'Business Development', 'BD'
+        ])) {
             return true;
         }
 
