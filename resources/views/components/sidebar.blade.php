@@ -61,11 +61,10 @@
             $navItems[] = ['key' => 'users', 'label' => 'Pengguna', 'route' => 'users.index'];
         }
     } elseif ($isPmoUser) {
-        // Project Manager & PMO: Kontrol pengiriman proyek (Deliver)
+        // Project Manager & PMO: Kontrol pengiriman proyek (Deliver) & Operasional
         $navItems = [
             ['key' => 'pmo_dashboard',   'label' => 'Dashboard',           'route' => 'pmo.dashboard'],
             ['key' => 'projects',        'label' => 'Daftar Proyek',       'route' => 'projects.index'],
-            ['key' => 'tasks',           'label' => 'Daftar Tugas',        'route' => 'tasks.index'],
             ['key' => 'schedules',       'label' => 'Work Schedule',        'route' => 'schedules.index'],
             ['key' => 'timesheets',      'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];

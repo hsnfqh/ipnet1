@@ -205,21 +205,8 @@ class PmoController extends Controller
         $handoverPendingCount = $formattedProjects->where('handover_status', 'Submitted')->count();
         $handoverConditionalCount = $formattedProjects->where('handover_status', 'Conditional')->count();
 
-        // 4. Hitung Utilisasi Engineer Lintas Divisi
-        $allEngineers = User::whereHas('roles', function($q) {
-            $q->whereIn('name', ['Engineer', 'Engineer L1', 'Engineer L2', 'Maintenance', 'Lead Engineer', 'Lead Maintenance']);
-        })->get();
-        $assignedEngineerIds = Task::whereHas('project', function($q) {
-            $q->whereNull('deleted_at');
-        })->whereIn('status', ['In Progress', 'Testing', 'Review'])
-          ->pluck('engineer_id')
-          ->filter()
-          ->unique()
-          ->toArray();
-
-        $activeEngineersCount = count($assignedEngineerIds);
-        $totalEngineersCount  = $allEngineers->count();
-        $standbyEngineersCount= max(0, $totalEngineersCount - $activeEngineersCount);
+        // 4. Hitung Proyek Siap Transisi ke Operasional / Managed Service
+        $readyToOperateCount = $formattedProjects->where('stage', 'Deliver')->where('progress', '>=', 100)->count();
 
         // 5. Persebaran 4-Tahap Siklus Ver 2.0
         $stageCounts = [
@@ -246,9 +233,7 @@ class PmoController extends Controller
             'ho3Count',
             'handoverPendingCount',
             'handoverConditionalCount',
-            'activeEngineersCount',
-            'standbyEngineersCount',
-            'totalEngineersCount',
+            'readyToOperateCount',
             'stageCounts',
             'divisions',
             'pmList'
