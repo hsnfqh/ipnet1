@@ -139,8 +139,9 @@
 
             {{-- Actions Footer --}}
             @php
+                $isBdApproved = (($bdVerification['status'] ?? '') === 'Approved');
                 $showBdAssign = empty($isPresalesOrSaOnly) && ($canAssignSales ?? false) && !$isBdmAssigned;
-                $showBdVerify = $canVerifyBD && ($isPresalesDone || $isArchitectDone);
+                $showBdVerify = $canVerifyBD && ($isPresalesDone || $isArchitectDone) && !$isBdApproved;
             @endphp
             @if(!$isAnyApproved && !$isBdmAssigned && empty($isPresalesOrSaOnly) && ($canAssignSales ?? false))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
