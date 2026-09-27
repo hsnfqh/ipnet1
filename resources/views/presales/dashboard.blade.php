@@ -223,7 +223,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
                     
                     {{-- Metric 1: Total Tender --}}
-                    <a href="{{ route('presales.proposals.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-1">
+                    <a href="{{ route('sales.pipeline.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-1">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Total Tender</span>
                             <div class="w-7 h-7 rounded-lg bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center group-hover:bg-[#8F0A0D] group-hover:text-white transition-colors">
@@ -237,7 +237,7 @@
                     </a>
 
                     {{-- Metric 2: Perlu Proposal & BoQ --}}
-                    <a href="{{ route('presales.proposals.index', ['tab' => 'pending']) }}" class="ipnet-metric-card group block anim-fade-up anim-delay-2">
+                    <a href="{{ route('sales.pipeline.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-2">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Perlu Proposal</span>
                             <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
@@ -251,7 +251,7 @@
                     </a>
 
                     {{-- Metric 3: Proposal Siap --}}
-                    <a href="{{ route('presales.proposals.index', ['tab' => 'submitted']) }}" class="ipnet-metric-card group block anim-fade-up anim-delay-3">
+                    <a href="{{ route('sales.pipeline.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-3">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Proposal Siap</span>
                             <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
@@ -265,7 +265,7 @@
                     </a>
 
                     {{-- Metric 4: Tender Menang --}}
-                    <a href="{{ route('presales.proposals.index', ['tab' => 'won']) }}" class="ipnet-metric-card group block anim-fade-up anim-delay-4">
+                    <a href="{{ route('sales.pipeline.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-4">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Tender Menang</span>
                             <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -375,8 +375,8 @@
                             <p class="text-[11.5px] text-[#64748B]">Daftar tender aktif yang memerlukan kajian teknis, sizing BoQ, dan dokumen penawaran</p>
                         </div>
                     </div>
-                    <a href="{{ route('presales.proposals.index') }}" class="px-3.5 py-1.5 text-xs font-bold text-[#8F0A0D] bg-white border border-[#CBD5E1] rounded-xl hover:bg-[#FFF7F6] hover:border-[#8F0A0D] transition shadow-2xs inline-flex items-center gap-1.5">
-                        <span>Buka Manajemen SOW</span>
+                    <a href="{{ route('sales.pipeline.index') }}" class="px-3.5 py-1.5 text-xs font-bold text-[#8F0A0D] bg-white border border-[#CBD5E1] rounded-xl hover:bg-[#FFF7F6] hover:border-[#8F0A0D] transition shadow-2xs inline-flex items-center gap-1.5">
+                        <span>Buka Project</span>
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </a>
                 </div>
@@ -396,7 +396,7 @@
                             @forelse($recentRequests as $rp)
                                 <tr class="hover:bg-[#F8FAFC] transition-colors">
                                     <td class="py-3.5 px-4">
-                                        <div class="font-bold text-[#1E293B] text-[13px] line-clamp-1" title="{{ $rp->name }}">{{ $rp->name }}</div>
+                                        <a href="{{ route('projects.show', $rp->id) }}" class="font-bold text-[#1E293B] hover:text-[#8F0A0D] text-[13px] line-clamp-1 block transition-colors" title="{{ $rp->name }}">{{ $rp->name }}</a>
                                         <div class="text-[11px] text-[#64748B] mt-0.5">{{ $rp->client ?: 'Prospek Umum' }}</div>
                                     </td>
                                     <td class="py-3.5 px-4 whitespace-nowrap">
@@ -429,8 +429,8 @@
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                 </a>
                                             @endif
-                                            <a href="{{ route('presales.proposals.index') }}" 
-                                               title="Kelola SOW"
+                                            <a href="{{ route('projects.show', $rp->id) }}" 
+                                               title="Buka Detail Project &amp; Unggah Proposal"
                                                class="p-1.5 rounded-lg text-[#1E293B] hover:text-[#8F0A0D] hover:bg-gray-100 border border-gray-200 transition-colors">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                             </a>
