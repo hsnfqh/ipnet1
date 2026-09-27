@@ -186,8 +186,8 @@
                                     <div class="font-bold text-slate-900 text-xs truncate">
                                         {{ $project->division->name }}
                                     </div>
-                                    <div class="text-[10.5px] text-emerald-700 font-semibold truncate">
-                                        ✓ Status: Terdisposisi ke Lead Engineer (ASSIGNED)
+                                    <div class="text-[10.5px] text-slate-500 truncate">
+                                        Divisi Pelaksana Teknis Proyek
                                     </div>
                                 </div>
                             </div>
@@ -209,16 +209,26 @@
 
             </div>
 
-            {{-- Actions Footer: Single Red Button matching Card 1 --}}
-            <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                <button type="button" 
-                        @click="openAssignDivisionModal()" 
-                        onclick="window.openModal('modal-assign-division')"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                    <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Ubah Divisi Pelaksana' : 'Pilih Divisi Pelaksana' }}</span>
-                </button>
-            </div>
+            {{-- Actions Footer: Hanya dapat diubah oleh PM / PMO / Sales / Executive (Bukan Team Leader) --}}
+            @php
+                $canChangeDivision = $authUser && (
+                    \App\Helpers\ScopeHelper::isPmo($authUser)
+                    || ($project->pm_id && $project->pm_id == $authUser->id)
+                    || ($canAssignSales ?? false)
+                    || ($isExecutive ?? false)
+                ) && !\App\Helpers\ScopeHelper::isTeamLeader($authUser);
+            @endphp
+            @if($canChangeDivision)
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    <button type="button" 
+                            @click="openAssignDivisionModal()" 
+                            onclick="window.openModal('modal-assign-division')"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Ubah Divisi Pelaksana' : 'Pilih Divisi Pelaksana' }}</span>
+                    </button>
+                </div>
+            @endif
         </div>
 
     </div>

@@ -114,18 +114,19 @@ class TaskController extends Controller
                         if ($hasTaskUser) {
                             $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
                         }
-                        // Sertakan juga task baru dari PMO yang belum di-assign (engineer_id = null) untuk proyek divisinya
-                        if (ScopeHelper::isTeamLeader($user)) {
-                            $q->orWhere(function($nq) use ($user) {
-                                $nq->whereNull('engineer_id')
-                                   ->whereHas('project', function($pq) use ($user) {
-                                       if ($user->division_id) {
-                                           $pq->where('division_id', $user->division_id)
-                                              ->orWhereNull('division_id');
-                                       }
-                                   });
-                            });
+                    }
+                    // Untuk Team Leader / Lead Engineer: Sertakan seluruh task pada proyek yang didelegasikan ke divisinya atau ditugaskan ke dirinya
+                    if (ScopeHelper::isTeamLeader($user)) {
+                        $q->orWhere('engineer_id', $user->id);
+                        if ($hasTaskUser) {
+                            $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $user->id));
                         }
+                        $q->orWhereHas('project', function($pq) use ($user) {
+                            if ($user->division_id) {
+                                $pq->where('division_id', $user->division_id)
+                                   ->orWhereHas('division', fn($dq) => $dq->where('name', 'like', '%Lintas%'));
+                            }
+                        });
                     }
                     $q->orWhere('created_by', $user->id);
                 });
