@@ -173,16 +173,57 @@
 </style>
 
 <div
-    id="app-sidebar"
     x-data="{
+        mobileOpen: false,
         collapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+        isHovered: false,
+        get isExpanded() {
+            return !this.collapsed || this.isHovered || this.mobileOpen;
+        },
         toggle() {
             this.collapsed = !this.collapsed;
             localStorage.setItem('sidebarCollapsed', this.collapsed);
+        },
+        toggleMobile() {
+            this.mobileOpen = !this.mobileOpen;
+        },
+        closeMobile() {
+            this.mobileOpen = false;
         }
     }"
-    :class="collapsed ? 'w-[76px]' : 'w-[246px]'"
-    style="flex-shrink:0; position:sticky; top:0; height:100vh; background:#7A0813; border-right:1px solid rgba(255,255,255,0.12); display:flex; flex-direction:column; overflow:hidden;">
+    @toggle-sidebar.window="if (window.innerWidth < 1024) { toggleMobile(); } else { toggle(); }"
+    @open-sidebar.window="mobileOpen = true"
+    @close-sidebar.window="closeMobile()"
+    @keydown.escape.window="closeMobile()"
+    class="relative"
+>
+    <!-- MOBILE BACKDROP OVERLAY -->
+    <div
+        x-show="mobileOpen"
+        x-cloak
+        @click="closeMobile()"
+        x-transition:enter="transition-opacity ease-linear duration-250"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-linear duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-[#0E0D12]/65 backdrop-blur-xs z-40 lg:hidden"
+        style="display: none;"
+    ></div>
+
+    <!-- SIDEBAR CONTAINER -->
+    <aside
+        id="app-sidebar"
+        @mouseenter="if (collapsed && window.innerWidth >= 1024) isHovered = true"
+        @mouseleave="isHovered = false"
+        :class="[
+            mobileOpen ? 'translate-x-0 shadow-[0_0_40px_rgba(0,0,0,0.45)]' : '-translate-x-full lg:translate-x-0',
+            (collapsed && !isHovered) ? 'lg:w-[76px]' : 'lg:w-[246px]',
+            'w-[256px]'
+        ]"
+        class="fixed inset-y-0 left-0 z-50 lg:static lg:sticky lg:top-0 h-screen bg-[#7A0813] border-r border-white/10 flex flex-col overflow-hidden transition-all duration-300 ease-in-out select-none"
+    >
 
     {{-- Layered Geometric Faceted Red Planes (Matching Official Reference Image) --}}
     <div style="position:absolute; inset:0; pointer-events:none; overflow:hidden; user-select:none; z-index:0;">
@@ -236,22 +277,37 @@
         </svg>
     </div>
 
-    <!-- LOGO -->
-    <div style="position:relative; z-index:10; display:flex; align-items:center; gap:11px; padding:22px 18px 19px; border-bottom:1px solid rgba(255,255,255,0.12); flex-shrink:0;">
-        <div style="width:34px; height:34px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
-            <img src="{{ asset('images/ipnet1.png') }}"
-                 alt="IPNET Logo"
-                 style="width:100%; height:100%; object-fit:contain;">
+    <!-- LOGO & BRAND -->
+    <div style="position:relative; z-index:10; display:flex; align-items:center; justify-content:space-between; gap:11px; padding:20px 16px 18px; border-bottom:1px solid rgba(255,255,255,0.12); flex-shrink:0;">
+        <div style="display:flex; align-items:center; gap:11px; min-width:0;">
+            <div style="width:34px; height:34px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+                <img src="{{ asset('images/ipnet1.png') }}"
+                     alt="IPNET Logo"
+                     style="width:100%; height:100%; object-fit:contain;">
+            </div>
+            <div x-show="isExpanded" x-cloak style="transition:opacity 0.2s; min-width:0;">
+                <div style="font-family:'Inter',sans-serif; font-weight:700; font-size:14.5px; color:white; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">IP Network Solusindo</div>
+                <div style="font-size:8.5px; color:rgba(255,255,255,0.65); letter-spacing:0.8px; font-weight:700; margin-top:2px; white-space:nowrap;">FIELD SYSTEM MANAGEMENT</div>
+            </div>
         </div>
-        <div x-show="!collapsed" x-cloak style="transition:opacity 0.2s;">
-            <div style="font-family:'Inter',sans-serif; font-weight:700; font-size:15px; color:white; line-height:1.1;">IP Network Solusindo</div>
-            <div style="font-size:9px; color:rgba(255,255,255,0.65); letter-spacing:1px; font-weight:700; margin-top:2px;">FIELD SYSTEM MANAGEMENT</div>
-        </div>
+
+        <!-- Mobile Close Button (X) -->
+        <button
+            type="button"
+            @click="closeMobile()"
+            class="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-all focus:outline-none shrink-0"
+            title="Tutup Menu"
+            aria-label="Close sidebar"
+        >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
     </div>
 
     <!-- NAVIGATION -->
     <div style="position:relative; z-index:10; flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:3px; overflow-y:auto;">
-        <div x-show="!collapsed" x-cloak style="font-size:10.5px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.48); padding:0 10px 8px;">MAIN MENU</div>
+        <div x-show="isExpanded" x-cloak style="font-size:10.5px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.48); padding:0 10px 8px; white-space:nowrap;">MAIN MENU</div>
 
         @foreach($navItems as $item)
             @php
@@ -461,9 +517,9 @@
                     </svg>
                     @break
                 @endswitch
-                <span x-show="!collapsed" x-cloak>{{ $item['label'] }}</span>
+                <span x-show="isExpanded" x-cloak>{{ $item['label'] }}</span>
                 @if(isset($item['badge']) && $item['badge'] > 0)
-                    <span x-show="!collapsed" x-cloak style="margin-left:auto; background:{{ $isActive ? '#8F0A0D' : '#ef4444' }}; color:white; font-size:10px; font-weight:800; padding:2px 7.5px; border-radius:9999px; line-height:1.2; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+                    <span x-show="isExpanded" x-cloak style="margin-left:auto; background:{{ $isActive ? '#8F0A0D' : '#ef4444' }}; color:white; font-size:10px; font-weight:800; padding:2px 7.5px; border-radius:9999px; line-height:1.2; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
                         {{ $item['badge'] }}
                     </span>
                 @endif
@@ -479,16 +535,17 @@
                 <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                 </svg>
-                <span x-show="!collapsed" x-cloak>Keluar</span>
+                <span x-show="isExpanded" x-cloak>Keluar</span>
             </button>
         </form>
-        <button @click="toggle()" class="sidebar-action" style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; width:100%; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.42); font-size:12px; margin-top:2px; transition:all 0.15s ease;">
+        <button @click="toggle()" class="sidebar-action hidden lg:flex" style="align-items:center; gap:12px; padding:10px 12px; border-radius:8px; width:100%; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.42); font-size:12px; margin-top:2px; transition:all 0.15s ease;">
             <svg style="width:15px; height:15px; flex-shrink:0; transition:transform 0.2s;" :style="{ transform: collapsed ? 'rotate(180deg)' : 'none' }" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
-            <span x-show="!collapsed" x-cloak>Sembunyikan</span>
+            <span x-show="isExpanded" x-cloak>Sembunyikan</span>
         </button>
     </div>
+</aside>
 </div>
 
 <script>

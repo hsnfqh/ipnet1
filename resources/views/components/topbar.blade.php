@@ -17,9 +17,22 @@
 
 <div class="flex items-center justify-between gap-3 px-4 py-3 sm:px-[28px] sm:py-[15px] border-b border-[#EAE8E5] bg-white/90 backdrop-blur-md sticky top-0 z-30 transition-all duration-200">
 
-    <!-- Judul: menyusut & terpotong dengan elipsis kalau kepanjangan -->
-    <div class="min-w-0 flex items-center gap-2">
-        <h1 class="font-display text-[18px] sm:text-[21px] font-bold text-[#17151C] tracking-[-0.3px] truncate">{{ $title }}</h1>
+    <!-- Judul & Mobile Hamburger Button -->
+    <div class="min-w-0 flex items-center gap-2.5">
+        <!-- Mobile Sidebar Toggle Hamburger Button -->
+        <button
+            type="button"
+            onclick="window.dispatchEvent(new CustomEvent('toggle-sidebar'))"
+            class="lg:hidden w-9 h-9 -ml-1 rounded-xl flex items-center justify-center text-[#57545F] hover:text-[#8F0A0D] hover:bg-[#FDF1F2] border border-slate-200/80 hover:border-[#FADADF] transition-all duration-200 focus:outline-none shrink-0 shadow-2xs"
+            title="Buka Menu Navigasi"
+            aria-label="Toggle navigation menu"
+        >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+            </svg>
+        </button>
+
+        <h1 class="font-display text-[17px] sm:text-[21px] font-bold text-[#17151C] tracking-[-0.3px] truncate">{{ $title }}</h1>
     </div>
 
     <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">
