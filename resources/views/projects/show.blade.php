@@ -1020,85 +1020,20 @@
                         {{-- Timeline Flow with Vertical Connector --}}
                         <div class="relative pl-6 space-y-5 before:absolute before:left-[5px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-200 text-xs">
                             
-                            {{-- 1. Project Creation --}}
+                            {{-- 1. Inisiasi Proyek (Opportunity Creation) --}}
                             <div class="relative">
                                 <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs flex items-center justify-center">
                                     <div class="w-1 h-1 rounded-full bg-white"></div>
                                 </div>
                                 <div class="font-normal text-slate-700">
-                                    <strong class="font-semibold text-slate-900">{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}</strong> membuat proyek ini
+                                    Inisiasi Proyek: <strong class="font-semibold text-slate-900">{{ $project->creator ? $project->creator->name : ($project->sales_name ?: 'Sales Team') }}</strong>
                                 </div>
                                 <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                    {{ \Carbon\Carbon::parse($project->created_at)->format('d M Y H:i') }}
+                                    {{ \Carbon\Carbon::parse($project->created_at)->format('d M Y H:i') }} (Opportunity Terbuka)
                                 </div>
                             </div>
 
-                            {{-- 2. Head Review Assignment --}}
-                            @if(!empty($headApproval['assigned']) && empty($headApproval['approved']))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Diajukan ke Head Divisi: <strong class="font-semibold text-slate-900">{{ $headApproval['assigned_to'] ?? 'Pak Susanto' }}</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        {{ $headApproval['assigned_at'] ?? 'Menunggu review' }} (oleh {{ $headApproval['assigned_by'] ?? 'Sales' }})
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- 3. Head Approval --}}
-                            @if(!empty($headApproval['approved']))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Approval Head Divisi: <strong class="font-semibold text-slate-900">{{ $headApproval['assigned_to'] ?? 'Pak Susanto' }}</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        {{ $headApproval['date'] ?? 'Disetujui' }}
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- 4. Director Otorisasi Assignment --}}
-                            @if(!empty($directorApproval['assigned']) && empty($directorApproval['approved']))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Diajukan ke Direktur: <strong class="font-semibold text-slate-900">{{ $directorApproval['assigned_to'] ?? 'Pak Hariyadi' }}</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        {{ $directorApproval['assigned_at'] ?? 'Menunggu otorisasi' }} (oleh {{ $directorApproval['assigned_by'] ?? 'Sales' }})
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- 5. Director Approval --}}
-                            @if(!empty($directorApproval['approved']))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Approval Direktur: <strong class="font-semibold text-slate-900">{{ $directorApproval['assigned_to'] ?? 'Pak Hariyadi' }}</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        {{ $directorApproval['date'] ?? 'Disahkan' }}
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- 6. Handover PMO --}}
-                            @if($project->pm)
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Handover Delivery ke PMO: <strong class="font-semibold text-slate-900">{{ $project->pm->name }}</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5">
-                                        Pengerjaan &amp; alokasi tim dipimpin oleh PMO
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- 7. BD Appointment --}}
+                            {{-- 2. Penunjukan PIC BD --}}
                             @if($isBdmAssigned && !empty($bdmName))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1111,7 +1046,7 @@
                                 </div>
                             @endif
 
-                            {{-- 8. Presales Assignment --}}
+                            {{-- 3. Penugasan Tim Solusi Teknis (Pre-Sales & SA) --}}
                             @if(!empty($presalesAssignment['assigned']))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1124,7 +1059,6 @@
                                 </div>
                             @endif
 
-                            {{-- 9. Solution Architect Assignment --}}
                             @if(!empty($architectAssignment['assigned']))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1137,7 +1071,7 @@
                                 </div>
                             @endif
 
-                            {{-- 10. Presales Doc Uploaded --}}
+                            {{-- 4. Unggah Dokumen Proposal & Desain Topologi --}}
                             @if(!empty($presalesAssignment['document_path']))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1150,7 +1084,6 @@
                                 </div>
                             @endif
 
-                            {{-- 11. Architect Doc Uploaded --}}
                             @if(!empty($architectAssignment['document_path']))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1163,7 +1096,7 @@
                                 </div>
                             @endif
 
-                            {{-- 12. BD Solution Verification --}}
+                            {{-- 5. Verifikasi Solusi BD --}}
                             @if(!empty($bdVerification['verified_at']) || (!empty($bdVerification['status']) && in_array($bdVerification['status'], ['Approved', 'Revision Needed']) && !empty($bdVerification['verified_by'])))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1177,6 +1110,140 @@
                                         @endif
                                     </div>
                                 </div>
+                            @endif
+
+                            {{-- 6. Approval & Otorisasi Pimpinan (Head Divisi & Direktur) --}}
+                            @if(!empty($headApproval['assigned']) && empty($headApproval['approved']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Diajukan ke Head Divisi: <strong class="font-semibold text-slate-900">{{ $headApproval['assigned_to'] ?? 'Susanto Djaya' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $headApproval['assigned_at'] ?? 'Menunggu review' }} (oleh {{ $headApproval['assigned_by'] ?? 'Sales' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($headApproval['approved']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Approval Head Divisi: <strong class="font-semibold text-slate-900">{{ $headApproval['assigned_to'] ?? 'Susanto Djaya' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $headApproval['date'] ?? 'Disetujui' }}
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($directorApproval['assigned']) && empty($directorApproval['approved']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Diajukan ke Direktur: <strong class="font-semibold text-slate-900">{{ $directorApproval['assigned_to'] ?? 'Hariyadi' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $directorApproval['assigned_at'] ?? 'Menunggu otorisasi' }} (oleh {{ $directorApproval['assigned_by'] ?? 'Sales' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($directorApproval['approved']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Approval Direktur: <strong class="font-semibold text-slate-900">{{ $directorApproval['assigned_to'] ?? 'Hariyadi' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $directorApproval['date'] ?? 'Disahkan' }}
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 7. Status Tender Menang / Kontrak PO Terbit --}}
+                            @php
+                                $hasWonStatus = (!empty($project->po_spk_number) || !empty($project->po_number) || in_array($project->status, ['In Progress', 'Completed']) || in_array($project->stage, ['Deliver', 'Operate']) || strtolower($project->sales_stage ?? '') === 'closed won' || $isBothApproved || $project->pm);
+                            @endphp
+                            @if($hasWonStatus)
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Status Tender / Deal: <strong class="font-semibold text-emerald-700">Menang (Closed Won)</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5">
+                                        @if(!empty($project->po_spk_number) || !empty($project->po_number))
+                                            PO/SPK Kontrak: <span class="font-mono font-semibold text-slate-800">{{ $project->po_spk_number ?: $project->po_number }}</span>
+                                        @else
+                                            Kontrak &amp; PO Resmi Terbit
+                                        @endif
+                                        @if(!empty($project->contract_value))
+                                            &bull; Nilai: <span class="font-semibold text-emerald-700">Rp {{ number_format($project->contract_value, 0, ',', '.') }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 8. Handover Sales ke PMO --}}
+                            @if($project->pm)
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Handover Delivery ke PMO: <strong class="font-semibold text-slate-900">{{ $project->pm->name }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5">
+                                        Pengerjaan &amp; alokasi manajemen proyek dipimpin oleh PMO
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 9. Disposisi Divisi Pelaksana (PMO ke Lead Engineer) --}}
+                            @if(!empty($project->division_id) && !empty($project->division))
+                                @php
+                                    $divName = $project->division->name;
+                                    $leadName = 'Lead Engineering Delivery';
+                                    if (str_contains(strtolower($divName), 'net') && !str_contains(strtolower($divName), 'lintas') && !str_contains(strtolower($divName), 'security')) {
+                                        $leadName = 'Nugraha Pratama (Lead Network)';
+                                    } elseif (str_contains(strtolower($divName), 'sec') && !str_contains(strtolower($divName), 'lintas') && !str_contains(strtolower($divName), 'network')) {
+                                        $leadName = 'Ignatius Rizky (Lead Security)';
+                                    } else {
+                                        $leadName = 'Lead Network & Lead Security (Lintas Divisi)';
+                                    }
+                                @endphp
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Disposisi Divisi: <strong class="font-semibold text-slate-900">{{ $divName }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 mt-0.5">
+                                        Didelegasikan ke <strong class="font-semibold text-slate-800">{{ $leadName }}</strong> &bull; <span class="text-emerald-600 font-semibold">Status: Terdisposisi (ASSIGNED)</span>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 10. Penugasan Teknisi Lapangan (Field Engineers) --}}
+                            @if(!empty($project->division_id) && !empty($project->division))
+                                @if($uniqueEngineers->count() > 0)
+                                    <div class="relative">
+                                        <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                        <div class="font-normal text-slate-700">
+                                            Penugasan Teknisi Lapangan: <strong class="font-semibold text-slate-900">{{ $uniqueEngineers->pluck('name')->join(', ') }}</strong>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                            Alokasi pengerjaan teknis &amp; implementasi lapangan aktif ({{ $project->tasks->count() }} Tugas)
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="relative">
+                                        <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-amber-500 to-amber-600 ring-4 ring-white shadow-2xs"></div>
+                                        <div class="font-normal text-slate-700">
+                                            Penugasan Teknisi Lapangan: <span class="font-semibold text-amber-700">Menunggu Alokasi Field Engineer</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-400 mt-0.5">
+                                            Lead Engineer sedang mempersiapkan pembagian tugas teknisi
+                                        </div>
+                                    </div>
+                                @endif
                             @endif
 
                         </div>
