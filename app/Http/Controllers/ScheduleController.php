@@ -141,6 +141,7 @@ class ScheduleController extends Controller
                         $engIds = [$matchingTask->engineer_id];
                     }
                 }
+                $engIds = array_values(array_unique(array_filter(array_map('intval', (array) $engIds))));
 
                 while ($curDate->lte($endDate)) {
                     $curStr = $curDate->toDateString();
@@ -542,10 +543,11 @@ class ScheduleController extends Controller
             }
             unset($data['create_task'], $data['task_priority']);
 
-            $engineerIds = $request->input('engineer_ids', []);
-            if (empty($engineerIds) && !empty($data['engineer_id'])) {
-                $engineerIds = [(int) $data['engineer_id']];
+            $rawEngineerIds = $request->input('engineer_ids', []);
+            if (empty($rawEngineerIds) && !empty($data['engineer_id'])) {
+                $rawEngineerIds = [$data['engineer_id']];
             }
+            $engineerIds = array_values(array_unique(array_filter(array_map('intval', (array) $rawEngineerIds))));
             if (!empty($engineerIds)) {
                 $data['engineer_id'] = $engineerIds[0];
             }
@@ -689,7 +691,7 @@ class ScheduleController extends Controller
             }
 
             // Dapatkan daftar unik seluruh engineer yang ditugaskan
-            $allAssignedEngineerIds = $engineerIds;
+            $allAssignedEngineerIds = array_values(array_unique(array_filter(array_map('intval', (array) $engineerIds))));
             if (empty($allAssignedEngineerIds) && !empty($data['engineer_id'])) {
                 $allAssignedEngineerIds = [(int) $data['engineer_id']];
             }
@@ -809,10 +811,11 @@ class ScheduleController extends Controller
                 $data['end_time'] = $data['start_time'];
             }
 
-            $engineerIds = $request->input('engineer_ids', []);
-            if (empty($engineerIds) && !empty($data['engineer_id'])) {
-                $engineerIds = [(int) $data['engineer_id']];
+            $rawEngineerIds = $request->input('engineer_ids', []);
+            if (empty($rawEngineerIds) && !empty($data['engineer_id'])) {
+                $rawEngineerIds = [$data['engineer_id']];
             }
+            $engineerIds = array_values(array_unique(array_filter(array_map('intval', (array) $rawEngineerIds))));
             if (!empty($engineerIds)) {
                 $data['engineer_id'] = $engineerIds[0];
                 if ($hasScheduleUser) {
@@ -831,9 +834,11 @@ class ScheduleController extends Controller
             }
             $schedule->load($withRelations);
 
-            $engineerIdsList = $hasScheduleUser && $schedule->relationLoaded('engineers')
-                ? $schedule->engineers->pluck('id')->toArray()
-                : ($schedule->engineer_id ? [$schedule->engineer_id] : []);
+            $engineerIdsList = array_values(array_unique(array_filter(array_map('intval', (array) (
+                $hasScheduleUser && $schedule->relationLoaded('engineers')
+                    ? $schedule->engineers->pluck('id')->toArray()
+                    : ($schedule->engineer_id ? [$schedule->engineer_id] : [])
+            )))));
             $engineersList = $hasScheduleUser && $schedule->relationLoaded('engineers')
                 ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
                 : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);

@@ -256,10 +256,11 @@ class TaskController extends Controller
         }
 
         // Kelola multi-assignee (engineer_ids)
-        $engineerIds = $request->input('engineer_ids', []);
-        if (empty($engineerIds) && !empty($data['engineer_id'])) {
-            $engineerIds = [(int) $data['engineer_id']];
+        $rawEngIds = $request->input('engineer_ids', []);
+        if (empty($rawEngIds) && !empty($data['engineer_id'])) {
+            $rawEngIds = [$data['engineer_id']];
         }
+        $engineerIds = array_values(array_unique(array_filter(array_map('intval', (array) $rawEngIds))));
         if (!empty($engineerIds)) {
             $data['engineer_id'] = $engineerIds[0];
         }
@@ -488,6 +489,7 @@ class TaskController extends Controller
         } elseif ($task->engineer_id) {
             $allAssigneeIds = [$task->engineer_id];
         }
+        $allAssigneeIds = array_values(array_unique(array_filter(array_map('intval', (array) $allAssigneeIds))));
 
         // Sinkronkan perubahan judul, tanggal/jam task, dan engineer ke Jadwal untuk setiap hari dalam rentang
         if ($task->deadline) {

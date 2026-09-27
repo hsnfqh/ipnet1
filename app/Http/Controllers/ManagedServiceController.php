@@ -571,10 +571,7 @@ class ManagedServiceController extends Controller
         );
 
         if ($assignedUserId && Schema::hasTable('schedule_user')) {
-            $schedule->users()->sync([$assignedUserId]);
-            if (method_exists($schedule, 'engineers')) {
-                $schedule->engineers()->sync([$assignedUserId]);
-            }
+            $schedule->engineers()->sync([(int) $assignedUserId]);
         }
     }
 
