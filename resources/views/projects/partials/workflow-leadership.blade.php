@@ -115,14 +115,14 @@
             @if((!$isHeadAssigned && ($canAssignSales ?? false)) || ($canApproveHead && $isHeadAssigned))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isHeadAssigned && ($canAssignSales ?? false))
-                        <button type="button" @click="openAssignModal('head')" onclick="window.openAssignModalCustom('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                        <button type="button" @click.stop="openAssignModal('head')" onclick="event.stopPropagation(); window.openAssignModalCustom('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             <span>Assign Head Divisi</span>
                         </button>
                     @endif
 
                     @if($canApproveHead && $isHeadAssigned)
-                        <button type="button" @click="openApproveModal('head')" class="text-xs font-semibold text-slate-600 hover:text-[#8F0A0D] cursor-pointer inline-flex items-center gap-1">
+                        <button type="button" @click.stop="openApproveModal('head')" onclick="event.stopPropagation(); window.openApproveModalCustom('head')" class="text-xs font-semibold text-slate-600 hover:text-[#8F0A0D] cursor-pointer inline-flex items-center gap-1">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             <span>{{ empty($headApproval['approved']) ? 'Beri Approval' : 'Ubah Approval' }}</span>
                         </button>
@@ -205,14 +205,14 @@
             @if((!$isDirectorAssigned && ($canAssignSales ?? false)) || ($canApproveDirector && $isDirectorAssigned))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isDirectorAssigned && ($canAssignSales ?? false))
-                        <button type="button" @click="openAssignModal('director')" onclick="window.openAssignModalCustom('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                        <button type="button" @click.stop="openAssignModal('director')" onclick="event.stopPropagation(); window.openAssignModalCustom('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             <span>Assign Direktur</span>
                         </button>
                     @endif
 
                     @if($canApproveDirector && $isDirectorAssigned)
-                        <button type="button" @click="openApproveModal('director')" class="text-xs font-semibold text-slate-600 hover:text-[#8F0A0D] cursor-pointer inline-flex items-center gap-1">
+                        <button type="button" @click.stop="openApproveModal('director')" onclick="event.stopPropagation(); window.openApproveModalCustom('director')" class="text-xs font-semibold text-slate-600 hover:text-[#8F0A0D] cursor-pointer inline-flex items-center gap-1">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             <span>{{ empty($directorApproval['approved']) ? 'Beri Otorisasi' : 'Ubah Otorisasi' }}</span>
                         </button>

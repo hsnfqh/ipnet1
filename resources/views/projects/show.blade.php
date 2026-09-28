@@ -2014,8 +2014,10 @@
 
     {{-- 2. DRAFT APPROVAL MODAL --}}
     <div id="modal-approve" x-show="isApproveModalOpen" x-cloak 
+         @click.self="isApproveModalOpen = false; window.closeModal('modal-approve')"
+         onclick="if(event.target === this) window.closeModal('modal-approve')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isApproveModalOpen = false; window.closeModal('modal-approve')" 
+        <div @click.stop 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -2053,8 +2055,10 @@
 
     {{-- 3. ADD MILESTONE MODAL --}}
     <div id="modal-add-milestone" x-show="isAddMilestoneModalOpen" x-cloak 
+         @click.self="isAddMilestoneModalOpen = false; window.closeModal('modal-add-milestone')"
+         onclick="if(event.target === this) window.closeModal('modal-add-milestone')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isAddMilestoneModalOpen = false; window.closeModal('modal-add-milestone')" 
+        <div @click.stop 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -2103,8 +2107,10 @@
 
     {{-- 4. EDIT META ESTIMATION MODAL --}}
     <div id="modal-edit-meta" x-show="isEditMetaModalOpen" x-cloak 
+         @click.self="isEditMetaModalOpen = false; window.closeModal('modal-edit-meta')"
+         onclick="if(event.target === this) window.closeModal('modal-edit-meta')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isEditMetaModalOpen = false; window.closeModal('modal-edit-meta')" 
+        <div @click.stop 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -2180,8 +2186,10 @@
 
     {{-- 5. UPLOAD DOCUMENT MODAL --}}
     <div id="modal-upload-doc" x-show="isUploadDocModalOpen" x-cloak 
+         @click.self="isUploadDocModalOpen = false; window.closeModal('modal-upload-doc')"
+         onclick="if(event.target === this) window.closeModal('modal-upload-doc')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isUploadDocModalOpen = false; window.closeModal('modal-upload-doc')" 
+        <div @click.stop 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -2221,8 +2229,10 @@
 
     {{-- 5B. UPLOAD SALES DOCUMENT MODAL (CONFIDENTIAL) --}}
     <div id="modal-upload-sales-doc" x-show="isUploadSalesDocModalOpen" x-cloak 
+         @click.self="isUploadSalesDocModalOpen = false; window.closeModal('modal-upload-sales-doc')"
+         onclick="if(event.target === this) window.closeModal('modal-upload-sales-doc')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isUploadSalesDocModalOpen = false; window.closeModal('modal-upload-sales-doc')" 
+        <div @click.stop 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -2273,8 +2283,10 @@
 
     {{-- 6. MODAL ASSIGN APPROVAL KE PIMPINAN (HEAD & DIREKTUR) --}}
     <div id="modal-assign" x-show="isAssignModalOpen" x-cloak 
+         @click.self="isAssignModalOpen = false; window.closeModal('modal-assign')"
+         onclick="if(event.target === this) window.closeModal('modal-assign')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isAssignModalOpen = false; window.closeModal('modal-assign')" 
+        <div @click.stop 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -2337,8 +2349,10 @@
 
     {{-- 7. MODAL EDIT PIPELINE SALES & OPPORTUNITY --}}
     <div id="modal-edit-pipeline" x-show="isEditPipelineModalOpen" x-cloak 
+         @click.self="isEditPipelineModalOpen = false; window.closeModal('modal-edit-pipeline')"
+         onclick="if(event.target === this) window.closeModal('modal-edit-pipeline')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isEditPipelineModalOpen = false; window.closeModal('modal-edit-pipeline')" 
+        <div @click.stop 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -2445,8 +2459,10 @@
 
     {{-- 8. MODAL ASSIGN KE TIM SOLUSI (PIC BD, PRESALES & SA) --}}
     <div id="modal-assign-technical" x-show="isAssignTechnicalModalOpen" x-cloak 
+         @click.self="isAssignTechnicalModalOpen = false; window.closeModal('modal-assign-technical')"
+         onclick="if(event.target === this) window.closeModal('modal-assign-technical')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isAssignTechnicalModalOpen = false; window.closeModal('modal-assign-technical')" 
+        <div @click.stop 
              class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
@@ -2565,8 +2581,10 @@
 
     {{-- 9. MODAL VERIFIKASI SOLUSI OLEH PIC BD --}}
     <div id="modal-verify-technical" x-show="isVerifyTechnicalModalOpen" x-cloak 
+         @click.self="isVerifyTechnicalModalOpen = false; window.closeModal('modal-verify-technical')"
+         onclick="if(event.target === this) window.closeModal('modal-verify-technical')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isVerifyTechnicalModalOpen = false; window.closeModal('modal-verify-technical')" 
+        <div @click.stop 
              class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
@@ -2639,8 +2657,10 @@
 
     {{-- 10. MODAL UNGGAH BERKAS SOLUSI TEKNIS (PRESALES / SA) --}}
     <div id="modal-upload-technical-doc" x-show="isUploadTechnicalDocModalOpen" x-cloak 
+         @click.self="isUploadTechnicalDocModalOpen = false; window.closeModal('modal-upload-technical-doc')"
+         onclick="if(event.target === this) window.closeModal('modal-upload-technical-doc')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isUploadTechnicalDocModalOpen = false; window.closeModal('modal-upload-technical-doc')" 
+        <div @click.stop 
              class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b pb-3">
