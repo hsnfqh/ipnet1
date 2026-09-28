@@ -454,6 +454,31 @@
             isAssignDivisionModalOpen: false,
             isAssignEngineerModalOpen: false,
 
+            openHandoverModal(target = null) {
+                if (target === 'both') {
+                    this.handoverTargets = ['pmo', 'managed_service'];
+                    this.handoverTargetType = 'both';
+                } else if (target === 'managed_service') {
+                    this.handoverTargets = ['managed_service'];
+                    this.handoverTargetType = 'managed_service';
+                } else if (target === 'pmo') {
+                    this.handoverTargets = ['pmo'];
+                    this.handoverTargetType = 'pmo';
+                }
+                this.isHandoverModalOpen = true;
+                window.openModal('modal-handover');
+            },
+
+            openAssignDivisionModal() {
+                this.isAssignDivisionModalOpen = true;
+                window.openModal('modal-assign-division');
+            },
+
+            openAssignEngineerModal() {
+                this.isAssignEngineerModalOpen = true;
+                window.openModal('modal-assign-engineer');
+            },
+
             confirmCompleteProject() {
                 this.isCompleteModalOpen = true;
                 window.openModal('modal-complete');
