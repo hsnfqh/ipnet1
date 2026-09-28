@@ -250,24 +250,45 @@
 @endphp
 
 <script>
+    window.getProjectData = function() {
+        try {
+            const projectRoot = document.querySelector('[x-data*="projectDetailPage"]');
+            if (projectRoot && window.Alpine && typeof window.Alpine.$data === 'function') {
+                return window.Alpine.$data(projectRoot);
+            }
+            const modalEl = document.getElementById('modal-handover');
+            if (modalEl && window.Alpine && typeof window.Alpine.$data === 'function') {
+                return window.Alpine.$data(modalEl);
+            }
+        } catch(e) {}
+        return null;
+    };
+
     window.openModal = function(modalId) {
         const el = document.getElementById(modalId);
         if (el) {
-            el.style.setProperty('display', 'flex', 'important');
             el.removeAttribute('x-cloak');
             el.classList.remove('hidden');
+            el.style.setProperty('display', 'flex', 'important');
         }
-        try {
-            const root = document.querySelector('[x-data]');
-            if (root && window.Alpine && typeof window.Alpine.$data === 'function') {
-                const data = window.Alpine.$data(root);
-                if (data) {
-                    if (modalId === 'modal-handover') data.isHandoverModalOpen = true;
-                    if (modalId === 'modal-assign-division') data.isAssignDivisionModalOpen = true;
-                    if (modalId === 'modal-assign-engineer') data.isAssignEngineerModalOpen = true;
-                }
-            }
-        } catch(e) {}
+        const data = window.getProjectData();
+        if (data) {
+            if (modalId === 'modal-handover') data.isHandoverModalOpen = true;
+            if (modalId === 'modal-assign-division') data.isAssignDivisionModalOpen = true;
+            if (modalId === 'modal-assign-engineer') data.isAssignEngineerModalOpen = true;
+            if (modalId === 'modal-edit-pipeline') data.isEditPipelineModalOpen = true;
+            if (modalId === 'modal-assign') data.isAssignModalOpen = true;
+            if (modalId === 'modal-assign-technical') data.isAssignTechnicalModalOpen = true;
+            if (modalId === 'modal-upload-technical-doc') data.isUploadTechnicalDocModalOpen = true;
+            if (modalId === 'modal-verify-technical') data.isVerifyTechnicalModalOpen = true;
+            if (modalId === 'modal-approve') data.isApproveModalOpen = true;
+            if (modalId === 'modal-edit-meta') data.isEditMetaModalOpen = true;
+            if (modalId === 'modal-add-milestone') data.isAddMilestoneModalOpen = true;
+            if (modalId === 'modal-upload-doc') data.isUploadDocModalOpen = true;
+            if (modalId === 'modal-upload-sales-doc') data.isUploadSalesDocModalOpen = true;
+            if (modalId === 'modal-delete') data.isDeleteModalOpen = true;
+            if (modalId === 'modal-complete') data.isCompleteModalOpen = true;
+        }
     };
 
     window.closeModal = function(modalId) {
@@ -276,30 +297,41 @@
             el.style.setProperty('display', 'none', 'important');
             el.classList.add('hidden');
         }
-        try {
-            const root = document.querySelector('[x-data]');
-            if (root && window.Alpine && typeof window.Alpine.$data === 'function') {
-                const data = window.Alpine.$data(root);
-                if (data) {
-                    if (modalId === 'modal-handover') data.isHandoverModalOpen = false;
-                    if (modalId === 'modal-assign-division') data.isAssignDivisionModalOpen = false;
-                    if (modalId === 'modal-assign-engineer') data.isAssignEngineerModalOpen = false;
-                }
-            }
-        } catch(e) {}
+        const data = window.getProjectData();
+        if (data) {
+            if (modalId === 'modal-handover') data.isHandoverModalOpen = false;
+            if (modalId === 'modal-assign-division') data.isAssignDivisionModalOpen = false;
+            if (modalId === 'modal-assign-engineer') data.isAssignEngineerModalOpen = false;
+            if (modalId === 'modal-edit-pipeline') data.isEditPipelineModalOpen = false;
+            if (modalId === 'modal-assign') data.isAssignModalOpen = false;
+            if (modalId === 'modal-assign-technical') data.isAssignTechnicalModalOpen = false;
+            if (modalId === 'modal-upload-technical-doc') data.isUploadTechnicalDocModalOpen = false;
+            if (modalId === 'modal-verify-technical') data.isVerifyTechnicalModalOpen = false;
+            if (modalId === 'modal-approve') data.isApproveModalOpen = false;
+            if (modalId === 'modal-edit-meta') data.isEditMetaModalOpen = false;
+            if (modalId === 'modal-add-milestone') data.isAddMilestoneModalOpen = false;
+            if (modalId === 'modal-upload-doc') data.isUploadDocModalOpen = false;
+            if (modalId === 'modal-upload-sales-doc') data.isUploadSalesDocModalOpen = false;
+            if (modalId === 'modal-delete') data.isDeleteModalOpen = false;
+            if (modalId === 'modal-complete') data.isCompleteModalOpen = false;
+        }
     };
 
     window.openHandoverModalCustom = function(target) {
-        try {
-            const root = document.querySelector('[x-data]');
-            if (root && window.Alpine && typeof window.Alpine.$data === 'function') {
-                const data = window.Alpine.$data(root);
-                if (data && typeof data.openHandoverModal === 'function') {
-                    data.openHandoverModal(target);
-                    return;
-                }
+        const data = window.getProjectData();
+        if (data) {
+            if (target === 'both') {
+                data.handoverTargets = ['pmo', 'managed_service'];
+                data.handoverTargetType = 'both';
+            } else if (target === 'managed_service') {
+                data.handoverTargets = ['managed_service'];
+                data.handoverTargetType = 'managed_service';
+            } else if (target === 'pmo') {
+                data.handoverTargets = ['pmo'];
+                data.handoverTargetType = 'pmo';
             }
-        } catch(e) {}
+            data.isHandoverModalOpen = true;
+        }
         window.openModal('modal-handover');
     };
 
@@ -482,31 +514,6 @@
             confirmCompleteProject() {
                 this.isCompleteModalOpen = true;
                 window.openModal('modal-complete');
-            },
-
-            openAssignDivisionModal() {
-                this.isAssignDivisionModalOpen = true;
-                window.openModal('modal-assign-division');
-            },
-
-            openAssignEngineerModal() {
-                this.isAssignEngineerModalOpen = true;
-                window.openModal('modal-assign-engineer');
-            },
-
-            openHandoverModal(target = null) {
-                if (target === 'both') {
-                    this.handoverTargets = ['pmo', 'managed_service'];
-                    this.handoverTargetType = 'both';
-                } else if (target === 'managed_service') {
-                    this.handoverTargets = ['managed_service'];
-                    this.handoverTargetType = 'managed_service';
-                } else if (target === 'pmo') {
-                    this.handoverTargets = ['pmo'];
-                    this.handoverTargetType = 'pmo';
-                }
-                this.isHandoverModalOpen = true;
-                window.openModal('modal-handover');
             },
 
             openAssignModal(role = 'head') {
@@ -1464,6 +1471,7 @@
     {{-- 1. FORMULIR SERAH TERIMA PROYEK & PENUGASAN MODAL --}}
     <div id="modal-handover" x-show="isHandoverModalOpen" x-cloak 
          @click.self="isHandoverModalOpen = false; window.closeModal('modal-handover')"
+         onclick="if(event.target === this) window.closeModal('modal-handover')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
         <div @click.stop class="relative bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 m-auto max-h-[90vh] flex flex-col overflow-hidden">
             
