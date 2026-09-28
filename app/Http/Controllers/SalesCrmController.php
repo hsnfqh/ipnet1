@@ -870,7 +870,7 @@ class SalesCrmController extends Controller
     public function submitCommercialHandover(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'handover_target'          => 'required|string|in:pmo,managed_service',
+            'handover_target'          => 'required|string|in:pmo,managed_service,both',
             'po_spk_number'            => 'required|string|max:255',
             'po_spk_date'              => 'required|date',
             'contract_value'           => 'required|numeric|min:0',

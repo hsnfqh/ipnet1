@@ -389,14 +389,16 @@
                             <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-2">
                                 1. Pilih Karakteristik &amp; Target Serah Terima <span class="text-[#8F0A0D]">*</span>
                             </label>
+                            <input type="hidden" name="handover_target" :value="formTarget">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {{-- Option 1: PMO Implementasi --}}
-                                <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition"
-                                       :class="formTarget === 'pmo' ? 'border-[#8F0A0D] bg-red-50/30 text-gray-900 shadow-xs' : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-white'">
-                                    <input type="radio" name="handover_target" value="pmo" x-model="formTarget" class="mt-0.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                                <label @click="toggleFormTarget('pmo')"
+                                       class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition shadow-2xs select-none"
+                                       :class="formTargets.includes('pmo') ? '!border-[#8F0A0D] !bg-red-50/30 text-gray-900 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-white'">
+                                    <input type="checkbox" value="pmo" :checked="formTargets.includes('pmo')" @click.stop="toggleFormTarget('pmo')" class="mt-0.5 w-4 h-4 rounded text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
                                     <div>
                                         <div class="font-bold text-xs flex items-center gap-1.5">
-                                            <span>Proyek Implementasi</span>
+                                            <span :class="formTargets.includes('pmo') ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-800'">Proyek Implementasi</span>
                                             <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-bold">PMO Delivery</span>
                                         </div>
                                         <p class="text-[11px] text-gray-500 mt-1 leading-snug">
@@ -406,12 +408,13 @@
                                 </label>
 
                                 {{-- Option 2: Managed Service --}}
-                                <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition"
-                                       :class="formTarget === 'managed_service' ? 'border-[#8F0A0D] bg-red-50/30 text-gray-900 shadow-xs' : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-white'">
-                                    <input type="radio" name="handover_target" value="managed_service" x-model="formTarget" class="mt-0.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                                <label @click="toggleFormTarget('managed_service')"
+                                       class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition shadow-2xs select-none"
+                                       :class="formTargets.includes('managed_service') ? '!border-[#8F0A0D] !bg-red-50/30 text-gray-900 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-gray-200 hover:border-gray-300 text-gray-600 bg-white'">
+                                    <input type="checkbox" value="managed_service" :checked="formTargets.includes('managed_service')" @click.stop="toggleFormTarget('managed_service')" class="mt-0.5 w-4 h-4 rounded text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
                                     <div>
                                         <div class="font-bold text-xs flex items-center gap-1.5">
-                                            <span>Kontrak Managed Service</span>
+                                            <span :class="formTargets.includes('managed_service') ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-800'">Kontrak Managed Service</span>
                                             <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-bold">Operate MS</span>
                                         </div>
                                         <p class="text-[11px] text-gray-500 mt-1 leading-snug">
@@ -477,7 +480,7 @@
                         </div>
 
                         {{-- 3. BIDANG SPESIFIK MANAGED SERVICE (CLEAN NEUTRAL CARD) --}}
-                        <div x-show="formTarget === 'managed_service'" class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3.5">
+                        <div x-show="formTarget === 'managed_service' || formTarget === 'both'" class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3.5">
                             <div class="flex items-center gap-2 text-gray-800 font-bold text-xs uppercase tracking-wider">
                                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                 <span>Parameter Khusus Layanan Managed Service &amp; SLA</span>
@@ -695,6 +698,7 @@
             isHandoverModalOpen: false,
             selectedProject: {},
             formTarget: 'pmo',
+            formTargets: ['pmo'],
             formPoNum: '',
             formPoDate: '',
             formContractValue: 0,
@@ -709,9 +713,33 @@
             formServiceStart: '',
             formServiceEnd: '',
 
+            toggleFormTarget(val) {
+                if (this.formTargets.includes(val)) {
+                    if (this.formTargets.length > 1) {
+                        this.formTargets = this.formTargets.filter(t => t !== val);
+                    }
+                } else {
+                    this.formTargets.push(val);
+                }
+                if (this.formTargets.includes('pmo') && this.formTargets.includes('managed_service')) {
+                    this.formTarget = 'both';
+                } else if (this.formTargets.includes('managed_service')) {
+                    this.formTarget = 'managed_service';
+                } else {
+                    this.formTarget = 'pmo';
+                }
+            },
+
             openHandoverModal(proj) {
                 this.selectedProject = proj;
                 this.formTarget = proj.handover_target || (proj.stage === 'Operate' ? 'managed_service' : 'pmo');
+                if (this.formTarget === 'both') {
+                    this.formTargets = ['pmo', 'managed_service'];
+                } else if (this.formTarget === 'managed_service') {
+                    this.formTargets = ['managed_service'];
+                } else {
+                    this.formTargets = ['pmo'];
+                }
                 this.formPoNum = proj.po_spk_number || '';
                 this.formPoDate = proj.po_spk_date ? proj.po_spk_date.split('T')[0] : '{{ date('Y-m-d') }}';
                 this.formContractValue = proj.contract_value || 0;

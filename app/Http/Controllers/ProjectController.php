@@ -343,7 +343,7 @@ class ProjectController extends Controller
             'user_id'               => 'required|exists:users,id',
             'task_title'            => 'nullable|string|max:255',
             'deadline'              => 'nullable|date',
-            'handover_target'       => 'nullable|string|in:pmo,managed_service',
+            'handover_target'       => 'nullable|string|in:pmo,managed_service,both',
             'po_spk_number'         => 'nullable|string|max:255',
             'po_spk_date'           => 'nullable|date',
             'contract_value'        => 'nullable|numeric|min:0',
@@ -428,6 +428,11 @@ class ProjectController extends Controller
 
             if ($target === 'managed_service') {
                 $updateFields['stage'] = 'Operate';
+            } else {
+                $updateFields['stage'] = 'Deliver';
+            }
+
+            if (in_array($target, ['managed_service', 'both'])) {
                 if ($request->filled('sla_tier')) {
                     $updateFields['sla_tier'] = $request->input('sla_tier');
                 }
@@ -443,8 +448,6 @@ class ProjectController extends Controller
                 if ($request->filled('service_end_date')) {
                     $updateFields['service_end_date'] = $request->input('service_end_date');
                 }
-            } else {
-                $updateFields['stage'] = 'Deliver';
             }
 
             if (in_array($project->status, ['Draft', 'Planning', 'Opportunity'])) {

@@ -377,7 +377,25 @@
             currentStatus: currentDbStatus || 'Draft',
             
             isHandoverModalOpen: false,
-            handoverTargetType: '{{ ($project->handover_target === 'managed_service' || $project->stage === 'Operate') ? 'managed_service' : 'pmo' }}',
+            handoverTargetType: '{{ $project->handover_target ?: (($project->stage === 'Operate') ? 'managed_service' : 'pmo') }}',
+            handoverTargets: {{ ($project->handover_target === 'both') ? "['pmo', 'managed_service']" : (($project->handover_target === 'managed_service' || $project->stage === 'Operate') ? "['managed_service']" : "['pmo']") }},
+
+            toggleHandoverTarget(val) {
+                if (this.handoverTargets.includes(val)) {
+                    if (this.handoverTargets.length > 1) {
+                        this.handoverTargets = this.handoverTargets.filter(t => t !== val);
+                    }
+                } else {
+                    this.handoverTargets.push(val);
+                }
+                if (this.handoverTargets.includes('pmo') && this.handoverTargets.includes('managed_service')) {
+                    this.handoverTargetType = 'both';
+                } else if (this.handoverTargets.includes('managed_service')) {
+                    this.handoverTargetType = 'managed_service';
+                } else {
+                    this.handoverTargetType = 'pmo';
+                }
+            },
             isApproveModalOpen: false,
             approveRole: 'head', // 'head' (Susanto) or 'director' (Hariyadi)
 
@@ -416,8 +434,15 @@
             },
 
             openHandoverModal(target = null) {
-                if (target) {
-                    this.handoverTargetType = target;
+                if (target === 'both') {
+                    this.handoverTargets = ['pmo', 'managed_service'];
+                    this.handoverTargetType = 'both';
+                } else if (target === 'managed_service') {
+                    this.handoverTargets = ['managed_service'];
+                    this.handoverTargetType = 'managed_service';
+                } else if (target === 'pmo') {
+                    this.handoverTargets = ['pmo'];
+                    this.handoverTargetType = 'pmo';
                 }
                 this.isHandoverModalOpen = true;
                 window.openModal('modal-handover');
@@ -1377,15 +1402,16 @@
                         <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
                             1. Pilih Karakteristik &amp; Target Serah Terima <span class="text-[#8F0A0D]">*</span>
                         </label>
+                        <input type="hidden" name="handover_target" :value="handoverTargetType">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {{-- Option 1: PMO Implementasi --}}
-                            <label @click="handoverTargetType = 'pmo'"
-                                   class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition"
-                                   :class="handoverTargetType === 'pmo' ? '!border-[#8F0A0D] !bg-red-50/40 text-gray-900 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-400 text-gray-600 bg-white'">
-                                <input type="radio" name="handover_target" value="pmo" x-model="handoverTargetType" class="mt-0.5 accent-[#8F0A0D] cursor-pointer">
+                            <label @click="toggleHandoverTarget('pmo')"
+                                   class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition shadow-2xs select-none"
+                                   :class="handoverTargets.includes('pmo') ? '!border-[#8F0A0D] !bg-red-50/40 text-gray-900 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-400 text-gray-600 bg-white'">
+                                <input type="checkbox" value="pmo" :checked="handoverTargets.includes('pmo')" @click.stop="toggleHandoverTarget('pmo')" class="mt-0.5 w-4 h-4 rounded text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
                                 <div>
                                     <div class="font-bold text-xs flex items-center gap-1.5">
-                                        <span :class="handoverTargetType === 'pmo' ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-800'">Proyek Implementasi</span>
+                                        <span :class="handoverTargets.includes('pmo') ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-800'">Proyek Implementasi</span>
                                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-bold">PMO Delivery</span>
                                     </div>
                                     <p class="text-[11px] text-gray-500 mt-1 leading-snug font-normal">
@@ -1395,13 +1421,13 @@
                             </label>
 
                             {{-- Option 2: Managed Service --}}
-                            <label @click="handoverTargetType = 'managed_service'"
-                                   class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition"
-                                   :class="handoverTargetType === 'managed_service' ? '!border-[#8F0A0D] !bg-red-50/40 text-gray-900 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-400 text-gray-600 bg-white'">
-                                <input type="radio" name="handover_target" value="managed_service" x-model="handoverTargetType" class="mt-0.5 accent-[#8F0A0D] cursor-pointer">
+                            <label @click="toggleHandoverTarget('managed_service')"
+                                   class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition shadow-2xs select-none"
+                                   :class="handoverTargets.includes('managed_service') ? '!border-[#8F0A0D] !bg-red-50/40 text-gray-900 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-400 text-gray-600 bg-white'">
+                                <input type="checkbox" value="managed_service" :checked="handoverTargets.includes('managed_service')" @click.stop="toggleHandoverTarget('managed_service')" class="mt-0.5 w-4 h-4 rounded text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
                                 <div>
                                     <div class="font-bold text-xs flex items-center gap-1.5">
-                                        <span :class="handoverTargetType === 'managed_service' ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-800'">Kontrak Managed Service</span>
+                                        <span :class="handoverTargets.includes('managed_service') ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-800'">Kontrak Managed Service</span>
                                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-bold">Operate MS</span>
                                     </div>
                                     <p class="text-[11px] text-gray-500 mt-1 leading-snug font-normal">
@@ -1514,7 +1540,7 @@
                         </div>
 
                         {{-- Khusus Managed Service Parameter --}}
-                        <div x-show="handoverTargetType === 'managed_service'" x-cloak class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3.5">
+                        <div x-show="handoverTargetType === 'managed_service' || handoverTargetType === 'both'" x-cloak class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3.5">
                             <div class="flex items-center gap-2 text-gray-800 font-bold text-xs uppercase tracking-wider">
                                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                 <span>Parameter Khusus Layanan Managed Service &amp; SLA</span>
@@ -1635,7 +1661,7 @@
         </div>
     </div>
 
-    {{-- MODAL DISPOSISI KE DIVISI PELAKSANA (NETWORK, SECURITY, ATAU KEDUANYA) --}}
+    {{-- MODAL DISPOSISI KE DIVISI PELAKSANA (BISA PILIH NETWORK, SECURITY, ATAU KEDUANYA) --}}
     <div id="modal-assign-division" x-show="isAssignDivisionModalOpen" x-cloak 
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
         <div @click.away="isAssignDivisionModalOpen = false; window.closeModal('modal-assign-division')" 
@@ -1649,8 +1675,26 @@
                 <button type="button" @click="isAssignDivisionModalOpen = false; window.closeModal('modal-assign-division')" onclick="window.closeModal('modal-assign-division')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
-            <form action="{{ route('projects.assign_division', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+            <form action="{{ route('projects.assign_division', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold"
+                  x-data="{
+                      selectedDivs: {{ ($project->division && str_contains(strtolower($project->division->name), 'sec')) && !str_contains(strtolower($project->division->name), 'net') ? "['security']" : (($project->division && str_contains(strtolower($project->division->name), 'net') && !str_contains(strtolower($project->division->name), 'sec')) ? "['network']" : "['network', 'security']") }},
+                      toggle(val) {
+                          if (this.selectedDivs.includes(val)) {
+                              if (this.selectedDivs.length > 1) {
+                                  this.selectedDivs = this.selectedDivs.filter(d => d !== val);
+                              }
+                          } else {
+                              this.selectedDivs.push(val);
+                          }
+                      },
+                      get targetDivisionVal() {
+                          if (this.selectedDivs.includes('network') && this.selectedDivs.includes('security')) return 'both';
+                          if (this.selectedDivs.includes('security')) return 'security';
+                          return 'network';
+                      }
+                  }">
                 @csrf
+                <input type="hidden" name="target_division" :value="targetDivisionVal">
                 
                 <div class="space-y-2.5">
                     <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px]">
@@ -1659,11 +1703,13 @@
 
                     <div class="space-y-2.5">
                         {{-- Opsi 1: Divisi Network --}}
-                        <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-white has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition shadow-2xs">
-                            <input type="radio" name="target_division" value="network" required {{ ($project->division && str_contains(strtolower($project->division->name), 'net')) ? 'checked' : '' }} class="mt-1 accent-[#8F0A0D]">
+                        <label @click="toggle('network')"
+                               class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition shadow-2xs select-none"
+                               :class="selectedDivs.includes('network') ? '!border-[#8F0A0D] !bg-red-50/40 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                            <input type="checkbox" value="network" :checked="selectedDivs.includes('network')" @click.stop="toggle('network')" class="mt-1 w-4 h-4 rounded text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
                             <div>
                                 <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                                    <span>Divisi Jaringan &amp; Infrastruktur (Network)</span>
+                                    <span :class="selectedDivs.includes('network') ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-900'">Divisi Jaringan &amp; Infrastruktur (Network)</span>
                                     <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold">Lead: Nugraha Pratama</span>
                                 </div>
                                 <p class="text-[11px] text-slate-500 font-normal mt-1 leading-relaxed">
@@ -1673,29 +1719,17 @@
                         </label>
 
                         {{-- Opsi 2: Divisi Security --}}
-                        <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-white has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition shadow-2xs">
-                            <input type="radio" name="target_division" value="security" required {{ ($project->division && str_contains(strtolower($project->division->name), 'sec')) ? 'checked' : '' }} class="mt-1 accent-[#8F0A0D]">
+                        <label @click="toggle('security')"
+                               class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition shadow-2xs select-none"
+                               :class="selectedDivs.includes('security') ? '!border-[#8F0A0D] !bg-red-50/40 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                            <input type="checkbox" value="security" :checked="selectedDivs.includes('security')" @click.stop="toggle('security')" class="mt-1 w-4 h-4 rounded text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
                             <div>
                                 <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                                    <span>Divisi Keamanan Siber (Security)</span>
+                                    <span :class="selectedDivs.includes('security') ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-900'">Divisi Keamanan Siber (Security)</span>
                                     <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold">Lead: Ignatius Rizky</span>
                                 </div>
                                 <p class="text-[11px] text-slate-500 font-normal mt-1 leading-relaxed">
                                     Implementasi Next-Generation Firewall (NGFW), SIEM/SOC, Endpoint Protection (EDR), Vulnerability Assessment, &amp; Hardening.
-                                </p>
-                            </div>
-                        </label>
-
-                        {{-- Opsi 3: Keduanya / Lintas Divisi --}}
-                        <label class="flex items-start gap-3 p-3.5 rounded-xl border-2 border-slate-200 hover:border-slate-300 cursor-pointer bg-white has-checked:border-[#8F0A0D] has-checked:bg-red-50/30 transition shadow-2xs">
-                            <input type="radio" name="target_division" value="both" required {{ (!$project->division && $project->stage === 'Deliver') ? 'checked' : '' }} class="mt-1 accent-[#8F0A0D]">
-                            <div>
-                                <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                                    <span>Kolaborasi Lintas Divisi (Network &amp; Security)</span>
-                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold">Multi-Disiplin</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 font-normal mt-1 leading-relaxed">
-                                    Solusi terpadu berskala penuh yang memerlukan alokasi dan koordinasi teknis gabungan dari kedua divisi.
                                 </p>
                             </div>
                         </label>
