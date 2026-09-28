@@ -309,12 +309,12 @@
                                         <div class="mb-1.5">
                                             <span class="px-2.5 py-0.5 rounded-md text-[10.5px] font-bold border"
                                                   :class="{
-                                                      'bg-blue-50 text-blue-700 border-blue-200': (project.division || '').includes('Network'),
-                                                      'bg-purple-50 text-purple-700 border-purple-200': (project.division || '').includes('Security'),
-                                                      'bg-indigo-50 text-indigo-700 border-indigo-200': (project.division || '').includes('Lintas') || (project.division || '').includes('Cross'),
-                                                      'bg-slate-50 text-slate-600 border-slate-200': !(project.division || '').includes('Network') && !(project.division || '').includes('Security') && !(project.division || '').includes('Lintas')
+                                                      'bg-indigo-50 text-indigo-700 border-indigo-200': (project.division || '').includes('&') || ((project.division || '').includes('Network') && (project.division || '').includes('Security')),
+                                                      'bg-blue-50 text-blue-700 border-blue-200': (project.division || '').includes('Network') && !(project.division || '').includes('Security'),
+                                                      'bg-purple-50 text-purple-700 border-purple-200': (project.division || '').includes('Security') && !(project.division || '').includes('Network'),
+                                                      'bg-amber-50 text-amber-800 border-amber-200': !(project.division) || (project.division || '').includes('Belum')
                                                   }"
-                                                  x-text="project.division || 'Belum Disposisi'">
+                                                  x-text="project.division || 'Belum Didelegasikan'">
                                             </span>
                                         </div>
                                         <div>
@@ -772,7 +772,7 @@
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-200">
                                 <div class="p-2.5 bg-slate-50 font-semibold text-slate-600 sm:col-span-1">Pihak Penerima (Delivery)</div>
-                                <div class="p-2.5 font-semibold text-blue-700 sm:col-span-2" x-text="(activeProject?.pm || 'Tim Delivery / PMO') + ' (' + (activeProject?.division || 'Lintas Divisi') + ')'"></div>
+                                <div class="p-2.5 font-semibold text-blue-700 sm:col-span-2" x-text="(activeProject?.pm || 'Tim Delivery / PMO') + ' (' + (activeProject?.division || 'Belum Didelegasikan') + ')'"></div>
                             </div>
                         </div>
                     </div>

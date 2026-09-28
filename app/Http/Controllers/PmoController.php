@@ -169,6 +169,20 @@ class PmoController extends Controller
                 }
             }
 
+            $divisionName = 'Belum Didelegasikan';
+            if ($p->division && $p->division_id) {
+                $rawDiv = $p->division->name;
+                if (str_contains(strtolower($rawDiv), 'lintas') || (str_contains(strtolower($rawDiv), 'net') && str_contains(strtolower($rawDiv), 'sec'))) {
+                    $divisionName = 'Network & Security';
+                } elseif (str_contains(strtolower($rawDiv), 'sec')) {
+                    $divisionName = 'Divisi Security';
+                } elseif (str_contains(strtolower($rawDiv), 'net')) {
+                    $divisionName = 'Divisi Network';
+                } else {
+                    $divisionName = $rawDiv;
+                }
+            }
+
             return [
                 'id'                            => $p->id,
                 'name'                          => $p->name,
@@ -186,7 +200,7 @@ class PmoController extends Controller
                 'duration'                      => $p->duration_formatted ?: '-',
                 'pm'                            => $p->pm ? $p->pm->name : 'Belum Ditentukan',
                 'pm_id'                         => $p->pm_id,
-                'division'                      => $p->division ? $p->division->name : 'Lintas Divisi',
+                'division'                      => $divisionName,
                 'division_id'                   => $p->division_id,
                 'total_tasks'                   => $totalTasks,
                 'completed_tasks'               => $completedTasks,

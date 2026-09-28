@@ -237,7 +237,7 @@
                                 @elseif(str_contains(strtolower($project->division->name), 'sec') && !str_contains(strtolower($project->division->name), 'lintas') && !str_contains(strtolower($project->division->name), 'network'))
                                     Ignatius Rizky (Lead Security)
                                 @else
-                                    Lead Network &amp; Lead Security (Lintas Divisi)
+                                    Lead Network &amp; Lead Security (Network &amp; Security)
                                 @endif
                             @else
                                 Belum Didelegasikan ke Divisi
