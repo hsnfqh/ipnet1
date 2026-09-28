@@ -244,21 +244,21 @@
             {{-- 1.5 PERMOHONAN PERSETUJUAN DRAFT DARI SALES (DUAL SIGN-OFF) --}}
             {{-- ======================================================== --}}
             @if(isset($pendingDraftApprovals) && $pendingDraftApprovals->count() > 0)
-                <div class="rounded-2xl p-5 border-2 border-red-200 bg-gradient-to-br from-red-50/90 via-white to-amber-50/40 shadow-md shadow-red-950/5 space-y-3.5 anim-fade-up">
-                    <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="rounded-2xl p-5 border border-slate-200 bg-white shadow-2xs space-y-3.5 anim-fade-up">
+                    <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
                         <div class="flex items-center gap-2.5">
-                            <span class="relative flex h-3 w-3">
+                            <span class="relative flex h-2.5 w-2.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-3 w-3 bg-[#8F0A0D]"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#8F0A0D]"></span>
                             </span>
-                            <h3 class="text-[14px] font-extrabold text-[#1E293B] flex items-center gap-2">
+                            <h3 class="text-[14px] font-bold text-slate-900 flex items-center gap-2">
                                 <span>Permohonan Persetujuan Draft Proyek dari Sales</span>
-                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#8F0A0D] text-white shadow-xs">
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#8F0A0D] text-white shadow-xs">
                                     {{ $pendingDraftApprovals->count() }} Menunggu Otorisasi Anda
                                 </span>
                             </h3>
                         </div>
-                        <span class="text-[11.5px] font-semibold text-[#64748B]">Otorisasi dan persetujuan komersial sebelum diserahkan ke PMO / Tim Teknis</span>
+                        <span class="text-[11.5px] font-semibold text-slate-500">Otorisasi dan persetujuan komersial sebelum diserahkan ke PMO / Tim Teknis</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
