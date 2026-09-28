@@ -1388,6 +1388,15 @@ class ProjectController extends Controller
             $updateData['stage'] = 'Deliver';
             $updateData['progress'] = 100;
             $updateData['sales_stage'] = 'Closed Won';
+
+            $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
+            $handoverData['completion'] = [
+                'completed'         => true,
+                'completed_at'      => now()->format('d M Y H:i'),
+                'completed_by'      => auth()->user() ? auth()->user()->name : ($project->sales_name ?: 'Sales'),
+                'completed_user_id' => auth()->id(),
+            ];
+            $updateData['handover_data'] = $handoverData;
         }
 
         $project->update($updateData);

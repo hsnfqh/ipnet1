@@ -1206,6 +1206,27 @@
                                 </div>
                             @endif
 
+                            {{-- 11. Status Akhir: Proyek Selesai (Completed / Pengadaan Barang Selesai) --}}
+                            @php
+                                $completionData = $handoverData['completion'] ?? [];
+                                $isProjectCompleted = ($currentStatus === 'Completed' || $project->status === 'Completed' || !empty($completionData['completed']));
+                                $completedBy = $completionData['completed_by'] ?? ($project->sales_name ?: ($project->creator ? $project->creator->name : 'Sales'));
+                                $completedAt = $completionData['completed_at'] ?? \Carbon\Carbon::parse($project->updated_at)->format('d M Y H:i');
+                            @endphp
+                            @if($isProjectCompleted)
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs flex items-center justify-center">
+                                        <div class="w-1 h-1 rounded-full bg-white"></div>
+                                    </div>
+                                    <div class="font-normal text-slate-700">
+                                        Proyek Selesai: <strong class="font-semibold text-slate-900">Completed</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $completedAt }} (oleh {{ $completedBy }})
+                                    </div>
+                                </div>
+                            @endif
+
                         </div>
                     </div>
 
