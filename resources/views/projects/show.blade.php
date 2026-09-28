@@ -995,7 +995,86 @@
                                 </div>
                             </div>
 
-                            {{-- 2. Approval & Otorisasi Pimpinan (Head Divisi & Direktur) --}}
+                            {{-- 2. Penunjukan PIC BD --}}
+                            @if($isBdmAssigned && !empty($bdmName))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Penunjukan PIC BD: <strong class="font-semibold text-slate-900">{{ $bdmName }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5">
+                                        Product Manager / Verifikator Solusi
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 3. Penugasan Tim Solusi Teknis (Pre-Sales & SA) --}}
+                            @if(!empty($presalesAssignment['assigned']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Penugasan Pre-Sales: <strong class="font-semibold text-slate-900">{{ $presalesAssignment['assigned_to'] ?? 'Akbar' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $presalesAssignment['assigned_at'] ?? 'Ditugaskan' }} (oleh {{ $presalesAssignment['assigned_by'] ?? 'Sales' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($architectAssignment['assigned']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Penugasan Solution Architect: <strong class="font-semibold text-slate-900">{{ $architectAssignment['assigned_to'] ?? 'Aris Sadewo' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $architectAssignment['assigned_at'] ?? 'Ditugaskan' }} (oleh {{ $architectAssignment['assigned_by'] ?? 'Sales' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 4. Unggah Dokumen Proposal & Desain Topologi --}}
+                            @if(!empty($presalesAssignment['document_path']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Proposal Teknis &amp; BoQ diunggah oleh <strong class="font-semibold text-slate-900">{{ $presalesAssignment['assigned_to'] ?? 'Pre-Sales' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        Dokumen Proposal &amp; SOW Terlampir ({{ $presalesAssignment['completed_at'] ?? 'Selesai' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($architectAssignment['document_path']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Desain Topologi diunggah oleh <strong class="font-semibold text-slate-900">{{ $architectAssignment['assigned_to'] ?? 'Solution Architect' }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        Diagram Arsitektur Terlampir ({{ $architectAssignment['completed_at'] ?? 'Selesai' }})
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 5. Verifikasi Solusi BD --}}
+                            @if(!empty($bdVerification['verified_at']) || (!empty($bdVerification['status']) && in_array($bdVerification['status'], ['Approved', 'Revision Needed']) && !empty($bdVerification['verified_by'])))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Verifikasi Solusi BD: <strong class="font-semibold text-slate-900">{{ $bdVerification['status'] === 'Approved' ? 'Disetujui' : 'Perlu Revisi' }}</strong> oleh <strong class="font-semibold text-slate-900">{{ $bdVerification['verified_by'] ?? ($bdmName ?: 'PIC BD') }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $bdVerification['verified_at'] ?? 'Selesai diverifikasi' }}
+                                        @if(!empty($bdVerification['notes']))
+                                            <div class="text-slate-600 font-normal italic mt-1 bg-slate-50 p-2 rounded border border-slate-200">"{{ $bdVerification['notes'] }}"</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 6. Approval & Otorisasi Pimpinan (Head Divisi & Direktur) --}}
                             @if(!empty($headApproval['assigned']) && empty($headApproval['approved']))
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
@@ -1040,85 +1119,6 @@
                                     </div>
                                     <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
                                         {{ $directorApproval['date'] ?? 'Disahkan' }}
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- 3. Penunjukan PIC BD --}}
-                            @if($isBdmAssigned && !empty($bdmName))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Penunjukan PIC BD: <strong class="font-semibold text-slate-900">{{ $bdmName }}</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5">
-                                        Product Manager / Verifikator Solusi
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- 4. Penugasan Tim Solusi Teknis (Pre-Sales & SA) --}}
-                            @if(!empty($presalesAssignment['assigned']))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Penugasan Pre-Sales: <strong class="font-semibold text-slate-900">{{ $presalesAssignment['assigned_to'] ?? 'Akbar' }}</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        {{ $presalesAssignment['assigned_at'] ?? 'Ditugaskan' }} (oleh {{ $presalesAssignment['assigned_by'] ?? 'Sales' }})
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if(!empty($architectAssignment['assigned']))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Penugasan Solution Architect: <strong class="font-semibold text-slate-900">{{ $architectAssignment['assigned_to'] ?? 'Aris Sadewo' }}</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        {{ $architectAssignment['assigned_at'] ?? 'Ditugaskan' }} (oleh {{ $architectAssignment['assigned_by'] ?? 'Sales' }})
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- 5. Unggah Dokumen Proposal & Desain Topologi --}}
-                            @if(!empty($presalesAssignment['document_path']))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Proposal Teknis &amp; BoQ diunggah oleh <strong class="font-semibold text-slate-900">{{ $presalesAssignment['assigned_to'] ?? 'Pre-Sales' }}</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        Dokumen Proposal &amp; SOW Terlampir ({{ $presalesAssignment['completed_at'] ?? 'Selesai' }})
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if(!empty($architectAssignment['document_path']))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Desain Topologi diunggah oleh <strong class="font-semibold text-slate-900">{{ $architectAssignment['assigned_to'] ?? 'Solution Architect' }}</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        Diagram Arsitektur Terlampir ({{ $architectAssignment['completed_at'] ?? 'Selesai' }})
-                                    </div>
-                                </div>
-                            @endif
-
-                            {{-- 6. Verifikasi Solusi BD --}}
-                            @if(!empty($bdVerification['verified_at']) || (!empty($bdVerification['status']) && in_array($bdVerification['status'], ['Approved', 'Revision Needed']) && !empty($bdVerification['verified_by'])))
-                                <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
-                                    <div class="font-normal text-slate-700">
-                                        Verifikasi Solusi BD: <strong class="font-semibold text-slate-900">{{ $bdVerification['status'] === 'Approved' ? 'Disetujui' : 'Perlu Revisi' }}</strong> oleh <strong class="font-semibold text-slate-900">{{ $bdVerification['verified_by'] ?? ($bdmName ?: 'PIC BD') }}</strong>
-                                    </div>
-                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        {{ $bdVerification['verified_at'] ?? 'Selesai diverifikasi' }}
-                                        @if(!empty($bdVerification['notes']))
-                                            <div class="text-slate-600 font-normal italic mt-1 bg-slate-50 p-2 rounded border border-slate-200">"{{ $bdVerification['notes'] }}"</div>
-                                        @endif
                                     </div>
                                 </div>
                             @endif
