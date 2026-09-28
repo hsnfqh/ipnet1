@@ -1480,6 +1480,167 @@ class ProjectController extends Controller
     }
 
     /**
+     * Serah Terima Lanjutan dari PMO ke Managed Service (untuk proyek bertipe dual-scope / 'both')
+     * Setelah pekerjaan implementasi fisik selesai, PMO menyerahkan kelanjutan operasional & SLA ke tim Managed Service.
+     */
+    public function handoverToMs(Request $request, Project $project)
+    {
+        $authUser = auth()->user();
+        $canHandover = $authUser && (
+            \App\Helpers\ScopeHelper::isPmo($authUser)
+            || ($project->pm_id && $project->pm_id == $authUser->id)
+            || \App\Helpers\ScopeHelper::isExecutive($authUser)
+            || ($project->creator && $project->creator->id == $authUser->id)
+            || ($project->sales_id && $project->sales_id == $authUser->id)
+            || $authUser->hasRole('Super Admin')
+        );
+        abort_unless($canHandover, 403, 'Handover ke Managed Service hanya dapat dilakukan oleh PMO / Project Manager atau Management.');
+
+        $validated = $request->validate([
+            'ms_lead_id'   => 'nullable|exists:users,id',
+            'ms_lead_name' => 'nullable|string|max:255',
+            'notes'        => 'nullable|string|max:1000',
+        ]);
+
+        $msLead = null;
+        if (!empty($validated['ms_lead_id'])) {
+            $msLead = User::find($validated['ms_lead_id']);
+        }
+        if (!$msLead) {
+            $msLead = User::where('name', 'like', '%Nugraha%')
+                ->orWhere('name', 'like', '%Rizky%')
+                ->orWhere('name', 'like', '%Lead%')
+                ->first();
+        }
+
+        $msLeadName = $msLead ? $msLead->name : ($validated['ms_lead_name'] ?: 'Lead Managed Service');
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+
+        $now = now()->format('d M Y H:i');
+        $handoverData['ms_handover'] = [
+            'handed_over'    => true,
+            'handed_over_at' => $now,
+            'handed_over_by' => $authUser ? $authUser->name : ($project->pm ? $project->pm->name : 'PMO Delivery'),
+            'ms_lead_id'     => $msLead ? $msLead->id : null,
+            'ms_lead_name'   => $msLeadName,
+            'notes'          => $validated['notes'] ?? 'Pekerjaan implementasi telah selesai. Dilanjutkan serah terima pemeliharaan & Managed Service.',
+            'ms_engineers'   => $handoverData['ms_handover']['ms_engineers'] ?? [],
+        ];
+
+        // Tetap 'In Progress' di sisi sales, stage beralih ke 'Operate'
+        $project->updateQuietly([
+            'stage'         => 'Operate',
+            'handover_data' => $handoverData,
+        ]);
+
+        // Buat tiket task untuk tim Managed Service jika belum ada
+        $existingMsTask = Task::where('project_id', $project->id)
+            ->where('title', 'like', '%Managed Service%')
+            ->first();
+
+        if (!$existingMsTask) {
+            $msTask = Task::create([
+                'title'       => 'Operasional & Maintenance (Managed Service): ' . $project->name,
+                'description' => 'Tugas operasional SLA & Managed Service pasca implementasi untuk klien ' . ($project->client ?: '-') . '. Catatan Handover PMO: ' . ($validated['notes'] ?? '-'),
+                'status'      => 'Assigned',
+                'priority'    => 'High',
+                'progress'    => 0,
+                'start_date'  => now()->toDateString(),
+                'deadline'    => $project->deadline ?: now()->addDays(30)->toDateString(),
+                'engineer_id' => $msLead ? $msLead->id : null,
+                'project_id'  => $project->id,
+                'created_by'  => auth()->id(),
+            ]);
+
+            if ($msLead && \Illuminate\Support\Facades\Schema::hasTable('task_user')) {
+                $msTask->engineers()->sync([$msLead->id]);
+            }
+        }
+
+        // Kirim notifikasi ke Lead Managed Service
+        if ($msLead && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            \App\Models\Notification::create([
+                'user_id' => $msLead->id,
+                'title'   => 'Serah Terima Managed Service: ' . $project->name,
+                'message' => 'Proyek "' . $project->name . '" telah selesai tahap implementasi dan diserahterimakan oleh PMO ke Tim Managed Service. Silakan lakukan penugasan teknisi pemeliharaan.',
+                'url'     => route('projects.show', $project->id),
+                'is_read' => false,
+            ]);
+        }
+
+        $msg = "Proyek berhasil diserahterimakan ke Tim Managed Service ({$msLeadName})! Status proyek tetap In Progress sampai masa kontrak/operasional tuntas.";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => $msg, 'project' => $project->fresh()]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Penugasan Teknisi Managed Service oleh Lead Managed Service
+     */
+    public function assignMsEngineer(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'engineer_ids'   => 'required|array|min:1',
+            'engineer_ids.*' => 'exists:users,id',
+            'notes'          => 'nullable|string|max:1000',
+        ]);
+
+        $engineers = User::whereIn('id', $validated['engineer_ids'])->get();
+        $engineerNames = $engineers->pluck('name')->toArray();
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $msHandover = $handoverData['ms_handover'] ?? [];
+        $msHandover['ms_engineers'] = $engineerNames;
+        $msHandover['ms_engineer_ids'] = $validated['engineer_ids'];
+        $msHandover['assigned_at'] = now()->format('d M Y H:i');
+        $msHandover['assigned_by'] = auth()->user() ? auth()->user()->name : 'Lead Managed Service';
+        $msHandover['engineer_notes'] = $validated['notes'] ?? null;
+
+        $handoverData['ms_handover'] = $msHandover;
+        $project->handover_data = $handoverData;
+        $project->save();
+
+        // Update task Managed Service dengan engineer yang ditugaskan
+        $msTask = Task::where('project_id', $project->id)
+            ->where('title', 'like', '%Managed Service%')
+            ->first();
+
+        if ($msTask) {
+            $msTask->update([
+                'engineer_id' => $validated['engineer_ids'][0] ?? null,
+                'status'      => 'Assigned',
+            ]);
+            if (\Illuminate\Support\Facades\Schema::hasTable('task_user')) {
+                $msTask->engineers()->sync($validated['engineer_ids']);
+            }
+        }
+
+        // Kirim notifikasi ke teknisi MS yang ditugaskan
+        if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            foreach ($engineers as $eng) {
+                \App\Models\Notification::create([
+                    'user_id' => $eng->id,
+                    'title'   => 'Penugasan Managed Service: ' . $project->name,
+                    'message' => 'Anda ditugaskan sebagai teknisi Managed Service & Maintenance untuk proyek "' . $project->name . '" (Klien: ' . ($project->client ?: '-') . ').',
+                    'url'     => route('projects.show', $project->id),
+                    'is_read' => false,
+                ]);
+            }
+        }
+
+        $msg = 'Teknisi Managed Service (' . implode(', ', $engineerNames) . ') berhasil ditugaskan!';
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => $msg, 'project' => $project->fresh()]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
      * Hitung ulang status project secara otomatis berdasarkan tasks.
      * - Tidak ada task / semua 0%  → Planning
      * - Ada task yang berjalan     → On Progress

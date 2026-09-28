@@ -267,6 +267,10 @@
         }
     };
 
+    window.openHandoverModalCustom = function(target) {
+        window.openModal('modal-handover');
+    };
+
     window.startEditTitle = function() {
         const display = document.getElementById('title-display-container');
         const form = document.getElementById('title-edit-form');
@@ -1231,7 +1235,39 @@
                                 </div>
                             @endif
 
-                            {{-- 11. Status Akhir: Proyek Selesai (Completed / Pengadaan Barang Selesai) --}}
+                            {{-- 11. Handover Lanjutan ke Divisi Managed Service (Untuk Proyek Dual Scope / Managed Service) --}}
+                            @php
+                                $msHandoverTimeline = $handoverData['ms_handover'] ?? [];
+                            @endphp
+                            @if(!empty($msHandoverTimeline['handed_over']))
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-purple-700 to-indigo-700 ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Handover Lanjutan: <strong class="font-semibold text-purple-900">Divisi Managed Service ({{ $msHandoverTimeline['ms_lead_name'] ?? 'Lead MS' }})</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $msHandoverTimeline['handed_over_at'] ?? '-' }} (oleh {{ $msHandoverTimeline['handed_over_by'] ?? 'PMO' }})
+                                        @if(!empty($msHandoverTimeline['notes']))
+                                            <div class="text-slate-600 font-normal italic mt-1 bg-slate-50 p-2 rounded border border-slate-200">"{{ $msHandoverTimeline['notes'] }}"</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 12. Penugasan Teknisi Managed Service --}}
+                            @if(!empty($msHandoverTimeline['ms_engineers']) && count($msHandoverTimeline['ms_engineers']) > 0)
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-purple-700 to-indigo-700 ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Teknisi Managed Service: <strong class="font-semibold text-purple-900">{{ implode(', ', $msHandoverTimeline['ms_engineers']) }}</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
+                                        {{ $msHandoverTimeline['assigned_at'] ?? 'Ditugaskan' }} (Operasional &amp; SLA Aktif)
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- 13. Status Akhir: Proyek Selesai (Completed / Pengadaan Barang Selesai) --}}
                             @php
                                 $completionData = $handoverData['completion'] ?? [];
                                 $isProjectCompleted = ($currentStatus === 'Completed' || $project->status === 'Completed' || !empty($completionData['completed']));
@@ -1797,6 +1833,120 @@
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition shadow-xs">
                         Tugaskan Engineer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL SERAH TERIMA DARI PMO KE MANAGED SERVICE (FASE 2) --}}
+    <div id="modal-handover-ms" x-cloak 
+         class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+                <div>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">
+                        SERAH TERIMA FASE 2
+                    </span>
+                    <h3 class="text-base font-bold text-slate-900 mt-1">Handover ke Tim Managed Service</h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Serahkan kelanjutan operasional &amp; SLA ke Lead Managed Service setelah implementasi fisik tuntas.</p>
+                </div>
+                <button type="button" onclick="window.closeModal('modal-handover-ms')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.handover_to_ms', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">PILIH LEAD MANAGED SERVICE / MAINTENANCE <span class="text-[#8F0A0D]">*</span></label>
+                    <select name="ms_lead_id" required class="w-full px-3 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-purple-600">
+                        @php
+                            $msLeaders = ($allUsers ?? \App\Models\User::orderBy('name')->get())->filter(function($u) {
+                                return $u->hasAnyRole(['Managed Service', 'Lead Engineer', 'Lead Divisi', 'Team Leader', 'Team Leader Engineering', 'Engineer', 'Super Admin']);
+                            });
+                        @endphp
+                        <option value="">-- Pilih Lead Managed Service --</option>
+                        @foreach($msLeaders as $msl)
+                            <option value="{{ $msl->id }}" {{ str_contains(strtolower($msl->name), 'nugraha') || str_contains(strtolower($msl->name), 'rizky') ? 'selected' : '' }}>
+                                {{ $msl->name }} ({{ $msl->roles->pluck('name')->first() ?? 'Staff' }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">CATATAN HANDOVER DARI PMO</label>
+                    <textarea name="notes" rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                              placeholder="Contoh: Pekerjaan fisik & deployment jaringan selesai dan sudah UAT bersama klien. Diserahkan untuk SLA & pemeliharaan berkala."></textarea>
+                </div>
+
+                <div class="p-3 rounded-xl bg-purple-50/60 border border-purple-200 text-purple-900 text-[11.5px] leading-relaxed">
+                    <strong>Catatan Alur:</strong> Status proyek di Sales tetap <em>In Progress</em> dan baru berubah menjadi <em>Completed</em> saat seluruh masa kontrak/SLA benar-benar selesai.
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="window.closeModal('modal-handover-ms')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 cursor-pointer transition shadow-xs">
+                        Konfirmasi Serah Terima ke MS
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL PENUGASAN TEKNISI MANAGED SERVICE (FASE 2) --}}
+    <div id="modal-assign-ms-engineer" x-cloak 
+         class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+                <div>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">
+                        PENUGASAN MANAGED SERVICE
+                    </span>
+                    <h3 class="text-base font-bold text-slate-900 mt-1">Tugaskan Teknisi Managed Service</h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Pilih satu atau beberapa teknisi untuk pemeliharaan rutin, penanganan insiden &amp; SLA.</p>
+                </div>
+                <button type="button" onclick="window.closeModal('modal-assign-ms-engineer')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('projects.assign_ms_engineer', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+                @csrf
+
+                <div>
+                    <label class="block text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">PILIH TEKNISI MANAGED SERVICE <span class="text-[#8F0A0D]">*</span></label>
+                    <div class="max-h-48 overflow-y-auto space-y-1.5 p-3 rounded-xl border border-slate-200 bg-slate-50">
+                        @php
+                            $currentMsEngNames = $handoverData['ms_handover']['ms_engineers'] ?? [];
+                            $allEngs = ($allUsers ?? \App\Models\User::orderBy('name')->get())->filter(function($u) {
+                                return $u->hasAnyRole(['Engineer', 'Field Engineer', 'Network Engineer', 'Security Engineer', 'Managed Service', 'Lead Engineer']);
+                            });
+                        @endphp
+                        @foreach($allEngs as $e)
+                            <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 hover:border-purple-300 transition cursor-pointer select-none">
+                                <input type="checkbox" name="engineer_ids[]" value="{{ $e->id }}" 
+                                       {{ in_array($e->name, $currentMsEngNames) ? 'checked' : '' }}
+                                       class="w-4 h-4 rounded text-purple-600 accent-purple-600">
+                                <span class="text-slate-900 font-bold text-xs">{{ $e->name }}</span>
+                                <span class="text-[10px] text-slate-400">({{ $e->roles->pluck('name')->first() ?? 'Engineer' }})</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">INSTRUKSI KERJA / JADWAL SLA</label>
+                    <textarea name="notes" rows="2.5" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                              placeholder="Contoh: Preventive maintenance berkala setiap 2 minggu sekali dan standby 24/7 untuk insiden kritis."></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="window.closeModal('modal-assign-ms-engineer')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 cursor-pointer transition shadow-xs">
+                        Simpan Penugasan Teknisi
                     </button>
                 </div>
             </form>
