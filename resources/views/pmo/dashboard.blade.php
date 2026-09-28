@@ -189,55 +189,77 @@
             </template>
 
             <!-- ========================================================== -->
-            <!-- 4. TABEL PORTOFOLIO PROYEK & KONTROL IMPLEMENTASI          -->
+            <!-- 4. DAFTAR PORTOFOLIO PROYEK & KONTROL IMPLEMENTASI        -->
             <!-- ========================================================== -->
             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
                 
                 {{-- A. QUICK FILTER TABS --}}
-                <div class="p-3 sm:px-6 pt-4 border-b border-slate-100 flex items-center gap-2 overflow-x-auto bg-slate-50/50">
-                    <button type="button" 
-                            @click="activeTab = 'all'; currentPage = 1;"
-                            :class="activeTab === 'all' ? 'bg-white text-slate-900 border-slate-300 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
-                            class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                        <span>Semua Portofolio</span>
-                        <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-slate-100 text-slate-600" x-text="projects.length"></span>
-                    </button>
+                <div class="p-3 sm:px-6 pt-4 border-b border-slate-100 flex items-center justify-between gap-3 overflow-x-auto bg-slate-50/50">
+                    <div class="flex items-center gap-2">
+                        <button type="button" 
+                                @click="activeTab = 'all'; currentPage = 1;"
+                                :class="activeTab === 'all' ? 'bg-white text-slate-900 border-slate-300 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
+                                class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
+                            <span>Semua Portofolio</span>
+                            <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-slate-100 text-slate-600" x-text="projects.length"></span>
+                        </button>
 
-                    <button type="button" 
-                            @click="activeTab = 'deliver'; currentPage = 1;"
-                            :class="activeTab === 'deliver' ? 'bg-white text-[#8F0A0D] border-red-200 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
-                            class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
-                        <span>Tahap Deliver (Aktif)</span>
-                        <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-red-50 text-[#8F0A0D] font-bold" x-text="stageCounts.Deliver || 0"></span>
-                    </button>
+                        <button type="button" 
+                                @click="activeTab = 'deliver'; currentPage = 1;"
+                                :class="activeTab === 'deliver' ? 'bg-white text-[#8F0A0D] border-red-200 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
+                                class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                            <span>Tahap Deliver (Aktif)</span>
+                            <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-red-50 text-[#8F0A0D] font-bold" x-text="stageCounts.Deliver || 0"></span>
+                        </button>
 
-                    <button type="button" 
-                            @click="activeTab = 'pending_handover'; currentPage = 1;"
-                            :class="activeTab === 'pending_handover' ? 'bg-white text-amber-800 border-amber-300 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
-                            class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                        <span>Menunggu Review PMO</span>
-                        <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-amber-100 text-amber-800 font-bold" x-text="handoverPendingCount"></span>
-                    </button>
+                        <button type="button" 
+                                @click="activeTab = 'pending_handover'; currentPage = 1;"
+                                :class="activeTab === 'pending_handover' ? 'bg-white text-amber-800 border-amber-300 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
+                                class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                            <span>Menunggu Review PMO</span>
+                            <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-amber-100 text-amber-800 font-bold" x-text="handoverPendingCount"></span>
+                        </button>
 
-                    <button type="button" 
-                            @click="activeTab = 'ready_ms'; currentPage = 1;"
-                            :class="activeTab === 'ready_ms' ? 'bg-white text-blue-700 border-blue-300 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
-                            class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                        <span>Siap Transisi MS</span>
-                        <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-blue-100 text-blue-700 font-bold" x-text="readyToOperateCount"></span>
-                    </button>
+                        <button type="button" 
+                                @click="activeTab = 'ready_ms'; currentPage = 1;"
+                                :class="activeTab === 'ready_ms' ? 'bg-white text-blue-700 border-blue-300 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
+                                class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            <span>Siap Transisi MS</span>
+                            <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-blue-100 text-blue-700 font-bold" x-text="readyToOperateCount"></span>
+                        </button>
+                    </div>
+
+                    {{-- View Mode Toggle (Table vs Cards) --}}
+                    <div class="flex items-center gap-1 bg-slate-200/60 p-1 rounded-xl shrink-0">
+                        <button type="button" 
+                                @click="viewMode = 'table'" 
+                                :class="viewMode === 'table' ? 'bg-white text-[#8F0A0D] shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'"
+                                title="Tampilan Tabel Rinci"
+                                class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                            <span class="hidden sm:inline">Tabel</span>
+                        </button>
+                        <button type="button" 
+                                @click="viewMode = 'cards'" 
+                                :class="viewMode === 'cards' ? 'bg-white text-[#8F0A0D] shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800'"
+                                title="Tampilan Kartu Portofolio"
+                                class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                            <span class="hidden sm:inline">Kartu</span>
+                        </button>
+                    </div>
                 </div>
 
                 {{-- B. Table Toolbar: Search & Select Filters --}}
                 <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5 bg-white">
-                    <div class="relative w-full md:w-88">
+                    <div class="relative w-full md:w-96">
                         <input type="text" 
                                x-model="search" 
                                @input="currentPage = 1" 
-                               placeholder="Cari nomor SO, nama proyek, instansi klien, atau PIC..." 
+                               placeholder="Cari nama proyek, nomor SO, klien, atau PIC..." 
                                class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#8F0A0D] focus:ring-2 focus:ring-red-500/20 transition outline-none">
                         <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -270,180 +292,173 @@
                     </div>
                 </div>
 
-                {{-- C. Clean, Un-cluttered, Professional Data Table with Horizontal Scroll --}}
-                <div class="overflow-x-auto">
-                    <table class="w-full min-w-[1400px] text-left text-xs border-collapse">
+                {{-- C1. TAMPILAN TABEL MODERN & LEGA (Fits 100% with No Ugly Wrapping) --}}
+                <div x-show="viewMode === 'table'" class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr class="border-b border-slate-200/80 bg-slate-50/70 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">
-                                <th class="py-3.5 px-4 sm:px-5 w-64">NAMA PROYEK</th>
-                                <th class="py-3.5 px-4 w-48">KLIEN / INSTANSI</th>
-                                <th class="py-3.5 px-4 w-40">SALES PIC</th>
-                                <th class="py-3.5 px-4 w-44">DIVISI PELAKSANA</th>
-                                <th class="py-3.5 px-4 w-40">PROJECT MANAGER (PM)</th>
-                                <th class="py-3.5 px-4 w-48">STATUS TATA KELOLA</th>
-                                <th class="py-3.5 px-4 w-44">TARGET TENGGAT (SLA)</th>
-                                <th class="py-3.5 px-4 w-36">PROGRES FISIK</th>
-                                <th class="py-3.5 px-4 w-36">DOKUMEN HANDOVER</th>
-                                <th class="py-3.5 px-4 sm:px-6 text-right w-28">TINDAKAN</th>
+                                <th class="py-3.5 px-4 sm:px-6 w-[34%]">PROYEK &amp; KLIEN</th>
+                                <th class="py-3.5 px-4 w-[18%]">DIVISI &amp; PIC PM</th>
+                                <th class="py-3.5 px-4 w-[18%]">STATUS TATA KELOLA</th>
+                                <th class="py-3.5 px-4 w-[18%]">TENGGAT &amp; PROGRES</th>
+                                <th class="py-3.5 px-4 sm:px-6 text-right w-[12%]">TINDAKAN</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
                             <template x-for="project in paginatedProjects" :key="project.id">
                                 <tr class="hover:bg-slate-50/80 transition-colors" :class="project.handover_status === 'Submitted' ? 'bg-amber-50/20' : ''">
                                     
-                                    {{-- Kolom 1: Nama Proyek & SO --}}
-                                    <td class="py-4 px-4 sm:px-5">
-                                        <a :href="'/projects/' + project.id" class="font-bold text-slate-900 text-[13px] hover:text-[#8F0A0D] transition block line-clamp-2 leading-snug" x-text="project.name"></a>
-                                        <template x-if="project.so_code">
-                                            <span class="inline-block mt-1 font-mono text-[10px] text-slate-400 font-medium" x-text="project.so_code"></span>
-                                        </template>
-                                    </td>
+                                    {{-- Kolom 1: Proyek & Klien (Dominan & Lega, Bebas Patah Kata) --}}
+                                    <td class="py-4 px-4 sm:px-6 align-top">
+                                        <div class="space-y-1.5">
+                                            <a :href="'/projects/' + project.id" class="font-extrabold text-slate-900 text-sm hover:text-[#8F0A0D] transition block leading-snug" x-text="project.name"></a>
+                                            
+                                            <div class="flex items-center gap-2 flex-wrap text-[11px]">
+                                                <span class="inline-flex items-center gap-1 font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                                                    <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                                    <span x-text="project.client"></span>
+                                                </span>
 
-                                    {{-- Kolom 2: Klien / Instansi (Dedicated) --}}
-                                    <td class="py-4 px-4 whitespace-nowrap">
-                                        <div class="inline-flex items-center gap-1.5 font-bold text-slate-800 text-xs">
-                                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                            <span x-text="project.client"></span>
+                                                <span class="inline-flex items-center gap-1 font-bold text-[#8F0A0D] bg-red-50 border border-red-100 px-2 py-0.5 rounded-md">
+                                                    <svg class="w-3 h-3 text-[#8F0A0D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                    <span>Sales: </span><span x-text="project.sales_name"></span>
+                                                </span>
+
+                                                <template x-if="project.so_code">
+                                                    <span class="font-mono text-[10.5px] text-slate-400 px-1 py-0.5 bg-slate-50 border border-slate-200 rounded" x-text="project.so_code"></span>
+                                                </template>
+                                            </div>
                                         </div>
                                     </td>
 
-                                    {{-- Kolom 3: Sales PIC (Dedicated) --}}
-                                    <td class="py-4 px-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-50 border border-slate-200 text-slate-700">
-                                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                            <span x-text="project.sales_name || '-'"></span>
-                                        </span>
-                                    </td>
-
-                                    {{-- Kolom 4: Divisi Pelaksana (Dedicated) --}}
-                                    <td class="py-4 px-4 whitespace-nowrap">
-                                        <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold border inline-block"
-                                              :class="{
-                                                  'bg-indigo-50 text-indigo-700 border-indigo-200': (project.division || '').includes('&') || ((project.division || '').includes('Network') && (project.division || '').includes('Security')),
-                                                  'bg-blue-50 text-blue-700 border-blue-200': (project.division || '').includes('Network') && !(project.division || '').includes('Security'),
-                                                  'bg-purple-50 text-purple-700 border-purple-200': (project.division || '').includes('Security') && !(project.division || '').includes('Network'),
-                                                  'bg-amber-50 text-amber-800 border-amber-200': !(project.division) || (project.division || '').includes('Belum')
-                                              }"
-                                              x-text="project.division || 'Belum Didelegasikan'">
-                                        </span>
-                                    </td>
-
-                                    {{-- Kolom 5: Project Manager (Dedicated) --}}
-                                    <td class="py-4 px-4 whitespace-nowrap">
-                                        <template x-if="project.pm && project.pm !== 'Belum Ditentukan'">
-                                            <div class="flex items-center gap-2 text-[11.5px]">
-                                                <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-extrabold text-[10px] flex items-center justify-center shrink-0"
-                                                     x-text="project.pm.substring(0, 2).toUpperCase()">
-                                                </div>
-                                                <span class="font-bold text-slate-800" x-text="project.pm"></span>
+                                    {{-- Kolom 2: Divisi & PIC PM --}}
+                                    <td class="py-4 px-4 align-top whitespace-nowrap">
+                                        <div class="space-y-1.5">
+                                            <div>
+                                                <span class="px-2.5 py-0.5 rounded-md text-[10.5px] font-bold border inline-block"
+                                                      :class="{
+                                                          'bg-indigo-50 text-indigo-700 border-indigo-200': (project.division || '').includes('&') || ((project.division || '').includes('Network') && (project.division || '').includes('Security')),
+                                                          'bg-blue-50 text-blue-700 border-blue-200': (project.division || '').includes('Network') && !(project.division || '').includes('Security'),
+                                                          'bg-purple-50 text-purple-700 border-purple-200': (project.division || '').includes('Security') && !(project.division || '').includes('Network'),
+                                                          'bg-amber-50 text-amber-800 border-amber-200': !(project.division) || (project.division || '').includes('Belum')
+                                                      }"
+                                                      x-text="project.division || 'Belum Didelegasikan'">
+                                                </span>
                                             </div>
-                                        </template>
-                                        <template x-if="!project.pm || project.pm === 'Belum Ditentukan'">
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80">
-                                                <svg class="w-3 h-3 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                                <span>Belum Ada PM</span>
-                                            </span>
-                                        </template>
+                                            <div>
+                                                <template x-if="project.pm && project.pm !== 'Belum Ditentukan'">
+                                                    <div class="flex items-center gap-1.5 text-[11.5px]">
+                                                        <div class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-extrabold text-[9px] flex items-center justify-center shrink-0"
+                                                             x-text="project.pm.substring(0, 2).toUpperCase()">
+                                                        </div>
+                                                        <span class="font-bold text-slate-800" x-text="project.pm"></span>
+                                                    </div>
+                                                </template>
+                                                <template x-if="!project.pm || project.pm === 'Belum Ditentukan'">
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80">
+                                                        <svg class="w-3 h-3 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                        <span>Belum Ada PM</span>
+                                                    </span>
+                                                </template>
+                                            </div>
+                                        </div>
                                     </td>
 
-                                    {{-- Kolom 6: Status Tata Kelola & Serah Terima --}}
-                                    <td class="py-4 px-4 whitespace-nowrap">
-                                        <div class="flex items-center gap-1.5 flex-wrap">
-                                            {{-- Kasus 1: Menunggu Verifikasi Handover dari Sales --}}
-                                            <template x-if="project.handover_status === 'Submitted'">
+                                    {{-- Kolom 3: Status Tata Kelola & Dokumen Handover --}}
+                                    <td class="py-4 px-4 align-top whitespace-nowrap">
+                                        <div class="space-y-1.5">
+                                            <div>
+                                                {{-- Status Review --}}
+                                                <template x-if="project.handover_status === 'Submitted'">
+                                                    <button type="button" 
+                                                            @click="openHandoverReviewModal(project)"
+                                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition cursor-pointer shadow-2xs">
+                                                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                                        <span>Menunggu Review PMO</span>
+                                                    </button>
+                                                </template>
+
+                                                <template x-if="project.handover_status === 'Conditional'">
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-orange-50 text-orange-800 border border-orange-200" :title="project.handover_conditional_notes">
+                                                        <svg class="w-3 h-3 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                        <span>Revisi Bersyarat</span>
+                                                    </span>
+                                                </template>
+
+                                                <template x-if="project.handover_status === 'Approved' && project.progress < 100">
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                        <span>Serah Terima Disetujui</span>
+                                                    </span>
+                                                </template>
+
+                                                <template x-if="project.stage === 'Deliver' && project.progress >= 100">
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                                                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                                        <span>Siap Transisi MS</span>
+                                                    </span>
+                                                </template>
+
+                                                <template x-if="project.handover_status !== 'Submitted' && project.handover_status !== 'Conditional' && project.handover_status !== 'Approved' && project.progress < 100">
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                        <span>Dalam Pelaksanaan</span>
+                                                    </span>
+                                                </template>
+                                            </div>
+
+                                            {{-- Dokumen Handover --}}
+                                            <div>
                                                 <button type="button" 
-                                                        @click="openHandoverReviewModal(project)"
-                                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition cursor-pointer shadow-2xs">
-                                                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                                    <span>Menunggu Review PMO</span>
+                                                        @click="openDocumentsModal(project)"
+                                                        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-semibold transition cursor-pointer shadow-2xs group"
+                                                        :class="project.docs_completed_count >= 11 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-slate-50 hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border-slate-200 hover:border-red-200'">
+                                                    <svg class="w-3 h-3" :class="project.docs_completed_count >= 11 ? 'text-emerald-600' : 'text-slate-400 group-hover:text-[#8F0A0D]'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                    <span class="font-extrabold" x-text="project.docs_completed_count + '/11'"></span>
+                                                    <span x-text="project.docs_completed_count >= 11 ? 'Lengkap' : 'Dokumen'"></span>
                                                 </button>
-                                            </template>
-
-                                            {{-- Kasus 2: Revisi Bersyarat --}}
-                                            <template x-if="project.handover_status === 'Conditional'">
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-orange-50 text-orange-800 border border-orange-200" :title="project.handover_conditional_notes">
-                                                    <svg class="w-3 h-3 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                                    <span>Revisi Bersyarat</span>
-                                                </span>
-                                            </template>
-
-                                            {{-- Kasus 3: Handover Resmi Disahkan (Deliver Aktif) --}}
-                                            <template x-if="project.handover_status === 'Approved' && project.progress < 100">
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                    <span>Serah Terima Disetujui</span>
-                                                </span>
-                                            </template>
-
-                                            {{-- Kasus 4: Siap Transisi ke MS (Progress 100%) --}}
-                                            <template x-if="project.stage === 'Deliver' && project.progress >= 100">
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
-                                                    <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                                    <span>Siap Transisi MS</span>
-                                                </span>
-                                            </template>
-
-                                            {{-- Kasus 5: Default Sedang Berjalan --}}
-                                            <template x-if="project.handover_status !== 'Submitted' && project.handover_status !== 'Conditional' && project.handover_status !== 'Approved' && project.progress < 100">
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                                    <span>Dalam Pelaksanaan</span>
-                                                </span>
-                                            </template>
-                                        </div>
-                                    </td>
-
-                                    {{-- Kolom 7: Target Tenggat & Kepatuhan SLA --}}
-                                    <td class="py-4 px-4 whitespace-nowrap">
-                                        <div class="flex items-center gap-1.5 font-semibold text-slate-800 text-xs">
-                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                            <span x-text="project.deadline || '-'"></span>
-                                        </div>
-                                        <div class="mt-1">
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border"
-                                                  :class="{
-                                                      'bg-emerald-50 text-emerald-700 border-emerald-200': project.health_status === 'On-Track',
-                                                      'bg-rose-50 text-rose-700 border-rose-200': project.health_status === 'Delayed',
-                                                      'bg-amber-50 text-amber-800 border-amber-200': project.health_status === 'At-Risk'
-                                                  }">
-                                                <span class="w-1.5 h-1.5 rounded-full" :class="{
-                                                    'bg-emerald-500': project.health_status === 'On-Track',
-                                                    'bg-rose-500': project.health_status === 'Delayed',
-                                                    'bg-amber-500 animate-pulse': project.health_status === 'At-Risk'
-                                                }"></span>
-                                                <span x-text="project.health_status === 'On-Track' ? 'Sesuai Jadwal' : (project.health_status === 'Delayed' ? 'Melewati Tenggat' : 'Mendekati Tenggat')"></span>
-                                            </span>
-                                        </div>
-                                    </td>
-
-                                    {{-- Kolom 8: Progres Fisik Lapangan --}}
-                                    <td class="py-4 px-4 whitespace-nowrap">
-                                        <div class="w-32">
-                                            <div class="flex items-center justify-between text-xs font-bold text-slate-900 mb-1">
-                                                <span x-text="project.progress + '%'"></span>
-                                                <span class="text-[10px] text-slate-400 font-semibold px-1.5 py-0.5 rounded bg-slate-100" x-text="project.completed_tasks + '/' + project.total_tasks + ' Task'"></span>
-                                            </div>
-                                            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                                                <div class="h-full rounded-full transition-all duration-300"
-                                                     :class="project.progress >= 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-red-600 to-[#8F0A0D]'"
-                                                     :style="'width: ' + project.progress + '%'"></div>
                                             </div>
                                         </div>
                                     </td>
 
-                                    {{-- Kolom 9: Berkas Handover --}}
-                                    <td class="py-4 px-4 whitespace-nowrap">
-                                        <button type="button" 
-                                                @click="openDocumentsModal(project)"
-                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition cursor-pointer shadow-2xs group"
-                                                :class="project.docs_completed_count >= 11 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-slate-50 hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border-slate-200 hover:border-red-200'">
-                                            <svg class="w-3.5 h-3.5" :class="project.docs_completed_count >= 11 ? 'text-emerald-600' : 'text-slate-400 group-hover:text-[#8F0A0D]'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                            <span class="font-extrabold" x-text="project.docs_completed_count + '/11'"></span>
-                                            <span x-text="project.docs_completed_count >= 11 ? 'Lengkap' : 'Dokumen'"></span>
-                                        </button>
+                                    {{-- Kolom 4: Target Tenggat & Progres Fisik --}}
+                                    <td class="py-4 px-4 align-top whitespace-nowrap">
+                                        <div class="space-y-1.5">
+                                            <div class="flex items-center gap-2">
+                                                <div class="flex items-center gap-1 font-bold text-slate-800 text-xs">
+                                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                    <span x-text="project.deadline || '-'"></span>
+                                                </div>
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border"
+                                                      :class="{
+                                                          'bg-emerald-50 text-emerald-700 border-emerald-200': project.health_status === 'On-Track',
+                                                          'bg-rose-50 text-rose-700 border-rose-200': project.health_status === 'Delayed',
+                                                          'bg-amber-50 text-amber-800 border-amber-200': project.health_status === 'At-Risk'
+                                                      }">
+                                                    <span class="w-1.5 h-1.5 rounded-full" :class="{
+                                                        'bg-emerald-500': project.health_status === 'On-Track',
+                                                        'bg-rose-500': project.health_status === 'Delayed',
+                                                        'bg-amber-500 animate-pulse': project.health_status === 'At-Risk'
+                                                    }"></span>
+                                                    <span x-text="project.health_status === 'On-Track' ? 'Sesuai Jadwal' : (project.health_status === 'Delayed' ? 'Melewati Tenggat' : 'Mendekati Tenggat')"></span>
+                                                </span>
+                                            </div>
+
+                                            <div class="w-36">
+                                                <div class="flex items-center justify-between text-[11px] font-bold text-slate-900 mb-0.5">
+                                                    <span x-text="project.progress + '%'"></span>
+                                                    <span class="text-[9.5px] text-slate-400 font-semibold" x-text="project.completed_tasks + '/' + project.total_tasks + ' Task'"></span>
+                                                </div>
+                                                <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
+                                                    <div class="h-full rounded-full transition-all duration-300"
+                                                         :class="project.progress >= 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-red-600 to-[#8F0A0D]'"
+                                                         :style="'width: ' + project.progress + '%'"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
 
-                                    {{-- Kolom 10: Tindakan / Aksi --}}
-                                    <td class="py-4 px-4 sm:px-6 text-right whitespace-nowrap">
+                                    {{-- Kolom 5: Tindakan / Aksi --}}
+                                    <td class="py-4 px-4 sm:px-6 align-middle text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-1.5">
                                             <template x-if="project.handover_status === 'Submitted'">
                                                 <button type="button"
@@ -474,7 +489,7 @@
 
                             <template x-if="paginatedProjects.length === 0">
                                 <tr>
-                                    <td colspan="10" class="py-16 text-center text-slate-400">
+                                    <td colspan="5" class="py-16 text-center text-slate-400">
                                         <div class="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto mb-3 text-slate-400 shadow-2xs">
                                             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -487,6 +502,133 @@
                             </template>
                         </tbody>
                     </table>
+                </div>
+
+                {{-- C2. TAMPILAN KARTU GRID INTERAKTIF (Cards View Mode) --}}
+                <div x-show="viewMode === 'cards'" class="p-5 bg-slate-50/50">
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                        <template x-for="project in paginatedProjects" :key="project.id">
+                            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-red-200 transition-all p-5 flex flex-col justify-between group">
+                                <div class="space-y-3">
+                                    {{-- Header Card: Status & SO --}}
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" x-text="project.so_code || 'SO-IPNET'"></span>
+                                        
+                                        <template x-if="project.handover_status === 'Submitted'">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-300">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                <span>Menunggu Review</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="project.handover_status === 'Approved' && project.progress < 100">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                <span>✓ Handover Approved</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="project.stage === 'Deliver' && project.progress >= 100">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                                                <span>Siap Transisi MS</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="project.handover_status !== 'Submitted' && project.handover_status !== 'Approved' && project.progress < 100">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
+                                                <span>Dalam Pelaksanaan</span>
+                                            </span>
+                                        </template>
+                                    </div>
+
+                                    {{-- Project Title --}}
+                                    <div>
+                                        <a :href="'/projects/' + project.id" class="font-extrabold text-slate-900 text-sm hover:text-[#8F0A0D] transition block line-clamp-2" x-text="project.name"></a>
+                                    </div>
+
+                                    {{-- Client & Sales Chips --}}
+                                    <div class="flex items-center gap-1.5 flex-wrap text-xs">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">
+                                            <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                            <span x-text="project.client"></span>
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-50 text-[#8F0A0D] text-[11px] font-bold border border-red-100">
+                                            <svg class="w-3 h-3 text-[#8F0A0D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                            <span x-text="project.sales_name"></span>
+                                        </span>
+                                    </div>
+
+                                    {{-- Divisi & PM Info --}}
+                                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 block font-bold uppercase">Divisi:</span>
+                                            <span class="font-bold text-slate-800 text-[11px]" x-text="project.division || 'Belum Didelegasikan'"></span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-[10px] text-slate-400 block font-bold uppercase">PIC PM:</span>
+                                            <span class="font-bold text-slate-800 text-[11px]" x-text="project.pm || 'Belum Ada PM'"></span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Deadline & SLA --}}
+                                    <div class="flex items-center justify-between text-xs">
+                                        <div class="flex items-center gap-1 text-slate-600 font-semibold text-[11.5px]">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            <span x-text="project.deadline || '-'"></span>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border"
+                                              :class="{
+                                                  'bg-emerald-50 text-emerald-700 border-emerald-200': project.health_status === 'On-Track',
+                                                  'bg-rose-50 text-rose-700 border-rose-200': project.health_status === 'Delayed',
+                                                  'bg-amber-50 text-amber-800 border-amber-200': project.health_status === 'At-Risk'
+                                              }">
+                                            <span x-text="project.health_status === 'On-Track' ? 'Sesuai Jadwal' : (project.health_status === 'Delayed' ? 'Melewati Tenggat' : 'Mendekati Tenggat')"></span>
+                                        </span>
+                                    </div>
+
+                                    {{-- Progress Bar --}}
+                                    <div>
+                                        <div class="flex items-center justify-between text-xs font-bold text-slate-900 mb-1">
+                                            <span>Progres Fisik</span>
+                                            <span x-text="project.progress + '%'"></span>
+                                        </div>
+                                        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
+                                            <div class="h-full rounded-full transition-all duration-300"
+                                                 :class="project.progress >= 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-red-600 to-[#8F0A0D]'"
+                                                 :style="'width: ' + project.progress + '%'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Card Footer Actions --}}
+                                <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                    <button type="button" 
+                                            @click="openDocumentsModal(project)"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-red-200 text-[11px] font-semibold text-slate-700 hover:text-[#8F0A0D] transition">
+                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        <span x-text="project.docs_completed_count + '/11 Berkas'"></span>
+                                    </button>
+
+                                    <div class="flex items-center gap-1.5">
+                                        <template x-if="project.handover_status === 'Submitted'">
+                                            <button type="button"
+                                                    @click="openHandoverReviewModal(project)"
+                                                    class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-xs">
+                                                Verifikasi
+                                            </button>
+                                        </template>
+
+                                        <a :href="'/projects/' + project.id" class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-800 hover:text-[#8F0A0D] rounded-xl text-xs font-bold transition shadow-2xs">
+                                            Detail &rarr;
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <template x-if="paginatedProjects.length === 0">
+                        <div class="py-16 text-center text-slate-400">
+                            <p class="font-bold text-slate-800 text-sm">Tidak ada proyek yang sesuai dengan kriteria filter</p>
+                            <p class="text-xs text-slate-400 mt-1">Silakan sesuaikan kata kunci pencarian atau tab di atas.</p>
+                        </div>
+                    </template>
                 </div>
 
                 {{-- D. Table Footer Pagination --}}
@@ -980,6 +1122,7 @@
             selectedStage: 'all',
             handoverFilter: 'all',
             activeTab: 'all', // 'all', 'deliver', 'pending_handover', 'ready_ms'
+            viewMode: 'table', // 'table' | 'cards'
             perPage: 10,
             currentPage: 1,
 
@@ -1045,6 +1188,7 @@
                     const s = (this.search || '').toLowerCase();
                     const matchSearch = !s ||
                                         (p.name || '').toLowerCase().includes(s) ||
+                                        (p.so_code || '').toLowerCase().includes(s) ||
                                         (p.client || '').toLowerCase().includes(s) ||
                                         (p.sales_name || '').toLowerCase().includes(s) ||
                                         (p.pm || '').toLowerCase().includes(s);

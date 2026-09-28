@@ -37,10 +37,7 @@ class PmoController extends Controller
         ->where('name', 'not like', '%- Closed Project%')
         ->where(function($q) {
             $q->where('sales_name', 'like', '%Nabylla%')
-              ->orWhere('sales_name', 'like', '%Raiza%')
-              ->orWhereNull('sales_name')
-              ->orWhere('sales_name', '')
-              ->orWhere('sales_name', '-');
+              ->orWhere('sales_name', 'like', '%Raiza%');
         })
         ->where(function($q) {
             $q->whereIn('stage', ['Deliver', 'Operate'])
