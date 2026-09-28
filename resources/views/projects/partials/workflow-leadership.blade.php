@@ -112,7 +112,7 @@
             </div>
 
             {{-- Actions Footer --}}
-            @if((!$isHeadAssigned && ($canAssignSales ?? false)) || ($canApproveHead && $isHeadAssigned) || ($isHeadAssigned && ($canAssignSales ?? false)))
+            @if((!$isHeadAssigned && ($canAssignSales ?? false)) || ($canApproveHead && $isHeadAssigned) || ($isHeadAssigned && ($canAssignSales ?? false) && empty($headApproval['approved'])))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isHeadAssigned && ($canAssignSales ?? false))
                         <button type="button" @click="openAssignModal('head')" onclick="window.openAssignModalCustom('head')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
@@ -128,7 +128,7 @@
                         </button>
                     @endif
 
-                    @if($isHeadAssigned && ($canAssignSales ?? false))
+                    @if($isHeadAssigned && ($canAssignSales ?? false) && empty($headApproval['approved']))
                         <button type="button" @click="openAssignModal('head')" onclick="window.openAssignModalCustom('head')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
                             Ubah Penugasan
                         </button>
@@ -208,7 +208,7 @@
             </div>
 
             {{-- Actions Footer --}}
-            @if((!$isDirectorAssigned && ($canAssignSales ?? false)) || ($canApproveDirector && $isDirectorAssigned) || ($isDirectorAssigned && ($canAssignSales ?? false)))
+            @if((!$isDirectorAssigned && ($canAssignSales ?? false)) || ($canApproveDirector && $isDirectorAssigned) || ($isDirectorAssigned && ($canAssignSales ?? false) && empty($directorApproval['approved'])))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isDirectorAssigned && ($canAssignSales ?? false))
                         <button type="button" @click="openAssignModal('director')" onclick="window.openAssignModalCustom('director')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
@@ -224,7 +224,7 @@
                         </button>
                     @endif
 
-                    @if($isDirectorAssigned && ($canAssignSales ?? false))
+                    @if($isDirectorAssigned && ($canAssignSales ?? false) && empty($directorApproval['approved']))
                         <button type="button" @click="openAssignModal('director')" onclick="window.openAssignModalCustom('director')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
                             Ubah Penugasan
                         </button>

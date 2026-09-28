@@ -209,12 +209,11 @@
 
             </div>
 
-            {{-- Actions Footer: Hanya dapat diubah oleh PM / PMO / Sales / Executive (Bukan Team Leader) --}}
+            {{-- Actions Footer: Hanya dapat diubah oleh PM / PMO / Executive (Wewenang PM/PMO, Bukan Sales atau Team Leader) --}}
             @php
                 $canChangeDivision = $authUser && (
                     \App\Helpers\ScopeHelper::isPmo($authUser)
                     || ($project->pm_id && $project->pm_id == $authUser->id)
-                    || ($canAssignSales ?? false)
                     || ($isExecutive ?? false)
                 ) && !\App\Helpers\ScopeHelper::isTeamLeader($authUser);
             @endphp

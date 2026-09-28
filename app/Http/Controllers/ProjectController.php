@@ -507,6 +507,15 @@ class ProjectController extends Controller
      */
     public function assignDivision(Request $request, Project $project)
     {
+        $authUser = auth()->user();
+        $canAssign = $authUser && (
+            \App\Helpers\ScopeHelper::isPmo($authUser)
+            || ($project->pm_id && $project->pm_id == $authUser->id)
+            || \App\Helpers\ScopeHelper::isExecutive($authUser)
+            || $authUser->hasRole('Super Admin')
+        );
+        abort_unless($canAssign, 403, 'Disposisi divisi pelaksana hanya dapat dilakukan oleh Project Manager (PM) atau PMO.');
+
         $validated = $request->validate([
             'target_division' => 'required|in:network,security,both',
             'special_notes'   => 'nullable|string|max:1000',

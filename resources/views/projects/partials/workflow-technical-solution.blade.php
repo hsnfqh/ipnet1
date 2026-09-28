@@ -243,10 +243,10 @@
             {{-- Actions Footer --}}
             @php
                 $showPresalesAssign = ($canAssignSales ?? false) && !$isPresalesAssigned;
-                $showPresalesReassign = ($canAssignSales ?? false) && $isPresalesAssigned;
+                $showPresalesReassign = ($canAssignSales ?? false) && $isPresalesAssigned && !$isBdApproved;
                 $showPresalesUploadRevision = $isPresalesAssigned && ($bdVerification['status'] ?? '') === 'Revision Needed' && $canUploadPresales;
                 $showPresalesUpload = $isPresalesAssigned && !$isPresalesDone && $canUploadPresales && !$showPresalesUploadRevision;
-                $showPresalesReupload = $isPresalesAssigned && $isPresalesDone && $canUploadPresales && !$showPresalesUploadRevision;
+                $showPresalesReupload = $isPresalesAssigned && $isPresalesDone && $canUploadPresales && !$showPresalesUploadRevision && !$isBdApproved;
             @endphp
             @if(!$isAnyApproved && !$isPresalesAssigned && ($canAssignSales ?? false))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
@@ -366,10 +366,10 @@
             {{-- Actions Footer --}}
             @php
                 $showArchitectAssign = ($canAssignSales ?? false) && !$isArchitectAssigned;
-                $showArchitectReassign = ($canAssignSales ?? false) && $isArchitectAssigned;
+                $showArchitectReassign = ($canAssignSales ?? false) && $isArchitectAssigned && !$isBdApproved;
                 $showArchitectUploadRevision = $isArchitectAssigned && ($bdVerification['status'] ?? '') === 'Revision Needed' && $canUploadArchitect;
                 $showArchitectUpload = $isArchitectAssigned && !$isArchitectDone && $canUploadArchitect && !$showArchitectUploadRevision;
-                $showArchitectReupload = $isArchitectAssigned && $isArchitectDone && $canUploadArchitect && !$showArchitectUploadRevision;
+                $showArchitectReupload = $isArchitectAssigned && $isArchitectDone && $canUploadArchitect && !$showArchitectUploadRevision && !$isBdApproved;
             @endphp
             @if(!$isAnyApproved && !$isArchitectAssigned && ($canAssignSales ?? false))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
