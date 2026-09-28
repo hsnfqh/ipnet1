@@ -1463,9 +1463,9 @@
 
     {{-- 1. FORMULIR SERAH TERIMA PROYEK & PENUGASAN MODAL --}}
     <div id="modal-handover" x-show="isHandoverModalOpen" x-cloak 
-         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">
-        <div @click.away="isHandoverModalOpen = false; window.closeModal('modal-handover')" 
-             class="relative bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 m-auto max-h-[90vh] flex flex-col overflow-hidden">
+         @click.self="isHandoverModalOpen = false; window.closeModal('modal-handover')"
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+        <div @click.stop class="relative bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 m-auto max-h-[90vh] flex flex-col overflow-hidden">
             
             {{-- Header (Fixed / Non-Scrollable) --}}
             <div class="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6 shrink-0 bg-white">
@@ -1750,9 +1750,9 @@
 
     {{-- MODAL DISPOSISI KE DIVISI PELAKSANA (BISA PILIH NETWORK, SECURITY, ATAU KEDUANYA) --}}
     <div id="modal-assign-division" x-show="isAssignDivisionModalOpen" x-cloak 
+         @click.self="isAssignDivisionModalOpen = false; window.closeModal('modal-assign-division')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isAssignDivisionModalOpen = false; window.closeModal('modal-assign-division')" 
-             class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+        <div @click.stop class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div>
@@ -1837,9 +1837,9 @@
 
     {{-- MODAL PENUGASAN TEKNISI LAPANGAN (FIELD ENGINEER) OLEH LEAD ENGINEER --}}
     <div id="modal-assign-engineer" x-show="isAssignEngineerModalOpen" x-cloak 
+         @click.self="isAssignEngineerModalOpen = false; window.closeModal('modal-assign-engineer')"
          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
-        <div @click.away="isAssignEngineerModalOpen = false; window.closeModal('modal-assign-engineer')" 
-             class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+        <div @click.stop class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             
             <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div>
