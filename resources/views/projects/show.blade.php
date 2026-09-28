@@ -1125,9 +1125,10 @@
 
                             {{-- 7. Status Tender Menang / Kontrak PO Terbit --}}
                             @php
-                                $hasWonStatus = (!empty($project->po_spk_number) || !empty($project->po_number) || in_array($project->status, ['In Progress', 'Completed']) || in_array($project->stage, ['Deliver', 'Operate']) || strtolower($project->sales_stage ?? '') === 'closed won' || $isBothApproved || $project->pm);
+                                $isWon = ($project->sales_stage === 'Closed Won' || !empty($project->po_spk_number) || !empty($project->po_number) || in_array($project->status, ['In Progress', 'Completed']));
+                                $isLost = ($project->sales_stage === 'Closed Lost');
                             @endphp
-                            @if($hasWonStatus)
+                            @if($isWon)
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
                                     <div class="font-normal text-slate-700">
@@ -1139,6 +1140,16 @@
                                         @else
                                             Kontrak &amp; PO Resmi Terbit
                                         @endif
+                                    </div>
+                                </div>
+                            @elseif($isLost)
+                                <div class="relative">
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-slate-400 ring-4 ring-white shadow-2xs"></div>
+                                    <div class="font-normal text-slate-700">
+                                        Status Tender / Deal: <strong class="font-semibold text-rose-600">Batal / Kalah (Closed Lost)</strong>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 mt-0.5">
+                                        Tender atau prospek tidak berlanjut
                                     </div>
                                 </div>
                             @endif
