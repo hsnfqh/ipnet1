@@ -396,8 +396,14 @@
             isUploadDocModalOpen: false,
             isUploadSalesDocModalOpen: false,
             isDeleteModalOpen: false,
+            isCompleteModalOpen: false,
             isAssignDivisionModalOpen: false,
             isAssignEngineerModalOpen: false,
+
+            confirmCompleteProject() {
+                this.isCompleteModalOpen = true;
+                window.openModal('modal-complete');
+            },
 
             openAssignDivisionModal() {
                 this.isAssignDivisionModalOpen = true;
@@ -637,15 +643,11 @@
                     @if(!$isPresalesOrSaOnly && ($canAssignSales ?? false))
                     <div class="flex items-center gap-2 shrink-0">
                         @if($currentStatus === 'In Progress')
-                            <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="status" value="Completed">
-                                <button type="submit" onclick="return confirm('Tandai proyek {{ addslashes($project->name) }} sebagai Selesai (Completed)?')"
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl btn-ipnet-primary text-xs font-bold transition shadow-sm cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    <span>Tandai Selesai</span>
-                                </button>
-                            </form>
+                            <button type="button" @click="confirmCompleteProject()"
+                                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl btn-ipnet-primary text-xs font-bold transition shadow-sm cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                <span>Tandai Selesai</span>
+                            </button>
                         @endif
 
                         <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
@@ -2457,6 +2459,47 @@
                     <button type="submit"
                             class="flex-1 py-2.5 px-4 rounded-xl btn-ipnet-primary font-bold text-xs transition cursor-pointer shadow-sm text-white text-center">
                         Ya, Hapus
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- 11B. MODAL KONFIRMASI TANDAI SELESAI --}}
+    <div id="modal-complete" x-show="isCompleteModalOpen" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[99999] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+         @click.self="isCompleteModalOpen = false; window.closeModal('modal-complete')"
+         @keydown.escape.window="isCompleteModalOpen = false; window.closeModal('modal-complete')">
+        <div class="bg-white rounded-2xl w-[440px] max-w-full p-6 text-left shadow-2xl border border-slate-200">
+            <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 border border-emerald-100 shadow-xs">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            
+            <h3 class="text-center text-base font-bold text-slate-900 mb-1.5">Konfirmasi Penyelesaian Proyek</h3>
+            <p class="text-center text-xs text-slate-500 mb-6 leading-relaxed">
+                Apakah Anda yakin ingin menandai proyek <strong class="text-slate-800">"{{ $project->name }}"</strong> sebagai <strong class="text-emerald-700 font-bold">Selesai (Completed)</strong>? Pastikan seluruh ruang lingkup pekerjaan, penugasan teknisi lapangan, dan serah terima hasil pekerjaan telah rampung sepenuhnya.
+            </p>
+
+            <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
+                @csrf
+                <input type="hidden" name="status" value="Completed">
+                <div class="flex gap-2.5">
+                    <button type="button" @click="isCompleteModalOpen = false; window.closeModal('modal-complete')" onclick="window.closeModal('modal-complete')"
+                            class="flex-1 py-2.5 px-4 rounded-xl bg-white text-slate-600 border border-slate-300 font-bold text-xs hover:bg-slate-50 transition cursor-pointer text-center">
+                        Batal
+                    </button>
+                    <button type="submit"
+                            class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 font-bold text-xs transition cursor-pointer shadow-md text-white text-center flex items-center justify-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <span>Ya, Tandai Selesai</span>
                     </button>
                 </div>
             </form>
