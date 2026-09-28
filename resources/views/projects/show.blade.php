@@ -446,7 +446,7 @@
             
             isHandoverModalOpen: false,
             handoverTargetType: '{{ $project->handover_target ?: (($project->stage === 'Operate') ? 'managed_service' : 'pmo') }}',
-            handoverTargets: {{ ($project->handover_target === 'both') ? "['pmo', 'managed_service']" : (($project->handover_target === 'managed_service' || $project->stage === 'Operate') ? "['managed_service']" : "['pmo']") }},
+            handoverTargets: {!! ($project->handover_target === 'both') ? "['pmo', 'managed_service']" : (($project->handover_target === 'managed_service' || $project->stage === 'Operate') ? "['managed_service']" : "['pmo']") !!},
 
             toggleHandoverTarget(val) {
                 if (this.handoverTargets.includes(val)) {
