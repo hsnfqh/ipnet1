@@ -243,7 +243,6 @@
             {{-- Actions Footer --}}
             @php
                 $showPresalesAssign = ($canAssignSales ?? false) && !$isPresalesAssigned;
-                $showPresalesReassign = ($canAssignSales ?? false) && $isPresalesAssigned && !$isBdApproved;
                 $showPresalesUploadRevision = $isPresalesAssigned && ($bdVerification['status'] ?? '') === 'Revision Needed' && $canUploadPresales;
                 $showPresalesUpload = $isPresalesAssigned && !$isPresalesDone && $canUploadPresales && !$showPresalesUploadRevision;
                 $showPresalesReupload = $isPresalesAssigned && $isPresalesDone && $canUploadPresales && !$showPresalesUploadRevision && !$isBdApproved;
@@ -255,7 +254,7 @@
                         <span>Tugaskan Pre-Sales</span>
                     </button>
                 </div>
-            @elseif($showPresalesAssign || $showPresalesReassign || $showPresalesUploadRevision || $showPresalesUpload || $showPresalesReupload)
+            @elseif($showPresalesAssign || $showPresalesUploadRevision || $showPresalesUpload || $showPresalesReupload)
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if($showPresalesAssign)
                         <button type="button" @click="openAssignTechnicalModal('presales')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
@@ -278,12 +277,6 @@
                         <button type="button" @click="openUploadTechnicalModal('presales')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer inline-flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                             <span>Unggah Ulang</span>
-                        </button>
-                    @endif
-
-                    @if($showPresalesReassign)
-                        <button type="button" @click="openAssignTechnicalModal('presales')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
-                            Ubah Penugasan
                         </button>
                     @endif
                 </div>
@@ -366,7 +359,6 @@
             {{-- Actions Footer --}}
             @php
                 $showArchitectAssign = ($canAssignSales ?? false) && !$isArchitectAssigned;
-                $showArchitectReassign = ($canAssignSales ?? false) && $isArchitectAssigned && !$isBdApproved;
                 $showArchitectUploadRevision = $isArchitectAssigned && ($bdVerification['status'] ?? '') === 'Revision Needed' && $canUploadArchitect;
                 $showArchitectUpload = $isArchitectAssigned && !$isArchitectDone && $canUploadArchitect && !$showArchitectUploadRevision;
                 $showArchitectReupload = $isArchitectAssigned && $isArchitectDone && $canUploadArchitect && !$showArchitectUploadRevision && !$isBdApproved;
@@ -378,7 +370,7 @@
                         <span>Tugaskan SA</span>
                     </button>
                 </div>
-            @elseif($showArchitectAssign || $showArchitectReassign || $showArchitectUploadRevision || $showArchitectUpload || $showArchitectReupload)
+            @elseif($showArchitectAssign || $showArchitectUploadRevision || $showArchitectUpload || $showArchitectReupload)
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if($showArchitectAssign)
                         <button type="button" @click="openAssignTechnicalModal('architect')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
@@ -401,12 +393,6 @@
                         <button type="button" @click="openUploadTechnicalModal('architect')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer inline-flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                             <span>Unggah Ulang</span>
-                        </button>
-                    @endif
-
-                    @if($showArchitectReassign)
-                        <button type="button" @click="openAssignTechnicalModal('architect')" class="text-xs font-semibold text-slate-500 hover:text-[#8F0A0D] cursor-pointer ml-auto">
-                            Ubah Penugasan
                         </button>
                     @endif
                 </div>
