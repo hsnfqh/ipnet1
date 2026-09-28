@@ -257,6 +257,17 @@
             el.removeAttribute('x-cloak');
             el.classList.remove('hidden');
         }
+        try {
+            const root = document.querySelector('[x-data]');
+            if (root && window.Alpine && typeof window.Alpine.$data === 'function') {
+                const data = window.Alpine.$data(root);
+                if (data) {
+                    if (modalId === 'modal-handover') data.isHandoverModalOpen = true;
+                    if (modalId === 'modal-assign-division') data.isAssignDivisionModalOpen = true;
+                    if (modalId === 'modal-assign-engineer') data.isAssignEngineerModalOpen = true;
+                }
+            }
+        } catch(e) {}
     };
 
     window.closeModal = function(modalId) {
@@ -265,9 +276,30 @@
             el.style.setProperty('display', 'none', 'important');
             el.classList.add('hidden');
         }
+        try {
+            const root = document.querySelector('[x-data]');
+            if (root && window.Alpine && typeof window.Alpine.$data === 'function') {
+                const data = window.Alpine.$data(root);
+                if (data) {
+                    if (modalId === 'modal-handover') data.isHandoverModalOpen = false;
+                    if (modalId === 'modal-assign-division') data.isAssignDivisionModalOpen = false;
+                    if (modalId === 'modal-assign-engineer') data.isAssignEngineerModalOpen = false;
+                }
+            }
+        } catch(e) {}
     };
 
     window.openHandoverModalCustom = function(target) {
+        try {
+            const root = document.querySelector('[x-data]');
+            if (root && window.Alpine && typeof window.Alpine.$data === 'function') {
+                const data = window.Alpine.$data(root);
+                if (data && typeof data.openHandoverModal === 'function') {
+                    data.openHandoverModal(target);
+                    return;
+                }
+            }
+        } catch(e) {}
         window.openModal('modal-handover');
     };
 
