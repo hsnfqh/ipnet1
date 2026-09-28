@@ -726,10 +726,10 @@
                     <div class="space-y-1 flex-1 min-w-0">
                         {{-- 1. Display Mode (Default) --}}
                         <div class="flex items-center gap-2.5 flex-wrap" id="title-display-container">
-                            <h1 class="text-2xl sm:text-[26px] font-extrabold text-slate-900 tracking-tight leading-tight @if(!$isPresalesOrSaOnly) cursor-pointer hover:text-[#8F0A0D] transition group @endif flex items-center gap-2"
-                                @if(!$isPresalesOrSaOnly) onclick="window.startEditTitle()" title="Klik untuk edit nama proyek" @endif>
+                            <h1 class="text-2xl sm:text-[26px] font-extrabold text-slate-900 tracking-tight leading-tight @if(!empty($canAssignSales)) cursor-pointer hover:text-[#8F0A0D] transition group @endif flex items-center gap-2"
+                                @if(!empty($canAssignSales)) onclick="window.startEditTitle()" title="Klik untuk edit nama proyek" @endif>
                                 <span>{{ $project->name }}</span>
-                                @if(!$isPresalesOrSaOnly)
+                                @if(!empty($canAssignSales))
                                     <span class="p-1.5 text-slate-400 group-hover:text-[#8F0A0D] group-hover:bg-red-50 border border-slate-200 group-hover:border-red-200 rounded-lg transition shadow-2xs">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                     </span>
@@ -738,7 +738,7 @@
                         </div>
 
                         {{-- 2. Direct Inline Edit Mode --}}
-                        @if(!$isPresalesOrSaOnly)
+                        @if(!empty($canAssignSales))
                         <form id="title-edit-form" action="{{ route('projects.meta_update', $project->id) }}" method="POST" class="hidden items-center gap-2 flex-wrap pb-1">
                             @csrf
                             <input type="text" name="name" id="project-title-input" value="{{ $project->name }}" required
@@ -813,7 +813,7 @@
                         </div>
                     </div>
 
-                    @if(!$isPresalesOrSaOnly)
+                    @if(!empty($canAssignSales))
                     <div class="shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
                         <button type="button" 
                                 @click="isEditMetaModalOpen = true; openEditMetaModal()" 

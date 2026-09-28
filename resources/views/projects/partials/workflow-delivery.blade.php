@@ -184,7 +184,7 @@
             </div>
 
             {{-- Actions Footer --}}
-            @if(empty($isPresalesOrSaOnly))
+            @if(!empty($canAssignSales))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isBdApproved)
                         <button type="button" disabled class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-75 shadow-2xs" title="Terkunci: Menunggu verifikasi solusi teknis disahkan oleh PIC BD">

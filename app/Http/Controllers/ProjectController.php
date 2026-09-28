@@ -363,6 +363,16 @@ class ProjectController extends Controller
         $user = User::findOrFail($validated['user_id']);
 
         if ($validated['role_type'] === 'pm') {
+            $authUser = auth()->user();
+            $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
+            $isExecutive = \App\Helpers\ScopeHelper::isExecutive($authUser);
+            $canAssignSales = !$isExecutive && $authUser && (
+                !empty(array_intersect(['Sales', 'Account Manager', 'Admin', 'Super Admin', 'Admin Support'], $userRoles))
+                || ($project->created_by == $authUser->id)
+                || ($project->sales_name && str_contains(strtolower($project->sales_name), strtolower($authUser->name)))
+            );
+            abort_unless($canAssignSales, 403, 'Pemilihan kategori dan serah terima proyek hanya dapat dilakukan oleh Sales pemilik proyek atau Admin.');
+
             $target = $validated['handover_target'] ?? ($project->handover_target ?: 'pmo');
             $updateFields = [
                 'pm_id'           => $user->id,
@@ -1448,6 +1458,16 @@ class ProjectController extends Controller
             'deadline'       => 'nullable|date',
             'description'    => 'nullable|string|max:1000',
         ]);
+
+        $authUser = auth()->user();
+        $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
+        $isExecutive = \App\Helpers\ScopeHelper::isExecutive($authUser);
+        $canAssignSales = !$isExecutive && $authUser && (
+            !empty(array_intersect(['Sales', 'Account Manager', 'Admin', 'Super Admin', 'Admin Support'], $userRoles))
+            || ($project->created_by == $authUser->id)
+            || ($project->sales_name && str_contains(strtolower($project->sales_name), strtolower($authUser->name)))
+        );
+        abort_unless($canAssignSales, 403, 'Hanya Sales pemilik proyek atau Admin yang berhak mengubah nama dan estimasi proyek.');
 
         $updateData = ['name' => $validated['name']];
         if ($request->has('contract_value')) {
