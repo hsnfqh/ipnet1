@@ -2477,15 +2477,15 @@
          @click.self="isCompleteModalOpen = false; window.closeModal('modal-complete')"
          @keydown.escape.window="isCompleteModalOpen = false; window.closeModal('modal-complete')">
         <div class="bg-white rounded-2xl w-[440px] max-w-full p-6 text-left shadow-2xl border border-slate-200">
-            <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 border border-emerald-100 shadow-xs">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <div class="w-12 h-12 rounded-full bg-rose-50 text-[#8F0A0D] flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
             
             <h3 class="text-center text-base font-bold text-slate-900 mb-1.5">Konfirmasi Penyelesaian Proyek</h3>
             <p class="text-center text-xs text-slate-500 mb-6 leading-relaxed">
-                Apakah Anda yakin ingin menandai proyek <strong class="text-slate-800">"{{ $project->name }}"</strong> sebagai <strong class="text-emerald-700 font-bold">Selesai (Completed)</strong>? Pastikan seluruh ruang lingkup pekerjaan, penugasan teknisi lapangan, dan serah terima hasil pekerjaan telah rampung sepenuhnya.
+                Apakah Anda yakin ingin menandai proyek <strong class="text-slate-800">"{{ $project->name }}"</strong> sebagai <strong class="text-slate-800">Selesai (Completed)</strong>? Pastikan seluruh ruang lingkup pekerjaan, penugasan teknisi lapangan, dan serah terima hasil pekerjaan telah rampung sepenuhnya.
             </p>
 
             <form action="{{ route('projects.stage_update', $project->id) }}" method="POST">
@@ -2497,7 +2497,7 @@
                         Batal
                     </button>
                     <button type="submit"
-                            class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 font-bold text-xs transition cursor-pointer shadow-md text-white text-center flex items-center justify-center gap-1.5">
+                            class="flex-1 py-2.5 px-4 rounded-xl btn-ipnet-primary font-bold text-xs transition cursor-pointer shadow-sm text-white text-center flex items-center justify-center gap-1.5">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                         <span>Ya, Tandai Selesai</span>
                     </button>
