@@ -359,6 +359,12 @@
     };
 
     window.openAssignModalCustom = function(role) {
+        const data = window.getProjectData();
+        if (data) {
+            data.assignRole = role;
+            data.isAssignModalOpen = true;
+        }
+
         const roleInput = document.getElementById('assign-role-input');
         const headBox = document.getElementById('assign-head-box');
         const directorBox = document.getElementById('assign-director-box');
@@ -388,6 +394,12 @@
     };
 
     window.openAssignTechnicalModalCustom = function(role) {
+        const data = window.getProjectData();
+        if (data) {
+            data.assignTechnicalRole = role;
+            data.isAssignTechnicalModalOpen = true;
+        }
+
         const roleInput = document.getElementById('assign-technical-role-input');
         const boxBdm = document.getElementById('box-assign-bdm');
         const boxPresales = document.getElementById('box-assign-presales');
@@ -420,6 +432,12 @@
     };
 
     window.openApproveModalCustom = function(role) {
+        const data = window.getProjectData();
+        if (data) {
+            data.approveRole = role;
+            data.isApproveModalOpen = true;
+        }
+
         const input = document.getElementById('modal-approve-role-input');
         const title = document.getElementById('modal-approve-title');
         if (input) input.value = role;
@@ -429,7 +447,15 @@
         window.openModal('modal-approve');
     };
 
+    window.currentUploadTechnicalRole = '{{ $canUploadArchitect && !$canUploadPresales ? "architect" : "presales" }}';
     window.openUploadTechnicalModalCustom = function(role) {
+        window.currentUploadTechnicalRole = role;
+        const data = window.getProjectData();
+        if (data) {
+            data.uploadTechnicalRole = role;
+            data.isUploadTechnicalDocModalOpen = true;
+        }
+
         const input = document.getElementById('modal-upload-technical-role-input');
         const title = document.getElementById('modal-upload-technical-title');
         if (input) input.value = role;
@@ -474,7 +500,7 @@
             isAssignTechnicalModalOpen: false,
             assignTechnicalRole: 'bdm', // 'bdm', 'presales', 'architect'
             isUploadTechnicalDocModalOpen: false,
-            uploadTechnicalRole: 'presales', // 'presales' or 'architect'
+            uploadTechnicalRole: '{{ $canUploadArchitect && !$canUploadPresales ? "architect" : "presales" }}', // 'presales' or 'architect'
             isVerifyTechnicalModalOpen: false,
 
             isEditMetaModalOpen: false,
@@ -540,6 +566,7 @@
             },
 
             openUploadTechnicalModal(role = 'presales') {
+                window.currentUploadTechnicalRole = role;
                 this.uploadTechnicalRole = role;
                 this.isUploadTechnicalDocModalOpen = true;
                 window.openUploadTechnicalModalCustom(role);
@@ -2672,9 +2699,11 @@
                 <button type="button" @click="isUploadTechnicalDocModalOpen = false; window.closeModal('modal-upload-technical-doc')" onclick="window.closeModal('modal-upload-technical-doc')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
-            <form action="{{ route('projects.upload_technical_doc', $project->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4 text-xs font-semibold">
+            <form action="{{ route('projects.upload_technical_doc', $project->id) }}" method="POST" enctype="multipart/form-data" 
+                  onsubmit="const role = window.currentUploadTechnicalRole || (window.getProjectData() ? window.getProjectData().uploadTechnicalRole : null); if (role) { const inp = document.getElementById('modal-upload-technical-role-input'); if(inp) inp.value = role; }"
+                  class="space-y-4 text-xs font-semibold">
                 @csrf
-                <input type="hidden" name="role_type" id="modal-upload-technical-role-input" :value="uploadTechnicalRole" value="presales">
+                <input type="hidden" name="role_type" id="modal-upload-technical-role-input" :value="uploadTechnicalRole" value="{{ $canUploadArchitect && !$canUploadPresales ? 'architect' : 'presales' }}">
 
                 <div>
                     <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NAMA / JUDUL DOKUMEN</label>
