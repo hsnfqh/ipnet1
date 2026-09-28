@@ -33,6 +33,15 @@ class PmoController extends Controller
         ->where('name', 'not like', '%SLA a%')
         ->where('name', 'not like', '%Training%')
         ->where('name', 'not like', '%Meeting%')
+        ->where('name', 'not like', '%- On Going Project%')
+        ->where('name', 'not like', '%- Closed Project%')
+        ->where(function($q) {
+            $q->where('sales_name', 'like', '%Nabylla%')
+              ->orWhere('sales_name', 'like', '%Raiza%')
+              ->orWhereNull('sales_name')
+              ->orWhere('sales_name', '')
+              ->orWhere('sales_name', '-');
+        })
         ->where(function($q) {
             $q->whereIn('stage', ['Deliver', 'Operate'])
               ->orWhereIn('handover_status', ['Submitted', 'Conditional']);

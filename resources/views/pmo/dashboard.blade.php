@@ -270,72 +270,83 @@
                     </div>
                 </div>
 
-                {{-- C. Clean, Un-cluttered, Professional Data Table --}}
+                {{-- C. Clean, Un-cluttered, Professional Data Table with Horizontal Scroll --}}
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
+                    <table class="w-full min-w-[1400px] text-left text-xs border-collapse">
                         <thead>
                             <tr class="border-b border-slate-200/80 bg-slate-50/70 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">
-                                <th class="py-3.5 px-4 sm:px-6">PROYEK &amp; INSTANSI KLIEN</th>
-                                <th class="py-3.5 px-4">DIVISI &amp; PIC PM</th>
-                                <th class="py-3.5 px-4">STATUS TATA KELOLA</th>
-                                <th class="py-3.5 px-4">TARGET TENGGAT (SLA)</th>
-                                <th class="py-3.5 px-4">PROGRES FISIK</th>
-                                <th class="py-3.5 px-4">DOKUMEN HANDOVER</th>
-                                <th class="py-3.5 px-4 sm:px-6 text-right">TINDAKAN</th>
+                                <th class="py-3.5 px-4 sm:px-5 w-64">NAMA PROYEK</th>
+                                <th class="py-3.5 px-4 w-48">KLIEN / INSTANSI</th>
+                                <th class="py-3.5 px-4 w-40">SALES PIC</th>
+                                <th class="py-3.5 px-4 w-44">DIVISI PELAKSANA</th>
+                                <th class="py-3.5 px-4 w-40">PROJECT MANAGER (PM)</th>
+                                <th class="py-3.5 px-4 w-48">STATUS TATA KELOLA</th>
+                                <th class="py-3.5 px-4 w-44">TARGET TENGGAT (SLA)</th>
+                                <th class="py-3.5 px-4 w-36">PROGRES FISIK</th>
+                                <th class="py-3.5 px-4 w-36">DOKUMEN HANDOVER</th>
+                                <th class="py-3.5 px-4 sm:px-6 text-right w-28">TINDAKAN</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
                             <template x-for="project in paginatedProjects" :key="project.id">
                                 <tr class="hover:bg-slate-50/80 transition-colors" :class="project.handover_status === 'Submitted' ? 'bg-amber-50/20' : ''">
                                     
-                                    {{-- Kolom 1: Proyek & Klien --}}
-                                    <td class="py-4 px-4 sm:px-6 max-w-xs sm:max-w-sm">
-                                        <a :href="'/projects/' + project.id" class="font-bold text-slate-900 text-[13px] hover:text-[#8F0A0D] transition block line-clamp-1" x-text="project.name"></a>
-                                        <div class="mt-1 flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
-                                            <span class="inline-flex items-center gap-1 font-semibold text-slate-700">
-                                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                                <span x-text="project.client"></span>
-                                            </span>
-                                            <span class="text-slate-300">&bull;</span>
-                                            <span class="inline-flex items-center gap-1 text-slate-400">
-                                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                                <span>Sales: </span><span x-text="project.sales_name"></span>
-                                            </span>
-                                        </div>
+                                    {{-- Kolom 1: Nama Proyek & SO --}}
+                                    <td class="py-4 px-4 sm:px-5">
+                                        <a :href="'/projects/' + project.id" class="font-bold text-slate-900 text-[13px] hover:text-[#8F0A0D] transition block line-clamp-2 leading-snug" x-text="project.name"></a>
+                                        <template x-if="project.so_code">
+                                            <span class="inline-block mt-1 font-mono text-[10px] text-slate-400 font-medium" x-text="project.so_code"></span>
+                                        </template>
                                     </td>
 
-                                    {{-- Kolom 2: Divisi & PIC PM --}}
+                                    {{-- Kolom 2: Klien / Instansi (Dedicated) --}}
                                     <td class="py-4 px-4 whitespace-nowrap">
-                                        <div class="mb-1.5">
-                                            <span class="px-2.5 py-0.5 rounded-md text-[10.5px] font-bold border"
-                                                  :class="{
-                                                      'bg-indigo-50 text-indigo-700 border-indigo-200': (project.division || '').includes('&') || ((project.division || '').includes('Network') && (project.division || '').includes('Security')),
-                                                      'bg-blue-50 text-blue-700 border-blue-200': (project.division || '').includes('Network') && !(project.division || '').includes('Security'),
-                                                      'bg-purple-50 text-purple-700 border-purple-200': (project.division || '').includes('Security') && !(project.division || '').includes('Network'),
-                                                      'bg-amber-50 text-amber-800 border-amber-200': !(project.division) || (project.division || '').includes('Belum')
-                                                  }"
-                                                  x-text="project.division || 'Belum Didelegasikan'">
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <template x-if="project.pm && project.pm !== 'Belum Ditentukan'">
-                                                <div class="flex items-center gap-1.5 text-[11.5px]">
-                                                    <div class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-extrabold text-[9px] flex items-center justify-center shrink-0"
-                                                         x-text="project.pm.substring(0, 2).toUpperCase()">
-                                                    </div>
-                                                    <span class="font-semibold text-slate-800" x-text="project.pm"></span>
-                                                </div>
-                                            </template>
-                                            <template x-if="!project.pm || project.pm === 'Belum Ditentukan'">
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80">
-                                                    <svg class="w-3 h-3 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                                    <span>Belum Ada PM</span>
-                                                </span>
-                                            </template>
+                                        <div class="inline-flex items-center gap-1.5 font-bold text-slate-800 text-xs">
+                                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                            <span x-text="project.client"></span>
                                         </div>
                                     </td>
 
-                                    {{-- Kolom 3: Status Tata Kelola & Serah Terima --}}
+                                    {{-- Kolom 3: Sales PIC (Dedicated) --}}
+                                    <td class="py-4 px-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-50 border border-slate-200 text-slate-700">
+                                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                            <span x-text="project.sales_name || '-'"></span>
+                                        </span>
+                                    </td>
+
+                                    {{-- Kolom 4: Divisi Pelaksana (Dedicated) --}}
+                                    <td class="py-4 px-4 whitespace-nowrap">
+                                        <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold border inline-block"
+                                              :class="{
+                                                  'bg-indigo-50 text-indigo-700 border-indigo-200': (project.division || '').includes('&') || ((project.division || '').includes('Network') && (project.division || '').includes('Security')),
+                                                  'bg-blue-50 text-blue-700 border-blue-200': (project.division || '').includes('Network') && !(project.division || '').includes('Security'),
+                                                  'bg-purple-50 text-purple-700 border-purple-200': (project.division || '').includes('Security') && !(project.division || '').includes('Network'),
+                                                  'bg-amber-50 text-amber-800 border-amber-200': !(project.division) || (project.division || '').includes('Belum')
+                                              }"
+                                              x-text="project.division || 'Belum Didelegasikan'">
+                                        </span>
+                                    </td>
+
+                                    {{-- Kolom 5: Project Manager (Dedicated) --}}
+                                    <td class="py-4 px-4 whitespace-nowrap">
+                                        <template x-if="project.pm && project.pm !== 'Belum Ditentukan'">
+                                            <div class="flex items-center gap-2 text-[11.5px]">
+                                                <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-extrabold text-[10px] flex items-center justify-center shrink-0"
+                                                     x-text="project.pm.substring(0, 2).toUpperCase()">
+                                                </div>
+                                                <span class="font-bold text-slate-800" x-text="project.pm"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!project.pm || project.pm === 'Belum Ditentukan'">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80">
+                                                <svg class="w-3 h-3 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                <span>Belum Ada PM</span>
+                                            </span>
+                                        </template>
+                                    </td>
+
+                                    {{-- Kolom 6: Status Tata Kelola & Serah Terima --}}
                                     <td class="py-4 px-4 whitespace-nowrap">
                                         <div class="flex items-center gap-1.5 flex-wrap">
                                             {{-- Kasus 1: Menunggu Verifikasi Handover dari Sales --}}
@@ -381,7 +392,7 @@
                                         </div>
                                     </td>
 
-                                    {{-- Kolom 4: Target Tenggat & Kepatuhan SLA --}}
+                                    {{-- Kolom 7: Target Tenggat & Kepatuhan SLA --}}
                                     <td class="py-4 px-4 whitespace-nowrap">
                                         <div class="flex items-center gap-1.5 font-semibold text-slate-800 text-xs">
                                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -404,7 +415,7 @@
                                         </div>
                                     </td>
 
-                                    {{-- Kolom 5: Progres Fisik Lapangan --}}
+                                    {{-- Kolom 8: Progres Fisik Lapangan --}}
                                     <td class="py-4 px-4 whitespace-nowrap">
                                         <div class="w-32">
                                             <div class="flex items-center justify-between text-xs font-bold text-slate-900 mb-1">
@@ -419,7 +430,7 @@
                                         </div>
                                     </td>
 
-                                    {{-- Kolom 6: Berkas Handover --}}
+                                    {{-- Kolom 9: Berkas Handover --}}
                                     <td class="py-4 px-4 whitespace-nowrap">
                                         <button type="button" 
                                                 @click="openDocumentsModal(project)"
@@ -431,7 +442,7 @@
                                         </button>
                                     </td>
 
-                                    {{-- Kolom 7: Tindakan / Aksi --}}
+                                    {{-- Kolom 10: Tindakan / Aksi --}}
                                     <td class="py-4 px-4 sm:px-6 text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-1.5">
                                             <template x-if="project.handover_status === 'Submitted'">
@@ -463,7 +474,7 @@
 
                             <template x-if="paginatedProjects.length === 0">
                                 <tr>
-                                    <td colspan="7" class="py-16 text-center text-slate-400">
+                                    <td colspan="10" class="py-16 text-center text-slate-400">
                                         <div class="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mx-auto mb-3 text-slate-400 shadow-2xs">
                                             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
