@@ -54,6 +54,8 @@ class ProjectDocumentController extends Controller
             'stage_name'        => 'nullable|string|max:100',
             'document_category' => 'nullable|string|max:50',
             'document_key'      => 'nullable|string|max:100',
+            'document_title'    => 'nullable|string|max:255',
+            'document_type'     => 'nullable|string|max:50',
             'document_file'     => 'nullable|file|max:51200', // max 50MB
             'document_files'    => 'nullable|array',
             'document_files.*'  => 'file|max:51200',
@@ -118,7 +120,7 @@ class ProjectDocumentController extends Controller
             $doc = null;
             if (count($files) === 1 && !empty($validated['document_id'])) {
                 $doc = ProjectDocument::find($validated['document_id']);
-            } elseif (count($files) === 1 && !in_array($documentKey, ['lampiran_pendukung', 'sales_berkas']) && $hasDocKeyCol && $hasStageNumCol) {
+            } elseif (count($files) === 1 && !in_array($documentKey, ['lampiran_pendukung', 'sales_berkas']) && !str_starts_with($documentKey, 'lampiran_') && $hasDocKeyCol && $hasStageNumCol) {
                 $doc = ProjectDocument::where('project_id', $project->id)
                     ->where('stage_number', $stageNumber)
                     ->where('document_key', $documentKey)
@@ -131,7 +133,9 @@ class ProjectDocumentController extends Controller
                 if ($hasDocKeyCol) {
                     $doc->document_key = $isSalesUpload
                         ? ('sales_berkas_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid())
-                        : ('attachment_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid());
+                        : (!empty($validated['document_key']) && !in_array($validated['document_key'], ['lampiran_pendukung'])
+                            ? ($validated['document_key'] . '_' . uniqid())
+                            : ('attachment_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid()));
                 }
                 if ($hasStageNumCol) {
                     $doc->stage_number = $stageNumber;
@@ -157,10 +161,10 @@ class ProjectDocumentController extends Controller
                 $doc->name = $originalName;
             }
             if ($hasDocTitleCol) {
-                $doc->document_title = $cleanTitle ?: ('Attachment ' . ($index + 1));
+                $doc->document_title = $request->input('document_title') ?: ($cleanTitle ?: ('Attachment ' . ($index + 1)));
             }
             if ($hasDocTypeCol) {
-                $doc->document_type = $isSalesUpload ? 'Sales Attachment' : 'Attachment';
+                $doc->document_type = $request->input('document_type') ?: ($isSalesUpload ? 'Sales Attachment' : 'Attachment');
             }
             if ($hasFileNameCol) {
                 $doc->file_name = $originalName;
