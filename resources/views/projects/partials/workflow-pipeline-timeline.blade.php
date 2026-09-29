@@ -1,4 +1,4 @@
-{{-- ═══ CHEVRON SALES PIPELINE STAGE TIMELINE (SESUAI TEMPLATE INFOGRAFIS) ═══ --}}
+{{-- ═══ CHEVRON SALES PIPELINE STAGE TIMELINE (IPNET ENTERPRISE DESIGN SYSTEM) ═══ --}}
 @php
     $currentStatus = $currentStatus ?? ($project->status ?? 'Draft');
     $currentSalesStage = $project->sales_stage ?: ($currentStatus === 'In Progress' ? 'Closed Won' : 'Qualification');
@@ -19,205 +19,253 @@
 
     $currentStageIndex = $stageOrderMap[$currentSalesStage] ?? ($currentStatus === 'In Progress' ? 5 : 1);
     $isClosedLost = ($currentSalesStage === 'Closed Lost');
+    $isClosedWon = ($currentSalesStage === 'Closed Won' || $currentStatus === 'In Progress');
 
     $pipelineSteps = [
         [
-            'index'       => 1,
-            'key'         => 'Qualification',
-            'title'       => 'Qualification',
-            'desc'        => 'Kualifikasi Awal',
-            'prob'        => '10%',
-            'active_fill' => '#F472B6', // Pink (Sesuai Gambar 1)
-            'done_fill'   => '#FDF2F8',
-            'text_active' => 'text-white',
-            'text_done'   => 'text-pink-900',
-            'border'      => '#9D174D',
-            'align_tick'  => 'down', // Tick ke bawah (Ganjil)
+            'index'    => 1,
+            'key'      => 'Qualification',
+            'title'    => 'Qualification',
+            'desc'     => 'Kualifikasi Awal',
+            'prob'     => '10%',
         ],
         [
-            'index'       => 2,
-            'key'         => 'Discovery',
-            'title'       => 'Discovery',
-            'desc'        => 'Kebutuhan Klien',
-            'prob'        => '25%',
-            'active_fill' => '#A78BFA', // Ungu / Lavender (Sesuai Gambar 1)
-            'done_fill'   => '#F5F3FF',
-            'text_active' => 'text-white',
-            'text_done'   => 'text-purple-900',
-            'border'      => '#5B21B6',
-            'align_tick'  => 'up', // Tick ke atas (Genap)
+            'index'    => 2,
+            'key'      => 'Discovery',
+            'title'    => 'Discovery',
+            'desc'     => 'Kebutuhan Klien',
+            'prob'     => '25%',
         ],
         [
-            'index'       => 3,
-            'key'         => 'Proposal / Quoting',
-            'title'       => 'Proposal & Quoting',
-            'desc'        => 'Penawaran Resmi',
-            'prob'        => '50%',
-            'active_fill' => '#FB7185', // Magenta / Pink Salmon (Sesuai Gambar 1)
-            'done_fill'   => '#FFF1F2',
-            'text_active' => 'text-white',
-            'text_done'   => 'text-rose-900',
-            'border'      => '#9F1239',
-            'align_tick'  => 'down', // Tick ke bawah (Ganjil)
+            'index'    => 3,
+            'key'      => 'Proposal / Quoting',
+            'title'    => 'Proposal & Quoting',
+            'desc'     => 'Penawaran Resmi',
+            'prob'     => '50%',
         ],
         [
-            'index'       => 4,
-            'key'         => 'Negotiation',
-            'title'       => 'Negotiation',
-            'desc'        => 'Pembahasan Kontrak',
-            'prob'        => '75%',
-            'active_fill' => '#FBBF24', // Warm Gold / Amber (Sesuai Gambar 1)
-            'done_fill'   => '#FFFBEB',
-            'text_active' => 'text-slate-900',
-            'text_done'   => 'text-amber-900',
-            'border'      => '#92400E',
-            'align_tick'  => 'up', // Tick ke atas (Genap)
+            'index'    => 4,
+            'key'      => 'Negotiation',
+            'title'    => 'Negotiation',
+            'desc'     => 'Pembahasan Kontrak',
+            'prob'     => '75%',
         ],
         [
-            'index'       => 5,
-            'key'         => $isClosedLost ? 'Closed Lost' : 'Closed Won',
-            'title'       => $isClosedLost ? 'Closed Lost' : 'Closed Won',
-            'desc'        => $isClosedLost ? 'Batal / Kalah Tender' : 'Menang / Deal',
-            'prob'        => $isClosedLost ? '0%' : '100%',
-            'active_fill' => $isClosedLost ? '#EF4444' : '#34D399', // Hijau Emerald atau Merah Lost
-            'done_fill'   => $isClosedLost ? '#FEF2F2' : '#ECFDF5',
-            'text_active' => 'text-white',
-            'text_done'   => $isClosedLost ? 'text-red-900' : 'text-emerald-900',
-            'border'      => $isClosedLost ? '#991B1B' : '#065F46',
-            'align_tick'  => 'down', // Tick ke bawah (Ganjil)
+            'index'    => 5,
+            'key'      => $isClosedLost ? 'Closed Lost' : 'Closed Won',
+            'title'    => $isClosedLost ? 'Closed Lost' : 'Closed Won',
+            'desc'     => $isClosedLost ? 'Batal / Kalah Tender' : 'Menang / Deal',
+            'prob'     => $isClosedLost ? '0%' : '100%',
         ],
     ];
 @endphp
 
 <div class="ipnet-card p-5 sm:p-6 space-y-4">
     
-    {{-- Header Bar --}}
+    {{-- Header Section: Identitas IPNet & Info Stage --}}
     <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-slate-100">
         <div class="flex items-center gap-2.5 flex-wrap">
             <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
-            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">
-                Sales Pipeline Stage &amp; Timeline
+            <h3 class="text-sm font-bold text-slate-900 tracking-tight">
+                Sales Pipeline Stage &amp; Progress
             </h3>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200">
-                Tahap {{ $currentStageIndex }} dari 5: {{ $currentSalesStage }}
+            
+            @if($isClosedWon)
+                <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Deal / Won (100% Selesai)</span>
+                </span>
+            @elseif($isClosedLost)
+                <span class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200">
+                    <span>Closed Lost (0%)</span>
+                </span>
+            @else
+                <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-red-50 text-[#8F0A0D] border border-red-200">
+                    <span class="w-2 h-2 rounded-full bg-[#8F0A0D] animate-ping"></span>
+                    <span>Tahap {{ $currentStageIndex }} dari 5: {{ $currentSalesStage }}</span>
+                </span>
+            @endif
+
+            <span class="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                Peluang: <strong class="text-slate-900">{{ $currentProb }}%</strong>
             </span>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                Win Probability: {{ $currentProb }}%
-            </span>
+
+            @if($project->expected_closing_date)
+                <span class="text-slate-400 text-xs hidden sm:inline">•</span>
+                <span class="text-xs text-slate-500 font-medium hidden sm:inline flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Target Closing: <strong class="text-slate-800">{{ \Carbon\Carbon::parse($project->expected_closing_date)->format('d M Y') }}</strong>
+                </span>
+            @endif
         </div>
 
         @if(empty($isPresalesOrSaOnly) && ($canAssignSales ?? false))
             <button type="button" 
                     @click="isEditPipelineModalOpen = true; window.openModal('modal-edit-pipeline')"
                     onclick="window.openModal('modal-edit-pipeline')"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#74080a] transition cursor-pointer shadow-2xs">
+                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold btn-ipnet-primary transition cursor-pointer shadow-xs">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                 <span>Ubah Stage &amp; Prospek</span>
             </button>
         @endif
     </div>
 
-    {{-- Chevron Progress Timeline Bar (Sesuai Gambar 1 & 3) --}}
-    <div class="overflow-x-auto pb-3 pt-1 scrollbar-thin">
-        <div class="min-w-[760px] lg:min-w-0 grid grid-cols-5 gap-2 sm:gap-3 items-center">
+    {{-- Chevron Pipeline Stepper (Sesuai Desain IPNet yang Rapi, Bersambung, dan Elegan) --}}
+    <div class="overflow-x-auto pb-2 pt-1 scrollbar-thin">
+        <div class="min-w-[820px] lg:min-w-0 flex items-stretch gap-1 sm:gap-1.5">
             
             @foreach($pipelineSteps as $step)
                 @php
                     $isPast = ($step['index'] < $currentStageIndex);
                     $isActive = ($step['index'] === $currentStageIndex);
                     $isFuture = ($step['index'] > $currentStageIndex);
-
-                    // Tentukan warna dan outline
-                    if ($isActive) {
-                        $fillColor = $step['active_fill'];
-                        $strokeColor = '#1E293B';
-                        $strokeWidth = '2.5';
-                        $textColor = $step['text_active'];
-                    } elseif ($isPast) {
-                        $fillColor = $step['done_fill'];
-                        $strokeColor = $step['border'];
-                        $strokeWidth = '2';
-                        $textColor = $step['text_done'];
-                    } else {
-                        $fillColor = '#F8FAFC';
-                        $strokeColor = '#CBD5E1';
-                        $strokeWidth = '1.8';
-                        $textColor = 'text-slate-400';
-                    }
+                    $isFirst = ($step['index'] === 1);
+                    $isLast = ($step['index'] === 5);
                 @endphp
 
-                <div class="flex flex-col items-center select-none group cursor-pointer"
+                <div class="relative flex-1 min-h-[58px] sm:min-h-[62px] flex items-center transition-all duration-200 cursor-pointer select-none group"
                      @click="window.openEditPipelineWithStage('{{ $step['key'] }}')"
                      title="Klik untuk ubah ke tahap {{ $step['title'] }}">
+                    
+                    {{-- SVG Background Chevron Shape dengan Vektor Presisi --}}
+                    <svg viewBox="0 0 200 60" class="absolute inset-0 w-full h-full filter transition-all duration-200 group-hover:brightness-95" preserveAspectRatio="none">
+                        <defs>
+                            {{-- Gradient Merah IPNet untuk Stage Aktif --}}
+                            <linearGradient id="ipnetRedGrad_{{ $step['index'] }}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#8F0A0D" />
+                                <stop offset="100%" stop-color="#B81525" />
+                            </linearGradient>
 
-                    {{-- Top Label & Tick (Untuk Step Genap: Discovery & Negotiation) --}}
-                    @if($step['align_tick'] === 'up')
-                        <div class="mb-1 flex flex-col items-center text-center">
-                            <span class="text-[10px] sm:text-[11px] font-bold tracking-tight {{ $isActive ? 'text-slate-900 font-extrabold' : ($isPast ? 'text-slate-700 font-semibold' : 'text-slate-400') }}">
-                                {{ $step['desc'] }}
-                            </span>
-                            <span class="text-[9.5px] font-semibold text-slate-400 font-mono">
-                                ({{ $step['prob'] }} Peluang)
-                            </span>
-                            {{-- Vertical Tick Line pointing to Chevron (Sesuai Gambar 1) --}}
-                            <div class="w-[2px] h-2.5 mt-0.5 {{ $isActive ? 'bg-slate-900' : ($isPast ? 'bg-slate-400' : 'bg-slate-300') }}"></div>
-                        </div>
-                    @else
-                        {{-- Spacer agar ketinggian sejajar --}}
-                        <div class="h-9 hidden sm:block"></div>
-                    @endif
+                            {{-- Gradient Hijau Emerald untuk Closed Won --}}
+                            <linearGradient id="emeraldGrad_{{ $step['index'] }}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#059669" />
+                                <stop offset="100%" stop-color="#10B981" />
+                            </linearGradient>
 
-                    {{-- Chevron Arrow Shape Box (SVG Berbentuk Panah Kanan dengan Lekukan Kiri persis Gambar 1) --}}
-                    <div class="relative w-full h-11 sm:h-12 transition-transform duration-200 group-hover:scale-[1.02] filter {{ $isActive ? 'drop-shadow-md' : 'drop-shadow-2xs' }}">
-                        <svg viewBox="0 0 160 48" class="w-full h-full overflow-visible" preserveAspectRatio="none">
-                            {{-- Path Chevron dengan Lekukan Kiri dan Ujung Panah Kanan --}}
-                            <path d="M 0 0 L 140 0 L 160 24 L 140 48 L 0 48 L 18 24 Z" 
-                                  fill="{{ $fillColor }}" 
-                                  stroke="{{ $strokeColor }}" 
-                                  stroke-width="{{ $strokeWidth }}" 
-                                  stroke-linejoin="round" />
-                        </svg>
+                            {{-- Gradient Merah untuk Closed Lost --}}
+                            <linearGradient id="lostGrad_{{ $step['index'] }}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#DC2626" />
+                                <stop offset="100%" stop-color="#991B1B" />
+                            </linearGradient>
+                        </defs>
 
-                        {{-- Teks di Dalam Chevron --}}
-                        <div class="absolute inset-0 flex items-center justify-center pl-3.5 pr-2.5 gap-1.5 text-center pointer-events-none">
+                        @php
+                            // Tentukan path SVG berdasarkan posisi (Awal, Tengah, Akhir)
+                            if ($isFirst) {
+                                // Rounded kiri, arrow kanan
+                                $pathD = "M 8 0 L 184 0 L 200 30 L 184 60 L 8 60 Q 0 60 0 52 L 0 8 Q 0 0 8 0 Z";
+                            } elseif ($isLast) {
+                                // Indent kiri, rounded kanan
+                                $pathD = "M 0 0 L 192 0 Q 200 0 200 8 L 200 52 Q 200 60 192 60 L 0 60 L 16 30 Z";
+                            } else {
+                                // Indent kiri, arrow kanan (Interlocking Chevron)
+                                $pathD = "M 0 0 L 184 0 L 200 30 L 184 60 L 0 60 L 16 30 Z";
+                            }
+
+                            // Tentukan fill & stroke sesuai status dan warna IPNet
+                            if ($isActive) {
+                                if ($isClosedWon) {
+                                    $fill = "url(#emeraldGrad_{$step['index']})";
+                                    $stroke = "#047857";
+                                } elseif ($isClosedLost) {
+                                    $fill = "url(#lostGrad_{$step['index']})";
+                                    $stroke = "#7F1D1D";
+                                } else {
+                                    $fill = "url(#ipnetRedGrad_{$step['index']})";
+                                    $stroke = "#6B080A";
+                                }
+                                $strokeWidth = "2";
+                            } elseif ($isPast) {
+                                $fill = "#ECFDF5"; // Emerald-50
+                                $stroke = "#A7F3D0"; // Emerald-200
+                                $strokeWidth = "1.5";
+                            } else {
+                                $fill = "#F8FAFC"; // Slate-50
+                                $stroke = "#E2E8F0"; // Slate-200
+                                $strokeWidth = "1.5";
+                            }
+                        @endphp
+
+                        <path d="{{ $pathD }}" 
+                              fill="{{ $fill }}" 
+                              stroke="{{ $stroke }}" 
+                              stroke-width="{{ $strokeWidth }}" 
+                              stroke-linejoin="round" />
+                    </svg>
+
+                    {{-- Isi Teks & Ikon di Dalam Chevron --}}
+                    <div class="relative z-10 w-full flex items-center justify-between {{ $isFirst ? 'pl-4 sm:pl-5' : 'pl-6 sm:pl-7' }} {{ $isLast ? 'pr-4 sm:pr-5' : 'pr-6 sm:pr-7' }} gap-2.5">
+                        
+                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                            {{-- Indikator Bulat (Checkmark untuk Selesai / Nomor / Ping untuk Aktif) --}}
                             @if($isPast)
-                                <div class="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shrink-0">
-                                    ✓
+                                <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-black shadow-2xs shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                 </div>
                             @elseif($isActive)
-                                <div class="w-2 h-2 rounded-full bg-white animate-ping mr-0.5"></div>
+                                <div class="w-6 h-6 rounded-full bg-white text-[#8F0A0D] flex items-center justify-center text-xs font-black shadow-xs shrink-0">
+                                    @if($isClosedWon)
+                                        <svg class="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    @elseif($isClosedLost)
+                                        <span class="text-rose-700 font-black text-xs">✕</span>
+                                    @else
+                                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                                    @endif
+                                </div>
                             @else
-                                <span class="text-[10px] font-mono font-bold opacity-60">
-                                    {{ $step['index'] }}.
-                                </span>
+                                <div class="w-6 h-6 rounded-full bg-white border border-slate-300 text-slate-400 flex items-center justify-center text-[11px] font-bold shrink-0">
+                                    {{ $step['index'] }}
+                                </div>
                             @endif
 
-                            <span class="text-[11px] sm:text-xs font-black truncate tracking-tight {{ $textColor }}">
-                                {{ $step['title'] }}
-                            </span>
+                            {{-- Judul Tahapan & Subketerangan --}}
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-xs sm:text-[13px] font-extrabold truncate tracking-tight {{ $isActive ? 'text-white' : ($isPast ? 'text-emerald-950' : 'text-slate-700') }}">
+                                        {{ $step['title'] }}
+                                    </span>
+                                </div>
+                                <div class="text-[10px] sm:text-[10.5px] truncate font-medium {{ $isActive ? 'text-white/80' : ($isPast ? 'text-emerald-700' : 'text-slate-400') }}">
+                                    <span>{{ $step['desc'] }}</span>
+                                    <span class="opacity-70">• {{ $step['prob'] }}</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    {{-- Bottom Label & Tick (Untuk Step Ganjil: Qualification, Proposal, Won) --}}
-                    @if($step['align_tick'] === 'down')
-                        <div class="mt-1 flex flex-col items-center text-center">
-                            {{-- Vertical Tick Line pointing to Chevron (Sesuai Gambar 1) --}}
-                            <div class="w-[2px] h-2.5 mb-0.5 {{ $isActive ? 'bg-slate-900' : ($isPast ? 'bg-slate-400' : 'bg-slate-300') }}"></div>
-                            <span class="text-[10px] sm:text-[11px] font-bold tracking-tight {{ $isActive ? 'text-slate-900 font-extrabold' : ($isPast ? 'text-slate-700 font-semibold' : 'text-slate-400') }}">
-                                {{ $step['desc'] }}
-                            </span>
-                            <span class="text-[9.5px] font-semibold text-slate-400 font-mono">
-                                ({{ $step['prob'] }} Peluang)
-                            </span>
+                        {{-- Status Tag Tipis --}}
+                        <div class="hidden xl:block shrink-0">
+                            @if($isActive)
+                                <span class="px-2 py-0.5 rounded-full text-[9.5px] font-extrabold uppercase bg-white/20 text-white tracking-wider border border-white/30">
+                                    Aktif
+                                </span>
+                            @elseif($isPast)
+                                <span class="text-[10px] font-bold text-emerald-600">
+                                    Selesai
+                                </span>
+                            @endif
                         </div>
-                    @else
-                        {{-- Spacer agar ketinggian sejajar --}}
-                        <div class="h-9 hidden sm:block"></div>
-                    @endif
+
+                    </div>
 
                 </div>
             @endforeach
 
         </div>
     </div>
+
+    {{-- Footer Info Bar --}}
+    <div class="flex items-center justify-between text-xs font-semibold text-slate-500 pt-2 border-t border-slate-100 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+            <span class="text-slate-400">Progres Penjualan:</span>
+            <span class="font-bold text-slate-800">{{ $currentStageIndex }} dari 5 Tahap Selesai/Aktif</span>
+            <span class="text-slate-300">•</span>
+            <span class="text-slate-400">Peluang Deal:</span>
+            <span class="font-bold text-[#8F0A0D]">{{ $currentProb }}% Win Rate</span>
+        </div>
+        <div class="flex items-center gap-1.5 text-slate-400 text-[11px]">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Klik pada salah satu tahap di atas untuk memperbarui status pipeline</span>
+        </div>
+    </div>
+
 </div>
