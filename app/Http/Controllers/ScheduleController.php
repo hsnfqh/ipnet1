@@ -70,12 +70,16 @@ class ScheduleController extends Controller
         ->get();
         $executiveTeamUserIds = $executiveTeamUsers->pluck('id')->toArray();
 
-        // Otomatis bersihkan seluruh riwayat spam jadwal proyek (Implementasi Teknis / Task) agar kalender bersih & mandiri
+        // Kembalikan seluruh jadwal kegiatan & task mandiri yang dibuat oleh tim engineer yang sebelumnya ter-soft-delete
         try {
-            Schedule::where(function($q) {
-                $q->where('title', 'like', 'Implementasi Teknis%')
-                  ->orWhereIn('category', ['Task', 'Kegiatan']);
-            })->delete();
+            Schedule::onlyTrashed()
+                ->where('title', 'not like', '%Implementasi Teknis%')
+                ->restore();
+        } catch (\Exception $e) {}
+
+        // Hapus HANYA jadwal auto-generate dari serah terima proyek (Implementasi Teknis)
+        try {
+            Schedule::where('title', 'like', '%Implementasi Teknis%')->forceDelete();
         } catch (\Exception $e) {}
 
         // Auto-deduplikasi data ganda di database berdasarkan judul dan tanggal yang sama persis
@@ -112,8 +116,7 @@ class ScheduleController extends Controller
         }
 
         $schedulesQuery = Schedule::with($withRelations)
-            ->where('title', 'not like', 'Implementasi Teknis%')
-            ->whereNotIn('category', ['Task', 'Kegiatan']);
+            ->where('title', 'not like', '%Implementasi Teknis%');
         if ($isExecutive) {
             // Executive (Hariyadi & Susanto): Hanya terhubung ke jadwal Presales, Sales, BD/BDM, dan PMO
             // Putus total dari jadwal maintenance/troubleshooting lapangan yang melibatkan tim engineer delivery
@@ -301,9 +304,60 @@ class ScheduleController extends Controller
             $withTaskRelations[] = 'engineers';
         }
 
-        // Work Schedule hanya menampilkan agenda/jadwal kerja resmi yang dibuat oleh Lead Engineer & Tim,
-        // BUKAN auto-inject tanggal deadline proyek atau tugas otomatis
-        $tasks = collect([]);
+        // Tasks kegiatan resmi tim engineer (dengan deadline) untuk ditampilkan di kalender Work Schedule
+        if ($isArchitect || $isCommercial) {
+            $tasks = collect([]);
+        } else {
+            $existingScheduleTitles = Schedule::pluck('title')->map(fn($t) => strtolower(trim($t)))->toArray();
+            $tasks = Task::with($withTaskRelations)
+                ->where('title', 'not like', '%Implementasi Teknis%')
+                ->when($scopeIds !== null, function($query) use ($scopeIds, $hasTaskUser) {
+                    return $query->where(function($q) use ($scopeIds, $hasTaskUser) {
+                        if (count($scopeIds) === 1) {
+                            $q->where('engineer_id', $scopeIds[0]);
+                            if ($hasTaskUser) {
+                                $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $scopeIds[0]));
+                            }
+                        } else {
+                            $q->whereIn('engineer_id', $scopeIds);
+                            if ($hasTaskUser) {
+                                $q->orWhereHas('engineers', fn($sq) => $sq->whereIn('users.id', $scopeIds));
+                            }
+                        }
+                    });
+                })
+                ->whereNotNull('deadline')
+                ->get()
+                ->filter(function($task) use ($existingScheduleTitles) {
+                    return !in_array(strtolower(trim($task->title)), $existingScheduleTitles)
+                        && !str_contains(strtolower($task->title ?? ''), 'implementasi teknis');
+                })
+                ->values()
+                ->map(function($task) use ($hasTaskUser) {
+                    $engineerIds = $hasTaskUser && $task->relationLoaded('engineers') && $task->engineers->isNotEmpty()
+                        ? $task->engineers->pluck('id')->toArray()
+                        : ($task->engineer_id ? [$task->engineer_id] : []);
+                    $engineersList = $hasTaskUser && $task->relationLoaded('engineers') && $task->engineers->isNotEmpty()
+                        ? $task->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
+                        : ($task->engineer ? [['id' => $task->engineer->id, 'name' => $task->engineer->name]] : []);
+
+                    return [
+                        'id'            => $task->id,
+                        'title'         => $task->title,
+                        'deadline'      => $task->deadline ? $task->deadline->format('Y-m-d') : null,
+                        'deadline_time' => $task->deadline_time ? substr($task->deadline_time, 0, 5) : '',
+                        'priority'      => $task->priority,
+                        'status'        => $task->status,
+                        'engineer_id'   => $task->engineer_id,
+                        'engineer_ids'  => $engineerIds,
+                        'engineers'     => $engineersList,
+                        'project_id'    => $task->project_id,
+                        'project'       => $task->project ? ['id' => $task->project->id, 'name' => $task->project->name] : null,
+                        'engineer'      => $task->engineer ? ['id' => $task->engineer->id, 'name' => $task->engineer->name] : null,
+                    ];
+                });
+        }
+
         $calendarProjects = collect([]);
 
         $isMaintenance = ScopeHelper::isMaintenance($user);

@@ -60,6 +60,13 @@ class TaskController extends Controller
             }
         } catch (\Exception $e) {}
 
+        // Kembalikan task resmi engineer/tim yang sebelumnya sempat ter-soft delete
+        try {
+            Task::onlyTrashed()
+                ->where('title', 'not like', '%Implementasi Teknis%')
+                ->restore();
+        } catch (\Exception $e) {}
+
         // Auto-cleanup: Hapus tuntas seluruh task "Implementasi Teknis:" yang ter-generate otomatis dari proyek agar penugasan tim bersih & mandiri
         try {
             if ($hasTaskUser) {
