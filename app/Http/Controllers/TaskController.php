@@ -60,44 +60,15 @@ class TaskController extends Controller
             }
         } catch (\Exception $e) {}
 
-        // Auto-ensure: Buat task penugasan awal di kolom ASSIGNED untuk setiap proyek yang sudah didelegasikan ke divisi tapi belum memiliki task
+        // Auto-cleanup: Hapus seluruh task "Implementasi Teknis:" yang ter-generate otomatis dari proyek agar penugasan tim bersih & mandiri
         try {
-            $assignedProjectsWithoutTask = Project::whereNotNull('division_id')
-                ->whereDoesntHave('tasks')
-                ->with('division')
-                ->get();
-
-            foreach ($assignedProjectsWithoutTask as $ap) {
-                $divName = $ap->division ? $ap->division->name : 'Divisi Pelaksana';
-                $leadUser = null;
-                if (str_contains(strtolower($divName), 'net')) {
-                    $leadUser = User::where('name', 'like', '%Nugraha%')->first();
-                } elseif (str_contains(strtolower($divName), 'sec')) {
-                    $leadUser = User::where('name', 'like', '%Ignatius%')->first();
+            $autoProjectTasks = Task::where('title', 'like', 'Implementasi Teknis%')->get();
+            foreach ($autoProjectTasks as $apt) {
+                \App\Models\Schedule::where('title', $apt->title)->delete();
+                if ($hasTaskUser) {
+                    $apt->engineers()->detach();
                 }
-                if (!$leadUser && $ap->division_id) {
-                    $leadUser = User::where('division_id', $ap->division_id)
-                        ->whereHas('roles', fn($q) => $q->whereIn('name', ['Team Leader Engineering', 'Team Leader', 'Lead Engineer', 'Lead Divisi']))
-                        ->first();
-                }
-                $targetEngId = $leadUser ? $leadUser->id : ($user->id ?: 1);
-
-                $newTask = Task::create([
-                    'title'       => 'Implementasi Teknis: ' . $ap->name,
-                    'description' => 'Tugas penyerahan proyek dari PMO ke ' . $divName . ' untuk klien ' . ($ap->client ?: '-') . '. Menunggu penugasan Field Engineer (PIC) dan jadwal pelaksanaan oleh Lead Engineer.',
-                    'status'      => 'Assigned',
-                    'priority'    => 'High',
-                    'progress'    => 0,
-                    'start_date'  => $ap->start_date ?: now()->toDateString(),
-                    'deadline'    => $ap->deadline ?: now()->addDays(14)->toDateString(),
-                    'engineer_id' => $targetEngId,
-                    'project_id'  => $ap->id,
-                    'created_by'  => $ap->created_by ?: ($user->id ?: 1),
-                ]);
-
-                if ($hasTaskUser && $targetEngId) {
-                    $newTask->engineers()->sync([$targetEngId]);
-                }
+                $apt->delete();
             }
         } catch (\Exception $e) {}
 
@@ -525,11 +496,16 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
-        abort_unless(ScopeHelper::canManageProjectsAndTasks(auth()->user()), 403, 'Hanya Team Leader yang berhak menghapus task.');
+        $user = auth()->user();
+        abort_unless(ScopeHelper::isTeamLeader($user) || ScopeHelper::isManagerial($user), 403, 'Hanya Team Leader / Manajerial yang berhak menghapus task.');
 
         \App\Models\Schedule::where('title', $task->title)
             ->where('project_id', $task->project_id)
             ->delete();
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('task_user')) {
+            $task->engineers()->detach();
+        }
 
         $task->delete();
 

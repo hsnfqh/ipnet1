@@ -356,23 +356,7 @@ class PmoController extends Controller
         $leaders = $leadersQuery->get();
         $targetLeadId = $leaders->isNotEmpty() ? $leaders->first()->id : (auth()->id() ?: 1);
 
-        // Otomatis buat Task Implementasi awal pada kolom ASSIGNED
-        $existingTask = Task::where('project_id', $project->id)->first();
-        if (!$existingTask) {
-            Task::create([
-                'title'       => 'Implementasi Teknis: ' . $project->name,
-                'description' => 'Tugas penyerahan proyek dari PMO (' . $divisionName . ') untuk klien ' . $project->client . '. Menunggu pembagian Field Engineer (PIC) dan jadwal oleh Lead Engineer.',
-                'status'      => 'Assigned',
-                'priority'    => 'High',
-                'progress'    => 0,
-                'start_date'  => $project->start_date ?: now()->toDateString(),
-                'deadline'    => $project->deadline ?: now()->addDays(14)->toDateString(),
-                'engineer_id' => $targetLeadId,
-                'project_id'  => $project->id,
-                'created_by'  => auth()->id(),
-            ]);
-        }
-
+        // Penyerahan proyek ke divisi tanpa membuat task otomatis (penugasan jadwal sepenuhnya ranah Lead Engineer)
         foreach ($leaders as $leader) {
             \App\Models\Notification::create([
                 'user_id' => $leader->id,

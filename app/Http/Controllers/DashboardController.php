@@ -262,12 +262,24 @@ class DashboardController extends Controller
         $engineers = \App\Helpers\ScopeHelper::getAssignableEngineers($user);
         $hasTaskUser = \Illuminate\Support\Facades\Schema::hasTable('task_user');
 
+        // Auto-cleanup: Pastikan task & schedule auto-generate "Implementasi Teknis" dibersihkan
+        try {
+            $autoProjectTasks = Task::where('title', 'like', 'Implementasi Teknis%')->get();
+            foreach ($autoProjectTasks as $apt) {
+                \App\Models\Schedule::where('title', $apt->title)->delete();
+                if ($hasTaskUser) {
+                    $apt->engineers()->detach();
+                }
+                $apt->delete();
+            }
+        } catch (\Exception $e) {}
+
         // Filter tasks sesuai scope role yang login
         $withRelations = ['project', 'engineer'];
         if ($hasTaskUser) {
             $withRelations[] = 'engineers';
         }
-        $tasksQuery = Task::with($withRelations);
+        $tasksQuery = Task::with($withRelations)->where('title', 'not like', 'Implementasi Teknis%');
         if ($scopeIds !== null) {
             $tasksQuery->where(function($q) use ($scopeIds, $hasTaskUser) {
                 if (count($scopeIds) === 1) {

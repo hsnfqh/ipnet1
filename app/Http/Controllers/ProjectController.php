@@ -598,33 +598,7 @@ class ProjectController extends Controller
 
         $targetLeadId = !empty($leaderIds) ? $leaderIds[0] : (auth()->id() ?: 1);
 
-        // Otomatis buat Task Implementasi awal pada kolom ASSIGNED (ditugaskan ke Lead Engineer untuk didelegasikan ke PIC)
-        $existingTask = Task::where('project_id', $project->id)->first();
-        if (!$existingTask) {
-            $createdTask = Task::create([
-                'title'       => 'Implementasi Teknis: ' . $project->name,
-                'description' => 'Tugas penyerahan proyek dari PMO ke ' . $divName . ' untuk klien ' . ($project->client ?: '-') . '. Menunggu penugasan Field Engineer (PIC) dan jadwal pelaksanaan oleh Lead Engineer.',
-                'status'      => 'Assigned',
-                'priority'    => 'High',
-                'progress'    => 0,
-                'start_date'  => $project->start_date ?: now()->toDateString(),
-                'deadline'    => $project->deadline ?: now()->addDays(14)->toDateString(),
-                'engineer_id' => $targetLeadId,
-                'project_id'  => $project->id,
-                'created_by'  => auth()->id(),
-            ]);
-            if (\Illuminate\Support\Facades\Schema::hasTable('task_user') && $targetLeadId) {
-                $createdTask->engineers()->sync([$targetLeadId]);
-            }
-        } else {
-            $existingTask->update([
-                'engineer_id' => $targetLeadId,
-                'status'      => ($existingTask->status === 'Draft' || empty($existingTask->status)) ? 'Assigned' : $existingTask->status,
-            ]);
-            if (\Illuminate\Support\Facades\Schema::hasTable('task_user') && $targetLeadId) {
-                $existingTask->engineers()->sync([$targetLeadId]);
-            }
-        }
+        // Penugasan tim divisi dilakukan tanpa membuat task otomatis (jadwal pelaksanaan sepenuhnya ranah Lead Engineer)
 
         // Kirim notifikasi ke Lead Engineer
         if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
@@ -639,7 +613,7 @@ class ProjectController extends Controller
             }
         }
 
-        $msg = "Proyek berhasil didisposisikan ke {$divName}! Tiket pekerjaan otomatis berstatus ASSIGNED untuk Lead Engineer.";
+        $msg = "Proyek berhasil didisposisikan ke {$divName}! Notifikasi telah dikirimkan ke Lead Engineer.";
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
