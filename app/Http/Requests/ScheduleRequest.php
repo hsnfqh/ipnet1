@@ -68,9 +68,5 @@ class ScheduleRequest extends FormRequest
         $validator->sometimes('project_id', 'nullable|exists:projects,id', function ($input) {
             return $input->category !== 'Day Off' && $input->project_id !== 'other';
         });
-
-        $validator->sometimes('start_time', 'required', function ($input) {
-            return $input->category !== 'Day Off';
-        });
     }
 }

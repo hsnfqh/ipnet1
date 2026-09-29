@@ -525,8 +525,9 @@ class ScheduleController extends Controller
             if (empty($sessions)) {
                 $startTime = !empty($data['start_time']) ? $data['start_time'] : null;
                 $endTime   = !empty($data['end_time']) ? $data['end_time'] : $startTime;
+                $fallbackDate = !empty($startDateStr) ? $startDateStr : ($data['date'] ?? now()->toDateString());
                 $sessions[] = [
-                    'date'       => $data['date'] ?? now()->toDateString(),
+                    'date'       => $fallbackDate,
                     'start_time' => $startTime,
                     'end_time'   => $endTime,
                     'location'   => $data['location'] ?? null,
