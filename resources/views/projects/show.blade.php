@@ -646,7 +646,7 @@
     <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Detail Proyek'])
         
-        <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6">
             
             {{-- Flash Messages --}}
             @if(session('success'))
