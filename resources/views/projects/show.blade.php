@@ -358,6 +358,18 @@
         }
     };
 
+    window.openEditPipelineWithStage = function(stageKey) {
+        window.openModal('modal-edit-pipeline');
+        const modal = document.getElementById('modal-edit-pipeline');
+        if (modal) {
+            const select = modal.querySelector('select[name="sales_stage"]');
+            if (select) {
+                select.value = stageKey;
+                select.dispatchEvent(new Event('change'));
+            }
+        }
+    };
+
     window.openAssignModalCustom = function(role) {
         const data = window.getProjectData();
         if (data) {
@@ -686,6 +698,9 @@
                 <span class="text-slate-800 font-semibold truncate max-w-md">{{ $project->name }}</span>
             </nav>
 
+            {{-- 1B. SALES PIPELINE CHEVRON TIMELINE (DIATAS HERO BANNER PROYEK) --}}
+            @include('projects.partials.workflow-pipeline-timeline')
+
             {{-- 2. EXECUTIVE HERO BANNER & METRICS --}}
             <div class="ipnet-card p-6 sm:p-7 space-y-6">
                 
@@ -856,10 +871,7 @@
                         </div>
                     @endif
 
-                    {{-- 1. Status Pipeline & Penjualan --}}
-                    @include('projects.partials.workflow-pipeline')
-
-                    {{-- 2. Otorisasi Pimpinan (Pak Susanto Djaya & Pak Hariyadi) --}}
+                    {{-- Otorisasi Pimpinan (Pak Susanto Djaya & Pak Hariyadi) --}}
                     @include('projects.partials.workflow-leadership')
 
                     {{-- 3. Tim Solusi Teknis (PIC BD, Presales Akbar, SA Aris Sadewo) --}}
