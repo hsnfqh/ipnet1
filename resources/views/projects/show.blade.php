@@ -1207,6 +1207,20 @@
                             </div>
                         </div>
 
+                        {{-- Table Column Headers (Menjelaskan Kolom: Kode Jenis Surat, Keterangan Dokumen, Status & Tindakan) --}}
+                        <div class="hidden sm:grid sm:grid-cols-12 gap-4 px-5 py-2.5 bg-slate-100/80 rounded-xl text-[11px] font-bold text-slate-500 uppercase tracking-wider border border-slate-200/80 items-center">
+                            <div class="col-span-3 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <span>KODE JENIS SURAT</span>
+                            </div>
+                            <div class="col-span-6 flex items-center gap-1.5">
+                                <span>KETERANGAN / NAMA DOKUMEN</span>
+                            </div>
+                            <div class="col-span-3 text-right">
+                                <span>STATUS & UPLOAD</span>
+                            </div>
+                        </div>
+
                         {{-- Template Accordion Items List --}}
                         <div class="space-y-2.5 pt-1">
                             @foreach($documentTemplates as $tpl)
@@ -1220,44 +1234,59 @@
                                         isDragging: false, 
                                         selectedFile: null, 
                                         isUploading: false 
-                                     }" 
+                                      }" 
                                      x-show="(filterStatus === 'all' || (filterStatus === 'filled' && {{ $hasFile ? 'true' : 'false' }}) || (filterStatus === 'empty' && !{{ $hasFile ? 'true' : 'false' }})) && (!searchQuery || '{{ strtolower($tpl['code']) }}'.includes(searchQuery.toLowerCase()) || '{{ strtolower($tpl['name']) }}'.includes(searchQuery.toLowerCase()))"
                                      class="border border-slate-200 rounded-xl overflow-hidden bg-white hover:border-slate-300 transition-all shadow-2xs">
                                     
                                     {{-- Row / Accordion Header (Sesuai Template: KODE | KETERANGAN | DROPDOWN ARROW) --}}
                                     <button type="button" 
                                             @click="toggleItem('{{ $tpl['code'] }}')" 
-                                            class="w-full px-5 py-3.5 flex items-center justify-between text-left transition hover:bg-slate-50/80 cursor-pointer select-none">
-                                        <div class="flex items-center gap-4 sm:gap-8 min-w-0 pr-2">
-                                            {{-- Kode (Contoh: REQ, INF, BRD) --}}
-                                            <span class="w-14 sm:w-20 font-bold text-slate-900 text-xs sm:text-sm tracking-wide shrink-0">
-                                                {{ $tpl['code'] }}
-                                            </span>
+                                            class="w-full px-5 py-3.5 flex items-center justify-between text-left transition hover:bg-slate-50/90 cursor-pointer select-none group">
+                                        <div class="flex items-center gap-3 sm:gap-6 min-w-0 pr-2 flex-1">
+                                            {{-- Kode dengan Label Badge [KODE: XXX] --}}
+                                            <div class="shrink-0">
+                                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 group-hover:border-red-200 group-hover:bg-red-50/80 transition shadow-2xs">
+                                                    <span class="text-[9.5px] font-extrabold uppercase text-slate-400 group-hover:text-red-500 tracking-wider">
+                                                        KODE
+                                                    </span>
+                                                    <span class="text-xs sm:text-sm font-mono font-black text-slate-900 group-hover:text-[#8F0A0D] tracking-wide">
+                                                        {{ $tpl['code'] }}
+                                                    </span>
+                                                </div>
+                                            </div>
                                             
                                             {{-- Keterangan Dokumen (Contoh: Surat Permohonan) --}}
-                                            <span class="font-medium text-slate-800 text-xs sm:text-sm truncate">
-                                                {{ $tpl['name'] }}
-                                            </span>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-[#8F0A0D] transition truncate">
+                                                    {{ $tpl['name'] }}
+                                                </div>
+                                                <div class="text-[10.5px] text-slate-400 font-medium hidden sm:block">
+                                                    Keterangan Dokumen Lampiran
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div class="flex items-center gap-3 shrink-0">
                                             @if($countForTpl > 0)
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                                     <span>{{ $countForTpl }} Berkas</span>
                                                 </span>
                                             @else
-                                                <span class="hidden sm:inline-block text-[11px] text-slate-400 font-medium">
-                                                    Belum diunggah
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 group-hover:border-slate-300 transition">
+                                                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                                    <span>Belum Ada Berkas</span>
                                                 </span>
                                             @endif
 
                                             {{-- Dropdown Icon (▽) --}}
-                                            <svg class="w-4 h-4 text-slate-700 transition-transform duration-200" 
-                                                 :class="{ 'rotate-180': openItems['{{ $tpl['code'] }}'] }" 
-                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                                            </svg>
+                                            <div class="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+                                                <svg class="w-3.5 h-3.5 transition-transform duration-200" 
+                                                     :class="{ 'rotate-180': openItems['{{ $tpl['code'] }}'] }" 
+                                                     fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </div>
                                         </div>
                                     </button>
 
