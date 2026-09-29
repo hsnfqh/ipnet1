@@ -1222,9 +1222,9 @@
                         {{-- Table Column Headers (Menjelaskan Kolom: Kode Jenis Surat, Keterangan Dokumen, Status & Tindakan) --}}
                         <div class="hidden sm:flex items-center justify-between gap-4 px-5 py-2.5 bg-slate-100/80 rounded-xl text-[11px] font-bold text-slate-500 uppercase tracking-wider border border-slate-200/80">
                             <div class="flex items-center gap-4 sm:gap-6 min-w-0 pr-2 flex-1">
-                                <div class="w-28 sm:w-32 shrink-0 flex items-center gap-1.5">
+                                <div class="w-20 sm:w-24 shrink-0 flex items-center justify-center gap-1.5">
                                     <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                    <span>KODE SURAT</span>
+                                    <span>KODE</span>
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <span>NAMA & KETERANGAN DOKUMEN</span>
@@ -1258,13 +1258,10 @@
                                             @click="toggleItem('{{ $tpl['code'] }}')" 
                                             class="w-full px-5 py-3.5 flex items-center justify-between text-left transition hover:bg-slate-50/90 cursor-pointer select-none group">
                                         <div class="flex items-center gap-4 sm:gap-6 min-w-0 pr-2 flex-1">
-                                            {{-- Kode dengan Fixed-Width Badge [KODE : XXX] --}}
-                                            <div class="w-28 sm:w-32 shrink-0">
-                                                <div class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 group-hover:border-red-200 group-hover:bg-red-50/80 transition shadow-2xs">
-                                                    <span class="text-[9.5px] font-extrabold uppercase text-slate-400 group-hover:text-red-500 tracking-wider">
-                                                        KODE
-                                                    </span>
-                                                    <span class="text-xs sm:text-sm font-mono font-black text-slate-900 group-hover:text-[#8F0A0D] tracking-wide text-right">
+                                            {{-- Kode dengan Fixed-Width Badge (Hanya Kode Saja) --}}
+                                            <div class="w-20 sm:w-24 shrink-0">
+                                                <div class="flex items-center justify-center px-2 py-1.5 rounded-lg bg-slate-100 border border-slate-200 group-hover:border-red-200 group-hover:bg-red-50/80 transition shadow-2xs">
+                                                    <span class="text-xs sm:text-sm font-mono font-black text-slate-900 group-hover:text-[#8F0A0D] tracking-wider text-center">
                                                         {{ $tpl['code'] }}
                                                     </span>
                                                 </div>
