@@ -60,12 +60,6 @@ class TaskController extends Controller
             }
         } catch (\Exception $e) {}
 
-        // Kembalikan task resmi engineer/tim yang sebelumnya sempat ter-soft delete
-        try {
-            Task::onlyTrashed()
-                ->where('title', 'not like', '%Implementasi Teknis%')
-                ->restore();
-        } catch (\Exception $e) {}
 
         // Auto-cleanup: Hapus tuntas seluruh task "Implementasi Teknis:" yang ter-generate otomatis dari proyek agar penugasan tim bersih & mandiri
         try {
@@ -508,22 +502,62 @@ class TaskController extends Controller
         $user = auth()->user();
         abort_unless(ScopeHelper::isTeamLeader($user) || ScopeHelper::isManagerial($user) || ScopeHelper::isExecutive($user) || $user->hasRole('Super Admin'), 403, 'Hanya Team Leader / Manajerial yang berhak menghapus task.');
 
-        \App\Models\Schedule::where('title', $task->title)
-            ->where('project_id', $task->project_id)
-            ->delete();
+        $title = $task->title;
+        $cleanTitle = trim($title);
+        $projectId = $task->project_id;
 
+        // 1. Cari seluruh jadwal di Work Schedule yang berelasi dengan task ini secara komprehensif
+        $schedulesQuery = \App\Models\Schedule::withTrashed()
+            ->where(function($q) use ($title, $cleanTitle, $projectId) {
+                $q->where('title', $title)
+                  ->orWhere('title', $cleanTitle)
+                  ->orWhereRaw('LOWER(TRIM(title)) = ?', [strtolower($cleanTitle)]);
+                
+                if (!empty($projectId)) {
+                    $q->orWhere(function($sq) use ($projectId, $cleanTitle) {
+                        $sq->where('project_id', $projectId)
+                           ->where(function($ssq) use ($cleanTitle) {
+                               $ssq->where('title', $cleanTitle)
+                                   ->orWhereRaw('LOWER(TRIM(title)) = ?', [strtolower($cleanTitle)]);
+                           });
+                    });
+                }
+            });
+
+        // 2. Detach pivot schedule_user jika tabel tersedia
+        if (\Illuminate\Support\Facades\Schema::hasTable('schedule_user')) {
+            $scheduleIds = (clone $schedulesQuery)->pluck('id')->toArray();
+            if (!empty($scheduleIds)) {
+                \Illuminate\Support\Facades\DB::table('schedule_user')
+                    ->whereIn('schedule_id', $scheduleIds)
+                    ->delete();
+            }
+        }
+
+        // 3. Hapus permanen (forceDelete) seluruh jadwal yang terkait
+        $schedulesQuery->forceDelete();
+
+        // 4. Detach pivot task_user dan hapus permanen task
         if (\Illuminate\Support\Facades\Schema::hasTable('task_user')) {
             $task->engineers()->detach();
         }
 
         $task->forceDelete();
 
+        // 5. Sinkronisasi pembersihan pada basis data cadangan `ipnet-db` jika ada
+        try {
+            \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.schedule_user WHERE schedule_id IN (SELECT id FROM `ipnet-db`.schedules WHERE LOWER(TRIM(title)) = ?)", [strtolower($cleanTitle)]);
+            \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.schedules WHERE LOWER(TRIM(title)) = ?", [strtolower($cleanTitle)]);
+            \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.task_user WHERE task_id = ?", [$task->id]);
+            \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.tasks WHERE id = ? OR LOWER(TRIM(title)) = ?", [$task->id, strtolower($cleanTitle)]);
+        } catch (\Exception $e) {}
+
         if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
-            return response()->json(['success' => true, 'message' => 'Task berhasil dihapus!']);
+            return response()->json(['success' => true, 'message' => 'Task dan jadwal di kalender berhasil dihapus!']);
         }
 
         return redirect()->route('tasks.index')
-            ->with('success', 'Task berhasil dihapus!');
+            ->with('success', 'Task dan jadwal di kalender berhasil dihapus!');
     }
 
     public function getKanbanData()

@@ -3243,13 +3243,27 @@
                         });
 
                         if (response.ok) {
+                            var deletedTitle = (this.scheduleToDelete.title || '').trim().toLowerCase();
+                            var isTaskSchedule = ['task', 'kegiatan', 'preventive maintenance', 'ticket'].indexOf((this.scheduleToDelete.category || '').toLowerCase()) !== -1;
+
                             this.schedules = this.schedules.filter(function(s) {
-                                return s.id !== targetId;
+                                if (s.id === targetId) return false;
+                                if (isTaskSchedule && deletedTitle && (s.title || '').trim().toLowerCase() === deletedTitle) {
+                                    return false;
+                                }
+                                return true;
                             });
+
+                            if (this.tasks && this.tasks.length > 0 && deletedTitle) {
+                                this.tasks = this.tasks.filter(function(t) {
+                                    return (t.title || '').trim().toLowerCase() !== deletedTitle;
+                                });
+                            }
+
                             this.deleteConfirmOpen = false;
                             this.modalOpen = false;
                             this.scheduleToDelete = null;
-                            this.showToast('Jadwal berhasil dihapus!');
+                            this.showToast('Jadwal dan task terkait berhasil dihapus!');
                         } else {
                             this.showToast('Gagal menghapus jadwal.');
                         }

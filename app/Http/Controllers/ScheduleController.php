@@ -70,12 +70,6 @@ class ScheduleController extends Controller
         ->get();
         $executiveTeamUserIds = $executiveTeamUsers->pluck('id')->toArray();
 
-        // Kembalikan seluruh jadwal kegiatan & task mandiri yang dibuat oleh tim engineer yang sebelumnya ter-soft-delete
-        try {
-            Schedule::onlyTrashed()
-                ->where('title', 'not like', '%Implementasi Teknis%')
-                ->restore();
-        } catch (\Exception $e) {}
 
         // Hapus HANYA jadwal auto-generate dari serah terima proyek (Implementasi Teknis)
         try {
@@ -855,25 +849,90 @@ class ScheduleController extends Controller
     public function destroy(Schedule $schedule)
     {
         try {
-            if (in_array($schedule->category, ['Task', 'Kegiatan', 'Preventive Maintenance'])) {
-                $taskQuery = Task::where('title', $schedule->title);
-                if (!empty($schedule->project_id)) {
-                    $taskQuery->where('project_id', $schedule->project_id);
+            $title = $schedule->title;
+            $cleanTitle = trim($title);
+            $projectId = $schedule->project_id;
+            $isTaskRelated = in_array($schedule->category, ['Task', 'Kegiatan', 'Preventive Maintenance', 'Ticket']);
+
+            // 1. Cari task yang terkait dengan jadwal ini dan hapus permanen
+            $taskQuery = Task::withTrashed()
+                ->where(function($q) use ($title, $cleanTitle, $projectId) {
+                    $q->where('title', $title)
+                      ->orWhere('title', $cleanTitle)
+                      ->orWhereRaw('LOWER(TRIM(title)) = ?', [strtolower($cleanTitle)]);
+                    
+                    if (!empty($projectId)) {
+                        $q->orWhere(function($sq) use ($projectId, $cleanTitle) {
+                            $sq->where('project_id', $projectId)
+                               ->where(function($ssq) use ($cleanTitle) {
+                                   $ssq->where('title', $cleanTitle)
+                                       ->orWhereRaw('LOWER(TRIM(title)) = ?', [strtolower($cleanTitle)]);
+                               });
+                        });
+                    }
+                });
+
+            $matchedTasks = $taskQuery->get();
+            foreach ($matchedTasks as $t) {
+                if (Schema::hasTable('task_user')) {
+                    $t->engineers()->detach();
                 }
-                $taskQuery->delete();
+                $t->forceDelete();
             }
 
-            $schedule->delete();
+            // Sinkronisasi hapus task di `ipnet-db` jika ada
+            try {
+                \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.task_user WHERE task_id IN (SELECT id FROM `ipnet-db`.tasks WHERE LOWER(TRIM(title)) = ?)", [strtolower($cleanTitle)]);
+                \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.tasks WHERE LOWER(TRIM(title)) = ?", [strtolower($cleanTitle)]);
+            } catch (\Exception $e) {}
+
+            // 2. Hapus jadwal secara permanen (forceDelete)
+            // Jika request meminta delete_all_series ATAU kategori adalah Task/Kegiatan, hapus seluruh rangkaian tanggal agenda ini
+            $deleteAllSeries = request()->boolean('delete_all_series') || $isTaskRelated;
+
+            $schedQuery = Schedule::withTrashed();
+            if ($deleteAllSeries) {
+                $schedQuery->where(function($q) use ($title, $cleanTitle, $projectId) {
+                    $q->where('title', $title)
+                      ->orWhere('title', $cleanTitle)
+                      ->orWhereRaw('LOWER(TRIM(title)) = ?', [strtolower($cleanTitle)]);
+                    if (!empty($projectId)) {
+                        $q->where('project_id', $projectId);
+                    }
+                });
+            } else {
+                $schedQuery->where('id', $schedule->id);
+            }
+
+            if (Schema::hasTable('schedule_user')) {
+                $sIds = (clone $schedQuery)->pluck('id')->toArray();
+                if (!empty($sIds)) {
+                    \Illuminate\Support\Facades\DB::table('schedule_user')->whereIn('schedule_id', $sIds)->delete();
+                }
+            }
+
+            $schedQuery->forceDelete();
+
+            // Sinkronisasi hapus schedule di `ipnet-db` jika ada
+            try {
+                if ($deleteAllSeries) {
+                    \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.schedule_user WHERE schedule_id IN (SELECT id FROM `ipnet-db`.schedules WHERE LOWER(TRIM(title)) = ?)", [strtolower($cleanTitle)]);
+                    \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.schedules WHERE LOWER(TRIM(title)) = ?", [strtolower($cleanTitle)]);
+                } else {
+                    \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.schedule_user WHERE schedule_id = ?", [$schedule->id]);
+                    \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.schedules WHERE id = ?", [$schedule->id]);
+                }
+            } catch (\Exception $e) {}
 
             if (request()->ajax() || request()->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Jadwal berhasil dihapus!'
+                    'message' => 'Jadwal dan task penugasan terkait berhasil dihapus!'
                 ]);
             }
 
             return redirect()->route('schedules.index')
-                ->with('success', 'Jadwal berhasil dihapus!');
+                ->with('success', 'Jadwal dan task penugasan terkait berhasil dihapus!');
                 
         } catch (\Exception $e) {
             if (request()->ajax() || request()->wantsJson()) {
