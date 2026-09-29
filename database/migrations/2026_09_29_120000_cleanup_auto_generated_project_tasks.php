@@ -16,7 +16,7 @@ return new class extends Migration
             // Hapus relasi di pivot task_user
             if (Schema::hasTable('task_user') && Schema::hasTable('tasks')) {
                 $taskIds = DB::table('tasks')
-                    ->where('title', 'like', 'Implementasi Teknis:%')
+                    ->where('title', 'like', '%Implementasi Teknis%')
                     ->pluck('id');
 
                 if ($taskIds->isNotEmpty()) {
@@ -27,14 +27,14 @@ return new class extends Migration
             // Hapus schedule spam yang terhubung
             if (Schema::hasTable('schedules')) {
                 DB::table('schedules')
-                    ->where('title', 'like', 'Implementasi Teknis:%')
+                    ->where('title', 'like', '%Implementasi Teknis%')
                     ->delete();
             }
 
             // Hapus task Implementasi Teknis yang ter-generate otomatis dari proyek
             if (Schema::hasTable('tasks')) {
                 DB::table('tasks')
-                    ->where('title', 'like', 'Implementasi Teknis:%')
+                    ->where('title', 'like', '%Implementasi Teknis%')
                     ->delete();
             }
         } catch (\Exception $e) {

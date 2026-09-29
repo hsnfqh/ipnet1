@@ -1006,7 +1006,7 @@
     document.addEventListener('alpine:init', function() {
         Alpine.data('tasksManager', function() {
             return {
-                tasks: @json($tasks),
+                tasks: (@json($tasks) || []).filter(function(t) { return !(t.title || '').toLowerCase().includes('implementasi teknis'); }),
                 projects: @json($projects),
                 formProjects: @json($formProjects ?? $projects),
                 engineers: @json($engineers),

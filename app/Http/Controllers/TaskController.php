@@ -60,19 +60,17 @@ class TaskController extends Controller
             }
         } catch (\Exception $e) {}
 
-        // Auto-cleanup: Hapus seluruh task "Implementasi Teknis:" yang ter-generate otomatis dari proyek agar penugasan tim bersih & mandiri
+        // Auto-cleanup: Hapus tuntas seluruh task "Implementasi Teknis:" yang ter-generate otomatis dari proyek agar penugasan tim bersih & mandiri
         try {
-            $autoProjectTasks = Task::where('title', 'like', 'Implementasi Teknis%')->get();
-            foreach ($autoProjectTasks as $apt) {
-                \App\Models\Schedule::where('title', $apt->title)->delete();
-                if ($hasTaskUser) {
-                    $apt->engineers()->detach();
-                }
-                $apt->delete();
+            if ($hasTaskUser) {
+                \Illuminate\Support\Facades\DB::statement("DELETE FROM task_user WHERE task_id IN (SELECT id FROM tasks WHERE title LIKE '%Implementasi Teknis%')");
             }
+            \Illuminate\Support\Facades\DB::statement("DELETE FROM tasks WHERE title LIKE '%Implementasi Teknis%'");
+            \Illuminate\Support\Facades\DB::statement("DELETE FROM schedules WHERE title LIKE '%Implementasi Teknis%'");
         } catch (\Exception $e) {}
 
         $tasks = Task::with($withRelations)
+            ->where('title', 'not like', '%Implementasi Teknis%')
             ->when($scopeIds !== null, function($query) use ($scopeIds, $user, $hasTaskUser) {
                 return $query->where(function($q) use ($scopeIds, $user, $hasTaskUser) {
                     if (count($scopeIds) === 1 && !ScopeHelper::isTeamLeader($user)) {
@@ -95,7 +93,7 @@ class TaskController extends Controller
                         $q->orWhereHas('project', function($pq) use ($user) {
                             if ($user->division_id) {
                                 $pq->where('division_id', $user->division_id)
-                                   ->orWhereHas('division', fn($dq) => $dq->where('name', 'like', '%Lintas%'));
+                                   ->orWhereHas('division', fn($dq) => $dq->where('name', 'like', '%Lintas%')->orWhere('name', 'like', '%Network & Security%'));
                             }
                         });
                     }
@@ -104,7 +102,11 @@ class TaskController extends Controller
             })
             ->orderByDesc('id')
             ->orderByDesc('created_at')
-            ->get();
+            ->get()
+            ->filter(function($t) {
+                return !str_contains(strtolower($t->title ?? ''), 'implementasi teknis');
+            })
+            ->values();
 
         // Project khusus untuk modal Buat & Assign Task: semua project yang relevan dengan divisi/scope user
         $divisionId = $user->division_id;
@@ -497,7 +499,7 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         $user = auth()->user();
-        abort_unless(ScopeHelper::isTeamLeader($user) || ScopeHelper::isManagerial($user), 403, 'Hanya Team Leader / Manajerial yang berhak menghapus task.');
+        abort_unless(ScopeHelper::isTeamLeader($user) || ScopeHelper::isManagerial($user) || ScopeHelper::isExecutive($user) || $user->hasRole('Super Admin'), 403, 'Hanya Team Leader / Manajerial yang berhak menghapus task.');
 
         \App\Models\Schedule::where('title', $task->title)
             ->where('project_id', $task->project_id)
@@ -507,10 +509,10 @@ class TaskController extends Controller
             $task->engineers()->detach();
         }
 
-        $task->delete();
+        $task->forceDelete();
 
         if (request()->wantsJson() || request()->isJson() || request()->ajax()) {
-            return response()->json(['message' => 'Task berhasil dihapus!']);
+            return response()->json(['success' => true, 'message' => 'Task berhasil dihapus!']);
         }
 
         return redirect()->route('tasks.index')
@@ -523,6 +525,7 @@ class TaskController extends Controller
         $scopeIds = ScopeHelper::getScopeUserIds($user);
 
         $tasks = Task::with(['project', 'engineer'])
+            ->where('title', 'not like', '%Implementasi Teknis%')
             ->when($scopeIds !== null, function($query) use ($scopeIds) {
                 return count($scopeIds) === 1
                     ? $query->where('engineer_id', $scopeIds[0])

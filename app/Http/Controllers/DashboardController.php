@@ -264,14 +264,11 @@ class DashboardController extends Controller
 
         // Auto-cleanup: Pastikan task & schedule auto-generate "Implementasi Teknis" dibersihkan
         try {
-            $autoProjectTasks = Task::where('title', 'like', 'Implementasi Teknis%')->get();
-            foreach ($autoProjectTasks as $apt) {
-                \App\Models\Schedule::where('title', $apt->title)->delete();
-                if ($hasTaskUser) {
-                    $apt->engineers()->detach();
-                }
-                $apt->delete();
+            if ($hasTaskUser) {
+                \Illuminate\Support\Facades\DB::statement("DELETE FROM task_user WHERE task_id IN (SELECT id FROM tasks WHERE title LIKE '%Implementasi Teknis%')");
             }
+            \Illuminate\Support\Facades\DB::statement("DELETE FROM tasks WHERE title LIKE '%Implementasi Teknis%'");
+            \Illuminate\Support\Facades\DB::statement("DELETE FROM schedules WHERE title LIKE '%Implementasi Teknis%'");
         } catch (\Exception $e) {}
 
         // Filter tasks sesuai scope role yang login
@@ -279,7 +276,7 @@ class DashboardController extends Controller
         if ($hasTaskUser) {
             $withRelations[] = 'engineers';
         }
-        $tasksQuery = Task::with($withRelations)->where('title', 'not like', 'Implementasi Teknis%');
+        $tasksQuery = Task::with($withRelations)->where('title', 'not like', '%Implementasi Teknis%');
         if ($scopeIds !== null) {
             $tasksQuery->where(function($q) use ($scopeIds, $hasTaskUser) {
                 if (count($scopeIds) === 1) {
@@ -295,7 +292,9 @@ class DashboardController extends Controller
                 }
             });
         }
-        $tasks = $tasksQuery->get();
+        $tasks = $tasksQuery->get()->filter(function($t) {
+            return !str_contains(strtolower($t->title ?? ''), 'implementasi teknis');
+        })->values();
 
         // Filter projects sesuai scope role yang login (kecualikan dummy/internal Day Off & Draft yang masih dicoba-coba)
         $projectsQuery = Project::with(['tasks', 'creator'])
