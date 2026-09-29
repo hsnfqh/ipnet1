@@ -375,7 +375,7 @@ class SalesCrmController extends Controller
             'customer_pic_finance'   => $customerPicEmail,
         ]);
 
-        // Auto add Client to database if not exists
+        // Auto add Client to database if not exists, else update if new info provided
         if (!$clientRecord && !empty($validated['client'])) {
             Client::create([
                 'name'        => $validated['client'],
@@ -385,19 +385,15 @@ class SalesCrmController extends Controller
                 'email'       => $customerPicEmail,
                 'created_by'  => $user->id,
             ]);
+        } elseif ($clientRecord) {
+            // Update existing client if new PIC info is provided in the form
+            $updateData = [];
+            if ($request->filled('customer_pic_name'))  $updateData['pic_name']   = $request->input('customer_pic_name');
+            if ($request->filled('customer_pic_phone')) $updateData['phone']      = $request->input('customer_pic_phone');
+            if ($request->filled('customer_pic_email')) $updateData['email']      = $request->input('customer_pic_email');
+            if ($request->filled('client_department'))  $updateData['department'] = $request->input('client_department');
+            if (!empty($updateData)) $clientRecord->update($updateData);
         }
-
-        // Auto record initial Sales Activity log
-        SalesActivity::create([
-            'project_id'    => $project->id,
-            'sales_id'      => $user->id,
-            'activity_type' => 'Follow Up',
-            'subject'       => 'Inisiasi Proyek: ' . $project->name,
-            'activity_date' => now(),
-            'notes'         => 'Proyek tersimpan dengan status ' . $status,
-            'next_action'   => 'Monitoring progres dan koordinasi tim teknis',
-            'status'        => 'Completed',
-        ]);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

@@ -114,6 +114,21 @@
                             </div>
                         </div>
 
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="cf-label">Client Email <span class="text-[#94A3B8] font-normal normal-case">(opsional)</span></label>
+                                <input type="email" name="customer_pic_email" class="cf-input" placeholder="email@perusahaan.com" value="{{ old('customer_pic_email') }}">
+                            </div>
+                            <div>
+                                <label class="cf-label">PIC Klien (Customer) <span class="text-[#94A3B8] font-normal normal-case">(opsional)</span></label>
+                                <input type="text" name="customer_pic_name" class="cf-input" placeholder="Nama PIC / Contact Person" value="{{ old('customer_pic_name') }}">
+                            </div>
+                            <div>
+                                <label class="cf-label">No. Telepon PIC <span class="text-[#94A3B8] font-normal normal-case">(opsional)</span></label>
+                                <input type="text" name="customer_pic_phone" class="cf-input" placeholder="Contoh: 08123456789" value="{{ old('customer_pic_phone') }}">
+                            </div>
+                        </div>
+
                         {{-- ─── DIVIDER ─── --}}
                         <hr class="sec-divider mt-6">
 
