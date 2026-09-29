@@ -132,7 +132,9 @@ class ProjectDocumentController extends Controller
                 $doc->project_id = $project->id;
                 if ($hasDocKeyCol) {
                     $doc->document_key = $isSalesUpload
-                        ? ('sales_berkas_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid())
+                        ? (!empty($validated['document_key']) && $validated['document_key'] !== 'sales_berkas'
+                            ? ($validated['document_key'] . '_' . uniqid())
+                            : ('sales_berkas_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid()))
                         : (!empty($validated['document_key']) && !in_array($validated['document_key'], ['lampiran_pendukung'])
                             ? ($validated['document_key'] . '_' . uniqid())
                             : ('attachment_' . \Illuminate\Support\Str::slug($cleanTitle) . '_' . uniqid()));
