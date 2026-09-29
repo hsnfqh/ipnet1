@@ -70,6 +70,30 @@ class ScheduleController extends Controller
         ->get();
         $executiveTeamUserIds = $executiveTeamUsers->pluck('id')->toArray();
 
+        // Auto-cleanup sinkronisasi: Hapus jadwal berkategori 'Task' / 'Kegiatan' jika task pasangannya di Penugasan Tim sudah dihapus oleh user
+        try {
+            $activeTaskTitles = Task::pluck('title')->map(fn($t) => strtolower(trim($t)))->filter()->unique()->toArray();
+            
+            $orphanTaskSchedules = Schedule::whereIn('category', ['Task', 'Kegiatan'])
+                ->get()
+                ->filter(function($s) use ($activeTaskTitles) {
+                    return !in_array(strtolower(trim($s->title)), $activeTaskTitles);
+                });
+
+            if ($orphanTaskSchedules->isNotEmpty()) {
+                $orphanIds = $orphanTaskSchedules->pluck('id')->toArray();
+                if ($hasScheduleUser) {
+                    \Illuminate\Support\Facades\DB::table('schedule_user')->whereIn('schedule_id', $orphanIds)->delete();
+                }
+                Schedule::whereIn('id', $orphanIds)->forceDelete();
+                
+                try {
+                    $idList = implode(',', $orphanIds);
+                    \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.schedule_user WHERE schedule_id IN ($idList)");
+                    \Illuminate\Support\Facades\DB::statement("DELETE FROM `ipnet-db`.schedules WHERE id IN ($idList)");
+                } catch (\Exception $e) {}
+            }
+        } catch (\Exception $e) {}
 
         // Hapus HANYA jadwal auto-generate dari serah terima proyek (Implementasi Teknis)
         try {
@@ -191,12 +215,18 @@ class ScheduleController extends Controller
 
                 $taskStatus = null;
                 if (in_array($schedule->category, ['Task', 'Kegiatan'])) {
-                    $matchingTask = Task::where('title', $schedule->title)
-                        ->where('project_id', $schedule->project_id)
-                        ->first();
-                    if ($matchingTask) {
-                        $taskStatus = $matchingTask->status;
+                    $matchingTask = Task::where(function($q) use ($schedule) {
+                        $clean = trim($schedule->title);
+                        $q->where('title', $schedule->title)
+                          ->orWhere('title', $clean)
+                          ->orWhereRaw('LOWER(TRIM(title)) = ?', [strtolower($clean)]);
+                    })->first();
+
+                    if (!$matchingTask) {
+                        // Task di menu Penugasan Tim sudah dihapus, sembunyikan jadwal dari kalender
+                        return null;
                     }
+                    $taskStatus = $matchingTask->status;
                 }
 
                 return [
@@ -227,7 +257,9 @@ class ScheduleController extends Controller
                         'name' => $schedule->creator->name,
                     ] : null,
                 ];
-            });
+            })
+            ->filter()
+            ->values();
 
         $divisionId = $user->division_id;
         $isGlobal = ScopeHelper::isGlobal($user);
@@ -958,6 +990,8 @@ class ScheduleController extends Controller
             
             $scopeIds = ScopeHelper::getScopeUserIds($user);
             
+            $activeTaskTitles = Task::pluck('title')->map(fn($t) => strtolower(trim($t)))->filter()->unique()->toArray();
+
             $schedules = Schedule::with(['project', 'engineer'])
                 ->when($scopeIds !== null, function($query) use ($scopeIds) {
                     return count($scopeIds) === 1
@@ -966,6 +1000,13 @@ class ScheduleController extends Controller
                 })
                 ->whereBetween('date', [$start, $end])
                 ->get()
+                ->filter(function($schedule) use ($activeTaskTitles) {
+                    if (in_array($schedule->category, ['Task', 'Kegiatan'])) {
+                        return in_array(strtolower(trim($schedule->title)), $activeTaskTitles);
+                    }
+                    return true;
+                })
+                ->values()
                 ->map(function($schedule) {
                     return [
                         'id' => $schedule->id,
@@ -1000,6 +1041,8 @@ class ScheduleController extends Controller
             $weekEnd = date('Y-m-d', strtotime($weekStart . ' +6 days'));
             $scopeIds = ScopeHelper::getScopeUserIds($user);
             
+            $activeTaskTitles = Task::pluck('title')->map(fn($t) => strtolower(trim($t)))->filter()->unique()->toArray();
+
             $schedules = Schedule::with(['project', 'engineer'])
                 ->when($scopeIds !== null, function($query) use ($scopeIds) {
                     return count($scopeIds) === 1
@@ -1008,6 +1051,13 @@ class ScheduleController extends Controller
                 })
                 ->whereBetween('date', [$weekStart, $weekEnd])
                 ->get()
+                ->filter(function($schedule) use ($activeTaskTitles) {
+                    if (in_array($schedule->category, ['Task', 'Kegiatan'])) {
+                        return in_array(strtolower(trim($schedule->title)), $activeTaskTitles);
+                    }
+                    return true;
+                })
+                ->values()
                 ->map(function($schedule) {
                     return [
                         'id' => $schedule->id,
