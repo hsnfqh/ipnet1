@@ -96,7 +96,7 @@
                         </div>
                         <div>
                             <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                                JUDUL / TOPIK KRONOLOGI (OPSIONAL)
+                                JUDUL / TOPIK AKTIVITAS (OPSIONAL)
                             </label>
                             <input type="text" name="activity_title" x-model="activityTitle"
                                    placeholder="Contoh: Troubleshooting Jaringan..."
@@ -111,7 +111,7 @@
                         <thead class="bg-[#F8FAFC] text-[#475569] font-bold uppercase text-[10.5px] tracking-wider border-b border-[#E2E8F0]">
                             <tr>
                                 <th class="py-3 px-3 w-12 text-center">NO</th>
-                                <th class="py-3 px-3 w-80">KRONOLOGIS AGENDA / AKTIVITAS <span class="text-[#8F0A0D]">*</span></th>
+                                <th class="py-3 px-3 w-80">AKTIVITAS <span class="text-[#8F0A0D]">*</span></th>
                                 <th class="py-3 px-3 w-36">TANGGAL</th>
                                 <th class="py-3 px-3 w-32">WAKTU (JAM)</th>
                                 <th class="py-3 px-3 w-36">PIC KLIEN</th>
