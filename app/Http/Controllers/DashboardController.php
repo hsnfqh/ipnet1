@@ -1515,7 +1515,36 @@ class DashboardController extends Controller
                             ->withQueryString();
 
         // Data pendukung dropdown filter & form input
-        $projects = Project::orderBy('name')->get(['id', 'name', 'client']);
+        $hasTaskUser = \Illuminate\Support\Facades\Schema::hasTable('task_user');
+        $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
+
+        if ($isLead) {
+            $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+                ->orderBy('name')
+                ->get(['id', 'name', 'client']);
+        } else {
+            $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+                ->where(function ($q) use ($authUser, $linkedProjectIds, $hasTaskUser, $hasScheduleUser) {
+                    if ($linkedProjectIds->isNotEmpty()) {
+                        $q->whereIn('id', $linkedProjectIds);
+                    }
+                    $q->orWhereHas('tasks', function ($tq) use ($authUser, $hasTaskUser) {
+                        $tq->where('engineer_id', $authUser->id);
+                        if ($hasTaskUser) {
+                            $tq->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $authUser->id));
+                        }
+                    })
+                    ->orWhereHas('schedules', function ($sq) use ($authUser, $hasScheduleUser) {
+                        $sq->where('engineer_id', $authUser->id);
+                        if ($hasScheduleUser) {
+                            $sq->orWhereHas('engineers', fn($esq) => $esq->where('users.id', $authUser->id));
+                        }
+                    })
+                    ->orWhere('created_by', $authUser->id);
+                })
+                ->orderBy('name')
+                ->get(['id', 'name', 'client']);
+        }
 
         $engineers = collect();
         if ($isLead) {
@@ -1568,9 +1597,28 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {}
         }
 
+        $authUser = auth()->user();
+        $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
+
         // Mode 1: Spreadsheet Multi-Row Bulk Entry
         if ($request->has('activities') && is_array($request->activities)) {
             $projectId = $request->project_id ?: null;
+
+            // Validasi hak akses proyek untuk engineer non-lead
+            if (!$isLead && $projectId) {
+                $linkedProjectIds = $this->getLinkedProjectIds($authUser);
+                $hasAccess = $linkedProjectIds->contains($projectId)
+                    || Project::where('id', $projectId)
+                        ->where(function ($q) use ($authUser) {
+                            $q->where('created_by', $authUser->id)
+                              ->orWhereHas('tasks', fn($tq) => $tq->where('engineer_id', $authUser->id))
+                              ->orWhereHas('schedules', fn($sq) => $sq->where('engineer_id', $authUser->id));
+                        })->exists();
+
+                if (!$hasAccess) {
+                    return redirect()->back()->with('error', 'Anda tidak memiliki hak akses penugasan untuk mencatat aktivitas pada proyek ini.');
+                }
+            }
             $activityTitle = trim($request->activity_title ?? '');
             $itemsCreated = 0;
 
@@ -2080,10 +2128,23 @@ class DashboardController extends Controller
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('tasks')) {
                 $taskProjectIds = \App\Models\Task::whereNotNull('project_id')
-                    ->where('engineer_id', $user->id)
+                    ->where(function ($tq) use ($user) {
+                        $tq->where('engineer_id', $user->id);
+                        if (\Illuminate\Support\Facades\Schema::hasTable('task_user')) {
+                            $tq->orWhereHas('engineers', function ($engQ) use ($user) {
+                                $engQ->where('users.id', $user->id);
+                            });
+                        }
+                    })
                     ->pluck('project_id');
                 $linkedProjectIds = $linkedProjectIds->merge($taskProjectIds);
             }
+        } catch (\Throwable $e) {}
+
+        // 5. Proyek yang dibuat oleh user
+        try {
+            $createdProjectIds = \App\Models\Project::where('created_by', $user->id)->pluck('id');
+            $linkedProjectIds = $linkedProjectIds->merge($createdProjectIds);
         } catch (\Throwable $e) {}
 
         return $linkedProjectIds->unique()->filter()->values();
