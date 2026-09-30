@@ -48,29 +48,28 @@
     /* ── Activity Card ── */
     .activity-card {
         background: #FFFFFF;
-        border: 1px solid #E8EDF5;
-        border-left: 4px solid #8F0A0D;
-        border-radius: 14px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.02);
-        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-        overflow: hidden;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 2px 6px rgba(15, 23, 42, 0.02);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         display: flex;
         flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
     }
 
     .activity-card:hover {
-        border-color: #D1D9E6;
-        border-left-color: #8F0A0D;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.07), 0 2px 8px rgba(143,10,13,0.06);
+        border-color: #CBD5E1;
+        box-shadow: 0 8px 20px rgba(143, 10, 13, 0.06), 0 3px 8px rgba(0, 0, 0, 0.04);
         transform: translateY(-2px);
     }
 
-    .activity-card-header { padding: 14px 16px 11px; border-bottom: 1px solid #F1F5F9; }
-    .activity-card-body   { padding: 12px 16px 14px; flex: 1; }
+    .activity-card-header { padding: 14px 16px 10px; }
+    .activity-card-body   { padding: 0 16px 12px; flex: 1; }
     .activity-card-footer {
-        padding: 8px 16px;
-        background: #F8FAFC;
-        border-top: 1px solid #EEF2F7;
+        padding: 9px 16px;
+        background: #FAFBFD;
+        border-top: 1px solid #F1F5F9;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -80,43 +79,15 @@
     .agenda-badge {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        padding: 2px 9px;
+        gap: 4.5px;
+        padding: 2.5px 8.5px;
         border-radius: 999px;
-        font-size: 10px;
+        font-size: 10.5px;
         font-weight: 700;
-        background: linear-gradient(135deg, #FEF3C7, #FDE68A);
-        color: #92400E;
-        border: 1px solid #FCD34D;
+        background: #FEF2F2;
+        color: #8F0A0D;
+        border: 1px solid #FECACA;
     }
-
-    .project-icon {
-        width: 34px; height: 34px; min-width: 34px;
-        border-radius: 9px;
-        background: linear-gradient(135deg, #8F0A0D, #B81525);
-        display: flex; align-items: center; justify-content: center;
-    }
-
-    /* Timeline */
-    .timeline-list  { display: flex; flex-direction: column; }
-    .timeline-item  {
-        display: flex; align-items: flex-start; gap: 8px;
-        padding: 5px 0;
-        border-bottom: 1px dashed #EAEEF4;
-    }
-    .timeline-item:last-of-type { border-bottom: none; }
-    .timeline-dot   { width: 5px; height: 5px; min-width: 5px; border-radius: 50%; background: #8F0A0D; margin-top: 5px; }
-    .timeline-desc  { font-size: 11.5px; font-weight: 600; color: #334155; line-height: 1.45; flex: 1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-
-    /* Detail button */
-    .detail-btn {
-        width: 100%; padding: 7px 14px; border-radius: 10px;
-        border: 1.5px solid #E2E8F0; background: white; color: #8F0A0D;
-        font-size: 11.5px; font-weight: 700;
-        display: flex; align-items: center; justify-content: center; gap: 7px;
-        cursor: pointer; transition: all 0.18s ease; margin-top: 11px;
-    }
-    .detail-btn:hover { background: #FFF1F1; border-color: #F5A0A2; box-shadow: 0 2px 8px rgba(143,10,13,0.1); }
 
     /* Empty state */
     .empty-state {
@@ -369,85 +340,79 @@
                         $canEdit = (auth()->id() === $firstAct->user_id || $isLead);
                     @endphp
 
-                    <div class="activity-card">
+                    <div class="activity-card group">
 
-                        {{-- Header --}}
+                        {{-- Header Card --}}
                         <div class="activity-card-header">
-                            <div class="flex items-start gap-3">
-                                <div class="project-icon">
-                                    <svg width="17" height="17" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                    </svg>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between mb-1.5">
-                                        <span class="agenda-badge">{{ $totalInGroup }} Agenda</span>
-                                        <span class="text-[10px] font-semibold text-gray-400 tabular-nums">
-                                            {{ $firstAct->activity_date ? $firstAct->activity_date->format('d M Y') : '-' }}
-                                        </span>
-                                    </div>
-                                    <h3 class="text-[13px] font-bold text-gray-900 leading-snug truncate" title="{{ $projectName }}">
-                                        {{ $projectName }}
-                                    </h3>
-                                    <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                                        <span class="text-[11px] font-semibold text-[#8F0A0D]">{{ $engineer->name ?? 'Engineer' }}</span>
-                                        @if($clientName && $clientName !== '-')
-                                            <span class="text-gray-300 text-xs">|</span>
-                                            <span class="text-[11px] text-gray-500 truncate max-w-[110px]" title="{{ $clientName }}">{{ $clientName }}</span>
-                                        @endif
-                                    </div>
-                                </div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="agenda-badge">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                    {{ $totalInGroup }} Agenda
+                                </span>
+                                <span class="text-[11px] font-semibold text-gray-400 tabular-nums">
+                                    {{ $firstAct->activity_date ? $firstAct->activity_date->format('d M Y') : '-' }}
+                                </span>
+                            </div>
+
+                            <h3 class="text-[13.5px] font-bold text-gray-900 group-hover:text-[#8F0A0D] transition-colors leading-snug line-clamp-1" title="{{ $projectName }}">
+                                {{ $projectName }}
+                            </h3>
+
+                            <div class="flex items-center gap-1.5 mt-1 text-[11px] text-gray-500">
+                                <span class="font-semibold text-gray-700">{{ $engineer->name ?? 'Engineer' }}</span>
+                                @if($clientName && $clientName !== '-')
+                                    <span class="text-gray-300">•</span>
+                                    <span class="text-gray-500 truncate max-w-[150px]" title="{{ $clientName }}">{{ $clientName }}</span>
+                                @endif
                             </div>
                         </div>
 
-                        {{-- Body: Timeline Preview --}}
+                        {{-- Body: Mini Rangkuman Aktivitas --}}
                         <div class="activity-card-body">
-                            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Rangkuman Aktivitas</p>
-                            <div class="timeline-list">
+                            <div class="bg-[#F8FAFC] border border-[#EEF2F6] rounded-xl p-2.5 space-y-1.5">
                                 @foreach($previewItems as $item)
-                                    <div class="timeline-item">
-                                        <div class="timeline-dot"></div>
-                                        <span class="text-[10px] font-semibold text-gray-300 min-w-[56px] shrink-0 tabular-nums">{{ $item['date'] }}</span>
-                                        <span class="timeline-desc">{{ $item['desc'] }}</span>
+                                    <div class="flex items-center gap-2 text-[11px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]/70 shrink-0"></span>
+                                        <span class="text-gray-400 font-medium text-[10px] shrink-0 tabular-nums">{{ $item['date'] }}</span>
+                                        <span class="text-gray-700 font-medium truncate flex-1">{{ $item['desc'] }}</span>
                                     </div>
                                 @endforeach
+                                @if($totalInGroup > 3)
+                                    <div class="text-[10.5px] text-[#8F0A0D] font-bold pl-3.5 pt-0.5">
+                                        + {{ $totalInGroup - 3 }} agenda lainnya...
+                                    </div>
+                                @endif
                             </div>
-                            @if($totalInGroup > 3)
-                                <p class="text-[10px] text-gray-400 font-semibold italic pl-3 mt-1.5">+ {{ $totalInGroup - 3 }} aktivitas lainnya...</p>
-                            @endif
+                        </div>
 
-                            <button type="button" @click="openDetailModal({{ $groupJson }})" class="detail-btn">
-                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        {{-- Footer: Detail Button + Edit/Hapus Action --}}
+                        <div class="activity-card-footer">
+                            <button type="button" @click="openDetailModal({{ $groupJson }})"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100/80 border border-red-200/80 transition-all cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
-                                <span>Lihat Detail &amp; Semua Agenda</span>
-                                <span class="ml-auto px-1.5 py-0.5 rounded-md bg-red-50 text-[#8F0A0D] text-[10px] font-bold">{{ $totalInGroup }}</span>
+                                <span>Detail</span>
+                                <span class="px-1.5 py-0.2 rounded-full bg-white text-[#8F0A0D] text-[9.5px] font-extrabold border border-red-200/60">{{ $totalInGroup }}</span>
                             </button>
-                        </div>
 
-                        {{-- Footer: Dicatat + Edit + Hapus --}}
-                        <div class="activity-card-footer">
-                            <span class="text-[10.5px] text-gray-400 font-medium truncate mr-1">
-                                Dicatat: <strong class="text-gray-600">{{ $engineer->name ?? 'Engineer' }}</strong>
-                            </span>
                             @if($canEdit)
                                 <div class="flex items-center gap-1.5 shrink-0">
-                                    {{-- Tombol Edit --}}
                                     <button type="button"
                                             @click="openEditModal({{ $editJson }})"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-blue-50 text-blue-600 hover:text-blue-700 text-[10.5px] font-semibold rounded-lg border border-blue-100 hover:border-blue-200 transition cursor-pointer">
+                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 transition cursor-pointer">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         Edit
                                     </button>
-                                    {{-- Tombol Hapus --}}
                                     <form method="POST" action="{{ route('engineer.activity_log.destroy', $firstAct) }}"
-                                          onsubmit="return confirm('Hapus seluruh aktivitas dalam grup ini?');">
+                                          onsubmit="return confirm('Hapus seluruh aktivitas dalam grup ini?');" class="inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-red-50 text-red-500 hover:text-red-700 text-[10.5px] font-semibold rounded-lg border border-red-100 hover:border-red-200 transition cursor-pointer">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            Hapus
+                                        <button type="submit"
+                                                class="inline-flex items-center p-1.5 bg-white hover:bg-red-50 text-red-500 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
+                                                title="Hapus Seluruh Aktivitas di Grup Ini">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     </form>
                                 </div>
@@ -485,7 +450,7 @@
                     <div>
                         <div class="flex items-center gap-2 mb-1">
                             <span class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">DETAIL AKTIVITAS ENGINEER</span>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200"
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200"
                                   x-text="(selectedDetail?.total || 0) + ' Agenda'"></span>
                         </div>
                         <h3 class="text-[17px] font-bold text-[#1E293B]" x-text="selectedDetail?.project_name || 'Detail Aktivitas'"></h3>
@@ -602,7 +567,7 @@
                                  :class="row.id ? 'border-b border-[#F1F5F9] bg-white' : 'border-b border-emerald-100 bg-emerald-50/60'">
                                 <div class="flex items-center gap-2.5">
                                     <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10.5px] font-bold shrink-0"
-                                         :style="row.id ? 'background:#FEF3C7;border:1.5px solid #FCD34D;color:#92400E;' : 'background:#D1FAE5;border:1.5px solid #6EE7B7;color:#065F46;'"
+                                         :style="row.id ? 'background:#FEF2F2;border:1.5px solid #FECACA;color:#8F0A0D;' : 'background:#ECFDF5;border:1.5px solid #A7F3D0;color:#065F46;'"
                                          x-text="idx + 1"></div>
                                     <span class="text-[12.5px] font-bold"
                                           :class="row.id ? 'text-[#1E293B]' : 'text-emerald-800'"
