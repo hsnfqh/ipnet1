@@ -1020,9 +1020,9 @@
                             </div>
 
                             {{-- Table Column Headers (Sama Persis Seperti Berkas Pendukung: KODE, NAMA & KETERANGAN DOKUMEN, STATUS BERKAS) --}}
-                            <div class="hidden sm:flex items-center justify-between gap-4 px-5 py-2.5 bg-slate-100/80 rounded-xl text-[11px] font-bold text-slate-500 uppercase tracking-wider border border-slate-200/80">
-                                <div class="flex items-center gap-4 sm:gap-6 min-w-0 pr-2 flex-1">
-                                    <div class="w-20 sm:w-24 shrink-0 flex items-center justify-center gap-1.5">
+                            <div class="hidden sm:flex items-center justify-between gap-4 px-4 py-2 bg-slate-100/80 rounded-xl text-[10.5px] font-bold text-slate-500 uppercase tracking-wider border border-slate-200/80">
+                                <div class="flex items-center gap-4 sm:gap-5 min-w-0 pr-2 flex-1">
+                                    <div class="w-16 sm:w-20 shrink-0 flex items-center justify-center gap-1.5">
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                         <span>KODE</span>
                                     </div>
@@ -1031,7 +1031,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-3 shrink-0">
-                                    <span class="w-32 sm:w-36 text-center">STATUS BERKAS</span>
+                                    <span class="w-28 sm:w-32 text-center">STATUS BERKAS</span>
                                     <span class="w-7 text-center"></span>
                                 </div>
                             </div>
@@ -1055,44 +1055,44 @@
                                         {{-- Row / Accordion Header --}}
                                         <button type="button" 
                                                 @click="toggleSalesItem('{{ $tpl['code'] }}')" 
-                                                class="w-full px-5 py-3.5 flex items-center justify-between text-left transition hover:bg-slate-50/90 cursor-pointer select-none group">
-                                            <div class="flex items-center gap-4 sm:gap-6 min-w-0 pr-2 flex-1">
-                                                {{-- Kode dengan Fixed-Width Badge (Hanya Kode Saja) --}}
-                                                <div class="w-20 sm:w-24 shrink-0">
-                                                    <div class="flex items-center justify-center px-2 py-1.5 rounded-lg bg-slate-100 border border-slate-200 group-hover:border-red-200 group-hover:bg-red-50/80 transition shadow-2xs">
-                                                        <span class="text-xs sm:text-sm font-mono font-black text-slate-900 group-hover:text-[#8F0A0D] tracking-wider text-center">
+                                                class="w-full px-4 py-2.5 flex items-center justify-between text-left transition hover:bg-slate-50/90 cursor-pointer select-none group">
+                                            <div class="flex items-center gap-4 sm:gap-5 min-w-0 pr-2 flex-1">
+                                                {{-- Badge Kode: Compact Pill --}}
+                                                <div class="w-16 sm:w-20 shrink-0">
+                                                    <div class="inline-flex items-center justify-center w-full px-1.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 group-hover:border-red-200 group-hover:bg-red-50/80 transition shadow-2xs">
+                                                        <span class="text-[11px] font-mono font-black text-slate-700 group-hover:text-[#8F0A0D] tracking-wide leading-tight">
                                                             {{ $tpl['code'] }}
                                                         </span>
                                                     </div>
                                                 </div>
                                                 
-                                                {{-- Keterangan Dokumen --}}
+                                                {{-- Nama & Keterangan Dokumen --}}
                                                 <div class="min-w-0 flex-1">
-                                                    <div class="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-[#8F0A0D] transition truncate">
+                                                    <div class="font-semibold text-[13px] text-slate-800 group-hover:text-[#8F0A0D] transition truncate">
                                                         {{ $tpl['name'] }}
                                                     </div>
-                                                    <div class="text-[10.5px] text-slate-400 font-medium hidden sm:block">
+                                                    <div class="text-[11px] text-slate-400 font-normal hidden sm:block truncate">
                                                         {{ $tpl['desc'] }}
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div class="flex items-center gap-3 shrink-0">
+                                            <div class="flex items-center gap-2.5 shrink-0">
                                                 @if($countForTpl > 0)
-                                                    <span class="w-32 sm:w-36 inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                    <span class="w-28 sm:w-32 inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                                         <span>{{ $countForTpl }} Berkas</span>
                                                     </span>
                                                 @else
-                                                    <span class="w-32 sm:w-36 inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 group-hover:border-slate-300 transition">
+                                                    <span class="w-28 sm:w-32 inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-400 border border-slate-200 group-hover:border-slate-300 transition">
                                                         <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                                        <span>Belum Ada Berkas</span>
+                                                        <span>Kosong</span>
                                                     </span>
                                                 @endif
 
-                                                {{-- Dropdown Icon (▽) --}}
-                                                <div class="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-slate-200 text-slate-600 flex items-center justify-center transition shrink-0">
-                                                    <svg class="w-3.5 h-3.5 transition-transform duration-200" 
+                                                {{-- Dropdown Icon --}}
+                                                <div class="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-slate-200 text-slate-500 flex items-center justify-center transition shrink-0">
+                                                    <svg class="w-3 h-3 transition-transform duration-200" 
                                                          :class="{ 'rotate-180': openSalesItems['{{ $tpl['code'] }}'] }" 
                                                          fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
