@@ -178,16 +178,37 @@
     }
 
     $totalCount = is_countable($items) ? count($items) : 0;
+
+    if (empty($logoBase64)) {
+        $logoPath = public_path('images/ipnet1.png');
+        if (!file_exists($logoPath)) {
+            $logoPath = public_path('images/ipnet.png');
+        }
+        if (file_exists($logoPath)) {
+            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        }
+    }
 @endphp
 
-    <!-- Header -->
-    <table class="header-table">
+    <!-- Header dengan Logo di Sebelah Kiri -->
+    <table class="header-table" cellpadding="0" cellspacing="0">
         <tr>
-            <td style="width: 60%;">
-                <div class="company-title">PT IP NETWORK SOLUSINDO</div>
-                <div class="company-subtitle">FIELD SYSTEM MANAGEMENT - LEMBAR KERJA / CATATAN AKTIVITAS</div>
+            <td style="width: 70%; vertical-align: middle;">
+                <table cellpadding="0" cellspacing="0" style="border: none; margin: 0; padding: 0;">
+                    <tr>
+                        @if(!empty($logoBase64))
+                        <td style="width: 48px; vertical-align: middle; padding-right: 12px; border: none;">
+                            <img src="{{ $logoBase64 }}" alt="Logo" style="height: 42px; width: auto; max-width: 48px; display: block;">
+                        </td>
+                        @endif
+                        <td style="vertical-align: middle; border: none; text-align: left;">
+                            <div class="company-title">PT IP NETWORK SOLUSINDO</div>
+                            <div class="company-subtitle">FIELD SYSTEM MANAGEMENT - LEMBAR KERJA / CATATAN AKTIVITAS</div>
+                        </td>
+                    </tr>
+                </table>
             </td>
-            <td style="width: 40%; text-align: right;">
+            <td style="width: 30%; text-align: right; vertical-align: middle;">
                 <span class="report-badge">DOKUMEN RESMI REKAP KERJA</span>
             </td>
         </tr>

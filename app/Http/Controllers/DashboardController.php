@@ -1742,6 +1742,9 @@ class DashboardController extends Controller
 
         // Base64 Logo untuk stabilitas render DomPDF
         $logoPath   = public_path('images/ipnet1.png');
+        if (!file_exists($logoPath)) {
+            $logoPath = public_path('images/ipnet.png');
+        }
         $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
 
         $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', [
