@@ -93,6 +93,7 @@
             border-collapse: collapse;
             margin-bottom: 14px;
             font-size: 10px;
+            table-layout: fixed;
         }
         .data-table th {
             background-color: #1E293B;
@@ -110,6 +111,8 @@
             font-weight: normal;
             color: #1E293B;
             line-height: 1.4;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         .row-even {
             background-color: #F8FAFC;
@@ -275,13 +278,13 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th style="width: 28px; text-align: center;">No</th>
+                <th style="width: 30px; text-align: center;">No</th>
                 <th style="width: 75px; text-align: center;">Tanggal</th>
-                <th style="width: 65px; text-align: center;">Waktu</th>
-                <th style="text-align: left; padding-left: 8px;">Uraian Aktivitas</th>
-                <th style="width: 95px; text-align: center;">PIC Klien</th>
-                <th style="width: 95px; text-align: center;">PIC IPNET</th>
-                <th style="width: 125px; text-align: left; padding-left: 8px;">Noted</th>
+                <th style="width: 55px; text-align: center;">Waktu</th>
+                <th style="width: 36%; text-align: left; padding-left: 8px;">Uraian Aktivitas</th>
+                <th style="width: 90px; text-align: center;">PIC Klien</th>
+                <th style="width: 90px; text-align: center;">PIC IPNET</th>
+                <th style="width: 28%; text-align: left; padding-left: 8px;">Noted</th>
             </tr>
         </thead>
         <tbody>

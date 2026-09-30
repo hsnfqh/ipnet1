@@ -145,11 +145,7 @@
                             {{ $isLead ? 'Pantau dan kelola seluruh aktivitas harian engineer secara terpusat' : 'Kelola dan catat aktivitas teknis harian Anda di sini' }}
                         </p>
                     </div>
-                    <div class="flex items-center gap-3 shrink-0">
-                        <div class="text-right hidden sm:block">
-                            <p class="text-[10.5px] text-gray-400 font-medium">Total Aktivitas</p>
-                            <p class="text-[20px] font-bold text-[#0F172A]">{{ $activities->total() }}</p>
-                        </div>
+                    <div class="shrink-0">
                         <button type="button" @click="$dispatch('open-engineer-activity-modal')"
                                 class="btn-ipnet-primary px-5 py-2.5 rounded-xl font-bold text-[12.5px] flex items-center gap-2 transition-all cursor-pointer shadow-md whitespace-nowrap">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
