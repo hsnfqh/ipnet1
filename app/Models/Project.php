@@ -169,6 +169,21 @@ class Project extends Model
         return $this->hasMany(Schedule::class);
     }
 
+    /**
+     * Engineer yang ditugaskan pada proyek (melalui penugasan tugas/tasks)
+     */
+    public function engineers()
+    {
+        return $this->hasManyThrough(
+            User::class,
+            Task::class,
+            'project_id',  // Foreign key pada tabel tasks
+            'id',          // Foreign key pada tabel users
+            'id',          // Local key pada tabel projects
+            'engineer_id'  // Local key pada tabel tasks
+        )->distinct();
+    }
+
     // Scopes
     public function scopeStatus($query, $status)
     {
