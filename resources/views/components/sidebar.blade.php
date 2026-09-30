@@ -53,6 +53,7 @@
             ['key' => 'ms_tickets',   'label' => 'Tickets & SLA',     'route' => 'ms.tickets.index'],
             ['key' => 'ms_assets',    'label' => 'Assets & Devices',  'route' => 'ms.assets.index'],
             ['key' => 'tasks',        'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
+            ['key' => 'activities',   'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',    'label' => 'Work Schedule',     'route' => 'schedules.index'],
             ['key' => 'timesheets',   'label' => 'Timesheet',         'route' => 'timesheets.index'],
             ['key' => 'attendance',   'label' => 'Attendance',        'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
@@ -66,6 +67,7 @@
             ['key' => 'pmo_dashboard',   'label' => 'Dashboard',           'route' => 'pmo.dashboard'],
             ['key' => 'projects',        'label' => 'Projects',            'route' => 'projects.index'],
             ['key' => 'tasks',           'label' => 'Team Tasks',          'route' => 'tasks.index'],
+            ['key' => 'activities',      'label' => 'Activity Log',        'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',       'label' => 'Work Schedule',       'route' => 'schedules.index'],
             ['key' => 'timesheets',      'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];
@@ -109,6 +111,7 @@
             ['key' => 'dashboard',   'label' => 'Dashboard',         'route' => 'dashboard.lead'],
             ['key' => 'projects',    'label' => 'Projects',          'route' => 'projects.index'],
             ['key' => 'tasks',       'label' => 'Team Tasks',        'route' => 'tasks.index'],
+            ['key' => 'activities',  'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',   'label' => 'Work Schedule',     'route' => 'schedules.index'],
             ['key' => 'timesheets',  'label' => 'Timesheet',         'route' => 'timesheets.index'],
             ['key' => 'attendance',  'label' => 'Attendance',        'route' => 'attendance.recap'],
@@ -116,11 +119,12 @@
         ];
     } else {
         $navItems = [
-            ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.engineer'],
-            ['key' => 'tasks',      'label' => 'My Tasks',           'route' => 'tasks.index'],
-            ['key' => 'schedules',  'label' => 'Work Schedule',      'route' => 'schedules.index'],
-            ['key' => 'timesheets', 'label' => 'Timesheet',          'route' => 'timesheets.index'],
-            ['key' => 'attendance', 'label' => 'Attendance',         'route' => 'attendance.index'],
+            ['key' => 'dashboard',   'label' => 'Dashboard',          'route' => 'dashboard.engineer'],
+            ['key' => 'tasks',       'label' => 'My Tasks',           'route' => 'tasks.index'],
+            ['key' => 'activities',  'label' => 'Activity Log',       'route' => 'engineer.activity_log.index'],
+            ['key' => 'schedules',   'label' => 'Work Schedule',      'route' => 'schedules.index'],
+            ['key' => 'timesheets',  'label' => 'Timesheet',          'route' => 'timesheets.index'],
+            ['key' => 'attendance',  'label' => 'Attendance',         'route' => 'attendance.index'],
         ];
     }
 @endphp

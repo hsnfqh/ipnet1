@@ -350,16 +350,21 @@
             {{-- Form Input Activity Log --}}
             <div class="lg:col-span-2">
                 <div class="ipnet-card p-5 h-full">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg" style="background:linear-gradient(135deg,#8F0A0D,#D62E3C);">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                            </svg>
-                        </span>
-                        <div>
-                            <h3 class="text-[14px] font-bold text-[#1E293B]">Catat Aktivitas Harian</h3>
-                            <p class="text-[11px] text-[#94A3B8]">Log kegiatan kerja kamu hari ini</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg" style="background:linear-gradient(135deg,#8F0A0D,#D62E3C);">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </span>
+                            <div>
+                                <h3 class="text-[14px] font-bold text-[#1E293B]">Catat Aktivitas Harian</h3>
+                                <p class="text-[11px] text-[#94A3B8]">Log kegiatan kerja kamu hari ini</p>
+                            </div>
                         </div>
+                        <a href="{{ route('engineer.activity_log.index') }}" class="text-[11.5px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
+                            <span>Buka Menu Activity Log &rarr;</span>
+                        </a>
                     </div>
 
                     @if(session('success'))

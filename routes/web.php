@@ -26,6 +26,7 @@ use App\Http\Controllers\SalesProjectController;
 use App\Http\Controllers\BdmController;
 use App\Http\Controllers\CroController;
 use App\Http\Controllers\AdminSupportController;
+use App\Http\Controllers\EngineerActivityLogController;
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
@@ -158,12 +159,22 @@ Route::middleware(['auth'])->group(function () {
         ->name('dashboard.engineer')
         ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance');
 
-    // Engineer Activity Log — Engineer bisa store, Lead/Director bisa delete semua
-    Route::post('/dashboard/engineer/activity-log', [DashboardController::class, 'storeActivityLog'])
+    // Engineer Activity Log — Halaman Dedicated Monitoring Lead & Input Aktivitas Engineer
+    Route::get('/engineer/activity-logs', [EngineerActivityLogController::class, 'index'])
+        ->name('engineer.activity_log.index')
+        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager');
+
+    Route::post('/engineer/activity-logs', [EngineerActivityLogController::class, 'store'])
         ->name('engineer.activity_log.store')
-        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation');
-    Route::delete('/dashboard/engineer/activity-log/{log}', [DashboardController::class, 'deleteActivityLog'])
+        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager');
+
+    Route::delete('/engineer/activity-logs/{log}', [EngineerActivityLogController::class, 'destroy'])
         ->name('engineer.activity_log.destroy')
+        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager');
+
+    // Route legacy / alias POST dari embedded section dashboard
+    Route::post('/dashboard/engineer/activity-log', [EngineerActivityLogController::class, 'store'])
+        ->name('engineer.activity_log.store_legacy')
         ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation');
 
     // BDM & Business Development (Dashboard + Dedicated Sub-Menus)

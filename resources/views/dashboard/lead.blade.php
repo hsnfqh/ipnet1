@@ -800,9 +800,12 @@
                         <p class="text-[12.5px] text-[#75727C] mt-0.5">Pantau kegiatan harian seluruh engineer dalam tim kamu</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="px-3 py-1.5 text-[12px] font-bold rounded-xl text-white" style="background:linear-gradient(135deg,#8F0A0D,#D62E3C);">
+                        <span class="px-3 py-1.5 text-[12px] font-bold rounded-xl bg-red-50 text-[#8F0A0D] border border-red-200">
                             {{ ($allEngineerActivityLogs ?? collect())->count() }} Log
                         </span>
+                        <a href="{{ route('engineer.activity_log.index') }}" class="px-3 py-1.5 text-[12px] font-bold rounded-xl text-white hover:opacity-95 transition-all shadow-xs flex items-center gap-1" style="background:linear-gradient(135deg,#8F0A0D,#D62E3C);">
+                            <span>Buka Halaman Monitoring &rarr;</span>
+                        </a>
                     </div>
                 </div>
 
