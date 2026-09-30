@@ -1073,9 +1073,14 @@
                                                                 <input type="date" x-model="session.date" class="jkw-form-input" :required="form.date_mode === 'sessions'">
                                                             </div>
                                                             <div>
-                                                                <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:7px; text-transform:uppercase; letter-spacing:0.4px;">
-                                                                    <span>Jam (Opsional)</span>
-                                                                </label>
+                                                                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:7px;">
+                                                                    <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px; margin:0;">
+                                                                        <span>Jam (Opsional)</span>
+                                                                    </label>
+                                                                    <button type="button" x-show="session.start_time" @click="session.start_time = ''; session.end_time = '';" style="background:none; border:none; color:#EF4444; font-size:10.5px; font-weight:600; cursor:pointer; padding:0;" title="Kosongkan Jam">
+                                                                        &times; Kosongkan
+                                                                    </button>
+                                                                </div>
                                                                 <input type="time" x-model="session.start_time" class="jkw-form-input">
                                                             </div>
                                                         </div>
@@ -1119,9 +1124,14 @@
                                             <!-- Grid Baris 2: Jam & Lokasi (Diberi margin-top agar berjarak lega dan rapih persis seperti Sesi Harian) -->
                                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:2px;">
                                                 <div :style="form.category === 'Day Off' ? 'grid-column: span 2;' : ''">
-                                                    <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:7px; text-transform:uppercase; letter-spacing:0.4px;">
-                                                        <span>Jam (Opsional)</span>
-                                                    </label>
+                                                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:7px;">
+                                                        <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px; margin:0;">
+                                                            <span>Jam (Opsional)</span>
+                                                        </label>
+                                                        <button type="button" x-show="form.start_time" @click="form.start_time = ''; form.end_time = '';" style="background:none; border:none; color:#EF4444; font-size:10.5px; font-weight:600; cursor:pointer; padding:0;" title="Kosongkan Jam">
+                                                            &times; Kosongkan
+                                                        </button>
+                                                    </div>
                                                     <input type="time" x-model="form.start_time" class="jkw-form-input">
                                                 </div>
                                                 <div x-show="form.category !== 'Day Off'">
@@ -2235,7 +2245,7 @@
                     engineer_id: null,
                     engineer_ids: [],
                     date: '',
-                    start_time: '09:00',
+                    start_time: '',
                     end_time: '',
                     location: '',
                     description: ''
@@ -2775,12 +2785,6 @@
                         if (this.form.title === 'Day Off / Cuti' || this.form.title === 'Day Off') {
                             this.form.title = '';
                         }
-                        if (!this.form.start_time) {
-                            this.form.start_time = '09:00';
-                        }
-                        if (this.form.sessions) {
-                            this.form.sessions.forEach(function(s) { if (!s.start_time) s.start_time = '09:00'; });
-                        }
                         if (!this.form.project_id && this.projects.length > 0) {
                             this.form.project_id = this.projects[0].id;
                         }
@@ -2789,12 +2793,6 @@
                     } else {
                         if (this.form.title === 'Day Off / Cuti' || this.form.title === 'Day Off') {
                             this.form.title = '';
-                        }
-                        if (!this.form.start_time) {
-                            this.form.start_time = '09:00';
-                        }
-                        if (this.form.sessions) {
-                            this.form.sessions.forEach(function(s) { if (!s.start_time) s.start_time = '09:00'; });
                         }
                         if (!this.form.project_id && this.projects.length > 0) {
                             this.form.project_id = this.projects[0].id;
@@ -2867,7 +2865,7 @@
                     }
                     var newSessions = [];
                     var cur = new Date(start);
-                    var time = this.form.start_time || '09:00';
+                    var time = this.form.start_time || '';
                     var loc = this.form.location || '';
                     while (cur <= end) {
                         var day = cur.getDay();
@@ -2896,7 +2894,7 @@
                 addSession: function() {
                     if (!this.form.sessions) this.form.sessions = [];
                     var last = this.form.sessions.length > 0 ? this.form.sessions[this.form.sessions.length - 1] : null;
-                    var defaultTime = this.form.category === 'Day Off' ? '' : (last && last.start_time ? last.start_time : '09:00');
+                    var defaultTime = (last && last.start_time) ? last.start_time : '';
                     var defaultLoc = this.form.category === 'Day Off' ? '' : (last && last.location ? last.location : '');
                     this.form.sessions.push({
                         date: last && last.date ? last.date : this.formatDate(new Date()),
@@ -2926,7 +2924,7 @@
                         }
 
                         var schDate = schedule.date ? schedule.date.split('T')[0] : (schedule.deadline ? schedule.deadline.split('T')[0].split(' ')[0] : this.formatDate(new Date()));
-                        var schStart = schedule.start_time ? schedule.start_time.substring(0, 5) : (schedule.deadline_time ? schedule.deadline_time.substring(0, 5) : (schedule.category === 'Day Off' ? '' : '09:00'));
+                        var schStart = schedule.start_time ? schedule.start_time.substring(0, 5) : (schedule.deadline_time ? schedule.deadline_time.substring(0, 5) : '');
                         var schEnd = schedule.end_time ? schedule.end_time.substring(0, 5) : '';
                         var schLoc = schedule.location || (schedule.project ? (schedule.project.location || '') : '');
                         var matchedProjId = schedule.project_id || (schedule.project ? schedule.project.id : null);
@@ -2983,7 +2981,7 @@
                             exclude_saturdays: false,
                             include_sundays: false,
                             date: targetDate,
-                            start_time: '09:00',
+                            start_time: '',
                             end_time: '',
                             location: '',
                             description: '',
@@ -2992,7 +2990,7 @@
                             sessions: [
                                 {
                                     date: targetDate,
-                                    start_time: '09:00',
+                                    start_time: '',
                                     end_time: '',
                                     location: ''
                                 }
@@ -3032,7 +3030,7 @@
 
                     // Sessions / Date / Time / Location
                     var dateStr = '';
-                    var timeStr = '09:00';
+                    var timeStr = '';
                     if (ticket.sla_deadline) {
                         var parts = ticket.sla_deadline.split('T');
                         dateStr = parts[0];
@@ -3156,12 +3154,11 @@
                         // Sinkronkan sesi pertama atau date_mode range dengan form root
                         if (this.form.date_mode === 'range') {
                             this.form.date = this.form.start_date || this.formatDate(new Date());
-                            if (!this.form.start_time) this.form.start_time = '09:00';
-                            if (!this.form.end_time) this.form.end_time = this.form.start_time;
+                            if (!this.form.end_time && this.form.start_time) this.form.end_time = this.form.start_time;
                         } else if (this.form.sessions && this.form.sessions.length > 0) {
                             this.form.date = this.form.sessions[0].date;
-                            this.form.start_time = this.form.sessions[0].start_time;
-                            this.form.end_time = this.form.sessions[0].end_time || this.form.sessions[0].start_time;
+                            this.form.start_time = this.form.sessions[0].start_time || '';
+                            this.form.end_time = this.form.sessions[0].end_time || this.form.sessions[0].start_time || '';
                             this.form.location = this.form.sessions[0].location || '';
                         }
 

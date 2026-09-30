@@ -305,12 +305,21 @@
                                 <h4 class="text-[13.5px] font-bold text-[#292929] leading-snug break-words flex-1">
                                     {{ $schedule->title }}
                                 </h4>
+                                @if($schedule->start_time)
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#E01E2E]/10 text-[#E01E2E] shrink-0 border border-[#E01E2E]/20">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
-                                    {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}
+                                    {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }}@if($schedule->end_time && $schedule->end_time !== $schedule->start_time) - {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}@endif
                                 </span>
+                                @else
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-600 shrink-0 border border-slate-200">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Sepanjang Hari
+                                </span>
+                                @endif
                             </div>
                             
                             <p class="text-[12px] font-medium text-[#75727C] mb-2 flex items-center gap-1.5">
