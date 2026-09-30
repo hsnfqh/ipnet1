@@ -1437,12 +1437,20 @@ class DashboardController extends Controller
 
         $authUser = auth()->user();
         $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
+        $linkedProjectIds = $this->getLinkedProjectIds($authUser);
 
         $query = EngineerActivityLog::with(['engineer', 'project']);
 
-        // Jika bukan managerial/lead, batasi hanya log diri sendiri
+        // Jika bukan managerial/lead, batasi log milik sendiri dan log pada proyek yang terhubung (tim/shared)
         if (!$isLead) {
-            $query->where('user_id', $authUser->id);
+            $query->where(function ($q) use ($authUser, $linkedProjectIds) {
+                $q->where('user_id', $authUser->id)
+                  ->orWhere('notes', 'like', "%{$authUser->name}%");
+
+                if ($linkedProjectIds->isNotEmpty()) {
+                    $q->orWhereIn('project_id', $linkedProjectIds);
+                }
+            });
         } else {
             // Managerial/Lead bisa filter per engineer tertentu
             if ($request->filled('user_id')) {
@@ -1541,7 +1549,8 @@ class DashboardController extends Controller
             'activeEngineersCount',
             'projects',
             'engineers',
-            'activityTypes'
+            'activityTypes',
+            'linkedProjectIds'
         ));
     }
 
@@ -1659,7 +1668,10 @@ class DashboardController extends Controller
     {
         $user   = auth()->user();
         $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
-        if ($log->user_id !== $user->id && !$isLead) {
+        $linkedProjectIds = $this->getLinkedProjectIds($user);
+        $isProjectMember  = $log->project_id && $linkedProjectIds->contains($log->project_id);
+
+        if ($log->user_id !== $user->id && !$isLead && !$isProjectMember) {
             abort(403, 'Anda tidak memiliki hak akses untuk mengubah log aktivitas ini.');
         }
 
@@ -1711,11 +1723,18 @@ class DashboardController extends Controller
     {
         $authUser = auth()->user();
         $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
+        $linkedProjectIds = $this->getLinkedProjectIds($authUser);
 
         $query = EngineerActivityLog::with(['engineer', 'project']);
 
         if (!$isLead) {
-            $query->where('user_id', $authUser->id);
+            $query->where(function ($q) use ($authUser, $linkedProjectIds) {
+                $q->where('user_id', $authUser->id)
+                  ->orWhere('notes', 'like', "%{$authUser->name}%");
+                if ($linkedProjectIds->isNotEmpty()) {
+                    $q->orWhereIn('project_id', $linkedProjectIds);
+                }
+            });
         } else {
             if ($request->filled('user_id')) {
                 $query->where('user_id', $request->user_id);
@@ -1836,11 +1855,18 @@ class DashboardController extends Controller
     {
         $authUser = auth()->user();
         $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
+        $linkedProjectIds = $this->getLinkedProjectIds($authUser);
 
         $query = EngineerActivityLog::with(['engineer', 'project']);
 
         if (!$isLead) {
-            $query->where('user_id', $authUser->id);
+            $query->where(function ($q) use ($authUser, $linkedProjectIds) {
+                $q->where('user_id', $authUser->id)
+                  ->orWhere('notes', 'like', "%{$authUser->name}%");
+                if ($linkedProjectIds->isNotEmpty()) {
+                    $q->orWhereIn('project_id', $linkedProjectIds);
+                }
+            });
         } else {
             if ($request->filled('user_id')) {
                 $query->where('user_id', $request->user_id);
@@ -1994,5 +2020,67 @@ class DashboardController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             'Cache-Control' => 'max-age=0',
         ]);
+    }
+
+    /**
+     * Mendapatkan daftar ID project yang terhubung dengan seorang engineer.
+     * Terhubung via:
+     * 1. Log aktivitas yang dibuat oleh engineer tersebut.
+     * 2. Log aktivitas yang menyebut nama engineer di kolom notes (PIC IPNET / Nama).
+     * 3. Jadwal Kerja (Schedule) di mana engineer ditugaskan (engineer_id atau pivot schedule_user).
+     * 4. Task di mana engineer ditugaskan (engineer_id).
+     */
+    private function getLinkedProjectIds($user): \Illuminate\Support\Collection
+    {
+        $linkedProjectIds = collect();
+
+        try {
+            // 1. Log yang dibuat user
+            $myLogProjectIds = EngineerActivityLog::where('user_id', $user->id)
+                ->whereNotNull('project_id')
+                ->pluck('project_id');
+            $linkedProjectIds = $linkedProjectIds->merge($myLogProjectIds);
+
+            // 2. Log yang menyebut nama user sebagai PIC (di kolom notes)
+            $name = trim($user->name);
+            $firstName = explode(' ', $name)[0] ?? '';
+            $picLogQuery = EngineerActivityLog::whereNotNull('project_id')
+                ->where(function ($q) use ($name, $firstName) {
+                    $q->where('notes', 'like', "%{$name}%");
+                    if (strlen($firstName) >= 4) {
+                        $q->orWhere('notes', 'like', "%{$firstName}%");
+                    }
+                });
+            $linkedProjectIds = $linkedProjectIds->merge($picLogQuery->pluck('project_id'));
+        } catch (\Throwable $e) {}
+
+        // 3. Schedule penugasan kerja
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('schedules')) {
+                $schedProjectIds = \App\Models\Schedule::whereNotNull('project_id')
+                    ->where(function ($sq) use ($user) {
+                        $sq->where('engineer_id', $user->id);
+                        if (\Illuminate\Support\Facades\Schema::hasTable('schedule_user')) {
+                            $sq->orWhereHas('engineers', function ($engQ) use ($user) {
+                                $engQ->where('users.id', $user->id);
+                            });
+                        }
+                    })
+                    ->pluck('project_id');
+                $linkedProjectIds = $linkedProjectIds->merge($schedProjectIds);
+            }
+        } catch (\Throwable $e) {}
+
+        // 4. Task penugasan
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('tasks')) {
+                $taskProjectIds = \App\Models\Task::whereNotNull('project_id')
+                    ->where('engineer_id', $user->id)
+                    ->pluck('project_id');
+                $linkedProjectIds = $linkedProjectIds->merge($taskProjectIds);
+            }
+        } catch (\Throwable $e) {}
+
+        return $linkedProjectIds->unique()->filter()->values();
     }
 }

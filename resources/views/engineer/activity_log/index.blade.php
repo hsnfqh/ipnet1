@@ -104,7 +104,7 @@
     @include('components.sidebar')
 
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => $isLead ? 'Activity Log & Monitoring Engineer' : 'Catatan Aktivitas Harian Engineer'])
+        @include('components.topbar', ['title' => 'Activity Log & Monitoring Engineer'])
 
         <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1680px] mx-auto animate-fade-in">
 
@@ -135,14 +135,14 @@
                         <div class="flex items-center gap-2 mb-1.5">
                             <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block"></span>
                             <span class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-widest">
-                                {{ $isLead ? 'Monitoring Engineer' : 'Catatan Aktivitas' }}
+                                MONITORING &amp; LOG AKTIVITAS
                             </span>
                         </div>
                         <h1 class="text-[20px] font-bold text-[#0F172A] leading-snug">
-                            {{ $isLead ? 'Activity Log & Monitoring Engineer' : 'Catatan Aktivitas Harian Engineer' }}
+                            Activity Log &amp; Monitoring Engineer
                         </h1>
                         <p class="text-[12.5px] text-[#64748B] mt-1">
-                            {{ $isLead ? 'Pantau dan kelola seluruh aktivitas harian engineer secara terpusat' : 'Kelola dan catat aktivitas teknis harian Anda di sini' }}
+                            {{ $isLead ? 'Pantau dan kelola seluruh aktivitas harian engineer secara terpusat' : 'Kelola dan pantau aktivitas penugasan proyek Anda dan tim secara terhubung' }}
                         </p>
                     </div>
                     <div class="shrink-0">
@@ -218,10 +218,10 @@
                 </div>
             </div>
 
-            {{-- Activity Grid — Grouped by Project --}}
+            {{-- Activity Grid — Grouped by Project (Shared Collaboration) --}}
             @php
                 $grouped = $activities->getCollection()->groupBy(function($act) {
-                    return ($act->project_id ?? 'no_project') . '_' . ($act->user_id ?? '0');
+                    return $act->project_id ? ('proj_' . $act->project_id) : ('no_proj_' . $act->user_id);
                 });
             @endphp
 
@@ -230,10 +230,27 @@
                     @php
                         $firstAct     = $groupActivities->first();
                         $project      = $firstAct->project;
-                        $engineer     = $firstAct->engineer;
                         $projectName  = $project->name ?? 'Tanpa Proyek';
                         $clientName   = $project->client ?? '-';
                         $totalInGroup = $groupActivities->count();
+
+                        // Ambil seluruh nama engineer yang berkontribusi di grup proyek ini
+                        $engineersInGroup = $groupActivities->map(function($a) {
+                            $rawNotes = $a->notes ?? '';
+                            $pic = '';
+                            if (preg_match('/PIC IPNET:\s*([^|]+)/', $rawNotes, $m)) {
+                                $pic = trim($m[1]);
+                            }
+                            return $pic ?: ($a->engineer->name ?? null);
+                        })->filter()->unique()->values();
+
+                        $engineerNamesDisplay = $engineersInGroup->take(2)->implode(', ');
+                        if ($engineersInGroup->count() > 2) {
+                            $engineerNamesDisplay .= ' +' . ($engineersInGroup->count() - 2) . ' lainnya';
+                        }
+                        if (!$engineerNamesDisplay) {
+                            $engineerNamesDisplay = $firstAct->engineer->name ?? 'Engineer';
+                        }
 
                         // Build clean preview items (strip [prefix] and PIC from notes)
                         $previewItems = $groupActivities->take(3)->map(function($a) {
@@ -251,7 +268,7 @@
                         $groupJson = json_encode([
                             'project_name'  => $projectName,
                             'client_name'   => $clientName,
-                            'engineer_name' => $engineer->name ?? '-',
+                            'engineer_name' => $engineersInGroup->implode(', ') ?: ($firstAct->engineer->name ?? '-'),
                             'total'         => $totalInGroup,
                             'items'         => $groupActivities->map(function($a, $idx) {
                                 $rawNotes  = $a->notes ?? '';
@@ -299,7 +316,7 @@
                             })->values()->toArray(),
                         ]);
 
-                        // Edit data per item (first item for quick edit on card)
+                        // Edit data per item
                         $editJson = json_encode($groupActivities->map(function($a) use ($projectName) {
                             $rawNotes  = $a->notes ?? '';
                             $clientPic = ''; $ipnetPic = ''; $notedOnly = $rawNotes;
@@ -320,20 +337,24 @@
                                 $desc = $m[2] ?: $m[1];
                             }
                             return [
-                                'id'           => $a->id,
-                                'subject'      => $desc,
+                                'id'             => $a->id,
+                                'subject'        => $desc,
                                 'activity_title' => $actTitle,
-                                'date_raw'     => $a->activity_date ? $a->activity_date->format('Y-m-d') : date('Y-m-d'),
-                                'client_pic'   => $clientPic,
-                                'ipnet_pic'    => $ipnetPic,
-                                'notes'        => $notedOnly,
-                                'project_id'   => $a->project_id,
-                                'project_name' => $projectName,
-                                'update_url'   => route('engineer.activity_log.update', $a),
+                                'date_raw'       => $a->activity_date ? $a->activity_date->format('Y-m-d') : date('Y-m-d'),
+                                'client_pic'     => $clientPic,
+                                'ipnet_pic'      => $ipnetPic ?: ($a->engineer->name ?? ''),
+                                'notes'          => $notedOnly,
+                                'project_id'     => $a->project_id,
+                                'project_name'   => $projectName,
+                                'update_url'     => route('engineer.activity_log.update', $a),
                             ];
                         })->values()->toArray());
 
-                        $canEdit = (auth()->id() === $firstAct->user_id || $isLead);
+                        $canEdit = $isLead
+                            || $groupActivities->contains('user_id', auth()->id())
+                            || (isset($linkedProjectIds) && $firstAct->project_id && $linkedProjectIds->contains($firstAct->project_id));
+
+                        $canDelete = $isLead || ($groupActivities->every(fn($a) => $a->user_id === auth()->id()));
                     @endphp
 
                     <div class="activity-card group">
@@ -355,10 +376,10 @@
                             </h3>
 
                             <div class="flex items-center gap-1.5 mt-1 text-[11px] text-gray-500">
-                                <span class="font-semibold text-gray-700">{{ $engineer->name ?? 'Engineer' }}</span>
+                                <span class="font-semibold text-gray-700 truncate max-w-[200px]" title="{{ $engineersInGroup->implode(', ') }}">{{ $engineerNamesDisplay }}</span>
                                 @if($clientName && $clientName !== '-')
                                     <span class="text-gray-300">•</span>
-                                    <span class="text-gray-500 truncate max-w-[150px]" title="{{ $clientName }}">{{ $clientName }}</span>
+                                    <span class="text-gray-500 truncate max-w-[130px]" title="{{ $clientName }}">{{ $clientName }}</span>
                                 @endif
                             </div>
                         </div>
@@ -401,6 +422,7 @@
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         Edit
                                     </button>
+                                    @if($canDelete)
                                     <form method="POST" action="{{ route('engineer.activity_log.destroy', $firstAct) }}"
                                           onsubmit="return confirm('Hapus seluruh aktivitas dalam grup ini?');" class="inline">
                                         @csrf
@@ -411,6 +433,7 @@
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             @endif
                         </div>
