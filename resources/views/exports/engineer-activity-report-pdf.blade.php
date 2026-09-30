@@ -19,8 +19,11 @@
         .header-table {
             width: 100%;
             border-bottom: 2px solid #C81E2C;
-            padding-bottom: 12px;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
+        }
+        .header-cell {
+            padding-bottom: 14px;
+            vertical-align: middle;
         }
         .company-title {
             font-size: 18px;
@@ -193,22 +196,22 @@
     <!-- Header dengan Logo di Sebelah Kiri -->
     <table class="header-table" cellpadding="0" cellspacing="0">
         <tr>
-            <td style="width: 70%; vertical-align: middle;">
+            <td class="header-cell" style="width: 70%;">
                 <table cellpadding="0" cellspacing="0" style="border: none; margin: 0; padding: 0;">
                     <tr>
                         @if(!empty($logoBase64))
-                        <td style="width: 48px; vertical-align: middle; padding-right: 12px; border: none;">
-                            <img src="{{ $logoBase64 }}" alt="Logo" style="height: 42px; width: auto; max-width: 48px; display: block;">
+                        <td style="width: 44px; vertical-align: middle; padding-right: 12px; border: none; padding-bottom: 0;">
+                            <img src="{{ $logoBase64 }}" alt="Logo" style="height: 38px; width: auto; max-width: 44px; display: block;">
                         </td>
                         @endif
-                        <td style="vertical-align: middle; border: none; text-align: left;">
+                        <td style="vertical-align: middle; border: none; text-align: left; padding-bottom: 0;">
                             <div class="company-title">PT IP NETWORK SOLUSINDO</div>
                             <div class="company-subtitle">FIELD SYSTEM MANAGEMENT - LEMBAR KERJA / CATATAN AKTIVITAS</div>
                         </td>
                     </tr>
                 </table>
             </td>
-            <td style="width: 30%; text-align: right; vertical-align: middle;">
+            <td class="header-cell" style="width: 30%; text-align: right;">
                 <span class="report-badge">DOKUMEN RESMI REKAP KERJA</span>
             </td>
         </tr>
