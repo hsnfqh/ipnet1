@@ -1879,7 +1879,7 @@ class DashboardController extends Controller
             }
 
             if (!$ipnetPic) {
-                $ipnetPic = $a->engineer->name ?? '-';
+                $ipnetPic = '-';
             }
 
             $description = $a->description ?? '-';
@@ -2045,7 +2045,7 @@ class DashboardController extends Controller
             }
 
             if (!$ipnetPic) {
-                $ipnetPic = $act->engineer->name ?? '-';
+                $ipnetPic = '-';
             }
 
             $description = $act->description ?? '-';

@@ -344,6 +344,7 @@
                         $displayAvatars = $uniqueEngineers->take(2);
                         $additionalTeamCount = max(0, $uniqueEngineers->count() - 1);
                         $allEngineerNames = $uniqueEngineers->pluck('name')->implode(', ');
+                        $creatorName = $firstAct->engineer->name ?? ($primaryEngineer['name'] ?? 'Engineer');
 
                         // Build clean preview items (strip [prefix] and PIC from notes)
                         $previewItems = $groupActivities->take(3)->map(function($a) {
@@ -362,8 +363,9 @@
                             'project_name'  => $projectName,
                             'client_name'   => $clientName,
                             'engineer_name' => $allEngineerNames ?: ($firstAct->engineer->name ?? '-'),
+                            'creator_name'  => $creatorName,
                             'total'         => $totalInGroup,
-                            'items'         => $groupActivities->map(function($a, $idx) use ($primaryEngineer) {
+                            'items'         => $groupActivities->map(function($a, $idx) use ($creatorName) {
                                 $rawNotes  = $a->notes ?? '';
                                 $clientPic = '';
                                 $ipnetPic  = '';
@@ -384,33 +386,30 @@
                                     $notedOnly = implode(' | ', array_filter($notedParts));
                                 }
 
-                                if (!$ipnetPic || in_array(strtolower($ipnetPic), ['a', 'aa', 'aaa', 'bb', 'cc', 'test', 'null', 'none', '-'])) {
-                                    $ipnetPic = $a->engineer->name ?? ($primaryEngineer['name'] ?? '-');
-                                }
-
                                 $description = $a->description ?? '-';
                                 if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $description, $m)) {
                                     $description = $m[2] ?: $m[1];
                                 }
 
                                 return [
-                                    'no'         => $idx + 1,
-                                    'id'         => $a->id,
-                                    'user_id'    => $a->user_id,
-                                    'date'       => $a->activity_date ? $a->activity_date->format('d M Y') : '-',
-                                    'date_raw'   => $a->activity_date ? $a->activity_date->format('Y-m-d') : '',
-                                    'subject'    => $description,
-                                    'client_pic' => $clientPic ?: '-',
-                                    'ipnet_pic'  => $ipnetPic,
-                                    'notes'      => $notedOnly ?: '-',
-                                    'status'     => $a->status ?? '-',
-                                    'project_id' => $a->project_id,
+                                    'no'           => $idx + 1,
+                                    'id'           => $a->id,
+                                    'user_id'      => $a->user_id,
+                                    'creator_name' => $a->engineer->name ?? $creatorName,
+                                    'date'         => $a->activity_date ? $a->activity_date->format('d M Y') : '-',
+                                    'date_raw'     => $a->activity_date ? $a->activity_date->format('Y-m-d') : '',
+                                    'subject'      => $description,
+                                    'client_pic'   => $clientPic ?: '-',
+                                    'ipnet_pic'    => $ipnetPic ?: '-',
+                                    'notes'        => $notedOnly ?: '-',
+                                    'status'       => $a->status ?? '-',
+                                    'project_id'   => $a->project_id,
                                 ];
                             })->values()->toArray(),
                         ]);
 
                         // Edit data per item
-                        $editJson = json_encode($groupActivities->map(function($a) use ($projectName, $primaryEngineer) {
+                        $editJson = json_encode($groupActivities->map(function($a) use ($projectName, $creatorName) {
                             $rawNotes  = $a->notes ?? '';
                             $clientPic = ''; $ipnetPic = ''; $notedOnly = $rawNotes;
                             if ($rawNotes) {
@@ -429,18 +428,15 @@
                                 $actTitle = $m[1];
                                 $desc = $m[2] ?: $m[1];
                             }
-                            $cleanIpnetPic = $ipnetPic;
-                            if (!$cleanIpnetPic || in_array(strtolower($cleanIpnetPic), ['a', 'aa', 'aaa', 'bb', 'cc', 'test', 'null', 'none', '-'])) {
-                                $cleanIpnetPic = $a->engineer->name ?? ($primaryEngineer['name'] ?? '');
-                            }
                             return [
                                 'id'             => $a->id,
                                 'subject'        => $desc,
                                 'activity_title' => $actTitle,
                                 'date_raw'       => $a->activity_date ? $a->activity_date->format('Y-m-d') : date('Y-m-d'),
                                 'client_pic'     => $clientPic,
-                                'ipnet_pic'      => $cleanIpnetPic,
+                                'ipnet_pic'      => $ipnetPic,
                                 'notes'          => $notedOnly,
+                                'creator_name'   => $a->engineer->name ?? $creatorName,
                                 'project_id'     => $a->project_id,
                                 'project_name'   => $projectName,
                                 'update_url'     => route('engineer.activity_log.update', $a),
@@ -546,21 +542,23 @@
                                         Edit
                                     </button>
                                     @if($canDelete)
-                                    <form method="POST" action="{{ route('engineer.activity_log.destroy', $firstAct) }}"
-                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus seluruh catatan aktivitas pada proyek ini?');" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <input type="hidden" name="delete_group" value="1">
-                                        <button type="submit"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
-                                                title="Hapus Seluruh Aktivitas Proyek Ini">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            <span>Hapus</span>
-                                        </button>
-                                    </form>
+                                    <button type="button"
+                                            @click="promptDeleteGroup('{{ route('engineer.activity_log.destroy', $firstAct) }}', '{{ addslashes($projectName) }}')"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
+                                            title="Hapus Seluruh Aktivitas Proyek Ini">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <span>Hapus</span>
+                                    </button>
                                     @endif
                                 </div>
                             @endif
+                        </div>
+
+                        {{-- Meta Info: Dibuat oleh [Nama] di pojok kanan bawah --}}
+                        <div class="px-4 py-1.5 bg-[#FAFBFD] border-t border-[#F1F5F9]/80 flex items-center justify-end">
+                            <span class="text-[10.5px] text-gray-400 font-medium">
+                                Dibuat oleh <strong class="text-gray-600 font-semibold">{{ $creatorName }}</strong>
+                            </span>
                         </div>
                     </div>
 
@@ -612,7 +610,7 @@
                         </div>
                         <span class="text-gray-300">•</span>
                         <div class="text-gray-500 text-[11px]">
-                            Dicatat oleh: <strong class="text-gray-800" x-text="selectedDetail?.engineer_name || '-'"></strong>
+                            Dibuat oleh: <strong class="text-gray-800" x-text="selectedDetail?.creator_name || selectedDetail?.engineer_name || '-'"></strong>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -722,7 +720,7 @@
                                 <div class="flex items-center gap-2">
                                     <input type="date" x-model="row.date_raw"
                                            class="px-2.5 py-1 border border-[#D1D5DB] rounded-lg text-[11px] text-[#374151] bg-[#F9FAFB] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                                    <button type="button" @click="deleteEditRow(row, idx)" :disabled="editSaving"
+                                    <button type="button" @click="promptDeleteRow(row, idx)" :disabled="editSaving"
                                             class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white border border-red-200 transition cursor-pointer disabled:opacity-50"
                                             title="Hapus Agenda Ini">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -754,7 +752,10 @@
                                                class="w-full px-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
                                     </div>
                                 </div>
-                                <div class="flex justify-end pt-0.5">
+                                <div class="flex items-center justify-between pt-1">
+                                    <div class="text-[11px] text-gray-400 font-medium">
+                                        Dibuat oleh <strong class="text-gray-600 font-semibold" x-text="row.creator_name || '{{ $creatorName }}'"></strong>
+                                    </div>
                                     <button type="button" @click="saveEditRow(row)" :disabled="editSaving"
                                             class="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-bold text-white rounded-lg transition cursor-pointer disabled:opacity-50 shadow-sm"
                                             style="background:linear-gradient(135deg,#8F0A0D,#C41E2A);">
@@ -784,6 +785,49 @@
         </div>
     </template>
 
+    {{-- ══ MODAL KONFIRMASI HAPUS (KONSISTEN DENGAN TIMESHEET) ══ --}}
+    <template x-teleport="body">
+        <div x-show="deleteConfirmOpen" 
+             x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-[#0F172A]/60 z-[99999] flex items-center justify-center p-4 backdrop-blur-xs"
+             @click.self="deleteConfirmOpen = false"
+             @keydown.escape.window="deleteConfirmOpen = false">
+            
+            <div class="bg-white rounded-2xl w-[420px] max-w-full p-6 text-left shadow-[0_20px_60px_rgba(15,23,42,0.25)] border border-[#E2E8F0]">
+                <div class="w-12 h-12 rounded-full bg-[#FEF2F2] flex items-center justify-center mx-auto mb-4 text-[#8F0A0D]">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </div>
+                
+                <h3 class="text-center font-display text-[16px] font-bold text-[#1E293B] mb-1.5" x-text="deleteModalTitle || 'Yakin Ingin Menghapus?'"></h3>
+                <p class="text-center text-[12.5px] text-[#64748B] mb-6 break-words" x-text="deleteModalMessage"></p>
+
+                <div class="flex gap-2.5">
+                    <button type="button" @click="deleteConfirmOpen = false" :disabled="deleteLoading"
+                            class="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#334155] border border-[#CBD5E1] font-bold text-[12.5px] hover:bg-[#F8FAFC] transition cursor-pointer disabled:opacity-50">
+                        Batal
+                    </button>
+                    <button type="button" @click="executeConfirmedDelete()" :disabled="deleteLoading"
+                            class="flex-1 py-2.5 px-4 rounded-xl text-white font-bold text-[12.5px] transition cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                            style="background:linear-gradient(135deg,#8F0A0D,#C41E2A);">
+                        <svg x-show="deleteLoading" class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span x-text="deleteLoading ? 'Menghapus...' : 'Ya, Hapus'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
     {{-- MODAL INPUT AKTIVITAS --}}
     @include('components.engineer-activity-bulk-modal')
 </div>
@@ -804,6 +848,16 @@ function engineerActivityManager() {
         editStoreUrl: '',
         editActTitle: '',
         editSaving: false,
+
+        // Delete Confirmation Modal
+        deleteConfirmOpen: false,
+        deleteLoading: false,
+        deleteActionType: null,
+        deleteTargetUrl: null,
+        deleteRowTarget: null,
+        deleteRowIndex: null,
+        deleteModalTitle: '',
+        deleteModalMessage: '',
 
         openDetailModal(groupData) {
             this.selectedDetail = groupData;
@@ -829,6 +883,7 @@ function engineerActivityManager() {
                 client_pic:   '',
                 ipnet_pic:    '',
                 notes:        '',
+                creator_name: '{{ auth()->user()->name }}',
                 project_id:   this.editProjectId,
                 project_name: this.editGroupName,
                 update_url:   null,
@@ -885,39 +940,74 @@ function engineerActivityManager() {
             }
         },
 
-        async deleteEditRow(row, idx) {
-            if (!confirm('Apakah Anda yakin ingin menghapus agenda ini?')) {
-                return;
-            }
-            if (!row.id) {
-                this.editRows.splice(idx, 1);
-                return;
-            }
-            this.editSaving = true;
-            const token = document.querySelector('meta[name="csrf-token"]').content;
-            const formData = new FormData();
-            formData.append('_token', token);
-            formData.append('_method', 'DELETE');
+        promptDeleteGroup(url, projectName) {
+            this.deleteActionType = 'group';
+            this.deleteTargetUrl = url;
+            this.deleteModalTitle = 'Yakin Hapus Catatan Aktivitas?';
+            this.deleteModalMessage = 'Seluruh catatan aktivitas pada proyek "' + projectName + '" akan dihapus secara permanen.';
+            this.deleteConfirmOpen = true;
+        },
 
-            try {
-                const res = await fetch(`/engineer/activity-logs/${row.id}`, {
-                    method: 'POST',
-                    headers: { 'Accept': 'application/json' },
-                    body: formData
-                });
-                if (res.ok) {
-                    this.editRows.splice(idx, 1);
-                    if (this.editRows.length === 0) {
-                        window.location.reload();
-                    }
-                } else {
-                    const err = await res.json().catch(() => ({}));
-                    alert(err.message || 'Gagal menghapus agenda.');
+        promptDeleteRow(row, idx) {
+            this.deleteActionType = 'row';
+            this.deleteRowTarget = row;
+            this.deleteRowIndex = idx;
+            this.deleteModalTitle = 'Yakin Hapus Agenda Ini?';
+            const subjectSnippet = row.subject ? ' ("' + (row.subject.length > 40 ? row.subject.slice(0, 40) + '...' : row.subject) + '")' : '';
+            this.deleteModalMessage = 'Agenda #' + (idx + 1) + subjectSnippet + ' akan dihapus secara permanen.';
+            this.deleteConfirmOpen = true;
+        },
+
+        async executeConfirmedDelete() {
+            if (this.deleteActionType === 'group') {
+                this.deleteLoading = true;
+                const token = document.querySelector('meta[name="csrf-token"]').content;
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = this.deleteTargetUrl;
+                form.innerHTML = `
+                    <input type="hidden" name="_token" value="${token}">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="hidden" name="delete_group" value="1">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+                return;
+            }
+
+            if (this.deleteActionType === 'row') {
+                if (!this.deleteRowTarget?.id) {
+                    this.editRows.splice(this.deleteRowIndex, 1);
+                    this.deleteConfirmOpen = false;
+                    return;
                 }
-            } catch (e) {
-                alert('Terjadi kesalahan: ' + e.message);
-            } finally {
-                this.editSaving = false;
+                this.deleteLoading = true;
+                const token = document.querySelector('meta[name="csrf-token"]').content;
+                const formData = new FormData();
+                formData.append('_token', token);
+                formData.append('_method', 'DELETE');
+
+                try {
+                    const res = await fetch(`/engineer/activity-logs/${this.deleteRowTarget.id}`, {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: formData
+                    });
+                    if (res.ok) {
+                        this.editRows.splice(this.deleteRowIndex, 1);
+                        this.deleteConfirmOpen = false;
+                        if (this.editRows.length === 0) {
+                            window.location.reload();
+                        }
+                    } else {
+                        const err = await res.json().catch(() => ({}));
+                        alert(err.message || 'Gagal menghapus agenda.');
+                    }
+                } catch (e) {
+                    alert('Terjadi kesalahan: ' + e.message);
+                } finally {
+                    this.deleteLoading = false;
+                }
             }
         },
 
