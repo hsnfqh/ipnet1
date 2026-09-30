@@ -164,6 +164,7 @@
                         $totalInGroup = $groupActivities->count();
 
                         // Encode data untuk detail modal
+                        // Parse PIC Klien & PIC IPNET dari field notes (format: "noted | PIC Klien: x | PIC IPNET: y")
                         $groupJson = json_encode([
                             'project_name' => $projectName,
                             'client_name'  => $clientName,
@@ -172,14 +173,46 @@
                             'engineer_pos' => $engineer->position ?? '-',
                             'total'        => $totalInGroup,
                             'items'        => $groupActivities->map(function($a, $idx) {
+                                // --- Urai notes: "Noted text | PIC Klien: xxx | PIC IPNET: yyy" ---
+                                $rawNotes  = $a->notes ?? '';
+                                $clientPic = '';
+                                $ipnetPic  = '';
+                                $notedOnly = $rawNotes;
+
+                                if ($rawNotes) {
+                                    $parts = array_map('trim', explode('|', $rawNotes));
+                                    $notedParts = [];
+                                    foreach ($parts as $part) {
+                                        if (str_starts_with($part, 'PIC Klien:')) {
+                                            $clientPic = trim(substr($part, strlen('PIC Klien:')));
+                                        } elseif (str_starts_with($part, 'PIC IPNET:')) {
+                                            $ipnetPic = trim(substr($part, strlen('PIC IPNET:')));
+                                        } else {
+                                            $notedParts[] = $part;
+                                        }
+                                    }
+                                    $notedOnly = implode(' | ', array_filter($notedParts));
+                                }
+
+                                // Jika ipnetPic kosong, fallback ke nama engineer
+                                if (!$ipnetPic) {
+                                    $ipnetPic = $a->engineer->name ?? '-';
+                                }
+
+                                // Bersihkan prefix [ActivityTitle] dari description
+                                $description = $a->description ?? '-';
+                                if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $description, $m)) {
+                                    $description = $m[2] ?: $m[1];
+                                }
+
                                 return [
                                     'no'          => $idx + 1,
                                     'date'        => $a->activity_date ? $a->activity_date->format('d M Y') : '-',
                                     'time'        => $a->start_time ? \Carbon\Carbon::parse($a->start_time)->format('H:i') : '-',
-                                    'subject'     => $a->description ?? '-',
-                                    'client_pic'  => '', // extracted from notes if present
-                                    'ipnet_pic'   => $a->engineer->name ?? '-',
-                                    'notes'       => $a->notes ?? '-',
+                                    'subject'     => $description,
+                                    'client_pic'  => $clientPic ?: '-',
+                                    'ipnet_pic'   => $ipnetPic,
+                                    'notes'       => $notedOnly ?: '-',
                                     'status'      => $a->status ?? '-',
                                     'id'          => $a->id,
                                     'user_id'     => $a->user_id,
@@ -338,42 +371,52 @@
                     </div>
                 </div>
 
-                {{-- Table Content --}}
+                {{-- Table Content — kolom: NO, AKTIVITAS, TANGGAL, WAKTU(JAM), PIC KLIEN, PIC IPNET, NOTED --}}
                 <div class="flex-1 overflow-y-auto overflow-x-auto p-5 sm:p-6 bg-white">
-                    <table class="w-full border-collapse rounded-xl border border-[#E2E8F0] text-left text-xs min-w-[750px]">
+                    <table class="w-full border-collapse rounded-xl border border-[#E2E8F0] text-left text-xs min-w-[900px]">
                         <thead class="bg-[#F8FAFC] text-[#475569] font-bold uppercase text-[10.5px] tracking-wider border-b border-[#E2E8F0]">
                             <tr>
-                                <th class="py-3 px-3.5 w-12 text-center">No</th>
-                                <th class="py-3 px-3.5 w-36">Waktu & Tanggal</th>
-                                <th class="py-3 px-3.5 min-w-[220px]">Aktivitas</th>
+                                <th class="py-3 px-3.5 w-10 text-center">No</th>
+                                <th class="py-3 px-3.5 min-w-[220px]">Aktivitas <span class="text-[#8F0A0D]">*</span></th>
+                                <th class="py-3 px-3.5 w-32">Tanggal</th>
+                                <th class="py-3 px-3.5 w-28">Waktu (Jam)</th>
+                                <th class="py-3 px-3.5 w-36">PIC Klien</th>
                                 <th class="py-3 px-3.5 w-36">PIC IPNET</th>
-                                <th class="py-3 px-3.5 w-24">Status</th>
                                 <th class="py-3 px-3.5 min-w-[180px]">Noted</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#E2E8F0]">
                             <template x-for="(item, idx) in (selectedDetail?.items || [])" :key="idx">
                                 <tr class="hover:bg-[#F8FAFC]/80 transition-colors">
+                                    {{-- No --}}
                                     <td class="py-3 px-3.5 text-center font-bold text-[#8F0A0D]" x-text="item.no || (idx + 1)"></td>
+
+                                    {{-- Aktivitas --}}
+                                    <td class="py-3 px-3.5">
+                                        <p class="font-semibold text-[#1E293B] leading-relaxed" x-text="item.subject || '-'"></p>
+                                    </td>
+
+                                    {{-- Tanggal --}}
+                                    <td class="py-3 px-3.5 whitespace-nowrap">
+                                        <div class="font-bold text-[#1E293B]" x-text="item.date || '-'"></div>
+                                    </td>
+
+                                    {{-- Waktu --}}
                                     <td class="py-3 px-3.5 whitespace-nowrap">
                                         <div class="font-bold text-[#1E293B]" x-text="item.time || '-'"></div>
-                                        <div class="text-[11px] text-gray-500 font-medium" x-text="item.date || '-'"></div>
                                     </td>
+
+                                    {{-- PIC Klien --}}
                                     <td class="py-3 px-3.5">
-                                        <p class="font-bold text-[#1E293B] leading-relaxed" x-text="item.subject || '-'"></p>
+                                        <span class="inline-block px-2.5 py-1 bg-[#F1F5F9] text-[#334155] rounded-md font-semibold text-[11px]" x-text="item.client_pic || '-'"></span>
                                     </td>
+
+                                    {{-- PIC IPNET --}}
                                     <td class="py-3 px-3.5">
                                         <span class="inline-block px-2.5 py-1 bg-red-50 text-[#8F0A0D] border border-red-100 rounded-md font-semibold text-[11px]" x-text="item.ipnet_pic || '-'"></span>
                                     </td>
-                                    <td class="py-3 px-3.5">
-                                        <span class="inline-block px-2 py-0.5 rounded-full text-[9.5px] font-bold"
-                                              :class="{
-                                                'bg-emerald-50 text-emerald-700 border border-emerald-200': item.status === 'Selesai',
-                                                'bg-sky-50 text-sky-700 border border-sky-200': item.status === 'Sedang Berjalan',
-                                                'bg-amber-50 text-amber-700 border border-amber-200': item.status === 'Ditunda',
-                                              }"
-                                              x-text="item.status || '-'"></span>
-                                    </td>
+
+                                    {{-- Noted --}}
                                     <td class="py-3 px-3.5">
                                         <p class="text-gray-700 whitespace-pre-line leading-relaxed font-medium" x-text="item.notes || '-'"></p>
                                     </td>
