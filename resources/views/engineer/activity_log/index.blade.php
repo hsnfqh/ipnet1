@@ -451,7 +451,7 @@
                             || $groupActivities->contains('user_id', auth()->id())
                             || (isset($linkedProjectIds) && $firstAct->project_id && $linkedProjectIds->contains($firstAct->project_id));
 
-                        $canDelete = $isLead || ($groupActivities->every(fn($a) => $a->user_id === auth()->id()));
+                        $canDelete = $canEdit;
                     @endphp
 
                     <div class="activity-card group">
@@ -547,13 +547,15 @@
                                     </button>
                                     @if($canDelete)
                                     <form method="POST" action="{{ route('engineer.activity_log.destroy', $firstAct) }}"
-                                          onsubmit="return confirm('Hapus seluruh aktivitas dalam grup ini?');" class="inline">
+                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus seluruh catatan aktivitas pada proyek ini?');" class="inline">
                                         @csrf
                                         @method('DELETE')
+                                        <input type="hidden" name="delete_group" value="1">
                                         <button type="submit"
-                                                class="inline-flex items-center p-1.5 bg-white hover:bg-red-50 text-red-500 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
-                                                title="Hapus Seluruh Aktivitas di Grup Ini">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
+                                                title="Hapus Seluruh Aktivitas Proyek Ini">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <span>Hapus</span>
                                         </button>
                                     </form>
                                     @endif
@@ -720,9 +722,11 @@
                                 <div class="flex items-center gap-2">
                                     <input type="date" x-model="row.date_raw"
                                            class="px-2.5 py-1 border border-[#D1D5DB] rounded-lg text-[11px] text-[#374151] bg-[#F9FAFB] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                                    <button x-show="!row.id" type="button" @click="editRows.splice(idx, 1)"
-                                            class="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    <button type="button" @click="deleteEditRow(row, idx)" :disabled="editSaving"
+                                            class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white border border-red-200 transition cursor-pointer disabled:opacity-50"
+                                            title="Hapus Agenda Ini">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <span>Hapus</span>
                                     </button>
                                 </div>
                             </div>
@@ -873,6 +877,42 @@ function engineerActivityManager() {
                     const res = await fetch(this.editStoreUrl, { method: 'POST', body: formData });
                     if (res.ok || res.redirected) { window.location.reload(); }
                     else { alert('Gagal menyimpan agenda baru. Coba lagi.'); }
+                }
+            } catch (e) {
+                alert('Terjadi kesalahan: ' + e.message);
+            } finally {
+                this.editSaving = false;
+            }
+        },
+
+        async deleteEditRow(row, idx) {
+            if (!confirm('Apakah Anda yakin ingin menghapus agenda ini?')) {
+                return;
+            }
+            if (!row.id) {
+                this.editRows.splice(idx, 1);
+                return;
+            }
+            this.editSaving = true;
+            const token = document.querySelector('meta[name="csrf-token"]').content;
+            const formData = new FormData();
+            formData.append('_token', token);
+            formData.append('_method', 'DELETE');
+
+            try {
+                const res = await fetch(`/engineer/activity-logs/${row.id}`, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    body: formData
+                });
+                if (res.ok) {
+                    this.editRows.splice(idx, 1);
+                    if (this.editRows.length === 0) {
+                        window.location.reload();
+                    }
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.message || 'Gagal menghapus agenda.');
                 }
             } catch (e) {
                 alert('Terjadi kesalahan: ' + e.message);

@@ -1706,13 +1706,39 @@ class DashboardController extends Controller
     // ─── Engineer Activity Log: Delete ──────────────────────────────────────────
     public function deleteActivityLog(EngineerActivityLog $log)
     {
-        // Hanya engineer yang membuat yang bisa hapus (atau lead)
         $user = auth()->user();
         $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
-        if ($log->user_id !== $user->id && !$isLead) {
+        $linkedProjectIds = $this->getLinkedProjectIds($user);
+        $isProjectMember  = $log->project_id && $linkedProjectIds->contains($log->project_id);
+
+        if ($log->user_id !== $user->id && !$isLead && !$isProjectMember) {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses untuk menghapus log aktivitas ini.'], 403);
+            }
             abort(403, 'Anda tidak memiliki hak akses untuk menghapus log aktivitas ini.');
         }
+
+        // Hapus seluruh aktivitas pada grup proyek ini jika parameter delete_group dikirim
+        if (request()->has('delete_group') && $log->project_id) {
+            $groupQuery = EngineerActivityLog::where('project_id', $log->project_id);
+            if (!$isLead) {
+                $groupQuery->where('user_id', $user->id);
+            }
+            $count = $groupQuery->count();
+            $groupQuery->delete();
+
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json(['success' => true, 'message' => "{$count} catatan aktivitas berhasil dihapus."]);
+            }
+            return back()->with('success', "{$count} catatan aktivitas berhasil dihapus.");
+        }
+
         $log->delete();
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Catatan aktivitas berhasil dihapus.']);
+        }
+
         return back()->with('success', 'Catatan aktivitas berhasil dihapus.');
     }
 
