@@ -1744,13 +1744,14 @@ class DashboardController extends Controller
         $logoPath   = public_path('images/ipnet1.png');
         $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
 
-        $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', compact(
-            'parsedActivities',
-            'projectName',
-            'engineerName',
-            'printedBy',
-            'logoBase64'
-        ));
+        $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', [
+            'parsedActivities' => $parsedActivities,
+            'activities'       => $activities,
+            'projectName'      => $projectName,
+            'engineerName'     => $engineerName,
+            'printedBy'        => $printedBy,
+            'logoBase64'       => $logoBase64,
+        ]);
 
         $pdf->setPaper('a4', 'landscape');
         $pdf->setOption('isHtml5ParserEnabled', true);

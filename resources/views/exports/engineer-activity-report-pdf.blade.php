@@ -210,6 +210,56 @@
     </style>
 </head>
 <body>
+@php
+    $items = [];
+    if (!empty($parsedActivities) && (is_array($parsedActivities) || $parsedActivities instanceof \Countable || is_iterable($parsedActivities))) {
+        $items = $parsedActivities;
+    } elseif (!empty($activities) && (is_array($activities) || $activities instanceof \Countable || is_iterable($activities))) {
+        // Fallback jika controller lama yang memanggil dengan $activities
+        $items = collect($activities)->map(function($a, $idx) {
+            $rawNotes  = $a->notes ?? '';
+            $clientPic = '';
+            $ipnetPic  = '';
+            $notedOnly = $rawNotes;
+
+            if ($rawNotes) {
+                $parts = array_map('trim', explode('|', $rawNotes));
+                $notedParts = [];
+                foreach ($parts as $part) {
+                    if (str_starts_with($part, 'PIC Klien:')) {
+                        $clientPic = trim(substr($part, strlen('PIC Klien:')));
+                    } elseif (str_starts_with($part, 'PIC IPNET:')) {
+                        $ipnetPic = trim(substr($part, strlen('PIC IPNET:')));
+                    } else {
+                        $notedParts[] = $part;
+                    }
+                }
+                $notedOnly = implode(' | ', array_filter($notedParts));
+            }
+
+            if (!$ipnetPic) {
+                $ipnetPic = $a->engineer->name ?? '-';
+            }
+
+            $description = $a->description ?? '-';
+            if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $description, $m)) {
+                $description = $m[2] ?: $m[1];
+            }
+
+            return [
+                'no'         => $idx + 1,
+                'activity'   => $description,
+                'date'       => $a->activity_date ? (\Carbon\Carbon::parse($a->activity_date)->format('d/m/Y')) : '-',
+                'time'       => $a->start_time ? (\Carbon\Carbon::parse($a->start_time)->format('H:i')) : '-',
+                'client_pic' => $clientPic ?: '-',
+                'ipnet_pic'  => $ipnetPic,
+                'notes'      => $notedOnly ?: '-',
+            ];
+        });
+    }
+
+    $totalCount = is_countable($items) ? count($items) : (is_array($items) ? count($items) : 0);
+@endphp
 
     {{-- ══ KOP SURAT ══ --}}
     <table class="kop-table" cellpadding="0" cellspacing="0">
@@ -251,7 +301,7 @@
             </td>
             <td style="width: 25%; text-align: right;">
                 <div class="meta-label">Total Agenda Aktivitas:</div>
-                <div class="meta-value" style="color: #8F0A0D;">{{ count($parsedActivities) }} Rangkaian Agenda</div>
+                <div class="meta-value" style="color: #8F0A0D;">{{ $totalCount }} Rangkaian Agenda</div>
             </td>
         </tr>
     </table>
@@ -270,32 +320,42 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($parsedActivities as $item)
+            @forelse($items as $item)
+                @php
+                    $isArr = is_array($item);
+                    $no    = $isArr ? ($item['no'] ?? '') : ($item->no ?? '');
+                    $act   = $isArr ? ($item['activity'] ?? '') : ($item->activity ?? ($item->description ?? ''));
+                    $dt    = $isArr ? ($item['date'] ?? '') : ($item->date ?? '');
+                    $tm    = $isArr ? ($item['time'] ?? '') : ($item->time ?? '');
+                    $cpic  = $isArr ? ($item['client_pic'] ?? '') : ($item->client_pic ?? '');
+                    $ipic  = $isArr ? ($item['ipnet_pic'] ?? '') : ($item->ipnet_pic ?? '');
+                    $nt    = $isArr ? ($item['notes'] ?? '') : ($item->notes ?? '');
+                @endphp
                 <tr>
                     {{-- No --}}
                     <td style="text-align: center; font-weight: bold; color: #8F0A0D;">
-                        {{ $item['no'] }}
+                        {{ $no ?: '-' }}
                     </td>
 
                     {{-- Aktivitas --}}
                     <td style="font-weight: 600; color: #0f172a;">
-                        {{ $item['activity'] ?: '-' }}
+                        {{ $act ?: '-' }}
                     </td>
 
                     {{-- Tanggal --}}
                     <td style="text-align: center; white-space: nowrap;">
-                        {{ $item['date'] ?: '-' }}
+                        {{ $dt ?: '-' }}
                     </td>
 
                     {{-- Waktu (Jam) --}}
                     <td style="text-align: center; font-weight: 600; white-space: nowrap;">
-                        {{ $item['time'] ?: '-' }}
+                        {{ $tm ?: '-' }}
                     </td>
 
                     {{-- PIC Klien --}}
                     <td>
-                        @if(!empty($item['client_pic']) && $item['client_pic'] !== '-')
-                            <span class="badge-pic-klien">{{ $item['client_pic'] }}</span>
+                        @if(!empty($cpic) && $cpic !== '-')
+                            <span class="badge-pic-klien">{{ $cpic }}</span>
                         @else
                             <span style="color: #94a3b8;">-</span>
                         @endif
@@ -303,8 +363,8 @@
 
                     {{-- PIC IPNET --}}
                     <td>
-                        @if(!empty($item['ipnet_pic']) && $item['ipnet_pic'] !== '-')
-                            <span class="badge-pic-ipnet">{{ $item['ipnet_pic'] }}</span>
+                        @if(!empty($ipic) && $ipic !== '-')
+                            <span class="badge-pic-ipnet">{{ $ipic }}</span>
                         @else
                             <span style="color: #94a3b8;">-</span>
                         @endif
@@ -312,7 +372,7 @@
 
                     {{-- Noted --}}
                     <td style="color: #334155; word-wrap: break-word;">
-                        {{ $item['notes'] ?: '-' }}
+                        {{ $nt ?: '-' }}
                     </td>
                 </tr>
             @empty
