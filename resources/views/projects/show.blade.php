@@ -1108,36 +1108,36 @@
                                             
                                             {{-- Daftar Berkas yang Sudah Diunggah --}}
                                             @if($countForTpl > 0)
-                                                <div class="space-y-2">
-                                                    <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                                <div class="space-y-1.5">
+                                                    <div class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">
                                                         Berkas Tersedia ({{ $countForTpl }})
                                                     </div>
                                                     @foreach($tplDocs as $doc)
-                                                        <div class="p-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
-                                                            <div class="flex items-center gap-3 min-w-0">
-                                                                <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
-                                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                        <div class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
+                                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                                <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                                 </div>
                                                                 <div class="min-w-0">
-                                                                    <span class="font-bold text-slate-900 truncate block">{{ $doc->file_name ?? $doc->document_title }}</span>
-                                                                    <div class="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                                                                    <span class="font-semibold text-[13px] text-slate-800 truncate block">{{ $doc->file_name ?? $doc->document_title }}</span>
+                                                                    <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
                                                                         <span>{{ $doc->formatted_file_size }}</span>
                                                                         @if($doc->created_at)
-                                                                            <span>•</span>
-                                                                            <span>{{ $doc->created_at->format('d M Y H:i') }}</span>
+                                                                            <span class="text-slate-300">•</span>
+                                                                            <span>{{ $doc->created_at->format('d M Y') }}</span>
                                                                         @endif
                                                                         @if($doc->notes)
-                                                                            <span>•</span>
-                                                                            <span class="italic text-slate-600 truncate max-w-[200px]">{{ $doc->notes }}</span>
+                                                                            <span class="text-slate-300">•</span>
+                                                                            <span class="italic text-slate-500 truncate max-w-[180px]">{{ $doc->notes }}</span>
                                                                         @endif
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="flex items-center gap-2 shrink-0">
+                                                            <div class="flex items-center gap-1.5 shrink-0">
                                                                 <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" 
-                                                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition" 
+                                                                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shadow-2xs" 
                                                                    title="Unduh Berkas Sales">
-                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                                     <span>Unduh</span>
                                                                 </a>
                                                                 <form action="{{ route('projects.documents.delete', [$project->id, $doc->id]) }}" 
@@ -1149,7 +1149,7 @@
                                                                     <button type="submit" 
                                                                             class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer" 
                                                                             title="Hapus Berkas Sales">
-                                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                                     </button>
                                                                 </form>
                                                             </div>
@@ -1277,33 +1277,34 @@
                                                 </div>
                                             </div>
                                         </button>
-                                        <div x-show="openOther" x-cloak class="border-t border-slate-200 bg-slate-50/30 p-4 space-y-2">
+                                        <div x-show="openOther" x-cloak class="border-t border-slate-200 bg-slate-50/30 p-4 space-y-1.5">
                                             @foreach($otherSalesDocs as $doc)
-                                                <div class="p-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
-                                                    <div class="flex items-center gap-3 min-w-0">
-                                                        <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
-                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                <div class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
+                                                    <div class="flex items-center gap-2.5 min-w-0">
+                                                        <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                         </div>
                                                         <div class="min-w-0">
-                                                            <span class="font-bold text-slate-900 truncate block">{{ $doc->file_name ?? $doc->document_title }}</span>
-                                                            <div class="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                                                            <span class="font-semibold text-[13px] text-slate-800 truncate block">{{ $doc->file_name ?? $doc->document_title }}</span>
+                                                            <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
                                                                 <span>{{ $doc->formatted_file_size }}</span>
                                                                 @if($doc->created_at)
-                                                                    <span>•</span>
-                                                                    <span>{{ $doc->created_at->format('d M Y H:i') }}</span>
+                                                                    <span class="text-slate-300">•</span>
+                                                                    <span>{{ $doc->created_at->format('d M Y') }}</span>
                                                                 @endif
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="flex items-center gap-2 shrink-0">
-                                                        <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition">
+                                                    <div class="flex items-center gap-1.5 shrink-0">
+                                                        <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shadow-2xs">
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                             <span>Unduh</span>
                                                         </a>
                                                         <form action="{{ route('projects.documents.delete', [$project->id, $doc->id]) }}" method="POST" onsubmit="return confirm('Hapus berkas ini?')" class="inline">
                                                             @csrf
                                                             @method('DELETE')
-                                                            <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                            <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                             </button>
                                                         </form>
                                                     </div>
@@ -1512,9 +1513,9 @@
                         </div>
 
                         {{-- Table Column Headers (Menjelaskan Kolom: Kode Jenis Surat, Keterangan Dokumen, Status & Tindakan) --}}
-                        <div class="hidden sm:flex items-center justify-between gap-4 px-5 py-2.5 bg-slate-100/80 rounded-xl text-[11px] font-bold text-slate-500 uppercase tracking-wider border border-slate-200/80">
-                            <div class="flex items-center gap-4 sm:gap-6 min-w-0 pr-2 flex-1">
-                                <div class="w-20 sm:w-24 shrink-0 flex items-center justify-center gap-1.5">
+                        <div class="hidden sm:flex items-center justify-between gap-4 px-4 py-2 bg-slate-100/80 rounded-xl text-[10.5px] font-bold text-slate-500 uppercase tracking-wider border border-slate-200/80">
+                            <div class="flex items-center gap-4 sm:gap-5 min-w-0 pr-2 flex-1">
+                                <div class="w-16 sm:w-20 shrink-0 flex items-center justify-center gap-1.5">
                                     <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                     <span>KODE</span>
                                 </div>
@@ -1523,7 +1524,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-3 shrink-0">
-                                <span class="w-32 sm:w-36 text-center">STATUS BERKAS</span>
+                                <span class="w-28 sm:w-32 text-center">STATUS BERKAS</span>
                                 <span class="w-7 text-center"></span>
                             </div>
                         </div>
@@ -1546,46 +1547,65 @@
                                      class="border border-slate-200 rounded-xl overflow-hidden bg-white hover:border-slate-300 transition-all shadow-2xs">
                                     
                                     {{-- Row / Accordion Header (Sesuai Template: KODE | KETERANGAN | DROPDOWN ARROW) --}}
+                                    @php
+                                        $docSubtitles = [
+                                            'REQ'   => 'Surat formal dari klien yang meminta layanan',
+                                            'INF'   => 'Surat penyampaian informasi kepada klien',
+                                            'BRD'   => 'Dokumen kebutuhan bisnis & persyaratan sistem',
+                                            'PRP'   => 'Proposal penawaran teknis & komersial',
+                                            'TND'   => 'Dokumen lelang / tender proyek',
+                                            'BOM'   => 'Daftar material & kuantitas kebutuhan proyek',
+                                            'RFP'   => 'Permintaan proposal dari klien ke vendor',
+                                            'PO'    => 'Surat pesanan pembelian dari klien',
+                                            'SPK'   => 'Surat penugasan & perintah kerja resmi',
+                                            'BA'    => 'Berita acara kegiatan / progres lapangan',
+                                            'BAST'  => 'Berita acara serah terima pekerjaan selesai',
+                                            'BALAP' => 'Berita acara hasil inspeksi lapangan',
+                                            'PRJ'   => 'Dokumen perencanaan & manajemen proyek',
+                                            'MOM'   => 'Notulen / risalah hasil rapat koordinasi',
+                                        ];
+                                        $docSubtitle = $docSubtitles[$tpl['code']] ?? 'Berkas lampiran dokumen proyek';
+                                    @endphp
                                     <button type="button" 
                                             @click="toggleItem('{{ $tpl['code'] }}')" 
-                                            class="w-full px-5 py-3.5 flex items-center justify-between text-left transition hover:bg-slate-50/90 cursor-pointer select-none group">
-                                        <div class="flex items-center gap-4 sm:gap-6 min-w-0 pr-2 flex-1">
-                                            {{-- Kode dengan Fixed-Width Badge (Hanya Kode Saja) --}}
-                                            <div class="w-20 sm:w-24 shrink-0">
-                                                <div class="flex items-center justify-center px-2 py-1.5 rounded-lg bg-slate-100 border border-slate-200 group-hover:border-red-200 group-hover:bg-red-50/80 transition shadow-2xs">
-                                                    <span class="text-xs sm:text-sm font-mono font-black text-slate-900 group-hover:text-[#8F0A0D] tracking-wider text-center">
+                                            class="w-full px-4 py-2.5 flex items-center justify-between text-left transition hover:bg-slate-50/90 cursor-pointer select-none group">
+                                        <div class="flex items-center gap-4 sm:gap-5 min-w-0 pr-2 flex-1">
+                                            {{-- Badge Kode: Compact Pill --}}
+                                            <div class="w-16 sm:w-20 shrink-0">
+                                                <div class="inline-flex items-center justify-center w-full px-1.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 group-hover:border-red-200 group-hover:bg-red-50/80 transition shadow-2xs">
+                                                    <span class="text-[11px] font-mono font-black text-slate-700 group-hover:text-[#8F0A0D] tracking-wide leading-tight">
                                                         {{ $tpl['code'] }}
                                                     </span>
                                                 </div>
                                             </div>
                                             
-                                            {{-- Keterangan Dokumen (Contoh: Surat Permohonan) - SEJAJAR 100% DI SEMUA BARIS --}}
+                                            {{-- Nama & Keterangan Dokumen --}}
                                             <div class="min-w-0 flex-1">
-                                                <div class="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-[#8F0A0D] transition truncate">
+                                                <div class="font-semibold text-[13px] text-slate-800 group-hover:text-[#8F0A0D] transition truncate">
                                                     {{ $tpl['name'] }}
                                                 </div>
-                                                <div class="text-[10.5px] text-slate-400 font-medium hidden sm:block">
-                                                    Keterangan Dokumen Lampiran
+                                                <div class="text-[11px] text-slate-400 font-normal hidden sm:block truncate">
+                                                    {{ $docSubtitle }}
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="flex items-center gap-3 shrink-0">
+                                        <div class="flex items-center gap-2.5 shrink-0">
                                             @if($countForTpl > 0)
-                                                <span class="w-32 sm:w-36 inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                <span class="w-28 sm:w-32 inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                                     <span>{{ $countForTpl }} Berkas</span>
                                                 </span>
                                             @else
-                                                <span class="w-32 sm:w-36 inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 group-hover:border-slate-300 transition">
+                                                <span class="w-28 sm:w-32 inline-flex items-center justify-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-400 border border-slate-200 group-hover:border-slate-300 transition">
                                                     <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                                    <span>Belum Ada Berkas</span>
+                                                    <span>Kosong</span>
                                                 </span>
                                             @endif
 
                                             {{-- Dropdown Icon (▽) --}}
-                                            <div class="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-slate-200 text-slate-600 flex items-center justify-center transition shrink-0">
-                                                <svg class="w-3.5 h-3.5 transition-transform duration-200" 
+                                            <div class="w-6 h-6 rounded-lg bg-slate-100 group-hover:bg-slate-200 text-slate-500 flex items-center justify-center transition shrink-0">
+                                                <svg class="w-3 h-3 transition-transform duration-200" 
                                                      :class="{ 'rotate-180': openItems['{{ $tpl['code'] }}'] }" 
                                                      fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
@@ -1601,36 +1621,36 @@
                                         
                                         {{-- Daftar Berkas yang Sudah Diunggah untuk Jenis Dokumen Ini --}}
                                         @if($countForTpl > 0)
-                                            <div class="space-y-2">
-                                                <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                            <div class="space-y-1.5">
+                                                <div class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">
                                                     Berkas Tersedia ({{ $countForTpl }})
                                                 </div>
                                                 @foreach($tplDocs as $doc)
-                                                    <div class="p-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
-                                                        <div class="flex items-center gap-3 min-w-0">
-                                                            <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                    <div class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
+                                                        <div class="flex items-center gap-2.5 min-w-0">
+                                                            <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                             </div>
                                                             <div class="min-w-0">
-                                                                <span class="font-bold text-slate-900 truncate block">{{ $doc->file_name ?? $doc->document_title }}</span>
-                                                                <div class="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                                                                <span class="font-semibold text-[13px] text-slate-800 truncate block">{{ $doc->file_name ?? $doc->document_title }}</span>
+                                                                <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
                                                                     <span>{{ $doc->formatted_file_size }}</span>
                                                                     @if($doc->created_at)
-                                                                        <span>•</span>
-                                                                        <span>{{ $doc->created_at->format('d M Y H:i') }}</span>
+                                                                        <span class="text-slate-300">•</span>
+                                                                        <span>{{ $doc->created_at->format('d M Y') }}</span>
                                                                     @endif
                                                                     @if($doc->notes)
-                                                                        <span>•</span>
-                                                                        <span class="italic text-slate-600 truncate max-w-[200px]">{{ $doc->notes }}</span>
+                                                                        <span class="text-slate-300">•</span>
+                                                                        <span class="italic text-slate-500 truncate max-w-[180px]">{{ $doc->notes }}</span>
                                                                     @endif
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="flex items-center gap-2 shrink-0">
+                                                        <div class="flex items-center gap-1.5 shrink-0">
                                                             <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" 
-                                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition" 
+                                                               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shadow-2xs" 
                                                                title="Unduh Berkas">
-                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                                 <span>Unduh</span>
                                                             </a>
                                                             <form action="{{ route('projects.documents.delete', [$project->id, $doc->id]) }}" 
@@ -1642,7 +1662,7 @@
                                                                 <button type="submit" 
                                                                         class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer" 
                                                                         title="Hapus Berkas">
-                                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                                 </button>
                                                             </form>
                                                         </div>
@@ -1757,26 +1777,26 @@
                                 </button>
                                 <div x-show="isOtherOpen" x-cloak class="p-4 border-t border-slate-200 space-y-2 bg-white">
                                     @foreach($otherDocs as $doc)
-                                        <div class="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
-                                            <div class="flex items-center gap-3 min-w-0">
-                                                <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        <div class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                 </div>
                                                 <div class="min-w-0">
-                                                    <span class="font-bold text-slate-900 truncate block">{{ $doc->document_title ?? ($doc->name ?? 'Lampiran') }}</span>
-                                                    <span class="text-[11px] text-slate-400 block font-mono">{{ $doc->file_name }} • {{ $doc->formatted_file_size }}</span>
+                                                    <span class="font-semibold text-[13px] text-slate-800 truncate block">{{ $doc->document_title ?? ($doc->name ?? 'Lampiran') }}</span>
+                                                    <span class="text-[11px] text-slate-400 block">{{ $doc->file_name }} <span class="text-slate-300">•</span> {{ $doc->formatted_file_size }}</span>
                                                 </div>
                                             </div>
-                                            <div class="flex items-center gap-2 shrink-0">
-                                                <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                            <div class="flex items-center gap-1.5 shrink-0">
+                                                <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shadow-2xs">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                     <span>Unduh</span>
                                                 </a>
                                                 <form action="{{ route('projects.documents.delete', [$project->id, $doc->id]) }}" method="POST" onsubmit="return confirm('Hapus berkas ini?')" class="inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                     </button>
                                                 </form>
                                             </div>
