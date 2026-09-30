@@ -535,96 +535,93 @@
         </div>
     </template>
 
-    {{-- ══ MODAL EDIT AKTIVITAS ══ --}}
+    {{-- == MODAL EDIT AKTIVITAS == --}}
     <template x-teleport="body">
         <div x-show="isEditModalOpen" x-cloak
-             class="fixed inset-0 z-[60] bg-[#0F172A]/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
+             class="fixed inset-0 z-[60] bg-[#0F172A]/65 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
              @click.self="isEditModalOpen = false"
              @keydown.escape.window="isEditModalOpen = false">
-            <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden">
 
-                {{-- Header --}}
-                <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] shrink-0 bg-white">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] shrink-0">
                     <div class="flex items-center gap-3">
-                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#8F0A0D,#B81525);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#8F0A0D,#C41E2A);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(143,10,13,.22);">
                             <svg width="16" height="16" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </div>
                         <div>
-                            <p class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Edit Aktivitas</p>
-                            <h3 class="text-[15px] font-bold text-[#1E293B] leading-tight" x-text="editGroupName"></h3>
+                            <p class="text-[10px] font-bold text-[#8F0A0D] uppercase tracking-widest mb-0.5">Edit Aktivitas</p>
+                            <h3 class="text-[14.5px] font-bold text-[#1E293B] leading-tight truncate max-w-xs" x-text="editGroupName"></h3>
                         </div>
                     </div>
                     <button type="button" @click="isEditModalOpen = false"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg text-[#94A3B8] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition cursor-pointer">
+                            class="w-8 h-8 flex items-center justify-center rounded-lg text-[#94A3B8] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition cursor-pointer shrink-0">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                {{-- Agenda Count + Add Button Bar --}}
-                <div class="px-6 py-2.5 border-b border-[#F1F5F9] bg-[#FAFBFC] flex items-center justify-between shrink-0">
-                    <span class="text-[11px] text-gray-500 font-medium">
-                        <span class="font-bold text-gray-800" x-text="editRows.length"></span> agenda dalam grup ini
-                    </span>
+                <div class="px-6 py-2 border-b border-[#F0F4F8] bg-[#F8FAFC] flex items-center justify-between shrink-0">
+                    <p class="text-[11px] text-gray-500">
+                        Terdapat <span class="font-bold text-[#1E293B]" x-text="editRows.length"></span> agenda
+                    </p>
                     <button type="button" @click="addEditRow()"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[#8F0A0D] bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-lg transition cursor-pointer">
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#8F0A0D]/25 bg-white hover:bg-red-50 text-[#8F0A0D] text-[11px] font-bold transition cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        Tambah Agenda Baru
+                        Tambah Agenda
                     </button>
                 </div>
 
-                {{-- Scrollable Agenda List --}}
-                <div class="flex-1 overflow-y-auto bg-[#F8FAFC]">
+                <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-[#EEF2F7]">
                     <template x-for="(row, idx) in editRows" :key="idx">
-                        <div class="border-b border-[#EEF2F7] last:border-b-0">
-                            {{-- Agenda Header Bar --}}
-                            <div class="flex items-center justify-between px-5 py-2.5 bg-white border-b border-[#F1F5F9]">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-5 h-5 rounded-full bg-[#FEF3C7] border border-[#FCD34D] text-[#92400E] text-[10px] font-bold flex items-center justify-center" x-text="idx + 1"></span>
-                                    <span class="text-[11px] font-bold text-gray-600" x-text="row.id ? 'Agenda #' + (idx + 1) : '✦ Agenda Baru'"></span>
-                                    <span x-show="!row.id" class="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[9px] font-bold border border-emerald-200">BARU</span>
+                        <div class="bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+                            <div class="flex items-center justify-between px-4 py-2.5"
+                                 :class="row.id ? 'border-b border-[#F1F5F9] bg-white' : 'border-b border-emerald-100 bg-emerald-50/60'">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10.5px] font-bold shrink-0"
+                                         :style="row.id ? 'background:#FEF3C7;border:1.5px solid #FCD34D;color:#92400E;' : 'background:#D1FAE5;border:1.5px solid #6EE7B7;color:#065F46;'"
+                                         x-text="idx + 1"></div>
+                                    <span class="text-[12.5px] font-bold"
+                                          :class="row.id ? 'text-[#1E293B]' : 'text-emerald-800'"
+                                          x-text="row.id ? 'Agenda #' + (idx + 1) : 'Agenda Baru'"></span>
+                                    <span x-show="!row.id"
+                                          class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wide">baru</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <input type="date" x-model="row.date_raw"
-                                           class="px-2 py-1 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[11px] text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                                    <button x-show="!row.id" type="button" @click="editRows.splice(idx, 1)" title="Hapus baris ini"
-                                            class="w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer">
+                                           class="px-2.5 py-1 border border-[#D1D5DB] rounded-lg text-[11px] text-[#374151] bg-[#F9FAFB] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
+                                    <button x-show="!row.id" type="button" @click="editRows.splice(idx, 1)"
+                                            class="w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                     </button>
                                 </div>
                             </div>
-
-                            {{-- Fields --}}
-                            <div class="px-5 py-3 space-y-2.5 bg-white">
-                                {{-- Aktivitas --}}
+                            <div class="px-4 pt-3.5 pb-4 space-y-3">
                                 <div>
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Aktivitas <span class="text-red-500">*</span></label>
+                                    <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">Aktivitas <span class="text-red-500">*</span></label>
                                     <textarea x-model="row.subject" rows="2"
-                                              class="w-full px-3 py-2 bg-[#F8FAFC] focus:bg-white border border-[#E2E8F0] focus:border-[#8F0A0D] rounded-lg text-[12px] text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"
+                                              class="w-full px-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/15 transition resize-none placeholder-gray-300"
                                               placeholder="Rincian aktivitas teknis..."></textarea>
                                 </div>
-                                {{-- PIC + Notes --}}
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                <div class="grid grid-cols-3 gap-3">
                                     <div>
-                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">PIC Klien</label>
+                                        <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">PIC Klien</label>
                                         <input type="text" x-model="row.client_pic" placeholder="Nama PIC klien"
-                                               class="w-full px-3 py-2 bg-[#F8FAFC] focus:bg-white border border-[#E2E8F0] focus:border-[#8F0A0D] rounded-lg text-[12px] text-[#1E293B] focus:outline-none transition">
+                                               class="w-full px-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">PIC IPNET</label>
+                                        <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">PIC IPNET</label>
                                         <input type="text" x-model="row.ipnet_pic" placeholder="Nama engineer"
-                                               class="w-full px-3 py-2 bg-[#F8FAFC] focus:bg-white border border-[#E2E8F0] focus:border-[#8F0A0D] rounded-lg text-[12px] text-[#1E293B] focus:outline-none transition">
+                                               class="w-full px-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Noted</label>
-                                        <input type="text" x-model="row.notes" placeholder="Keterangan tambahan"
-                                               class="w-full px-3 py-2 bg-[#F8FAFC] focus:bg-white border border-[#E2E8F0] focus:border-[#8F0A0D] rounded-lg text-[12px] text-[#1E293B] focus:outline-none transition">
+                                        <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">Noted</label>
+                                        <input type="text" x-model="row.notes" placeholder="Keterangan"
+                                               class="w-full px-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
                                     </div>
                                 </div>
-                                {{-- Save Row Button --}}
-                                <div class="flex justify-end pt-0.5 pb-1">
+                                <div class="flex justify-end pt-0.5">
                                     <button type="button" @click="saveEditRow(row)" :disabled="editSaving"
-                                            class="inline-flex items-center gap-1.5 px-4 py-1.5 text-[11.5px] font-bold text-white rounded-lg transition cursor-pointer disabled:opacity-50"
-                                            style="background: linear-gradient(135deg, #8F0A0D, #B81525);">
+                                            class="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-bold text-white rounded-lg transition cursor-pointer disabled:opacity-50 shadow-sm"
+                                            style="background:linear-gradient(135deg,#8F0A0D,#C41E2A);">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                         <span x-text="editSaving ? 'Menyimpan...' : (row.id ? 'Simpan Perubahan' : 'Simpan Agenda Baru')"></span>
                                     </button>
@@ -633,17 +630,17 @@
                         </div>
                     </template>
 
-                    {{-- Empty state when no rows --}}
-                    <div x-show="editRows.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
-                        <p class="text-sm text-gray-400">Belum ada agenda. Klik "Tambah Agenda Baru" di atas.</p>
+                    <div x-show="editRows.length === 0"
+                         class="bg-white rounded-xl border border-dashed border-[#CBD5E1] py-10 text-center">
+                        <p class="text-sm font-semibold text-gray-400">Belum ada agenda.</p>
+                        <p class="text-xs text-gray-300 mt-0.5">Klik "Tambah Agenda" di atas.</p>
                     </div>
                 </div>
 
-                {{-- Footer --}}
-                <div class="px-6 py-3 border-t border-[#E2E8F0] bg-[#FAFBFC] flex items-center justify-between shrink-0">
-                    <span class="text-[11px] text-gray-400">Simpan per agenda, lalu tutup setelah selesai.</span>
+                <div class="px-6 py-3 border-t border-[#E2E8F0] bg-white flex items-center justify-between shrink-0">
+                    <p class="text-[11px] text-gray-400">Simpan per agenda, tutup setelah selesai.</p>
                     <button type="button" @click="isEditModalOpen = false"
-                            class="px-5 py-2 text-xs font-bold text-[#1E293B] bg-white hover:bg-gray-100 border border-[#CBD5E1] rounded-xl transition cursor-pointer">
+                            class="px-5 py-2 text-[12px] font-bold text-[#1E293B] bg-[#F1F5F9] hover:bg-[#E2E8F0] border border-[#CBD5E1] rounded-xl transition cursor-pointer">
                         Tutup
                     </button>
                 </div>
