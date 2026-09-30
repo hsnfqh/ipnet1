@@ -8,11 +8,11 @@
     bulkProjectId: '',
     activityTitle: '',
     bulkRows: [
-        { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
-        { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
-        { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
-        { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
-        { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' }
+        { subject: '', activity_date: '{{ date('Y-m-d') }}', client_pic: '', ipnet_pic: '', notes: '' },
+        { subject: '', activity_date: '{{ date('Y-m-d') }}', client_pic: '', ipnet_pic: '', notes: '' },
+        { subject: '', activity_date: '{{ date('Y-m-d') }}', client_pic: '', ipnet_pic: '', notes: '' },
+        { subject: '', activity_date: '{{ date('Y-m-d') }}', client_pic: '', ipnet_pic: '', notes: '' },
+        { subject: '', activity_date: '{{ date('Y-m-d') }}', client_pic: '', ipnet_pic: '', notes: '' }
     ],
     get filledRowsCount() {
         return this.bulkRows.filter(r => r.subject && r.subject.trim() !== '').length;
@@ -25,11 +25,9 @@
     },
     addBulkRow() {
         const lastDate = this.bulkRows.length > 0 ? this.bulkRows[this.bulkRows.length - 1].activity_date : '{{ date('Y-m-d') }}';
-        const lastTime = this.bulkRows.length > 0 ? this.bulkRows[this.bulkRows.length - 1].time_str : '{{ date('H:i') }}';
         this.bulkRows.push({
             subject: '',
             activity_date: lastDate,
-            time_str: lastTime || '{{ date('H:i') }}',
             client_pic: '',
             ipnet_pic: '',
             notes: ''
@@ -44,7 +42,7 @@
         if (this.bulkRows.length > 1) {
             this.bulkRows.splice(index, 1);
         } else {
-            this.bulkRows[0] = { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' };
+            this.bulkRows[0] = { subject: '', activity_date: '{{ date('Y-m-d') }}', client_pic: '', ipnet_pic: '', notes: '' };
         }
     }
 }"
@@ -113,7 +111,6 @@
                                 <th class="py-3 px-3 w-12 text-center">NO</th>
                                 <th class="py-3 px-3 w-80">AKTIVITAS <span class="text-[#8F0A0D]">*</span></th>
                                 <th class="py-3 px-3 w-36">TANGGAL</th>
-                                <th class="py-3 px-3 w-32">WAKTU (JAM)</th>
                                 <th class="py-3 px-3 w-36">PIC KLIEN</th>
                                 <th class="py-3 px-3 w-36">PIC IPNET</th>
                                 <th class="py-3 px-3 min-w-[200px]">NOTED</th>
@@ -140,14 +137,6 @@
                                         <input type="date"
                                                :name="'activities[' + index + '][activity_date]'"
                                                x-model="row.activity_date"
-                                               class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition cursor-pointer">
-                                    </td>
-
-                                    {{-- Waktu (Jam) --}}
-                                    <td class="py-2 px-2.5">
-                                        <input type="time"
-                                               :name="'activities[' + index + '][time_str]'"
-                                               x-model="row.time_str"
                                                class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition cursor-pointer">
                                     </td>
 

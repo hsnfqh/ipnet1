@@ -280,11 +280,10 @@
             <tr>
                 <th style="width: 30px; text-align: center;">No</th>
                 <th style="width: 75px; text-align: center;">Tanggal</th>
-                <th style="width: 55px; text-align: center;">Waktu</th>
-                <th style="width: 36%; text-align: left; padding-left: 8px;">Uraian Aktivitas</th>
-                <th style="width: 90px; text-align: center;">PIC Klien</th>
-                <th style="width: 90px; text-align: center;">PIC IPNET</th>
-                <th style="width: 28%; text-align: left; padding-left: 8px;">Noted</th>
+                <th style="width: 38%; text-align: left; padding-left: 8px;">Uraian Aktivitas</th>
+                <th style="width: 95px; text-align: center;">PIC Klien</th>
+                <th style="width: 95px; text-align: center;">PIC IPNET</th>
+                <th style="width: 32%; text-align: left; padding-left: 8px;">Noted</th>
             </tr>
         </thead>
         <tbody>
@@ -294,7 +293,6 @@
                     $no    = $isArr ? ($item['no'] ?? ($index + 1)) : ($item->no ?? ($index + 1));
                     $act   = $isArr ? ($item['activity'] ?? '') : ($item->activity ?? ($item->description ?? ''));
                     $dt    = $isArr ? ($item['date'] ?? '') : ($item->date ?? '');
-                    $tm    = $isArr ? ($item['time'] ?? '') : ($item->time ?? '');
                     $cpic  = $isArr ? ($item['client_pic'] ?? '') : ($item->client_pic ?? '');
                     $ipic  = $isArr ? ($item['ipnet_pic'] ?? '') : ($item->ipnet_pic ?? '');
                     $nt    = $isArr ? ($item['notes'] ?? '') : ($item->notes ?? '');
@@ -302,7 +300,6 @@
                 <tr class="{{ $index % 2 === 1 ? 'row-even' : '' }}">
                     <td class="text-center">{{ $no }}</td>
                     <td class="text-center">{{ $dt ?: '-' }}</td>
-                    <td class="text-center">{{ $tm ?: '-' }}</td>
                     <td style="text-align: left; padding-left: 8px;">{{ $act ?: '-' }}</td>
                     <td class="text-center">{{ (!empty($cpic) && $cpic !== '-') ? $cpic : '-' }}</td>
                     <td class="text-center">{{ (!empty($ipic) && $ipic !== '-') ? $ipic : '-' }}</td>
@@ -310,7 +307,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="text-center" style="padding: 18px; color: #64748B; font-style: italic;">
+                    <td colspan="6" class="text-center" style="padding: 18px; color: #64748B; font-style: italic;">
                         Tidak ada catatan aktivitas untuk periode filter ini.
                     </td>
                 </tr>
@@ -318,7 +315,7 @@
 
             @if(!empty($items) && count($items) > 0)
                 <tr class="total-row">
-                    <td colspan="3" class="text-right">TOTAL AGENDA AKTIVITAS :</td>
+                    <td colspan="2" class="text-right">TOTAL AGENDA AKTIVITAS :</td>
                     <td class="text-center" style="color: #C81E2C;">{{ $totalCount }} Agenda</td>
                     <td colspan="3" class="text-center" style="color: #475569;">Total {{ $totalCount }} aktivitas pengerjaan</td>
                 </tr>
