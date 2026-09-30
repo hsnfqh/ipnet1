@@ -9,10 +9,10 @@
             size: A4 landscape;
         }
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 10px;
-            color: #17151C;
-            line-height: 1.35;
+            font-family: 'Helvetica', Arial, sans-serif;
+            font-size: 11px;
+            color: #1E293B;
+            line-height: 1.4;
             margin: 0;
             padding: 0;
         }
@@ -26,85 +26,88 @@
             vertical-align: middle;
         }
         .company-title {
-            font-size: 18px;
+            font-size: 19px;
             font-weight: bold;
             color: #C81E2C;
             margin: 0;
             letter-spacing: 0.5px;
         }
         .company-subtitle {
-            font-size: 9px;
+            font-size: 10px;
             font-weight: bold;
-            color: #75727C;
+            color: #64748B;
             letter-spacing: 1px;
-            margin-top: 2px;
+            margin-top: 3px;
         }
         .report-badge {
             display: inline-block;
             background: #FDF1F2;
             color: #C81E2C;
             border: 1px solid #FADADF;
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 4px;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 11px;
         }
         .meta-container {
             width: 100%;
-            margin-bottom: 12px;
-            background: #F8F7F6;
-            border: 1px solid #E7E5E3;
+            margin-bottom: 14px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
             border-radius: 6px;
-            padding: 8px 12px;
+            padding: 9px 14px;
         }
         .meta-table {
             width: 100%;
-            font-size: 9.5px;
+            font-size: 10.5px;
         }
         .meta-table td {
-            padding: 2px 4px;
+            padding: 3px 5px;
         }
         .summary-cards {
             width: 100%;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
         .summary-box {
-            border: 1px solid #E7E5E3;
+            border: 1px solid #E2E8F0;
             background: #FFFFFF;
             border-radius: 6px;
-            padding: 6px 10px;
+            padding: 8px 10px;
             text-align: center;
         }
         .summary-title {
-            font-size: 8.5px;
+            font-size: 9.5px;
             font-weight: bold;
-            color: #75727C;
+            color: #64748B;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .summary-value {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
-            color: #17151C;
-            margin-top: 2px;
+            color: #0F172A;
+            margin-top: 3px;
         }
         .data-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 14px;
-            font-size: 9px;
+            font-size: 10px;
         }
         .data-table th {
             background-color: #1E293B;
             color: #FFFFFF;
             font-weight: bold;
-            padding: 6px 5px;
+            font-size: 10.5px;
+            padding: 8px 6px;
             text-align: center;
-            border: 1px solid #94A3B8;
+            border: 1px solid #64748B;
         }
         .data-table td {
-            padding: 5px 5px;
-            border: 1px solid #E2E8F0;
+            padding: 7px 6px;
+            border: 1px solid #CBD5E1;
             vertical-align: top;
+            line-height: 1.4;
         }
         .row-even {
             background-color: #F8FAFC;
@@ -116,14 +119,15 @@
             text-align: right;
         }
         .total-row td {
-            background-color: #E2E8F0;
+            background-color: #F1F5F9;
             font-weight: bold;
-            border-top: 2px solid #94A3B8;
-            padding: 6px 5px;
+            font-size: 10.5px;
+            border-top: 2px solid #64748B;
+            padding: 7px 6px;
         }
         .signature-table {
             width: 100%;
-            margin-top: 18px;
+            margin-top: 20px;
             page-break-inside: avoid;
         }
         .signature-box {
@@ -269,13 +273,13 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th style="width: 25px;">No</th>
-                <th style="width: 70px;">Tanggal</th>
+                <th style="width: 28px;">No</th>
+                <th style="width: 75px;">Tanggal</th>
                 <th style="width: 65px;">Waktu</th>
                 <th>Uraian Aktivitas</th>
-                <th style="width: 90px;">PIC Klien</th>
-                <th style="width: 90px;">PIC IPNET</th>
-                <th style="width: 120px;">Noted</th>
+                <th style="width: 95px;">PIC Klien</th>
+                <th style="width: 95px;">PIC IPNET</th>
+                <th style="width: 125px;">Noted</th>
             </tr>
         </thead>
         <tbody>
@@ -301,7 +305,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="text-center" style="padding: 18px; color: #75727C; font-style: italic;">
+                    <td colspan="7" class="text-center" style="padding: 18px; color: #64748B; font-style: italic;">
                         Tidak ada catatan aktivitas untuk periode filter ini.
                     </td>
                 </tr>
@@ -311,7 +315,7 @@
                 <tr class="total-row">
                     <td colspan="3" class="text-right">TOTAL AGENDA AKTIVITAS :</td>
                     <td class="text-center" style="color: #C81E2C;">{{ $totalCount }} Agenda</td>
-                    <td colspan="3" style="font-size: 8.5px; color: #475569;">Total {{ $totalCount }} aktivitas pengerjaan</td>
+                    <td colspan="3" style="font-size: 9.5px; color: #475569;">Total {{ $totalCount }} aktivitas pengerjaan</td>
                 </tr>
             @endif
         </tbody>
@@ -320,31 +324,31 @@
     <!-- Signature Block -->
     <table class="signature-table" style="width: 100%; margin-top: 25px; border-collapse: collapse;">
         <tr>
-            <td style="width: 45%; vertical-align: top;">
-                <div style="font-size: 8.5px; color: #75727C; line-height: 1.4;">
+            <td style="width: 44%; vertical-align: top;">
+                <div style="font-size: 9.5px; color: #64748B; line-height: 1.45;">
                     * Dokumen rekapitulasi aktivitas ini digenerate secara otomatis melalui sistem Field System Management IP-Net.<br>
                     * Informasi ini digunakan sebagai acuan monitoring produktivitas dan pertanggungjawaban pengerjaan proyek.
                 </div>
             </td>
-            <td style="width: 27%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9px; color: #75727C; margin-bottom: 45px;">
+            <td style="width: 28%; text-align: center; vertical-align: top;">
+                <div style="font-size: 10px; color: #475569; margin-bottom: 45px;">
                     Jakarta, {{ now()->locale('id')->isoFormat('D MMMM Y') }}<br>
                     <strong>Dibuat Oleh,</strong>
                 </div>
-                <div style="font-weight: bold; border-bottom: 1px solid #17151C; padding-bottom: 2px; color: #17151C;">
+                <div style="font-size: 11px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 2px; color: #0F172A;">
                     {{ $engineerName ?? 'Nugraha Pratama' }}
                 </div>
-                <div style="font-size: 8.5px; color: #75727C; margin-top: 2px;">Network Leader</div>
+                <div style="font-size: 9.5px; color: #64748B; margin-top: 3px;">Network Leader</div>
             </td>
             <td style="width: 28%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9px; color: #75727C; margin-bottom: 45px;">
+                <div style="font-size: 10px; color: #475569; margin-bottom: 45px;">
                     <br>
                     <strong>Mengetahui & Menyetujui,</strong>
                 </div>
-                <div style="font-weight: bold; border-bottom: 1px solid #17151C; padding-bottom: 2px; color: #17151C;">
+                <div style="font-size: 11px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 2px; color: #0F172A;">
                     Susanto Djaya
                 </div>
-                <div style="font-size: 8.5px; color: #75727C; margin-top: 2px;">Group Leader</div>
+                <div style="font-size: 9.5px; color: #64748B; margin-top: 3px;">Group Leader</div>
             </td>
         </tr>
     </table>
