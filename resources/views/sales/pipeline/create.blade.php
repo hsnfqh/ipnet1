@@ -74,12 +74,12 @@
 
                         <div class="mb-4">
                             <label class="cf-label">Project Name <span class="text-[#8F0A0D]">*</span></label>
-                            <input type="text" name="name" required class="cf-input" placeholder="Contoh: Pengadaan Firewall &amp; Switch Datacenter PT Telkom" value="{{ old('name') }}">
+                            <input type="text" name="name" required class="cf-input" placeholder="" value="{{ old('name') }}">
                         </div>
 
                         <div class="mb-4">
                             <label class="cf-label">Project Detail</label>
-                            <textarea name="sales_notes" class="cf-textarea" placeholder="Detail kebutuhan klien, spesifikasi teknis, atau catatan penting lainnya...">{{ old('sales_notes') }}</textarea>
+                            <textarea name="sales_notes" class="cf-textarea" placeholder="">{{ old('sales_notes') }}</textarea>
                         </div>
 
                         <div class="mb-4" x-data="{
@@ -95,7 +95,7 @@
                             }
                         }">
                             <label class="cf-label">Client Name (Instansi / Perusahaan) <span class="text-[#8F0A0D]">*</span></label>
-                            <input type="text" name="client" x-model="selectedClient" @input="onSelect($event.target.value)" required list="clientListCreate" class="cf-input" placeholder="Pilih dari database atau ketik baru (Contoh: Ahmad Hasan Faqih Aulia / Autopia / BRI)" value="{{ old('client') }}">
+                            <input type="text" name="client" x-model="selectedClient" @input="onSelect($event.target.value)" required list="clientListCreate" class="cf-input" placeholder="" value="{{ old('client') }}">
                             <datalist id="clientListCreate">
                                 @foreach($clients as $cl)
                                     <option value="{{ $cl->name }}">{{ $cl->department ? "({$cl->department}) - PIC: {$cl->pic_name}" : ($cl->pic_name ? "PIC: {$cl->pic_name}" : "") }}</option>
