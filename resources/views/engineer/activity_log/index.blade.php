@@ -382,7 +382,7 @@
                                 @foreach($previewItems as $item)
                                     <div class="timeline-item">
                                         <div class="timeline-dot"></div>
-                                        <span class="text-[10px] font-semibold text-gray-400 min-w-[60px] shrink-0 tabular-nums">{{ $item['date'] }}</span>
+                                        <span class="text-[10px] font-semibold text-gray-300 min-w-[56px] shrink-0 tabular-nums">{{ $item['date'] }}</span>
                                         <span class="timeline-desc">{{ $item['desc'] }}</span>
                                     </div>
                                 @endforeach
@@ -392,12 +392,12 @@
                             @endif
 
                             <button type="button" @click="openDetailModal({{ $groupJson }})" class="detail-btn">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
-                                Lihat Detail Lengkap
-                                <span class="ml-auto text-[10px] text-gray-400 font-semibold">{{ $totalInGroup }} Agenda</span>
+                                <span>Lihat Detail &amp; Semua Agenda</span>
+                                <span class="ml-auto px-1.5 py-0.5 rounded-md bg-red-50 text-[#8F0A0D] text-[10px] font-bold">{{ $totalInGroup }}</span>
                             </button>
                         </div>
 
@@ -538,78 +538,112 @@
     {{-- ══ MODAL EDIT AKTIVITAS ══ --}}
     <template x-teleport="body">
         <div x-show="isEditModalOpen" x-cloak
-             class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
-             @click.self="isEditModalOpen = false">
-            <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col overflow-hidden anim-fade-up">
+             class="fixed inset-0 z-[60] bg-[#0F172A]/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
+             @click.self="isEditModalOpen = false"
+             @keydown.escape.window="isEditModalOpen = false">
+            <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden">
 
-                {{-- Edit Modal Header --}}
-                <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 pb-4 shrink-0">
-                    <div>
-                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">EDIT AKTIVITAS</p>
-                        <h3 class="text-[16px] font-bold text-[#1E293B]" x-text="editGroupName || 'Edit Data Aktivitas'"></h3>
+                {{-- Header --}}
+                <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] shrink-0 bg-white">
+                    <div class="flex items-center gap-3">
+                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#8F0A0D,#B81525);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <svg width="16" height="16" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Edit Aktivitas</p>
+                            <h3 class="text-[15px] font-bold text-[#1E293B] leading-tight" x-text="editGroupName"></h3>
+                        </div>
                     </div>
-                    <button type="button" @click="isEditModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
+                    <button type="button" @click="isEditModalOpen = false"
+                            class="w-8 h-8 flex items-center justify-center rounded-lg text-[#94A3B8] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                {{-- Edit Rows --}}
-                <div class="flex-1 overflow-y-auto p-5 space-y-4 bg-[#F8FAFC]">
-                    <p class="text-xs text-gray-500 font-medium">Edit setiap baris aktivitas di bawah ini, lalu klik Simpan.</p>
+                {{-- Agenda Count + Add Button Bar --}}
+                <div class="px-6 py-2.5 border-b border-[#F1F5F9] bg-[#FAFBFC] flex items-center justify-between shrink-0">
+                    <span class="text-[11px] text-gray-500 font-medium">
+                        <span class="font-bold text-gray-800" x-text="editRows.length"></span> agenda dalam grup ini
+                    </span>
+                    <button type="button" @click="addEditRow()"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[#8F0A0D] bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-lg transition cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        Tambah Agenda Baru
+                    </button>
+                </div>
+
+                {{-- Scrollable Agenda List --}}
+                <div class="flex-1 overflow-y-auto bg-[#F8FAFC]">
                     <template x-for="(row, idx) in editRows" :key="idx">
-                        <div class="bg-white border border-[#E2E8F0] rounded-xl p-4 space-y-3">
-                            {{-- Row Number + Date --}}
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold text-[#8F0A0D] uppercase tracking-wider" x-text="'Agenda #' + (idx + 1)"></span>
-                                <input type="date" x-model="row.date_raw"
-                                       class="px-2.5 py-1.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
-                            </div>
-                            {{-- Subject --}}
-                            <div>
-                                <label class="block text-[10.5px] font-bold text-gray-500 uppercase tracking-wider mb-1">Aktivitas <span class="text-red-500">*</span></label>
-                                <textarea x-model="row.subject" rows="2"
-                                          class="w-full p-2.5 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"
-                                          placeholder="Rincian aktivitas..."></textarea>
-                            </div>
-                            {{-- PIC Grid --}}
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[10.5px] font-bold text-gray-500 uppercase tracking-wider mb-1">PIC Klien</label>
-                                    <input type="text" x-model="row.client_pic" placeholder="Nama PIC klien"
-                                           class="w-full p-2.5 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] transition">
+                        <div class="border-b border-[#EEF2F7] last:border-b-0">
+                            {{-- Agenda Header Bar --}}
+                            <div class="flex items-center justify-between px-5 py-2.5 bg-white border-b border-[#F1F5F9]">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-[#FEF3C7] border border-[#FCD34D] text-[#92400E] text-[10px] font-bold flex items-center justify-center" x-text="idx + 1"></span>
+                                    <span class="text-[11px] font-bold text-gray-600" x-text="row.id ? 'Agenda #' + (idx + 1) : '✦ Agenda Baru'"></span>
+                                    <span x-show="!row.id" class="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[9px] font-bold border border-emerald-200">BARU</span>
                                 </div>
-                                <div>
-                                    <label class="block text-[10.5px] font-bold text-gray-500 uppercase tracking-wider mb-1">PIC IPNET</label>
-                                    <input type="text" x-model="row.ipnet_pic" placeholder="Nama engineer"
-                                           class="w-full p-2.5 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] transition">
+                                <div class="flex items-center gap-2">
+                                    <input type="date" x-model="row.date_raw"
+                                           class="px-2 py-1 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[11px] text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
+                                    <button x-show="!row.id" type="button" @click="editRows.splice(idx, 1)" title="Hapus baris ini"
+                                            class="w-6 h-6 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
                                 </div>
                             </div>
-                            {{-- Notes --}}
-                            <div>
-                                <label class="block text-[10.5px] font-bold text-gray-500 uppercase tracking-wider mb-1">Noted / Keterangan</label>
-                                <textarea x-model="row.notes" rows="2"
-                                          class="w-full p-2.5 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"
-                                          placeholder="Catatan tambahan..."></textarea>
-                            </div>
-                            {{-- Save this row --}}
-                            <div class="flex justify-end pt-1">
-                                <button type="button"
-                                        @click="saveEditRow(row)"
-                                        :disabled="editSaving"
-                                        class="px-4 py-1.5 text-xs font-bold text-white rounded-lg transition cursor-pointer disabled:opacity-60 flex items-center gap-1.5"
-                                        style="background: linear-gradient(135deg, #8F0A0D 0%, #B81525 100%);">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    <span x-text="editSaving ? 'Menyimpan...' : 'Simpan Agenda Ini'"></span>
-                                </button>
+
+                            {{-- Fields --}}
+                            <div class="px-5 py-3 space-y-2.5 bg-white">
+                                {{-- Aktivitas --}}
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Aktivitas <span class="text-red-500">*</span></label>
+                                    <textarea x-model="row.subject" rows="2"
+                                              class="w-full px-3 py-2 bg-[#F8FAFC] focus:bg-white border border-[#E2E8F0] focus:border-[#8F0A0D] rounded-lg text-[12px] text-[#1E293B] focus:outline-none focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"
+                                              placeholder="Rincian aktivitas teknis..."></textarea>
+                                </div>
+                                {{-- PIC + Notes --}}
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">PIC Klien</label>
+                                        <input type="text" x-model="row.client_pic" placeholder="Nama PIC klien"
+                                               class="w-full px-3 py-2 bg-[#F8FAFC] focus:bg-white border border-[#E2E8F0] focus:border-[#8F0A0D] rounded-lg text-[12px] text-[#1E293B] focus:outline-none transition">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">PIC IPNET</label>
+                                        <input type="text" x-model="row.ipnet_pic" placeholder="Nama engineer"
+                                               class="w-full px-3 py-2 bg-[#F8FAFC] focus:bg-white border border-[#E2E8F0] focus:border-[#8F0A0D] rounded-lg text-[12px] text-[#1E293B] focus:outline-none transition">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Noted</label>
+                                        <input type="text" x-model="row.notes" placeholder="Keterangan tambahan"
+                                               class="w-full px-3 py-2 bg-[#F8FAFC] focus:bg-white border border-[#E2E8F0] focus:border-[#8F0A0D] rounded-lg text-[12px] text-[#1E293B] focus:outline-none transition">
+                                    </div>
+                                </div>
+                                {{-- Save Row Button --}}
+                                <div class="flex justify-end pt-0.5 pb-1">
+                                    <button type="button" @click="saveEditRow(row)" :disabled="editSaving"
+                                            class="inline-flex items-center gap-1.5 px-4 py-1.5 text-[11.5px] font-bold text-white rounded-lg transition cursor-pointer disabled:opacity-50"
+                                            style="background: linear-gradient(135deg, #8F0A0D, #B81525);">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        <span x-text="editSaving ? 'Menyimpan...' : (row.id ? 'Simpan Perubahan' : 'Simpan Agenda Baru')"></span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </template>
+
+                    {{-- Empty state when no rows --}}
+                    <div x-show="editRows.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+                        <p class="text-sm text-gray-400">Belum ada agenda. Klik "Tambah Agenda Baru" di atas.</p>
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between p-4 px-5 border-t border-[#E2E8F0] bg-white shrink-0">
-                    <p class="text-[11px] text-gray-400">Simpan per agenda atau tutup setelah selesai mengedit.</p>
+                {{-- Footer --}}
+                <div class="px-6 py-3 border-t border-[#E2E8F0] bg-[#FAFBFC] flex items-center justify-between shrink-0">
+                    <span class="text-[11px] text-gray-400">Simpan per agenda, lalu tutup setelah selesai.</span>
                     <button type="button" @click="isEditModalOpen = false"
-                            class="px-5 py-2 text-xs font-bold text-[#1E293B] bg-white hover:bg-gray-100 border border-[#CBD5E1] rounded-xl transition cursor-pointer shadow-xs">
+                            class="px-5 py-2 text-xs font-bold text-[#1E293B] bg-white hover:bg-gray-100 border border-[#CBD5E1] rounded-xl transition cursor-pointer">
                         Tutup
                     </button>
                 </div>
@@ -633,6 +667,9 @@ function engineerActivityManager() {
         isEditModalOpen: false,
         editRows: [],
         editGroupName: '',
+        editProjectId: '',
+        editStoreUrl: '',
+        editActTitle: '',
         editSaving: false,
 
         openDetailModal(groupData) {
@@ -643,7 +680,31 @@ function engineerActivityManager() {
         openEditModal(rows) {
             this.editRows = rows.map(r => ({ ...r }));
             this.editGroupName = rows[0]?.project_name || 'Edit Aktivitas';
+            this.editProjectId = rows[0]?.project_id || '';
+            this.editStoreUrl  = '{{ route("engineer.activity_log.store") }}';
+            this.editActTitle  = rows[0]?.activity_title || '';
             this.isEditModalOpen = true;
+        },
+
+        addEditRow() {
+            const today = new Date().toISOString().slice(0, 10);
+            this.editRows.push({
+                id:           null,
+                subject:      '',
+                activity_title: this.editActTitle,
+                date_raw:     today,
+                client_pic:   '',
+                ipnet_pic:    '',
+                notes:        '',
+                project_id:   this.editProjectId,
+                project_name: this.editGroupName,
+                update_url:   null,
+            });
+            // Scroll to bottom after adding
+            this.$nextTick(() => {
+                const container = this.$el.querySelector('.overflow-y-auto');
+                if (container) container.scrollTop = container.scrollHeight;
+            });
         },
 
         async saveEditRow(row) {
@@ -652,23 +713,37 @@ function engineerActivityManager() {
                 return;
             }
             this.editSaving = true;
-            try {
-                const formData = new FormData();
-                formData.append('_method', 'PUT');
-                formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-                formData.append('subject', row.subject);
-                formData.append('activity_date', row.date_raw);
-                formData.append('client_pic', row.client_pic || '');
-                formData.append('ipnet_pic', row.ipnet_pic || '');
-                formData.append('notes', row.notes || '');
-                formData.append('project_id', row.project_id || '');
-                formData.append('activity_title', row.activity_title || '');
+            const token = document.querySelector('meta[name="csrf-token"]').content;
+            const formData = new FormData();
+            formData.append('_token', token);
 
-                const res = await fetch(row.update_url, { method: 'POST', body: formData });
-                if (res.ok || res.redirected) {
-                    window.location.reload();
+            try {
+                if (row.id) {
+                    // UPDATE existing row
+                    formData.append('_method', 'PUT');
+                    formData.append('subject', row.subject);
+                    formData.append('activity_date', row.date_raw);
+                    formData.append('client_pic', row.client_pic || '');
+                    formData.append('ipnet_pic', row.ipnet_pic || '');
+                    formData.append('notes', row.notes || '');
+                    formData.append('project_id', row.project_id || '');
+                    formData.append('activity_title', row.activity_title || '');
+                    const res = await fetch(row.update_url, { method: 'POST', body: formData });
+                    if (res.ok || res.redirected) { window.location.reload(); }
+                    else { alert('Gagal menyimpan. Coba lagi.'); }
                 } else {
-                    alert('Gagal menyimpan. Silakan coba lagi.');
+                    // CREATE new row via bulk store
+                    formData.append('project_id', row.project_id || '');
+                    formData.append('activity_title', row.activity_title || '');
+                    formData.append('activities[0][subject]', row.subject);
+                    formData.append('activities[0][activity_date]', row.date_raw);
+                    formData.append('activities[0][time_str]', '');
+                    formData.append('activities[0][client_pic]', row.client_pic || '');
+                    formData.append('activities[0][ipnet_pic]', row.ipnet_pic || '');
+                    formData.append('activities[0][notes]', row.notes || '');
+                    const res = await fetch(this.editStoreUrl, { method: 'POST', body: formData });
+                    if (res.ok || res.redirected) { window.location.reload(); }
+                    else { alert('Gagal menyimpan agenda baru. Coba lagi.'); }
                 }
             } catch (e) {
                 alert('Terjadi kesalahan: ' + e.message);
