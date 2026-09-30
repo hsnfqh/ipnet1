@@ -10,7 +10,7 @@
         }
         body {
             font-family: 'Helvetica', Arial, sans-serif;
-            font-size: 11px;
+            font-size: 10px;
             color: #1E293B;
             line-height: 1.4;
             margin: 0;
@@ -26,17 +26,17 @@
             vertical-align: middle;
         }
         .company-title {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: bold;
             color: #C81E2C;
             margin: 0;
             letter-spacing: 0.5px;
         }
         .company-subtitle {
-            font-size: 10px;
+            font-size: 9.5px;
             font-weight: bold;
             color: #64748B;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
             margin-top: 3px;
         }
         .report-badge {
@@ -47,7 +47,7 @@
             padding: 5px 12px;
             border-radius: 4px;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 10px;
         }
         .meta-container {
             width: 100%;
@@ -55,14 +55,14 @@
             background: #F8FAFC;
             border: 1px solid #E2E8F0;
             border-radius: 6px;
-            padding: 9px 14px;
+            padding: 8px 12px;
         }
         .meta-table {
             width: 100%;
-            font-size: 10.5px;
+            font-size: 10px;
         }
         .meta-table td {
-            padding: 3px 5px;
+            padding: 2.5px 4px;
         }
         .summary-cards {
             width: 100%;
@@ -72,18 +72,18 @@
             border: 1px solid #E2E8F0;
             background: #FFFFFF;
             border-radius: 6px;
-            padding: 8px 10px;
+            padding: 7px 10px;
             text-align: center;
         }
         .summary-title {
-            font-size: 9.5px;
+            font-size: 9px;
             font-weight: bold;
             color: #64748B;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .summary-value {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             color: #0F172A;
             margin-top: 3px;
@@ -98,15 +98,17 @@
             background-color: #1E293B;
             color: #FFFFFF;
             font-weight: bold;
-            font-size: 10.5px;
+            font-size: 10px;
             padding: 8px 6px;
-            text-align: center;
-            border: 1px solid #64748B;
+            border: 1px solid #475569;
         }
         .data-table td {
             padding: 7px 6px;
             border: 1px solid #CBD5E1;
-            vertical-align: top;
+            vertical-align: middle;
+            font-size: 10px;
+            font-weight: normal;
+            color: #1E293B;
             line-height: 1.4;
         }
         .row-even {
@@ -121,13 +123,13 @@
         .total-row td {
             background-color: #F1F5F9;
             font-weight: bold;
-            font-size: 10.5px;
+            font-size: 10px;
             border-top: 2px solid #64748B;
             padding: 7px 6px;
         }
         .signature-table {
             width: 100%;
-            margin-top: 20px;
+            margin-top: 22px;
             page-break-inside: avoid;
         }
         .signature-box {
@@ -273,13 +275,13 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th style="width: 28px;">No</th>
-                <th style="width: 75px;">Tanggal</th>
-                <th style="width: 65px;">Waktu</th>
-                <th>Uraian Aktivitas</th>
-                <th style="width: 95px;">PIC Klien</th>
-                <th style="width: 95px;">PIC IPNET</th>
-                <th style="width: 125px;">Noted</th>
+                <th style="width: 28px; text-align: center;">No</th>
+                <th style="width: 75px; text-align: center;">Tanggal</th>
+                <th style="width: 65px; text-align: center;">Waktu</th>
+                <th style="text-align: left; padding-left: 8px;">Uraian Aktivitas</th>
+                <th style="width: 95px; text-align: center;">PIC Klien</th>
+                <th style="width: 95px; text-align: center;">PIC IPNET</th>
+                <th style="width: 125px; text-align: left; padding-left: 8px;">Noted</th>
             </tr>
         </thead>
         <tbody>
@@ -297,11 +299,11 @@
                 <tr class="{{ $index % 2 === 1 ? 'row-even' : '' }}">
                     <td class="text-center">{{ $no }}</td>
                     <td class="text-center">{{ $dt ?: '-' }}</td>
-                    <td class="text-center" style="font-weight: 600;">{{ $tm ?: '-' }}</td>
-                    <td style="font-weight: 500;">{{ $act ?: '-' }}</td>
+                    <td class="text-center">{{ $tm ?: '-' }}</td>
+                    <td style="text-align: left; padding-left: 8px;">{{ $act ?: '-' }}</td>
                     <td class="text-center">{{ (!empty($cpic) && $cpic !== '-') ? $cpic : '-' }}</td>
-                    <td class="text-center" style="font-weight: 600;">{{ (!empty($ipic) && $ipic !== '-') ? $ipic : '-' }}</td>
-                    <td>{{ (!empty($nt) && $nt !== '-') ? $nt : '-' }}</td>
+                    <td class="text-center">{{ (!empty($ipic) && $ipic !== '-') ? $ipic : '-' }}</td>
+                    <td style="text-align: left; padding-left: 8px;">{{ (!empty($nt) && $nt !== '-') ? $nt : '-' }}</td>
                 </tr>
             @empty
                 <tr>
@@ -315,7 +317,7 @@
                 <tr class="total-row">
                     <td colspan="3" class="text-right">TOTAL AGENDA AKTIVITAS :</td>
                     <td class="text-center" style="color: #C81E2C;">{{ $totalCount }} Agenda</td>
-                    <td colspan="3" style="font-size: 9.5px; color: #475569;">Total {{ $totalCount }} aktivitas pengerjaan</td>
+                    <td colspan="3" class="text-center" style="color: #475569;">Total {{ $totalCount }} aktivitas pengerjaan</td>
                 </tr>
             @endif
         </tbody>
@@ -325,7 +327,7 @@
     <table class="signature-table" style="width: 100%; margin-top: 25px; border-collapse: collapse;">
         <tr>
             <td style="width: 44%; vertical-align: top;">
-                <div style="font-size: 9.5px; color: #64748B; line-height: 1.45;">
+                <div style="font-size: 9px; color: #64748B; line-height: 1.45;">
                     * Dokumen rekapitulasi aktivitas ini digenerate secara otomatis melalui sistem Field System Management IP-Net.<br>
                     * Informasi ini digunakan sebagai acuan monitoring produktivitas dan pertanggungjawaban pengerjaan proyek.
                 </div>
@@ -335,20 +337,20 @@
                     Jakarta, {{ now()->locale('id')->isoFormat('D MMMM Y') }}<br>
                     <strong>Dibuat Oleh,</strong>
                 </div>
-                <div style="font-size: 11px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 2px; color: #0F172A;">
+                <div style="font-size: 10px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 2px; color: #0F172A;">
                     {{ $engineerName ?? 'Nugraha Pratama' }}
                 </div>
-                <div style="font-size: 9.5px; color: #64748B; margin-top: 3px;">Network Leader</div>
+                <div style="font-size: 9px; color: #64748B; margin-top: 3px;">Network Leader</div>
             </td>
             <td style="width: 28%; text-align: center; vertical-align: top;">
                 <div style="font-size: 10px; color: #475569; margin-bottom: 45px;">
                     <br>
                     <strong>Mengetahui & Menyetujui,</strong>
                 </div>
-                <div style="font-size: 11px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 2px; color: #0F172A;">
+                <div style="font-size: 10px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 2px; color: #0F172A;">
                     Susanto Djaya
                 </div>
-                <div style="font-size: 9.5px; color: #64748B; margin-top: 3px;">Group Leader</div>
+                <div style="font-size: 9px; color: #64748B; margin-top: 3px;">Group Leader</div>
             </td>
         </tr>
     </table>
