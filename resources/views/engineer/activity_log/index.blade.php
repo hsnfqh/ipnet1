@@ -99,15 +99,6 @@
                                class="w-full sm:w-64 px-3.5 py-2 pl-9 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all shadow-xs">
                     </div>
 
-                    {{-- Filter Tipe --}}
-                    <select name="activity_type" onchange="this.form.submit()"
-                            class="w-full sm:w-48 px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all cursor-pointer shadow-xs">
-                        <option value="">Semua Tipe Aktivitas</option>
-                        @foreach($activityTypes as $type)
-                            <option value="{{ $type }}" {{ request('activity_type') == $type ? 'selected' : '' }}>{{ $type }}</option>
-                        @endforeach
-                    </select>
-
                     {{-- Filter Engineer (Lead only) --}}
                     @if($isLead && $engineers->isNotEmpty())
                     <select name="user_id" onchange="this.form.submit()"
@@ -128,21 +119,62 @@
                         @endforeach
                     </select>
 
-                    @if(request('search') || request('user_id') || request('activity_type') || request('status') || request('project_id') || request('date'))
+                    @if(request('search') || request('user_id') || request('status') || request('project_id') || request('date'))
                         <a href="{{ route('engineer.activity_log.index') }}" class="px-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-800 self-center">
                             Reset Filter
                         </a>
                     @endif
                 </form>
 
-                {{-- Tombol Input Aktivitas --}}
-                <button type="button" @click="$dispatch('open-engineer-activity-modal')"
-                        class="btn-ipnet-primary w-full sm:w-auto justify-center shadow-md px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shrink-0">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span>Input Aktivitas</span>
-                </button>
+                {{-- Action Buttons: Export Dropdown (persis Timesheet) & Input Aktivitas --}}
+                <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                    {{-- Export Dropdown --}}
+                    <div x-data="{ exportOpen: false }" class="relative">
+                        <button type="button" 
+                                @click="exportOpen = !exportOpen"
+                                class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white font-bold text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer shadow-xs transition">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            <span>Export</span>
+                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+
+                        <div x-show="exportOpen" 
+                             x-cloak
+                             @click.outside="exportOpen = false"
+                             class="absolute right-0 mt-2 w-52 bg-white border border-[#E2E8F0] rounded-2xl shadow-xl z-30 py-1.5 overflow-hidden anim-fade-up">
+                            
+                            <a href="{{ route('engineer.activity_log.export_excel', request()->all()) }}" 
+                               class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-[#1E293B] hover:bg-[#F0FDF4] hover:text-[#16A34A] transition">
+                                <svg class="w-4 h-4 text-[#16A34A] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 4h7v5h5v11H6V4zm2 8h2.5l1.5 2.5 1.5-2.5H16l-2.25 3.5L16 19h-2.5L12 16.5 10.5 19H8l2.25-3.5L8 12z"/>
+                                </svg>
+                                Export Excel (.xlsx)
+                            </a>
+
+                            <a href="{{ route('engineer.activity_log.export_pdf', request()->all()) }}" 
+                               target="_blank"
+                               class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-[#1E293B] hover:bg-[#FEF2F2] hover:text-[#8F0A0D] transition border-t border-[#F1F5F9]">
+                                <svg class="w-4 h-4 text-[#8F0A0D] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-6h2v6z"/>
+                                </svg>
+                                Export PDF (.pdf)
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Tombol Input Aktivitas --}}
+                    <button type="button" @click="$dispatch('open-engineer-activity-modal')"
+                            class="btn-ipnet-primary w-full sm:w-auto justify-center shadow-md px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shrink-0">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Input Aktivitas</span>
+                    </button>
+                </div>
             </div>
 
             {{-- Activity Feed Grid — Grouped by Project (exactly like Sales CRM) --}}
@@ -223,16 +255,11 @@
 
                     <div class="ipnet-card p-5 flex flex-col justify-between space-y-3.5 border-red-200/80 bg-gradient-to-b from-white to-red-50/20">
                         <div class="space-y-2.5">
-                            {{-- Top: Tipe + Jumlah badge + Tanggal --}}
+                            {{-- Top: Jumlah badge + Tanggal (Troubleshooting dihapus) --}}
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200">
-                                        {{ $actType }}
-                                    </span>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                        {{ $totalInGroup }} Rangkaian Agenda
-                                    </span>
-                                </div>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                    {{ $totalInGroup }} Rangkaian Agenda
+                                </span>
                                 <span class="text-xs font-bold text-gray-400">
                                     {{ $firstAct->activity_date ? $firstAct->activity_date->format('d M Y, H:i') : '-' }}
                                 </span>

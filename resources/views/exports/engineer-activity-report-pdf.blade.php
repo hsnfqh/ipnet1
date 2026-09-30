@@ -2,62 +2,40 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Aktivitas Engineer - PT. IP Network Solusindo</title>
+    <title>Laporan Aktivitas Engineer - IP Network Solusindo</title>
     <style>
         @page {
             margin: 20px 25px 25px 25px;
             size: A4 landscape;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 9.5px;
+            font-size: 10px;
             color: #17151C;
             line-height: 1.35;
-            background: #ffffff;
+            margin: 0;
+            padding: 0;
         }
-
-        /* ── HEADER / KOP SURAT RESMI ── */
         .header-table {
             width: 100%;
             border-bottom: 2px solid #C81E2C;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
         }
-
-        .header-logo {
-            width: 46px;
-            height: 46px;
-        }
-
         .company-title {
-            font-size: 15px;
+            font-size: 18px;
             font-weight: bold;
             color: #C81E2C;
             margin: 0;
             letter-spacing: 0.5px;
         }
-
         .company-subtitle {
-            font-size: 8.5px;
+            font-size: 9px;
             font-weight: bold;
-            color: #4A5568;
-            letter-spacing: 0.5px;
+            color: #75727C;
+            letter-spacing: 1px;
             margin-top: 2px;
         }
-
-        .company-contact {
-            font-size: 8px;
-            color: #718096;
-            margin-top: 1px;
-        }
-
         .report-badge {
             display: inline-block;
             background: #FDF1F2;
@@ -67,130 +45,87 @@
             border-radius: 4px;
             font-weight: bold;
             font-size: 10px;
-            letter-spacing: 0.3px;
         }
-
-        /* ── INFORMASI AGENDA / METADATA ── */
         .meta-container {
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             background: #F8F7F6;
             border: 1px solid #E7E5E3;
-            border-radius: 5px;
-            padding: 7px 10px;
+            border-radius: 6px;
+            padding: 8px 12px;
         }
-
         .meta-table {
             width: 100%;
-            font-size: 9px;
-            border-collapse: collapse;
+            font-size: 9.5px;
         }
-
         .meta-table td {
             padding: 2px 4px;
-            vertical-align: middle;
         }
-
-        /* ── KPI / SUMMARY CARDS ── */
         .summary-cards {
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
-
         .summary-box {
             border: 1px solid #E7E5E3;
             background: #FFFFFF;
-            border-radius: 5px;
-            padding: 5px 8px;
+            border-radius: 6px;
+            padding: 6px 10px;
             text-align: center;
         }
-
         .summary-title {
-            font-size: 8px;
+            font-size: 8.5px;
             font-weight: bold;
             color: #75727C;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
         }
-
         .summary-value {
-            font-size: 13px;
+            font-size: 15px;
             font-weight: bold;
             color: #17151C;
-            margin-top: 1px;
+            margin-top: 2px;
         }
-
-        /* ── TABEL UTAMA AKTIVITAS ── */
         .data-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 14px;
-            font-size: 8.5px;
+            font-size: 9px;
         }
-
         .data-table th {
             background-color: #1E293B;
             color: #FFFFFF;
             font-weight: bold;
             padding: 6px 5px;
             text-align: center;
-            border: 1px solid #64748B;
-            font-size: 8.5px;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
+            border: 1px solid #94A3B8;
         }
-
         .data-table td {
-            padding: 5px 6px;
-            border: 1px solid #CBD5E1;
+            padding: 5px 5px;
+            border: 1px solid #E2E8F0;
             vertical-align: top;
-            color: #1E293B;
-            line-height: 1.35;
         }
-
         .row-even {
             background-color: #F8FAFC;
         }
-
         .text-center {
             text-align: center;
         }
-
-        .text-left {
-            text-align: left;
+        .text-right {
+            text-align: right;
         }
-
-        .time-badge {
-            display: inline-block;
-            background: #EFF6FF;
-            color: #1D4ED8;
-            border: 1px solid #BFDBFE;
-            padding: 1px 4px;
-            border-radius: 3px;
-            font-size: 8.5px;
+        .total-row td {
+            background-color: #E2E8F0;
             font-weight: bold;
-            white-space: nowrap;
+            border-top: 2px solid #94A3B8;
+            padding: 6px 5px;
         }
-
-        /* ── PENGESAHAN & TANDA TANGAN ── */
         .signature-table {
             width: 100%;
-            margin-top: 10px;
+            margin-top: 18px;
             page-break-inside: avoid;
         }
-
         .signature-box {
             text-align: center;
-            width: 220px;
-        }
-
-        .footer-note {
-            font-size: 7.5px;
-            color: #94A3B8;
-            border-top: 1px dashed #CBD5E1;
-            padding-top: 5px;
-            line-height: 1.4;
-            margin-top: 10px;
+            width: 200px;
         }
     </style>
 </head>
@@ -245,81 +180,78 @@
     $totalCount = is_countable($items) ? count($items) : 0;
 @endphp
 
-    {{-- ══ KOP SURAT RESMI PERUSAHAAN ══ --}}
-    <table class="header-table" cellpadding="0" cellspacing="0">
+    <!-- Header -->
+    <table class="header-table">
         <tr>
-            <td style="width: 52px; vertical-align: middle;">
-                @if(!empty($logoBase64))
-                    <img src="{{ $logoBase64 }}" alt="Logo" class="header-logo">
-                @else
-                    <div style="font-weight: bold; font-size: 16px; color: #C81E2C;">IPNET</div>
-                @endif
+            <td style="width: 60%;">
+                <div class="company-title">PT IP NETWORK SOLUSINDO</div>
+                <div class="company-subtitle">FIELD SYSTEM MANAGEMENT - LEMBAR KERJA / CATATAN AKTIVITAS</div>
             </td>
-            <td style="vertical-align: middle; padding-left: 8px;">
-                <div class="company-title">PT. IP NETWORK SOLUSINDO</div>
-                <div class="company-subtitle">GOLDEN CENTRUM COMPLEX &bull; JL. MAJAPAHIT 26P JAKARTA 10160</div>
-                <div class="company-contact">Telp: (021) 2965-5050 &bull; Email: info@ipnetsolusindo.co.id &bull; Website: www.ipnetsolusindo.co.id</div>
+            <td style="width: 40%; text-align: right;">
+                <span class="report-badge">DOKUMEN RESMI REKAP KERJA</span>
             </td>
-            <td style="width: 250px; text-align: right; vertical-align: middle;">
-                <span class="report-badge">LAPORAN AKTIVITAS ENGINEER</span>
-                <div style="font-size: 8px; color: #75727C; margin-top: 3px;">
-                    Dicetak: {{ now()->locale('id')->isoFormat('D MMMM Y, H:mm') }} WIB
+        </tr>
+    </table>
+
+    <!-- Metadata Filter -->
+    <div class="meta-container">
+        <table class="meta-table">
+            <tr>
+                <td style="width: 15%; font-weight: bold; color: #75727C;">Filter Engineer</td>
+                <td style="width: 35%;">: {{ $engineerName ?? 'Semua Engineer' }}</td>
+                <td style="width: 15%; font-weight: bold; color: #75727C;">Periode</td>
+                <td style="width: 35%;">: {{ now()->locale('id')->isoFormat('D MMMM Y') }}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; color: #75727C;">Filter Project</td>
+                <td>: {{ $projectName ?? 'Semua Project' }}</td>
+                <td style="font-weight: bold; color: #75727C;">Tanggal Cetak</td>
+                <td>: {{ now()->locale('id')->isoFormat('D MMMM Y, H:mm') }} WIB</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Summary Box -->
+    <table class="summary-cards" style="width: 100%; border-spacing: 6px 0; margin-left: -6px; margin-right: -6px;">
+        <tr>
+            <td style="width: 25%;">
+                <div class="summary-box">
+                    <div class="summary-title">TOTAL AKTIVITAS</div>
+                    <div class="summary-value" style="color: #C81E2C;">{{ $totalCount }} Agenda</div>
+                </div>
+            </td>
+            <td style="width: 25%;">
+                <div class="summary-box">
+                    <div class="summary-title">TOTAL HARI KERJA</div>
+                    <div class="summary-value">1 Hari</div>
+                </div>
+            </td>
+            <td style="width: 25%;">
+                <div class="summary-box">
+                    <div class="summary-title">TOTAL ENTRI LOG</div>
+                    <div class="summary-value">{{ $totalCount }} Entri</div>
+                </div>
+            </td>
+            <td style="width: 25%;">
+                <div class="summary-box">
+                    <div class="summary-title">JUMLAH ENGINEER</div>
+                    <div class="summary-value">1 Orang</div>
                 </div>
             </td>
         </tr>
     </table>
 
-    {{-- ══ INFORMASI DOKUMEN / FILTER ══ --}}
-    <div class="meta-container">
-        <table class="meta-table">
-            <tr>
-                <td style="width: 14%; font-weight: bold; color: #75727C;">Proyek / Agenda</td>
-                <td style="width: 36%; font-weight: bold; color: #17151C;">: {{ $projectName ?? 'Semua Proyek' }}</td>
-                <td style="width: 14%; font-weight: bold; color: #75727C;">Tanggal Cetak</td>
-                <td style="width: 36%; color: #17151C;">: {{ now()->locale('id')->isoFormat('dddd, D MMMM Y, H:mm') }} WIB</td>
-            </tr>
-            <tr>
-                <td style="font-weight: bold; color: #75727C;">Dicatat Oleh</td>
-                <td style="color: #17151C;">: {{ $engineerName ?? '-' }}</td>
-                <td style="font-weight: bold; color: #75727C;">Total Agenda</td>
-                <td style="font-weight: bold; color: #C81E2C;">: {{ $totalCount }} Rangkaian Agenda Kegiatan</td>
-            </tr>
-        </table>
-    </div>
-
-    {{-- ══ RINGKASAN METRIK / SUMMARY CARDS ══ --}}
-    <table class="summary-cards" style="width: 100%; border-collapse: separate; border-spacing: 6px 0;">
-        <tr>
-            <td class="summary-box" style="width: 25%;">
-                <div class="summary-title">Total Aktivitas</div>
-                <div class="summary-value" style="color: #C81E2C;">{{ $totalCount }} <span style="font-size: 9px; font-weight: normal; color: #75727C;">Agenda</span></div>
-            </td>
-            <td class="summary-box" style="width: 25%;">
-                <div class="summary-title">Status Proyek</div>
-                <div class="summary-value" style="color: #059669; font-size: 11px;">Aktif / On Going</div>
-            </td>
-            <td class="summary-box" style="width: 25%;">
-                <div class="summary-title">Pelaksana Teknis</div>
-                <div class="summary-value" style="color: #1E293B; font-size: 11px;">{{ $engineerName ?? '-' }}</div>
-            </td>
-            <td class="summary-box" style="width: 25%;">
-                <div class="summary-title">Klasifikasi Dokumen</div>
-                <div class="summary-value" style="color: #2563EB; font-size: 11px;">Dokumen Resmi Operasional</div>
-            </td>
-        </tr>
-    </table>
-
-    {{-- ══ TABEL DATA AKTIVITAS (NO, AKTIVITAS, TANGGAL, WAKTU, PIC KLIEN, PIC IPNET, NOTED) ══ --}}
-    <table class="data-table" cellpadding="0" cellspacing="0">
+    <!-- Data Table -->
+    <table class="data-table">
         <thead>
             <tr>
-                <th style="width: 4%;">No</th>
-                <th style="width: 31%; text-align: left;">Aktivitas</th>
-                <th style="width: 10%;">Tanggal</th>
-                <th style="width: 9%;">Waktu</th>
-                <th style="width: 13%; text-align: left;">PIC Klien</th>
-                <th style="width: 14%; text-align: left;">PIC IPNET</th>
-                <th style="width: 19%; text-align: left;">Noted</th>
+                <th style="width: 25px;">No</th>
+                <th style="width: 70px;">Tanggal</th>
+                <th style="width: 65px;">Waktu</th>
+                <th>Uraian Aktivitas</th>
+                <th style="width: 90px;">PIC Klien</th>
+                <th style="width: 90px;">PIC IPNET</th>
+                <th style="width: 120px;">Noted</th>
             </tr>
         </thead>
         <tbody>
@@ -335,64 +267,63 @@
                     $nt    = $isArr ? ($item['notes'] ?? '') : ($item->notes ?? '');
                 @endphp
                 <tr class="{{ $index % 2 === 1 ? 'row-even' : '' }}">
-                    <td class="text-center" style="font-weight: bold; color: #475569;">{{ $no }}</td>
-                    <td class="text-left" style="font-weight: 600; color: #0F172A;">{{ $act ?: '-' }}</td>
-                    <td class="text-center" style="white-space: nowrap;">{{ $dt ?: '-' }}</td>
-                    <td class="text-center">
-                        @if($tm && $tm !== '-')
-                            <span class="time-badge">{{ $tm }}</span>
-                        @else
-                            -
-                        @endif
-                    </td>
-                    <td class="text-left" style="color: #334155;">{{ (!empty($cpic) && $cpic !== '-') ? $cpic : '-' }}</td>
-                    <td class="text-left" style="color: #334155; font-weight: 500;">{{ (!empty($ipic) && $ipic !== '-') ? $ipic : '-' }}</td>
-                    <td class="text-left" style="color: #475569;">{{ (!empty($nt) && $nt !== '-') ? $nt : '-' }}</td>
+                    <td class="text-center">{{ $no }}</td>
+                    <td class="text-center">{{ $dt ?: '-' }}</td>
+                    <td class="text-center" style="font-weight: 600;">{{ $tm ?: '-' }}</td>
+                    <td style="font-weight: 500;">{{ $act ?: '-' }}</td>
+                    <td class="text-center">{{ (!empty($cpic) && $cpic !== '-') ? $cpic : '-' }}</td>
+                    <td class="text-center" style="font-weight: 600;">{{ (!empty($ipic) && $ipic !== '-') ? $ipic : '-' }}</td>
+                    <td>{{ (!empty($nt) && $nt !== '-') ? $nt : '-' }}</td>
                 </tr>
             @empty
                 <tr>
                     <td colspan="7" class="text-center" style="padding: 18px; color: #75727C; font-style: italic;">
-                        Tidak ada data catatan aktivitas yang tercatat.
+                        Tidak ada catatan aktivitas untuk periode filter ini.
                     </td>
                 </tr>
             @endforelse
+
+            @if(!empty($items) && count($items) > 0)
+                <tr class="total-row">
+                    <td colspan="3" class="text-right">TOTAL AGENDA AKTIVITAS :</td>
+                    <td class="text-center" style="color: #C81E2C;">{{ $totalCount }} Agenda</td>
+                    <td colspan="3" style="font-size: 8.5px; color: #475569;">Total {{ $totalCount }} aktivitas pengerjaan</td>
+                </tr>
+            @endif
         </tbody>
     </table>
 
-    {{-- ══ PENGESAHAN & TANDA TANGAN ══ --}}
-    <table class="signature-table" cellpadding="0" cellspacing="0">
+    <!-- Signature Block -->
+    <table class="signature-table" style="width: 100%; margin-top: 25px; border-collapse: collapse;">
         <tr>
-            <td style="width: 60%; vertical-align: top; padding-right: 25px;">
-                <div style="font-size: 8px; font-weight: bold; color: #475569; text-transform: uppercase; margin-bottom: 2px;">
-                    Catatan Dokumen & Bukti Pelaksanaan:
-                </div>
-                <div style="font-size: 8px; color: #64748B; line-height: 1.45;">
-                    1. Dokumen ini merupakan bukti catatan kronologis resmi kegiatan teknis operasional lapangan PT. IP Network Solusindo.<br>
-                    2. Digenerate secara otomatis oleh Sistem Manajemen Operasional IPNET pada {{ now()->format('d/m/Y H:i') }} WIB.<br>
-                    3. Seluruh rincian aktivitas dan koordinasi lapangan telah terdaftar dalam sistem.
+            <td style="width: 45%; vertical-align: top;">
+                <div style="font-size: 8.5px; color: #75727C; line-height: 1.4;">
+                    * Dokumen rekapitulasi aktivitas ini digenerate secara otomatis melalui sistem Field System Management IP-Net.<br>
+                    * Informasi ini digunakan sebagai acuan monitoring produktivitas dan pertanggungjawaban pengerjaan proyek.
                 </div>
             </td>
-            <td class="signature-box" style="vertical-align: top;">
-                <div style="font-size: 8.5px; color: #374151; margin-bottom: 2px;">
-                    Jakarta, {{ now()->locale('id')->isoFormat('D MMMM Y') }}
+            <td style="width: 27%; text-align: center; vertical-align: top;">
+                <div style="font-size: 9px; color: #75727C; margin-bottom: 45px;">
+                    Jakarta, {{ now()->locale('id')->isoFormat('D MMMM Y') }}<br>
+                    <strong>Dibuat Oleh,</strong>
                 </div>
-                <div style="font-size: 8.5px; font-weight: bold; color: #1E293B; margin-bottom: 45px;">
-                    Lead Engineer / Penanggung Jawab
+                <div style="font-weight: bold; border-bottom: 1px solid #17151C; padding-bottom: 2px; color: #17151C;">
+                    {{ $engineerName ?? 'Nugraha Pratama' }}
                 </div>
-                <div style="font-size: 9px; font-weight: bold; color: #1E293B; text-decoration: underline;">
-                    ( {{ $engineerName ?? '........................................' }} )
+                <div style="font-size: 8.5px; color: #75727C; margin-top: 2px;">Network Leader</div>
+            </td>
+            <td style="width: 28%; text-align: center; vertical-align: top;">
+                <div style="font-size: 9px; color: #75727C; margin-bottom: 45px;">
+                    <br>
+                    <strong>Mengetahui & Menyetujui,</strong>
                 </div>
-                <div style="font-size: 8px; color: #64748B; margin-top: 2px;">
-                    PT. IP Network Solusindo
+                <div style="font-weight: bold; border-bottom: 1px solid #17151C; padding-bottom: 2px; color: #17151C;">
+                    Susanto Djaya
                 </div>
+                <div style="font-size: 8.5px; color: #75727C; margin-top: 2px;">Group Leader</div>
             </td>
         </tr>
     </table>
-
-    {{-- ══ FOOTER NOTE ══ --}}
-    <div class="footer-note">
-        PT. IP Network Solusindo &bull; Golden Centrum Complex, Jl. Majapahit 26P Jakarta 10160 &bull; Halaman Resmi Laporan Aktivitas Lapangan &bull; Dicetak Otomatis
-    </div>
 
 </body>
 </html>
