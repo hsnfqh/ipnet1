@@ -1654,6 +1654,58 @@ class DashboardController extends Controller
         return back()->with('success', 'Catatan aktivitas berhasil dihapus.');
     }
 
+    // ─── Engineer Activity Log: Update (Edit) ──────────────────────────────────
+    public function updateActivityLog(Request $request, EngineerActivityLog $log)
+    {
+        $user   = auth()->user();
+        $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
+        if ($log->user_id !== $user->id && !$isLead) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah log aktivitas ini.');
+        }
+
+        $subject     = trim($request->input('subject', ''));
+        $date        = $request->input('activity_date') ?: $log->activity_date?->format('Y-m-d');
+        $clientPic   = trim($request->input('client_pic', ''));
+        $ipnetPic    = trim($request->input('ipnet_pic', ''));
+        $notedText   = trim($request->input('notes', ''));
+        $projectId   = $request->input('project_id') ?: $log->project_id;
+        $actTitle    = trim($request->input('activity_title', ''));
+
+        // Rebuild description (preserve title prefix if any)
+        if ($actTitle !== '') {
+            $description = "[{$actTitle}] " . $subject;
+        } else {
+            // Preserve existing title prefix
+            if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $log->description, $m)) {
+                $description = "[{$m[1]}] " . $subject;
+            } else {
+                $description = $subject;
+            }
+        }
+
+        // Rebuild notes
+        $notesParts = [];
+        if ($notedText !== '') {
+            $notesParts[] = $notedText;
+        }
+        if ($clientPic !== '') {
+            $notesParts[] = "PIC Klien: {$clientPic}";
+        }
+        if ($ipnetPic !== '') {
+            $notesParts[] = "PIC IPNET: {$ipnetPic}";
+        }
+        $finalNotes = implode(' | ', $notesParts);
+
+        $log->update([
+            'project_id'    => $projectId,
+            'description'   => $description,
+            'activity_date' => $date,
+            'notes'         => $finalNotes ?: null,
+        ]);
+
+        return back()->with('success', 'Aktivitas berhasil diperbarui!');
+    }
+
     // ─── Engineer Activity Log: Export PDF ──────────────────────────────────────
     public function exportActivityLogPdf(\Illuminate\Http\Request $request)
     {
