@@ -1636,4 +1636,199 @@ class DashboardController extends Controller
         $log->delete();
         return back()->with('success', 'Catatan aktivitas berhasil dihapus.');
     }
+
+    // ─── Engineer Activity Log: Export PDF ──────────────────────────────────────
+    public function exportActivityLogPdf(\Illuminate\Http\Request $request)
+    {
+        $authUser = auth()->user();
+        $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
+
+        $query = EngineerActivityLog::with(['engineer', 'project']);
+
+        if (!$isLead) {
+            $query->where('user_id', $authUser->id);
+        } else {
+            if ($request->filled('user_id')) {
+                $query->where('user_id', $request->user_id);
+            }
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhereHas('engineer', fn($sq) => $sq->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('project', fn($sq) => $sq->where('name', 'like', "%{$search}%")->orWhere('client', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($request->filled('activity_type')) {
+            $query->where('activity_type', $request->activity_type);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
+        }
+
+        if ($request->filled('date')) {
+            $query->whereDate('activity_date', $request->date);
+        }
+
+        $activities      = $query->orderBy('activity_date', 'desc')->orderBy('created_at', 'desc')->get();
+        $totalActivities = $activities->count();
+        $totalCompleted  = $activities->where('status', 'Selesai')->count();
+        $totalInProgress = $activities->where('status', 'Sedang Berjalan')->count();
+        $totalDelayed    = $activities->where('status', 'Ditunda')->count();
+
+        // Nama filter untuk ditampilkan di laporan
+        $filterEngineer = null;
+        if ($isLead && $request->filled('user_id')) {
+            $eng = User::find($request->user_id);
+            $filterEngineer = $eng?->name;
+        } elseif (!$isLead) {
+            $filterEngineer = $authUser->name;
+        }
+
+        $filterDate   = $request->filled('date') ? $request->date : null;
+        $filterStatus = $request->filled('status') ? $request->status : null;
+        $filterType   = $request->filled('activity_type') ? $request->activity_type : null;
+        $printedBy    = $authUser->name;
+
+        $html = view('exports.engineer-activity-report-pdf', compact(
+            'activities',
+            'totalActivities',
+            'totalCompleted',
+            'totalInProgress',
+            'totalDelayed',
+            'filterEngineer',
+            'filterDate',
+            'filterStatus',
+            'filterType',
+            'printedBy'
+        ))->render();
+
+        return response($html)
+            ->header('Content-Type', 'text/html; charset=utf-8')
+            ->header('X-Frame-Options', 'SAMEORIGIN');
+    }
+
+    // ─── Engineer Activity Log: Export Excel (CSV) ───────────────────────────────
+    public function exportActivityLogExcel(\Illuminate\Http\Request $request)
+    {
+        $authUser = auth()->user();
+        $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
+
+        $query = EngineerActivityLog::with(['engineer', 'project']);
+
+        if (!$isLead) {
+            $query->where('user_id', $authUser->id);
+        } else {
+            if ($request->filled('user_id')) {
+                $query->where('user_id', $request->user_id);
+            }
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhereHas('engineer', fn($sq) => $sq->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('project', fn($sq) => $sq->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($request->filled('activity_type')) {
+            $query->where('activity_type', $request->activity_type);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
+        }
+        if ($request->filled('date')) {
+            $query->whereDate('activity_date', $request->date);
+        }
+
+        $activities = $query->orderBy('activity_date', 'desc')->orderBy('created_at', 'desc')->get();
+
+        $filename = 'Laporan_Aktivitas_Engineer_' . now()->format('Ymd_His') . '.csv';
+
+        $rows = [];
+
+        // Header Dokumen
+        $rows[] = ['PT IP NETWORK SOLUSINDO'];
+        $rows[] = ['Laporan Aktivitas Engineer'];
+        $rows[] = ['Dicetak', now()->isoFormat('D MMMM Y, H:mm') . ' WIB'];
+        $rows[] = ['Dicetak oleh', $authUser->name];
+        $rows[] = ['']; // blank line
+
+        // Header Kolom
+        $rows[] = [
+            'No',
+            'Tanggal',
+            'Waktu',
+            'Nama Engineer',
+            'Proyek',
+            'Klien',
+            'Tipe Aktivitas',
+            'Aktivitas / Deskripsi',
+            'Status',
+            'Noted / Catatan',
+        ];
+
+        // Data Rows
+        foreach ($activities as $i => $act) {
+            $waktu = '-';
+            if ($act->start_time) {
+                $waktu = \Carbon\Carbon::parse($act->start_time)->format('H:i');
+                if ($act->end_time) {
+                    $waktu .= ' - ' . \Carbon\Carbon::parse($act->end_time)->format('H:i');
+                }
+            }
+
+            $rows[] = [
+                $i + 1,
+                $act->activity_date ? $act->activity_date->format('d/m/Y') : '-',
+                $waktu,
+                $act->engineer->name ?? '-',
+                $act->project->name ?? '-',
+                $act->project->client ?? '-',
+                $act->activity_type ?? '-',
+                $act->description ?? '-',
+                $act->status ?? '-',
+                $act->notes ?? '-',
+            ];
+        }
+
+        // Blank + Summary
+        $rows[] = [''];
+        $rows[] = ['RINGKASAN'];
+        $rows[] = ['Total Aktivitas', $activities->count()];
+        $rows[] = ['Selesai', $activities->where('status', 'Selesai')->count()];
+        $rows[] = ['Sedang Berjalan', $activities->where('status', 'Sedang Berjalan')->count()];
+        $rows[] = ['Ditunda', $activities->where('status', 'Ditunda')->count()];
+
+        // Build CSV string with BOM for Excel UTF-8
+        $csvContent = "\xEF\xBB\xBF"; // UTF-8 BOM
+        foreach ($rows as $row) {
+            $escaped = array_map(function ($cell) {
+                $cell = str_replace('"', '""', (string) $cell);
+                return '"' . $cell . '"';
+            }, $row);
+            $csvContent .= implode(',', $escaped) . "\r\n";
+        }
+
+        return response($csvContent)
+            ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+    }
 }

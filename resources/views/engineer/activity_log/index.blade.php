@@ -219,14 +219,78 @@
                     @endif
                 </form>
 
-                {{-- Action: Tombol Catat Aktivitas (Bisa diakses Engineer maupun Lead) --}}
-                <button type="button" @click="$dispatch('open-engineer-activity-modal')"
-                        class="btn-ipnet-primary w-full sm:w-auto justify-center shadow-md px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shrink-0">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span>Input Aktivitas</span>
-                </button>
+                {{-- Action Buttons Group --}}
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    {{-- Export Dropdown --}}
+                    <div class="relative" x-data="{ exportOpen: false }">
+                        <button type="button"
+                                @click="exportOpen = !exportOpen"
+                                class="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shrink-0 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-xs">
+                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            <span>Export</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+
+                        {{-- Dropdown Menu --}}
+                        <div x-show="exportOpen"
+                             x-cloak
+                             @click.outside="exportOpen = false"
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-30 overflow-hidden"
+                             style="display:none;">
+                            <div class="p-2 space-y-0.5">
+                                {{-- Export PDF --}}
+                                <a href="{{ route('engineer.activity_log.export_pdf', request()->except('page')) }}"
+                                   target="_blank"
+                                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold text-gray-700 hover:bg-red-50 hover:text-[#8F0A0D] transition-colors group">
+                                    <div class="w-7 h-7 rounded-lg bg-red-50 group-hover:bg-red-100 flex items-center justify-center flex-shrink-0 transition-colors">
+                                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold">Download PDF</p>
+                                        <p class="text-[10px] text-gray-400 font-normal">Laporan berlogo IP Network</p>
+                                    </div>
+                                </a>
+
+                                <div class="border-t border-gray-100 my-1"></div>
+
+                                {{-- Export Excel --}}
+                                <a href="{{ route('engineer.activity_log.export_excel', request()->except('page')) }}"
+                                   class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors group">
+                                    <div class="w-7 h-7 rounded-lg bg-emerald-50 group-hover:bg-emerald-100 flex items-center justify-center flex-shrink-0 transition-colors">
+                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold">Download Excel</p>
+                                        <p class="text-[10px] text-gray-400 font-normal">Format CSV (bisa dibuka Excel)</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tombol Input Aktivitas --}}
+                    <button type="button" @click="$dispatch('open-engineer-activity-modal')"
+                            class="btn-ipnet-primary w-full sm:w-auto justify-center shadow-md px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shrink-0">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Input Aktivitas</span>
+                    </button>
+                </div>
             </div>
 
             {{-- Activity Grid / Feed --}}

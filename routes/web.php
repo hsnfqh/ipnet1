@@ -171,6 +171,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('engineer.activity_log.destroy')
         ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager');
 
+    Route::get('/engineer/activity-logs/export/pdf', [DashboardController::class, 'exportActivityLogPdf'])
+        ->name('engineer.activity_log.export_pdf')
+        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager');
+
+    Route::get('/engineer/activity-logs/export/excel', [DashboardController::class, 'exportActivityLogExcel'])
+        ->name('engineer.activity_log.export_excel')
+        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager');
+
     // Route legacy / alias POST dari embedded section dashboard
     Route::post('/dashboard/engineer/activity-log', [DashboardController::class, 'storeActivityLog'])
         ->name('engineer.activity_log.store_legacy')
