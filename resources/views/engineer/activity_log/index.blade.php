@@ -234,23 +234,116 @@
                         $clientName   = $project->client ?? '-';
                         $totalInGroup = $groupActivities->count();
 
-                        // Ambil seluruh nama engineer yang berkontribusi di grup proyek ini
-                        $engineersInGroup = $groupActivities->map(function($a) {
-                            $rawNotes = $a->notes ?? '';
-                            $pic = '';
-                            if (preg_match('/PIC IPNET:\s*([^|]+)/', $rawNotes, $m)) {
-                                $pic = trim($m[1]);
+                        // Helper untuk inisial 2 huruf kapital
+                        $getInitials = function($name) {
+                            $trimmed = trim((string) $name);
+                            if (!$trimmed) return 'EN';
+                            $words = preg_split('/\s+/', $trimmed);
+                            if (count($words) >= 2) {
+                                return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
                             }
-                            return $pic ?: ($a->engineer->name ?? null);
-                        })->filter()->unique()->values();
+                            return strtoupper(substr($trimmed, 0, 2));
+                        };
 
-                        $engineerNamesDisplay = $engineersInGroup->take(2)->implode(', ');
-                        if ($engineersInGroup->count() > 2) {
-                            $engineerNamesDisplay .= ' +' . ($engineersInGroup->count() - 2) . ' lainnya';
+                        // Kumpulkan seluruh engineer yang berkontribusi secara riil
+                        $collectedEngineers = collect();
+
+                        // 1. Dari user relasi engineer pada groupActivities
+                        foreach ($groupActivities as $act) {
+                            if ($act->engineer && !empty($act->engineer->name)) {
+                                $cName = trim($act->engineer->name);
+                                if (!in_array(strtolower($cName), ['test', 'null', 'none'])) {
+                                    $collectedEngineers->push([
+                                        'id'       => $act->engineer->id,
+                                        'name'     => $cName,
+                                        'initials' => $getInitials($cName),
+                                    ]);
+                                }
+                            }
                         }
-                        if (!$engineerNamesDisplay) {
-                            $engineerNamesDisplay = $firstAct->engineer->name ?? 'Engineer';
+
+                        // 2. Dari penugasan schedule & task pada proyek ini (jika ada)
+                        if (isset($project) && $project) {
+                            try {
+                                if ($project->relationLoaded('schedules')) {
+                                    foreach ($project->schedules as $sched) {
+                                        if ($sched->engineer && !empty($sched->engineer->name)) {
+                                            $cName = trim($sched->engineer->name);
+                                            $collectedEngineers->push([
+                                                'id'       => $sched->engineer->id,
+                                                'name'     => $cName,
+                                                'initials' => $getInitials($cName),
+                                            ]);
+                                        }
+                                        if ($sched->relationLoaded('engineers')) {
+                                            foreach ($sched->engineers as $eng) {
+                                                if (!empty($eng->name)) {
+                                                    $cName = trim($eng->name);
+                                                    $collectedEngineers->push([
+                                                        'id'       => $eng->id,
+                                                        'name'     => $cName,
+                                                        'initials' => $getInitials($cName),
+                                                    ]);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (\Throwable $e) {}
+
+                            try {
+                                if ($project->relationLoaded('tasks')) {
+                                    foreach ($project->tasks as $t) {
+                                        if ($t->engineer && !empty($t->engineer->name)) {
+                                            $cName = trim($t->engineer->name);
+                                            $collectedEngineers->push([
+                                                'id'       => $t->engineer->id,
+                                                'name'     => $cName,
+                                                'initials' => $getInitials($cName),
+                                            ]);
+                                        }
+                                    }
+                                }
+                            } catch (\Throwable $e) {}
                         }
+
+                        // 3. Dari PIC IPNET di kolom notes (hanya jika nama valid > 2 huruf, abaikan placeholder seperti 'a', 'aa', '-')
+                        foreach ($groupActivities as $act) {
+                            $rawNotes = $act->notes ?? '';
+                            if (preg_match('/PIC IPNET:\s*([^|\n]+)/i', $rawNotes, $m)) {
+                                $rawPics = explode(',', $m[1]);
+                                foreach ($rawPics as $p) {
+                                    $clean = trim($p);
+                                    if (strlen($clean) > 2 && !in_array(strtolower($clean), ['a', 'aa', 'aaa', 'bb', 'cc', 'test', 'null', 'none', '-'])) {
+                                        $collectedEngineers->push([
+                                            'id'       => null,
+                                            'name'     => $clean,
+                                            'initials' => $getInitials($clean),
+                                        ]);
+                                    }
+                                }
+                            }
+                        }
+
+                        // 4. Fallback jika masih kosong
+                        if ($collectedEngineers->isEmpty()) {
+                            $fallbackName = auth()->user()->name ?? 'Engineer';
+                            $collectedEngineers->push([
+                                'id'       => auth()->id(),
+                                'name'     => $fallbackName,
+                                'initials' => $getInitials($fallbackName),
+                            ]);
+                        }
+
+                        // Deduplikasi berdasarkan nama case-insensitive
+                        $uniqueEngineers = $collectedEngineers->unique(function ($item) {
+                            return strtolower($item['name']);
+                        })->values();
+
+                        $primaryEngineer = $uniqueEngineers->first();
+                        $displayAvatars = $uniqueEngineers->take(2);
+                        $additionalTeamCount = max(0, $uniqueEngineers->count() - 1);
+                        $allEngineerNames = $uniqueEngineers->pluck('name')->implode(', ');
 
                         // Build clean preview items (strip [prefix] and PIC from notes)
                         $previewItems = $groupActivities->take(3)->map(function($a) {
@@ -268,9 +361,9 @@
                         $groupJson = json_encode([
                             'project_name'  => $projectName,
                             'client_name'   => $clientName,
-                            'engineer_name' => $engineersInGroup->implode(', ') ?: ($firstAct->engineer->name ?? '-'),
+                            'engineer_name' => $allEngineerNames ?: ($firstAct->engineer->name ?? '-'),
                             'total'         => $totalInGroup,
-                            'items'         => $groupActivities->map(function($a, $idx) {
+                            'items'         => $groupActivities->map(function($a, $idx) use ($primaryEngineer) {
                                 $rawNotes  = $a->notes ?? '';
                                 $clientPic = '';
                                 $ipnetPic  = '';
@@ -291,8 +384,8 @@
                                     $notedOnly = implode(' | ', array_filter($notedParts));
                                 }
 
-                                if (!$ipnetPic) {
-                                    $ipnetPic = $a->engineer->name ?? '-';
+                                if (!$ipnetPic || in_array(strtolower($ipnetPic), ['a', 'aa', 'aaa', 'bb', 'cc', 'test', 'null', 'none', '-'])) {
+                                    $ipnetPic = $a->engineer->name ?? ($primaryEngineer['name'] ?? '-');
                                 }
 
                                 $description = $a->description ?? '-';
@@ -317,7 +410,7 @@
                         ]);
 
                         // Edit data per item
-                        $editJson = json_encode($groupActivities->map(function($a) use ($projectName) {
+                        $editJson = json_encode($groupActivities->map(function($a) use ($projectName, $primaryEngineer) {
                             $rawNotes  = $a->notes ?? '';
                             $clientPic = ''; $ipnetPic = ''; $notedOnly = $rawNotes;
                             if ($rawNotes) {
@@ -336,13 +429,17 @@
                                 $actTitle = $m[1];
                                 $desc = $m[2] ?: $m[1];
                             }
+                            $cleanIpnetPic = $ipnetPic;
+                            if (!$cleanIpnetPic || in_array(strtolower($cleanIpnetPic), ['a', 'aa', 'aaa', 'bb', 'cc', 'test', 'null', 'none', '-'])) {
+                                $cleanIpnetPic = $a->engineer->name ?? ($primaryEngineer['name'] ?? '');
+                            }
                             return [
                                 'id'             => $a->id,
                                 'subject'        => $desc,
                                 'activity_title' => $actTitle,
                                 'date_raw'       => $a->activity_date ? $a->activity_date->format('Y-m-d') : date('Y-m-d'),
                                 'client_pic'     => $clientPic,
-                                'ipnet_pic'      => $ipnetPic ?: ($a->engineer->name ?? ''),
+                                'ipnet_pic'      => $cleanIpnetPic,
                                 'notes'          => $notedOnly,
                                 'project_id'     => $a->project_id,
                                 'project_name'   => $projectName,
@@ -375,11 +472,37 @@
                                 {{ $projectName }}
                             </h3>
 
-                            <div class="flex items-center gap-1.5 mt-1 text-[11px] text-gray-500">
-                                <span class="font-semibold text-gray-700 truncate max-w-[200px]" title="{{ $engineersInGroup->implode(', ') }}">{{ $engineerNamesDisplay }}</span>
+                            <div class="flex items-center flex-wrap gap-1.5 mt-2">
+                                {{-- Stacked Circular Avatars --}}
+                                <div class="flex items-center -space-x-1.5 shrink-0" title="{{ $allEngineerNames }}">
+                                    @foreach($displayAvatars as $idx => $eng)
+                                        @php
+                                            $bgColor = $idx === 0 ? 'bg-[#8F0A0D]' : ($idx === 1 ? 'bg-[#2563EB]' : 'bg-[#0D9488]');
+                                        @endphp
+                                        <div class="w-5 h-5 rounded-full {{ $bgColor }} text-white text-[9.5px] font-black flex items-center justify-center ring-1.5 ring-white uppercase shrink-0 shadow-xs"
+                                             title="{{ $eng['name'] }}">
+                                            {{ $eng['initials'] }}
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                {{-- Primary Engineer Name --}}
+                                <span class="text-[12px] font-bold text-[#1E293B] truncate max-w-[140px]" title="{{ $allEngineerNames }}">
+                                    {{ $primaryEngineer['name'] ?? 'Engineer' }}
+                                </span>
+
+                                {{-- Team Badge (+X tim) --}}
+                                @if($additionalTeamCount > 0)
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9.5px] font-extrabold bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] shrink-0"
+                                          title="{{ $allEngineerNames }}">
+                                        +{{ $additionalTeamCount }} tim
+                                    </span>
+                                @endif
+
+                                {{-- Separator & Client Name --}}
                                 @if($clientName && $clientName !== '-')
-                                    <span class="text-gray-300">•</span>
-                                    <span class="text-gray-500 truncate max-w-[130px]" title="{{ $clientName }}">{{ $clientName }}</span>
+                                    <span class="text-gray-300 shrink-0">•</span>
+                                    <span class="text-[11px] text-gray-500 font-medium truncate max-w-[120px]" title="{{ $clientName }}">{{ $clientName }}</span>
                                 @endif
                             </div>
                         </div>

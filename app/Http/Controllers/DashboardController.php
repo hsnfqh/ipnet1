@@ -1439,7 +1439,12 @@ class DashboardController extends Controller
         $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
         $linkedProjectIds = $this->getLinkedProjectIds($authUser);
 
-        $query = EngineerActivityLog::with(['engineer', 'project']);
+        $query = EngineerActivityLog::with([
+            'engineer',
+            'project.schedules.engineer',
+            'project.schedules.engineers',
+            'project.tasks.engineer',
+        ]);
 
         // Jika bukan managerial/lead, batasi log milik sendiri dan log pada proyek yang terhubung (tim/shared)
         if (!$isLead) {
