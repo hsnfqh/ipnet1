@@ -293,143 +293,208 @@
                 </div>
             </div>
 
-            {{-- Activity Grid / Feed --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 anim-fade-up anim-delay-2">
-                @forelse($activities as $act)
-                    <div class="ipnet-card p-5 flex flex-col justify-between space-y-3.5 hover:border-red-200">
-                        <div class="space-y-3">
-                            {{-- Header Card: Engineer & Waktu --}}
-                            <div class="flex items-start justify-between gap-2.5 pb-2.5 border-b border-gray-100">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-xs"
-                                         style="background:linear-gradient(135deg, #8F0A0D 0%, #D62E3C 100%);">
-                                        {{ strtoupper(substr($act->engineer->name ?? 'E', 0, 1)) }}
+            {{-- Activity Feed — Grouped by Project --}}
+            @php
+                // Group activities by project_id (null = Tanpa Proyek)
+                $grouped = $activities->getCollection()->groupBy(function($act) {
+                    return $act->project_id ?? 'no_project';
+                });
+            @endphp
+
+            @if($grouped->isEmpty())
+                <div class="ipnet-card py-16 text-center anim-fade-up anim-delay-2">
+                    <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-red-50 text-[#8F0A0D] flex items-center justify-center">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                    </div>
+                    <h4 class="text-sm font-bold text-gray-800 mb-1">Belum Ada Catatan Aktivitas</h4>
+                    <p class="text-xs text-gray-400 max-w-md mx-auto mb-4">
+                        Belum ditemukan aktivitas engineer sesuai kriteria filter yang dipilih. Silakan catat aktivitas teknis baru.
+                    </p>
+                    <button type="button" @click="$dispatch('open-engineer-activity-modal')" class="btn-ipnet-primary px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Input Aktivitas Sekarang</span>
+                    </button>
+                </div>
+            @else
+                <div class="space-y-4 anim-fade-up anim-delay-2">
+                    @foreach($grouped as $projectKey => $projectActivities)
+                        @php
+                            $firstAct    = $projectActivities->first();
+                            $project     = $firstAct->project;
+                            $projectName = $project->name ?? 'Tanpa Proyek';
+                            $clientName  = $project->client ?? null;
+
+                            // Hitung status ringkasan per group
+                            $doneCount     = $projectActivities->where('status', 'Selesai')->count();
+                            $runCount      = $projectActivities->where('status', 'Sedang Berjalan')->count();
+                            $delayCount    = $projectActivities->where('status', 'Ditunda')->count();
+                            $totalCount    = $projectActivities->count();
+
+                            // Engineer unik dalam group ini
+                            $uniqueEngineers = $projectActivities->pluck('engineer')->filter()->unique('id')->values();
+                        @endphp
+
+                        <div class="ipnet-card overflow-hidden hover:border-red-200 transition-all">
+
+                            {{-- ── Card Header: Info Proyek ── --}}
+                            <div class="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-[#8F0A0D]/5 to-transparent border-b border-gray-100">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    {{-- Project Icon --}}
+                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,#8F0A0D,#D62E3C);">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                        </svg>
                                     </div>
                                     <div class="min-w-0">
-                                        <p class="text-xs font-bold text-gray-900 truncate">{{ $act->engineer->name ?? 'Engineer' }}</p>
-                                        <p class="text-[10.5px] text-gray-400 truncate">{{ $act->engineer->position ?? 'Technical Team' }}</p>
-                                    </div>
-                                </div>
-                                <div class="text-right shrink-0">
-                                    <span class="inline-block text-[11px] font-bold text-gray-600">
-                                        {{ $act->activity_date ? $act->activity_date->format('d M Y') : '-' }}
-                                    </span>
-                                    @if($act->start_time && $act->end_time)
-                                        <p class="text-[10px] text-gray-400 font-medium">
-                                            {{ \Carbon\Carbon::parse($act->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($act->end_time)->format('H:i') }}
-                                            @if($act->duration)
-                                                <span class="text-[#8F0A0D] font-bold">({{ $act->duration }})</span>
-                                            @endif
-                                        </p>
-                                    @endif
-                                </div>
-                            </div>
-
-                            {{-- Badges: Tipe & Status --}}
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200/80 truncate">
-                                    {{ $act->activity_type }}
-                                </span>
-
-                                @if($act->status === 'Selesai')
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                                        Selesai
-                                    </span>
-                                @elseif($act->status === 'Sedang Berjalan')
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-sky-50 text-sky-700 border border-sky-200 shrink-0">
-                                        Sedang Berjalan
-                                    </span>
-                                @else
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
-                                        Ditunda
-                                    </span>
-                                @endif
-                            </div>
-
-                            {{-- Deskripsi Pekerjaan --}}
-                            <p class="text-xs text-gray-800 leading-relaxed font-medium bg-[#FAFAFA] p-3 rounded-xl border border-gray-100 whitespace-pre-line">
-                                {{ $act->description }}
-                            </p>
-
-                            {{-- Project & Location Metadata --}}
-                            <div class="space-y-1.5 text-[11px] text-gray-500 pt-1">
-                                @if($act->project)
-                                    <div class="flex items-center gap-1.5 truncate">
-                                        <svg class="w-3.5 h-3.5 text-[#8F0A0D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                                        </svg>
-                                        <span class="font-bold text-gray-800 truncate">{{ $act->project->name }}</span>
-                                        @if($act->project->client)
-                                            <span class="text-gray-400">({{ $act->project->client }})</span>
+                                        <p class="text-xs font-extrabold text-gray-900 truncate leading-snug">{{ $projectName }}</p>
+                                        @if($clientName)
+                                            <p class="text-[10.5px] text-gray-400 truncate font-medium">{{ $clientName }}</p>
                                         @endif
                                     </div>
-                                @endif
+                                </div>
 
-                                @if($act->location)
-                                    <div class="flex items-center gap-1.5 truncate">
-                                        <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        </svg>
-                                        <span class="truncate">{{ $act->location }}</span>
+                                {{-- Engineer Avatars + Stats --}}
+                                <div class="flex items-center gap-3 shrink-0">
+                                    {{-- Engineer Avatars (max 3) --}}
+                                    <div class="flex items-center -space-x-1.5">
+                                        @foreach($uniqueEngineers->take(3) as $eng)
+                                            <div class="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px] font-bold shadow-xs shrink-0"
+                                                 style="background:linear-gradient(135deg,#8F0A0D,#D62E3C);"
+                                                 title="{{ $eng->name }}">
+                                                {{ strtoupper(substr($eng->name ?? 'E', 0, 1)) }}
+                                            </div>
+                                        @endforeach
+                                        @if($uniqueEngineers->count() > 3)
+                                            <div class="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-[9px] font-bold shadow-xs bg-gray-100 text-gray-600">
+                                                +{{ $uniqueEngineers->count() - 3 }}
+                                            </div>
+                                        @endif
                                     </div>
-                                @endif
 
-                                @if($act->notes)
-                                    <div class="p-2 rounded-lg bg-amber-50/60 border border-amber-200/80 text-[10.5px] text-amber-900 mt-2">
-                                        <span class="font-bold">Catatan/Kendala:</span> {{ $act->notes }}
+                                    {{-- Badge jumlah aktivitas + status --}}
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">
+                                            {{ $totalCount }} aktivitas
+                                        </span>
+                                        @if($doneCount > 0)
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{{ $doneCount }} Selesai</span>
+                                        @endif
+                                        @if($runCount > 0)
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">{{ $runCount }} Berjalan</span>
+                                        @endif
+                                        @if($delayCount > 0)
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">{{ $delayCount }} Ditunda</span>
+                                        @endif
                                     </div>
+                                </div>
+                            </div>
+
+                            {{-- ── Activity Rows List ── --}}
+                            <div class="divide-y divide-gray-50">
+                                @foreach($projectActivities as $rowIndex => $act)
+                                    <div class="flex items-start gap-3 px-5 py-3 hover:bg-gray-50/60 transition-colors group">
+
+                                        {{-- Nomor urut --}}
+                                        <div class="w-5 h-5 rounded-full bg-[#8F0A0D]/8 flex items-center justify-center text-[9px] font-bold text-[#8F0A0D] shrink-0 mt-0.5">
+                                            {{ $rowIndex + 1 }}
+                                        </div>
+
+                                        {{-- Tanggal & Waktu --}}
+                                        <div class="w-28 shrink-0 text-[10.5px] text-gray-500">
+                                            <p class="font-bold text-gray-700">{{ $act->activity_date ? $act->activity_date->format('d M Y') : '-' }}</p>
+                                            @if($act->start_time)
+                                                <p class="text-[10px] text-gray-400">
+                                                    {{ \Carbon\Carbon::parse($act->start_time)->format('H:i') }}
+                                                    @if($act->end_time) – {{ \Carbon\Carbon::parse($act->end_time)->format('H:i') }} @endif
+                                                </p>
+                                            @endif
+                                        </div>
+
+                                        {{-- Engineer (khusus Lead yang lihat semua) --}}
+                                        @if($isLead && $uniqueEngineers->count() > 1)
+                                            <div class="w-32 shrink-0">
+                                                <p class="text-[10.5px] font-bold text-gray-700 truncate">{{ $act->engineer->name ?? '-' }}</p>
+                                                <p class="text-[9.5px] text-gray-400 truncate">{{ $act->engineer->position ?? '' }}</p>
+                                            </div>
+                                        @endif
+
+                                        {{-- Deskripsi Aktivitas --}}
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-[11.5px] font-semibold text-gray-800 leading-snug">{{ $act->description }}</p>
+                                            @if($act->notes)
+                                                <p class="text-[10px] text-amber-700 bg-amber-50 border border-amber-200/80 rounded px-2 py-0.5 mt-1 inline-block font-medium">
+                                                    Noted: {{ $act->notes }}
+                                                </p>
+                                            @endif
+                                            @if($act->location)
+                                                <p class="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+                                                    <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                                    {{ $act->location }}
+                                                </p>
+                                            @endif
+                                        </div>
+
+                                        {{-- Tipe Aktivitas --}}
+                                        <div class="shrink-0 hidden sm:block">
+                                            <span class="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-red-50 text-[#8F0A0D] border border-red-100">
+                                                {{ $act->activity_type }}
+                                            </span>
+                                        </div>
+
+                                        {{-- Status Badge --}}
+                                        <div class="shrink-0 w-24 text-right">
+                                            @if($act->status === 'Selesai')
+                                                <span class="px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Selesai</span>
+                                            @elseif($act->status === 'Sedang Berjalan')
+                                                <span class="px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-sky-50 text-sky-700 border border-sky-200">Berjalan</span>
+                                            @else
+                                                <span class="px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Ditunda</span>
+                                            @endif
+                                        </div>
+
+                                        {{-- Aksi Hapus (hover reveal) --}}
+                                        @if(auth()->id() === $act->user_id || $isLead)
+                                            <div class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <form method="POST" action="{{ route('engineer.activity_log.destroy', $act) }}"
+                                                      onsubmit="return confirm('Hapus aktivitas ini?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="p-1 text-gray-300 hover:text-red-500 transition-colors rounded" title="Hapus">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            {{-- ── Card Footer: Dicatat ── --}}
+                            <div class="px-5 py-2 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
+                                <span class="text-[10px] text-gray-400">
+                                    Aktivitas terakhir dicatat: {{ $projectActivities->sortByDesc('created_at')->first()->created_at->diffForHumans() }}
+                                </span>
+                                @if($isLead && $uniqueEngineers->count() === 1)
+                                    <span class="text-[10px] font-bold text-gray-500">Engineer: {{ $uniqueEngineers->first()->name }}</span>
                                 @endif
                             </div>
-                        </div>
 
-                        {{-- Footer Card: Aksi Hapus (Jika pembuat atau Lead) --}}
-                        <div class="flex items-center justify-between pt-3 border-t border-gray-100 text-[11px]">
-                            <span class="text-gray-400 text-[10.5px]">
-                                Dicatat: {{ $act->created_at->diffForHumans() }}
-                            </span>
-
-                            @if(auth()->id() === $act->user_id || $isLead)
-                                <form method="POST" action="{{ route('engineer.activity_log.destroy', $act) }}"
-                                      onsubmit="return confirm('Apakah Anda yakin ingin menghapus catatan aktivitas ini?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-[11px] font-bold text-gray-400 hover:text-red-600 transition-colors flex items-center gap-1">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                        </svg>
-                                        <span>Hapus</span>
-                                    </button>
-                                </form>
-                            @endif
                         </div>
-                    </div>
-                @empty
-                    <div class="col-span-full py-16 text-center ipnet-card">
-                        <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-red-50 text-[#8F0A0D] flex items-center justify-center">
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                            </svg>
-                        </div>
-                        <h4 class="text-sm font-bold text-gray-800 mb-1">Belum Ada Catatan Aktivitas</h4>
-                        <p class="text-xs text-gray-400 max-w-md mx-auto mb-4">
-                            Belum ditemukan aktivitas engineer sesuai kriteria filter yang dipilih. Silakan catat aktivitas teknis baru.
-                        </p>
-                        <button type="button" @click="$dispatch('open-engineer-activity-modal')" class="btn-ipnet-primary px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                            </svg>
-                            <span>Input Aktivitas Sekarang</span>
-                        </button>
-                    </div>
-                @endforelse
-            </div>
-
-            {{-- Pagination Links --}}
-            @if($activities->hasPages())
-                <div class="pt-4 flex justify-center">
-                    {{ $activities->links() }}
+                    @endforeach
                 </div>
+
+                {{-- Pagination Links --}}
+                @if($activities->hasPages())
+                    <div class="pt-4 flex justify-center">
+                        {{ $activities->links() }}
+                    </div>
+                @endif
             @endif
 
         </div>
