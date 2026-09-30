@@ -612,11 +612,24 @@ class DashboardController extends Controller
         }
 
         // Projects untuk dropdown activity log
+        $hasTaskUser = \Illuminate\Support\Facades\Schema::hasTable('task_user');
+        $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
+
         $myProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-            ->where(function($q) use ($user) {
-                $q->whereHas('engineers', fn($sq) => $sq->where('users.id', $user->id))
-                  ->orWhereHas('tasks', fn($sq) => $sq->where('engineer_id', $user->id))
-                  ->orWhere('created_by', $user->id);
+            ->where(function($q) use ($user, $hasTaskUser, $hasScheduleUser) {
+                $q->whereHas('tasks', function($tq) use ($user, $hasTaskUser) {
+                    $tq->where('engineer_id', $user->id);
+                    if ($hasTaskUser) {
+                        $tq->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $user->id));
+                    }
+                })
+                ->orWhereHas('schedules', function($sq) use ($user, $hasScheduleUser) {
+                    $sq->where('engineer_id', $user->id);
+                    if ($hasScheduleUser) {
+                        $sq->orWhereHas('engineers', fn($esq) => $esq->where('users.id', $user->id));
+                    }
+                })
+                ->orWhere('created_by', $user->id);
             })
             ->orderBy('name')
             ->get(['id', 'name', 'client']);
