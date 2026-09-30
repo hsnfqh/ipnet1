@@ -1408,6 +1408,125 @@ class DashboardController extends Controller
         return view('architect.dashboard', $data);
     }
 
+    // ─── Dedicated Engineer Activity Log: Index (Lead Monitoring & Engineer Log) ───
+    public function engineerActivityLogs(Request $request)
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('engineer_activity_logs')) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            } catch (\Throwable $e) {}
+        }
+
+        $authUser = auth()->user();
+        $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
+
+        $query = EngineerActivityLog::with(['engineer', 'project']);
+
+        // Jika bukan managerial/lead, batasi hanya log diri sendiri
+        if (!$isLead) {
+            $query->where('user_id', $authUser->id);
+        } else {
+            // Managerial/Lead bisa filter per engineer tertentu
+            if ($request->filled('user_id')) {
+                $query->where('user_id', $request->user_id);
+            }
+        }
+
+        // Filter Pencarian (Keyword)
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhereHas('engineer', function ($sq) use ($search) {
+                      $sq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('project', function ($sq) use ($search) {
+                      $sq->where('name', 'like', "%{$search}%")
+                        ->orWhere('client', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filter Tipe Aktivitas
+        if ($request->filled('activity_type')) {
+            $query->where('activity_type', $request->activity_type);
+        }
+
+        // Filter Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter Proyek
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
+        }
+
+        // Filter Tanggal
+        if ($request->filled('date')) {
+            $query->whereDate('activity_date', $request->date);
+        }
+
+        // Hitung ringkasan metrics
+        $metricsQuery = clone $query;
+        $totalActivities = $metricsQuery->count();
+        $totalCompleted  = (clone $metricsQuery)->where('status', 'Selesai')->count();
+        $totalInProgress = (clone $metricsQuery)->where('status', 'Sedang Berjalan')->count();
+        $totalDelayed    = (clone $metricsQuery)->where('status', 'Ditunda')->count();
+        $activeEngineersCount = (clone $metricsQuery)->distinct('user_id')->count('user_id');
+
+        // Ambil data aktivitas dengan pagination
+        $activities = $query->orderBy('activity_date', 'desc')
+                            ->orderBy('created_at', 'desc')
+                            ->paginate(12)
+                            ->withQueryString();
+
+        // Data pendukung dropdown filter & form input
+        $projects = Project::orderBy('name')->get(['id', 'name', 'client']);
+
+        $engineers = collect();
+        if ($isLead) {
+            $engineers = User::whereHas('roles', function ($q) {
+                $q->whereIn('name', [
+                    'Network Engineer', 'Security Engineer', 'Field Support (EOS)', 'Field Support',
+                    'Managed Service', 'Engineer', 'Engineer L1', 'Engineer L2', 'Maintenance',
+                    'Lead Engineer', 'Team Leader Engineering', 'Team Leader', 'Lead Maintenance'
+                ]);
+            })->orderBy('name')->get(['id', 'name', 'email']);
+
+            if ($engineers->isEmpty()) {
+                $engineers = User::orderBy('name')->get(['id', 'name', 'email']);
+            }
+        }
+
+        $activityTypes = [
+            'Instalasi / Penarikan Kabel',
+            'Konfigurasi Router/Switch/Firewall',
+            'Troubleshooting Jaringan',
+            'Maintenance Rutin',
+            'Survey Lokasi',
+            'Dokumentasi & BA',
+            'Testing & Commissioning',
+            'Koordinasi & Meeting Teknis',
+            'Lainnya',
+        ];
+
+        return view('engineer.activity_log.index', compact(
+            'activities',
+            'isLead',
+            'totalActivities',
+            'totalCompleted',
+            'totalInProgress',
+            'totalDelayed',
+            'activeEngineersCount',
+            'projects',
+            'engineers',
+            'activityTypes'
+        ));
+    }
+
     // ─── Engineer Activity Log: Store ───────────────────────────────────────────
     public function storeActivityLog(Request $request)
     {
@@ -1435,8 +1554,8 @@ class DashboardController extends Controller
             'notes'         => $request->notes,
         ]);
 
-        return redirect()->route('dashboard.engineer')
-            ->with('success', 'Activity log berhasil disimpan!');
+        return redirect()->back()
+            ->with('success', 'Catatan aktivitas berhasil disimpan!');
     }
 
     // ─── Engineer Activity Log: Delete ──────────────────────────────────────────
@@ -1444,11 +1563,11 @@ class DashboardController extends Controller
     {
         // Hanya engineer yang membuat yang bisa hapus (atau lead)
         $user = auth()->user();
-        $isLead = $user->hasAnyRole(['Lead Engineer', 'Team Leader Engineering', 'Team Leader', 'Lead Maintenance', 'Lead Divisi', 'Director', 'Direktur', 'Division Head', 'Group Leader', 'Group Leader Delivery & Operation']);
+        $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
         if ($log->user_id !== $user->id && !$isLead) {
-            abort(403);
+            abort(403, 'Anda tidak memiliki hak akses untuk menghapus log aktivitas ini.');
         }
         $log->delete();
-        return back()->with('success', 'Activity log dihapus.');
+        return back()->with('success', 'Catatan aktivitas berhasil dihapus.');
     }
 }
