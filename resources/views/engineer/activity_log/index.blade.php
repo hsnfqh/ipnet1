@@ -220,12 +220,12 @@
                 </form>
 
                 {{-- Action: Tombol Catat Aktivitas (Bisa diakses Engineer maupun Lead) --}}
-                <button type="button" @click="openModal()"
+                <button type="button" @click="$dispatch('open-engineer-activity-modal')"
                         class="btn-ipnet-primary w-full sm:w-auto justify-center shadow-md px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shrink-0">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    <span>Catat Aktivitas Baru</span>
+                    <span>Input Aktivitas</span>
                 </button>
             </div>
 
@@ -351,11 +351,11 @@
                         <p class="text-xs text-gray-400 max-w-md mx-auto mb-4">
                             Belum ditemukan aktivitas engineer sesuai kriteria filter yang dipilih. Silakan catat aktivitas teknis baru.
                         </p>
-                        <button type="button" @click="openModal()" class="btn-ipnet-primary px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-2">
+                        <button type="button" @click="$dispatch('open-engineer-activity-modal')" class="btn-ipnet-primary px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
-                            <span>Catat Aktivitas Sekarang</span>
+                            <span>Input Aktivitas Sekarang</span>
                         </button>
                     </div>
                 @endforelse
@@ -371,158 +371,7 @@
         </div>
     </div>
 
-    {{-- MODAL INPUT AKTIVITAS (Untuk Engineer & Lead) --}}
-    <div x-show="isModalOpen"
-         x-cloak
-         class="fixed inset-0 z-50 overflow-y-auto"
-         style="display: none;">
-        <div class="fixed inset-0 bg-[#0E0D12]/60 backdrop-blur-xs transition-opacity"
-             @click="isModalOpen = false"></div>
-
-        <div class="flex min-h-full items-center justify-center p-4">
-            <div class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden transform transition-all p-6 sm:p-7 space-y-5">
-                
-                {{-- Modal Header --}}
-                <div class="flex items-center justify-between pb-3.5 border-b border-gray-100">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
-                             style="background:linear-gradient(135deg, #8F0A0D 0%, #D62E3C 100%);">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-bold text-gray-900">Catat Aktivitas Lapangan</h3>
-                            <p class="text-xs text-gray-400">Dokumentasikan kegiatan teknis & progres pekerjaan Anda</p>
-                        </div>
-                    </div>
-                    <button type="button" @click="isModalOpen = false" class="text-gray-400 hover:text-gray-700 text-lg font-bold px-2 py-1">✕</button>
-                </div>
-
-                {{-- Modal Form --}}
-                <form method="POST" action="{{ route('engineer.activity_log.store') }}" class="space-y-4">
-                    @csrf
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        {{-- Tanggal --}}
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Tanggal Kegiatan <span class="text-red-500">*</span></label>
-                            <input type="date"
-                                   name="activity_date"
-                                   required
-                                   value="{{ date('Y-m-d') }}"
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
-                        </div>
-
-                        {{-- Status --}}
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Status Kegiatan <span class="text-red-500">*</span></label>
-                            <select name="status" required
-                                    class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer">
-                                <option value="Selesai">Selesai</option>
-                                <option value="Sedang Berjalan">Sedang Berjalan</option>
-                                <option value="Ditunda">Ditunda</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        {{-- Jam Mulai --}}
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Waktu Mulai</label>
-                            <input type="time"
-                                   name="start_time"
-                                   class="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
-                        </div>
-
-                        {{-- Jam Selesai --}}
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Waktu Selesai</label>
-                            <input type="time"
-                                   name="end_time"
-                                   class="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
-                        </div>
-                    </div>
-
-                    {{-- Tipe Aktivitas --}}
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Tipe Aktivitas / Jenis Pekerjaan <span class="text-red-500">*</span></label>
-                        <select name="activity_type" required
-                                class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer">
-                            @foreach($activityTypes as $type)
-                                <option value="{{ $type }}">{{ $type }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    {{-- Proyek Terkait (Opsional) --}}
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Proyek Terkait (Opsional)</label>
-                        <select name="project_id"
-                                class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] cursor-pointer">
-                            <option value="">-- Tidak Terkait Proyek Spesifik --</option>
-                            @foreach($projects as $p)
-                                <option value="{{ $p->id }}">{{ $p->name }} {{ $p->client ? '('.$p->client.')' : '' }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    {{-- Lokasi / Site --}}
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Lokasi / Site Klien</label>
-                        <input type="text"
-                               name="location"
-                               placeholder="Contoh: Gedung Cyber Lt. 3 / Data Center / Kantor Klien"
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]">
-                    </div>
-
-                    {{-- Deskripsi / Rincian Kegiatan --}}
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Rincian Kegiatan Teknis <span class="text-red-500">*</span></label>
-                        <textarea name="description"
-                                  rows="3"
-                                  required
-                                  placeholder="Jelaskan detail pekerjaan teknis yang dikerjakan hari ini..."
-                                  class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]"></textarea>
-                    </div>
-
-                    {{-- Catatan Tambahan / Kendala --}}
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Catatan Tambahan / Kendala Lapangan (Opsional)</label>
-                        <textarea name="notes"
-                                  rows="2"
-                                  placeholder="Catatan kendala teknis atau kebutuhan eskalasi jika ada..."
-                                  class="w-full px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]"></textarea>
-                    </div>
-
-                    {{-- Modal Actions --}}
-                    <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-100">
-                        <button type="button" @click="isModalOpen = false"
-                                class="px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all">
-                            Batal
-                        </button>
-                        <button type="submit"
-                                class="btn-ipnet-primary px-5 py-2.5 rounded-xl text-xs font-bold shadow-md">
-                            Simpan Catatan Aktivitas
-                        </button>
-                    </div>
-                </form>
-
-            </div>
-        </div>
-    </div>
+    {{-- MODAL INPUT AKTIVITAS SPREADSHEET --}}
+    @include('components.engineer-activity-bulk-modal')
 </div>
-
-@push('scripts')
-<script>
-    function engineerActivityManager() {
-        return {
-            isModalOpen: false,
-            openModal() {
-                this.isModalOpen = true;
-            }
-        };
-    }
-</script>
-@endpush
 @endsection

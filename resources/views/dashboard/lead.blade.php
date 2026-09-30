@@ -799,10 +799,14 @@
                         <h3 class="text-[18px] font-bold text-[#292929] tracking-tight">Activity Log Engineer</h3>
                         <p class="text-[12.5px] text-[#75727C] mt-0.5">Pantau kegiatan harian seluruh engineer dalam tim kamu</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <span class="px-3 py-1.5 text-[12px] font-bold rounded-xl bg-red-50 text-[#8F0A0D] border border-red-200">
                             {{ ($allEngineerActivityLogs ?? collect())->count() }} Log
                         </span>
+                        <button type="button" @click="$dispatch('open-engineer-activity-modal')" class="px-3 py-1.5 text-[12px] font-bold rounded-xl text-white hover:opacity-95 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" style="background:linear-gradient(135deg,#8F0A0D,#B81525);">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                            <span>+ Input Aktivitas</span>
+                        </button>
                         <a href="{{ route('engineer.activity_log.index') }}" class="px-3 py-1.5 text-[12px] font-bold rounded-xl text-white hover:opacity-95 transition-all shadow-xs flex items-center gap-1" style="background:linear-gradient(135deg,#8F0A0D,#D62E3C);">
                             <span>Buka Halaman Monitoring &rarr;</span>
                         </a>
@@ -911,6 +915,9 @@
         @endif
 
     </div>
+    
+    {{-- MODAL INPUT AKTIVITAS SPREADSHEET --}}
+    @include('components.engineer-activity-bulk-modal')
 </div>
 
 @push('scripts')

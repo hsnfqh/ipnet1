@@ -539,6 +539,7 @@ class DashboardController extends Controller
             'outOfRangeCount'        => $outOfRangeCount,
             'pendingDraftApprovals'  => $pendingDraftApprovals,
             'allEngineerActivityLogs'=> $allEngineerActivityLogs,
+            'projects'               => $projects,
         ];
 
         return view('dashboard.lead', $data);
@@ -1527,19 +1528,84 @@ class DashboardController extends Controller
         ));
     }
 
-    // ─── Engineer Activity Log: Store ───────────────────────────────────────────
+    // ─── Engineer Activity Log: Store (Bulk Spreadsheet & Single) ───────────────
     public function storeActivityLog(Request $request)
     {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('engineer_activity_logs')) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            } catch (\Throwable $e) {}
+        }
+
+        // Mode 1: Spreadsheet Multi-Row Bulk Entry
+        if ($request->has('activities') && is_array($request->activities)) {
+            $projectId = $request->project_id ?: null;
+            $activityTitle = trim($request->activity_title ?? '');
+            $itemsCreated = 0;
+
+            foreach ($request->activities as $row) {
+                $subject = trim($row['subject'] ?? '');
+                if (empty($subject)) {
+                    continue;
+                }
+
+                $date = !empty($row['activity_date']) ? $row['activity_date'] : date('Y-m-d');
+                $time = !empty($row['time_str']) ? trim($row['time_str']) : null;
+                $clientPic = trim($row['client_pic'] ?? '');
+                $ipnetPic  = trim($row['ipnet_pic'] ?? '');
+                $notedText = trim($row['notes'] ?? '');
+
+                // Susun catatan & PIC
+                $notesParts = [];
+                if ($notedText !== '') {
+                    $notesParts[] = $notedText;
+                }
+                if ($clientPic !== '') {
+                    $notesParts[] = "PIC Klien: {$clientPic}";
+                }
+                if ($ipnetPic !== '') {
+                    $notesParts[] = "PIC IPNET: {$ipnetPic}";
+                }
+                $finalNotes = implode(' | ', $notesParts);
+
+                $location = $clientPic ? "Client Site ({$clientPic})" : null;
+                $actType = !empty($row['activity_type']) ? $row['activity_type'] : (!empty($request->activity_type) ? $request->activity_type : 'Troubleshooting');
+
+                $description = $subject;
+                if ($activityTitle !== '') {
+                    $description = "[{$activityTitle}] " . $description;
+                }
+
+                EngineerActivityLog::create([
+                    'user_id'       => auth()->id(),
+                    'project_id'    => $projectId,
+                    'activity_type' => $actType,
+                    'description'   => $description,
+                    'location'      => $location,
+                    'activity_date' => $date,
+                    'start_time'    => $time,
+                    'end_time'      => null,
+                    'status'        => 'Selesai',
+                    'notes'         => $finalNotes ?: null,
+                ]);
+
+                $itemsCreated++;
+            }
+
+            if ($itemsCreated === 0) {
+                return redirect()->back()->with('error', 'Silakan isi setidaknya satu baris aktivitas.');
+            }
+
+            return redirect()->back()->with('success', "Berhasil menyimpan {$itemsCreated} aktivitas!");
+        }
+
+        // Mode 2: Single Activity Form
         $request->validate([
             'description'   => 'required|string|max:1000',
             'activity_date' => 'required|date',
             'activity_type' => 'required|string',
             'status'        => 'required|string',
         ]);
-
-        if (!\Illuminate\Support\Facades\Schema::hasTable('engineer_activity_logs')) {
-            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        }
 
         EngineerActivityLog::create([
             'user_id'       => auth()->id(),

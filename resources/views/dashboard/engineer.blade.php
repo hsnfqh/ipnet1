@@ -362,9 +362,15 @@
                                 <p class="text-[11px] text-[#94A3B8]">Log kegiatan kerja kamu hari ini</p>
                             </div>
                         </div>
-                        <a href="{{ route('engineer.activity_log.index') }}" class="text-[11.5px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
-                            <span>Buka Menu Activity Log &rarr;</span>
-                        </a>
+                        <div class="flex items-center gap-2">
+                            <button type="button" @click="$dispatch('open-engineer-activity-modal')" class="px-3 py-1.5 text-[11.5px] font-bold rounded-xl text-white hover:opacity-95 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" style="background:linear-gradient(135deg,#8F0A0D,#B81525);">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                <span>+ Input Aktivitas (Multi-Baris)</span>
+                            </button>
+                            <a href="{{ route('engineer.activity_log.index') }}" class="text-[11.5px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
+                                <span>Buka Menu Activity Log &rarr;</span>
+                            </a>
+                        </div>
                     </div>
 
                     @if(session('success'))
@@ -546,5 +552,8 @@
         </div>
 
     </div>
+    
+    {{-- MODAL INPUT AKTIVITAS SPREADSHEET --}}
+    @include('components.engineer-activity-bulk-modal')
 </div>
 @endsection
