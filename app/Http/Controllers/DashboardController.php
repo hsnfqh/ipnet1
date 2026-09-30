@@ -1822,20 +1822,22 @@ class DashboardController extends Controller
         $sheet->setTitle('Aktivitas');
 
         // Header Dokumen
-        $sheet->setCellValue('A1', 'PT IP NETWORK SOLUSINDO');
-        $sheet->setCellValue('A2', 'LAPORAN AKTIVITAS KRONOLOGIS ENGINEER');
-        $sheet->setCellValue('A3', 'Proyek: ' . $projectName . ' | Dicatat Oleh: ' . $engineerName . ' | Dicetak: ' . now()->format('d/m/Y H:i') . ' WIB');
+        $sheet->setCellValue('A1', 'PT. IP NETWORK SOLUSINDO');
+        $sheet->setCellValue('A2', 'Golden Centrum Complex, Jl. Majapahit 26P Jakarta 10160');
+        $sheet->setCellValue('A3', 'LAPORAN AKTIVITAS KRONOLOGIS ENGINEER');
+        $sheet->setCellValue('A4', 'Proyek: ' . $projectName . ' | Dicatat Oleh: ' . $engineerName . ' | Dicetak: ' . now()->format('d/m/Y H:i') . ' WIB');
 
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14)->getColor()->setRGB('8F0A0D');
-        $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(11);
-        $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(9)->getColor()->setRGB('555555');
+        $sheet->getStyle('A2')->getFont()->setSize(9)->getColor()->setRGB('555555');
+        $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(11);
+        $sheet->getStyle('A4')->getFont()->setItalic(true)->setSize(8.5)->getColor()->setRGB('666666');
 
-        // Header Kolom (Baris 5) persis form: NO, AKTIVITAS, TANGGAL, WAKTU (JAM), PIC KLIEN, PIC IPNET, NOTED
+        // Header Kolom (Baris 6) persis form: NO, AKTIVITAS, TANGGAL, WAKTU (JAM), PIC KLIEN, PIC IPNET, NOTED
         $headers = ['No', 'Aktivitas', 'Tanggal', 'Waktu (Jam)', 'PIC Klien', 'PIC IPNET', 'Noted'];
         $cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
         
         foreach ($headers as $k => $h) {
-            $sheet->setCellValue($cols[$k] . '5', $h);
+            $sheet->setCellValue($cols[$k] . '6', $h);
         }
 
         $headerStyle = [
@@ -1844,10 +1846,10 @@ class DashboardController extends Controller
             'alignment' => ['vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER, 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
             'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN, 'color' => ['rgb' => '73080A']]],
         ];
-        $sheet->getStyle('A5:G5')->applyFromArray($headerStyle);
-        $sheet->getRowDimension(5)->setRowHeight(24);
+        $sheet->getStyle('A6:G6')->applyFromArray($headerStyle);
+        $sheet->getRowDimension(6)->setRowHeight(24);
 
-        $rowNum = 6;
+        $rowNum = 7;
         foreach ($activities as $idx => $act) {
             $rawNotes  = $act->notes ?? '';
             $clientPic = '';
@@ -1904,9 +1906,9 @@ class DashboardController extends Controller
         }
 
         // Border data rows
-        if ($rowNum > 6) {
+        if ($rowNum > 7) {
             $lastRow = $rowNum - 1;
-            $sheet->getStyle('A6:G' . $lastRow)->getBorders()->getAllBorders()
+            $sheet->getStyle('A7:G' . $lastRow)->getBorders()->getAllBorders()
                 ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)
                 ->getColor()->setRGB('CBD5E1');
         }

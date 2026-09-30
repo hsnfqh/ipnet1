@@ -2,11 +2,11 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Aktivitas Engineer – PT IP Network Solusindo</title>
+    <title>Laporan Aktivitas Engineer - PT. IP Network Solusindo</title>
     <style>
         @page {
             size: A4 landscape;
-            margin: 12mm 10mm 12mm 10mm;
+            margin: 18mm 18mm 16mm 18mm;
         }
 
         * {
@@ -16,196 +16,230 @@
         }
 
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 10px;
-            color: #1e293b;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9.5pt;
+            color: #1a1a1a;
             background: #ffffff;
-            line-height: 1.35;
+            line-height: 1.4;
         }
 
-        /* ── HEADER / KOP SURAT (Table Based for DomPDF) ── */
+        /* ── KOP SURAT RESMI PERUSAHAAN ── */
         .kop-table {
             width: 100%;
-            border-bottom: 2.5px solid #8F0A0D;
-            padding-bottom: 10px;
-            margin-bottom: 12px;
+            border-bottom: 2px solid #8F0A0D;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         .kop-logo {
-            width: 52px;
-            height: 52px;
-            object-fit: contain;
+            width: 60px;
+            height: auto;
+            max-height: 55px;
         }
 
-        .company-title {
-            font-size: 15px;
+        .company-name {
+            font-size: 14pt;
             font-weight: bold;
             color: #8F0A0D;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            margin: 0 0 2px 0;
+            margin-bottom: 2px;
         }
 
-        .company-sub {
-            font-size: 8.5px;
-            color: #64748b;
-            line-height: 1.3;
+        .company-address {
+            font-size: 8.5pt;
+            color: #4b5563;
+            line-height: 1.35;
         }
 
-        .doc-badge {
-            display: inline-block;
-            background: #fef2f2;
-            color: #8F0A0D;
-            border: 1px solid #fecaca;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .doc-title-block {
+            text-align: right;
+            vertical-align: middle;
         }
 
         .doc-title {
-            font-size: 14px;
+            font-size: 12pt;
             font-weight: bold;
-            color: #0f172a;
-            margin-top: 4px;
+            color: #111827;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .doc-meta {
-            font-size: 8.5px;
-            color: #64748b;
-            margin-top: 2px;
+        .doc-sub {
+            font-size: 8pt;
+            color: #6b7280;
+            margin-top: 3px;
         }
 
-        /* ── META INFO BOX ── */
-        .meta-table {
+        /* ── INFORMASI AGENDA / METADATA DOKUMEN ── */
+        .meta-box {
             width: 100%;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 5px;
-            margin-bottom: 12px;
-            border-collapse: separate;
+            background-color: #f9fafb;
+            border: 1px solid #d1d5db;
+            margin-bottom: 14px;
+            border-collapse: collapse;
         }
 
-        .meta-table td {
-            padding: 6px 12px;
-            font-size: 9.5px;
+        .meta-box td {
+            padding: 6px 10px;
+            font-size: 9pt;
             vertical-align: middle;
         }
 
         .meta-label {
-            color: #64748b;
-            font-size: 8.5px;
-            text-transform: uppercase;
             font-weight: bold;
-            letter-spacing: 0.4px;
+            color: #4b5563;
+            width: 15%;
+        }
+
+        .meta-separator {
+            width: 2%;
+            text-align: center;
+            color: #6b7280;
         }
 
         .meta-value {
-            color: #0f172a;
-            font-weight: bold;
-            font-size: 10.5px;
+            color: #111827;
+            width: 33%;
         }
 
-        /* ── TABEL UTAMA — persis form: NO, AKTIVITAS, TANGGAL, WAKTU, PIC KLIEN, PIC IPNET, NOTED ── */
-        .data-table {
+        .meta-value-bold {
+            font-weight: bold;
+            color: #111827;
+        }
+
+        /* ── TABEL UTAMA AKTIVITAS ── */
+        .activity-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9.5px;
-            margin-bottom: 14px;
+            font-size: 9pt;
+            margin-bottom: 18px;
         }
 
-        .data-table thead tr {
+        .activity-table thead th {
             background-color: #8F0A0D;
             color: #ffffff;
-        }
-
-        .data-table th {
-            padding: 7px 6px;
             font-weight: bold;
-            font-size: 9px;
+            font-size: 8.5pt;
             text-transform: uppercase;
             letter-spacing: 0.4px;
+            padding: 8px 6px;
             border: 1px solid #73080A;
             vertical-align: middle;
         }
 
-        .data-table tbody td {
-            padding: 7px 6px;
-            border: 1px solid #cbd5e1;
+        .activity-table tbody td {
+            padding: 7px 8px;
+            border: 1px solid #d1d5db;
             vertical-align: top;
-            color: #1e293b;
+            color: #1f2937;
             line-height: 1.35;
         }
 
-        .data-table tbody tr:nth-child(even) {
-            background-color: #f8fafc;
+        .activity-table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
         }
 
-        .data-table tbody tr:nth-child(odd) {
-            background-color: #ffffff;
-        }
-
-        .badge-pic-klien {
-            display: inline-block;
-            background: #f1f5f9;
-            color: #334155;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: 600;
-            font-size: 9px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .badge-pic-ipnet {
-            display: inline-block;
-            background: #fef2f2;
-            color: #8F0A0D;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: bold;
-            font-size: 9px;
-            border: 1px solid #fecaca;
-        }
-
-        /* ── TANDA TANGAN & FOOTER ── */
-        .footer-table {
-            width: 100%;
-            margin-top: 14px;
-            border-top: 1.5px solid #8F0A0D;
-            padding-top: 10px;
-        }
-
-        .footer-note {
-            font-size: 8px;
-            color: #64748b;
-            line-height: 1.4;
-        }
-
-        .sig-box {
+        .text-center {
             text-align: center;
-            width: 200px;
         }
 
-        .sig-title {
-            font-size: 9px;
-            color: #475569;
-            margin-bottom: 45px;
+        .text-left {
+            text-align: left;
         }
 
-        .sig-line {
-            font-size: 9.5px;
+        .col-no {
+            width: 4%;
+            text-align: center;
             font-weight: bold;
-            color: #0f172a;
-            border-top: 1px solid #334155;
-            padding-top: 3px;
+            color: #374151;
         }
 
-        .sig-role {
-            font-size: 8px;
-            color: #64748b;
+        .col-activity {
+            width: 30%;
+        }
+
+        .col-date {
+            width: 11%;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .col-time {
+            width: 10%;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .col-pic-client {
+            width: 13%;
+        }
+
+        .col-pic-ipnet {
+            width: 13%;
+        }
+
+        .col-notes {
+            width: 19%;
+        }
+
+        /* ── PENGESAHAN / TANDA TANGAN ── */
+        .sign-table {
+            width: 100%;
+            page-break-inside: avoid;
+            margin-top: 10px;
+        }
+
+        .sign-notes {
+            vertical-align: top;
+            font-size: 8pt;
+            color: #6b7280;
+            line-height: 1.45;
+            padding-right: 30px;
+        }
+
+        .sign-notes-title {
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            font-size: 7.5pt;
+            letter-spacing: 0.3px;
+        }
+
+        .sign-box {
+            width: 240px;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .sign-place-date {
+            font-size: 8.5pt;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .sign-role-title {
+            font-size: 8.5pt;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 50px;
+        }
+
+        .sign-name-line {
+            font-size: 9pt;
+            font-weight: bold;
+            color: #111827;
+            border-top: 1px solid #111827;
+            padding-top: 4px;
+            display: inline-block;
+            min-width: 180px;
+        }
+
+        .sign-company {
+            font-size: 8pt;
+            color: #6b7280;
+            margin-top: 2px;
         }
     </style>
 </head>
@@ -215,7 +249,6 @@
     if (!empty($parsedActivities) && (is_array($parsedActivities) || $parsedActivities instanceof \Countable || is_iterable($parsedActivities))) {
         $items = $parsedActivities;
     } elseif (!empty($activities) && (is_array($activities) || $activities instanceof \Countable || is_iterable($activities))) {
-        // Fallback jika controller lama yang memanggil dengan $activities
         $items = collect($activities)->map(function($a, $idx) {
             $rawNotes  = $a->notes ?? '';
             $clientPic = '';
@@ -258,65 +291,66 @@
         });
     }
 
-    $totalCount = is_countable($items) ? count($items) : (is_array($items) ? count($items) : 0);
+    $totalCount = is_countable($items) ? count($items) : 0;
 @endphp
 
-    {{-- ══ KOP SURAT ══ --}}
+    {{-- ══ KOP SURAT RESMI ══ --}}
     <table class="kop-table" cellpadding="0" cellspacing="0">
         <tr>
-            <td style="width: 60px; vertical-align: middle;">
+            <td style="width: 70px; vertical-align: middle;">
                 @if(!empty($logoBase64))
                     <img src="{{ $logoBase64 }}" alt="Logo" class="kop-logo">
                 @else
-                    <div style="font-weight:bold; font-size:16px; color:#8F0A0D;">IPNET</div>
+                    <div style="font-weight: bold; font-size: 16pt; color: #8F0A0D;">IPNET</div>
                 @endif
             </td>
-            <td style="padding-left: 10px; vertical-align: middle;">
-                <div class="company-title">PT IP Network Solusindo</div>
-                <div class="company-sub">
-                    Jl. Rawa Buntu No.2, Kec. Serpong, Tangerang Selatan, Banten 15310<br>
-                    Telp: (021) 2965-5050 &bull; Website: www.ipnetsolusindo.co.id
+            <td style="padding-left: 8px; vertical-align: middle;">
+                <div class="company-name">PT. IP Network Solusindo</div>
+                <div class="company-address">
+                    Golden Centrum Complex<br>
+                    Jl. Majapahit 26P Jakarta 10160
                 </div>
             </td>
-            <td style="text-align: right; vertical-align: middle; width: 260px;">
-                <div class="doc-badge">Dokumen Resmi Aktivitas</div>
-                <div class="doc-title">Laporan Aktivitas</div>
-                <div class="doc-meta">
-                    Dicetak: {{ now()->locale('id')->isoFormat('D MMMM Y, H:mm') }} WIB &bull; Oleh: <strong>{{ $printedBy ?? 'Admin' }}</strong>
-                </div>
+            <td class="doc-title-block">
+                <div class="doc-title">Laporan Aktivitas Engineer</div>
+                <div class="doc-sub">Dokumentasi Catatan Kronologis Kegiatan Operasional</div>
             </td>
         </tr>
     </table>
 
-    {{-- ══ META INFO BAR ══ --}}
-    <table class="meta-table" cellpadding="0" cellspacing="0">
+    {{-- ══ INFORMASI DOKUMEN / AGENDA ══ --}}
+    <table class="meta-box" cellpadding="0" cellspacing="0">
         <tr>
-            <td style="width: 45%;">
-                <div class="meta-label">Proyek / Agenda:</div>
-                <div class="meta-value">{{ $projectName ?? 'Semua Proyek' }}</div>
-            </td>
-            <td style="width: 30%;">
-                <div class="meta-label">Dicatat Oleh:</div>
-                <div class="meta-value">{{ $engineerName ?? '-' }}</div>
-            </td>
-            <td style="width: 25%; text-align: right;">
-                <div class="meta-label">Total Agenda Aktivitas:</div>
-                <div class="meta-value" style="color: #8F0A0D;">{{ $totalCount }} Rangkaian Agenda</div>
-            </td>
+            <td class="meta-label">Proyek / Agenda</td>
+            <td class="meta-separator">:</td>
+            <td class="meta-value meta-value-bold">{{ $projectName ?? 'Semua Proyek' }}</td>
+
+            <td class="meta-label">Tanggal Cetak</td>
+            <td class="meta-separator">:</td>
+            <td class="meta-value">{{ now()->locale('id')->isoFormat('D MMMM Y, H:mm') }} WIB</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Dicatat Oleh</td>
+            <td class="meta-separator">:</td>
+            <td class="meta-value">{{ $engineerName ?? '-' }}</td>
+
+            <td class="meta-label">Total Agenda</td>
+            <td class="meta-separator">:</td>
+            <td class="meta-value meta-value-bold">{{ $totalCount }} Rangkaian Agenda</td>
         </tr>
     </table>
 
-    {{-- ══ TABEL DATA AKTIVITAS (Kolom persis form: NO, AKTIVITAS, TANGGAL, WAKTU, PIC KLIEN, PIC IPNET, NOTED) ══ --}}
-    <table class="data-table" cellpadding="0" cellspacing="0">
+    {{-- ══ TABEL DATA AKTIVITAS ══ --}}
+    <table class="activity-table" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th style="width: 4%; text-align: center;">No</th>
-                <th style="width: 30%; text-align: left;">Aktivitas</th>
-                <th style="width: 11%; text-align: center;">Tanggal</th>
-                <th style="width: 10%; text-align: center;">Waktu (Jam)</th>
-                <th style="width: 13%; text-align: left;">PIC Klien</th>
-                <th style="width: 13%; text-align: left;">PIC IPNET</th>
-                <th style="width: 19%; text-align: left;">Noted</th>
+                <th class="col-no">No</th>
+                <th class="col-activity text-left">Aktivitas</th>
+                <th class="col-date">Tanggal</th>
+                <th class="col-time">Waktu (Jam)</th>
+                <th class="col-pic-client text-left">PIC Klien</th>
+                <th class="col-pic-ipnet text-left">PIC IPNET</th>
+                <th class="col-notes text-left">Noted</th>
             </tr>
         </thead>
         <tbody>
@@ -332,71 +366,38 @@
                     $nt    = $isArr ? ($item['notes'] ?? '') : ($item->notes ?? '');
                 @endphp
                 <tr>
-                    {{-- No --}}
-                    <td style="text-align: center; font-weight: bold; color: #8F0A0D;">
-                        {{ $no ?: '-' }}
-                    </td>
-
-                    {{-- Aktivitas --}}
-                    <td style="font-weight: 600; color: #0f172a;">
-                        {{ $act ?: '-' }}
-                    </td>
-
-                    {{-- Tanggal --}}
-                    <td style="text-align: center; white-space: nowrap;">
-                        {{ $dt ?: '-' }}
-                    </td>
-
-                    {{-- Waktu (Jam) --}}
-                    <td style="text-align: center; font-weight: 600; white-space: nowrap;">
-                        {{ $tm ?: '-' }}
-                    </td>
-
-                    {{-- PIC Klien --}}
-                    <td>
-                        @if(!empty($cpic) && $cpic !== '-')
-                            <span class="badge-pic-klien">{{ $cpic }}</span>
-                        @else
-                            <span style="color: #94a3b8;">-</span>
-                        @endif
-                    </td>
-
-                    {{-- PIC IPNET --}}
-                    <td>
-                        @if(!empty($ipic) && $ipic !== '-')
-                            <span class="badge-pic-ipnet">{{ $ipic }}</span>
-                        @else
-                            <span style="color: #94a3b8;">-</span>
-                        @endif
-                    </td>
-
-                    {{-- Noted --}}
-                    <td style="color: #334155; word-wrap: break-word;">
-                        {{ $nt ?: '-' }}
-                    </td>
+                    <td class="col-no">{{ $no ?: '-' }}</td>
+                    <td class="col-activity" style="font-weight: 500;">{{ $act ?: '-' }}</td>
+                    <td class="col-date">{{ $dt ?: '-' }}</td>
+                    <td class="col-time">{{ $tm ?: '-' }}</td>
+                    <td class="col-pic-client">{{ (!empty($cpic) && $cpic !== '-') ? $cpic : '-' }}</td>
+                    <td class="col-pic-ipnet">{{ (!empty($ipic) && $ipic !== '-') ? $ipic : '-' }}</td>
+                    <td class="col-notes">{{ (!empty($nt) && $nt !== '-') ? $nt : '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 25px; color: #94a3b8; font-style: italic;">
-                        Tidak ada catatan aktivitas yang tersedia.
+                    <td colspan="7" class="text-center" style="padding: 20px; color: #6b7280; font-style: italic;">
+                        Tidak ada data catatan aktivitas yang tercatat.
                     </td>
                 </tr>
             @endforelse
         </tbody>
     </table>
 
-    {{-- ══ FOOTER & TANDA TANGAN ══ --}}
-    <table class="footer-table" cellpadding="0" cellspacing="0">
+    {{-- ══ LEMBAR PENGESAHAN & CATATAN ══ --}}
+    <table class="sign-table" cellpadding="0" cellspacing="0">
         <tr>
-            <td style="vertical-align: top;" class="footer-note">
-                <strong>PT IP NETWORK SOLUSINDO</strong> &bull; Laporan Resmi Aktivitas Engineer<br>
-                Dokumen ini digenerate secara otomatis oleh sistem IPNET Dashboard pada {{ now()->format('d/m/Y H:i') }} WIB.<br>
-                Halaman berlaku sebagai bukti sah dokumentasi kegiatan lapangan dan operasional.
+            <td class="sign-notes">
+                <div class="sign-notes-title">Catatan Dokumen:</div>
+                1. Laporan ini merupakan catatan resmi kronologis aktivitas teknis lapangan PT. IP Network Solusindo.<br>
+                2. Diterbitkan secara otomatis melalui Sistem Operasional IPNET pada {{ now()->format('d/m/Y H:i') }} WIB.<br>
+                3. Dokumen ini sah dan mengikat sebagai bukti pelaksanaan pekerjaan dan koordinasi teknis di site/lapangan.
             </td>
-            <td style="width: 220px; text-align: center; vertical-align: top;">
-                <div class="sig-title">Mengetahui,</div>
-                <div class="sig-line">Lead Engineer / Team Leader</div>
-                <div class="sig-role">PT IP Network Solusindo</div>
+            <td class="sign-box">
+                <div class="sign-place-date">Jakarta, {{ now()->locale('id')->isoFormat('D MMMM Y') }}</div>
+                <div class="sign-role-title">Lead Engineer / Penanggung Jawab</div>
+                <div class="sign-name-line">( {{ $engineerName ?? '........................................' }} )</div>
+                <div class="sign-company">PT. IP Network Solusindo</div>
             </td>
         </tr>
     </table>
