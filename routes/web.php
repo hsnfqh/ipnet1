@@ -158,6 +158,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('dashboard.engineer')
         ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance');
 
+    // Engineer Activity Log — Engineer bisa store, Lead/Director bisa delete semua
+    Route::post('/dashboard/engineer/activity-log', [DashboardController::class, 'storeActivityLog'])
+        ->name('engineer.activity_log.store')
+        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation');
+    Route::delete('/dashboard/engineer/activity-log/{log}', [DashboardController::class, 'deleteActivityLog'])
+        ->name('engineer.activity_log.destroy')
+        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation');
+
     // BDM & Business Development (Dashboard + Dedicated Sub-Menus)
     Route::prefix('bdm')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|BusDev|BDM|Business Development|Sales|Account Manager|Presales|Pre-Sales|Solution Architect')->group(function () {
         Route::get('/dashboard', [BdmController::class, 'dashboard'])->name('dashboard.bdm');

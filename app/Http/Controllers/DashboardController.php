@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\Schedule;
 use App\Models\User;
+use App\Models\EngineerActivityLog;
 use App\Helpers\FileUploadHelper;
 
 class DashboardController extends Controller
@@ -499,6 +500,21 @@ class DashboardController extends Controller
             $recentSchedules = $upcomingSchedules;
         }
 
+        // Activity Logs semua engineer untuk Lead Engineer
+        $allEngineerActivityLogs = collect([]);
+        if (\Illuminate\Support\Facades\Schema::hasTable('engineer_activity_logs')) {
+            $logsQuery = EngineerActivityLog::with(['engineer', 'project']);
+            // Filter berdasarkan scope tim jika bukan executive
+            if ($scopeIds !== null) {
+                $logsQuery->whereIn('user_id', $scopeIds);
+            }
+            $allEngineerActivityLogs = $logsQuery
+                ->orderByDesc('activity_date')
+                ->orderByDesc('created_at')
+                ->take(50)
+                ->get();
+        }
+
         $data = [
             'isExecutive'            => false,
             'projectsCount'          => $projects->count(),
@@ -522,6 +538,7 @@ class DashboardController extends Controller
             'clockInCount'           => $clockInCount,
             'outOfRangeCount'        => $outOfRangeCount,
             'pendingDraftApprovals'  => $pendingDraftApprovals,
+            'allEngineerActivityLogs'=> $allEngineerActivityLogs,
         ];
 
         return view('dashboard.lead', $data);
@@ -578,6 +595,27 @@ class DashboardController extends Controller
             $nearestDeadline = $incompleteMyTasks->sortByDesc('deadline')->first();
         }
 
+        // Activity Logs milik engineer ini
+        $myActivityLogs = collect([]);
+        if (\Illuminate\Support\Facades\Schema::hasTable('engineer_activity_logs')) {
+            $myActivityLogs = EngineerActivityLog::with('project')
+                ->where('user_id', $user->id)
+                ->orderByDesc('activity_date')
+                ->orderByDesc('created_at')
+                ->take(30)
+                ->get();
+        }
+
+        // Projects untuk dropdown activity log
+        $myProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where(function($q) use ($user) {
+                $q->whereHas('engineers', fn($sq) => $sq->where('users.id', $user->id))
+                  ->orWhereHas('tasks', fn($sq) => $sq->where('engineer_id', $user->id))
+                  ->orWhere('created_by', $user->id);
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'client']);
+
         $data = [
             'myTasksCount'        => $myTasks->count(),
             'todaySchedulesCount' => $todaySchedules->count(),
@@ -586,6 +624,8 @@ class DashboardController extends Controller
             'avgProgress'         => $myTasks->count() ? round($myTasks->avg('progress')) : 0,
             'nearestDeadline'     => $nearestDeadline,
             'overdueCount'        => $overdueMyCount,
+            'myActivityLogs'      => $myActivityLogs,
+            'myProjects'          => $myProjects,
         ];
 
         return view('dashboard.engineer', $data);
@@ -1366,5 +1406,49 @@ class DashboardController extends Controller
         ];
 
         return view('architect.dashboard', $data);
+    }
+
+    // ─── Engineer Activity Log: Store ───────────────────────────────────────────
+    public function storeActivityLog(Request $request)
+    {
+        $request->validate([
+            'description'   => 'required|string|max:1000',
+            'activity_date' => 'required|date',
+            'activity_type' => 'required|string',
+            'status'        => 'required|string',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Schema::hasTable('engineer_activity_logs')) {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        }
+
+        EngineerActivityLog::create([
+            'user_id'       => auth()->id(),
+            'project_id'    => $request->project_id ?: null,
+            'activity_type' => $request->activity_type,
+            'description'   => $request->description,
+            'location'      => $request->location,
+            'activity_date' => $request->activity_date,
+            'start_time'    => $request->start_time ?: null,
+            'end_time'      => $request->end_time ?: null,
+            'status'        => $request->status,
+            'notes'         => $request->notes,
+        ]);
+
+        return redirect()->route('dashboard.engineer')
+            ->with('success', 'Activity log berhasil disimpan!');
+    }
+
+    // ─── Engineer Activity Log: Delete ──────────────────────────────────────────
+    public function deleteActivityLog(EngineerActivityLog $log)
+    {
+        // Hanya engineer yang membuat yang bisa hapus (atau lead)
+        $user = auth()->user();
+        $isLead = $user->hasAnyRole(['Lead Engineer', 'Team Leader Engineering', 'Team Leader', 'Lead Maintenance', 'Lead Divisi', 'Director', 'Direktur', 'Division Head', 'Group Leader', 'Group Leader Delivery & Operation']);
+        if ($log->user_id !== $user->id && !$isLead) {
+            abort(403);
+        }
+        $log->delete();
+        return back()->with('success', 'Activity log dihapus.');
     }
 }
