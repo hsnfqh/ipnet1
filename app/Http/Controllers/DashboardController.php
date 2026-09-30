@@ -9,6 +9,10 @@ use App\Models\Schedule;
 use App\Models\User;
 use App\Models\EngineerActivityLog;
 use App\Helpers\FileUploadHelper;
+use Barryvdh\DomPDF\Facade\Pdf;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardController extends Controller
 {
@@ -1653,6 +1657,14 @@ class DashboardController extends Controller
             }
         }
 
+        // Filter log_ids spesifik dari modal popup
+        if ($request->filled('log_ids')) {
+            $logIds = array_filter(array_map('trim', explode(',', $request->log_ids)));
+            if (!empty($logIds)) {
+                $query->whereIn('id', $logIds);
+            }
+        }
+
         if ($request->filled('search')) {
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
@@ -1679,45 +1691,78 @@ class DashboardController extends Controller
             $query->whereDate('activity_date', $request->date);
         }
 
-        $activities      = $query->orderBy('activity_date', 'desc')->orderBy('created_at', 'desc')->get();
-        $totalActivities = $activities->count();
-        $totalCompleted  = $activities->where('status', 'Selesai')->count();
-        $totalInProgress = $activities->where('status', 'Sedang Berjalan')->count();
-        $totalDelayed    = $activities->where('status', 'Ditunda')->count();
+        $activities = $query->orderBy('activity_date', 'asc')->orderBy('start_time', 'asc')->orderBy('created_at', 'asc')->get();
 
-        // Nama filter untuk ditampilkan di laporan
-        $filterEngineer = null;
-        if ($isLead && $request->filled('user_id')) {
-            $eng = User::find($request->user_id);
-            $filterEngineer = $eng?->name;
-        } elseif (!$isLead) {
-            $filterEngineer = $authUser->name;
-        }
+        // Urai data persis seperti format tabel form: NO, AKTIVITAS, TANGGAL, WAKTU (JAM), PIC KLIEN, PIC IPNET, NOTED
+        $parsedActivities = $activities->map(function ($a, $idx) {
+            $rawNotes  = $a->notes ?? '';
+            $clientPic = '';
+            $ipnetPic  = '';
+            $notedOnly = $rawNotes;
 
-        $filterDate   = $request->filled('date') ? $request->date : null;
-        $filterStatus = $request->filled('status') ? $request->status : null;
-        $filterType   = $request->filled('activity_type') ? $request->activity_type : null;
+            if ($rawNotes) {
+                $parts = array_map('trim', explode('|', $rawNotes));
+                $notedParts = [];
+                foreach ($parts as $part) {
+                    if (str_starts_with($part, 'PIC Klien:')) {
+                        $clientPic = trim(substr($part, strlen('PIC Klien:')));
+                    } elseif (str_starts_with($part, 'PIC IPNET:')) {
+                        $ipnetPic = trim(substr($part, strlen('PIC IPNET:')));
+                    } else {
+                        $notedParts[] = $part;
+                    }
+                }
+                $notedOnly = implode(' | ', array_filter($notedParts));
+            }
+
+            if (!$ipnetPic) {
+                $ipnetPic = $a->engineer->name ?? '-';
+            }
+
+            $description = $a->description ?? '-';
+            if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $description, $m)) {
+                $description = $m[2] ?: $m[1];
+            }
+
+            return [
+                'no'         => $idx + 1,
+                'activity'   => $description,
+                'date'       => $a->activity_date ? $a->activity_date->format('d/m/Y') : '-',
+                'time'       => $a->start_time ? \Carbon\Carbon::parse($a->start_time)->format('H:i') : '-',
+                'client_pic' => $clientPic ?: '-',
+                'ipnet_pic'  => $ipnetPic,
+                'notes'      => $notedOnly ?: '-',
+            ];
+        });
+
+        // Nama Proyek & Engineer untuk Kop Laporan
+        $projectName  = $request->project_name ?: ($activities->first()?->project?->name ?? 'Aktivitas Engineer');
+        $engineerName = $activities->first()?->engineer?->name ?? $authUser->name;
         $printedBy    = $authUser->name;
 
-        $html = view('exports.engineer-activity-report-pdf', compact(
-            'activities',
-            'totalActivities',
-            'totalCompleted',
-            'totalInProgress',
-            'totalDelayed',
-            'filterEngineer',
-            'filterDate',
-            'filterStatus',
-            'filterType',
-            'printedBy'
-        ))->render();
+        // Base64 Logo untuk stabilitas render DomPDF
+        $logoPath   = public_path('images/ipnet1.png');
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
 
-        return response($html)
-            ->header('Content-Type', 'text/html; charset=utf-8')
-            ->header('X-Frame-Options', 'SAMEORIGIN');
+        $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', compact(
+            'parsedActivities',
+            'projectName',
+            'engineerName',
+            'printedBy',
+            'logoBase64'
+        ));
+
+        $pdf->setPaper('a4', 'landscape');
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
+
+        $safeName = \Illuminate\Support\Str::slug($projectName, '_');
+        $filename = "Laporan_Aktivitas_{$safeName}_" . now()->format('Ymd_His') . ".pdf";
+
+        return $pdf->download($filename);
     }
 
-    // ─── Engineer Activity Log: Export Excel (CSV) ───────────────────────────────
+    // ─── Engineer Activity Log: Export Excel ─────────────────────────────────────
     public function exportActivityLogExcel(\Illuminate\Http\Request $request)
     {
         $authUser = auth()->user();
@@ -1730,6 +1775,14 @@ class DashboardController extends Controller
         } else {
             if ($request->filled('user_id')) {
                 $query->where('user_id', $request->user_id);
+            }
+        }
+
+        // Filter log_ids spesifik dari modal popup
+        if ($request->filled('log_ids')) {
+            $logIds = array_filter(array_map('trim', explode(',', $request->log_ids)));
+            if (!empty($logIds)) {
+                $query->whereIn('id', $logIds);
             }
         }
 
@@ -1756,79 +1809,119 @@ class DashboardController extends Controller
             $query->whereDate('activity_date', $request->date);
         }
 
-        $activities = $query->orderBy('activity_date', 'desc')->orderBy('created_at', 'desc')->get();
+        $activities = $query->orderBy('activity_date', 'asc')->orderBy('start_time', 'asc')->orderBy('created_at', 'asc')->get();
 
-        $filename = 'Laporan_Aktivitas_Engineer_' . now()->format('Ymd_His') . '.csv';
+        $projectName  = $request->project_name ?: ($activities->first()?->project?->name ?? 'Aktivitas Engineer');
+        $engineerName = $activities->first()?->engineer?->name ?? $authUser->name;
+        $safeName     = \Illuminate\Support\Str::slug($projectName, '_');
+        $filename     = "Laporan_Aktivitas_{$safeName}_" . now()->format('Ymd_His') . ".xlsx";
 
-        $rows = [];
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Aktivitas');
 
         // Header Dokumen
-        $rows[] = ['PT IP NETWORK SOLUSINDO'];
-        $rows[] = ['Laporan Aktivitas Engineer'];
-        $rows[] = ['Dicetak', now()->isoFormat('D MMMM Y, H:mm') . ' WIB'];
-        $rows[] = ['Dicetak oleh', $authUser->name];
-        $rows[] = ['']; // blank line
+        $sheet->setCellValue('A1', 'PT IP NETWORK SOLUSINDO');
+        $sheet->setCellValue('A2', 'LAPORAN AKTIVITAS KRONOLOGIS ENGINEER');
+        $sheet->setCellValue('A3', 'Proyek: ' . $projectName . ' | Dicatat Oleh: ' . $engineerName . ' | Dicetak: ' . now()->format('d/m/Y H:i') . ' WIB');
 
-        // Header Kolom
-        $rows[] = [
-            'No',
-            'Tanggal',
-            'Waktu',
-            'Nama Engineer',
-            'Proyek',
-            'Klien',
-            'Tipe Aktivitas',
-            'Aktivitas / Deskripsi',
-            'Status',
-            'Noted / Catatan',
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14)->getColor()->setRGB('8F0A0D');
+        $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(11);
+        $sheet->getStyle('A3')->getFont()->setItalic(true)->setSize(9)->getColor()->setRGB('555555');
+
+        // Header Kolom (Baris 5) persis form: NO, AKTIVITAS, TANGGAL, WAKTU (JAM), PIC KLIEN, PIC IPNET, NOTED
+        $headers = ['No', 'Aktivitas', 'Tanggal', 'Waktu (Jam)', 'PIC Klien', 'PIC IPNET', 'Noted'];
+        $cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+        
+        foreach ($headers as $k => $h) {
+            $sheet->setCellValue($cols[$k] . '5', $h);
+        }
+
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '8F0A0D']],
+            'alignment' => ['vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER, 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN, 'color' => ['rgb' => '73080A']]],
         ];
+        $sheet->getStyle('A5:G5')->applyFromArray($headerStyle);
+        $sheet->getRowDimension(5)->setRowHeight(24);
 
-        // Data Rows
-        foreach ($activities as $i => $act) {
-            $waktu = '-';
-            if ($act->start_time) {
-                $waktu = \Carbon\Carbon::parse($act->start_time)->format('H:i');
-                if ($act->end_time) {
-                    $waktu .= ' - ' . \Carbon\Carbon::parse($act->end_time)->format('H:i');
+        $rowNum = 6;
+        foreach ($activities as $idx => $act) {
+            $rawNotes  = $act->notes ?? '';
+            $clientPic = '';
+            $ipnetPic  = '';
+            $notedOnly = $rawNotes;
+
+            if ($rawNotes) {
+                $parts = array_map('trim', explode('|', $rawNotes));
+                $notedParts = [];
+                foreach ($parts as $part) {
+                    if (str_starts_with($part, 'PIC Klien:')) {
+                        $clientPic = trim(substr($part, strlen('PIC Klien:')));
+                    } elseif (str_starts_with($part, 'PIC IPNET:')) {
+                        $ipnetPic = trim(substr($part, strlen('PIC IPNET:')));
+                    } else {
+                        $notedParts[] = $part;
+                    }
                 }
+                $notedOnly = implode(' | ', array_filter($notedParts));
             }
 
-            $rows[] = [
-                $i + 1,
-                $act->activity_date ? $act->activity_date->format('d/m/Y') : '-',
-                $waktu,
-                $act->engineer->name ?? '-',
-                $act->project->name ?? '-',
-                $act->project->client ?? '-',
-                $act->activity_type ?? '-',
-                $act->description ?? '-',
-                $act->status ?? '-',
-                $act->notes ?? '-',
-            ];
+            if (!$ipnetPic) {
+                $ipnetPic = $act->engineer->name ?? '-';
+            }
+
+            $description = $act->description ?? '-';
+            if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $description, $m)) {
+                $description = $m[2] ?: $m[1];
+            }
+
+            $timeStr = $act->start_time ? \Carbon\Carbon::parse($act->start_time)->format('H:i') : '-';
+
+            $sheet->setCellValue('A' . $rowNum, $idx + 1);
+            $sheet->setCellValue('B' . $rowNum, $description);
+            $sheet->setCellValue('C' . $rowNum, $act->activity_date ? $act->activity_date->format('d/m/Y') : '-');
+            $sheet->setCellValue('D' . $rowNum, $timeStr);
+            $sheet->setCellValue('E' . $rowNum, $clientPic ?: '-');
+            $sheet->setCellValue('F' . $rowNum, $ipnetPic ?: '-');
+            $sheet->setCellValue('G' . $rowNum, $notedOnly ?: '-');
+
+            // Alignment
+            $sheet->getStyle('A' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('C' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('D' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+            // Alternating fill
+            if ($rowNum % 2 == 1) {
+                $sheet->getStyle('A' . $rowNum . ':G' . $rowNum)->getFill()
+                    ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    ->getStartColor()->setRGB('F8FAFC');
+            }
+
+            $rowNum++;
         }
 
-        // Blank + Summary
-        $rows[] = [''];
-        $rows[] = ['RINGKASAN'];
-        $rows[] = ['Total Aktivitas', $activities->count()];
-        $rows[] = ['Selesai', $activities->where('status', 'Selesai')->count()];
-        $rows[] = ['Sedang Berjalan', $activities->where('status', 'Sedang Berjalan')->count()];
-        $rows[] = ['Ditunda', $activities->where('status', 'Ditunda')->count()];
-
-        // Build CSV string with BOM for Excel UTF-8
-        $csvContent = "\xEF\xBB\xBF"; // UTF-8 BOM
-        foreach ($rows as $row) {
-            $escaped = array_map(function ($cell) {
-                $cell = str_replace('"', '""', (string) $cell);
-                return '"' . $cell . '"';
-            }, $row);
-            $csvContent .= implode(',', $escaped) . "\r\n";
+        // Border data rows
+        if ($rowNum > 6) {
+            $lastRow = $rowNum - 1;
+            $sheet->getStyle('A6:G' . $lastRow)->getBorders()->getAllBorders()
+                ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)
+                ->getColor()->setRGB('CBD5E1');
         }
 
-        return response($csvContent)
-            ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
-            ->header('Pragma', 'no-cache')
-            ->header('Expires', '0');
+        // Auto width for columns
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        return new StreamedResponse(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 }

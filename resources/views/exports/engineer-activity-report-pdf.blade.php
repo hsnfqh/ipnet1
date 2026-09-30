@@ -2,9 +2,13 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Aktivitas Engineer – IP Network Solusindo</title>
+    <title>Laporan Aktivitas Engineer – PT IP Network Solusindo</title>
     <style>
+        @page {
+            size: A4 landscape;
+            margin: 12mm 10mm 12mm 10mm;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,449 +16,330 @@
         }
 
         body {
-            font-family: 'Arial', 'Helvetica', sans-serif;
-            font-size: 11px;
-            color: #1a202c;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 10px;
+            color: #1e293b;
             background: #ffffff;
-            line-height: 1.4;
+            line-height: 1.35;
         }
 
-        /* ── HEADER / KOP SURAT ── */
-        .kop {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 18px 24px 14px 24px;
-            border-bottom: 3px solid #8F0A0D;
-            background: #ffffff;
-        }
-
-        .kop-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
+        /* ── HEADER / KOP SURAT (Table Based for DomPDF) ── */
+        .kop-table {
+            width: 100%;
+            border-bottom: 2.5px solid #8F0A0D;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .kop-logo {
-            width: 62px;
-            height: 62px;
+            width: 52px;
+            height: 52px;
             object-fit: contain;
         }
 
-        .kop-company {
-            border-left: 2px solid #8F0A0D;
-            padding-left: 14px;
-        }
-
-        .kop-company h1 {
+        .company-title {
             font-size: 15px;
-            font-weight: 800;
+            font-weight: bold;
             color: #8F0A0D;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
+            margin: 0 0 2px 0;
         }
 
-        .kop-company p {
-            font-size: 10px;
-            color: #4a5568;
-            margin-top: 2px;
+        .company-sub {
+            font-size: 8.5px;
+            color: #64748b;
+            line-height: 1.3;
         }
 
-        .kop-right {
-            text-align: right;
-        }
-
-        .kop-right .doc-title {
-            font-size: 13px;
-            font-weight: 800;
-            color: #1a202c;
+        .doc-badge {
+            display: inline-block;
+            background: #fef2f2;
+            color: #8F0A0D;
+            border: 1px solid #fecaca;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .kop-right .doc-no {
-            font-size: 10px;
-            color: #718096;
-            margin-top: 3px;
-        }
-
-        /* ── INFO META LAPORAN ── */
-        .meta-section {
-            padding: 12px 24px;
-            background: #fef2f2;
-            border-bottom: 1px solid #fed7d7;
-        }
-
-        .meta-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-
-        .meta-item {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 8px 10px;
-        }
-
-        .meta-item .label {
-            font-size: 9px;
-            color: #718096;
-            font-weight: 700;
+        .doc-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #0f172a;
+            margin-top: 4px;
             text-transform: uppercase;
+        }
+
+        .doc-meta {
+            font-size: 8.5px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* ── META INFO BOX ── */
+        .meta-table {
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            margin-bottom: 12px;
+            border-collapse: separate;
+        }
+
+        .meta-table td {
+            padding: 6px 12px;
+            font-size: 9.5px;
+            vertical-align: middle;
+        }
+
+        .meta-label {
+            color: #64748b;
+            font-size: 8.5px;
+            text-transform: uppercase;
+            font-weight: bold;
             letter-spacing: 0.4px;
         }
 
-        .meta-item .value {
-            font-size: 12px;
-            font-weight: 800;
-            color: #1a202c;
-            margin-top: 2px;
+        .meta-value {
+            color: #0f172a;
+            font-weight: bold;
+            font-size: 10.5px;
         }
 
-        .meta-item .value.red { color: #8F0A0D; }
-        .meta-item .value.green { color: #2f855a; }
-        .meta-item .value.blue { color: #2b6cb0; }
-        .meta-item .value.amber { color: #c05621; }
-
-        /* ── FILTER INFO BAR ── */
-        .filter-bar {
-            padding: 8px 24px;
-            background: #f7fafc;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
-            font-size: 10px;
-            color: #4a5568;
-        }
-
-        .filter-bar span {
-            background: #edf2f7;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: 600;
-            border: 1px solid #e2e8f0;
-        }
-
-        .filter-bar strong {
-            color: #8F0A0D;
-        }
-
-        /* ── TABEL UTAMA ── */
-        .table-wrapper {
-            padding: 14px 24px;
-        }
-
-        .section-title {
-            font-size: 11px;
-            font-weight: 800;
-            color: #8F0A0D;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-            padding-bottom: 6px;
-            border-bottom: 1.5px solid #fed7d7;
-        }
-
-        table {
+        /* ── TABEL UTAMA — persis form: NO, AKTIVITAS, TANGGAL, WAKTU, PIC KLIEN, PIC IPNET, NOTED ── */
+        .data-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            font-size: 9.5px;
+            margin-bottom: 14px;
         }
 
-        thead tr {
-            background: #8F0A0D;
+        .data-table thead tr {
+            background-color: #8F0A0D;
             color: #ffffff;
         }
 
-        thead th {
-            padding: 8px 7px;
-            text-align: left;
-            font-weight: 700;
-            font-size: 9.5px;
+        .data-table th {
+            padding: 7px 6px;
+            font-weight: bold;
+            font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            border: 1px solid #7a080b;
+            border: 1px solid #73080A;
+            vertical-align: middle;
         }
 
-        thead th:first-child {
-            text-align: center;
-            width: 30px;
-        }
-
-        tbody tr:nth-child(even) {
-            background: #fef8f8;
-        }
-
-        tbody tr:nth-child(odd) {
-            background: #ffffff;
-        }
-
-        tbody tr:hover {
-            background: #fff5f5;
-        }
-
-        tbody td {
-            padding: 7px 7px;
-            border: 1px solid #e2e8f0;
+        .data-table tbody td {
+            padding: 7px 6px;
+            border: 1px solid #cbd5e1;
             vertical-align: top;
-            color: #2d3748;
+            color: #1e293b;
+            line-height: 1.35;
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .data-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        .badge-pic-klien {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+            font-size: 9px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .badge-pic-ipnet {
+            display: inline-block;
+            background: #fef2f2;
+            color: #8F0A0D;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 9px;
+            border: 1px solid #fecaca;
+        }
+
+        /* ── TANDA TANGAN & FOOTER ── */
+        .footer-table {
+            width: 100%;
+            margin-top: 14px;
+            border-top: 1.5px solid #8F0A0D;
+            padding-top: 10px;
+        }
+
+        .footer-note {
+            font-size: 8px;
+            color: #64748b;
             line-height: 1.4;
         }
 
-        tbody td:first-child {
+        .sig-box {
             text-align: center;
-            font-weight: 700;
-            color: #718096;
+            width: 200px;
+        }
+
+        .sig-title {
             font-size: 9px;
+            color: #475569;
+            margin-bottom: 45px;
         }
 
-        .badge {
-            display: inline-block;
-            padding: 2px 7px;
-            border-radius: 8px;
-            font-size: 9px;
-            font-weight: 700;
+        .sig-line {
+            font-size: 9.5px;
+            font-weight: bold;
+            color: #0f172a;
+            border-top: 1px solid #334155;
+            padding-top: 3px;
         }
 
-        .badge-done {
-            background: #c6f6d5;
-            color: #22543d;
-            border: 1px solid #9ae6b4;
-        }
-
-        .badge-progress {
-            background: #bee3f8;
-            color: #2a4365;
-            border: 1px solid #90cdf4;
-        }
-
-        .badge-delayed {
-            background: #feebc8;
-            color: #744210;
-            border: 1px solid #fbd38d;
-        }
-
-        .badge-type {
-            background: #fef2f2;
-            color: #8F0A0D;
-            border: 1px solid #fed7d7;
-        }
-
-        .noted-text {
-            background: #fffbeb;
-            border-left: 2px solid #f6ad55;
-            padding: 3px 5px;
-            border-radius: 3px;
-            font-size: 9px;
-            color: #7b341e;
-            margin-top: 3px;
-        }
-
-        /* ── FOOTER HALAMAN ── */
-        .page-footer {
-            padding: 12px 24px;
-            border-top: 2px solid #8F0A0D;
-            margin-top: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
-        .footer-left {
-            font-size: 9px;
-            color: #718096;
-        }
-
-        .footer-left strong {
-            color: #8F0A0D;
-        }
-
-        .signature-block {
-            text-align: center;
-            font-size: 10px;
-            color: #2d3748;
-        }
-
-        .signature-block .sig-name {
-            font-weight: 800;
-            color: #1a202c;
-            margin-top: 40px;
-            border-top: 1px solid #4a5568;
-            padding-top: 4px;
-            min-width: 140px;
-        }
-
-        .signature-block .sig-label {
-            font-size: 9px;
-            color: #718096;
-        }
-
-        /* ── EMPTY STATE ── */
-        .empty-state {
-            text-align: center;
-            padding: 30px;
-            color: #a0aec0;
-            font-size: 11px;
-        }
-
-        /* ── PRINT ── */
-        @media print {
-            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-            .kop { break-inside: avoid; }
-            thead { display: table-header-group; }
-            tr { page-break-inside: avoid; }
-        }
-
-        @page {
-            size: A4 landscape;
-            margin: 10mm 8mm;
+        .sig-role {
+            font-size: 8px;
+            color: #64748b;
         }
     </style>
 </head>
 <body>
 
     {{-- ══ KOP SURAT ══ --}}
-    <div class="kop">
-        <div class="kop-left">
-            <img src="{{ public_path('images/ipnet1.png') }}" alt="IP Network Solusindo" class="kop-logo">
-            <div class="kop-company">
-                <h1>PT IP Network Solusindo</h1>
-                <p>Jl. Rawa Buntu No.2, Kec. Serpong, Tangerang Selatan, Banten 15310</p>
-                <p>Telp: (021) 2965-5050  |  www.ipnetsolusindo.co.id</p>
-            </div>
-        </div>
-        <div class="kop-right">
-            <div class="doc-title">Laporan Aktivitas Engineer</div>
-            <div class="doc-no">Dicetak: {{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</div>
-            <div class="doc-no">Pukul: {{ now()->format('H:i') }} WIB</div>
-        </div>
-    </div>
+    <table class="kop-table" cellpadding="0" cellspacing="0">
+        <tr>
+            <td style="width: 60px; vertical-align: middle;">
+                @if(!empty($logoBase64))
+                    <img src="{{ $logoBase64 }}" alt="Logo" class="kop-logo">
+                @else
+                    <div style="font-weight:bold; font-size:16px; color:#8F0A0D;">IPNET</div>
+                @endif
+            </td>
+            <td style="padding-left: 10px; vertical-align: middle;">
+                <div class="company-title">PT IP Network Solusindo</div>
+                <div class="company-sub">
+                    Jl. Rawa Buntu No.2, Kec. Serpong, Tangerang Selatan, Banten 15310<br>
+                    Telp: (021) 2965-5050 &bull; Website: www.ipnetsolusindo.co.id
+                </div>
+            </td>
+            <td style="text-align: right; vertical-align: middle; width: 260px;">
+                <div class="doc-badge">Dokumen Resmi Aktivitas</div>
+                <div class="doc-title">Laporan Aktivitas</div>
+                <div class="doc-meta">
+                    Dicetak: {{ now()->locale('id')->isoFormat('D MMMM Y, H:mm') }} WIB &bull; Oleh: <strong>{{ $printedBy ?? 'Admin' }}</strong>
+                </div>
+            </td>
+        </tr>
+    </table>
 
-    {{-- ══ META SUMMARY ══ --}}
-    <div class="meta-section">
-        <div class="meta-grid">
-            <div class="meta-item">
-                <div class="label">Total Aktivitas</div>
-                <div class="value red">{{ number_format($totalActivities) }}</div>
-            </div>
-            <div class="meta-item">
-                <div class="label">Selesai</div>
-                <div class="value green">{{ number_format($totalCompleted) }}</div>
-            </div>
-            <div class="meta-item">
-                <div class="label">Sedang Berjalan</div>
-                <div class="value blue">{{ number_format($totalInProgress) }}</div>
-            </div>
-            <div class="meta-item">
-                <div class="label">Ditunda</div>
-                <div class="value amber">{{ number_format($totalDelayed) }}</div>
-            </div>
-        </div>
-    </div>
+    {{-- ══ META INFO BAR ══ --}}
+    <table class="meta-table" cellpadding="0" cellspacing="0">
+        <tr>
+            <td style="width: 45%;">
+                <div class="meta-label">Proyek / Agenda:</div>
+                <div class="meta-value">{{ $projectName ?? 'Semua Proyek' }}</div>
+            </td>
+            <td style="width: 30%;">
+                <div class="meta-label">Dicatat Oleh:</div>
+                <div class="meta-value">{{ $engineerName ?? '-' }}</div>
+            </td>
+            <td style="width: 25%; text-align: right;">
+                <div class="meta-label">Total Agenda Aktivitas:</div>
+                <div class="meta-value" style="color: #8F0A0D;">{{ count($parsedActivities) }} Rangkaian Agenda</div>
+            </td>
+        </tr>
+    </table>
 
-    {{-- ══ FILTER INFO ══ --}}
-    <div class="filter-bar">
-        <strong>Filter Aktif:</strong>
-        @if($filterEngineer) <span>Engineer: {{ $filterEngineer }}</span> @endif
-        @if($filterDate) <span>Tanggal: {{ \Carbon\Carbon::parse($filterDate)->isoFormat('D MMMM Y') }}</span> @endif
-        @if($filterStatus) <span>Status: {{ $filterStatus }}</span> @endif
-        @if($filterType) <span>Tipe: {{ $filterType }}</span> @endif
-        @if(!$filterEngineer && !$filterDate && !$filterStatus && !$filterType)
-            <span>Semua Data</span>
-        @endif
-        <span style="margin-left:auto;">Dicetak oleh: <strong>{{ $printedBy }}</strong></span>
-    </div>
-
-    {{-- ══ TABEL AKTIVITAS ══ --}}
-    <div class="table-wrapper">
-        <div class="section-title">Rincian Catatan Aktivitas</div>
-
-        @if($activities->isEmpty())
-            <div class="empty-state">Tidak ada data aktivitas yang ditemukan.</div>
-        @else
-        <table>
-            <thead>
+    {{-- ══ TABEL DATA AKTIVITAS (Kolom persis form: NO, AKTIVITAS, TANGGAL, WAKTU, PIC KLIEN, PIC IPNET, NOTED) ══ --}}
+    <table class="data-table" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th style="width: 4%; text-align: center;">No</th>
+                <th style="width: 30%; text-align: left;">Aktivitas</th>
+                <th style="width: 11%; text-align: center;">Tanggal</th>
+                <th style="width: 10%; text-align: center;">Waktu (Jam)</th>
+                <th style="width: 13%; text-align: left;">PIC Klien</th>
+                <th style="width: 13%; text-align: left;">PIC IPNET</th>
+                <th style="width: 19%; text-align: left;">Noted</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($parsedActivities as $item)
                 <tr>
-                    <th>No</th>
-                    <th style="width:90px;">Tanggal</th>
-                    <th style="width:80px;">Waktu</th>
-                    <th style="width:100px;">Engineer</th>
-                    <th style="width:80px;">Proyek</th>
-                    <th style="width:80px;">Klien</th>
-                    <th style="width:100px;">Tipe Aktivitas</th>
-                    <th style="min-width:160px;">Aktivitas / Deskripsi</th>
-                    <th style="width:65px;">Status</th>
-                    <th style="min-width:120px;">Noted</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($activities as $i => $act)
-                <tr>
-                    <td>{{ $i + 1 }}</td>
-                    <td>
-                        @if($act->activity_date)
-                            {{ $act->activity_date->isoFormat('D MMM Y') }}
-                        @else —
-                        @endif
+                    {{-- No --}}
+                    <td style="text-align: center; font-weight: bold; color: #8F0A0D;">
+                        {{ $item['no'] }}
                     </td>
-                    <td>
-                        @if($act->start_time)
-                            {{ \Carbon\Carbon::parse($act->start_time)->format('H:i') }}
-                            @if($act->end_time)
-                                – {{ \Carbon\Carbon::parse($act->end_time)->format('H:i') }}
-                            @endif
-                        @else —
-                        @endif
+
+                    {{-- Aktivitas --}}
+                    <td style="font-weight: 600; color: #0f172a;">
+                        {{ $item['activity'] ?: '-' }}
                     </td>
-                    <td>
-                        <strong>{{ $act->engineer->name ?? '-' }}</strong>
-                        @if($act->engineer->position ?? false)
-                            <br><span style="color:#718096;font-size:8.5px;">{{ $act->engineer->position }}</span>
-                        @endif
+
+                    {{-- Tanggal --}}
+                    <td style="text-align: center; white-space: nowrap;">
+                        {{ $item['date'] ?: '-' }}
                     </td>
-                    <td>{{ $act->project->name ?? '-' }}</td>
-                    <td>{{ $act->project->client ?? '-' }}</td>
-                    <td><span class="badge badge-type">{{ $act->activity_type }}</span></td>
-                    <td>{{ $act->description }}</td>
+
+                    {{-- Waktu (Jam) --}}
+                    <td style="text-align: center; font-weight: 600; white-space: nowrap;">
+                        {{ $item['time'] ?: '-' }}
+                    </td>
+
+                    {{-- PIC Klien --}}
                     <td>
-                        @if($act->status === 'Selesai')
-                            <span class="badge badge-done">Selesai</span>
-                        @elseif($act->status === 'Sedang Berjalan')
-                            <span class="badge badge-progress">Berjalan</span>
+                        @if(!empty($item['client_pic']) && $item['client_pic'] !== '-')
+                            <span class="badge-pic-klien">{{ $item['client_pic'] }}</span>
                         @else
-                            <span class="badge badge-delayed">Ditunda</span>
+                            <span style="color: #94a3b8;">-</span>
                         @endif
                     </td>
+
+                    {{-- PIC IPNET --}}
                     <td>
-                        @if($act->notes)
-                            <div class="noted-text">{{ $act->notes }}</div>
-                        @else —
+                        @if(!empty($item['ipnet_pic']) && $item['ipnet_pic'] !== '-')
+                            <span class="badge-pic-ipnet">{{ $item['ipnet_pic'] }}</span>
+                        @else
+                            <span style="color: #94a3b8;">-</span>
                         @endif
+                    </td>
+
+                    {{-- Noted --}}
+                    <td style="color: #334155; word-wrap: break-word;">
+                        {{ $item['notes'] ?: '-' }}
                     </td>
                 </tr>
-                @endforeach
-            </tbody>
-        </table>
-        @endif
-    </div>
+            @empty
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 25px; color: #94a3b8; font-style: italic;">
+                        Tidak ada catatan aktivitas yang tersedia.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
 
     {{-- ══ FOOTER & TANDA TANGAN ══ --}}
-    <div class="page-footer">
-        <div class="footer-left">
-            <p><strong>PT IP Network Solusindo</strong> — Dokumen Internal</p>
-            <p>Laporan ini digenerate secara otomatis oleh sistem IPNET Dashboard.</p>
-            <p>Jumlah data: {{ $activities->count() }} entri aktivitas engineer.</p>
-        </div>
-        <div class="signature-block">
-            <div class="sig-label">Mengetahui,</div>
-            <div class="sig-name">Lead Engineer / Team Leader</div>
-            <div class="sig-label">Nama & Jabatan</div>
-        </div>
-    </div>
+    <table class="footer-table" cellpadding="0" cellspacing="0">
+        <tr>
+            <td style="vertical-align: top;" class="footer-note">
+                <strong>PT IP NETWORK SOLUSINDO</strong> &bull; Laporan Resmi Aktivitas Engineer<br>
+                Dokumen ini digenerate secara otomatis oleh sistem IPNET Dashboard pada {{ now()->format('d/m/Y H:i') }} WIB.<br>
+                Halaman berlaku sebagai bukti sah dokumentasi kegiatan lapangan dan operasional.
+            </td>
+            <td style="width: 220px; text-align: center; vertical-align: top;">
+                <div class="sig-title">Mengetahui,</div>
+                <div class="sig-line">Lead Engineer / Team Leader</div>
+                <div class="sig-role">PT IP Network Solusindo</div>
+            </td>
+        </tr>
+    </table>
 
 </body>
 </html>

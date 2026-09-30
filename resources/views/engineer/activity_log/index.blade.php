@@ -348,26 +348,38 @@
                     </button>
                 </div>
 
-                {{-- Meta Info Bar --}}
+                {{-- Meta Info Bar: Proyek & Dicatat Oleh + Tombol Download di Atas (Klien & Tipe Dihapus) --}}
                 <div class="px-5 sm:px-6 py-3 bg-[#F8FAFC] border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
-                    <div class="flex items-center gap-4 flex-wrap">
+                    <div class="flex items-center gap-3 flex-wrap">
                         <div>
                             <span class="text-gray-400 font-medium">Proyek:</span>
                             <strong class="text-gray-800 ml-1" x-text="selectedDetail?.project_name || '-'"></strong>
                         </div>
                         <span class="text-gray-300">•</span>
-                        <div>
-                            <span class="text-gray-400 font-medium">Klien:</span>
-                            <strong class="text-gray-800 ml-1" x-text="selectedDetail?.client_name || '-'"></strong>
-                        </div>
-                        <span class="text-gray-300">•</span>
-                        <div>
-                            <span class="text-gray-400 font-medium">Tipe:</span>
-                            <span class="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800 font-bold ml-1" x-text="selectedDetail?.activity_type || '-'"></span>
+                        <div class="text-gray-500 text-[11px]">
+                            Dicatat oleh: <strong class="text-gray-800" x-text="selectedDetail?.engineer_name || '-'"></strong>
                         </div>
                     </div>
-                    <div class="text-gray-500 text-[11px]">
-                        Dicatat oleh: <strong class="text-gray-800" x-text="selectedDetail?.engineer_name || '-'"></strong>
+
+                    {{-- Tombol Download PDF & Excel di Atas (Pill Rounded-Full persis gambar referensi) --}}
+                    <div class="flex items-center gap-2">
+                        {{-- Download PDF --}}
+                        <a :href="buildExportUrl('pdf')"
+                           target="_blank"
+                           class="px-4 py-1.5 text-xs font-bold text-[#8F0A0D] bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-full transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                            Download PDF
+                        </a>
+                        {{-- Download Excel --}}
+                        <a :href="buildExportUrl('excel')"
+                           class="px-4 py-1.5 text-xs font-bold text-[#0F6B43] bg-white hover:bg-emerald-50 border border-emerald-200 hover:border-emerald-300 rounded-full transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#0F6B43]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Download Excel
+                        </a>
                     </div>
                 </div>
 
@@ -426,32 +438,14 @@
                     </table>
                 </div>
 
-                {{-- Footer dengan tombol Download PDF & Excel --}}
+                {{-- Footer Modal --}}
                 <div class="flex items-center justify-between p-4 px-6 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
-                    {{-- Download Buttons --}}
-                    <div class="flex items-center gap-2">
-                        {{-- Download PDF --}}
-                        <a :href="buildExportUrl('pdf')"
-                           target="_blank"
-                           class="px-4 py-2 text-xs font-bold text-[#8F0A0D] bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-xl transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                            </svg>
-                            Download PDF
-                        </a>
-                        {{-- Download Excel --}}
-                        <a :href="buildExportUrl('excel')"
-                           class="px-4 py-2 text-xs font-bold text-emerald-700 bg-white hover:bg-emerald-50 border border-emerald-200 hover:border-emerald-300 rounded-xl transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                            Download Excel
-                        </a>
-                    </div>
-
+                    <p class="text-xs text-gray-500 font-medium">
+                        Total: <strong class="text-gray-800" x-text="(selectedDetail?.items?.length || 0) + ' Agenda Aktivitas'"></strong>
+                    </p>
                     <button type="button"
                             @click="isDetailModalOpen = false"
-                            class="px-5 py-2.5 text-xs font-bold text-[#1E293B] bg-white hover:bg-gray-100 border border-[#CBD5E1] rounded-xl transition cursor-pointer shadow-xs">
+                            class="px-5 py-2 text-xs font-bold text-[#1E293B] bg-white hover:bg-gray-100 border border-[#CBD5E1] rounded-xl transition cursor-pointer shadow-xs">
                         Tutup
                     </button>
                 </div>
@@ -480,12 +474,20 @@ function engineerActivityManager() {
             const base = type === 'pdf'
                 ? '{{ route("engineer.activity_log.export_pdf") }}'
                 : '{{ route("engineer.activity_log.export_excel") }}';
-            // Pass current page filters
             const params = new URLSearchParams(window.location.search);
-            if (Object.keys(params).length > 0) {
-                return base + '?' + params.toString();
+            
+            // Sertakan ID aktivitas spesifik dari modal popup
+            if (this.selectedDetail && this.selectedDetail.items && this.selectedDetail.items.length > 0) {
+                const ids = this.selectedDetail.items.map(item => item.id).filter(Boolean);
+                if (ids.length > 0) {
+                    params.set('log_ids', ids.join(','));
+                }
+                if (this.selectedDetail.project_name) {
+                    params.set('project_name', this.selectedDetail.project_name);
+                }
             }
-            return base;
+            const qs = params.toString();
+            return qs ? (base + '?' + qs) : base;
         },
     };
 }
