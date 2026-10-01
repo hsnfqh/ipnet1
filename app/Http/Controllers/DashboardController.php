@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Models\EngineerActivityLog;
 use App\Helpers\FileUploadHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\ActivityDocumentSignature;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -2019,13 +2021,38 @@ class DashboardController extends Controller
         }
         $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
 
+        // Deteksi atau ambil Tanda Tangan Digital Resmi
+        $firstAct = $activities->first();
+        $scopeKey = $request->scope_key ?: ($firstAct?->project_id ? ('proj_' . $firstAct->project_id) : ('no_proj_' . ($firstAct?->user_id ?? $authUser->id)));
+        
+        $documentSignature = null;
+        try {
+            $documentSignature = ActivityDocumentSignature::where('scope_key', $scopeKey)->first();
+        } catch (\Throwable $e) {
+            // Abaikan jika koneksi/tabel belum ready
+        }
+
+        $verifyDocNumber = $documentSignature?->document_number ?? ('IPNET-ACT-' . date('Ym') . '-DRAFT');
+        $verifyUrl       = url('/verify-document/' . $verifyDocNumber);
+        $qrSvgBase64     = '';
+        try {
+            $qrSvg = QrCode::format('svg')->size(74)->margin(1)->errorCorrection('M')->generate($verifyUrl);
+            $qrSvgBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
+        } catch (\Throwable $e) {
+            // fallback bila QrCode error
+        }
+
         $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', [
-            'parsedActivities' => $parsedActivities,
-            'activities'       => $activities,
-            'projectName'      => $projectName,
-            'engineerName'     => $engineerName,
-            'printedBy'        => $printedBy,
-            'logoBase64'       => $logoBase64,
+            'parsedActivities'  => $parsedActivities,
+            'activities'        => $activities,
+            'projectName'       => $projectName,
+            'engineerName'      => $engineerName,
+            'printedBy'         => $printedBy,
+            'logoBase64'        => $logoBase64,
+            'documentSignature' => $documentSignature,
+            'verifyDocNumber'   => $verifyDocNumber,
+            'verifyUrl'         => $verifyUrl,
+            'qrSvgBase64'       => $qrSvgBase64,
         ]);
 
         $pdf->setPaper('a4', 'landscape');

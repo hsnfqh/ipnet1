@@ -26,6 +26,7 @@ use App\Http\Controllers\SalesProjectController;
 use App\Http\Controllers\BdmController;
 use App\Http\Controllers\CroController;
 use App\Http\Controllers\AdminSupportController;
+use App\Http\Controllers\ActivitySignatureController;
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
@@ -181,6 +182,15 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/engineer/activity-logs/export/excel', [DashboardController::class, 'exportActivityLogExcel'])
         ->name('engineer.activity_log.export_excel')
+        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager');
+
+    // Digital Signature Dokumen Aktivitas (PIC -> Lead -> Head Division)
+    Route::get('/engineer/activity-logs/signature-status', [ActivitySignatureController::class, 'getStatus'])
+        ->name('engineer.activity_log.signature_status')
+        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager');
+
+    Route::post('/engineer/activity-logs/signature', [ActivitySignatureController::class, 'storeSignature'])
+        ->name('engineer.activity_log.signature_store')
         ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager');
 
     // Route legacy / alias POST dari embedded section dashboard
