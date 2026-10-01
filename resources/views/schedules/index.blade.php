@@ -523,20 +523,12 @@
                                         <template x-for="event in getAllEventsForDay(day.fullDate)" :key="event._uid">
                                             <div class="jkw-mini-card" 
                                                  :class="'jkw-mini-card--' + event._type"
-                                                 :style="'border-left: 3.5px solid ' + event._color + '; cursor:pointer;'"
+                                                 :style="'border-left: 3px solid ' + event._color + '; cursor:pointer;'"
                                                  :title="event._tooltip + (canManageSchedule ? ' • Klik untuk detail / edit' : ' • Klik untuk melihat detail')"
                                                  @click="handleEventClick(event)">
-                                                <div class="jkw-mini-time" :style="{ color: event._color }">
-                                                    <span class="jkw-mini-dot" :style="{ background: event._color }"></span>
-                                                    <span x-text="event._timeLabel"></span>
-                                                </div>
+                                                <div class="jkw-mini-time" x-text="event._timeLabel" style="font-size:10px; font-weight:700;" :style="{ color: event._color }"></div>
                                                 <div class="jkw-mini-title" x-text="event._displayTitle"></div>
-                                                <div class="jkw-mini-eng" x-show="event._subLabel">
-                                                    <svg style="width:10px; height:10px; flex-shrink:0; opacity:0.65;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                                    </svg>
-                                                    <span x-text="event._subLabel"></span>
-                                                </div>
+                                                <div class="jkw-mini-eng" x-text="event._subLabel"></div>
                                             </div>
                                         </template>
                                         <div class="jkw-mini-empty" x-show="getAllEventsForDay(day.fullDate).length === 0">—</div>
@@ -1966,108 +1958,16 @@
 .jkw-week-col.is-today { background:var(--jkw-bg-soft) !important; }
 .jkw-week-col-head { font-size:11px !important; color:var(--jkw-muted) !important; font-weight:700 !important; margin-bottom:10px !important; display:flex !important; align-items:center !important; gap:5px !important; }
 .jkw-week-col-body { display:flex !important; flex-direction:column !important; gap:6px !important; }
-.jkw-mini-card {
-    background: #FFFFFF !important;
-    border: 1px solid #E2E8F0 !important;
-    border-radius: 8px !important;
-    padding: 6px 8px !important;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
-    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 3px !important;
-}
-.jkw-mini-card:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
-    border-color: #CBD5E1 !important;
-}
-.jkw-mini-card--schedule, .jkw-mini-card--design, .jkw-mini-card--meeting {
-    background: #FFFFFF !important;
-    border-color: #DBEAFE !important;
-}
-.jkw-mini-card--schedule:hover, .jkw-mini-card--design:hover, .jkw-mini-card--meeting:hover {
-    background: #EFF6FF !important;
-    border-color: #BFDBFE !important;
-}
-.jkw-mini-card--maintenance {
-    background: #FFFFFF !important;
-    border-color: #FEF3C7 !important;
-}
-.jkw-mini-card--maintenance:hover {
-    background: #FFFBEB !important;
-    border-color: #FDE68A !important;
-}
-.jkw-mini-card--poc {
-    background: #FFFFFF !important;
-    border-color: #D1FAE5 !important;
-}
-.jkw-mini-card--poc:hover {
-    background: #ECFDF5 !important;
-    border-color: #A7F3D0 !important;
-}
-.jkw-mini-card--day_off {
-    background: #F8FAFC !important;
-    border-color: #E2E8F0 !important;
-    opacity: 0.9 !important;
-}
-.jkw-mini-card--day_off:hover {
-    background: #F1F5F9 !important;
-    border-color: #CBD5E1 !important;
-    opacity: 1 !important;
-}
-.jkw-mini-card--task {
-    background: #FFFFFF !important;
-    border-color: #FEE2E2 !important;
-}
-.jkw-mini-card--task:hover {
-    background: #FEF2F2 !important;
-    border-color: #FECACA !important;
-}
-.jkw-mini-card--project {
-    background: #FFFFFF !important;
-    border-color: #FEE2E2 !important;
-}
-.jkw-mini-card--project:hover {
-    background: #FEF2F2 !important;
-    border-color: #FECACA !important;
-}
-.jkw-mini-time {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    font-size: 10px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.3px !important;
-    text-transform: uppercase !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    line-height: 1 !important;
-}
-.jkw-mini-dot {
-    width: 5px !important;
-    height: 5px !important;
-    border-radius: 50% !important;
-    flex-shrink: 0 !important;
-    display: inline-block !important;
-}
-.jkw-mini-title {
-    font-size: 11.5px !important;
-    color: #0F172A !important;
-    font-weight: 700 !important;
-    line-height: 1.35 !important;
-    word-break: break-word !important;
-}
-.jkw-mini-eng {
-    font-size: 10px !important;
-    color: #64748B !important;
-    line-height: 1.3 !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 3.5px !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-}
+.jkw-mini-card { border-radius:6px !important; padding:6px 9px !important; }
+.jkw-mini-card--schedule, .jkw-mini-card--design, .jkw-mini-card--meeting { background:rgba(37,99,235,0.09) !important; }
+.jkw-mini-card--maintenance { background:rgba(217,119,6,0.12) !important; }
+.jkw-mini-card--poc { background:rgba(16,185,129,0.10) !important; }
+.jkw-mini-card--day_off { background:rgba(100,116,139,0.12) !important; }
+.jkw-mini-card--task { background:rgba(200,30,44,0.08) !important; }
+.jkw-mini-card--project { background:rgba(153,27,27,0.08) !important; }
+.jkw-mini-time { font-family:'IBM Plex Mono', monospace !important; font-size:10px !important; font-weight:700 !important; }
+.jkw-mini-title { font-size:11.5px !important; color:var(--jkw-ink) !important; font-weight:600 !important; line-height:1.3 !important; margin-top:1px !important; word-break:break-word !important; }
+.jkw-mini-eng { font-size:9.5px !important; color:var(--jkw-muted) !important; margin-top:1px !important; }
 .jkw-mini-empty { font-size:11px !important; color:#C7C4CD !important; padding:8px 0 !important; text-align:center !important; }
 
 /* ---------- month view ---------- */
