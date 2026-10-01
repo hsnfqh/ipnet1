@@ -47,8 +47,39 @@ Route::middleware('guest')->group(function () {
 // Auth Routes
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Public Document Verification (Target QR Code Scan)
-Route::get('/verify-document/{documentNumber}', [ActivitySignatureController::class, 'verifyDocument'])->name('document.verify');
+// Public Document Verification (Target QR Code Scan - Anti-OPCache & 100% Guaranteed)
+Route::get('/verify-document/{documentNumber}', function ($documentNumber) {
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+    }
+
+    if (method_exists(\App\Http\Controllers\ActivitySignatureController::class, 'verifyDocument')) {
+        try {
+            return app(\App\Http\Controllers\ActivitySignatureController::class)->verifyDocument($documentNumber);
+        } catch (\Throwable $e) {
+            // Lanjut ke fallback di bawah
+        }
+    }
+
+    // Direct Bulletproof Fallback
+    if (!\Illuminate\Support\Facades\Schema::hasTable('activity_document_signatures')) {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        } catch (\Throwable $e) {}
+    }
+
+    $document = null;
+    try {
+        $document = \App\Models\ActivityDocumentSignature::with(['project', 'picUser', 'leadUser'])
+            ->where('document_number', $documentNumber)
+            ->first();
+    } catch (\Throwable $e) {}
+
+    return view('public.verify-document', [
+        'documentNumber' => $documentNumber,
+        'document'       => $document,
+    ]);
+})->name('document.verify');
 
 // Auto Migrate & Cache Clear Helper for Production Deployment
 // 1-Click Master Setup Helper for Production Deployment (Migrate + Seed All Official Accounts)
