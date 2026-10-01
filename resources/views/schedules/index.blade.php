@@ -809,7 +809,9 @@
                                             </template>
                                         </select>
                                     </div>
-                                                                   <!-- Pilihan Kategori Jadwal -->
+                                    @endif
+
+                                    <!-- Pilihan Kategori Jadwal -->
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">
                                             Kategori {{ ($isArchitect ?? false) ? 'Agenda' : 'Jadwal' }}
@@ -1217,6 +1219,7 @@
                                     </div>
                                 </div>
 
+                                @if($canManageSchedule ?? false)
                                 <template x-if="canManageSchedule">
                                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px; padding-top:18px; border-top:1px solid #E2E8F0;">
                                         <button type="submit" 
@@ -1245,18 +1248,17 @@
                                         </template>
                                     </div>
                                 </template>
-
-                                <template x-if="!canManageSchedule">
-                                    <div style="display:flex; justify-content:flex-end; margin-top:20px; padding-top:18px; border-top:1px solid #E2E8F0;">
-                                        <button type="button"
-                                                @click="modalOpen = false"
-                                                style="width:100%; justify-content:center; background:#F8FAFC; color:#334155; border:1.5px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease; box-sizing:border-box;"
-                                                onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='#94A3B8'; this.style.color='#0F172A';"
-                                                onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1'; this.style.color='#334155';">
-                                            Tutup
-                                        </button>
-                                    </div>
-                                </template>
+                                @else
+                                <div style="display:flex; justify-content:flex-end; margin-top:20px; padding-top:18px; border-top:1px solid #E2E8F0;">
+                                    <button type="button"
+                                            @click="modalOpen = false"
+                                            style="width:100%; justify-content:center; background:#F8FAFC; color:#334155; border:1.5px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease; box-sizing:border-box;"
+                                            onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='#94A3B8'; this.style.color='#0F172A';"
+                                            onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1'; this.style.color='#334155';">
+                                        Tutup
+                                    </button>
+                                </div>
+                                @endif
                             </form>
                         </div>
                     </div>
