@@ -754,7 +754,7 @@
                                 </div>
                                 <div class="flex items-center justify-between pt-1">
                                     <div class="text-[11px] text-gray-400 font-medium">
-                                        Dibuat oleh <strong class="text-gray-600 font-semibold" x-text="row.creator_name || '{{ $creatorName }}'"></strong>
+                                        Dibuat oleh <strong class="text-gray-600 font-semibold" x-text="row.creator_name || '{{ auth()->user()?->name ?? 'Engineer' }}'"></strong>
                                     </div>
                                     <button type="button" @click="saveEditRow(row)" :disabled="editSaving"
                                             class="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-bold text-white rounded-lg transition cursor-pointer disabled:opacity-50 shadow-sm"
@@ -883,7 +883,7 @@ function engineerActivityManager() {
                 client_pic:   '',
                 ipnet_pic:    '',
                 notes:        '',
-                creator_name: '{{ auth()->user()->name }}',
+                creator_name: '{{ auth()->user()?->name ?? 'Engineer' }}',
                 project_id:   this.editProjectId,
                 project_name: this.editGroupName,
                 update_url:   null,
