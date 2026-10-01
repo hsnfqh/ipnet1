@@ -169,21 +169,21 @@
     <main class="relative z-10 w-full max-w-2xl mx-auto my-auto flex flex-col items-center">
         
         {{-- Floating Logo Ring --}}
-        <div class="relative mb-2.5 anim-hero-reveal">
+        <div class="relative mb-3 anim-hero-reveal">
             <div class="absolute inset-0 bg-white/20 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/10 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-[0_12px_28px_rgba(0,0,0,0.3)] animate-logo-float transition-transform hover:scale-105 cursor-pointer">
-                <img src="{{ asset('images/ipnet1.png') }}" alt="IP Network Solusindo" class="h-11 sm:h-13 w-auto object-contain drop-shadow-md">
+            <div class="relative w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-white/10 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-[0_14px_30px_rgba(0,0,0,0.3)] animate-logo-float transition-transform hover:scale-105 cursor-pointer">
+                <img src="{{ asset('images/ipnet1.png') }}" alt="IP Network Solusindo" class="h-13 sm:h-15 w-auto object-contain drop-shadow-md">
             </div>
         </div>
 
         {{-- Center Titles --}}
         <div class="text-center max-w-lg mb-4">
-            <h1 class="font-display font-black text-[22px] sm:text-[26px] text-white tracking-tight leading-tight drop-shadow-sm anim-fade-up">
+            <h1 class="font-display font-bold text-[21px] sm:text-[24px] text-white tracking-normal leading-snug drop-shadow-xs anim-fade-up">
                 PT IP Network Solusindo
             </h1>
             <div class="inline-flex items-center gap-2 mt-1 anim-fade-up">
                 <span class="h-[1px] w-5 bg-white/40"></span>
-                <p class="text-rose-100 text-[11px] sm:text-[11.5px] font-bold tracking-[2px] uppercase">
+                <p class="text-rose-100/90 text-[11px] sm:text-[11.5px] font-semibold tracking-[1.5px] uppercase">
                     Portal Verifikasi &amp; Audit Integritas Dokumen
                 </p>
                 <span class="h-[1px] w-5 bg-white/40"></span>
