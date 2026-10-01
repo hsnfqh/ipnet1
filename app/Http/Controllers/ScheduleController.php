@@ -480,7 +480,20 @@ class ScheduleController extends Controller
                     $data['project_id'] = null;
                 }
             }
-            $createTask = ($request->boolean('create_task') || $request->input('create_task') === '1' || $request->input('create_task') === 1 || $request->input('create_task') === true || in_array($data['category'] ?? '', ['Task', 'Kegiatan'])) && (($data['category'] ?? '') !== 'Day Off');
+            $catLower = strtolower($data['category'] ?? '');
+            $titleLower = strtolower($data['title'] ?? '');
+            $isMeetingOrDayOff = in_array($data['category'] ?? '', ['Meeting', 'Day Off', 'Meeting Klien / Principal', 'Sesi PoC & Lab', 'PoC & Demo', 'Cuti'])
+                || str_contains($catLower, 'meeting')
+                || str_contains($catLower, 'day off')
+                || str_contains($catLower, 'cuti')
+                || str_contains($catLower, 'libur')
+                || str_contains($catLower, 'rapat')
+                || str_contains($titleLower, 'day off')
+                || str_contains($titleLower, 'dayoff')
+                || str_contains($titleLower, 'cuti')
+                || str_contains($titleLower, 'meeting');
+
+            $createTask = !$isMeetingOrDayOff && ($request->boolean('create_task') || $request->input('create_task') === '1' || $request->input('create_task') === 1 || $request->input('create_task') === true || in_array($data['category'] ?? '', ['Task', 'Kegiatan']));
             $taskPriority = $request->input('task_priority', 'High');
             if (!in_array($taskPriority, ['Low', 'Medium', 'High', 'Urgent'])) {
                 $taskPriority = 'High';
@@ -822,7 +835,18 @@ class ScheduleController extends Controller
                     ->first();
             }
 
-            $isMeetingOrDayOff = in_array($schedule->category, ['Meeting', 'Day Off', 'Meeting Klien / Principal', 'Sesi PoC & Lab', 'PoC & Demo']) || str_contains(strtolower($schedule->category ?? ''), 'meeting');
+            $catLower = strtolower($schedule->category ?? '');
+            $titleLower = strtolower($schedule->title ?? '');
+            $isMeetingOrDayOff = in_array($schedule->category, ['Meeting', 'Day Off', 'Meeting Klien / Principal', 'Sesi PoC & Lab', 'PoC & Demo', 'Cuti'])
+                || str_contains($catLower, 'meeting')
+                || str_contains($catLower, 'day off')
+                || str_contains($catLower, 'cuti')
+                || str_contains($catLower, 'libur')
+                || str_contains($catLower, 'rapat')
+                || str_contains($titleLower, 'day off')
+                || str_contains($titleLower, 'dayoff')
+                || str_contains($titleLower, 'cuti')
+                || str_contains($titleLower, 'meeting');
 
             if ($isMeetingOrDayOff) {
                 // Jika jadwal diubah menjadi Meeting atau Day Off, hapus task penugasan tim terkait agar tidak muncul lagi di menu Penugasan Tim

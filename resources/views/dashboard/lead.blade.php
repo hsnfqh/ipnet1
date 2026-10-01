@@ -693,7 +693,7 @@
                                 Beban & Kapasitas Penugasan Personil
                             </h3>
                             <p class="text-[12.5px] text-[#75727C] mt-0.5">
-                                Pantau perbandingan tugas aktif dan tugas selesai untuk keseimbangan distribusi tim
+                                Pantau perbandingan tugas aktif dan tugas selesai untuk keseimbangan distribusi tim (tidak termasuk Day Off &amp; Meeting)
                             </p>
                         </div>
 

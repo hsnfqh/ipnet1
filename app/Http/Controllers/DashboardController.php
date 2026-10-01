@@ -267,21 +267,86 @@ class DashboardController extends Controller
         $engineers = \App\Helpers\ScopeHelper::getAssignableEngineers($user);
         $hasTaskUser = \Illuminate\Support\Facades\Schema::hasTable('task_user');
 
-        // Auto-cleanup: Pastikan task & schedule auto-generate "Implementasi Teknis" dibersihkan
+        // Auto-cleanup: Pastikan task & schedule auto-generate "Implementasi Teknis" serta task Day Off / Meeting dibersihkan dari penugasan
         try {
             if ($hasTaskUser) {
                 \Illuminate\Support\Facades\DB::statement("DELETE FROM task_user WHERE task_id IN (SELECT id FROM tasks WHERE title LIKE '%Implementasi Teknis%')");
             }
             \Illuminate\Support\Facades\DB::statement("DELETE FROM tasks WHERE title LIKE '%Implementasi Teknis%'");
             \Illuminate\Support\Facades\DB::statement("DELETE FROM schedules WHERE title LIKE '%Implementasi Teknis%'");
+
+            // Hapus task yang merupakan Day Off, Cuti, Libur, Meeting, atau Rapat
+            $unwantedTaskIds = Task::where(function($q) {
+                $q->where('title', 'like', '%Day Off%')
+                  ->orWhere('title', 'like', '%day off%')
+                  ->orWhere('title', 'like', '%dayoff%')
+                  ->orWhere('title', 'like', '%Cuti%')
+                  ->orWhere('title', 'like', '%cuti%')
+                  ->orWhere('title', 'like', '%Libur%')
+                  ->orWhere('title', 'like', '%libur%')
+                  ->orWhere('title', 'like', '%Meeting%')
+                  ->orWhere('title', 'like', '%meeting%')
+                  ->orWhere('title', 'like', '%Rapat%')
+                  ->orWhere('title', 'like', '%rapat%')
+                  ->orWhereHas('project', function($pq) {
+                      $pq->whereIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+                        ->orWhere('name', 'like', '%Day Off%')
+                        ->orWhere('name', 'like', '%day off%')
+                        ->orWhere('name', 'like', '%Cuti%')
+                        ->orWhere('name', 'like', '%cuti%')
+                        ->orWhere('name', 'like', '%Meeting%')
+                        ->orWhere('name', 'like', '%meeting%');
+                  });
+            })->pluck('id');
+
+            // Tambahkan juga task yang judulnya persis judul agenda schedule bertipe Day Off / Meeting
+            $meetingScheduleTitles = Schedule::where(function($sq) {
+                $sq->whereIn('category', ['Meeting', 'Day Off', 'Meeting Klien / Principal', 'Sesi PoC & Lab', 'PoC & Demo', 'Cuti'])
+                   ->orWhere('category', 'like', '%Meeting%')
+                   ->orWhere('category', 'like', '%meeting%')
+                   ->orWhere('category', 'like', '%Day Off%')
+                   ->orWhere('category', 'like', '%day off%')
+                   ->orWhere('category', 'like', '%dayoff%')
+                   ->orWhere('category', 'like', '%cuti%')
+                   ->orWhere('category', 'like', '%libur%');
+            })->pluck('title')->filter()->unique()->toArray();
+
+            if (!empty($meetingScheduleTitles)) {
+                $scheduleTaskIds = Task::whereIn('title', $meetingScheduleTitles)->pluck('id');
+                $unwantedTaskIds = $unwantedTaskIds->concat($scheduleTaskIds)->unique();
+            }
+
+            if ($unwantedTaskIds->isNotEmpty()) {
+                if ($hasTaskUser) {
+                    \Illuminate\Support\Facades\DB::table('task_user')->whereIn('task_id', $unwantedTaskIds)->delete();
+                }
+                Task::whereIn('id', $unwantedTaskIds)->delete();
+            }
         } catch (\Exception $e) {}
 
-        // Filter tasks sesuai scope role yang login
+        // Filter tasks sesuai scope role yang login (secara tegas KECUALIKAN Day Off & Meeting)
         $withRelations = ['project', 'engineer'];
         if ($hasTaskUser) {
             $withRelations[] = 'engineers';
         }
-        $tasksQuery = Task::with($withRelations)->where('title', 'not like', '%Implementasi Teknis%');
+        $tasksQuery = Task::with($withRelations)
+            ->where('title', 'not like', '%Implementasi Teknis%')
+            ->where('title', 'not like', '%Day Off%')
+            ->where('title', 'not like', '%day off%')
+            ->where('title', 'not like', '%dayoff%')
+            ->where('title', 'not like', '%cuti%')
+            ->where('title', 'not like', '%libur%')
+            ->where('title', 'not like', '%meeting%')
+            ->where('title', 'not like', '%rapat%')
+            ->whereDoesntHave('project', function($pq) {
+                $pq->whereIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+                  ->orWhere('name', 'like', '%Day Off%')
+                  ->orWhere('name', 'like', '%day off%')
+                  ->orWhere('name', 'like', '%Cuti%')
+                  ->orWhere('name', 'like', '%cuti%')
+                  ->orWhere('name', 'like', '%Meeting%')
+                  ->orWhere('name', 'like', '%meeting%');
+            });
         if ($scopeIds !== null) {
             $tasksQuery->where(function($q) use ($scopeIds, $hasTaskUser) {
                 if (count($scopeIds) === 1) {
@@ -298,7 +363,13 @@ class DashboardController extends Controller
             });
         }
         $tasks = $tasksQuery->get()->filter(function($t) {
-            return !str_contains(strtolower($t->title ?? ''), 'implementasi teknis');
+            $title = strtolower($t->title ?? '');
+            $projectName = strtolower($t->project->name ?? '');
+            if (str_contains($title, 'implementasi teknis')) return false;
+            if (str_contains($title, 'day off') || str_contains($title, 'dayoff') || str_contains($title, 'cuti') || str_contains($title, 'libur')) return false;
+            if (str_contains($title, 'meeting') || str_contains($title, 'rapat')) return false;
+            if (str_contains($projectName, 'day off') || str_contains($projectName, 'cuti') || str_contains($projectName, 'meeting')) return false;
+            return true;
         })->values();
 
         // Filter projects sesuai scope role yang login (kecualikan dummy/internal Day Off & Draft yang masih dicoba-coba)
@@ -385,6 +456,12 @@ class DashboardController extends Controller
         $buildEngineerLoad = function($taskList) use ($engineers, $hasTaskUser) {
             return $engineers->map(function($engineer) use ($taskList, $hasTaskUser) {
                 $engineerTasks = $taskList->filter(function($t) use ($engineer, $hasTaskUser) {
+                    $title = strtolower($t->title ?? '');
+                    $projectName = strtolower($t->project->name ?? '');
+                    if (str_contains($title, 'day off') || str_contains($title, 'dayoff') || str_contains($title, 'cuti') || str_contains($title, 'libur')) return false;
+                    if (str_contains($title, 'meeting') || str_contains($title, 'rapat')) return false;
+                    if (str_contains($projectName, 'day off') || str_contains($projectName, 'cuti') || str_contains($projectName, 'meeting')) return false;
+
                     if ($t->engineer_id == $engineer->id) return true;
                     if ($hasTaskUser && $t->relationLoaded('engineers') && $t->engineers->contains('id', $engineer->id)) {
                         return true;
@@ -566,6 +643,23 @@ class DashboardController extends Controller
                 if ($hasTaskUser) {
                     $q->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $user->id));
                 }
+            })
+            ->where('title', 'not like', '%Implementasi Teknis%')
+            ->where('title', 'not like', '%Day Off%')
+            ->where('title', 'not like', '%day off%')
+            ->where('title', 'not like', '%dayoff%')
+            ->where('title', 'not like', '%cuti%')
+            ->where('title', 'not like', '%libur%')
+            ->where('title', 'not like', '%meeting%')
+            ->where('title', 'not like', '%rapat%')
+            ->whereDoesntHave('project', function($pq) {
+                $pq->whereIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+                  ->orWhere('name', 'like', '%Day Off%')
+                  ->orWhere('name', 'like', '%day off%')
+                  ->orWhere('name', 'like', '%Cuti%')
+                  ->orWhere('name', 'like', '%cuti%')
+                  ->orWhere('name', 'like', '%Meeting%')
+                  ->orWhere('name', 'like', '%meeting%');
             })
             ->get();
 
