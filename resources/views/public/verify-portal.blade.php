@@ -171,7 +171,7 @@
         </div>
 
         @if(auth()->check())
-            <a href="{{ route('engineer.activity.index') }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/25 text-white text-[12px] font-medium transition-all shadow-sm">
+            <a href="{{ Route::has('engineer.activity_log.index') ? route('engineer.activity_log.index') : url('/engineer/activity-log') }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/25 text-white text-[12px] font-medium transition-all shadow-sm">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
