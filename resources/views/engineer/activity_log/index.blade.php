@@ -568,7 +568,7 @@
                                 <th class="py-3 px-3 w-28">Tanggal</th>
                                 <th class="py-3 px-3 w-32">PIC Klien</th>
                                 <th class="py-3 px-3 w-32">PIC IPNET</th>
-                                <th class="py-3 px-3 min-w-[160px]">Noted</th>
+                                <th class="py-3 px-3 min-w-[160px]">Notes</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#E2E8F0]">
@@ -679,7 +679,7 @@
                                                class="w-full px-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
                                     </div>
                                     <div>
-                                        <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">Noted</label>
+                                        <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">Notes</label>
                                         <input type="text" x-model="row.notes" placeholder="Keterangan"
                                                class="w-full px-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
                                     </div>

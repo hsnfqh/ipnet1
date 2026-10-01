@@ -283,7 +283,7 @@
                 <th style="width: 38%; text-align: left; padding-left: 8px;">Uraian Aktivitas</th>
                 <th style="width: 95px; text-align: center;">PIC Klien</th>
                 <th style="width: 95px; text-align: center;">PIC IPNET</th>
-                <th style="width: 32%; text-align: left; padding-left: 8px;">Noted</th>
+                <th style="width: 32%; text-align: left; padding-left: 8px;">Notes</th>
             </tr>
         </thead>
         <tbody>

@@ -132,7 +132,7 @@
                                 <th class="py-3 px-3 w-36">TANGGAL</th>
                                 <th class="py-3 px-3 w-36">PIC KLIEN</th>
                                 <th class="py-3 px-3 w-36">PIC IPNET</th>
-                                <th class="py-3 px-3 min-w-[200px]">NOTED</th>
+                                <th class="py-3 px-3 min-w-[200px]">NOTES</th>
                                 <th class="py-3 px-2 w-12 text-center">AKSI</th>
                             </tr>
                         </thead>
@@ -177,12 +177,12 @@
                                                class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition">
                                     </td>
 
-                                    {{-- Noted --}}
+                                    {{-- Notes --}}
                                     <td class="py-2 px-2.5">
                                         <textarea :name="'activities[' + index + '][notes]'"
                                                   x-model="row.notes"
                                                   rows="2"
-                                                  placeholder="Catatan / Noted kendala & durasi..."
+                                                  placeholder="Catatan / Notes kendala & durasi..."
                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition resize-none"></textarea>
                                     </td>
 
