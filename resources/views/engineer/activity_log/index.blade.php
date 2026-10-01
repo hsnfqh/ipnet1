@@ -190,32 +190,6 @@
                         <a href="{{ route('engineer.activity_log.index') }}" class="px-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-800 self-center">Reset Filter</a>
                     @endif
                 </form>
-
-                <div class="flex items-center gap-2.5 w-full sm:w-auto">
-                    <div x-data="{ exportOpen: false }" class="relative">
-                        <button type="button" @click="exportOpen = !exportOpen"
-                                class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white font-bold text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer shadow-xs transition">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                            </svg>
-                            <span>Export</span>
-                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                        </button>
-                        <div x-show="exportOpen" x-cloak @click.outside="exportOpen = false"
-                             class="absolute right-0 mt-2 w-52 bg-white border border-[#E2E8F0] rounded-2xl shadow-xl z-30 py-1.5 overflow-hidden anim-fade-up">
-                            <a href="{{ route('engineer.activity_log.export_excel', request()->all()) }}"
-                               class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-[#1E293B] hover:bg-[#F0FDF4] hover:text-[#16A34A] transition">
-                                <svg class="w-4 h-4 text-[#16A34A] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 4h7v5h5v11H6V4zm2 8h2.5l1.5 2.5 1.5-2.5H16l-2.25 3.5L16 19h-2.5L12 16.5 10.5 19H8l2.25-3.5L8 12z"/></svg>
-                                Export Excel (.xlsx)
-                            </a>
-                            <a href="{{ route('engineer.activity_log.export_pdf', request()->all()) }}" target="_blank"
-                               class="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-[#1E293B] hover:bg-[#FEF2F2] hover:text-[#8F0A0D] transition border-t border-[#F1F5F9]">
-                                <svg class="w-4 h-4 text-[#8F0A0D] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-6h2v6z"/></svg>
-                                Export PDF (.pdf)
-                            </a>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {{-- Activity Grid — Grouped by Project (Shared Collaboration) --}}
