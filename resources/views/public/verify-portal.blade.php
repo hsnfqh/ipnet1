@@ -110,7 +110,7 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen w-full relative flex flex-col justify-between p-4 sm:p-8 lg:p-12 text-white overflow-x-hidden select-none bg-[#750608]">
+<div class="min-h-screen w-full relative flex flex-col justify-center items-center p-3 sm:p-6 text-white overflow-x-hidden select-none bg-[#750608]">
 
     {{-- ======================================================== --}}
     {{-- Layered Geometric Faceted Red Background (Matching Login & Dashboard) --}}
@@ -163,79 +163,52 @@
     <div class="fixed -top-24 -left-24 w-96 h-96 rounded-full bg-rose-400/20 blur-3xl pointer-events-none animate-pulse-glow z-0"></div>
     <div class="fixed bottom-10 right-0 w-80 h-80 rounded-full bg-black/40 blur-3xl pointer-events-none z-0"></div>
 
-    {{-- Top Bar Navigation / Back Button --}}
-    <div class="relative z-10 w-full max-w-3xl mx-auto flex items-center justify-between mb-4">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold tracking-wider uppercase shadow-sm">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Public Document Verification</span>
-        </div>
-
-        @if(auth()->check())
-            <a href="{{ Route::has('engineer.activity_log.index') ? route('engineer.activity_log.index') : url('/engineer/activity-log') }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/25 text-white text-[12px] font-medium transition-all shadow-sm">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Kembali ke Dashboard
-            </a>
-        @else
-            <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/25 text-white text-[12px] font-medium transition-all shadow-sm">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                </svg>
-                Login Staff IP-Net
-            </a>
-        @endif
-    </div>
-
     {{-- ======================================================== --}}
     {{-- Center Content: Floating Logo + Center Executive Card    --}}
     {{-- ======================================================== --}}
-    <main class="relative z-10 w-full max-w-3xl mx-auto my-auto py-2 flex flex-col items-center">
+    <main class="relative z-10 w-full max-w-2xl mx-auto my-auto flex flex-col items-center">
         
         {{-- Floating Logo Ring --}}
-        <div class="relative mb-4 anim-hero-reveal">
+        <div class="relative mb-2.5 anim-hero-reveal">
             <div class="absolute inset-0 bg-white/20 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-white/10 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-[0_16px_36px_rgba(0,0,0,0.3)] animate-logo-float transition-transform hover:scale-105 cursor-pointer">
-                <img src="{{ asset('images/ipnet1.png') }}" alt="IP Network Solusindo" class="h-14 sm:h-16 w-auto object-contain drop-shadow-md">
+            <div class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/10 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-[0_12px_28px_rgba(0,0,0,0.3)] animate-logo-float transition-transform hover:scale-105 cursor-pointer">
+                <img src="{{ asset('images/ipnet1.png') }}" alt="IP Network Solusindo" class="h-11 sm:h-13 w-auto object-contain drop-shadow-md">
             </div>
         </div>
 
         {{-- Center Titles --}}
-        <div class="text-center max-w-lg mb-6">
-            <h1 class="font-display font-black text-[24px] sm:text-[30px] text-white tracking-tight leading-tight drop-shadow-sm anim-fade-up">
+        <div class="text-center max-w-lg mb-4">
+            <h1 class="font-display font-black text-[22px] sm:text-[26px] text-white tracking-tight leading-tight drop-shadow-sm anim-fade-up">
                 PT IP Network Solusindo
             </h1>
-            <div class="inline-flex items-center gap-2 mt-2 mb-2 anim-fade-up">
-                <span class="h-[1px] w-6 bg-white/40"></span>
-                <p class="text-rose-100 text-[11px] sm:text-[12px] font-bold tracking-[2.5px] uppercase">
+            <div class="inline-flex items-center gap-2 mt-1 anim-fade-up">
+                <span class="h-[1px] w-5 bg-white/40"></span>
+                <p class="text-rose-100 text-[11px] sm:text-[11.5px] font-bold tracking-[2px] uppercase">
                     Portal Verifikasi &amp; Audit Integritas Dokumen
                 </p>
-                <span class="h-[1px] w-6 bg-white/40"></span>
+                <span class="h-[1px] w-5 bg-white/40"></span>
             </div>
-            <p class="text-white/80 text-[12.5px] sm:text-[13.5px] leading-relaxed font-normal anim-fade-up">
-                Sistem audit digital untuk memeriksa keaslian rekapitulasi kerja lapangan dan mendeteksi perubahan data berkas (Automated Discrepancy Detection).
-            </p>
         </div>
 
         {{-- ======================================================== --}}
         {{-- Modern White Executive Center Card                       --}}
         {{-- ======================================================== --}}
-        <div class="w-full bg-white border border-[#E2E8F0] rounded-[24px] p-6 sm:p-9 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] relative z-10 anim-card-enter overflow-hidden text-[#1E293B]">
+        <div class="w-full bg-white border border-[#E2E8F0] rounded-[22px] p-5 sm:p-7 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] relative z-10 anim-card-enter overflow-hidden text-[#1E293B]">
             
             {{-- Flowing Red Shimmer Rim Beam at Top of Card --}}
             <div class="absolute top-0 left-0 right-0 h-[4px] card-top-rim"></div>
 
             {{-- Segmented Navigation Tabs --}}
-            <div class="bg-[#F1F5F9] p-1.5 rounded-2xl flex gap-1 mb-6 border border-[#E2E8F0]">
+            <div class="bg-[#F1F5F9] p-1.5 rounded-2xl flex gap-1 mb-5 border border-[#E2E8F0]">
                 <button type="button" id="tabUploadBtn" onclick="switchVerificationTab('upload')"
-                        class="flex-1 py-2.5 px-4 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-white text-[#8F0A0D] shadow-sm border border-[#E2E8F0]">
+                        class="flex-1 py-2 px-3 sm:px-4 rounded-xl text-[12.5px] sm:text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-white text-[#8F0A0D] shadow-sm border border-[#E2E8F0]">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
                     <span>Unggah Berkas PDF (Deteksi Selisih)</span>
                 </button>
                 <button type="button" id="tabDocBtn" onclick="switchVerificationTab('number')"
-                        class="flex-1 py-2.5 px-4 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-[#64748B] hover:text-[#1E293B]">
+                        class="flex-1 py-2 px-3 sm:px-4 rounded-xl text-[12.5px] sm:text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-[#64748B] hover:text-[#1E293B]">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
@@ -250,21 +223,21 @@
                 {{-- Mode 1: Upload File PDF Dropzone --}}
                 <div id="uploadSection" class="transition-all">
                     <div id="dropzoneBox" onclick="document.getElementById('pdfInput').click()"
-                         class="border-2 border-dashed border-[#CBD5E1] hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-rose-50/30 rounded-2xl p-7 sm:p-9 text-center cursor-pointer transition-all duration-200 group flex flex-col items-center justify-center">
-                        <div class="w-14 h-14 rounded-2xl bg-[#8F0A0D]/10 text-[#8F0A0D] group-hover:bg-[#8F0A0D] group-hover:text-white flex items-center justify-center mb-3.5 transition-colors duration-200 shadow-sm">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                         class="border-2 border-dashed border-[#CBD5E1] hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-rose-50/30 rounded-2xl p-5 sm:p-7 text-center cursor-pointer transition-all duration-200 group flex flex-col items-center justify-center">
+                        <div class="w-12 h-12 rounded-xl bg-[#8F0A0D]/10 text-[#8F0A0D] group-hover:bg-[#8F0A0D] group-hover:text-white flex items-center justify-center mb-2.5 transition-colors duration-200 shadow-sm">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
                         </div>
-                        <p class="text-[14px] sm:text-[15px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D] transition-colors">
+                        <p class="text-[13.5px] sm:text-[14px] font-bold text-[#1E293B] group-hover:text-[#8F0A0D] transition-colors">
                             Pilih atau Tarik (Drag &amp; Drop) Berkas PDF Laporan
                         </p>
-                        <p class="text-[12px] text-[#64748B] mt-1 max-w-sm">
-                            Unggah berkas PDF yang diserahkan oleh teknisi lapangan. Sistem akan mencocokkan data berkas dengan arsip resmi server.
+                        <p class="text-[11.5px] text-[#64748B] mt-1 max-w-sm">
+                            Unggah berkas PDF yang diserahkan oleh teknisi lapangan untuk menguji keabsahan dan mendeteksi perubahan data.
                         </p>
                         
-                        <div id="fileSelectedBadge" class="hidden mt-3.5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[12px] font-bold">
-                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <div id="fileSelectedBadge" class="hidden mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11.5px] font-bold">
+                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                             <span id="fileNameText">Berkas terpilih</span>
@@ -295,7 +268,7 @@
                 </div>
 
                 {{-- Action Button --}}
-                <button type="submit" class="w-full mt-5 py-3.5 px-6 rounded-xl font-bold text-[14px] text-white flex items-center justify-center gap-2 ipnet-login-btn cursor-pointer">
+                <button type="submit" class="w-full mt-4 py-3 px-5 rounded-xl font-bold text-[13.5px] text-white flex items-center justify-center gap-2 ipnet-login-btn cursor-pointer">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
@@ -497,7 +470,7 @@
     </main>
 
     {{-- Bottom Copyright Note --}}
-    <footer class="relative z-10 text-center text-white/70 text-[11.5px] font-medium tracking-wide mt-6">
+    <footer class="relative z-10 text-center text-white/70 text-[11px] font-medium tracking-wide mt-3.5">
         &copy; {{ date('Y') }} PT IP Network Solusindo &bull; Enterprise Document Integrity System
     </footer>
 
@@ -511,13 +484,13 @@
         const numberSec = document.getElementById('numberSection');
 
         if (mode === 'upload') {
-            uploadBtn.className = "flex-1 py-2.5 px-4 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-white text-[#8F0A0D] shadow-sm border border-[#E2E8F0]";
-            docBtn.className = "flex-1 py-2.5 px-4 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-[#64748B] hover:text-[#1E293B]";
+            uploadBtn.className = "flex-1 py-2 px-3 sm:px-4 rounded-xl text-[12.5px] sm:text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-white text-[#8F0A0D] shadow-sm border border-[#E2E8F0]";
+            docBtn.className = "flex-1 py-2 px-3 sm:px-4 rounded-xl text-[12.5px] sm:text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-[#64748B] hover:text-[#1E293B]";
             uploadSec.classList.remove('hidden');
             numberSec.classList.add('hidden');
         } else {
-            docBtn.className = "flex-1 py-2.5 px-4 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-white text-[#8F0A0D] shadow-sm border border-[#E2E8F0]";
-            uploadBtn.className = "flex-1 py-2.5 px-4 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-[#64748B] hover:text-[#1E293B]";
+            docBtn.className = "flex-1 py-2 px-3 sm:px-4 rounded-xl text-[12.5px] sm:text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer bg-white text-[#8F0A0D] shadow-sm border border-[#E2E8F0]";
+            uploadBtn.className = "flex-1 py-2 px-3 sm:px-4 rounded-xl text-[12.5px] sm:text-[13px] font-bold transition-all flex items-center justify-center gap-2 cursor-pointer text-[#64748B] hover:text-[#1E293B]";
             numberSec.classList.remove('hidden');
             uploadSec.classList.add('hidden');
         }
