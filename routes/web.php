@@ -48,6 +48,13 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Public Client Verification & Automated Discrepancy Portal (Jalur 1 - Uji Keabsahan Dokumen Klien)
+if (!class_exists(\App\Services\DocumentDiscrepancyService::class)) {
+    @require_once app_path('Services/DocumentDiscrepancyService.php');
+}
+if (!class_exists(\App\Http\Controllers\PublicDocumentVerificationController::class)) {
+    @require_once app_path('Http/Controllers/PublicDocumentVerificationController.php');
+}
+
 Route::get('/verify', [\App\Http\Controllers\PublicDocumentVerificationController::class, 'index'])->name('public.verify.index');
 Route::post('/verify/inspect', [\App\Http\Controllers\PublicDocumentVerificationController::class, 'inspect'])->name('public.verify.inspect');
 
