@@ -203,6 +203,9 @@
 
     $documentSignature = $documentSignature ?? null;
     $verifyDocNumber   = $verifyDocNumber ?? ($documentSignature?->document_number ?? ('IPNET-ACT-' . date('Ym') . '-DRAFT'));
+    $qrPngBase64       = $qrPngBase64 ?? '';
+    $qrRawSvg          = $qrRawSvg ?? '';
+    $qrApiUrl          = $qrApiUrl ?? ('https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' . urlencode(url('/verify-document/' . $verifyDocNumber)));
     $qrCodeBase64      = $qrCodeBase64 ?? ($qrSvgBase64 ?? '');
     $qrSvgBase64       = $qrCodeBase64;
 @endphp
@@ -329,17 +332,27 @@
     </table>
 
     <!-- Signature Block: 3-Tier Multi-Signature (PIC -> Lead -> Head Div) + QR Code Verifikasi -->
-    <table class="signature-table" style="width: 100%; margin-top: 16px; border-collapse: collapse;">
+    <table class="signature-table" style="width: 100%; margin-top: 14px; border-collapse: collapse;">
         <tr>
             <!-- Kolom 1: QR Code & Integritas Dokumen -->
             <td style="width: 28%; vertical-align: top; padding-right: 12px;">
                 <table style="width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; background-color: #F8FAFC; padding: 6px;">
                     <tr>
-                        @if(!empty($qrCodeBase64 ?? $qrSvgBase64))
-                        <td style="width: 68px; vertical-align: middle; text-align: center; border: none; padding: 2px;">
-                            <img src="{{ $qrCodeBase64 ?? $qrSvgBase64 }}" alt="QR Code" width="62" height="62" style="width: 62px; height: 62px; display: block; margin: 0 auto;">
+                        <td style="width: 66px; vertical-align: middle; text-align: center; border: none; padding: 2px;">
+                            @if(!empty($qrPngBase64))
+                                <img src="{{ $qrPngBase64 }}" alt="QR Code" width="60" height="60" style="width: 60px; height: 60px; display: block; margin: 0 auto;">
+                            @elseif(!empty($qrRawSvg))
+                                <div style="width: 60px; height: 60px; display: block; margin: 0 auto;">
+                                    {!! $qrRawSvg !!}
+                                </div>
+                            @elseif(!empty($qrApiUrl))
+                                <img src="{{ $qrApiUrl }}" alt="QR Code" width="60" height="60" style="width: 60px; height: 60px; display: block; margin: 0 auto;">
+                            @elseif(!empty($qrCodeBase64))
+                                <img src="{{ $qrCodeBase64 }}" alt="QR Code" width="60" height="60" style="width: 60px; height: 60px; display: block; margin: 0 auto;">
+                            @else
+                                <div style="width: 60px; height: 60px; border: 1px dashed #CBD5E1; text-align: center; line-height: 60px; font-size: 8px; color: #94A3B8;">QR Code</div>
+                            @endif
                         </td>
-                        @endif
                         <td style="vertical-align: middle; border: none; padding-left: 6px; text-align: left;">
                             <div style="font-size: 8px; font-weight: bold; color: #0F172A; text-transform: uppercase; letter-spacing: 0.5px;">
                                 VERIFIKASI KEABSAHAN
@@ -362,18 +375,18 @@
 
             <!-- Kolom 2: Dibuat Oleh (PIC Lapangan) -->
             <td style="width: 24%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9.5px; color: #475569; margin-bottom: 3px;">
+                <div style="font-size: 9.5px; color: #475569; margin-bottom: 2px;">
                     Jakarta, {{ now()->locale('id')->isoFormat('D MMMM Y') }}<br>
                     <strong>Dibuat Oleh (PIC Lapangan),</strong>
                 </div>
-                <div style="height: 68px; text-align: center; margin-bottom: 2px;">
+                <div style="height: 48px; text-align: center; margin-bottom: 0px;">
                     @if(!empty($documentSignature?->pic_signature))
-                        <img src="{{ $documentSignature->pic_signature }}" alt="TTD PIC" style="max-height: 64px; max-width: 150px; display: inline-block; vertical-align: middle;">
+                        <img src="{{ $documentSignature->pic_signature }}" alt="TTD PIC" style="max-height: 48px; max-width: 140px; display: inline-block; vertical-align: bottom;">
                     @else
-                        <div style="height: 64px;"></div>
+                        <div style="height: 46px;"></div>
                     @endif
                 </div>
-                <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A;">
+                <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A; margin-top: 0px;">
                     {{ $documentSignature?->pic_name ?? ($engineerName ?? 'PIC Field Engineer') }}
                 </div>
                 <div style="font-size: 8px; color: #64748B; margin-top: 2px;">
@@ -386,18 +399,18 @@
 
             <!-- Kolom 3: Diperiksa Oleh (Lead Engineer) -->
             <td style="width: 24%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9.5px; color: #475569; margin-bottom: 3px;">
+                <div style="font-size: 9.5px; color: #475569; margin-bottom: 2px;">
                     <br>
                     <strong>Diperiksa Oleh (Lead),</strong>
                 </div>
-                <div style="height: 68px; text-align: center; margin-bottom: 2px;">
+                <div style="height: 48px; text-align: center; margin-bottom: 0px;">
                     @if(!empty($documentSignature?->lead_signature))
-                        <img src="{{ $documentSignature->lead_signature }}" alt="TTD Lead" style="max-height: 64px; max-width: 150px; display: inline-block; vertical-align: middle;">
+                        <img src="{{ $documentSignature->lead_signature }}" alt="TTD Lead" style="max-height: 48px; max-width: 140px; display: inline-block; vertical-align: bottom;">
                     @else
-                        <div style="height: 64px;"></div>
+                        <div style="height: 46px;"></div>
                     @endif
                 </div>
-                <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A;">
+                <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A; margin-top: 0px;">
                     {{ $documentSignature?->lead_name ?? 'Nugraha Pratama' }}
                 </div>
                 <div style="font-size: 8px; color: #64748B; margin-top: 2px;">
@@ -410,18 +423,18 @@
 
             <!-- Kolom 4: Mengetahui & Menyetujui (Head Division) -->
             <td style="width: 24%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9.5px; color: #475569; margin-bottom: 3px;">
+                <div style="font-size: 9.5px; color: #475569; margin-bottom: 2px;">
                     <br>
                     <strong>Mengetahui &amp; Menyetujui,</strong>
                 </div>
-                <div style="height: 68px; text-align: center; margin-bottom: 2px;">
+                <div style="height: 48px; text-align: center; margin-bottom: 0px;">
                     @if(!empty($documentSignature?->head_signature))
-                        <img src="{{ $documentSignature->head_signature }}" alt="TTD Head Div" style="max-height: 64px; max-width: 150px; display: inline-block; vertical-align: middle;">
+                        <img src="{{ $documentSignature->head_signature }}" alt="TTD Head Div" style="max-height: 48px; max-width: 140px; display: inline-block; vertical-align: bottom;">
                     @else
-                        <div style="height: 64px;"></div>
+                        <div style="height: 46px;"></div>
                     @endif
                 </div>
-                <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A;">
+                <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A; margin-top: 0px;">
                     {{ $documentSignature?->head_name ?? 'Susanto Djaya' }}
                 </div>
                 <div style="font-size: 8px; color: #64748B; margin-top: 2px;">

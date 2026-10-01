@@ -2034,7 +2034,7 @@ class DashboardController extends Controller
 
         $verifyDocNumber = $documentSignature?->document_number ?? ('IPNET-ACT-' . date('Ym') . '-DRAFT');
         $verifyUrl       = url('/verify-document/' . $verifyDocNumber);
-        $qrCodeBase64    = $this->generateQrPngBase64($verifyUrl);
+        $qrData          = $this->generateQrData($verifyUrl);
 
         $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', [
             'parsedActivities'  => $parsedActivities,
@@ -2046,8 +2046,11 @@ class DashboardController extends Controller
             'documentSignature' => $documentSignature,
             'verifyDocNumber'   => $verifyDocNumber,
             'verifyUrl'         => $verifyUrl,
-            'qrCodeBase64'      => $qrCodeBase64,
-            'qrSvgBase64'       => $qrCodeBase64,
+            'qrPngBase64'       => $qrData['qrPngBase64'],
+            'qrRawSvg'          => $qrData['qrRawSvg'],
+            'qrApiUrl'          => $qrData['qrApiUrl'],
+            'qrCodeBase64'      => $qrData['qrPngBase64'] ?: $qrData['qrApiUrl'],
+            'qrSvgBase64'       => $qrData['qrPngBase64'] ?: $qrData['qrApiUrl'],
         ]);
 
         $pdf->setPaper('a4', 'landscape');
@@ -2455,49 +2458,76 @@ class DashboardController extends Controller
     }
 
     /**
-     * Generate QR Code as Base64 PNG using GD and BaconQrCode matrix
-     * DomPDF supports PNG natively across all environments without imagick
+     * Generate multi-tier QR Code formats:
+     * 1. PNG Base64 via GD (fastest, standard PNG for DomPDF)
+     * 2. Raw SVG XML string via BaconQrCode (100% pure PHP string, zero extensions required)
+     * 3. External API URL as ultimate fallback
      */
-    protected function generateQrPngBase64(string $text): string
+    protected function generateQrData(string $text): array
     {
-        try {
-            $qr = \BaconQrCode\Encoder\Encoder::encode($text, \BaconQrCode\Common\ErrorCorrectionLevel::M());
-            $matrix = $qr->getMatrix();
-            $matrixWidth = $matrix->getWidth();
-            $matrixHeight = $matrix->getHeight();
+        $qrPngBase64 = '';
+        $qrRawSvg    = '';
+        $qrApiUrl    = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' . urlencode($text);
 
-            $scale = 3;
-            $margin = 1;
-            $imgWidth = ($matrixWidth + ($margin * 2)) * $scale;
-            $imgHeight = ($matrixHeight + ($margin * 2)) * $scale;
+        // 1. Try GD PNG Base64
+        if (extension_loaded('gd') && function_exists('imagecreatetruecolor')) {
+            try {
+                $qr = \BaconQrCode\Encoder\Encoder::encode($text, \BaconQrCode\Common\ErrorCorrectionLevel::M());
+                $matrix = $qr->getMatrix();
+                $matrixWidth = $matrix->getWidth();
+                $matrixHeight = $matrix->getHeight();
 
-            $image = imagecreatetruecolor($imgWidth, $imgHeight);
-            $white = imagecolorallocate($image, 255, 255, 255);
-            $dark  = imagecolorallocate($image, 15, 23, 42); // slate-900
+                $scale = 3;
+                $margin = 1;
+                $imgWidth = ($matrixWidth + ($margin * 2)) * $scale;
+                $imgHeight = ($matrixHeight + ($margin * 2)) * $scale;
 
-            imagefill($image, 0, 0, $white);
+                $image = imagecreatetruecolor($imgWidth, $imgHeight);
+                $white = imagecolorallocate($image, 255, 255, 255);
+                $dark  = imagecolorallocate($image, 15, 23, 42); // slate-900
 
-            for ($y = 0; $y < $matrixHeight; $y++) {
-                for ($x = 0; $x < $matrixWidth; $x++) {
-                    if ($matrix->get($x, $y) === 1) {
-                        $x1 = ($x + $margin) * $scale;
-                        $y1 = ($y + $margin) * $scale;
-                        $x2 = $x1 + $scale - 1;
-                        $y2 = $y1 + $scale - 1;
-                        imagefilledrectangle($image, $x1, $y1, $x2, $y2, $dark);
+                imagefill($image, 0, 0, $white);
+
+                for ($y = 0; $y < $matrixHeight; $y++) {
+                    for ($x = 0; $x < $matrixWidth; $x++) {
+                        if ($matrix->get($x, $y) === 1) {
+                            $x1 = ($x + $margin) * $scale;
+                            $y1 = ($y + $margin) * $scale;
+                            $x2 = $x1 + $scale - 1;
+                            $y2 = $y1 + $scale - 1;
+                            imagefilledrectangle($image, $x1, $y1, $x2, $y2, $dark);
+                        }
                     }
                 }
+
+                ob_start();
+                imagepng($image);
+                $pngData = ob_get_clean();
+                imagedestroy($image);
+
+                $qrPngBase64 = 'data:image/png;base64,' . base64_encode($pngData);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('QR PNG generation error: ' . $e->getMessage());
             }
-
-            ob_start();
-            imagepng($image);
-            $pngData = ob_get_clean();
-            imagedestroy($image);
-
-            return 'data:image/png;base64,' . base64_encode($pngData);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('QR PNG generation error: ' . $e->getMessage());
-            return '';
         }
+
+        // 2. Try BaconQrCode SVG (Pure PHP string concatenation, requires no extensions)
+        try {
+            $renderer = new \BaconQrCode\Renderer\ImageRenderer(
+                new \BaconQrCode\Renderer\RendererStyle\RendererStyle(60, 0),
+                new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+            );
+            $writer = new \BaconQrCode\Writer($renderer);
+            $svg = $writer->writeString($text);
+            $qrRawSvg = preg_replace('/<\?xml.*?\?>/i', '', $svg);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('QR SVG generation error: ' . $e->getMessage());
+        }
+
+        return [
+            'qrPngBase64' => $qrPngBase64,
+            'qrRawSvg'    => $qrRawSvg,
+            'qrApiUrl'    => $qrApiUrl,
+        ];
     }
 }
