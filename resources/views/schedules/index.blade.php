@@ -933,7 +933,8 @@
                                                 </div>
                                                 @endif
                                             </div>
-                                                                            </div>
+                                        </template>
+                                    </div>
 
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Judul {{ ($isArchitect ?? false) ? 'Agenda / Catatan' : 'Jadwal' }}</label>
