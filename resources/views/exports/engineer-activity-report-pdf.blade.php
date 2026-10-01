@@ -221,7 +221,7 @@
                 </table>
             </td>
             <td class="header-cell" style="width: 30%; text-align: right;">
-                <span class="report-badge">DOKUMEN RESMI REKAP KERJA</span>
+                <span class="report-badge">DOKUMEN REKAP KERJA</span>
             </td>
         </tr>
     </table>
@@ -327,10 +327,6 @@
     <table class="signature-table" style="width: 100%; margin-top: 25px; border-collapse: collapse;">
         <tr>
             <td style="width: 44%; vertical-align: top;">
-                <div style="font-size: 9px; color: #64748B; line-height: 1.45;">
-                    * Dokumen rekapitulasi aktivitas ini digenerate secara otomatis melalui sistem Field System Management IP-Net.<br>
-                    * Informasi ini digunakan sebagai acuan monitoring produktivitas dan pertanggungjawaban pengerjaan proyek.
-                </div>
             </td>
             <td style="width: 28%; text-align: center; vertical-align: top;">
                 <div style="font-size: 10px; color: #475569; margin-bottom: 45px;">

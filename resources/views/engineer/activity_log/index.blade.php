@@ -507,14 +507,8 @@
                                 </div>
                             @endif
                         </div>
-
-                        {{-- Meta Info: Dibuat oleh [Nama] di pojok kanan bawah --}}
-                        <div class="px-4 py-1.5 bg-[#FAFBFD] border-t border-[#F1F5F9]/80 flex items-center justify-end">
-                            <span class="text-[10.5px] text-gray-400 font-medium">
-                                Dibuat oleh <strong class="text-gray-600 font-semibold">{{ $creatorName }}</strong>
-                            </span>
-                        </div>
                     </div>
+
 
                 @empty
                     <div class="empty-state">

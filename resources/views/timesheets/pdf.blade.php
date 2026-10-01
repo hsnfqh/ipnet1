@@ -150,7 +150,7 @@
                 <div class="company-subtitle">FIELD SYSTEM MANAGEMENT - LEMBAR KERJA / TIMESHEET</div>
             </td>
             <td style="width: 40%; text-align: right;">
-                <span class="report-badge">DOKUMEN RESMI REKAP KERJA</span>
+                <span class="report-badge">DOKUMEN REKAP KERJA</span>
             </td>
         </tr>
     </table>
@@ -268,10 +268,6 @@
     <table class="signature-table" style="width: 100%; margin-top: 25px; border-collapse: collapse;">
         <tr>
             <td style="width: {{ $showMaker ? '45%' : '65%' }}; vertical-align: top;">
-                <div style="font-size: 8.5px; color: #75727C; line-height: 1.4;">
-                    * Dokumen rekapitulasi jam kerja ini digenerate secara otomatis melalui sistem Field System Management IP-Net.<br>
-                    * Informasi ini digunakan sebagai acuan monitoring produktivitas dan pertanggungjawaban pengerjaan proyek.
-                </div>
             </td>
             @if($showMaker)
             <td style="width: 27%; text-align: center; vertical-align: top;">
