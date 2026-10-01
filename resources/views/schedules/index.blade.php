@@ -755,47 +755,182 @@
                      style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
                      @click.self="modalOpen = false">
 
-                    <div style="background:white; border-radius:16px; width:640px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 16px 40px rgba(14,13,18,0.16); margin:auto; position:relative; animation:jkwFadeUp 0.18s ease;">
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 22px; position:sticky; top:0; background:#FFFFFF; border-bottom:1px solid #E2E8F0; z-index:10; border-radius:16px 16px 0 0; gap:12px;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <div style="width:36px; height:36px; border-radius:10px; background:#FDF1F2; display:flex; align-items:center; justify-content:center; color:#C81E2C; flex-shrink:0;">
-                                    <svg style="width:20px; height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                        <line x1="16" y1="2" x2="16" y2="6"/>
-                                        <line x1="8" y1="2" x2="8" y2="6"/>
-                                        <line x1="3" y1="10" x2="21" y2="10"/>
-                                    </svg>
+                    <div style="background:white; border-radius:20px; width:640px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 50px rgba(14,13,18,0.18); margin:auto; position:relative; animation:jkwFadeUp 0.18s ease; border:1px solid #E2E8F0;">
+                        <!-- Modal Header (Identik dengan Detail & Dokumentasi Task) -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 24px; position:sticky; top:0; background:white; border-bottom:1px solid #E2E8F0; border-radius:20px 20px 0 0; z-index:10;">
+                            <div>
+                                <div style="display:inline-flex; align-items:center; gap:6px; background:#FEF2F2; border:1px solid #FECACA; padding:2px 8px; border-radius:6px; margin-bottom:4px;">
+                                    <span style="width:6px; height:6px; border-radius:50%; background:#8F0A0D;"></span>
+                                    <span style="font-size:10.5px; font-weight:700; color:#8F0A0D; text-transform:uppercase; letter-spacing:0.5px;" x-text="modalMode === 'form' ? (editing ? 'EDIT JADWAL' : 'TAMBAH JADWAL') : 'DETAIL JADWAL'"></span>
                                 </div>
-                                <div>
-                                    <h3 style="margin:0; font-family:'Inter', sans-serif; font-size:17px; font-weight:700; color:#0F172A;" x-text="modalTitle"></h3>
-                                    <p style="margin:2px 0 0; font-size:12px; color:#64748B;">
-                                        <template x-if="!canManageSchedule">
-                                            <span>Detail informasi agenda dan jadwal kegiatan</span>
-                                        </template>
-                                        <template x-if="canManageSchedule">
-                                            <span>
-                                                @if($isArchitect ?? false)
-                                                Kelola agenda perancangan solusi, sesi PoC lab, koordinasi vendor, atau catatan mandiri
-                                                @else
-                                                Kelola jadwal kegiatan, meeting, atau cuti engineer
-                                                @endif
-                                            </span>
-                                        </template>
-                                    </p>
-                                </div>
+                                <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:17px; font-weight:800; color:#0F172A;" x-text="modalMode === 'form' ? (editing ? 'Edit Jadwal Kegiatan' : 'Buat Jadwal Baru') : 'Detail & Informasi Jadwal'"></h3>
+                                <p style="margin:2px 0 0; font-size:12px; color:#64748B;" x-text="modalMode === 'form' ? 'Atur rincian agenda, waktu, dan penugasan personel' : 'Detail informasi agenda dan jadwal kegiatan'"></p>
                             </div>
-                            <button type="button"
-                                    @click="modalOpen = false"
-                                    style="background:#F1F5F9; border:none; cursor:pointer; color:#64748B; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:all 0.15s ease; flex-shrink:0;"
-                                    onmouseover="this.style.background='#E2E8F0'; this.style.color='#0F172A';"
-                                    onmouseout="this.style.background='#F1F5F9'; this.style.color='#64748B';">
-                                <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <button @click="modalOpen = false" style="background:#F8FAFC; border:1px solid #E2E8F0; cursor:pointer; color:#64748B; padding:7px; border-radius:10px; transition:all 0.15s ease; flex-shrink:0;" onmouseover="this.style.background='#F1F5F9'; this.style.color='#0F172A'" onmouseout="this.style.background='#F8FAFC'; this.style.color='#64748B'" title="Tutup">
+                                <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
 
-                        <div style="padding:22px;">
+                        <!-- 1. DETAIL VIEW MODE (Desain Elegan, Rapi, & Profesional Identik dengan Detail Task) -->
+                        <div style="padding:22px 24px;" x-show="modalMode === 'detail'">
+                            <!-- Judul & Project Banner Card -->
+                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px; padding:16px; margin-bottom:16px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                                    <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 10px; background:white; border:1px solid #CBD5E1; border-radius:7px; font-size:11.5px; font-weight:700; color:#334155; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                                        <svg style="width:13px; height:13px; color:#64748B;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        </svg>
+                                        <span x-text="currentProjectName || 'Tanpa Project / Internal'"></span>
+                                    </span>
+                                    <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:7px; font-size:11.5px; font-weight:700;"
+                                          :style="categoryBadgeStyle(form.category)">
+                                        <span style="width:7px; height:7px; border-radius:50%;" :style="{ background: categoryDotColor(form.category) }"></span>
+                                        <span x-text="categoryLabel(form.category)"></span>
+                                    </span>
+                                </div>
+                                <h4 style="margin:0; font-size:17px; font-weight:800; color:#0F172A; line-height:1.4;" x-text="form.title || 'Tanpa Judul'"></h4>
+                            </div>
+
+                            <!-- Tim Pelaksana & Personel Lapangan Card -->
+                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px; padding:14px 16px; margin-bottom:16px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <span style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
+                                        <span x-text="form.category === 'Day Off' ? 'PERSONEL YANG CUTI / DAY OFF' : (form.category === 'PoC & Demo' ? 'TIM PRESALES & PIC POC' : 'TIM PELAKSANA & PERSONEL LAPANGAN')"></span>
+                                    </span>
+                                    <span style="font-size:11px; font-weight:700; color:#8F0A0D; background:#FEF2F2; padding:2px 8px; border-radius:12px; border:1px solid #FECACA;" 
+                                          x-text="getAssignedEngineersList().length + ' Personil'"></span>
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                                    <template x-for="(eng, idx) in getAssignedEngineersList()" :key="eng.id">
+                                        <div style="display:inline-flex; align-items:center; gap:8px; background:white; border:1px solid #CBD5E1; padding:4px 12px 4px 6px; border-radius:20px; font-size:12px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                                            <div style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:white;" :style="{ background: colorFromName(eng.name) }">
+                                                <span x-text="initials(eng.name)"></span>
+                                            </div>
+                                            <div>
+                                                <span style="font-weight:700; color:#0F172A;" x-text="eng.name"></span>
+                                                <span x-show="eng.position" style="font-size:11px; color:#64748B; margin-left:3px;" x-text="'(' + eng.position + ')'"></span>
+                                            </div>
+                                            <template x-if="form.category !== 'Day Off'">
+                                                <span style="font-size:9.5px; font-weight:800; padding:1.5px 7px; border-radius:10px;" 
+                                                      :style="{ background: idx === 0 ? '#FEF2F2' : '#EFF6FF', color: idx === 0 ? '#8F0A0D' : '#1D4ED8' }" 
+                                                      x-text="idx === 0 ? 'PIC Utama' : 'Pendamping'"></span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <div x-show="getAssignedEngineersList().length === 0" style="font-size:12.5px; color:#94A3B8; font-style:italic;">
+                                        Belum ada personel yang ditugaskan
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3 Kolom Info Ringkas: Tanggal, Jam/Waktu, Tipe Agenda -->
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-bottom:16px;">
+                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px;">
+                                    <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.4px;">TANGGAL KEGIATAN</span>
+                                    <strong style="font-size:13px; color:#0F172A; display:block;" x-text="formatDetailDate(form.date)"></strong>
+                                </div>
+                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px;">
+                                    <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.4px;">WAKTU / JAM</span>
+                                    <strong style="font-size:13px; color:#8F0A0D; display:block;" x-text="detailTimeLabel"></strong>
+                                </div>
+                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px;">
+                                    <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.4px;">TIPE AGENDA</span>
+                                    <strong style="font-size:13px; color:#0F172A; display:block;" x-text="categoryLabel(form.category)"></strong>
+                                </div>
+                            </div>
+
+                            <!-- Lokasi / Link Tempat Kegiatan -->
+                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 16px; margin-bottom:16px;" x-show="form.location && form.category !== 'Day Off'">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="width:32px; height:32px; border-radius:8px; background:#FEE2E2; display:flex; align-items:center; justify-content:center; color:#DC2626; flex-shrink:0;">
+                                        <svg style="width:17px; height:17px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px;">LOKASI / LINK MEETING</span>
+                                        <span style="font-size:13px; font-weight:700; color:#0F172A; word-break:break-word;" x-text="form.location"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Multi Sesi (Jika ada) -->
+                            <template x-if="form.sessions && form.sessions.length > 1">
+                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 16px; margin-bottom:16px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                        <span style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px;">AGENDA MULTI-SESI / TANGGAL</span>
+                                        <span style="font-size:11px; font-weight:700; color:#2563EB; background:#EFF6FF; padding:1.5px 7px; border-radius:10px;" x-text="form.sessions.length + ' Sesi'"></span>
+                                    </div>
+                                    <div style="display:flex; flex-direction:column; gap:6px;">
+                                        <template x-for="(ses, sIdx) in form.sessions" :key="sIdx">
+                                            <div style="display:flex; align-items:center; justify-content:space-between; background:white; border:1px solid #E2E8F0; padding:8px 12px; border-radius:8px; font-size:12px;">
+                                                <div style="display:flex; align-items:center; gap:8px;">
+                                                    <span style="font-weight:700; color:#8F0A0D;" x-text="'Sesi ' + (sIdx + 1)"></span>
+                                                    <span style="color:#CBD5E1;">•</span>
+                                                    <span style="font-weight:600; color:#1E293B;" x-text="formatDetailDate(ses.date)"></span>
+                                                </div>
+                                                <span style="color:#64748B; font-weight:600;" x-text="ses.start_time ? (ses.start_time + (ses.end_time ? ' - ' + ses.end_time : '') + ' WIB') : (ses.location || '-')"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Deskripsi & Rincian Kegiatan -->
+                            <div style="margin-bottom:16px;" x-show="form.description">
+                                <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">DESKRIPSI & RINCIAN KEGIATAN</label>
+                                <div style="font-size:13px; color:#334155; background:#F8FAFC; padding:14px 16px; border-radius:12px; border:1px solid #E2E8F0; border-left:4px solid #8F0A0D; white-space:pre-line; line-height:1.6;" x-text="form.description"></div>
+                            </div>
+
+                            <!-- Footer Buttons Detail Mode -->
+                            <div style="display:flex; align-items:center; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid #E2E8F0;">
+                                @if($canManageSchedule ?? false)
+                                <template x-if="canManageSchedule && editing">
+                                    <div style="display:flex; gap:10px; width:100%;">
+                                        <button type="button" @click="modalMode = 'form'" 
+                                                class="btn-ipnet-gradient"
+                                                style="flex:1; justify-content:center; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                                            <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                            Edit Jadwal
+                                        </button>
+                                        <button type="button" @click="deleteSchedule(form)" 
+                                                style="background:#FEF2F2; color:#DC2626; border:1.5px solid #FECACA; padding:11px 16px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.15s ease;"
+                                                onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='#FEF2F2'">
+                                            <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            Hapus
+                                        </button>
+                                        <button type="button" @click="modalOpen = false" 
+                                                style="background:#F8FAFC; color:#334155; border:1px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; transition:all 0.15s ease;"
+                                                onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background='#F8FAFC'">
+                                            Tutup
+                                        </button>
+                                    </div>
+                                </template>
+                                <template x-if="!editing">
+                                    <button type="button" @click="modalOpen = false" 
+                                            style="width:100%; justify-content:center; background:#F8FAFC; color:#334155; border:1.5px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease;"
+                                            onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='#94A3B8'; this.style.color='#0F172A';"
+                                            onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1'; this.style.color='#334155';">
+                                        Tutup
+                                    </button>
+                                </template>
+                                @else
+                                <button type="button" @click="modalOpen = false" 
+                                        style="width:100%; justify-content:center; background:#F8FAFC; color:#334155; border:1.5px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease;"
+                                        onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='#94A3B8'; this.style.color='#0F172A';"
+                                        onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1'; this.style.color='#334155';">
+                                    Tutup
+                                </button>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- 2. FORM TAMBAH / EDIT JADWAL (Hanya untuk Lead / Manajerial) -->
+                        @if($canManageSchedule ?? false)
+                        <div style="padding:22px 24px;" x-show="canManageSchedule && modalMode === 'form'">
                             <form @submit.prevent="saveSchedule">
                                 <div style="display:flex; flex-direction:column; gap:16px;">
                                     @if($isMaintenance ?? false)
@@ -816,38 +951,28 @@
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">
                                             Kategori {{ ($isArchitect ?? false) ? 'Agenda' : 'Jadwal' }}
                                         </label>
-                                        <template x-if="!canManageSchedule">
-                                            <div style="display:flex; align-items:center; gap:8px;">
-                                                <span style="font-size:12px; font-weight:700; padding:6px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;"
-                                                      :style="form.category === 'Day Off' ? 'background:#F1F5F9; color:#475569; border:1.5px solid #CBD5E1;' : (form.category === 'Task' || form.category === 'Kegiatan' ? 'background:#FDF2F8; color:#9D174D; border:1.5px solid #FBCFE8;' : 'background:#EFF6FF; color:#1D4ED8; border:1.5px solid #BFDBFE;')">
-                                                    <span style="width:7px; height:7px; border-radius:50%;" :style="{ background: form.category === 'Day Off' ? '#64748B' : (form.category === 'Task' || form.category === 'Kegiatan' ? '#9D174D' : '#1D4ED8') }"></span>
-                                                    <span x-text="form.category || 'Meeting'"></span>
-                                                </span>
-                                            </div>
-                                        </template>
-                                        <template x-if="canManageSchedule">
-                                            <div>
-                                                @if($isArchitect ?? false)
-                                                <div style="display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px;">
-                                                    <button type="button" 
-                                                            class="jkw-cat-btn jkw-cat-btn--poc"
-                                                            :class="{ 'is-active': form.category === 'PoC / Lab' || form.category === 'Sesi PoC & Lab' }"
-                                                            @click="setCategory('Sesi PoC & Lab')">
-                                                        <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                                                        </svg>
-                                                        <span>PoC & Lab</span>
-                                                    </button>
+                                        <div>
+                                            @if($isArchitect ?? false)
+                                            <div style="display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px;">
+                                                <button type="button" 
+                                                        class="jkw-cat-btn jkw-cat-btn--poc"
+                                                        :class="{ 'is-active': form.category === 'PoC / Lab' || form.category === 'Sesi PoC & Lab' }"
+                                                        @click="setCategory('Sesi PoC & Lab')">
+                                                    <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                                    </svg>
+                                                    <span>PoC & Lab</span>
+                                                </button>
 
-                                                    <button type="button" 
-                                                            class="jkw-cat-btn jkw-cat-btn--design"
-                                                            :class="{ 'is-active': form.category === 'Review Desain & SOW' || form.category === 'Desain & SOW' || form.category === 'Kajian Solusi' }"
-                                                            @click="setCategory('Review Desain & SOW')">
-                                                        <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                                        </svg>
-                                                        <span>Desain & SOW</span>
-                                                    </button>
+                                                <button type="button" 
+                                                        class="jkw-cat-btn jkw-cat-btn--design"
+                                                        :class="{ 'is-active': form.category === 'Review Desain & SOW' || form.category === 'Desain & SOW' || form.category === 'Kajian Solusi' }"
+                                                        @click="setCategory('Review Desain & SOW')">
+                                                    <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                    </svg>
+                                                    <span>Desain & SOW</span>
+                                                </button>
 
                                                     <button type="button" 
                                                             class="jkw-cat-btn jkw-cat-btn--meeting-sa"
@@ -933,7 +1058,6 @@
                                                 </div>
                                                 @endif
                                             </div>
-                                        </template>
                                     </div>
 
                                     <div>
@@ -1220,51 +1344,37 @@
                                     </div>
                                 </div>
 
-                                @if($canManageSchedule ?? false)
-                                <template x-if="canManageSchedule">
-                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px; padding-top:18px; border-top:1px solid #E2E8F0;">
+                                    <div style="display:flex; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid #E2E8F0;">
                                         <button type="submit" 
                                                 class="btn-ipnet-gradient"
-                                                style="width:100%; justify-content:center; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; box-sizing:border-box;">
+                                                style="flex:1; justify-content:center; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; box-sizing:border-box;">
                                             Simpan Jadwal
                                         </button>
                                         <template x-if="editing">
                                             <button type="button"
-                                                    @click="deleteSchedule(form)"
-                                                    style="width:100%; justify-content:center; background:#FEF2F2; color:#DC2626; border:1.5px solid #FECACA; padding:11px 18px; border-radius:9px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.15s ease; box-sizing:border-box;"
-                                                    onmouseover="this.style.background='#FEE2E2'"
-                                                    onmouseout="this.style.background='#FEF2F2'">
-                                                <svg style="width:14px; height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                Hapus Jadwal
+                                                    @click="modalMode = 'detail'"
+                                                    style="background:white; color:#475569; border:1.5px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:600; font-size:13px; cursor:pointer;"
+                                                    onmouseover="this.style.background='#F8FAFC'"
+                                                    onmouseout="this.style.background='#FFFFFF'">
+                                                Kembali ke Detail
                                             </button>
                                         </template>
                                         <template x-if="!editing">
                                             <button type="button"
                                                     @click="modalOpen = false"
-                                                    style="width:100%; justify-content:center; background:#FFFFFF; color:#475569; border:1.5px solid #E2E8F0; padding:11px 18px; border-radius:9px; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease; box-sizing:border-box;"
-                                                    onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1';"
-                                                    onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#E2E8F0';">
+                                                    style="background:white; color:#475569; border:1.5px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:600; font-size:13px; cursor:pointer;"
+                                                    onmouseover="this.style.background='#F8FAFC'"
+                                                    onmouseout="this.style.background='#FFFFFF'">
                                                 Batal
                                             </button>
                                         </template>
                                     </div>
-                                </template>
-                                @else
-                                <div style="display:flex; justify-content:flex-end; margin-top:20px; padding-top:18px; border-top:1px solid #E2E8F0;">
-                                    <button type="button"
-                                            @click="modalOpen = false"
-                                            style="width:100%; justify-content:center; background:#F8FAFC; color:#334155; border:1.5px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease; box-sizing:border-box;"
-                                            onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='#94A3B8'; this.style.color='#0F172A';"
-                                            onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1'; this.style.color='#334155';">
-                                        Tutup
-                                    </button>
-                                </div>
-                                @endif
-                            </form>
+                                </form>
+                            </div>
+                            @endif
                         </div>
                     </div>
-                </div>
-            </template>
+                </template>
 
             {{-- MODAL KONFIRMASI HAPUS JADWAL (CENTER POPUP IDENTIK DENGAN TASK & TIMESHEET) --}}
             <template x-teleport="body">
@@ -2292,6 +2402,8 @@
                 showOnlyAvailable: false,
                 engineerFilter: '',
                 modalOpen: false,
+                modalMode: 'detail',
+                selectedSchedule: null,
                 editing: false,
                 confirmOpen: false,
                 confirmData: null,
@@ -2312,6 +2424,96 @@
                 },
 
                 init: function() {},
+
+                formatDetailDate: function(dateStr) {
+                    if (!dateStr) return '-';
+                    try {
+                        var clean = String(dateStr).split('T')[0].split(' ')[0];
+                        var parts = clean.split('-');
+                        if (parts.length === 3) {
+                            var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                            return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+                        }
+                        var d = new Date(clean);
+                        return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+                    } catch (e) {
+                        return dateStr;
+                    }
+                },
+                get detailTimeLabel() {
+                    if (this.form.category === 'Day Off') return 'Sepanjang Hari (Cuti)';
+                    if (this.form.start_time && this.form.end_time && this.form.start_time !== this.form.end_time) {
+                        return this.form.start_time + ' - ' + this.form.end_time + ' WIB';
+                    }
+                    if (this.form.start_time) {
+                        return this.form.start_time + ' WIB';
+                    }
+                    return 'Fleksibel / Sesuai Jadwal';
+                },
+                get currentProjectName() {
+                    if (this.form.project_id === 'other' && this.form.new_project_name) {
+                        return this.form.new_project_name;
+                    }
+                    if (this.form.project_id) {
+                        var p = this.projects.find(function(pr) { return String(pr.id) === String(this.form.project_id); }.bind(this));
+                        if (p) return p.name;
+                    }
+                    if (this.selectedSchedule && this.selectedSchedule.project && this.selectedSchedule.project.name) {
+                        return this.selectedSchedule.project.name;
+                    }
+                    return null;
+                },
+                getAssignedEngineersList: function() {
+                    var list = [];
+                    var self = this;
+                    if (this.form.engineer_ids && this.form.engineer_ids.length > 0) {
+                        this.form.engineer_ids.forEach(function(id) {
+                            var eng = self.engineers.find(function(e) { return String(e.id) === String(id); });
+                            if (eng) {
+                                list.push(eng);
+                            } else {
+                                list.push({ id: id, name: 'Engineer #' + id, position: '' });
+                            }
+                        });
+                    } else if (this.form.engineer_id) {
+                        var eng = self.engineers.find(function(e) { return String(e.id) === String(self.form.engineer_id); });
+                        if (eng) list.push(eng);
+                    } else if (this.selectedSchedule && this.selectedSchedule.engineers && this.selectedSchedule.engineers.length > 0) {
+                        this.selectedSchedule.engineers.forEach(function(e) {
+                            var matched = self.engineers.find(function(eng) { return String(eng.id) === String(e.id); });
+                            list.push(matched || e);
+                        });
+                    } else if (this.selectedSchedule && this.selectedSchedule.engineer) {
+                        var matched = self.engineers.find(function(eng) { return String(eng.id) === String(self.selectedSchedule.engineer.id); });
+                        list.push(matched || self.selectedSchedule.engineer);
+                    }
+                    return list;
+                },
+                categoryBadgeStyle: function(cat) {
+                    if (cat === 'Day Off') return 'background:#F1F5F9; color:#475569; border:1px solid #CBD5E1;';
+                    if (cat === 'Task' || cat === 'Kegiatan') return 'background:#FEF2F2; color:#991B1B; border:1px solid #FECACA;';
+                    if (cat === 'PoC / Lab' || cat === 'Sesi PoC & Lab' || cat === 'PoC & Demo') return 'background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0;';
+                    if (cat === 'Review Desain & SOW') return 'background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE;';
+                    if (cat === 'Meeting Klien / Principal') return 'background:#F5F3FF; color:#5B21B6; border:1px solid #DDD6FE;';
+                    return 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
+                },
+                categoryDotColor: function(cat) {
+                    if (cat === 'Day Off') return '#64748B';
+                    if (cat === 'Task' || cat === 'Kegiatan') return '#DC2626';
+                    if (cat === 'PoC / Lab' || cat === 'Sesi PoC & Lab' || cat === 'PoC & Demo') return '#10B981';
+                    if (cat === 'Review Desain & SOW') return '#2563EB';
+                    if (cat === 'Meeting Klien / Principal') return '#8B5CF6';
+                    return '#2563EB';
+                },
+                categoryLabel: function(cat) {
+                    if (cat === 'Day Off') return 'Day Off / Cuti';
+                    if (cat === 'Task' || cat === 'Kegiatan') return 'Task / Kegiatan';
+                    if (cat === 'PoC / Lab' || cat === 'Sesi PoC & Lab') return 'Sesi PoC & Lab';
+                    if (cat === 'PoC & Demo') return 'Sesi PoC & Demo';
+                    if (cat === 'Review Desain & SOW') return 'Review Desain & SOW';
+                    if (cat === 'Meeting Klien / Principal') return 'Meeting Klien / Principal';
+                    return cat || 'Meeting';
+                },
 
                 // Warna event
                 // Jadwal biasa  = Biru
@@ -2975,6 +3177,8 @@
 
                 openModal: function(schedule) {
                     if (schedule) {
+                        this.selectedSchedule = schedule;
+                        this.modalMode = 'detail';
                         var isRealSchedule = !!(schedule.id && this.schedules.some(function(s) { return s.id === schedule.id; }));
                         this.editing = this.canManageSchedule && isRealSchedule;
                         var engIds = [];
@@ -3024,6 +3228,8 @@
                             ]
                         };
                     } else {
+                        this.selectedSchedule = null;
+                        this.modalMode = 'form';
                         this.editing = false;
                         this.selectedTicketId = '';
                         var todayFormatted = this.formatDate(new Date());
