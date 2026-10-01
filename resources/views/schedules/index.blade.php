@@ -778,13 +778,13 @@
                             <!-- Judul & Project Banner Card -->
                             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:13px 15px; margin-bottom:12px;">
                                 <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
-                                    <span style="display:inline-flex; align-items:center; gap:5px; padding:3px 9px; background:white; border:1px solid #CBD5E1; border-radius:6px; font-size:11px; font-weight:700; color:#334155; box-shadow:0 1px 2px rgba(0,0,0,0.03); max-width:70%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                    <span style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px; background:white; border:1px solid #CBD5E1; border-radius:6px; font-size:10px; font-weight:700; color:#334155; box-shadow:0 1px 2px rgba(0,0,0,0.03); max-width:70%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                                         <svg style="width:12px; height:12px; color:#64748B; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                         </svg>
                                         <span x-text="currentProjectName || 'Tanpa Project / Internal'"></span>
                                     </span>
-                                    <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:700; flex-shrink:0;"
+                                    <span style="display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; flex-shrink:0;"
                                           :style="categoryBadgeStyle(form.category)">
                                         <span style="width:6px; height:6px; border-radius:50%; flex-shrink:0; display:inline-block;" :style="{ background: categoryDotColor(form.category) }"></span>
                                         <span x-text="categoryLabel(form.category)"></span>
@@ -2521,7 +2521,7 @@
                         return 'background:#F1F5F9; color:#475569; border:1px solid #CBD5E1;';
                     }
                     if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('maintenance')) {
-                        return 'background:#FEF2F2; color:#991B1B; border:1px solid #FECACA;';
+                        return 'background:#FEF2F2; color:#8F0A0D; border:1px solid #FECACA;';
                     }
                     if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) {
                         return 'background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0;';
@@ -2538,7 +2538,7 @@
                     if (!cat) return '#2563EB';
                     var lower = String(cat).toLowerCase();
                     if (lower.includes('cuti') || lower.includes('day off')) return '#64748B';
-                    if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('maintenance')) return '#DC2626';
+                    if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('maintenance')) return '#8F0A0D';
                     if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) return '#10B981';
                     if (lower.includes('desain') || lower.includes('sow') || lower.includes('review')) return '#2563EB';
                     if (lower.includes('meeting') || lower.includes('principal') || lower.includes('klien')) return '#8B5CF6';
