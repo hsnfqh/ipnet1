@@ -12,6 +12,10 @@ use App\Helpers\FileUploadHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardController extends Controller
@@ -2096,105 +2100,306 @@ class DashboardController extends Controller
         $filename     = "Laporan_Aktivitas_{$safeName}_" . now()->format('Ymd_His') . ".xlsx";
 
         $spreadsheet = new Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Segoe UI');
+        $spreadsheet->getDefaultStyle()->getFont()->setSize(9.5);
+
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Aktivitas');
+        $sheet->setTitle('Laporan Aktivitas');
+        $sheet->setShowGridLines(true);
 
-        // Header Dokumen
-        $sheet->setCellValue('A1', 'PT. IP NETWORK SOLUSINDO');
-        $sheet->setCellValue('A2', 'Golden Centrum Complex, Jl. Majapahit 26P Jakarta 10160');
-        $sheet->setCellValue('A3', 'LAPORAN AKTIVITAS KRONOLOGIS ENGINEER');
-        $sheet->setCellValue('A4', 'Proyek: ' . $projectName . ' | Dicatat Oleh: ' . $engineerName . ' | Dicetak: ' . now()->format('d/m/Y H:i') . ' WIB');
+        // Page setup: A4 Landscape, Fit to 1 page wide
+        $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+        $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+        $sheet->getPageSetup()->setFitToPage(true);
+        $sheet->getPageSetup()->setFitToWidth(1);
+        $sheet->getPageSetup()->setFitToHeight(0);
 
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14)->getColor()->setRGB('8F0A0D');
-        $sheet->getStyle('A2')->getFont()->setSize(9)->getColor()->setRGB('555555');
-        $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(11);
-        $sheet->getStyle('A4')->getFont()->setItalic(true)->setSize(8.5)->getColor()->setRGB('666666');
+        // 1. Kop Surat & Identitas Perusahaan
+        $sheet->getRowDimension(1)->setRowHeight(8);
 
-        // Header Kolom (Baris 6) persis form: NO, AKTIVITAS, TANGGAL, WAKTU (JAM), PIC KLIEN, PIC IPNET, NOTED
-        $headers = ['No', 'Aktivitas', 'Tanggal', 'Waktu (Jam)', 'PIC Klien', 'PIC IPNET', 'Noted'];
-        $cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-        
-        foreach ($headers as $k => $h) {
-            $sheet->setCellValue($cols[$k] . '6', $h);
+        $sheet->mergeCells('A2:G2');
+        $sheet->setCellValue('A2', 'PT. IP NETWORK SOLUSINDO');
+        $sheet->getStyle('A2')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 15, 'color' => ['rgb' => '8F0A0D']],
+            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension(2)->setRowHeight(24);
+
+        $sheet->mergeCells('A3:G3');
+        $sheet->setCellValue('A3', 'Golden Centrum Complex, Jl. Majapahit No. 26P, Jakarta Pusat 10160 | Telp: +62 21 385 0200 | www.ipnet.co.id');
+        $sheet->getStyle('A3')->applyFromArray([
+            'font' => ['size' => 9, 'color' => ['rgb' => '64748B']],
+            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension(3)->setRowHeight(18);
+
+        // Garis Pembatas Kop Surat
+        $sheet->getStyle('A3:G3')->getBorders()->getBottom()
+            ->setBorderStyle(Border::BORDER_MEDIUM)
+            ->getColor()->setRGB('8F0A0D');
+        $sheet->getRowDimension(4)->setRowHeight(6);
+
+        // 2. Judul Dokumen Resmi
+        $sheet->mergeCells('A5:G5');
+        $sheet->setCellValue('A5', 'LAPORAN AKTIVITAS KRONOLOGIS ENGINEER');
+        $sheet->getStyle('A5')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 13, 'color' => ['rgb' => '1E293B']],
+            'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension(5)->setRowHeight(22);
+
+        $sheet->getRowDimension(6)->setRowHeight(6);
+
+        // 3. Panel Informasi Proyek & Dokumen (Metadata Card)
+        $metaBoxRange = 'A7:G9';
+        $sheet->getStyle($metaBoxRange)->applyFromArray([
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'F8FAFC'],
+            ],
+            'borders' => [
+                'outline' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => 'CBD5E1'],
+                ],
+                'inside' => [
+                    'borderStyle' => Border::BORDER_HAIR,
+                    'color' => ['rgb' => 'E2E8F0'],
+                ],
+            ],
+        ]);
+
+        // Informasi Kolom Kiri
+        $sheet->setCellValue('A7', 'Nama Proyek');
+        $sheet->mergeCells('B7:D7');
+        $sheet->setCellValue('B7', ': ' . $projectName);
+
+        $sheet->setCellValue('A8', 'Engineer Pelaksana');
+        $sheet->mergeCells('B8:D8');
+        $sheet->setCellValue('B8', ': ' . $engineerName);
+
+        $sheet->setCellValue('A9', 'Jenis Laporan');
+        $sheet->mergeCells('B9:D9');
+        $sheet->setCellValue('B9', ': Log Kronologis & Dokumentasi Aktivitas');
+
+        // Informasi Kolom Kanan
+        $sheet->setCellValue('E7', 'Tanggal Cetak');
+        $sheet->mergeCells('F7:G7');
+        $sheet->setCellValue('F7', ': ' . now()->format('d/m/Y H:i') . ' WIB');
+
+        $sheet->setCellValue('E8', 'Total Aktivitas');
+        $sheet->mergeCells('F8:G8');
+        $sheet->setCellValue('F8', ': ' . $activities->count() . ' Catatan Entri');
+
+        $sheet->setCellValue('E9', 'Dicetak Oleh');
+        $sheet->mergeCells('F9:G9');
+        $sheet->setCellValue('F9', ': ' . ($authUser->name ?? 'System'));
+
+        $sheet->getStyle('A7:A9')->getFont()->setBold(true)->getColor()->setRGB('475569');
+        $sheet->getStyle('E7:E9')->getFont()->setBold(true)->getColor()->setRGB('475569');
+        $sheet->getStyle('B7:D7')->getFont()->setBold(true)->getColor()->setRGB('0F172A');
+        $sheet->getStyle('B8:D8')->getFont()->setBold(true)->getColor()->setRGB('0F172A');
+        $sheet->getStyle('F8:G8')->getFont()->setBold(true)->getColor()->setRGB('8F0A0D');
+
+        $sheet->getStyle('A7:G9')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getRowDimension(7)->setRowHeight(19);
+        $sheet->getRowDimension(8)->setRowHeight(19);
+        $sheet->getRowDimension(9)->setRowHeight(19);
+
+        $sheet->getRowDimension(10)->setRowHeight(10);
+
+        // 4. Header Kolom Tabel Utama (Proporsional & Rapi)
+        $columnConfigs = [
+            'A' => ['title' => 'NO', 'width' => 6],
+            'B' => ['title' => 'URAIAN AKTIVITAS / PEKERJAAN', 'width' => 46],
+            'C' => ['title' => 'TANGGAL', 'width' => 14],
+            'D' => ['title' => 'WAKTU', 'width' => 14],
+            'E' => ['title' => 'PIC KLIEN', 'width' => 20],
+            'F' => ['title' => 'PIC IPNET', 'width' => 22],
+            'G' => ['title' => 'CATATAN / NOTED', 'width' => 36],
+        ];
+
+        foreach ($columnConfigs as $col => $config) {
+            $sheet->setCellValue($col . '11', $config['title']);
+            $sheet->getColumnDimension($col)->setWidth($config['width']);
         }
 
         $headerStyle = [
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
-            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '8F0A0D']],
-            'alignment' => ['vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER, 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
-            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN, 'color' => ['rgb' => '73080A']]],
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+                'size' => 10,
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '8F0A0D'],
+            ],
+            'alignment' => [
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'wrapText' => true,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => '73080A'],
+                ],
+            ],
         ];
-        $sheet->getStyle('A6:G6')->applyFromArray($headerStyle);
-        $sheet->getRowDimension(6)->setRowHeight(24);
+        $sheet->getStyle('A11:G11')->applyFromArray($headerStyle);
+        $sheet->getRowDimension(11)->setRowHeight(28);
 
-        $rowNum = 7;
-        foreach ($activities as $idx => $act) {
-            $rawNotes  = $act->notes ?? '';
-            $clientPic = '';
-            $ipnetPic  = '';
-            $notedOnly = $rawNotes;
+        // Freeze Panes: header tetap tampak saat di-scroll
+        $sheet->freezePane('A12');
 
-            if ($rawNotes) {
-                $parts = array_map('trim', explode('|', $rawNotes));
-                $notedParts = [];
-                foreach ($parts as $part) {
-                    if (str_starts_with($part, 'PIC Klien:')) {
-                        $clientPic = trim(substr($part, strlen('PIC Klien:')));
-                    } elseif (str_starts_with($part, 'PIC IPNET:')) {
-                        $ipnetPic = trim(substr($part, strlen('PIC IPNET:')));
-                    } else {
-                        $notedParts[] = $part;
+        // 5. Data Rows
+        $rowNum = 12;
+
+        if ($activities->isEmpty()) {
+            $sheet->mergeCells("A12:G12");
+            $sheet->setCellValue("A12", "Belum ada log catatan aktivitas kronologis pada proyek atau filter ini.");
+            $sheet->getStyle("A12:G12")->applyFromArray([
+                'font' => ['italic' => true, 'color' => ['rgb' => '64748B'], 'size' => 10],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F8FAFC']],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'E2E8F0']]],
+            ]);
+            $sheet->getRowDimension(12)->setRowHeight(32);
+            $rowNum = 13;
+        } else {
+            foreach ($activities as $idx => $act) {
+                $rawNotes  = $act->notes ?? '';
+                $clientPic = '';
+                $ipnetPic  = '';
+                $notedOnly = $rawNotes;
+
+                if ($rawNotes) {
+                    $parts = array_map('trim', explode('|', $rawNotes));
+                    $notedParts = [];
+                    foreach ($parts as $part) {
+                        if (str_starts_with($part, 'PIC Klien:')) {
+                            $clientPic = trim(substr($part, strlen('PIC Klien:')));
+                        } elseif (str_starts_with($part, 'PIC IPNET:')) {
+                            $ipnetPic = trim(substr($part, strlen('PIC IPNET:')));
+                        } else {
+                            $notedParts[] = $part;
+                        }
                     }
+                    $notedOnly = implode(' | ', array_filter($notedParts));
                 }
-                $notedOnly = implode(' | ', array_filter($notedParts));
-            }
 
-            if (!$ipnetPic) {
-                $ipnetPic = '-';
-            }
+                if (!$ipnetPic) {
+                    $ipnetPic = '-';
+                }
 
-            $description = $act->description ?? '-';
-            if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $description, $m)) {
-                $description = $m[2] ?: $m[1];
-            }
+                $description = $act->description ?? '-';
+                if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $description, $m)) {
+                    $description = $m[2] ?: $m[1];
+                }
 
-            $timeStr = $act->start_time ? \Carbon\Carbon::parse($act->start_time)->format('H:i') : '-';
+                $timeStr = $act->start_time ? \Carbon\Carbon::parse($act->start_time)->format('H:i') . ' WIB' : '-';
 
-            $sheet->setCellValue('A' . $rowNum, $idx + 1);
-            $sheet->setCellValue('B' . $rowNum, $description);
-            $sheet->setCellValue('C' . $rowNum, $act->activity_date ? $act->activity_date->format('d/m/Y') : '-');
-            $sheet->setCellValue('D' . $rowNum, $timeStr);
-            $sheet->setCellValue('E' . $rowNum, $clientPic ?: '-');
-            $sheet->setCellValue('F' . $rowNum, $ipnetPic ?: '-');
-            $sheet->setCellValue('G' . $rowNum, $notedOnly ?: '-');
+                $sheet->setCellValue('A' . $rowNum, $idx + 1);
+                $sheet->setCellValue('B' . $rowNum, $description);
+                $sheet->setCellValue('C' . $rowNum, $act->activity_date ? $act->activity_date->format('d/m/Y') : '-');
+                $sheet->setCellValue('D' . $rowNum, $timeStr);
+                $sheet->setCellValue('E' . $rowNum, $clientPic ?: '-');
+                $sheet->setCellValue('F' . $rowNum, $ipnetPic ?: '-');
+                $sheet->setCellValue('G' . $rowNum, $notedOnly ?: '-');
 
-            // Alignment
-            $sheet->getStyle('A' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('C' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle('D' . $rowNum)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                // Alignments & wrap text
+                $sheet->getStyle('A' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('B' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT)->setWrapText(true);
+                $sheet->getStyle('C' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+                $sheet->getStyle('F' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+                $sheet->getStyle('G' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT)->setWrapText(true);
 
-            // Alternating fill
-            if ($rowNum % 2 == 1) {
+                $sheet->getStyle('A' . $rowNum . ':G' . $rowNum)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+
+                // Alternating zebra striping
+                $rowBg = ($idx % 2 == 1) ? 'F8FAFC' : 'FFFFFF';
                 $sheet->getStyle('A' . $rowNum . ':G' . $rowNum)->getFill()
-                    ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                    ->getStartColor()->setRGB('F8FAFC');
+                    ->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setRGB($rowBg);
+
+                $sheet->getStyle('A' . $rowNum . ':G' . $rowNum)->getBorders()->getAllBorders()
+                    ->setBorderStyle(Border::BORDER_THIN)
+                    ->getColor()->setRGB('E2E8F0');
+
+                $sheet->getRowDimension($rowNum)->setRowHeight(24);
+
+                $rowNum++;
             }
 
-            $rowNum++;
+            // Summary row at the bottom of table
+            $summaryRow = $rowNum;
+            $sheet->mergeCells("A{$summaryRow}:D{$summaryRow}");
+            $sheet->setCellValue("A{$summaryRow}", "TOTAL AKTIVITAS TERCATAT :");
+            $sheet->mergeCells("E{$summaryRow}:G{$summaryRow}");
+            $sheet->setCellValue("E{$summaryRow}", $activities->count() . " Catatan Log Kronologis");
+
+            $sheet->getStyle("A{$summaryRow}:G{$summaryRow}")->applyFromArray([
+                'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => '1E293B']],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F1F5F9']],
+                'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
+                'borders' => [
+                    'top' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CBD5E1']],
+                    'bottom' => ['borderStyle' => Border::BORDER_DOUBLE, 'color' => ['rgb' => '94A3B8']],
+                    'left' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CBD5E1']],
+                    'right' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CBD5E1']],
+                ],
+            ]);
+            $sheet->getStyle("A{$summaryRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet->getStyle("E{$summaryRow}")->getFont()->getColor()->setRGB('8F0A0D');
+            $sheet->getRowDimension($summaryRow)->setRowHeight(26);
+
+            $rowNum = $summaryRow + 1;
         }
 
-        // Border data rows
-        if ($rowNum > 7) {
-            $lastRow = $rowNum - 1;
-            $sheet->getStyle('A7:G' . $lastRow)->getBorders()->getAllBorders()
-                ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)
-                ->getColor()->setRGB('CBD5E1');
-        }
+        // 6. Lembar Tanda Tangan & Pengesahan Resmi (Sign-off Block)
+        $sigStart = $rowNum + 2;
+        $sheet->mergeCells("B{$sigStart}:C{$sigStart}");
+        $sheet->setCellValue("B{$sigStart}", "Dibuat Oleh :");
+        $sheet->mergeCells("F{$sigStart}:G{$sigStart}");
+        $sheet->setCellValue("F{$sigStart}", "Mengetahui / Menyetujui :");
 
-        // Auto width for columns
-        foreach (range('A', 'G') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
+        $sheet->getStyle("B{$sigStart}:G{$sigStart}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 9.5, 'color' => ['rgb' => '475569']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension($sigStart)->setRowHeight(18);
+
+        $posRow = $sigStart + 1;
+        $sheet->mergeCells("B{$posRow}:C{$posRow}");
+        $sheet->setCellValue("B{$posRow}", "Field / Network Engineer");
+        $sheet->mergeCells("F{$posRow}:G{$posRow}");
+        $sheet->setCellValue("F{$posRow}", "Lead Engineer / Project Manager");
+
+        $sheet->getStyle("B{$posRow}:G{$posRow}")->applyFromArray([
+            'font' => ['italic' => true, 'size' => 8.5, 'color' => ['rgb' => '64748B']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension($posRow)->setRowHeight(16);
+
+        // Ruang Tanda Tangan
+        $sheet->getRowDimension($sigStart + 2)->setRowHeight(18);
+        $sheet->getRowDimension($sigStart + 3)->setRowHeight(18);
+        $sheet->getRowDimension($sigStart + 4)->setRowHeight(18);
+
+        // Nama Penandatangan
+        $nameRow = $sigStart + 5;
+        $sheet->mergeCells("B{$nameRow}:C{$nameRow}");
+        $sheet->setCellValue("B{$nameRow}", "( " . $engineerName . " )");
+        $sheet->mergeCells("F{$nameRow}:G{$nameRow}");
+        $sheet->setCellValue("F{$nameRow}", "( .................................................. )");
+
+        $sheet->getStyle("B{$nameRow}:G{$nameRow}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 9.5, 'color' => ['rgb' => '0F172A']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension($nameRow)->setRowHeight(20);
 
         return new StreamedResponse(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);
