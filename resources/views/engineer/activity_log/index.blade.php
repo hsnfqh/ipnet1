@@ -245,10 +245,9 @@
                             return strtoupper(substr($trimmed, 0, 2));
                         };
 
-                        // Kumpulkan seluruh engineer yang berkontribusi secara riil
+                        // Kumpulkan seluruh engineer yang berkontribusi secara riil pada grup kegiatan ini
                         $collectedEngineers = collect();
 
-                        // 1. Dari user relasi engineer pada groupActivities
                         foreach ($groupActivities as $act) {
                             if ($act->engineer && !empty($act->engineer->name)) {
                                 $cName = trim($act->engineer->name);
@@ -262,25 +261,7 @@
                             }
                         }
 
-                        // 2. Dari PIC IPNET di kolom notes kegiatan ini (hanya jika nama valid > 2 huruf)
-                        foreach ($groupActivities as $act) {
-                            $rawNotes = $act->notes ?? '';
-                            if (preg_match('/PIC IPNET:\s*([^|\n]+)/i', $rawNotes, $m)) {
-                                $rawPics = explode(',', $m[1]);
-                                foreach ($rawPics as $p) {
-                                    $clean = trim($p);
-                                    if (strlen($clean) > 2 && !in_array(strtolower($clean), ['a', 'aa', 'aaa', 'bb', 'cc', 'test', 'null', 'none', '-'])) {
-                                        $collectedEngineers->push([
-                                            'id'       => null,
-                                            'name'     => $clean,
-                                            'initials' => $getInitials($clean),
-                                        ]);
-                                    }
-                                }
-                            }
-                        }
-
-                        // 3. Fallback jika masih kosong
+                        // Fallback jika belum ada relasi engineer tercatat
                         if ($collectedEngineers->isEmpty()) {
                             $fallbackName = auth()->user()->name ?? 'Engineer';
                             $collectedEngineers->push([
@@ -290,47 +271,33 @@
                             ]);
                         }
 
-                        // Deduplikasi berdasarkan nama case-insensitive
+                        // Deduplikasi berdasarkan nama atau user_id
                         $uniqueEngineers = $collectedEngineers->unique(function ($item) {
                             return strtolower($item['name']);
                         })->values();
 
-                        // Kumpulkan seluruh pembuat / author riil yang menulis aktivitas di grup ini
-                        $authorNames = $groupActivities->map(function($a) {
-                            return $a->engineer->name ?? null;
-                        })->filter()->unique()->values();
-
-                        if ($authorNames->isEmpty() && $uniqueEngineers->isNotEmpty()) {
-                            $authorNames = $uniqueEngineers->pluck('name')->unique()->values();
-                        }
-
-                        // Format tampilan "Dibuat oleh: ..." (gabungkan langsung nama pembuat jika 2 orang)
-                        if ($authorNames->count() === 1) {
-                            $creatorDisplayName = $authorNames->first();
-                        } elseif ($authorNames->count() === 2) {
-                            $creatorDisplayName = $authorNames[0] . ' dan ' . $authorNames[1];
-                        } elseif ($authorNames->count() > 2) {
-                            $creatorDisplayName = $authorNames->slice(0, 2)->implode(', ') . ' dan ' . ($authorNames->count() - 2) . ' lainnya';
-                        } else {
-                            $creatorDisplayName = 'Engineer';
-                        }
-
-                        // Format tampilan nama personel pada header kartu (tampilkan langsung jika 2 orang tanpa +tim)
+                        // Format tampilan nama engineer (jika 1, 2, atau 3 orang tampilkan langsung namanya tanpa badge)
                         $engineerCount = $uniqueEngineers->count();
-                        if ($engineerCount <= 2) {
-                            $engineersFormattedLabel = $uniqueEngineers->pluck('name')->implode(' dan ');
+                        if ($engineerCount === 1) {
+                            $engineersFormattedLabel = $uniqueEngineers[0]['name'];
+                            $additionalTeamCount = 0;
+                        } elseif ($engineerCount === 2) {
+                            $engineersFormattedLabel = $uniqueEngineers[0]['name'] . ' dan ' . $uniqueEngineers[1]['name'];
                             $additionalTeamCount = 0;
                         } elseif ($engineerCount === 3) {
                             $engineersFormattedLabel = $uniqueEngineers[0]['name'] . ', ' . $uniqueEngineers[1]['name'] . ', dan ' . $uniqueEngineers[2]['name'];
                             $additionalTeamCount = 0;
                         } else {
-                            $engineersFormattedLabel = $uniqueEngineers[0]['name'] . ', ' . $uniqueEngineers[1]['name'];
+                            $engineersFormattedLabel = $uniqueEngineers[0]['name'] . ' dan ' . $uniqueEngineers[1]['name'];
                             $additionalTeamCount = $engineerCount - 2;
                         }
 
                         $primaryEngineer = $uniqueEngineers->first();
                         $displayAvatars = $uniqueEngineers->take(2);
                         $allEngineerNames = $uniqueEngineers->pluck('name')->implode(', ');
+
+                        // "Dibuat oleh" menampilkan seluruh pembuat riil langsung
+                        $creatorDisplayName = $engineersFormattedLabel;
                         $creatorName = $creatorDisplayName;
 
                         // Build clean preview items (strip [prefix] and PIC from notes)
@@ -474,11 +441,11 @@
                                     {{ $engineersFormattedLabel }}
                                 </span>
 
-                                {{-- Team Badge (+X tim) hanya jika lebih dari 2/3 personel --}}
+                                {{-- Badge tambahan (+X orang) hanya jika lebih dari 3 personel --}}
                                 @if($additionalTeamCount > 0)
                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9.5px] font-extrabold bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] shrink-0"
                                           title="{{ $allEngineerNames }}">
-                                        +{{ $additionalTeamCount }} tim
+                                        +{{ $additionalTeamCount }} orang
                                     </span>
                                 @endif
 
