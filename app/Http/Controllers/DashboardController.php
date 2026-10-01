@@ -1705,23 +1705,21 @@ class DashboardController extends Controller
     public function deleteActivityLog(EngineerActivityLog $log)
     {
         $user = auth()->user();
-        $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
-        $linkedProjectIds = $this->getLinkedProjectIds($user);
-        $isProjectMember  = $log->project_id && $linkedProjectIds->contains($log->project_id);
-
-        if ($log->user_id !== $user->id && !$isLead && !$isProjectMember) {
-            if (request()->wantsJson() || request()->ajax()) {
-                return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses untuk menghapus log aktivitas ini.'], 403);
-            }
-            abort(403, 'Anda tidak memiliki hak akses untuk menghapus log aktivitas ini.');
-        }
 
         // Hapus seluruh aktivitas pada grup proyek ini jika parameter delete_group dikirim
         if (request()->has('delete_group') && $log->project_id) {
-            $groupQuery = EngineerActivityLog::where('project_id', $log->project_id);
-            if (!$isLead) {
-                $groupQuery->where('user_id', $user->id);
+            $isGroupContributor = EngineerActivityLog::where('project_id', $log->project_id)
+                ->where('user_id', $user->id)
+                ->exists();
+
+            if (!$isGroupContributor) {
+                if (request()->wantsJson() || request()->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses untuk menghapus log aktivitas ini karena bukan pembuat atau kontributor kegiatan.'], 403);
+                }
+                abort(403, 'Anda tidak memiliki hak akses untuk menghapus log aktivitas ini karena bukan pembuat atau kontributor kegiatan.');
             }
+
+            $groupQuery = EngineerActivityLog::where('project_id', $log->project_id);
             $count = $groupQuery->count();
             $groupQuery->delete();
 
@@ -1729,6 +1727,17 @@ class DashboardController extends Controller
                 return response()->json(['success' => true, 'message' => "{$count} catatan aktivitas berhasil dihapus."]);
             }
             return back()->with('success', "{$count} catatan aktivitas berhasil dihapus.");
+        }
+
+        // Hapus single row: hanya pembuat atau kontributor proyek
+        $isContributor = ($log->user_id === $user->id)
+            || ($log->project_id && EngineerActivityLog::where('project_id', $log->project_id)->where('user_id', $user->id)->exists());
+
+        if (!$isContributor) {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses untuk menghapus agenda ini. Hanya pembuat yang berhak menghapusnya.'], 403);
+            }
+            abort(403, 'Anda tidak memiliki hak akses untuk menghapus agenda ini. Hanya pembuat yang berhak menghapusnya.');
         }
 
         $log->delete();
@@ -1743,13 +1752,17 @@ class DashboardController extends Controller
     // ─── Engineer Activity Log: Update (Edit) ──────────────────────────────────
     public function updateActivityLog(Request $request, EngineerActivityLog $log)
     {
-        $user   = auth()->user();
-        $isLead = \App\Helpers\ScopeHelper::isManagerial($user);
-        $linkedProjectIds = $this->getLinkedProjectIds($user);
-        $isProjectMember  = $log->project_id && $linkedProjectIds->contains($log->project_id);
+        $user = auth()->user();
 
-        if ($log->user_id !== $user->id && !$isLead && !$isProjectMember) {
-            abort(403, 'Anda tidak memiliki hak akses untuk mengubah log aktivitas ini.');
+        // Hak akses edit hanya untuk pembuat log atau kontributor kegiatan pada proyek ini
+        $isContributor = ($log->user_id === $user->id)
+            || ($log->project_id && EngineerActivityLog::where('project_id', $log->project_id)->where('user_id', $user->id)->exists());
+
+        if (!$isContributor) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak memiliki hak akses untuk mengubah log aktivitas ini. Hanya pembuat yang berhak mengubahnya.'], 403);
+            }
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah log aktivitas ini. Hanya pembuat yang berhak mengubahnya.');
         }
 
         $subject     = trim($request->input('subject', ''));

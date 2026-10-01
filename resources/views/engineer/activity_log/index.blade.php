@@ -397,11 +397,11 @@
                             ];
                         })->values()->toArray());
 
-                        $canEdit = $isLead
-                            || $groupActivities->contains('user_id', auth()->id())
-                            || (isset($linkedProjectIds) && $firstAct->project_id && $linkedProjectIds->contains($firstAct->project_id));
-
-                        $canDelete = $canEdit;
+                        // Hak edit dan hapus adalah hak eksklusif pembuat/kontributor riil kegiatan ini.
+                        // Leader/Managerial hanya monitoring (lihat & detail), kecuali mereka ikut mencatat aktivitas di grup ini.
+                        $isContributor = $groupActivities->contains('user_id', auth()->id());
+                        $canEdit       = $isContributor;
+                        $canDelete     = $isContributor;
                     @endphp
 
                     <div class="activity-card group">
