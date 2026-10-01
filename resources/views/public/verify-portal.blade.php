@@ -169,7 +169,7 @@
     <main class="relative z-10 w-full max-w-2xl mx-auto my-auto flex flex-col items-center">
         
         {{-- Floating Logo Ring --}}
-        <div class="relative mb-3 anim-hero-reveal">
+        <div class="relative mb-5 sm:mb-6 anim-hero-reveal">
             <div class="absolute inset-0 bg-white/20 rounded-full blur-2xl pointer-events-none"></div>
             <div class="relative w-20 h-20 sm:w-22 sm:h-22 rounded-2xl bg-white/10 backdrop-blur-md border border-white/25 flex items-center justify-center shadow-[0_14px_30px_rgba(0,0,0,0.3)] animate-logo-float transition-transform hover:scale-105 cursor-pointer">
                 <img src="{{ asset('images/ipnet1.png') }}" alt="IP Network Solusindo" class="h-13 sm:h-15 w-auto object-contain drop-shadow-md">
