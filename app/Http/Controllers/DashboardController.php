@@ -2063,6 +2063,108 @@ class DashboardController extends Controller
         return $pdf->download($filename);
     }
 
+    /**
+     * Tampilkan Langsung PDF Hasil Scan QR Code di Browser / HP (Tanpa Halaman Antara / Embel-embel Unduh)
+     */
+    public function streamVerifiedPdf(string $documentNumber)
+    {
+        $documentSignature = ActivityDocumentSignature::where('document_number', $documentNumber)->first();
+
+        $query = \App\Models\EngineerActivityLog::with(['engineer', 'project']);
+
+        if ($documentSignature) {
+            if (!empty($documentSignature->log_ids)) {
+                $query->whereIn('id', $documentSignature->log_ids);
+            } elseif ($documentSignature->project_id) {
+                $query->where('project_id', $documentSignature->project_id);
+            } elseif ($documentSignature->scope_key && str_starts_with($documentSignature->scope_key, 'proj_')) {
+                $pId = (int) substr($documentSignature->scope_key, 5);
+                $query->where('project_id', $pId);
+            } elseif ($documentSignature->pic_user_id) {
+                $query->where('user_id', $documentSignature->pic_user_id);
+            }
+        }
+
+        $activities = $query->orderBy('activity_date', 'asc')->orderBy('start_time', 'asc')->orderBy('created_at', 'asc')->get();
+
+        $parsedActivities = $activities->map(function ($a, $idx) {
+            $rawNotes  = $a->notes ?? '';
+            $clientPic = '';
+            $ipnetPic  = '';
+            $notedOnly = $rawNotes;
+
+            if ($rawNotes) {
+                $parts = array_map('trim', explode('|', $rawNotes));
+                $notedParts = [];
+                foreach ($parts as $part) {
+                    if (str_starts_with($part, 'PIC Klien:')) {
+                        $clientPic = trim(substr($part, strlen('PIC Klien:')));
+                    } elseif (str_starts_with($part, 'PIC IPNET:')) {
+                        $ipnetPic = trim(substr($part, strlen('PIC IPNET:')));
+                    } else {
+                        $notedParts[] = $part;
+                    }
+                }
+                $notedOnly = implode(' | ', array_filter($notedParts));
+            }
+
+            if (!$ipnetPic) {
+                $ipnetPic = '-';
+            }
+
+            $description = $a->description ?? '-';
+            if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $description, $m)) {
+                $description = $m[2] ?: $m[1];
+            }
+
+            return [
+                'no'         => $idx + 1,
+                'activity'   => $description,
+                'date'       => $a->activity_date ? $a->activity_date->format('d/m/Y') : '-',
+                'time'       => $a->start_time ? \Carbon\Carbon::parse($a->start_time)->format('H:i') : '-',
+                'client_pic' => $clientPic ?: '-',
+                'ipnet_pic'  => $ipnetPic,
+                'notes'      => $notedOnly ?: '-',
+            ];
+        });
+
+        $projectName  = $documentSignature?->project_name ?: ($activities->first()?->project?->name ?? 'Aktivitas Lapangan');
+        $engineerName = $documentSignature?->pic_name ?: ($activities->first()?->engineer?->name ?? 'PIC Engineer');
+        $printedBy    = $documentSignature?->head_name ?: 'System Verification';
+
+        $logoPath   = public_path('images/ipnet1.png');
+        if (!file_exists($logoPath)) {
+            $logoPath = public_path('images/ipnet.png');
+        }
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+
+        $verifyUrl = url('/verify-document/' . $documentNumber);
+        $qrData    = $this->generateQrData($verifyUrl);
+
+        $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', [
+            'parsedActivities'  => $parsedActivities,
+            'activities'        => $activities,
+            'projectName'       => $projectName,
+            'engineerName'      => $engineerName,
+            'printedBy'         => $printedBy,
+            'logoBase64'        => $logoBase64,
+            'documentSignature' => $documentSignature,
+            'verifyDocNumber'   => $documentNumber,
+            'verifyUrl'         => $verifyUrl,
+            'qrPngBase64'       => $qrData['qrPngBase64'],
+            'qrRawSvg'          => $qrData['qrRawSvg'],
+            'qrApiUrl'          => $qrData['qrApiUrl'],
+            'qrCodeBase64'      => $qrData['qrPngBase64'] ?: $qrData['qrApiUrl'],
+            'qrSvgBase64'       => $qrData['qrPngBase64'] ?: $qrData['qrApiUrl'],
+        ]);
+
+        $pdf->setPaper('a4', 'landscape');
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
+
+        return $pdf->stream("Laporan_Aktivitas_{$documentNumber}.pdf");
+    }
+
     // ─── Engineer Activity Log: Export Excel ─────────────────────────────────────
     public function exportActivityLogExcel(\Illuminate\Http\Request $request)
     {
