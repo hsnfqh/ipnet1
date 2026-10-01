@@ -17,7 +17,7 @@
         $navItems = [
             ['key' => 'dashboard',       'label' => 'Dashboard',         'route' => 'dashboard.lead'],
             ['key' => 'projects',        'label' => 'Projects',          'route' => 'sales.pipeline.index'],
-            ['key' => 'activities',      'label' => 'Activity Log',      'route' => 'sales.activities.index'],
+            ['key' => 'activities',      'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'clients',         'label' => 'Clients',           'route' => 'clients.index'],
             ['key' => 'inventory',       'label' => 'Inventory',         'route' => 'inventory.index'],
             ['key' => 'vendors',         'label' => 'Vendors',           'route' => 'vendors.index'],
