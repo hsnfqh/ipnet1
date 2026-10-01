@@ -219,4 +219,31 @@ class ActivitySignatureController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Halaman Publik Verifikasi Keabsahan Dokumen Digital (Hasil Scan QR Code)
+     */
+    public function verifyDocument(string $documentNumber)
+    {
+        // Pastikan tabel ada
+        if (!Schema::hasTable('activity_document_signatures')) {
+            try {
+                Artisan::call('migrate', ['--force' => true]);
+            } catch (\Throwable $e) {}
+        }
+
+        $document = null;
+        try {
+            $document = ActivityDocumentSignature::with(['project', 'picUser', 'leadUser'])
+                ->where('document_number', $documentNumber)
+                ->first();
+        } catch (\Throwable $e) {
+            // Document null
+        }
+
+        return view('public.verify-document', [
+            'documentNumber' => $documentNumber,
+            'document'       => $document,
+        ]);
+    }
 }

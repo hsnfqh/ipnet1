@@ -47,6 +47,9 @@ Route::middleware('guest')->group(function () {
 // Auth Routes
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Public Document Verification (Target QR Code Scan)
+Route::get('/verify-document/{documentNumber}', [ActivitySignatureController::class, 'verifyDocument'])->name('document.verify');
+
 // Auto Migrate & Cache Clear Helper for Production Deployment
 // 1-Click Master Setup Helper for Production Deployment (Migrate + Seed All Official Accounts)
 Route::get('/setup-hosting-database-2026', function () {
