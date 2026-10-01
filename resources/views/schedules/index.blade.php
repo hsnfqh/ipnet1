@@ -779,7 +779,7 @@
                             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:13px 15px; margin-bottom:12px;">
                                 <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
                                     <span style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px; background:white; border:1px solid #CBD5E1; border-radius:6px; font-size:10px; font-weight:700; color:#334155; box-shadow:0 1px 2px rgba(0,0,0,0.03); max-width:70%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                                        <svg style="width:12px; height:12px; color:#64748B; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <svg style="width:11px; height:11px; color:#64748B; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                         </svg>
                                         <span x-text="currentProjectName || 'Tanpa Project / Internal'"></span>
