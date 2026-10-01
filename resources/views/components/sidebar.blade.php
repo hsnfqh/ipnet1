@@ -539,14 +539,14 @@
                 <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                 </svg>
-                <span x-show="isExpanded" x-cloak>Keluar</span>
+                <span x-show="isExpanded" x-cloak>Log Out</span>
             </button>
         </form>
         <button @click="toggle()" class="sidebar-action hidden lg:flex" style="align-items:center; gap:12px; padding:10px 12px; border-radius:8px; width:100%; background:transparent; border:none; cursor:pointer; color:rgba(255,255,255,0.42); font-size:12px; margin-top:2px; transition:all 0.15s ease;">
             <svg style="width:15px; height:15px; flex-shrink:0; transition:transform 0.2s;" :style="{ transform: collapsed ? 'rotate(180deg)' : 'none' }" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
-            <span x-show="isExpanded" x-cloak>Sembunyikan</span>
+            <span x-show="isExpanded" x-cloak x-text="collapsed ? 'Perluas' : 'Ciutkan'">Ciutkan</span>
         </button>
     </div>
 </aside>
