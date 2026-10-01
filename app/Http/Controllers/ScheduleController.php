@@ -210,8 +210,8 @@ class ScheduleController extends Controller
                     ? $schedule->engineers->pluck('id')->toArray()
                     : ($schedule->engineer_id ? [$schedule->engineer_id] : []);
                 $engineersList = $hasScheduleUser && $schedule->relationLoaded('engineers')
-                    ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
-                    : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
+                    ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name, 'position' => $e->position ?? ''])->toArray()
+                    : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name, 'position' => $schedule->engineer->position ?? '']] : []);
 
                 $taskStatus = null;
                 if (in_array($schedule->category, ['Task', 'Kegiatan'])) {
@@ -364,8 +364,8 @@ class ScheduleController extends Controller
                         ? $task->engineers->pluck('id')->toArray()
                         : ($task->engineer_id ? [$task->engineer_id] : []);
                     $engineersList = $hasTaskUser && $task->relationLoaded('engineers') && $task->engineers->isNotEmpty()
-                        ? $task->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
-                        : ($task->engineer ? [['id' => $task->engineer->id, 'name' => $task->engineer->name]] : []);
+                        ? $task->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name, 'position' => $e->position ?? ''])->toArray()
+                        : ($task->engineer ? [['id' => $task->engineer->id, 'name' => $task->engineer->name, 'position' => $task->engineer->position ?? '']] : []);
 
                     return [
                         'id'            => $task->id,
@@ -379,7 +379,7 @@ class ScheduleController extends Controller
                         'engineers'     => $engineersList,
                         'project_id'    => $task->project_id,
                         'project'       => $task->project ? ['id' => $task->project->id, 'name' => $task->project->name] : null,
-                        'engineer'      => $task->engineer ? ['id' => $task->engineer->id, 'name' => $task->engineer->name] : null,
+                        'engineer'      => $task->engineer ? ['id' => $task->engineer->id, 'name' => $task->engineer->name, 'position' => $task->engineer->position ?? ''] : null,
                     ];
                 });
         }
@@ -395,7 +395,14 @@ class ScheduleController extends Controller
                 ->get();
         }
 
-        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect', 'isMaintenance', 'msTickets', 'isCommercial', 'isExecutive'));
+        $allUsers = User::active()->select('id', 'name', 'position', 'division_id')->get()->map(fn($u) => [
+            'id' => $u->id,
+            'name' => $u->name,
+            'position' => $u->position ?? '',
+            'division_id' => $u->division_id,
+        ]);
+
+        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'allUsers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect', 'isMaintenance', 'msTickets', 'isCommercial', 'isExecutive'));
     }
 
     /**
@@ -623,10 +630,7 @@ class ScheduleController extends Controller
 
             // 1. Buat HANYA 1 TASK di Penugasan Tim jika opsi dicentang (mencegah spam tiket per hari)
             if ($createTask && !empty($data['project_id'])) {
-                $taskDesc = ($data['description'] ? $data['description'] . "\n\n" : '')
-                    . "[Dibuat otomatis dari Jadwal: " . $data['title'] 
-                    . " | Periode: " . $dateRangeLabel
-                    . (!empty($data['location']) ? " | Lokasi: " . $data['location'] : "") . "]";
+                $taskDesc = !empty($data['description']) ? trim($data['description']) : null;
 
                 $task = Task::create([
                     'title'         => $data['title'],
@@ -771,8 +775,8 @@ class ScheduleController extends Controller
                     : ($schedule->engineer_id ? [$schedule->engineer_id] : [])
             )))));
             $engineersList = $hasScheduleUser && $schedule->relationLoaded('engineers')
-                ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name])->toArray()
-                : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name]] : []);
+                ? $schedule->engineers->map(fn($e) => ['id' => $e->id, 'name' => $e->name, 'position' => $e->position ?? ''])->toArray()
+                : ($schedule->engineer ? [['id' => $schedule->engineer->id, 'name' => $schedule->engineer->name, 'position' => $schedule->engineer->position ?? '']] : []);
 
             // Sync / Update Task jika agenda ini memiliki task terkait atau kategori Task/Kegiatan
             $deadlineTime = $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : '23:59:00';

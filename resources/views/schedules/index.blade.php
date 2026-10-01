@@ -523,12 +523,20 @@
                                         <template x-for="event in getAllEventsForDay(day.fullDate)" :key="event._uid">
                                             <div class="jkw-mini-card" 
                                                  :class="'jkw-mini-card--' + event._type"
-                                                 :style="'border-left: 3px solid ' + event._color + '; cursor:pointer;'"
+                                                 :style="'border-left: 3.5px solid ' + event._color + '; cursor:pointer;'"
                                                  :title="event._tooltip + (canManageSchedule ? ' • Klik untuk detail / edit' : ' • Klik untuk melihat detail')"
                                                  @click="handleEventClick(event)">
-                                                <div class="jkw-mini-time" x-text="event._timeLabel" style="font-size:10px; font-weight:700;" :style="{ color: event._color }"></div>
+                                                <div class="jkw-mini-time" :style="{ color: event._color }">
+                                                    <span class="jkw-mini-dot" :style="{ background: event._color }"></span>
+                                                    <span x-text="event._timeLabel"></span>
+                                                </div>
                                                 <div class="jkw-mini-title" x-text="event._displayTitle"></div>
-                                                <div class="jkw-mini-eng" x-text="event._subLabel"></div>
+                                                <div class="jkw-mini-eng" x-show="event._subLabel">
+                                                    <svg style="width:10px; height:10px; flex-shrink:0; opacity:0.65;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                                    </svg>
+                                                    <span x-text="event._subLabel"></span>
+                                                </div>
                                             </div>
                                         </template>
                                         <div class="jkw-mini-empty" x-show="getAllEventsForDay(day.fullDate).length === 0">—</div>
@@ -755,119 +763,119 @@
                      style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px);"
                      @click.self="modalOpen = false">
 
-                    <div style="background:white; border-radius:20px; width:640px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 50px rgba(14,13,18,0.18); margin:auto; position:relative; animation:jkwFadeUp 0.18s ease; border:1px solid #E2E8F0;">
-                        <!-- Modal Header (Identik dengan Detail & Dokumentasi Task) -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 24px; position:sticky; top:0; background:white; border-bottom:1px solid #E2E8F0; border-radius:20px 20px 0 0; z-index:10;">
+                    <div style="background:white; border-radius:18px; width:560px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 50px rgba(14,13,18,0.18); margin:auto; position:relative; animation:jkwFadeUp 0.18s ease; border:1px solid #E2E8F0;">
+                        <!-- Modal Header -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 22px; position:sticky; top:0; background:white; border-bottom:1px solid #E2E8F0; border-radius:18px 18px 0 0; z-index:10;">
                             <div>
                                 <div style="display:inline-flex; align-items:center; gap:6px; background:#FEF2F2; border:1px solid #FECACA; padding:2px 8px; border-radius:6px; margin-bottom:4px;">
-                                    <span style="width:6px; height:6px; border-radius:50%; background:#8F0A0D;"></span>
-                                    <span style="font-size:10.5px; font-weight:700; color:#8F0A0D; text-transform:uppercase; letter-spacing:0.5px;" x-text="modalMode === 'form' ? (editing ? 'EDIT JADWAL' : 'TAMBAH JADWAL') : 'DETAIL JADWAL'"></span>
+                                    <span style="width:6px; height:6px; border-radius:50%; background:#8F0A0D; flex-shrink:0;"></span>
+                                    <span style="font-size:10px; font-weight:700; color:#8F0A0D; text-transform:uppercase; letter-spacing:0.5px;" x-text="modalMode === 'form' ? (editing ? 'EDIT JADWAL' : 'TAMBAH JADWAL') : 'DETAIL JADWAL'"></span>
                                 </div>
-                                <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:17px; font-weight:800; color:#0F172A;" x-text="modalMode === 'form' ? (editing ? 'Edit Jadwal Kegiatan' : 'Buat Jadwal Baru') : 'Detail & Informasi Jadwal'"></h3>
-                                <p style="margin:2px 0 0; font-size:12px; color:#64748B;" x-text="modalMode === 'form' ? 'Atur rincian agenda, waktu, dan penugasan personel' : 'Detail informasi agenda dan jadwal kegiatan'"></p>
+                                <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:16.5px; font-weight:800; color:#0F172A;" x-text="modalMode === 'form' ? (editing ? 'Edit Jadwal Kegiatan' : 'Buat Jadwal Baru') : 'Detail & Informasi Jadwal'"></h3>
+                                <p style="margin:2px 0 0; font-size:11.5px; color:#64748B;" x-text="modalMode === 'form' ? 'Atur rincian agenda, waktu, dan penugasan personel' : 'Detail informasi agenda dan jadwal kegiatan'"></p>
                             </div>
-                            <button @click="modalOpen = false" style="background:#F8FAFC; border:1px solid #E2E8F0; cursor:pointer; color:#64748B; padding:7px; border-radius:10px; transition:all 0.15s ease; flex-shrink:0;" onmouseover="this.style.background='#F1F5F9'; this.style.color='#0F172A'" onmouseout="this.style.background='#F8FAFC'; this.style.color='#64748B'" title="Tutup">
-                                <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <button @click="modalOpen = false" style="background:#F8FAFC; border:1px solid #E2E8F0; cursor:pointer; color:#64748B; padding:6px; border-radius:8px; transition:all 0.15s ease; flex-shrink:0;" onmouseover="this.style.background='#F1F5F9'; this.style.color='#0F172A'" onmouseout="this.style.background='#F8FAFC'; this.style.color='#64748B'" title="Tutup">
+                                <svg style="width:17px; height:17px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
 
-                        <!-- 1. DETAIL VIEW MODE (Desain Elegan, Rapi, & Profesional Identik dengan Detail Task) -->
-                        <div style="padding:22px 24px;" x-show="modalMode === 'detail'">
+                        <!-- 1. DETAIL VIEW MODE (Desain Elegan, Rapi, & Proporsional) -->
+                        <div style="padding:18px 22px;" x-show="modalMode === 'detail'">
                             <!-- Judul & Project Banner Card -->
-                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px; padding:16px; margin-bottom:16px;">
-                                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-                                    <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 10px; background:white; border:1px solid #CBD5E1; border-radius:7px; font-size:11.5px; font-weight:700; color:#334155; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
-                                        <svg style="width:13px; height:13px; color:#64748B;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:13px 15px; margin-bottom:12px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
+                                    <span style="display:inline-flex; align-items:center; gap:5px; padding:3px 9px; background:white; border:1px solid #CBD5E1; border-radius:6px; font-size:11px; font-weight:700; color:#334155; box-shadow:0 1px 2px rgba(0,0,0,0.03); max-width:70%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                        <svg style="width:12px; height:12px; color:#64748B; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                         </svg>
                                         <span x-text="currentProjectName || 'Tanpa Project / Internal'"></span>
                                     </span>
-                                    <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:7px; font-size:11.5px; font-weight:700;"
+                                    <span style="display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:700; flex-shrink:0;"
                                           :style="categoryBadgeStyle(form.category)">
-                                        <span style="width:7px; height:7px; border-radius:50%;" :style="{ background: categoryDotColor(form.category) }"></span>
+                                        <span style="width:6px; height:6px; border-radius:50%; flex-shrink:0; display:inline-block;" :style="{ background: categoryDotColor(form.category) }"></span>
                                         <span x-text="categoryLabel(form.category)"></span>
                                     </span>
                                 </div>
-                                <h4 style="margin:0; font-size:17px; font-weight:800; color:#0F172A; line-height:1.4;" x-text="form.title || 'Tanpa Judul'"></h4>
+                                <h4 style="margin:4px 0 0; font-size:15.5px; font-weight:800; color:#0F172A; line-height:1.4; word-break:break-word;" x-text="form.title || 'Tanpa Judul'"></h4>
                             </div>
 
                             <!-- Tim Pelaksana & Personel Lapangan Card -->
-                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:14px; padding:14px 16px; margin-bottom:16px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                    <span style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
+                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px; margin-bottom:12px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <span style="font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
                                         <span x-text="form.category === 'Day Off' ? 'PERSONEL YANG CUTI / DAY OFF' : (form.category === 'PoC & Demo' ? 'TIM PRESALES & PIC POC' : 'TIM PELAKSANA & PERSONEL LAPANGAN')"></span>
                                     </span>
-                                    <span style="font-size:11px; font-weight:700; color:#8F0A0D; background:#FEF2F2; padding:2px 8px; border-radius:12px; border:1px solid #FECACA;" 
+                                    <span style="font-size:10.5px; font-weight:700; color:#8F0A0D; background:#FEF2F2; padding:2px 7px; border-radius:10px; border:1px solid #FECACA;" 
                                           x-text="getAssignedEngineersList().length + ' Personil'"></span>
                                 </div>
-                                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                                <div style="display:flex; flex-wrap:wrap; gap:6px;">
                                     <template x-for="(eng, idx) in getAssignedEngineersList()" :key="eng.id">
-                                        <div style="display:inline-flex; align-items:center; gap:8px; background:white; border:1px solid #CBD5E1; padding:4px 12px 4px 6px; border-radius:20px; font-size:12px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-                                            <div style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:white;" :style="{ background: colorFromName(eng.name) }">
+                                        <div style="display:inline-flex; align-items:center; gap:6px; background:white; border:1px solid #E2E8F0; padding:3px 9px 3px 5px; border-radius:16px; font-size:11.5px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                                            <div style="width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9.5px; font-weight:800; color:white; flex-shrink:0;" :style="{ background: colorFromName(eng.name) }">
                                                 <span x-text="initials(eng.name)"></span>
                                             </div>
-                                            <div>
+                                            <div style="display:inline-flex; align-items:center; gap:3px;">
                                                 <span style="font-weight:700; color:#0F172A;" x-text="eng.name"></span>
-                                                <span x-show="eng.position" style="font-size:11px; color:#64748B; margin-left:3px;" x-text="'(' + eng.position + ')'"></span>
+                                                <span x-show="eng.position" style="font-size:10.5px; color:#64748B;" x-text="'(' + eng.position + ')'"></span>
                                             </div>
                                             <template x-if="form.category !== 'Day Off'">
-                                                <span style="font-size:9.5px; font-weight:800; padding:1.5px 7px; border-radius:10px;" 
+                                                <span style="font-size:9px; font-weight:800; padding:1px 6px; border-radius:6px; margin-left:2px;" 
                                                       :style="{ background: idx === 0 ? '#FEF2F2' : '#EFF6FF', color: idx === 0 ? '#8F0A0D' : '#1D4ED8' }" 
                                                       x-text="idx === 0 ? 'PIC Utama' : 'Pendamping'"></span>
                                             </template>
                                         </div>
                                     </template>
-                                    <div x-show="getAssignedEngineersList().length === 0" style="font-size:12.5px; color:#94A3B8; font-style:italic;">
+                                    <div x-show="getAssignedEngineersList().length === 0" style="font-size:12px; color:#94A3B8; font-style:italic;">
                                         Belum ada personel yang ditugaskan
                                     </div>
                                 </div>
                             </div>
 
                             <!-- 3 Kolom Info Ringkas: Tanggal, Jam/Waktu, Tipe Agenda -->
-                            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-bottom:16px;">
-                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px;">
-                                    <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.4px;">TANGGAL KEGIATAN</span>
-                                    <strong style="font-size:13px; color:#0F172A; display:block;" x-text="formatDetailDate(form.date)"></strong>
+                            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:12px;">
+                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:9px 11px;">
+                                    <span style="display:block; font-size:10px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:2px; letter-spacing:0.4px;">TANGGAL KEGIATAN</span>
+                                    <strong style="font-size:12px; color:#0F172A; display:block; line-height:1.3;" x-text="formatDetailDate(form.date)"></strong>
                                 </div>
-                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px;">
-                                    <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.4px;">WAKTU / JAM</span>
-                                    <strong style="font-size:13px; color:#8F0A0D; display:block;" x-text="detailTimeLabel"></strong>
+                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:9px 11px;">
+                                    <span style="display:block; font-size:10px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:2px; letter-spacing:0.4px;">WAKTU / JAM</span>
+                                    <strong style="font-size:12px; font-weight:700; display:block; line-height:1.3;" :style="{ color: form.start_time ? '#8F0A0D' : '#334155' }" x-text="detailTimeLabel"></strong>
                                 </div>
-                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px;">
-                                    <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:4px; letter-spacing:0.4px;">TIPE AGENDA</span>
-                                    <strong style="font-size:13px; color:#0F172A; display:block;" x-text="categoryLabel(form.category)"></strong>
+                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:9px 11px;">
+                                    <span style="display:block; font-size:10px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:2px; letter-spacing:0.4px;">TIPE AGENDA</span>
+                                    <strong style="font-size:12px; color:#0F172A; display:block; line-height:1.3;" x-text="categoryLabel(form.category)"></strong>
                                 </div>
                             </div>
 
                             <!-- Lokasi / Link Tempat Kegiatan -->
-                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 16px; margin-bottom:16px;" x-show="form.location && form.category !== 'Day Off'">
-                                <div style="display:flex; align-items:center; gap:10px;">
-                                    <div style="width:32px; height:32px; border-radius:8px; background:#FEE2E2; display:flex; align-items:center; justify-content:center; color:#DC2626; flex-shrink:0;">
-                                        <svg style="width:17px; height:17px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:10px 14px; margin-bottom:12px;" x-show="form.location && form.category !== 'Day Off'">
+                                <div style="display:flex; align-items:center; gap:9px;">
+                                    <div style="width:28px; height:28px; border-radius:7px; background:#FEE2E2; display:flex; align-items:center; justify-content:center; color:#DC2626; flex-shrink:0;">
+                                        <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                         </svg>
                                     </div>
                                     <div style="flex:1; min-width:0;">
-                                        <span style="display:block; font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px;">LOKASI / LINK MEETING</span>
-                                        <span style="font-size:13px; font-weight:700; color:#0F172A; word-break:break-word;" x-text="form.location"></span>
+                                        <span style="display:block; font-size:10px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px;">LOKASI / LINK MEETING</span>
+                                        <span style="font-size:12.5px; font-weight:700; color:#0F172A; word-break:break-word;" x-text="form.location"></span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Multi Sesi (Jika ada) -->
                             <template x-if="form.sessions && form.sessions.length > 1">
-                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:12px 16px; margin-bottom:16px;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                        <span style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px;">AGENDA MULTI-SESI / TANGGAL</span>
-                                        <span style="font-size:11px; font-weight:700; color:#2563EB; background:#EFF6FF; padding:1.5px 7px; border-radius:10px;" x-text="form.sessions.length + ' Sesi'"></span>
+                                <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:11px 14px; margin-bottom:12px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                        <span style="font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.4px;">AGENDA MULTI-SESI / TANGGAL</span>
+                                        <span style="font-size:10.5px; font-weight:700; color:#2563EB; background:#EFF6FF; padding:1px 6px; border-radius:8px;" x-text="form.sessions.length + ' Sesi'"></span>
                                     </div>
-                                    <div style="display:flex; flex-direction:column; gap:6px;">
+                                    <div style="display:flex; flex-direction:column; gap:5px;">
                                         <template x-for="(ses, sIdx) in form.sessions" :key="sIdx">
-                                            <div style="display:flex; align-items:center; justify-content:space-between; background:white; border:1px solid #E2E8F0; padding:8px 12px; border-radius:8px; font-size:12px;">
-                                                <div style="display:flex; align-items:center; gap:8px;">
+                                            <div style="display:flex; align-items:center; justify-content:space-between; background:white; border:1px solid #E2E8F0; padding:6px 10px; border-radius:7px; font-size:11.5px;">
+                                                <div style="display:flex; align-items:center; gap:6px;">
                                                     <span style="font-weight:700; color:#8F0A0D;" x-text="'Sesi ' + (sIdx + 1)"></span>
                                                     <span style="color:#CBD5E1;">•</span>
                                                     <span style="font-weight:600; color:#1E293B;" x-text="formatDetailDate(ses.date)"></span>
@@ -879,31 +887,31 @@
                                 </div>
                             </template>
 
-                            <!-- Deskripsi & Rincian Kegiatan -->
-                            <div style="margin-bottom:16px;" x-show="form.description">
-                                <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">DESKRIPSI & RINCIAN KEGIATAN</label>
-                                <div style="font-size:13px; color:#334155; background:#F8FAFC; padding:14px 16px; border-radius:12px; border:1px solid #E2E8F0; border-left:4px solid #8F0A0D; white-space:pre-line; line-height:1.6;" x-text="form.description"></div>
+                            <!-- Deskripsi & Rincian Kegiatan (Hanya jika diisi, tidak dibuat otomatis) -->
+                            <div style="margin-bottom:12px;" x-show="form.description && form.description.trim().length > 0">
+                                <label style="display:block; font-size:10px; font-weight:700; color:#64748B; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.4px;">DESKRIPSI & RINCIAN KEGIATAN</label>
+                                <div style="font-size:12.5px; color:#334155; background:#F8FAFC; padding:11px 14px; border-radius:10px; border:1px solid #E2E8F0; border-left:3px solid #8F0A0D; white-space:pre-line; line-height:1.55;" x-text="form.description"></div>
                             </div>
 
                             <!-- Footer Buttons Detail Mode -->
-                            <div style="display:flex; align-items:center; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid #E2E8F0;">
+                            <div style="display:flex; align-items:center; gap:8px; margin-top:16px; padding-top:14px; border-top:1px solid #E2E8F0;">
                                 @if($canManageSchedule ?? false)
                                 <template x-if="canManageSchedule && editing">
-                                    <div style="display:flex; gap:10px; width:100%;">
+                                    <div style="display:flex; gap:8px; width:100%;">
                                         <button type="button" @click="modalMode = 'form'" 
                                                 class="btn-ipnet-gradient"
-                                                style="flex:1; justify-content:center; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                                            <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                style="flex:1; justify-content:center; padding:10px 16px; border-radius:9px; font-weight:700; font-size:12.5px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                                            <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                             Edit Jadwal
                                         </button>
                                         <button type="button" @click="deleteSchedule(form)" 
-                                                style="background:#FEF2F2; color:#DC2626; border:1.5px solid #FECACA; padding:11px 16px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.15s ease;"
+                                                style="background:#FEF2F2; color:#DC2626; border:1.5px solid #FECACA; padding:10px 14px; border-radius:9px; font-weight:700; font-size:12.5px; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.15s ease;"
                                                 onmouseover="this.style.background='#FEE2E2'" onmouseout="this.style.background='#FEF2F2'">
-                                            <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             Hapus
                                         </button>
                                         <button type="button" @click="modalOpen = false" 
-                                                style="background:#F8FAFC; color:#334155; border:1px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; transition:all 0.15s ease;"
+                                                style="background:#F8FAFC; color:#334155; border:1px solid #CBD5E1; padding:10px 16px; border-radius:9px; font-weight:700; font-size:12.5px; cursor:pointer; transition:all 0.15s ease;"
                                                 onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background='#F8FAFC'">
                                             Tutup
                                         </button>
@@ -911,7 +919,7 @@
                                 </template>
                                 <template x-if="!editing">
                                     <button type="button" @click="modalOpen = false" 
-                                            style="width:100%; justify-content:center; background:#F8FAFC; color:#334155; border:1.5px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease;"
+                                            style="width:100%; justify-content:center; background:#F8FAFC; color:#334155; border:1.5px solid #CBD5E1; padding:10px 16px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease;"
                                             onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='#94A3B8'; this.style.color='#0F172A';"
                                             onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1'; this.style.color='#334155';">
                                         Tutup
@@ -919,7 +927,7 @@
                                 </template>
                                 @else
                                 <button type="button" @click="modalOpen = false" 
-                                        style="width:100%; justify-content:center; background:#F8FAFC; color:#334155; border:1.5px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease;"
+                                        style="width:100%; justify-content:center; background:#F8FAFC; color:#334155; border:1.5px solid #CBD5E1; padding:10px 16px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer; display:flex; align-items:center; transition:all 0.15s ease;"
                                         onmouseover="this.style.background='#F1F5F9'; this.style.borderColor='#94A3B8'; this.style.color='#0F172A';"
                                         onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1'; this.style.color='#334155';">
                                     Tutup
@@ -1958,16 +1966,108 @@
 .jkw-week-col.is-today { background:var(--jkw-bg-soft) !important; }
 .jkw-week-col-head { font-size:11px !important; color:var(--jkw-muted) !important; font-weight:700 !important; margin-bottom:10px !important; display:flex !important; align-items:center !important; gap:5px !important; }
 .jkw-week-col-body { display:flex !important; flex-direction:column !important; gap:6px !important; }
-.jkw-mini-card { border-radius:6px !important; padding:6px 9px !important; }
-.jkw-mini-card--schedule, .jkw-mini-card--design, .jkw-mini-card--meeting { background:rgba(37,99,235,0.09) !important; }
-.jkw-mini-card--maintenance { background:rgba(217,119,6,0.12) !important; }
-.jkw-mini-card--poc { background:rgba(16,185,129,0.10) !important; }
-.jkw-mini-card--day_off { background:rgba(100,116,139,0.12) !important; }
-.jkw-mini-card--task { background:rgba(200,30,44,0.08) !important; }
-.jkw-mini-card--project { background:rgba(153,27,27,0.08) !important; }
-.jkw-mini-time { font-family:'IBM Plex Mono', monospace !important; font-size:10px !important; font-weight:700 !important; }
-.jkw-mini-title { font-size:11.5px !important; color:var(--jkw-ink) !important; font-weight:600 !important; line-height:1.3 !important; margin-top:1px !important; word-break:break-word !important; }
-.jkw-mini-eng { font-size:9.5px !important; color:var(--jkw-muted) !important; margin-top:1px !important; }
+.jkw-mini-card {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 8px !important;
+    padding: 6px 8px !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+}
+.jkw-mini-card:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+    border-color: #CBD5E1 !important;
+}
+.jkw-mini-card--schedule, .jkw-mini-card--design, .jkw-mini-card--meeting {
+    background: #FFFFFF !important;
+    border-color: #DBEAFE !important;
+}
+.jkw-mini-card--schedule:hover, .jkw-mini-card--design:hover, .jkw-mini-card--meeting:hover {
+    background: #EFF6FF !important;
+    border-color: #BFDBFE !important;
+}
+.jkw-mini-card--maintenance {
+    background: #FFFFFF !important;
+    border-color: #FEF3C7 !important;
+}
+.jkw-mini-card--maintenance:hover {
+    background: #FFFBEB !important;
+    border-color: #FDE68A !important;
+}
+.jkw-mini-card--poc {
+    background: #FFFFFF !important;
+    border-color: #D1FAE5 !important;
+}
+.jkw-mini-card--poc:hover {
+    background: #ECFDF5 !important;
+    border-color: #A7F3D0 !important;
+}
+.jkw-mini-card--day_off {
+    background: #F8FAFC !important;
+    border-color: #E2E8F0 !important;
+    opacity: 0.9 !important;
+}
+.jkw-mini-card--day_off:hover {
+    background: #F1F5F9 !important;
+    border-color: #CBD5E1 !important;
+    opacity: 1 !important;
+}
+.jkw-mini-card--task {
+    background: #FFFFFF !important;
+    border-color: #FEE2E2 !important;
+}
+.jkw-mini-card--task:hover {
+    background: #FEF2F2 !important;
+    border-color: #FECACA !important;
+}
+.jkw-mini-card--project {
+    background: #FFFFFF !important;
+    border-color: #FEE2E2 !important;
+}
+.jkw-mini-card--project:hover {
+    background: #FEF2F2 !important;
+    border-color: #FECACA !important;
+}
+.jkw-mini-time {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.3px !important;
+    text-transform: uppercase !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    line-height: 1 !important;
+}
+.jkw-mini-dot {
+    width: 5px !important;
+    height: 5px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+}
+.jkw-mini-title {
+    font-size: 11.5px !important;
+    color: #0F172A !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+    word-break: break-word !important;
+}
+.jkw-mini-eng {
+    font-size: 10px !important;
+    color: #64748B !important;
+    line-height: 1.3 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 3.5px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
 .jkw-mini-empty { font-size:11px !important; color:#C7C4CD !important; padding:8px 0 !important; text-align:center !important; }
 
 /* ---------- month view ---------- */
@@ -2390,6 +2490,7 @@
                 calendarProjects: @json($calendarProjects),
                 projects: @json($projects),
                 engineers: @json($engineers),
+                allUsers: @json($allUsers ?? []),
                 msTickets: @json($msTickets ?? []),
                 isMaintenance: @json($isMaintenance ?? false),
                 selectedTicketId: '',
@@ -2466,60 +2567,96 @@
                 getAssignedEngineersList: function() {
                     var list = [];
                     var self = this;
+
+                    // 1. Jika melihat detail jadwal yang sudah ada, prioritaskan data personil dari selectedSchedule
+                    if (this.selectedSchedule) {
+                        if (this.selectedSchedule.engineers && this.selectedSchedule.engineers.length > 0) {
+                            return this.selectedSchedule.engineers.map(function(e) {
+                                var matched = (self.allUsers || []).find(function(u) { return String(u.id) === String(e.id); })
+                                           || self.engineers.find(function(eng) { return String(eng.id) === String(e.id); });
+                                return {
+                                    id: e.id,
+                                    name: (matched && matched.name) ? matched.name : (e.name || self.getEngineerName(e.id)),
+                                    position: (matched && matched.position) ? matched.position : (e.position || ''),
+                                    role: (matched && matched.role) ? matched.role : (e.role || '')
+                                };
+                            });
+                        }
+                        if (this.selectedSchedule.engineer && this.selectedSchedule.engineer.id) {
+                            var eng = this.selectedSchedule.engineer;
+                            var matched = (self.allUsers || []).find(function(u) { return String(u.id) === String(eng.id); })
+                                       || self.engineers.find(function(e) { return String(e.id) === String(eng.id); });
+                            return [{
+                                id: eng.id,
+                                name: (matched && matched.name) ? matched.name : (eng.name || self.getEngineerName(eng.id)),
+                                position: (matched && matched.position) ? matched.position : (eng.position || ''),
+                                role: (matched && matched.role) ? matched.role : ''
+                            }];
+                        }
+                    }
+
+                    // 2. Mode Form Tambah / Edit: gunakan form.engineer_ids
                     if (this.form.engineer_ids && this.form.engineer_ids.length > 0) {
                         this.form.engineer_ids.forEach(function(id) {
-                            var eng = self.engineers.find(function(e) { return String(e.id) === String(id); });
+                            var eng = (self.allUsers || []).find(function(u) { return String(u.id) === String(id); })
+                                   || self.engineers.find(function(e) { return String(e.id) === String(id); });
                             if (eng) {
                                 list.push(eng);
                             } else {
-                                list.push({ id: id, name: 'Engineer #' + id, position: '' });
+                                list.push({ id: id, name: self.getEngineerName(id), position: '' });
                             }
                         });
+                        return list;
                     } else if (this.form.engineer_id) {
-                        var eng = self.engineers.find(function(e) { return String(e.id) === String(self.form.engineer_id); });
+                        var eng = (self.allUsers || []).find(function(u) { return String(u.id) === String(self.form.engineer_id); })
+                               || self.engineers.find(function(e) { return String(e.id) === String(self.form.engineer_id); });
                         if (eng) list.push(eng);
-                    } else if (this.selectedSchedule && this.selectedSchedule.engineers && this.selectedSchedule.engineers.length > 0) {
-                        this.selectedSchedule.engineers.forEach(function(e) {
-                            var matched = self.engineers.find(function(eng) { return String(eng.id) === String(e.id); });
-                            list.push(matched || e);
-                        });
-                    } else if (this.selectedSchedule && this.selectedSchedule.engineer) {
-                        var matched = self.engineers.find(function(eng) { return String(eng.id) === String(self.selectedSchedule.engineer.id); });
-                        list.push(matched || self.selectedSchedule.engineer);
                     }
                     return list;
                 },
                 categoryBadgeStyle: function(cat) {
-                    if (cat === 'Day Off') return 'background:#F1F5F9; color:#475569; border:1px solid #CBD5E1;';
-                    if (cat === 'Task' || cat === 'Kegiatan') return 'background:#FEF2F2; color:#991B1B; border:1px solid #FECACA;';
-                    if (cat === 'PoC / Lab' || cat === 'Sesi PoC & Lab' || cat === 'PoC & Demo') return 'background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0;';
-                    if (cat === 'Review Desain & SOW') return 'background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE;';
-                    if (cat === 'Meeting Klien / Principal') return 'background:#F5F3FF; color:#5B21B6; border:1px solid #DDD6FE;';
+                    if (!cat) return 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
+                    var lower = String(cat).toLowerCase();
+                    if (lower.includes('cuti') || lower.includes('day off')) {
+                        return 'background:#F1F5F9; color:#475569; border:1px solid #CBD5E1;';
+                    }
+                    if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('maintenance')) {
+                        return 'background:#FEF2F2; color:#991B1B; border:1px solid #FECACA;';
+                    }
+                    if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) {
+                        return 'background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0;';
+                    }
+                    if (lower.includes('desain') || lower.includes('sow') || lower.includes('review')) {
+                        return 'background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE;';
+                    }
+                    if (lower.includes('meeting') || lower.includes('principal') || lower.includes('klien')) {
+                        return 'background:#F5F3FF; color:#5B21B6; border:1px solid #DDD6FE;';
+                    }
                     return 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
                 },
                 categoryDotColor: function(cat) {
-                    if (cat === 'Day Off') return '#64748B';
-                    if (cat === 'Task' || cat === 'Kegiatan') return '#DC2626';
-                    if (cat === 'PoC / Lab' || cat === 'Sesi PoC & Lab' || cat === 'PoC & Demo') return '#10B981';
-                    if (cat === 'Review Desain & SOW') return '#2563EB';
-                    if (cat === 'Meeting Klien / Principal') return '#8B5CF6';
+                    if (!cat) return '#2563EB';
+                    var lower = String(cat).toLowerCase();
+                    if (lower.includes('cuti') || lower.includes('day off')) return '#64748B';
+                    if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('maintenance')) return '#DC2626';
+                    if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) return '#10B981';
+                    if (lower.includes('desain') || lower.includes('sow') || lower.includes('review')) return '#2563EB';
+                    if (lower.includes('meeting') || lower.includes('principal') || lower.includes('klien')) return '#8B5CF6';
                     return '#2563EB';
                 },
                 categoryLabel: function(cat) {
-                    if (cat === 'Day Off') return 'Day Off / Cuti';
-                    if (cat === 'Task' || cat === 'Kegiatan') return 'Task / Kegiatan';
-                    if (cat === 'PoC / Lab' || cat === 'Sesi PoC & Lab') return 'Sesi PoC & Lab';
-                    if (cat === 'PoC & Demo') return 'Sesi PoC & Demo';
-                    if (cat === 'Review Desain & SOW') return 'Review Desain & SOW';
-                    if (cat === 'Meeting Klien / Principal') return 'Meeting Klien / Principal';
-                    return cat || 'Meeting';
+                    if (!cat) return 'Meeting';
+                    var lower = String(cat).toLowerCase();
+                    if (lower.includes('cuti') || lower.includes('day off')) return 'Day Off / Cuti';
+                    if (lower.includes('task') || lower.includes('kegiatan')) return 'Task / Kegiatan';
+                    if (lower.includes('maintenance')) return 'Preventive Maintenance';
+                    if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) return 'Sesi PoC & Lab';
+                    if (lower.includes('desain') || lower.includes('sow') || lower.includes('review')) return 'Review Desain & SOW';
+                    if (lower.includes('meeting')) return 'Meeting Klien / Principal';
+                    return cat;
                 },
 
                 // Warna event
-                // Jadwal biasa  = Biru
-                // Deadline Task = Merah
-                // Deadline Proj = Merah tua
-
                 formatDate: function(d) {
                     var y = d.getFullYear();
                     var m = String(d.getMonth() + 1).padStart(2, '0');
@@ -2529,13 +2666,18 @@
                 initials: function(name) {
                     if (!name) return '?';
                     var parts = name.trim().split(/\s+/);
-                    return ((parts[0] ? parts[0][0] : '') + (parts[1] ? parts[1][0] : '')).toUpperCase();
+                    if (parts.length >= 2) {
+                        return (parts[0][0] + parts[1][0]).toUpperCase();
+                    }
+                    return name.trim().substring(0, 2).toUpperCase();
                 },
                 colorFromName: function(name) {
                     if (!name || name === '-') return '#64748B';
                     var cleanName = name.trim().toLowerCase();
                     
-                    var eng = this.engineers.find(function(e) { 
+                    var eng = (this.allUsers || []).find(function(e) { 
+                        return e.name && e.name.trim().toLowerCase() === cleanName; 
+                    }) || this.engineers.find(function(e) { 
                         return e.name && e.name.trim().toLowerCase() === cleanName; 
                     });
 
@@ -2847,9 +2989,16 @@
 
                         var engLabel = '';
                         if (s.engineers && s.engineers.length > 0) {
-                            engLabel = s.engineers.map(function(e) { return e.name; }).join(', ');
+                            engLabel = s.engineers.map(function(e) { 
+                                var u = (self.allUsers || []).find(function(user) { return String(user.id) === String(e.id); });
+                                return (u && u.name) ? u.name : (e.name || self.getEngineerName(e.id)); 
+                            }).join(', ');
+                        } else if (s.engineer_ids && s.engineer_ids.length > 0) {
+                            engLabel = s.engineer_ids.map(function(id) { return self.getEngineerName(id); }).join(', ');
                         } else if (s.engineer && s.engineer.name) {
                             engLabel = s.engineer.name;
+                        } else if (s.engineer_id) {
+                            engLabel = self.getEngineerName(s.engineer_id);
                         } else if (s.project && s.project.name) {
                             engLabel = s.project.name;
                         }
@@ -2919,9 +3068,16 @@
                             var taskTimeLabel = dTime ? (dTime + ' WIB') : 'Kegiatan';
                             var taskEngLabel = '';
                             if (t.engineers && t.engineers.length > 0) {
-                                taskEngLabel = t.engineers.map(function(e) { return e.name; }).join(', ');
+                                taskEngLabel = t.engineers.map(function(e) { 
+                                    var u = (self.allUsers || []).find(function(user) { return String(user.id) === String(e.id); });
+                                    return (u && u.name) ? u.name : (e.name || self.getEngineerName(e.id)); 
+                                }).join(', ');
+                            } else if (t.engineer_ids && t.engineer_ids.length > 0) {
+                                taskEngLabel = t.engineer_ids.map(function(id) { return self.getEngineerName(id); }).join(', ');
                             } else if (t.engineer && t.engineer.name) {
                                 taskEngLabel = t.engineer.name;
+                            } else if (t.engineer_id) {
+                                taskEngLabel = self.getEngineerName(t.engineer_id);
                             } else if (t.project && t.project.name) {
                                 taskEngLabel = t.project.name;
                             }
@@ -3030,8 +3186,15 @@
                 },
 
                 getEngineerName: function(id) {
-                    var eng = this.engineers.find(function(e) { return e.id === id; });
-                    return eng ? eng.name : 'Engineer #' + id;
+                    if (!id) return '-';
+                    var eng = (this.allUsers || []).find(function(u) { return String(u.id) === String(id); })
+                           || this.engineers.find(function(e) { return String(e.id) === String(id); });
+                    if (eng && eng.name) return eng.name;
+                    if (this.selectedSchedule && this.selectedSchedule.engineers) {
+                        var sEng = this.selectedSchedule.engineers.find(function(e) { return String(e.id) === String(id); });
+                        if (sEng && sEng.name) return sEng.name;
+                    }
+                    return 'Engineer #' + id;
                 },
 
                 setCategory: function(cat) {
@@ -3214,7 +3377,7 @@
                             start_time: schStart,
                             end_time: schEnd,
                             location: schLoc,
-                            description: schedule.description || '',
+                            description: (schedule.description || '').replace(/\[Dibuat otomatis dari Jadwal:[^\]]*\]/gi, '').trim(),
                             create_task: false,
                             task_priority: 'High',
                             send_wa: false,
