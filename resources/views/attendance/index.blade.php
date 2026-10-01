@@ -164,7 +164,7 @@
 @endphp
 
 @section('content')
-<div class="flex h-screen overflow-hidden bg-[#F8FAFC]">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans">
     @include('components.sidebar')
 
     <div class="flex-1 min-w-0 overflow-y-auto">

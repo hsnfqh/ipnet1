@@ -32,7 +32,7 @@
             </svg>
         </button>
 
-        <h1 class="font-display text-[17px] sm:text-[21px] font-bold text-[#17151C] tracking-[-0.3px] truncate">{{ $title }}</h1>
+        <h1 class="font-sans text-[17px] sm:text-[21px] font-bold text-[#17151C] tracking-[-0.3px] leading-tight truncate">{{ $title }}</h1>
     </div>
 
     <div class="flex items-center gap-3 sm:gap-4 flex-shrink-0">

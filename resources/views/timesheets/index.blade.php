@@ -35,7 +35,7 @@
 @endpush
 
 @section('content')
-<div class="flex h-screen overflow-hidden bg-[#F8FAFC]" x-data="timesheetApp()">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" x-data="timesheetApp()">
     @include('components.sidebar')
 
     <div class="flex-1 min-w-0 overflow-y-auto">
