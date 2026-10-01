@@ -203,7 +203,8 @@
 
     $documentSignature = $documentSignature ?? null;
     $verifyDocNumber   = $verifyDocNumber ?? ($documentSignature?->document_number ?? ('IPNET-ACT-' . date('Ym') . '-DRAFT'));
-    $qrSvgBase64       = $qrSvgBase64 ?? '';
+    $qrCodeBase64      = $qrCodeBase64 ?? ($qrSvgBase64 ?? '');
+    $qrSvgBase64       = $qrCodeBase64;
 @endphp
 
     <!-- Header dengan Logo di Sebelah Kiri -->
@@ -328,15 +329,15 @@
     </table>
 
     <!-- Signature Block: 3-Tier Multi-Signature (PIC -> Lead -> Head Div) + QR Code Verifikasi -->
-    <table class="signature-table" style="width: 100%; margin-top: 20px; border-collapse: collapse;">
+    <table class="signature-table" style="width: 100%; margin-top: 16px; border-collapse: collapse;">
         <tr>
             <!-- Kolom 1: QR Code & Integritas Dokumen -->
             <td style="width: 28%; vertical-align: top; padding-right: 12px;">
                 <table style="width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; background-color: #F8FAFC; padding: 6px;">
                     <tr>
-                        @if(!empty($qrSvgBase64))
-                        <td style="width: 64px; vertical-align: middle; text-align: center; border: none; padding: 2px;">
-                            <img src="{{ $qrSvgBase64 }}" alt="QR Code" style="width: 60px; height: 60px; display: block; margin: 0 auto;">
+                        @if(!empty($qrCodeBase64 ?? $qrSvgBase64))
+                        <td style="width: 68px; vertical-align: middle; text-align: center; border: none; padding: 2px;">
+                            <img src="{{ $qrCodeBase64 ?? $qrSvgBase64 }}" alt="QR Code" width="62" height="62" style="width: 62px; height: 62px; display: block; margin: 0 auto;">
                         </td>
                         @endif
                         <td style="vertical-align: middle; border: none; padding-left: 6px; text-align: left;">
@@ -347,7 +348,7 @@
                                 {{ $verifyDocNumber }}
                             </div>
                             <div style="font-size: 7px; color: #475569; margin-top: 2px;">
-                                Status: <strong>{{ ($documentSignature && $documentSignature->status === 'fully_approved') ? 'Sah & Terverifikasi' : (($documentSignature && $documentSignature->status !== 'draft') ? 'Proses Signing' : 'Draf Laporan') }}</strong>
+                                Status: <strong style="color: #C81E2C;">{{ ($documentSignature && $documentSignature->status === 'fully_approved') ? 'Sah & Terverifikasi' : (($documentSignature && $documentSignature->status !== 'draft') ? 'Proses Signing' : 'Draf Laporan') }}</strong>
                             </div>
                             @if(!empty($documentSignature?->verification_hash))
                             <div style="font-size: 6px; color: #94A3B8; font-family: monospace; margin-top: 1px;">
@@ -361,15 +362,15 @@
 
             <!-- Kolom 2: Dibuat Oleh (PIC Lapangan) -->
             <td style="width: 24%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9.5px; color: #475569; margin-bottom: 4px;">
+                <div style="font-size: 9.5px; color: #475569; margin-bottom: 3px;">
                     Jakarta, {{ now()->locale('id')->isoFormat('D MMMM Y') }}<br>
                     <strong>Dibuat Oleh (PIC Lapangan),</strong>
                 </div>
-                <div style="height: 48px; display: flex; align-items: center; justify-content: center; margin-bottom: 2px;">
+                <div style="height: 68px; text-align: center; margin-bottom: 2px;">
                     @if(!empty($documentSignature?->pic_signature))
-                        <img src="{{ $documentSignature->pic_signature }}" alt="TTD PIC" style="max-height: 45px; max-width: 100px; display: block; margin: 0 auto;">
+                        <img src="{{ $documentSignature->pic_signature }}" alt="TTD PIC" style="max-height: 64px; max-width: 150px; display: inline-block; vertical-align: middle;">
                     @else
-                        <div style="height: 45px;"></div>
+                        <div style="height: 64px;"></div>
                     @endif
                 </div>
                 <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A;">
@@ -378,22 +379,22 @@
                 <div style="font-size: 8px; color: #64748B; margin-top: 2px;">
                     {{ $documentSignature?->pic_title ?? 'PIC Field Engineer' }}
                     @if(!empty($documentSignature?->pic_signed_at))
-                        <br><span style="font-size: 7px; color: #16A34A;">Signed: {{ $documentSignature->pic_signed_at->format('d/m/Y H:i') }}</span>
+                        <br><span style="font-size: 7.5px; font-weight: bold; color: #C81E2C;">Signed: {{ $documentSignature->pic_signed_at->format('d/m/Y H:i') }}</span>
                     @endif
                 </div>
             </td>
 
             <!-- Kolom 3: Diperiksa Oleh (Lead Engineer) -->
             <td style="width: 24%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9.5px; color: #475569; margin-bottom: 4px;">
+                <div style="font-size: 9.5px; color: #475569; margin-bottom: 3px;">
                     <br>
                     <strong>Diperiksa Oleh (Lead),</strong>
                 </div>
-                <div style="height: 48px; display: flex; align-items: center; justify-content: center; margin-bottom: 2px;">
+                <div style="height: 68px; text-align: center; margin-bottom: 2px;">
                     @if(!empty($documentSignature?->lead_signature))
-                        <img src="{{ $documentSignature->lead_signature }}" alt="TTD Lead" style="max-height: 45px; max-width: 100px; display: block; margin: 0 auto;">
+                        <img src="{{ $documentSignature->lead_signature }}" alt="TTD Lead" style="max-height: 64px; max-width: 150px; display: inline-block; vertical-align: middle;">
                     @else
-                        <div style="height: 45px;"></div>
+                        <div style="height: 64px;"></div>
                     @endif
                 </div>
                 <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A;">
@@ -402,22 +403,22 @@
                 <div style="font-size: 8px; color: #64748B; margin-top: 2px;">
                     {{ $documentSignature?->lead_title ?? 'Lead Network Engineer' }}
                     @if(!empty($documentSignature?->lead_signed_at))
-                        <br><span style="font-size: 7px; color: #16A34A;">Verified: {{ $documentSignature->lead_signed_at->format('d/m/Y H:i') }}</span>
+                        <br><span style="font-size: 7.5px; font-weight: bold; color: #C81E2C;">Verified: {{ $documentSignature->lead_signed_at->format('d/m/Y H:i') }}</span>
                     @endif
                 </div>
             </td>
 
             <!-- Kolom 4: Mengetahui & Menyetujui (Head Division) -->
             <td style="width: 24%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9.5px; color: #475569; margin-bottom: 4px;">
+                <div style="font-size: 9.5px; color: #475569; margin-bottom: 3px;">
                     <br>
                     <strong>Mengetahui &amp; Menyetujui,</strong>
                 </div>
-                <div style="height: 48px; display: flex; align-items: center; justify-content: center; margin-bottom: 2px;">
+                <div style="height: 68px; text-align: center; margin-bottom: 2px;">
                     @if(!empty($documentSignature?->head_signature))
-                        <img src="{{ $documentSignature->head_signature }}" alt="TTD Head Div" style="max-height: 45px; max-width: 100px; display: block; margin: 0 auto;">
+                        <img src="{{ $documentSignature->head_signature }}" alt="TTD Head Div" style="max-height: 64px; max-width: 150px; display: inline-block; vertical-align: middle;">
                     @else
-                        <div style="height: 45px;"></div>
+                        <div style="height: 64px;"></div>
                     @endif
                 </div>
                 <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A;">
@@ -426,7 +427,7 @@
                 <div style="font-size: 8px; color: #64748B; margin-top: 2px;">
                     {{ $documentSignature?->head_title ?? 'Head of Division' }}
                     @if(!empty($documentSignature?->head_signed_at))
-                        <br><span style="font-size: 7px; color: #16A34A;">Approved: {{ $documentSignature->head_signed_at->format('d/m/Y H:i') }}</span>
+                        <br><span style="font-size: 7.5px; font-weight: bold; color: #C81E2C;">Approved: {{ $documentSignature->head_signed_at->format('d/m/Y H:i') }}</span>
                     @endif
                 </div>
             </td>

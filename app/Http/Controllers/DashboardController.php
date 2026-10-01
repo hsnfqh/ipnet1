@@ -2034,13 +2034,7 @@ class DashboardController extends Controller
 
         $verifyDocNumber = $documentSignature?->document_number ?? ('IPNET-ACT-' . date('Ym') . '-DRAFT');
         $verifyUrl       = url('/verify-document/' . $verifyDocNumber);
-        $qrSvgBase64     = '';
-        try {
-            $qrSvg = QrCode::format('svg')->size(74)->margin(1)->errorCorrection('M')->generate($verifyUrl);
-            $qrSvgBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
-        } catch (\Throwable $e) {
-            // fallback bila QrCode error
-        }
+        $qrCodeBase64    = $this->generateQrPngBase64($verifyUrl);
 
         $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', [
             'parsedActivities'  => $parsedActivities,
@@ -2052,7 +2046,8 @@ class DashboardController extends Controller
             'documentSignature' => $documentSignature,
             'verifyDocNumber'   => $verifyDocNumber,
             'verifyUrl'         => $verifyUrl,
-            'qrSvgBase64'       => $qrSvgBase64,
+            'qrCodeBase64'      => $qrCodeBase64,
+            'qrSvgBase64'       => $qrCodeBase64,
         ]);
 
         $pdf->setPaper('a4', 'landscape');
@@ -2457,5 +2452,52 @@ class DashboardController extends Controller
         } catch (\Throwable $e) {}
 
         return $linkedProjectIds->unique()->filter()->values();
+    }
+
+    /**
+     * Generate QR Code as Base64 PNG using GD and BaconQrCode matrix
+     * DomPDF supports PNG natively across all environments without imagick
+     */
+    protected function generateQrPngBase64(string $text): string
+    {
+        try {
+            $qr = \BaconQrCode\Encoder\Encoder::encode($text, \BaconQrCode\Common\ErrorCorrectionLevel::M());
+            $matrix = $qr->getMatrix();
+            $matrixWidth = $matrix->getWidth();
+            $matrixHeight = $matrix->getHeight();
+
+            $scale = 3;
+            $margin = 1;
+            $imgWidth = ($matrixWidth + ($margin * 2)) * $scale;
+            $imgHeight = ($matrixHeight + ($margin * 2)) * $scale;
+
+            $image = imagecreatetruecolor($imgWidth, $imgHeight);
+            $white = imagecolorallocate($image, 255, 255, 255);
+            $dark  = imagecolorallocate($image, 15, 23, 42); // slate-900
+
+            imagefill($image, 0, 0, $white);
+
+            for ($y = 0; $y < $matrixHeight; $y++) {
+                for ($x = 0; $x < $matrixWidth; $x++) {
+                    if ($matrix->get($x, $y) === 1) {
+                        $x1 = ($x + $margin) * $scale;
+                        $y1 = ($y + $margin) * $scale;
+                        $x2 = $x1 + $scale - 1;
+                        $y2 = $y1 + $scale - 1;
+                        imagefilledrectangle($image, $x1, $y1, $x2, $y2, $dark);
+                    }
+                }
+            }
+
+            ob_start();
+            imagepng($image);
+            $pngData = ob_get_clean();
+            imagedestroy($image);
+
+            return 'data:image/png;base64,' . base64_encode($pngData);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('QR PNG generation error: ' . $e->getMessage());
+            return '';
+        }
     }
 }
