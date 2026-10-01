@@ -1441,9 +1441,7 @@ class DashboardController extends Controller
 
         $query = EngineerActivityLog::with([
             'engineer',
-            'project.schedules.engineer',
-            'project.schedules.engineers',
-            'project.tasks.engineer',
+            'project',
         ]);
 
         // Jika bukan managerial/lead, batasi log milik sendiri dan log pada proyek yang terhubung (tim/shared)

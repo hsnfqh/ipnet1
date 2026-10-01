@@ -262,52 +262,7 @@
                             }
                         }
 
-                        // 2. Dari penugasan schedule & task pada proyek ini (jika ada)
-                        if (isset($project) && $project) {
-                            try {
-                                if ($project->relationLoaded('schedules')) {
-                                    foreach ($project->schedules as $sched) {
-                                        if ($sched->engineer && !empty($sched->engineer->name)) {
-                                            $cName = trim($sched->engineer->name);
-                                            $collectedEngineers->push([
-                                                'id'       => $sched->engineer->id,
-                                                'name'     => $cName,
-                                                'initials' => $getInitials($cName),
-                                            ]);
-                                        }
-                                        if ($sched->relationLoaded('engineers')) {
-                                            foreach ($sched->engineers as $eng) {
-                                                if (!empty($eng->name)) {
-                                                    $cName = trim($eng->name);
-                                                    $collectedEngineers->push([
-                                                        'id'       => $eng->id,
-                                                        'name'     => $cName,
-                                                        'initials' => $getInitials($cName),
-                                                    ]);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } catch (\Throwable $e) {}
-
-                            try {
-                                if ($project->relationLoaded('tasks')) {
-                                    foreach ($project->tasks as $t) {
-                                        if ($t->engineer && !empty($t->engineer->name)) {
-                                            $cName = trim($t->engineer->name);
-                                            $collectedEngineers->push([
-                                                'id'       => $t->engineer->id,
-                                                'name'     => $cName,
-                                                'initials' => $getInitials($cName),
-                                            ]);
-                                        }
-                                    }
-                                }
-                            } catch (\Throwable $e) {}
-                        }
-
-                        // 3. Dari PIC IPNET di kolom notes (hanya jika nama valid > 2 huruf, abaikan placeholder seperti 'a', 'aa', '-')
+                        // 2. Dari PIC IPNET di kolom notes kegiatan ini (hanya jika nama valid > 2 huruf)
                         foreach ($groupActivities as $act) {
                             $rawNotes = $act->notes ?? '';
                             if (preg_match('/PIC IPNET:\s*([^|\n]+)/i', $rawNotes, $m)) {
@@ -325,7 +280,7 @@
                             }
                         }
 
-                        // 4. Fallback jika masih kosong
+                        // 3. Fallback jika masih kosong
                         if ($collectedEngineers->isEmpty()) {
                             $fallbackName = auth()->user()->name ?? 'Engineer';
                             $collectedEngineers->push([
@@ -340,11 +295,43 @@
                             return strtolower($item['name']);
                         })->values();
 
+                        // Kumpulkan seluruh pembuat / author riil yang menulis aktivitas di grup ini
+                        $authorNames = $groupActivities->map(function($a) {
+                            return $a->engineer->name ?? null;
+                        })->filter()->unique()->values();
+
+                        if ($authorNames->isEmpty() && $uniqueEngineers->isNotEmpty()) {
+                            $authorNames = $uniqueEngineers->pluck('name')->unique()->values();
+                        }
+
+                        // Format tampilan "Dibuat oleh: ..." (gabungkan langsung nama pembuat jika 2 orang)
+                        if ($authorNames->count() === 1) {
+                            $creatorDisplayName = $authorNames->first();
+                        } elseif ($authorNames->count() === 2) {
+                            $creatorDisplayName = $authorNames[0] . ' dan ' . $authorNames[1];
+                        } elseif ($authorNames->count() > 2) {
+                            $creatorDisplayName = $authorNames->slice(0, 2)->implode(', ') . ' dan ' . ($authorNames->count() - 2) . ' lainnya';
+                        } else {
+                            $creatorDisplayName = 'Engineer';
+                        }
+
+                        // Format tampilan nama personel pada header kartu (tampilkan langsung jika 2 orang tanpa +tim)
+                        $engineerCount = $uniqueEngineers->count();
+                        if ($engineerCount <= 2) {
+                            $engineersFormattedLabel = $uniqueEngineers->pluck('name')->implode(' dan ');
+                            $additionalTeamCount = 0;
+                        } elseif ($engineerCount === 3) {
+                            $engineersFormattedLabel = $uniqueEngineers[0]['name'] . ', ' . $uniqueEngineers[1]['name'] . ', dan ' . $uniqueEngineers[2]['name'];
+                            $additionalTeamCount = 0;
+                        } else {
+                            $engineersFormattedLabel = $uniqueEngineers[0]['name'] . ', ' . $uniqueEngineers[1]['name'];
+                            $additionalTeamCount = $engineerCount - 2;
+                        }
+
                         $primaryEngineer = $uniqueEngineers->first();
                         $displayAvatars = $uniqueEngineers->take(2);
-                        $additionalTeamCount = max(0, $uniqueEngineers->count() - 1);
                         $allEngineerNames = $uniqueEngineers->pluck('name')->implode(', ');
-                        $creatorName = $firstAct->engineer->name ?? ($primaryEngineer['name'] ?? 'Engineer');
+                        $creatorName = $creatorDisplayName;
 
                         // Build clean preview items (strip [prefix] and PIC from notes)
                         $previewItems = $groupActivities->take(3)->map(function($a) {
@@ -482,12 +469,12 @@
                                     @endforeach
                                 </div>
 
-                                {{-- Primary Engineer Name --}}
-                                <span class="text-[12px] font-bold text-[#1E293B] truncate max-w-[140px]" title="{{ $allEngineerNames }}">
-                                    {{ $primaryEngineer['name'] ?? 'Engineer' }}
+                                {{-- Engineer Names --}}
+                                <span class="text-[12px] font-bold text-[#1E293B] truncate max-w-[280px]" title="{{ $allEngineerNames }}">
+                                    {{ $engineersFormattedLabel }}
                                 </span>
 
-                                {{-- Team Badge (+X tim) --}}
+                                {{-- Team Badge (+X tim) hanya jika lebih dari 2/3 personel --}}
                                 @if($additionalTeamCount > 0)
                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9.5px] font-extrabold bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] shrink-0"
                                           title="{{ $allEngineerNames }}">
