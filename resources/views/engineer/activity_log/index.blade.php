@@ -607,34 +607,44 @@
                         </div>
                     </div>
 
+                    @php
+                        $curUser = auth()->user();
+                        $canHead = $curUser && ($curUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader']) || str_contains(strtolower($curUser->name ?? ''), 'susanto') || str_contains(strtolower($curUser->name ?? ''), 'hariyadi'));
+                        $canLead = $isLead || ($curUser && $curUser->hasAnyRole(['Lead Engineer', 'Team Leader', 'Team Leader Engineering', 'Lead Maintenance', 'Lead Divisi', 'PMO', 'Project Manager']));
+                    @endphp
+
                     {{-- Tombol Aksi TTD Sesuai Hak Akses --}}
                     <div class="flex items-center gap-2">
-                        {{-- Tombol TTD PIC --}}
+                        {{-- Tombol TTD PIC (Selalu tampil jika belum di-TTD PIC) --}}
                         <button type="button"
-                                x-show="sigInfo?.user_permissions?.can_sign_pic && !sigInfo?.pic?.signed"
+                                x-show="!sigInfo?.pic?.signed"
                                 @click="openSignaturePad('pic', 'PIC Field Engineer')"
-                                class="px-3 py-1.5 text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#72080a] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#72080a] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                             Tanda Tangani (PIC)
                         </button>
 
+                        @if($canLead || $canHead)
                         {{-- Tombol TTD Lead --}}
                         <button type="button"
-                                x-show="sigInfo?.user_permissions?.can_sign_lead && !sigInfo?.lead?.signed"
+                                x-show="!sigInfo?.lead?.signed"
                                 @click="openSignaturePad('lead', 'Lead Network Engineer')"
-                                class="px-3 py-1.5 text-xs font-bold text-white bg-[#1D4ED8] hover:bg-[#1E40AF] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#1D4ED8] hover:bg-[#1E40AF] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             Verifikasi &amp; TTD (Lead)
                         </button>
+                        @endif
 
+                        @if($canHead)
                         {{-- Tombol TTD Head Division --}}
                         <button type="button"
-                                x-show="sigInfo?.user_permissions?.can_sign_head && !sigInfo?.head?.signed"
+                                x-show="!sigInfo?.head?.signed"
                                 @click="openSignaturePad('head', 'Head of Division')"
-                                class="px-3 py-1.5 text-xs font-bold text-white bg-[#6D28D9] hover:bg-[#5B21B6] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#6D28D9] hover:bg-[#5B21B6] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                             Sahkan &amp; TTD (Head Div)
                         </button>
+                        @endif
 
                         {{-- Badge Sudah Sah Semua --}}
                         <span x-show="sigInfo?.status === 'fully_approved'"
