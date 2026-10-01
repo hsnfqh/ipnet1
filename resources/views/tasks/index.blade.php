@@ -799,9 +799,9 @@
                             </div>
 
                             <!-- Description -->
-                            <div style="margin-bottom:16px;" x-show="selectedTask?.description">
+                            <div style="margin-bottom:16px;" x-show="cleanDescription(selectedTask?.description)">
                                 <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">DESKRIPSI & RINCIAN MASALAH</label>
-                                <div style="font-size:13px; color:#334155; background:#F8FAFC; padding:14px 16px; border-radius:12px; border:1px solid #E2E8F0; border-left:4px solid #8F0A0D; white-space:pre-line; line-height:1.6;" x-text="selectedTask?.description"></div>
+                                <div style="font-size:13px; color:#334155; background:#F8FAFC; padding:14px 16px; border-radius:12px; border:1px solid #E2E8F0; border-left:4px solid #8F0A0D; white-space:pre-line; line-height:1.6;" x-text="cleanDescription(selectedTask?.description)"></div>
                             </div>
 
                             <!-- Uploaded Proof / Photo Documentation -->
@@ -1349,7 +1349,7 @@
                         status: task.status,
                         original_status: task.status,
                         progress: task.progress !== undefined ? parseInt(task.progress) : 0,
-                        description: task.description || ''
+                        description: this.cleanDescription(task.description)
                     };
                     this.modalOpen = true;
                 },
@@ -1652,6 +1652,11 @@
                                 level +
                                 rail +
                             '</span>';
+                },
+
+                cleanDescription: function(desc) {
+                    if (!desc) return '';
+                    return String(desc).replace(/(\[Dibuat otomatis dari Jadwal[^\]]*\]|Task dibuat dari jadwal:[^\n\r]*)/gi, '').trim();
                 },
 
                 formatDeadline: function(deadline, deadlineTime, startDate, description) {

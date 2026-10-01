@@ -128,6 +128,24 @@ class ScheduleController extends Controller
             // Abaikan jika query grup gagal
         }
 
+        // Auto-cleanup: Bersihkan teks boilerplate auto-generated jadwal dari tasks dan schedules jika ada di database
+        try {
+            $dirtyTasks = Task::where('description', 'like', '%Dibuat otomatis dari Jadwal%')
+                ->orWhere('description', 'like', '%Task dibuat dari jadwal:%')
+                ->get();
+            foreach ($dirtyTasks as $dt) {
+                $cleaned = trim(preg_replace('/(\[Dibuat otomatis dari Jadwal[^\]]*\]|Task dibuat dari jadwal:[^\n\r]*)/i', '', $dt->description));
+                $dt->update(['description' => $cleaned !== '' ? $cleaned : null]);
+            }
+            $dirtySchedules = Schedule::where('description', 'like', '%Dibuat otomatis dari Jadwal%')
+                ->orWhere('description', 'like', '%Task dibuat dari jadwal:%')
+                ->get();
+            foreach ($dirtySchedules as $ds) {
+                $cleaned = trim(preg_replace('/(\[Dibuat otomatis dari Jadwal[^\]]*\]|Task dibuat dari jadwal:[^\n\r]*)/i', '', $ds->description));
+                $ds->update(['description' => $cleaned !== '' ? $cleaned : null]);
+            }
+        } catch (\Exception $e) {}
+
         $withRelations = ['project', 'engineer', 'creator'];
         if ($hasScheduleUser) {
             $withRelations[] = 'engineers';
@@ -229,6 +247,9 @@ class ScheduleController extends Controller
                     $taskStatus = $matchingTask->status;
                 }
 
+                $cleanDesc = $schedule->description ? trim(preg_replace('/(\[Dibuat otomatis dari Jadwal[^\]]*\]|Task dibuat dari jadwal:[^\n\r]*)/i', '', $schedule->description)) : null;
+                $cleanDesc = $cleanDesc !== '' ? $cleanDesc : null;
+
                 return [
                     'id'          => $schedule->id,
                     'title'       => $schedule->title,
@@ -240,7 +261,7 @@ class ScheduleController extends Controller
                     'start_time'  => $schedule->start_time ? substr($schedule->start_time, 0, 5) : '',
                     'end_time'    => $schedule->end_time ? substr($schedule->end_time, 0, 5) : '',
                     'location'    => $schedule->location,
-                    'description' => $schedule->description,
+                    'description' => $cleanDesc,
                     'status'      => $taskStatus,
                     'task_status' => $taskStatus,
                     'project'     => $schedule->project ? [
@@ -630,7 +651,8 @@ class ScheduleController extends Controller
 
             // 1. Buat HANYA 1 TASK di Penugasan Tim jika opsi dicentang (mencegah spam tiket per hari)
             if ($createTask && !empty($data['project_id'])) {
-                $taskDesc = !empty($data['description']) ? trim($data['description']) : null;
+                $taskDesc = !empty($data['description']) ? trim(preg_replace('/(\[Dibuat otomatis dari Jadwal[^\]]*\]|Task dibuat dari jadwal:[^\n\r]*)/i', '', $data['description'])) : null;
+                $taskDesc = $taskDesc !== '' ? $taskDesc : null;
 
                 $task = Task::create([
                     'title'         => $data['title'],
@@ -812,14 +834,20 @@ class ScheduleController extends Controller
                     ->delete();
             } else {
                 // Kategori adalah Task / Kegiatan / Preventive Maintenance
+                $cleanScheduleDesc = $schedule->description ? trim(preg_replace('/(\[Dibuat otomatis dari Jadwal[^\]]*\]|Task dibuat dari jadwal:[^\n\r]*)/i', '', $schedule->description)) : null;
+                $cleanScheduleDesc = $cleanScheduleDesc !== '' ? $cleanScheduleDesc : null;
+
                 if ($task) {
+                    $cleanTaskDesc = $task->description ? trim(preg_replace('/(\[Dibuat otomatis dari Jadwal[^\]]*\]|Task dibuat dari jadwal:[^\n\r]*)/i', '', $task->description)) : null;
+                    $cleanTaskDesc = $cleanTaskDesc !== '' ? $cleanTaskDesc : null;
+
                     // Update task yang sudah ada (termasuk rename judul baru)
                     $taskUpdateData = [
                         'title'         => $schedule->title,
                         'deadline'      => $dateStr . ' ' . $deadlineTime,
                         'deadline_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : null,
                         'engineer_id'   => $schedule->engineer_id,
-                        'description'   => $schedule->description ?: $task->description,
+                        'description'   => $cleanScheduleDesc ?: ($cleanTaskDesc ?: null),
                     ];
 
                     if (!empty($schedule->project_id)) {
@@ -843,7 +871,7 @@ class ScheduleController extends Controller
                         'attachments'   => 0,
                         'deadline'      => $dateStr . ' ' . $deadlineTime,
                         'deadline_time' => $schedule->start_time ? substr($schedule->start_time, 0, 5) . ':00' : null,
-                        'description'   => $schedule->description ?: ('Task dibuat dari jadwal: ' . $schedule->title),
+                        'description'   => $cleanScheduleDesc ?: null,
                         'created_by'    => auth()->id(),
                     ]);
 

@@ -880,9 +880,9 @@
                             </template>
 
                             <!-- Deskripsi & Rincian Kegiatan (Hanya jika diisi, tidak dibuat otomatis) -->
-                            <div style="margin-bottom:12px;" x-show="form.description && form.description.trim().length > 0">
+                            <div style="margin-bottom:12px;" x-show="cleanDescription(form.description)">
                                 <label style="display:block; font-size:10px; font-weight:700; color:#64748B; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.4px;">DESKRIPSI & RINCIAN KEGIATAN</label>
-                                <div style="font-size:12.5px; color:#334155; background:#F8FAFC; padding:11px 14px; border-radius:10px; border:1px solid #E2E8F0; border-left:3px solid #8F0A0D; white-space:pre-line; line-height:1.55;" x-text="form.description"></div>
+                                <div style="font-size:12.5px; color:#334155; background:#F8FAFC; padding:11px 14px; border-radius:10px; border:1px solid #E2E8F0; border-left:3px solid #8F0A0D; white-space:pre-line; line-height:1.55;" x-text="cleanDescription(form.description)"></div>
                             </div>
 
                             <!-- Footer Buttons Detail Mode -->
@@ -3238,6 +3238,11 @@
                     }
                 },
 
+                cleanDescription: function(desc) {
+                    if (!desc) return '';
+                    return String(desc).replace(/(\[Dibuat otomatis dari Jadwal[^\]]*\]|Task dibuat dari jadwal:[^\n\r]*)/gi, '').trim();
+                },
+
                 openModal: function(schedule) {
                     if (schedule) {
                         this.selectedSchedule = schedule;
@@ -3277,7 +3282,7 @@
                             start_time: schStart,
                             end_time: schEnd,
                             location: schLoc,
-                            description: (schedule.description || '').replace(/\[Dibuat otomatis dari Jadwal:[^\]]*\]/gi, '').trim(),
+                            description: this.cleanDescription(schedule.description),
                             create_task: false,
                             task_priority: 'High',
                             send_wa: false,

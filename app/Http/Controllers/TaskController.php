@@ -70,6 +70,24 @@ class TaskController extends Controller
             \Illuminate\Support\Facades\DB::statement("DELETE FROM schedules WHERE title LIKE '%Implementasi Teknis%'");
         } catch (\Exception $e) {}
 
+        // Auto-cleanup: Bersihkan teks boilerplate auto-generated jadwal dari tasks dan schedules jika ada di database
+        try {
+            $dirtyTasks = Task::where('description', 'like', '%Dibuat otomatis dari Jadwal%')
+                ->orWhere('description', 'like', '%Task dibuat dari jadwal:%')
+                ->get();
+            foreach ($dirtyTasks as $dt) {
+                $cleaned = trim(preg_replace('/(\[Dibuat otomatis dari Jadwal[^\]]*\]|Task dibuat dari jadwal:[^\n\r]*)/i', '', $dt->description));
+                $dt->update(['description' => $cleaned !== '' ? $cleaned : null]);
+            }
+            $dirtySchedules = \App\Models\Schedule::where('description', 'like', '%Dibuat otomatis dari Jadwal%')
+                ->orWhere('description', 'like', '%Task dibuat dari jadwal:%')
+                ->get();
+            foreach ($dirtySchedules as $ds) {
+                $cleaned = trim(preg_replace('/(\[Dibuat otomatis dari Jadwal[^\]]*\]|Task dibuat dari jadwal:[^\n\r]*)/i', '', $ds->description));
+                $ds->update(['description' => $cleaned !== '' ? $cleaned : null]);
+            }
+        } catch (\Exception $e) {}
+
         $tasks = Task::with($withRelations)
             ->where('title', 'not like', '%Implementasi Teknis%')
             ->when($scopeIds !== null, function($query) use ($scopeIds, $user, $hasTaskUser) {
@@ -108,6 +126,14 @@ class TaskController extends Controller
                 return !str_contains(strtolower($t->title ?? ''), 'implementasi teknis');
             })
             ->values();
+
+        // Pastikan deskripsi yang ditampilkan ke view selalu bersih tanpa teks boilerplate
+        $tasks->each(function($t) {
+            if ($t->description) {
+                $cleaned = trim(preg_replace('/(\[Dibuat otomatis dari Jadwal[^\]]*\]|Task dibuat dari jadwal:[^\n\r]*)/i', '', $t->description));
+                $t->description = $cleaned !== '' ? $cleaned : null;
+            }
+        });
 
         // Project khusus untuk modal Buat & Assign Task: semua project yang relevan dengan divisi/scope user
         $divisionId = $user->division_id;
