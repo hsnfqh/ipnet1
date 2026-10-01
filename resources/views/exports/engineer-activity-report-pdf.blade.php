@@ -200,6 +200,10 @@
             $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
     }
+
+    $documentSignature = $documentSignature ?? null;
+    $verifyDocNumber   = $verifyDocNumber ?? ($documentSignature?->document_number ?? ('IPNET-ACT-' . date('Ym') . '-DRAFT'));
+    $qrSvgBase64       = $qrSvgBase64 ?? '';
 @endphp
 
     <!-- Header dengan Logo di Sebelah Kiri -->

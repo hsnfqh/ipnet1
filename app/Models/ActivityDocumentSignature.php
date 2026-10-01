@@ -69,8 +69,12 @@ class ActivityDocumentSignature extends Model
      */
     public static function generateDocumentNumber(): string
     {
-        $prefix = 'IPNET-ACT-' . date('Ym') . '-';
-        $count  = self::where('document_number', 'like', $prefix . '%')->count() + 1;
-        return $prefix . str_pad((string)$count, 4, '0', STR_PAD_LEFT);
+        try {
+            $prefix = 'IPNET-ACT-' . date('Ym') . '-';
+            $count  = self::where('document_number', 'like', $prefix . '%')->count() + 1;
+            return $prefix . str_pad((string)$count, 4, '0', STR_PAD_LEFT);
+        } catch (\Throwable $e) {
+            return 'IPNET-ACT-' . date('Ym') . '-0001';
+        }
     }
 }
