@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Artisan;
 
 class ActivitySignatureController extends Controller
 {
@@ -19,6 +21,15 @@ class ActivitySignatureController extends Controller
         $scopeKey = $request->get('scope_key');
         if (!$scopeKey) {
             return response()->json(['error' => 'scope_key parameter is required'], 400);
+        }
+
+        // Auto-migrate tabel di hosting jika belum pernah dimigrasikan
+        if (!Schema::hasTable('activity_document_signatures')) {
+            try {
+                Artisan::call('migrate', ['--force' => true]);
+            } catch (\Throwable $e) {
+                // abaikan
+            }
         }
 
         $currentUser = auth()->user();
@@ -119,6 +130,15 @@ class ActivitySignatureController extends Controller
         // Validasi format signature PNG base64
         if (!str_starts_with($signatureData, 'data:image/png;base64,')) {
             return response()->json(['error' => 'Format tanda tangan harus berupa gambar PNG transparan.'], 422);
+        }
+
+        // Auto-migrate tabel di hosting jika belum ada
+        if (!Schema::hasTable('activity_document_signatures')) {
+            try {
+                Artisan::call('migrate', ['--force' => true]);
+            } catch (\Throwable $e) {
+                // abaikan
+            }
         }
 
         DB::beginTransaction();
