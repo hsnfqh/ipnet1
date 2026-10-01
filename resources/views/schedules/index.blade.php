@@ -648,9 +648,9 @@
                                     <tr>
                                         <td class="jkw-td-strong jkw-td-wrap" style="cursor:pointer;" @click="openModal(schedule)" :title="canManageSchedule ? 'Klik untuk detail / edit' : 'Klik untuk melihat detail'" x-text="schedule.title"></td>
                                         <td>
-                                            <span style="font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-block;"
-                                                  :style="schedule.category === 'Day Off' ? 'background:#F1F5F9; color:#475569; border:1px solid #CBD5E1;' : 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;'"
-                                                  x-text="schedule.category === 'Day Off' ? 'Day Off' : (schedule.category || 'Meeting')"></span>
+                                            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; display:inline-block;"
+                                                  :style="categoryBadgeStyle(schedule.category)"
+                                                  x-text="categoryLabel(schedule.category)"></span>
                                         </td>
                                         <td class="jkw-td-wrap" x-text="schedule.category === 'Day Off' ? '-' : (schedule.project?.name || '-')"></td>
                                         <td>
@@ -778,13 +778,13 @@
                             <!-- Judul & Project Banner Card -->
                             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:12px; padding:13px 15px; margin-bottom:12px;">
                                 <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
-                                    <span style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px; background:white; border:1px solid #CBD5E1; border-radius:6px; font-size:10px; font-weight:700; color:#334155; box-shadow:0 1px 2px rgba(0,0,0,0.03); max-width:70%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                    <span style="display:inline-flex; align-items:center; gap:5px; padding:2px 8px; background:white; border:1px solid #CBD5E1; border-radius:6px; font-size:10px; font-weight:700; color:#334155; box-shadow:0 1px 2px rgba(0,0,0,0.03); max-width:70%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.4;">
                                         <svg style="width:11px; height:11px; color:#64748B; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                         </svg>
                                         <span x-text="currentProjectName || 'Tanpa Project / Internal'"></span>
                                     </span>
-                                    <span style="display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; flex-shrink:0;"
+                                    <span style="display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; letter-spacing:0.4px; flex-shrink:0; line-height:1.4;"
                                           :style="categoryBadgeStyle(form.category)">
                                         <span style="width:6px; height:6px; border-radius:50%; flex-shrink:0; display:inline-block;" :style="{ background: categoryDotColor(form.category) }"></span>
                                         <span x-text="categoryLabel(form.category)"></span>
@@ -799,7 +799,7 @@
                                     <span style="font-size:10.5px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
                                         <span x-text="form.category === 'Day Off' ? 'PERSONEL YANG CUTI / DAY OFF' : (form.category === 'PoC & Demo' ? 'TIM PRESALES & PIC POC' : 'TIM PELAKSANA & PERSONEL LAPANGAN')"></span>
                                     </span>
-                                    <span style="font-size:10.5px; font-weight:700; color:#8F0A0D; background:#FEF2F2; padding:2px 7px; border-radius:10px; border:1px solid #FECACA;" 
+                                    <span style="font-size:10px; font-weight:700; color:#8F0A0D; background:#FEF2F2; padding:2px 8px; border-radius:6px; border:1px solid #FECACA; line-height:1.4;" 
                                           x-text="getAssignedEngineersList().length + ' Personil'"></span>
                                 </div>
                                 <div style="display:flex; flex-wrap:wrap; gap:6px;">
