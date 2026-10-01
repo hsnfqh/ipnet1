@@ -53,7 +53,161 @@ Route::get('/verify-document/{documentNumber}', function ($documentNumber) {
         @opcache_reset();
     }
 
-    return app(\App\Http\Controllers\DashboardController::class)->streamVerifiedPdf($documentNumber);
+    // 1. Ambil Data Tanda Tangan Resmi
+    $documentSignature = null;
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('activity_document_signatures')) {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        }
+        $documentSignature = \App\Models\ActivityDocumentSignature::where('document_number', $documentNumber)->first();
+    } catch (\Throwable $e) {}
+
+    // 2. Ambil Aktivitas Lapangan Terkait
+    $query = \App\Models\EngineerActivityLog::with(['engineer', 'project']);
+    if ($documentSignature) {
+        if (!empty($documentSignature->log_ids)) {
+            $query->whereIn('id', $documentSignature->log_ids);
+        } elseif ($documentSignature->project_id) {
+            $query->where('project_id', $documentSignature->project_id);
+        } elseif ($documentSignature->scope_key && str_starts_with($documentSignature->scope_key, 'proj_')) {
+            $pId = (int) substr($documentSignature->scope_key, 5);
+            $query->where('project_id', $pId);
+        } elseif ($documentSignature->pic_user_id) {
+            $query->where('user_id', $documentSignature->pic_user_id);
+        }
+    }
+    $activities = $query->orderBy('activity_date', 'asc')->orderBy('start_time', 'asc')->orderBy('created_at', 'asc')->get();
+
+    // 3. Format Data Aktivitas Persis Format Tabel Laporan
+    $parsedActivities = $activities->map(function ($a, $idx) {
+        $rawNotes  = $a->notes ?? '';
+        $clientPic = '';
+        $ipnetPic  = '';
+        $notedOnly = $rawNotes;
+
+        if ($rawNotes) {
+            $parts = array_map('trim', explode('|', $rawNotes));
+            $notedParts = [];
+            foreach ($parts as $part) {
+                if (str_starts_with($part, 'PIC Klien:')) {
+                    $clientPic = trim(substr($part, strlen('PIC Klien:')));
+                } elseif (str_starts_with($part, 'PIC IPNET:')) {
+                    $ipnetPic = trim(substr($part, strlen('PIC IPNET:')));
+                } else {
+                    $notedParts[] = $part;
+                }
+            }
+            $notedOnly = implode(' | ', array_filter($notedParts));
+        }
+
+        if (!$ipnetPic) {
+            $ipnetPic = '-';
+        }
+
+        $description = $a->description ?? '-';
+        if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $description, $m)) {
+            $description = $m[2] ?: $m[1];
+        }
+
+        return [
+            'no'         => $idx + 1,
+            'activity'   => $description,
+            'date'       => $a->activity_date ? $a->activity_date->format('d/m/Y') : '-',
+            'time'       => $a->start_time ? \Carbon\Carbon::parse($a->start_time)->format('H:i') : '-',
+            'client_pic' => $clientPic ?: '-',
+            'ipnet_pic'  => $ipnetPic,
+            'notes'      => $notedOnly ?: '-',
+        ];
+    });
+
+    $projectName  = $documentSignature?->project_name ?: ($activities->first()?->project?->name ?? 'Aktivitas Lapangan');
+    $engineerName = $documentSignature?->pic_name ?: ($activities->first()?->engineer?->name ?? 'PIC Engineer');
+    $printedBy    = $documentSignature?->head_name ?: 'System Verification';
+
+    $logoPath = public_path('images/ipnet1.png');
+    if (!file_exists($logoPath)) {
+        $logoPath = public_path('images/ipnet.png');
+    }
+    $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+
+    $verifyUrl = url('/verify-document/' . $documentNumber);
+
+    // Multi-tier QR Code generator
+    $qrPngBase64 = '';
+    $qrRawSvg    = '';
+    $qrApiUrl    = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' . urlencode($verifyUrl);
+
+    if (extension_loaded('gd') && function_exists('imagecreatetruecolor')) {
+        try {
+            $qr = \BaconQrCode\Encoder\Encoder::encode($verifyUrl, \BaconQrCode\Common\ErrorCorrectionLevel::M());
+            $matrix = $qr->getMatrix();
+            $matrixWidth = $matrix->getWidth();
+            $matrixHeight = $matrix->getHeight();
+
+            $scale = 3;
+            $margin = 1;
+            $imgWidth = ($matrixWidth + ($margin * 2)) * $scale;
+            $imgHeight = ($matrixHeight + ($margin * 2)) * $scale;
+
+            $image = imagecreatetruecolor($imgWidth, $imgHeight);
+            $white = imagecolorallocate($image, 255, 255, 255);
+            $dark  = imagecolorallocate($image, 15, 23, 42);
+
+            imagefill($image, 0, 0, $white);
+
+            for ($y = 0; $y < $matrixHeight; $y++) {
+                for ($x = 0; $x < $matrixWidth; $x++) {
+                    if ($matrix->get($x, $y) === 1) {
+                        $x1 = ($x + $margin) * $scale;
+                        $y1 = ($y + $margin) * $scale;
+                        $x2 = $x1 + $scale - 1;
+                        $y2 = $y1 + $scale - 1;
+                        imagefilledrectangle($image, $x1, $y1, $x2, $y2, $dark);
+                    }
+                }
+            }
+
+            ob_start();
+            imagepng($image);
+            $pngData = ob_get_clean();
+            imagedestroy($image);
+
+            $qrPngBase64 = 'data:image/png;base64,' . base64_encode($pngData);
+        } catch (\Throwable $e) {}
+    }
+
+    try {
+        $renderer = new \BaconQrCode\Renderer\ImageRenderer(
+            new \BaconQrCode\Renderer\RendererStyle\RendererStyle(60, 0),
+            new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+        );
+        $writer = new \BaconQrCode\Writer($renderer);
+        $svg = $writer->writeString($verifyUrl);
+        $qrRawSvg = preg_replace('/<\?xml.*?\?>/i', '', $svg);
+    } catch (\Throwable $e) {}
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.engineer-activity-report-pdf', [
+        'parsedActivities'  => $parsedActivities,
+        'activities'        => $activities,
+        'projectName'       => $projectName,
+        'engineerName'      => $engineerName,
+        'printedBy'         => $printedBy,
+        'logoBase64'        => $logoBase64,
+        'documentSignature' => $documentSignature,
+        'verifyDocNumber'   => $documentNumber,
+        'verifyUrl'         => $verifyUrl,
+        'qrPngBase64'       => $qrPngBase64,
+        'qrRawSvg'          => $qrRawSvg,
+        'qrApiUrl'          => $qrApiUrl,
+        'qrCodeBase64'      => $qrPngBase64 ?: $qrApiUrl,
+        'qrSvgBase64'       => $qrPngBase64 ?: $qrApiUrl,
+    ]);
+
+    $pdf->setPaper('a4', 'landscape');
+    $pdf->setOption('isHtml5ParserEnabled', true);
+    $pdf->setOption('isRemoteEnabled', true);
+
+    return $pdf->stream("Laporan_Aktivitas_{$documentNumber}.pdf");
 })->name('document.verify');
 
 // Auto Migrate & Cache Clear Helper for Production Deployment
