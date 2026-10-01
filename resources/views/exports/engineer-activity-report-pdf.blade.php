@@ -315,9 +315,9 @@
 
             @if(!empty($items) && count($items) > 0)
                 <tr class="total-row">
-                    <td colspan="2" class="text-right">TOTAL AGENDA AKTIVITAS :</td>
-                    <td class="text-center" style="color: #C81E2C;">{{ $totalCount }} Agenda</td>
-                    <td colspan="3" class="text-center" style="color: #475569;">Total {{ $totalCount }} aktivitas pengerjaan</td>
+                    <td colspan="6" class="text-right" style="padding: 8px 14px; font-size: 10px; font-weight: bold;">
+                        TOTAL AKTIVITAS TERCATAT : <span style="color: #C81E2C;">{{ $totalCount }} Catatan</span>
+                    </td>
                 </tr>
             @endif
         </tbody>
