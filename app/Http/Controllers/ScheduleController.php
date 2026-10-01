@@ -404,6 +404,20 @@ class ScheduleController extends Controller
     public function store(ScheduleRequest $request)
     {
         try {
+            $user = auth()->user();
+            $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
+            $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
+            $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
+            $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
+            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect);
+
+            if (!$canManageSchedule) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['message' => 'Anda tidak memiliki hak akses untuk membuat jadwal. Hanya Lead Engineer / Manajerial yang dapat mengatur jadwal.'], 403);
+                }
+                return redirect()->route('schedules.index')->with('error', 'Anda tidak memiliki hak akses untuk membuat jadwal.');
+            }
+
             $data = $request->validated();
             $data['created_by'] = auth()->id();
             $hasScheduleUser = Schema::hasTable('schedule_user');
@@ -691,6 +705,20 @@ class ScheduleController extends Controller
     public function update(ScheduleRequest $request, Schedule $schedule)
     {
         try {
+            $user = auth()->user();
+            $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
+            $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
+            $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
+            $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
+            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect);
+
+            if (!$canManageSchedule) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['message' => 'Anda tidak memiliki hak akses untuk mengubah jadwal. Hanya Lead Engineer / Manajerial yang dapat mengatur jadwal.'], 403);
+                }
+                return redirect()->route('schedules.index')->with('error', 'Anda tidak memiliki hak akses untuk mengubah jadwal.');
+            }
+
             $data = $request->validated();
             $hasScheduleUser = Schema::hasTable('schedule_user');
 
@@ -882,6 +910,20 @@ class ScheduleController extends Controller
     public function destroy(Schedule $schedule)
     {
         try {
+            $user = auth()->user();
+            $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
+            $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
+            $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
+            $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
+            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect);
+
+            if (!$canManageSchedule) {
+                if (request()->wantsJson() || request()->ajax()) {
+                    return response()->json(['message' => 'Anda tidak memiliki hak akses untuk menghapus jadwal. Hanya Lead Engineer / Manajerial yang dapat menghapus jadwal.'], 403);
+                }
+                return redirect()->route('schedules.index')->with('error', 'Anda tidak memiliki hak akses untuk menghapus jadwal.');
+            }
+
             $title = $schedule->title;
             $cleanTitle = trim($title);
             $projectId = $schedule->project_id;

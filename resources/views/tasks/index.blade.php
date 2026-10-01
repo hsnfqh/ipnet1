@@ -284,30 +284,8 @@
                                             </svg>
                                         </button>
                                     </div>
-                                    @elseif($isEngineer)
-                                    <div class="flex items-center gap-1.5 mt-3">
-                                        <button @click="openDetailModal(task)"
-                                                class="flex-1 py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                            </svg>
-                                            Detail Task
-                                        </button>
-                                        <template x-if="(task.status !== 'Completed' || task.progress < 100) && (task.engineer_id == {{ $currentUserId }} || (task.engineers && task.engineers.some(e => e.id == {{ $currentUserId }})))">
-                                            <button type="button" 
-                                                    @click="openProgressModal(task)"
-                                                    class="py-1.5 px-3 rounded-lg border border-[#86EFAC] bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#16A34A] text-[11px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
-                                                    title="Update Progress & Dokumentasi">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                                Update
-                                            </button>
-                                        </template>
-                                    </div>
                                     @else
-                                    {{-- READ-ONLY / PMO / VIEWERS: HANYA LIHAT DETAIL TASK --}}
+                                    {{-- READ-ONLY / ENGINEER / PMO / VIEWERS: HANYA LIHAT DETAIL TASK --}}
                                     <div class="flex items-center gap-1.5 mt-3">
                                         <button @click="openDetailModal(task)"
                                                 class="w-full py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
