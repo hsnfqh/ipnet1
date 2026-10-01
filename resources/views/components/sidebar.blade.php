@@ -546,7 +546,7 @@
             <svg style="width:15px; height:15px; flex-shrink:0; transition:transform 0.2s;" :style="{ transform: collapsed ? 'rotate(180deg)' : 'none' }" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
-            <span x-show="isExpanded" x-cloak x-text="collapsed ? 'Perluas' : 'Ciutkan'">Ciutkan</span>
+            <span x-show="isExpanded" x-cloak x-text="collapsed ? 'Expand' : 'Collapse'">Collapse</span>
         </button>
     </div>
 </aside>
