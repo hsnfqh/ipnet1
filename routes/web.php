@@ -47,6 +47,10 @@ Route::middleware('guest')->group(function () {
 // Auth Routes
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Public Client Verification & Automated Discrepancy Portal (Jalur 1 - Uji Keabsahan Dokumen Klien)
+Route::get('/verify', [\App\Http\Controllers\PublicDocumentVerificationController::class, 'index'])->name('public.verify.index');
+Route::post('/verify/inspect', [\App\Http\Controllers\PublicDocumentVerificationController::class, 'inspect'])->name('public.verify.inspect');
+
 // Public Document Verification (Target QR Code Scan - Langsung Membuka Halaman PDF Resmi di Layar HP / Browser)
 Route::get('/verify-document/{documentNumber}', function ($documentNumber) {
     if (function_exists('opcache_reset')) {

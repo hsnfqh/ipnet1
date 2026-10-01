@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'verify/inspect',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
