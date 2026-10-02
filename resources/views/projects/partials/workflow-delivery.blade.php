@@ -193,7 +193,7 @@
             @if(!empty($canAssignSales))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isBdApproved)
-                        <button type="button" disabled class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-75 shadow-2xs" title="Terkunci: Menunggu verifikasi solusi teknis disahkan oleh PIC BD">
+                        <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-80 shadow-2xs" title="Terkunci: Menunggu verifikasi solusi teknis disahkan oleh PIC BD">
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                             <span>{{ $project->pm ? 'Perbarui Ruang Lingkup' : 'Tetapkan Ruang Lingkup' }}</span>
                         </button>
@@ -201,7 +201,7 @@
                         <button type="button" 
                                 @click.stop="openHandoverModal('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}')"
                                 onclick="event.stopPropagation(); (window.openHandoverModalCustom ? window.openHandoverModalCustom('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}') : window.openModal('modal-handover'))"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer shadow-2xs active:scale-95">
+                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-xs active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                             <span>{{ $project->pm ? 'Perbarui Ruang Lingkup' : 'Tetapkan Ruang Lingkup' }}</span>
                         </button>
@@ -313,7 +313,7 @@
                     <button type="button" 
                             @click.stop="openAssignDivisionModal()" 
                             onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer shadow-2xs">
+                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-xs active:scale-95">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                         <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Perbarui Divisi Pelaksana' : 'Tetapkan Divisi Pelaksana' }}</span>
                     </button>
