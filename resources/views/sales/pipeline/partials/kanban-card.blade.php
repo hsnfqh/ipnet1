@@ -23,19 +23,129 @@
 
             @php
                 $hd = is_array($project->handover_data) ? $project->handover_data : [];
-                $presalesAssigned = !empty($hd['technical_assignments']['presales']['assigned']);
-                $hasProposal = !empty($project->proposal_file) || !empty($hd['technical_assignments']['presales']['document_path']) || !empty($hd['technical_assignments']['architect']['document_path']);
+                $tech = $hd['technical_assignments'] ?? [];
+
+                $presalesAssigned = !empty($tech['presales']['assigned']);
+                $presalesDone = !empty($tech['presales']['document_path']) || !empty($project->proposal_file);
+
+                $architectAssigned = !empty($tech['architect']['assigned']);
+                $architectDone = !empty($tech['architect']['document_path']);
+
+                $authCardUser = auth()->user();
+                $authCardUserRoles = $authCardUser && method_exists($authCardUser, 'roles') ? $authCardUser->roles->pluck('name')->toArray() : [];
+
+                $isArchitectUser = $authCardUser && (
+                    !empty(array_intersect(['Solution Architect', 'Solutions Architect', 'SA'], $authCardUserRoles))
+                    || in_array(strtolower($authCardUser->position ?? ''), ['solution architect', 'solutions architect', 'sa'])
+                    || str_contains(strtolower($authCardUser->email ?? ''), 'aris')
+                    || str_contains(strtolower($authCardUser->name ?? ''), 'aris')
+                );
+
+                $isPresalesUserOnly = $authCardUser && !$isArchitectUser && (
+                    !empty(array_intersect(['Presales', 'Pre-Sales'], $authCardUserRoles))
+                    || in_array(strtolower($authCardUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
+                    || str_contains(strtolower($authCardUser->email ?? ''), 'akbar')
+                    || str_contains(strtolower($authCardUser->name ?? ''), 'akbar')
+                );
             @endphp
-            @if($hasProposal)
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                    <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    <span>Proposal Ready</span>
-                </span>
-            @elseif($presalesAssigned)
-                <a href="{{ route('projects.show', $project->id) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition" title="Upload proposal teknis di detail project">
-                    <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    <span>Upload Proposal</span>
-                </a>
+
+            @if($isArchitectUser)
+                {{-- Perspektif Solution Architect (Aris): Fokus pada status desain/solusi arsitektur --}}
+                @if($architectAssigned)
+                    @if($architectDone)
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span>Desain Ready</span>
+                        </span>
+                    @else
+                        <a href="{{ route('projects.show', $project->id) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition" title="Upload dokumen desain topologi / arsitektur di detail project">
+                            <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                            <span>Upload Desain</span>
+                        </a>
+                    @endif
+                @elseif($presalesDone)
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Proposal Ready</span>
+                    </span>
+                @endif
+            @elseif($isPresalesUserOnly)
+                {{-- Perspektif Pre-Sales (Akbar): Fokus pada proposal teknis --}}
+                @if($presalesAssigned)
+                    @if($presalesDone)
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span>Proposal Ready</span>
+                        </span>
+                    @else
+                        <a href="{{ route('projects.show', $project->id) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition" title="Upload proposal teknis di detail project">
+                            <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                            <span>Upload Proposal</span>
+                        </a>
+                    @endif
+                @elseif($architectDone)
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Desain Ready</span>
+                    </span>
+                @endif
+            @else
+                {{-- Perspektif Sales / Admin / BD / Management --}}
+                @if($presalesAssigned && $architectAssigned)
+                    @if($presalesDone && $architectDone)
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span>Solusi Lengkap</span>
+                        </span>
+                    @elseif($presalesDone)
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span>Proposal Ready</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                            <span>Menunggu Desain SA</span>
+                        </span>
+                    @elseif($architectDone)
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                            <span>Menunggu Proposal</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span>Desain Ready</span>
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                            <span>Menunggu Solusi Teknis</span>
+                        </span>
+                    @endif
+                @elseif($presalesAssigned)
+                    @if($presalesDone)
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span>Proposal Ready</span>
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                            <span>Menunggu Proposal</span>
+                        </span>
+                    @endif
+                @elseif($architectAssigned)
+                    @if($architectDone)
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span>Desain Ready</span>
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                            <span>Menunggu Desain</span>
+                        </span>
+                    @endif
+                @elseif(!empty($project->proposal_file))
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Proposal Ready</span>
+                    </span>
+                @endif
             @endif
         </div>
     </div>

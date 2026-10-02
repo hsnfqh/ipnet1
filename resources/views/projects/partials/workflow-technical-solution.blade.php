@@ -212,27 +212,18 @@
                 <div>
                     @if($isPresalesDone)
                         <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2">
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-2 min-w-0 flex-1">
-                                    <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-bold text-slate-900 text-xs truncate" title="{{ $presalesAssignment['document_title'] ?? 'Proposal' }}">
+                                         {{ $presalesAssignment['document_title'] ?? 'Proposal' }}
                                     </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="font-bold text-slate-900 text-xs truncate" title="{{ $presalesAssignment['document_title'] ?? 'Proposal' }}">
-                                             {{ \Illuminate\Support\Str::limit($presalesAssignment['document_title'] ?? 'Proposal', 10, '...') }}
-                                        </div>
-                                        <div class="text-[10px] text-slate-500 font-mono truncate" title="{{ $presalesAssignment['document_name'] ?? 'jurnal.pdf' }}">
-                                             {{ $presalesAssignment['document_name'] ?? 'jurnal.pdf' }}
-                                        </div>
+                                    <div class="text-[10px] text-slate-500 font-mono truncate" title="{{ $presalesAssignment['document_name'] ?? 'jurnal.pdf' }}">
+                                         {{ $presalesAssignment['document_name'] ?? 'jurnal.pdf' }}
                                     </div>
                                 </div>
-                                @if(!empty($presalesAssignment['document_path']))
-                                    <a href="{{ asset('storage/' . $presalesAssignment['document_path']) }}" target="_blank" 
-                                       class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shrink-0 shadow-2xs" title="Unduh Proposal">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                        <span>Unduh</span>
-                                    </a>
-                                @endif
                             </div>
                             @if(!empty($presalesAssignment['completed_at']))
                                 <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 text-right font-mono">
@@ -333,27 +324,18 @@
                 <div>
                     @if($isArchitectDone)
                         <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2">
-                            <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-2 min-w-0 flex-1">
-                                    <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-bold text-slate-900 text-xs truncate" title="{{ $architectAssignment['document_title'] ?? 'Desain Topologi' }}">
+                                         {{ $architectAssignment['document_title'] ?? 'Desain Topologi' }}
                                     </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="font-bold text-slate-900 text-xs truncate" title="{{ $architectAssignment['document_title'] ?? 'Desain Topologi' }}">
-                                             {{ \Illuminate\Support\Str::limit($architectAssignment['document_title'] ?? 'Desain Topologi', 10, '...') }}
-                                        </div>
-                                        <div class="text-[10px] text-slate-500 font-mono truncate" title="{{ $architectAssignment['document_name'] ?? 'jurnal.pdf' }}">
-                                             {{ $architectAssignment['document_name'] ?? 'jurnal.pdf' }}
-                                        </div>
+                                    <div class="text-[10px] text-slate-500 font-mono truncate" title="{{ $architectAssignment['document_name'] ?? 'jurnal.pdf' }}">
+                                         {{ $architectAssignment['document_name'] ?? 'jurnal.pdf' }}
                                     </div>
                                 </div>
-                                @if(!empty($architectAssignment['document_path']))
-                                    <a href="{{ asset('storage/' . $architectAssignment['document_path']) }}" target="_blank" 
-                                       class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shrink-0 shadow-2xs" title="Unduh Desain">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                        <span>Unduh</span>
-                                    </a>
-                                @endif
                             </div>
                             @if(!empty($architectAssignment['completed_at']))
                                 <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/80 text-right font-mono">
