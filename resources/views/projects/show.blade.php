@@ -1123,34 +1123,11 @@
                         
                         {{-- Header Section --}}
                         <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-slate-100">
-                            <div class="flex items-center gap-2.5 flex-wrap">
+                            <div class="flex items-center gap-2.5">
                                 <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
                                     <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
                                     Berkas Lampiran Pendukung
                                 </h3>
-                                <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                    {{ $filledTemplatesCount }} / {{ count($documentTemplates) }} Terisi
-                                </span>
-                                @if($uploadedDocs->count() > 0)
-                                    <span class="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-red-50 text-[#8F0A0D] border border-red-100">
-                                        Total {{ $uploadedDocs->count() }} Berkas
-                                    </span>
-                                @endif
-                            </div>
-
-                            {{-- Controls: Expand/Collapse All --}}
-                            <div class="flex items-center gap-2">
-                                <button type="button" 
-                                        @click="expandAll()" 
-                                        class="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition cursor-pointer">
-                                    Buka Semua
-                                </button>
-                                <span class="text-slate-300 text-xs">•</span>
-                                <button type="button" 
-                                        @click="collapseAll()" 
-                                        class="px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition cursor-pointer">
-                                    Tutup Semua
-                                </button>
                             </div>
                         </div>
 
@@ -1163,25 +1140,14 @@
                                        class="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-slate-50/50">
                                 <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             </div>
-                            <div class="flex items-center gap-1.5 text-xs font-semibold">
-                                <button type="button" 
-                                        @click="filterStatus = 'all'" 
-                                        :class="filterStatus === 'all' ? 'bg-[#8F0A0D] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                                        class="px-2.5 py-1 rounded-lg transition cursor-pointer text-[11px]">
-                                    Semua ({{ count($documentTemplates) }})
-                                </button>
-                                <button type="button" 
-                                        @click="filterStatus = 'filled'" 
-                                        :class="filterStatus === 'filled' ? 'bg-emerald-700 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'"
-                                        class="px-2.5 py-1 rounded-lg transition cursor-pointer text-[11px]">
-                                    Terisi ({{ $filledTemplatesCount }})
-                                </button>
-                                <button type="button" 
-                                        @click="filterStatus = 'empty'" 
-                                        :class="filterStatus === 'empty' ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                                        class="px-2.5 py-1 rounded-lg transition cursor-pointer text-[11px]">
-                                    Kosong ({{ count($documentTemplates) - $filledTemplatesCount }})
-                                </button>
+                            <div class="shrink-0">
+                                <select x-model="filterStatus"
+                                        class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 cursor-pointer appearance-none bg-[length:16px_16px] bg-[right_8px_center] bg-no-repeat pr-8"
+                                        style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E&quot;);">
+                                    <option value="all">Semua ({{ count($documentTemplates) }})</option>
+                                    <option value="filled">Terisi ({{ $filledTemplatesCount }})</option>
+                                    <option value="empty">Kosong ({{ count($documentTemplates) - $filledTemplatesCount }})</option>
+                                </select>
                             </div>
                         </div>
 
