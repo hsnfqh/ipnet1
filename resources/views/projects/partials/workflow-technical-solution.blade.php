@@ -43,8 +43,8 @@
             <div class="space-y-3">
                 
                 {{-- Header --}}
-                <div class="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-100 flex-wrap">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
+                <div class="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between items-start gap-1.5 pb-2 border-b border-slate-100 min-h-[50px] 2xl:min-h-0">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider self-start">
                         BUSINESS DEVELOPMENT
                     </span>
                     @php
@@ -63,7 +63,7 @@
                             default               => 'Belum Ditugaskan',
                         };
                     @endphp
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 {{ $bdBadgeClass }}">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border self-start 2xl:self-auto shrink-0 {{ $bdBadgeClass }}">
                         {{ $bdBadgeLabel }}
                     </span>
                 </div>
@@ -180,11 +180,11 @@
             <div class="space-y-3">
                 
                 {{-- Header --}}
-                <div class="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-100 flex-wrap">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
+                <div class="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between items-start gap-1.5 pb-2 border-b border-slate-100 min-h-[50px] 2xl:min-h-0">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider self-start">
                         PRE-SALES
                     </span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 {{ $isPresalesDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isPresalesAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border self-start 2xl:self-auto shrink-0 {{ $isPresalesDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isPresalesAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
                         {{ $isPresalesDone ? '✓ Terunggah' : ($isPresalesAssigned ? 'Menunggu File' : 'Belum Ditugaskan') }}
                     </span>
                 </div>
@@ -292,11 +292,11 @@
             <div class="space-y-3">
                 
                 {{-- Header --}}
-                <div class="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-100 flex-wrap">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
+                <div class="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between items-start gap-1.5 pb-2 border-b border-slate-100 min-h-[50px] 2xl:min-h-0">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider self-start">
                         SOLUTION ARCHITECT
                     </span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 {{ $isArchitectDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border self-start 2xl:self-auto shrink-0 {{ $isArchitectDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
                         {{ $isArchitectDone ? '✓ Terunggah' : ($isArchitectAssigned ? 'Menunggu File' : 'Belum Ditugaskan') }}
                     </span>
                 </div>
