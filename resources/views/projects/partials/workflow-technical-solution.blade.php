@@ -14,7 +14,7 @@
 @endphp
 <div class="ipnet-card p-6 space-y-5">
     {{-- Header & Status --}}
-    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 flex-wrap">
         <div class="min-w-0">
             <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-0.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> TIM SOLUSI TEKNIS
@@ -39,12 +39,12 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs items-stretch">
         
         {{-- ══ CARD 1: BUSINESS DEVELOPMENT (PIC / PM) ══ --}}
-        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
+        <div class="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition overflow-hidden">
             <div class="space-y-3">
                 
                 {{-- Header --}}
-                <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider whitespace-nowrap">
+                <div class="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-100 flex-wrap">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
                         BUSINESS DEVELOPMENT
                     </span>
                     @php
@@ -56,14 +56,14 @@
                             default               => 'bg-slate-100 text-slate-500 border-slate-200',
                         };
                         $bdBadgeLabel = match($bdVerification['status'] ?? '') {
-                            'Approved'            => '✓ Disetujui BD',
+                            'Approved'            => '✓ Disetujui',
                             'Revision Needed'     => '⚠ Perlu Revisi',
-                            'Pending Verification'=> 'Menunggu Verifikasi',
-                            'Waiting Uploads'     => 'Menunggu Dokumen',
+                            'Pending Verification'=> 'Menunggu Telaah',
+                            'Waiting Uploads'     => 'Menunggu File',
                             default               => 'Belum Ditugaskan',
                         };
                     @endphp
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $bdBadgeClass }}">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 {{ $bdBadgeClass }}">
                         {{ $bdBadgeLabel }}
                     </span>
                 </div>
@@ -176,16 +176,16 @@
         </div>
 
         {{-- ══ CARD 2: PRE-SALES SPECIALIST ══ --}}
-        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
+        <div class="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition overflow-hidden">
             <div class="space-y-3">
                 
                 {{-- Header --}}
-                <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider whitespace-nowrap">
+                <div class="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-100 flex-wrap">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
                         PRE-SALES
                     </span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $isPresalesDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isPresalesAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
-                        {{ $isPresalesDone ? '✓ Dokumen Diunggah' : ($isPresalesAssigned ? 'Menunggu Dokumen' : 'Belum Ditugaskan') }}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 {{ $isPresalesDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isPresalesAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
+                        {{ $isPresalesDone ? '✓ Terunggah' : ($isPresalesAssigned ? 'Menunggu File' : 'Belum Ditugaskan') }}
                     </span>
                 </div>
 
@@ -288,16 +288,16 @@
         </div>
 
         {{-- ══ CARD 3: SOLUTION ARCHITECT (SA) ══ --}}
-        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
+        <div class="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition overflow-hidden">
             <div class="space-y-3">
                 
                 {{-- Header --}}
-                <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider whitespace-nowrap">
+                <div class="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-100 flex-wrap">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
                         SOLUTION ARCHITECT
                     </span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $isArchitectDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
-                        {{ $isArchitectDone ? '✓ Dokumen Diunggah' : ($isArchitectAssigned ? 'Menunggu Dokumen' : 'Belum Ditugaskan') }}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 {{ $isArchitectDone ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isArchitectAssigned ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
+                        {{ $isArchitectDone ? '✓ Terunggah' : ($isArchitectAssigned ? 'Menunggu File' : 'Belum Ditugaskan') }}
                     </span>
                 </div>
 
