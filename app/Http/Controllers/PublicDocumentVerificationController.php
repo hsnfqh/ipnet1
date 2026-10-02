@@ -50,8 +50,8 @@ class PublicDocumentVerificationController extends Controller
         }
 
         $request->validate([
-            'document_file'   => 'nullable|file|mimes:pdf|max:10240', // Max 10MB
-            'pdf_file'        => 'nullable|file|mimes:pdf|max:10240',
+            'document_file'   => 'nullable|file|max:10240', // Max 10MB
+            'pdf_file'        => 'nullable|file|max:10240',
             'document_number' => 'nullable|string|max:50',
         ]);
 
@@ -60,7 +60,15 @@ class PublicDocumentVerificationController extends Controller
         $file = $request->file('document_file') ?? $request->file('pdf_file');
 
         if ($file) {
-            $pdfContent       = file_get_contents($file->getRealPath());
+            $clientExt = strtolower($file->getClientOriginalExtension());
+            $realPath = $file->getRealPath();
+            $pdfContent = ($realPath && file_exists($realPath)) ? file_get_contents($realPath) : '';
+            $isPdfMagic = str_starts_with(ltrim($pdfContent), '%PDF-');
+
+            if ($clientExt !== 'pdf' && !$isPdfMagic) {
+                return redirect()->route('public.verify.index')->with('error', 'Berkas yang diunggah harus berupa berkas dokumen PDF (.pdf).');
+            }
+
             $manualDocNumber  = $request->input('document_number');
             $originalFilename = $file->getClientOriginalName();
 
