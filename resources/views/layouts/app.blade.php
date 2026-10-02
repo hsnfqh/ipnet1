@@ -193,6 +193,33 @@
             transform: translateY(0) !important;
             filter: brightness(0.95) !important;
         }
+
+        /* IPNET Soft Tinted Red Buttons (Elegan, Mirip Badge Solusi Teknis tapi Bernuansa Merah) */
+        .btn-ipnet-soft {
+            background-color: #FEF2F2 !important;
+            border: 1px solid #FECACA !important;
+            color: #8F0A0D !important;
+            font-weight: 700 !important;
+            box-shadow: none !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .btn-ipnet-soft:hover {
+            background-color: #8F0A0D !important;
+            border-color: #8F0A0D !important;
+            color: #FFFFFF !important;
+            box-shadow: none !important;
+            transform: translateY(-1px) !important;
+        }
+        .btn-ipnet-soft svg {
+            color: #8F0A0D !important;
+            transition: color 0.15s ease !important;
+        }
+        .btn-ipnet-soft:hover svg {
+            color: #FFFFFF !important;
+        }
+        .btn-ipnet-soft:active {
+            transform: translateY(0) !important;
+        }
         
         /* Modern Keyframe Animations */
         @keyframes popInSpring {

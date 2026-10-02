@@ -151,7 +151,7 @@
             @endphp
             @if(!$isAnyApproved && !$isBdmAssigned && empty($isPresalesOrSaOnly) && ($canAssignSales ?? false))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                    <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu persetujuan pimpinan (Pak Susanto / Pak Hariyadi)">
+                    <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu persetujuan pimpinan (Pak Susanto / Pak Hariyadi)">
                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                         <span>Tugaskan PIC BD</span>
                     </button>
@@ -159,14 +159,14 @@
             @elseif($showBdAssign || $showBdVerify)
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if($showBdAssign)
-                        <button type="button" @click.stop="openAssignTechnicalModal('bdm')" onclick="event.stopPropagation(); window.openAssignTechnicalModalCustom('bdm')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
+                        <button type="button" @click.stop="openAssignTechnicalModal('bdm')" onclick="event.stopPropagation(); window.openAssignTechnicalModalCustom('bdm')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                             <span>Tugaskan PIC BD</span>
                         </button>
                     @endif
 
                     @if($showBdVerify)
-                        <button type="button" @click.stop="openVerifyTechnicalModal()" onclick="event.stopPropagation(); window.openModal('modal-verify-technical')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95 ml-auto">
+                        <button type="button" @click.stop="openVerifyTechnicalModal()" onclick="event.stopPropagation(); window.openModal('modal-verify-technical')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95 ml-auto">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             <span>Verifikasi Dokumen Teknis</span>
                         </button>
@@ -262,7 +262,7 @@
             @endphp
             @if(!$isAnyApproved && !$isPresalesAssigned && ($canAssignSales ?? false))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                    <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu persetujuan pimpinan (Pak Susanto / Pak Hariyadi)">
+                    <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu persetujuan pimpinan (Pak Susanto / Pak Hariyadi)">
                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                         <span>Tugaskan Pre-Sales</span>
                     </button>
@@ -270,24 +270,24 @@
             @elseif($showPresalesAssign || $showPresalesUploadRevision || $showPresalesUpload || $showPresalesReupload)
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if($showPresalesAssign)
-                        <button type="button" @click.stop="openAssignTechnicalModal('presales')" onclick="event.stopPropagation(); window.openAssignTechnicalModalCustom('presales')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
+                        <button type="button" @click.stop="openAssignTechnicalModal('presales')" onclick="event.stopPropagation(); window.openAssignTechnicalModalCustom('presales')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                             <span>Tugaskan Pre-Sales</span>
                         </button>
                     @endif
 
                     @if($showPresalesUploadRevision)
-                        <button type="button" @click.stop="openUploadTechnicalModal('presales')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('presales')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
+                        <button type="button" @click.stop="openUploadTechnicalModal('presales')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('presales')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                             <span>Unggah Revisi Dokumen</span>
                         </button>
                     @elseif($showPresalesUpload)
-                        <button type="button" @click.stop="openUploadTechnicalModal('presales')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('presales')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
+                        <button type="button" @click.stop="openUploadTechnicalModal('presales')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('presales')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                             <span>Unggah Dokumen Proposal</span>
                         </button>
                     @elseif($showPresalesReupload)
-                        <button type="button" @click.stop="openUploadTechnicalModal('presales')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('presales')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
+                        <button type="button" @click.stop="openUploadTechnicalModal('presales')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('presales')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                             <span>Unggah Ulang Dokumen</span>
                         </button>
@@ -384,7 +384,7 @@
             @endphp
             @if(!$isAnyApproved && !$isArchitectAssigned && ($canAssignSales ?? false))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                    <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu persetujuan pimpinan (Pak Susanto / Pak Hariyadi)">
+                    <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu persetujuan pimpinan (Pak Susanto / Pak Hariyadi)">
                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                         <span>Tugaskan Solution Architect</span>
                     </button>
@@ -392,24 +392,24 @@
             @elseif($showArchitectAssign || $showArchitectUploadRevision || $showArchitectUpload || $showArchitectReupload)
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if($showArchitectAssign)
-                        <button type="button" @click.stop="openAssignTechnicalModal('architect')" onclick="event.stopPropagation(); window.openAssignTechnicalModalCustom('architect')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
+                        <button type="button" @click.stop="openAssignTechnicalModal('architect')" onclick="event.stopPropagation(); window.openAssignTechnicalModalCustom('architect')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                             <span>Tugaskan Solution Architect</span>
                         </button>
                     @endif
 
                     @if($showArchitectUploadRevision)
-                        <button type="button" @click.stop="openUploadTechnicalModal('architect')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('architect')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
+                        <button type="button" @click.stop="openUploadTechnicalModal('architect')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('architect')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                             <span>Unggah Revisi Dokumen Solusi</span>
                         </button>
                     @elseif($showArchitectUpload)
-                        <button type="button" @click.stop="openUploadTechnicalModal('architect')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('architect')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
+                        <button type="button" @click.stop="openUploadTechnicalModal('architect')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('architect')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                             <span>Unggah Dokumen Solusi</span>
                         </button>
                     @elseif($showArchitectReupload)
-                        <button type="button" @click.stop="openUploadTechnicalModal('architect')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('architect')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
+                        <button type="button" @click.stop="openUploadTechnicalModal('architect')" onclick="event.stopPropagation(); window.openUploadTechnicalModalCustom('architect')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                             <span>Unggah Ulang Dokumen</span>
                         </button>
