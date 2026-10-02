@@ -272,6 +272,17 @@
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
         || str_contains(strtolower($authUser->name ?? ''), 'aris')
     ) && empty(array_intersect(['Sales', 'Account Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles));
+
+    // Hak otorisasi alokasi ruang lingkup (Sekarang wewenang tim Pre-Sales Specialist & Admin, bukan ranah Sales lagi)
+    $isAdmin = !empty(array_intersect(['Super Admin', 'Admin', 'Admin Support'], $userRoles));
+    $isPresalesUser = $authUser && (
+        (!empty($presalesAssignment['assigned_user_id']) && $authUser->id == $presalesAssignment['assigned_user_id'])
+        || !empty(array_intersect(['Presales', 'Pre-Sales'], $userRoles))
+        || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
+        || str_contains(strtolower($authUser->email ?? ''), 'akbar')
+        || str_contains(strtolower($authUser->name ?? ''), 'akbar')
+    );
+    $canAssignScope = $authUser && ($isAdmin || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
 @endphp
 
 <script>

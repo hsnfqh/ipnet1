@@ -365,13 +365,21 @@ class ProjectController extends Controller
         if ($validated['role_type'] === 'pm') {
             $authUser = auth()->user();
             $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
-            $isExecutive = \App\Helpers\ScopeHelper::isExecutive($authUser);
-            $canAssignSales = !$isExecutive && $authUser && (
-                !empty(array_intersect(['Sales', 'Account Manager', 'Admin', 'Super Admin', 'Admin Support'], $userRoles))
-                || ($project->created_by == $authUser->id)
-                || ($project->sales_name && str_contains(strtolower($project->sales_name), strtolower($authUser->name)))
+            $userRolesLower = array_map('strtolower', $userRoles);
+            $posLower = strtolower($authUser->position ?? '');
+            $technical = is_array($project->technical_solution) ? $project->technical_solution : (json_decode($project->technical_solution ?? '', true) ?: []);
+            $presalesAssignedId = $technical['presales']['assigned_user_id'] ?? ($project->presales_id ?? null);
+
+            $isAdmin = !empty(array_intersect(['admin', 'super admin', 'admin support'], $userRolesLower));
+            $isPresales = (
+                (!empty($presalesAssignedId) && $authUser && $authUser->id == $presalesAssignedId)
+                || !empty(array_intersect(['presales', 'pre-sales'], $userRolesLower))
+                || str_contains($posLower, 'presales')
+                || str_contains(strtolower($authUser->email ?? ''), 'akbar')
+                || str_contains(strtolower($authUser->name ?? ''), 'akbar')
             );
-            abort_unless($canAssignSales, 403, 'Pemilihan kategori dan serah terima proyek hanya dapat dilakukan oleh Sales pemilik proyek atau Admin.');
+            $canAssignScope = $authUser && ($isAdmin || ($isPresales && empty(array_intersect(['sales', 'account manager'], $userRolesLower))));
+            abort_unless($canAssignScope, 403, 'Penetapan alokasi ruang lingkup proyek kini merupakan wewenang tim Pre-Sales atau Admin.');
 
             $target = $validated['handover_target'] ?? ($project->handover_target ?: 'pmo');
             $updateFields = [

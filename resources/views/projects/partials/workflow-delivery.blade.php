@@ -8,6 +8,23 @@
     $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
     $msHandover = $handoverData['ms_handover'] ?? [];
     $isMsHandedOver = !empty($msHandover['handed_over']);
+
+    // Otorisasi Alokasi Ruang Lingkup: Hak wewenang Pre-Sales Specialist & Admin (Bukan ranah Sales lagi)
+    if (!isset($canAssignScope)) {
+        $authUser = auth()->user();
+        $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
+        $isAdmin = !empty(array_intersect(['Super Admin', 'Admin', 'Admin Support'], $userRoles));
+        $technical = is_array($project->technical_solution) ? $project->technical_solution : (json_decode($project->technical_solution ?? '', true) ?: []);
+        $presalesAssignedId = $technical['presales']['assigned_user_id'] ?? ($project->presales_id ?? null);
+        $isPresalesUser = $authUser && (
+            (!empty($presalesAssignedId) && $authUser->id == $presalesAssignedId)
+            || !empty(array_intersect(['Presales', 'Pre-Sales'], $userRoles))
+            || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
+            || str_contains(strtolower($authUser->email ?? ''), 'akbar')
+            || str_contains(strtolower($authUser->name ?? ''), 'akbar')
+        );
+        $canAssignScope = $authUser && ($isAdmin || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
+    }
 @endphp
 <div class="ipnet-card p-6 space-y-5">
     {{-- Header & Status --}}
@@ -168,29 +185,39 @@
                             <div class="text-[10.5px] text-slate-400">Menunggu seluruh dokumen &amp; solusi teknis diverifikasi oleh PIC BD terlebih dahulu.</div>
                         </div>
                     @else
-                        <div @click.stop="openHandoverModal('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}')"
-                             onclick="event.stopPropagation(); (window.openHandoverModalCustom ? window.openHandoverModalCustom('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}') : window.openModal('modal-handover'))"
-                             class="p-3 rounded-lg bg-amber-50/80 hover:bg-amber-100/80 border border-amber-200 text-amber-900 space-y-1.5 cursor-pointer transition shadow-2xs group">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <div class="w-7 h-7 rounded-lg bg-amber-200/80 text-amber-900 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="font-bold text-amber-900 text-xs flex items-center justify-between">
-                                        <span>Tetapkan Ruang Lingkup Proyek</span>
-                                        <svg class="w-3.5 h-3.5 text-amber-700 opacity-60 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        @if(!empty($canAssignScope))
+                            <div @click.stop="openHandoverModal('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}')"
+                                 onclick="event.stopPropagation(); (window.openHandoverModalCustom ? window.openHandoverModalCustom('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}') : window.openModal('modal-handover'))"
+                                 class="p-3 rounded-lg bg-amber-50/80 hover:bg-amber-100/80 border border-amber-200 text-amber-900 space-y-1.5 cursor-pointer transition shadow-2xs group">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <div class="w-7 h-7 rounded-lg bg-amber-200/80 text-amber-900 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     </div>
-                                    <div class="text-[10.5px] text-amber-800 truncate">Implementasi PMO, Pemeliharaan Managed Service, atau Dual Scope</div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="font-bold text-amber-900 text-xs flex items-center justify-between">
+                                            <span>Tetapkan Ruang Lingkup Proyek</span>
+                                            <svg class="w-3.5 h-3.5 text-amber-700 opacity-60 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </div>
+                                        <div class="text-[10.5px] text-amber-800 truncate">Implementasi PMO, Pemeliharaan Managed Service, atau Dual Scope</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        @else
+                            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 space-y-1">
+                                <div class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Menunggu Penetapan Ruang Lingkup</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-400">Penetapan alur kerja &amp; serah terima PMO dilakukan oleh tim Pre-Sales.</div>
+                            </div>
+                        @endif
                     @endif
                 </div>
 
             </div>
 
-            {{-- Actions Footer --}}
-            @if(!empty($canAssignSales))
+            {{-- Actions Footer: Wewenang Pre-Sales Specialist & Admin (Bukan ranah Sales) --}}
+            @if(!empty($canAssignScope))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isBdApproved)
                         <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu verifikasi solusi teknis disahkan oleh PIC BD">
@@ -206,6 +233,16 @@
                             <span>{{ $project->pm ? 'Perbarui Ruang Lingkup' : 'Tetapkan Ruang Lingkup' }}</span>
                         </button>
                     @endif
+                </div>
+            @else
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    <span class="inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
+                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Wewenang Pre-Sales Specialist
+                    </span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                        Pre-Sales
+                    </span>
                 </div>
             @endif
         </div>
