@@ -15,16 +15,16 @@
         <div class="min-w-0">
             <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-0.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> 
-                ALOKASI KATEGORI &amp; EKSEKUSI PROYEK
+                ALOKASI RUANG LINGKUP &amp; EKSEKUSI PROYEK
             </p>
             <h3 class="text-sm sm:text-base font-bold text-slate-900">
-                Alokasi Tipe Kategori &amp; Eksekusi Proyek
+                Alokasi Lingkup Kerja &amp; Tim Pelaksana Proyek
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">
                 @if($isBoth)
-                    Proyek mencakup 2 Scope: <strong>Fase 1 Implementasi Fisik (PMO)</strong> lalu <strong>Fase 2 Pemeliharaan (Managed Service)</strong>.
+                    Proyek mencakup 2 Tahap: <strong>Fase 1 Implementasi Teknis (PMO)</strong> dilanjutkan <strong>Fase 2 Pemeliharaan Sistem (Managed Service)</strong>.
                 @else
-                    Penetapan alur eksekusi proyek Implementasi atau Managed Service serta penugasan tim pelaksana.
+                    Penetapan alur kerja implementasi atau kontrak managed service serta penunjukan divisi dan penanggung jawab lapangan.
                 @endif
             </p>
         </div>
@@ -58,13 +58,13 @@
             <div class="space-y-1">
                 <div class="font-bold {{ $isMsHandedOver ? 'text-purple-900' : 'text-amber-900' }} flex items-center gap-2">
                     <svg class="w-4 h-4 {{ $isMsHandedOver ? 'text-purple-600' : 'text-amber-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>{{ $isMsHandedOver ? 'Fase 1 (Implementasi) Telah Selesai ✓ - Berjalan di Fase 2 (Managed Service)' : 'Tahap Saat Ini: Fase 1 (Implementasi Fisik & Delivery PMO)' }}</span>
+                    <span>{{ $isMsHandedOver ? 'Fase 1 (Implementasi Teknis) Tuntas ✓ - Berjalan di Fase 2 (Managed Service)' : 'Tahap Saat Ini: Fase 1 (Implementasi Teknis & Delivery PMO)' }}</span>
                 </div>
                 <p class="text-[11.5px] {{ $isMsHandedOver ? 'text-purple-700' : 'text-amber-800' }}">
                     @if($isMsHandedOver)
-                        Diserahterimakan ke Managed Service pada {{ $msHandover['handed_over_at'] ?? '-' }} oleh {{ $msHandover['handed_over_by'] ?? 'PMO' }}. SLA: {{ $project->sla_tier ?: 'Gold (99.5%)' }}.
+                        Diserahterimakan ke Tim Managed Service pada {{ $msHandover['handed_over_at'] ?? '-' }} oleh {{ $msHandover['handed_over_by'] ?? 'PMO' }}. SLA: {{ $project->sla_tier ?: 'Gold (99.5%)' }}.
                     @else
-                        Setelah pemasangan &amp; implementasi teknis tuntas, PMO akan melakukan handover lanjutan ke Tim Managed Service.
+                        Setelah penggelaran &amp; instalasi teknis selesai, PMO akan melakukan serah terima resmi ke Tim Managed Service.
                     @endif
                 </p>
             </div>
@@ -91,36 +91,42 @@
     {{-- Standardized Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs items-stretch">
         
-        {{-- ══ CARD 1: LEAD PMO / KATEGORI PROYEK ══ --}}
+        {{-- ══ CARD 1: LEAD PMO / RUANG LINGKUP PROYEK ══ --}}
         <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
             <div class="space-y-3">
                 
                 {{-- Header --}}
                 <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider whitespace-nowrap">
-                        KATEGORI PROYEK
+                        RUANG LINGKUP PROYEK
                     </span>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $project->pm ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isBdApproved ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
-                        {{ $project->pm ? '✓ Ditugaskan' : ($isBdApproved ? 'Menunggu Kategori' : 'Terkunci') }}
+                        {{ $project->pm ? '✓ Ditetapkan' : ($isBdApproved ? 'Menunggu Penetapan' : 'Terkunci') }}
                     </span>
                 </div>
 
                 {{-- Person --}}
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                        {{ $project->pm ? strtoupper(substr($project->pm->name, 0, 2)) : ($isMs ? 'MT' : 'PM') }}
-                    </div>
+                    @if($project->pm)
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                            {{ strtoupper(substr($project->pm->name, 0, 2)) }}
+                        </div>
+                    @else
+                        <div class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center shrink-0 shadow-2xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        </div>
+                    @endif
                     <div class="min-w-0 flex-1">
-                        <h4 class="font-bold text-xs text-slate-900 truncate" title="{{ $project->pm ? $project->pm->name : '' }}">
+                        <h4 class="font-bold text-xs {{ $project->pm ? 'text-slate-900' : 'text-slate-500 italic' }} truncate" title="{{ $project->pm ? $project->pm->name : '' }}">
                             {{ $project->pm ? $project->pm->name : 'Belum Ditugaskan' }}
                         </h4>
                         <p class="text-[10.5px] text-slate-500 truncate">
                             @if($isBoth)
-                                Lead Project Delivery (PMO - Fase 1)
+                                Project Manager (Fase 1 Delivery)
                             @elseif($isMs)
-                                Lead Maintenance (SLA {{ $project->sla_tier ?: 'Gold' }})
+                                Penanggung Jawab Maintenance (SLA {{ $project->sla_tier ?: 'Gold' }})
                             @else
-                                Lead Project Delivery (PMO)
+                                Project Manager (PMO)
                             @endif
                         </p>
                     </div>
@@ -137,11 +143,11 @@
                                 <div class="min-w-0 flex-1">
                                     <div class="font-bold text-slate-900 text-xs truncate">
                                         @if($isBoth)
-                                            Kategori: Implementasi &amp; Managed Service (Keduanya)
+                                            Lingkup: Implementasi Teknis &amp; Managed Service (Dual Scope)
                                         @elseif($isMs)
-                                            Kategori: Managed Service (Maintenance)
+                                            Lingkup: Kontrak Pemeliharaan (Managed Service)
                                         @else
-                                            Kategori: Implementasi Proyek (PMO)
+                                            Lingkup: Implementasi Teknis Proyek (PMO)
                                         @endif
                                     </div>
                                     <div class="text-[10.5px] text-slate-500 truncate">{{ $project->pm->email }}</div>
@@ -159,7 +165,7 @@
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                 <span>Menunggu Solusi Teknis</span>
                             </div>
-                            <div class="text-[10.5px] text-slate-400">Menunggu seluruh dokumen &amp; solusi teknis disahkan oleh PIC BD terlebih dahulu.</div>
+                            <div class="text-[10.5px] text-slate-400">Menunggu seluruh dokumen &amp; solusi teknis diverifikasi oleh PIC BD terlebih dahulu.</div>
                         </div>
                     @else
                         <div @click.stop="openHandoverModal('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}')"
@@ -171,10 +177,10 @@
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <div class="font-bold text-amber-900 text-xs flex items-center justify-between">
-                                        <span>Pilih Kategori Proyek</span>
+                                        <span>Tetapkan Ruang Lingkup Proyek</span>
                                         <svg class="w-3.5 h-3.5 text-amber-700 opacity-60 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                     </div>
-                                    <div class="text-[10.5px] text-amber-800 truncate">Implementasi ke PMO, Managed Service, atau Keduanya</div>
+                                    <div class="text-[10.5px] text-amber-800 truncate">Implementasi PMO, Pemeliharaan Managed Service, atau Dual Scope</div>
                                 </div>
                             </div>
                         </div>
@@ -189,7 +195,7 @@
                     @if(!$isBdApproved)
                         <button type="button" disabled class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-75 shadow-2xs" title="Terkunci: Menunggu verifikasi solusi teknis disahkan oleh PIC BD">
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                            <span>{{ $project->pm ? 'Ubah Kategori Proyek' : 'Pilih Kategori Proyek' }}</span>
+                            <span>{{ $project->pm ? 'Perbarui Ruang Lingkup' : 'Tetapkan Ruang Lingkup' }}</span>
                         </button>
                     @else
                         <button type="button" 
@@ -197,7 +203,7 @@
                                 onclick="event.stopPropagation(); (window.openHandoverModalCustom ? window.openHandoverModalCustom('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}') : window.openModal('modal-handover'))"
                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer shadow-2xs active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>{{ $project->pm ? 'Ubah Kategori Proyek' : 'Pilih Kategori Proyek' }}</span>
+                            <span>{{ $project->pm ? 'Perbarui Ruang Lingkup' : 'Tetapkan Ruang Lingkup' }}</span>
                         </button>
                     @endif
                 </div>
@@ -218,33 +224,39 @@
                             <span>{{ $project->division->name }}</span>
                         </span>
                     @else
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-amber-50 text-amber-800 border-amber-200">
-                            Menunggu Delegasi
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-slate-100 text-slate-500 border-slate-200">
+                            Belum Ditugaskan
                         </span>
                     @endif
                 </div>
 
                 {{-- Person / Lead --}}
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                        EN
-                    </div>
+                    @if(!empty($project->division_id) && !empty($project->division))
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                            {{ strtoupper(substr($project->division->name, 0, 2)) }}
+                        </div>
+                    @else
+                        <div class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center shrink-0 shadow-2xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                    @endif
                     <div class="min-w-0 flex-1">
-                        <h4 class="font-bold text-xs text-slate-900 truncate">
+                        <h4 class="font-bold text-xs {{ (!empty($project->division_id) && !empty($project->division)) ? 'text-slate-900' : 'text-slate-500 italic' }} truncate">
                             @if(!empty($project->division_id) && !empty($project->division))
                                 @if(str_contains(strtolower($project->division->name), 'net') && !str_contains(strtolower($project->division->name), 'lintas') && !str_contains(strtolower($project->division->name), 'security'))
                                     Nugraha Pratama (Lead Network)
                                 @elseif(str_contains(strtolower($project->division->name), 'sec') && !str_contains(strtolower($project->division->name), 'lintas') && !str_contains(strtolower($project->division->name), 'network'))
                                     Ignatius Rizky (Lead Security)
                                 @else
-                                    Lead Network &amp; Lead Security (Network &amp; Security)
+                                    Lead Network &amp; Lead Security
                                 @endif
                             @else
                                 Belum Didelegasikan ke Divisi
                             @endif
                         </h4>
                         <p class="text-[10.5px] text-slate-500 truncate">
-                            Lead Engineering Delivery &amp; Operational
+                            Koordinator &amp; Tim Operasional Lapangan
                         </p>
                     </div>
                 </div>
@@ -279,7 +291,7 @@
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <div class="font-bold text-amber-900 text-xs">Pilih Divisi Pelaksana</div>
-                                    <div class="text-[10.5px] text-amber-800 truncate">Serahkan wewenang teknis ke Divisi Network, Security, atau Keduanya</div>
+                                    <div class="text-[10.5px] text-amber-800 truncate">Delegasikan wewenang teknis ke Divisi Network, Security, atau Keduanya</div>
                                 </div>
                             </div>
                         </div>
@@ -303,7 +315,7 @@
                             onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer shadow-2xs">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Ubah Divisi Pelaksana' : 'Pilih Divisi Pelaksana' }}</span>
+                        <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Perbarui Divisi Pelaksana' : 'Tetapkan Divisi Pelaksana' }}</span>
                     </button>
                 </div>
             @endif

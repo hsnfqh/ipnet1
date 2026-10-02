@@ -388,18 +388,18 @@
         if (role === 'head') {
             if (headBox) headBox.style.setProperty('display', 'block', 'important');
             if (directorBox) directorBox.style.setProperty('display', 'none', 'important');
-            if (titleEl) titleEl.innerText = 'Assign Review ke Head Divisi (Pak Susanto)';
-            if (submitBtn) submitBtn.innerText = 'Tugaskan ke Head Divisi';
+            if (titleEl) titleEl.innerText = 'Pengajuan Telaah ke Head Divisi (Pak Susanto)';
+            if (submitBtn) submitBtn.innerText = 'Ajukan ke Head Divisi';
         } else if (role === 'director') {
             if (headBox) headBox.style.setProperty('display', 'none', 'important');
             if (directorBox) directorBox.style.setProperty('display', 'block', 'important');
-            if (titleEl) titleEl.innerText = 'Assign Otorisasi ke Direktur (Pak Hariyadi)';
-            if (submitBtn) submitBtn.innerText = 'Tugaskan ke Direktur';
+            if (titleEl) titleEl.innerText = 'Pengajuan Otorisasi ke Direktur (Pak Hariyadi)';
+            if (submitBtn) submitBtn.innerText = 'Ajukan ke Direktur';
         } else {
             if (headBox) headBox.style.setProperty('display', 'block', 'important');
             if (directorBox) directorBox.style.setProperty('display', 'block', 'important');
-            if (titleEl) titleEl.innerText = 'Assign Review ke Pimpinan';
-            if (submitBtn) submitBtn.innerText = 'Tugaskan Sekarang';
+            if (titleEl) titleEl.innerText = 'Pengajuan Telaah ke Pimpinan';
+            if (submitBtn) submitBtn.innerText = 'Ajukan Sekarang';
         }
 
         window.openModal('modal-assign');
@@ -427,16 +427,16 @@
         if (boxArchitect) boxArchitect.style.setProperty('display', role === 'architect' ? 'block' : 'none', 'important');
 
         if (role === 'bdm') {
-            if (titleEl) titleEl.innerText = 'Penunjukan PIC Business Development';
-            if (subtitleEl) subtitleEl.innerText = 'Penetapan Product Manager & Penanggung Jawab Verifikasi Solusi Teknis';
-            if (submitBtn) submitBtn.innerText = 'Simpan Penunjukan PIC BD';
+            if (titleEl) titleEl.innerText = 'Penugasan PIC Business Development';
+            if (subtitleEl) subtitleEl.innerText = 'Penetapan PIC BD untuk Verifikasi Kelayakan Solusi Teknis';
+            if (submitBtn) submitBtn.innerText = 'Simpan Penugasan PIC BD';
         } else if (role === 'presales') {
             if (titleEl) titleEl.innerText = 'Penugasan Pre-Sales Specialist';
             if (subtitleEl) subtitleEl.innerText = 'Penetapan Personel Pre-Sales untuk Penyusunan Proposal & BoQ';
             if (submitBtn) submitBtn.innerText = 'Simpan Penugasan Pre-Sales';
         } else if (role === 'architect') {
             if (titleEl) titleEl.innerText = 'Penugasan Solution Architect';
-            if (subtitleEl) subtitleEl.innerText = 'Penetapan Solution Architect untuk Desain Topologi & Sizing Solusi';
+            if (subtitleEl) subtitleEl.innerText = 'Penetapan Solution Architect untuk Perancangan Arsitektur & Topologi';
             if (submitBtn) submitBtn.innerText = 'Simpan Penugasan Solution Architect';
         }
 
@@ -2668,10 +2668,10 @@
             <div class="flex items-center justify-between border-b pb-3">
                 <div>
                     <h3 id="assign-modal-title" class="text-base font-bold text-slate-900" 
-                        x-text="assignRole === 'head' ? 'Assign Review ke Head Divisi (Pak Susanto)' : (assignRole === 'director' ? 'Assign Otorisasi ke Direktur (Pak Hariyadi)' : 'Assign Review ke Pimpinan')">
-                        Assign Review ke Head Divisi (Pak Susanto)
+                        x-text="assignRole === 'head' ? 'Pengajuan Telaah ke Head Divisi (Pak Susanto)' : (assignRole === 'director' ? 'Pengajuan Otorisasi ke Direktur (Pak Hariyadi)' : 'Pengajuan Telaah ke Pimpinan')">
+                        Pengajuan Telaah ke Head Divisi (Pak Susanto)
                     </h3>
-                    <p class="text-[11.5px] text-slate-500 mt-0.5">Tugaskan peninjauan draft proyek ke pimpinan yang berwenang</p>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Ajukan penelaahan draft proyek ke pimpinan yang berwenang</p>
                 </div>
                 <button type="button" @click="isAssignModalOpen = false; window.closeModal('modal-assign')" onclick="window.closeModal('modal-assign')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -2879,7 +2879,7 @@
                         @endforeach
                     </select>
                     <span class="text-[10.5px] text-slate-500 leading-relaxed block">
-                        PIC BD yang ditunjuk akan menerima notifikasi dan bertanggung jawab memverifikasi kelayakan solusi teknis sebelum diajukan ke tahap serah terima.
+                        PIC Business Development yang ditugaskan akan menerima notifikasi dan bertanggung jawab menelaah kelayakan teknis sebelum proyek berlanjut ke alokasi eksekusi.
                     </span>
                 </div>
 
