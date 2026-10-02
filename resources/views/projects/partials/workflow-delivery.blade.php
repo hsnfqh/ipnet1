@@ -28,8 +28,8 @@
 @endphp
 <div class="ipnet-card p-6 space-y-5">
     {{-- Header & Status --}}
-    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 flex-wrap">
-        <div class="min-w-0">
+    <div class="flex items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <div class="min-w-0 flex-1">
             <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-0.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> 
                 ALOKASI RUANG LINGKUP &amp; EKSEKUSI PROYEK
@@ -46,27 +46,29 @@
             </p>
         </div>
         
-        @if($isBoth)
-            <div class="flex items-center gap-2">
-                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold {{ $isMsHandedOver ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-amber-50 text-amber-800 border border-amber-200' }} flex items-center gap-1.5 shadow-2xs">
-                    <span class="w-2 h-2 rounded-full {{ $isMsHandedOver ? 'bg-purple-600' : 'bg-amber-500' }}"></span>
-                    <span>{{ $isMsHandedOver ? 'Fase 2: Managed Service Aktif' : 'Fase 1: Implementasi PMO Berjalan' }}</span>
+        <div class="shrink-0 flex items-center">
+            @if($isBoth)
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold {{ $isMsHandedOver ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-amber-50 text-amber-800 border border-amber-200' }} flex items-center gap-1.5 shadow-2xs">
+                        <span class="w-2 h-2 rounded-full {{ $isMsHandedOver ? 'bg-purple-600' : 'bg-amber-500' }}"></span>
+                        <span>{{ $isMsHandedOver ? 'Fase 2: Managed Service Aktif' : 'Fase 1: Implementasi PMO Berjalan' }}</span>
+                    </span>
+                    <span class="px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        Dual Scope
+                    </span>
+                </div>
+            @elseif($project->pm)
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>{{ $isMs ? 'Managed Service Terkonfirmasi' : 'Implementasi PMO Terkonfirmasi' }}</span>
                 </span>
-                <span class="px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                    Dual Scope
+            @elseif(!$isBdApproved)
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    <span>Menunggu Solusi Teknis</span>
                 </span>
-            </div>
-        @elseif($project->pm)
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 shadow-2xs shrink-0 whitespace-nowrap">
-                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                <span>{{ $isMs ? 'Managed Service Terkonfirmasi' : 'Implementasi PMO Terkonfirmasi' }}</span>
-            </span>
-        @elseif(!$isBdApproved)
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5 shadow-2xs shrink-0 whitespace-nowrap">
-                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                <span>Menunggu Solusi Teknis</span>
-            </span>
-        @endif
+            @endif
+        </div>
     </div>
 
     {{-- DUAL SCOPE PROGRESSION BANNER (FOR 'both') --}}
