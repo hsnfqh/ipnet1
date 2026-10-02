@@ -269,7 +269,7 @@
                             <span id="fileNameText">Berkas terpilih</span>
                         </div>
                     </div>
-                    <input type="file" id="pdfInput" name="document_file" accept="application/pdf" class="hidden" onchange="handleFileSelected(this)">
+                    <input type="file" id="pdfInput" name="document_file" accept=".pdf,application/pdf" class="hidden" onchange="handleFileSelected(this)">
                 </div>
 
                 {{-- Mode 2: Input Manual Nomor Dokumen --}}
