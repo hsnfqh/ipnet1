@@ -5,34 +5,46 @@ namespace App\Services;
 use App\Models\ActivityDocumentSignature;
 use App\Models\EngineerActivityLog;
 use Illuminate\Support\Str;
-use Smalot\PdfParser\Parser;
 
 class DocumentDiscrepancyService
 {
     /**
      * Ekstrak seluruh teks dari konten binary PDF menggunakan Smalot PDF Parser
-     * dengan fallback ke regex stream extraction jika parser gagal.
+     * dengan fallback ke internal stream parser jika parser luar tidak tersedia/gagal.
      */
     public function extractTextFromPdf(string $pdfContent): string
     {
         $text = '';
 
-        try {
-            $parser = new Parser();
-            $pdf = $parser->parseContent($pdfContent);
-            $text = $pdf->getText();
-        } catch (\Throwable $e) {
-            // Abaikan error dan lanjut ke fallback parser
+        if (class_exists(\Smalot\PdfParser\Parser::class)) {
+            try {
+                $parser = new \Smalot\PdfParser\Parser();
+                $pdf = $parser->parseContent($pdfContent);
+                $text = $pdf->getText();
+            } catch (\Throwable $e) {
+                // Lanjut ke fallback internal jika parser error
+            }
         }
 
-        // Fallback jika parser smalot menghasilkan string kosong
+        // Fallback internal jika parser smalot tidak ada atau menghasilkan string kosong
         if (empty(trim($text))) {
             if (preg_match_all('/stream[\r\n]+(.*?)[\r\n]+endstream/s', $pdfContent, $matches)) {
-                foreach ($matches[1] as $stream) {
+                // Bangun CMap internal sederhana untuk stream heksadesimal
+                $cmaps = [];
+                foreach ($matches[1] as $idx => $stream) {
+                    $uncomp = @gzuncompress($stream);
+                    if ($uncomp && strpos($uncomp, '/Adobe-Identity-UCS') !== false) {
+                        $cmaps[$idx] = $this->parseInternalCMap($uncomp);
+                    }
+                }
+
+                foreach ($matches[1] as $idx => $stream) {
                     $data = @gzuncompress($stream);
                     if ($data === false) {
                         $data = $stream;
                     }
+
+                    // 1. Literal ASCII
                     if (preg_match_all('/\((.*?)\)\s*(?:Tj|\'|\")/s', $data, $textMatches)) {
                         $text .= ' ' . implode(' ', $textMatches[1]);
                     }
@@ -43,11 +55,65 @@ class DocumentDiscrepancyService
                             }
                         }
                     }
+
+                    // 2. Hexadecimal Unicode (<00410042> Tj)
+                    if (!empty($cmaps) && preg_match_all('/<([0-9a-fA-F]+)>\s*(?:Tj|TJ)/', $data, $hexMatches)) {
+                        foreach ($hexMatches[1] as $hex) {
+                            $decodedWord = '';
+                            for ($i = 0; $i < strlen($hex); $i += 4) {
+                                $charHex = substr($hex, $i, 4);
+                                $val = hexdec($charHex);
+                                $ch = null;
+                                foreach ($cmaps as $map) {
+                                    if (isset($map[$val])) {
+                                        $ch = $map[$val];
+                                        break;
+                                    }
+                                }
+                                $decodedWord .= $ch ?? ' ';
+                            }
+                            $text .= ' ' . $decodedWord;
+                        }
+                    }
                 }
             }
         }
 
-        return trim($text);
+        return trim(preg_replace('/\s+/', ' ', $text));
+    }
+
+    /**
+     * Parser sederhana untuk Adobe-Identity-UCS CMap
+     */
+    protected function parseInternalCMap(string $cmapText): array
+    {
+        $map = [];
+        if (preg_match_all('/beginbfchar\s*(.*?)\s*endbfchar/s', $cmapText, $charSections)) {
+            foreach ($charSections[1] as $section) {
+                if (preg_match_all('/<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>/', $section, $m, PREG_SET_ORDER)) {
+                    foreach ($m as $match) {
+                        $src = hexdec($match[1]);
+                        $dstCode = hexdec($match[2]);
+                        $map[$src] = mb_chr($dstCode, 'UTF-8');
+                    }
+                }
+            }
+        }
+        if (preg_match_all('/beginbfrange\s*(.*?)\s*endbfrange/s', $cmapText, $rangeSections)) {
+            foreach ($rangeSections[1] as $section) {
+                if (preg_match_all('/<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>\s*<([0-9a-fA-F]+)>/', $section, $m, PREG_SET_ORDER)) {
+                    foreach ($m as $match) {
+                        $start = hexdec($match[1]);
+                        $end = hexdec($match[2]);
+                        $destStart = hexdec($match[3]);
+                        for ($c = $start; $c <= $end; $c++) {
+                            $map[$c] = mb_chr($destStart + ($c - $start), 'UTF-8');
+                        }
+                    }
+                }
+            }
+        }
+        return $map;
     }
 
     /**
@@ -126,6 +192,7 @@ class DocumentDiscrepancyService
                 'uploaded_hash'  => $uploadedHash,
                 'document'       => null,
                 'discrepancies'  => [],
+                'total_discrepancies' => 0,
             ];
         }
 
@@ -142,6 +209,7 @@ class DocumentDiscrepancyService
                 'uploaded_hash'   => $uploadedHash,
                 'document'        => null,
                 'discrepancies'   => [],
+                'total_discrepancies' => 0,
             ];
         }
 
@@ -204,14 +272,15 @@ class DocumentDiscrepancyService
             ];
         }
 
-        // 3. Uji Keabsahan Baris demi Baris Tabel Aktivitas
+        // 3. Uji Keabsahan Baris demi Baris Tabel Aktivitas secara Fleksibel
         $uploadedRows = [];
-        if (preg_match('/No\s+Tanggal\s+Uraian\s+Aktivitas.*?Notes\s+(.*?)\s+TOTAL AKTIVITAS/si', $extractedText, $tableMatch)) {
-            preg_match_all('/(\d+)\s+(\d{2}\/\d{2}\/\d{4})\s+(.+?)(?=(?:\r?\n\s*\d+\s+\d{2}\/\d{2}\/\d{4})|$)/s', trim($tableMatch[1]), $rMatches, PREG_SET_ORDER);
+        preg_match_all('/(?:^|\n|\s)\s*(\d{1,3})\s+(\d{2}[\/\-]\d{2}[\/\-]\d{4})\s+(.+?)(?=(?:\s+\d{1,3}\s+\d{2}[\/\-]\d{2}[\/\-]\d{4})|\s*(?:TOTAL|Diperiksa|Mengetahui|Jakarta|Dibuat)|$)/si', $extractedText, $rMatches, PREG_SET_ORDER);
+
+        if (!empty($rMatches)) {
             foreach ($rMatches as $rm) {
                 $uploadedRows[(int)$rm[1]] = [
                     'date' => trim($rm[2]),
-                    'raw'  => trim($rm[3]),
+                    'raw'  => trim(preg_replace('/\s+/', ' ', $rm[3])),
                 ];
             }
         }
@@ -287,7 +356,7 @@ class DocumentDiscrepancyService
                     ];
                 }
             } else {
-                // Fallback jika pemisahan baris tabel tidak terurai spesifik
+                // Fallback jika baris individual tidak terdeteksi
                 if (!empty($normalizedDesc) && !str_contains($extractedText, $normalizedDesc)) {
                     $discrepancies[] = [
                         'field'         => "Catatan Aktivitas No. {$activityIndex}",
@@ -315,6 +384,7 @@ class DocumentDiscrepancyService
             'official_activities' => $officialActivities,
             'official_hash'       => $document->verification_hash,
             'uploaded_hash'       => $uploadedHash,
+            'is_hash_identical'   => ($uploadedHash === $document->verification_hash),
             'discrepancies'       => $discrepancies,
             'total_discrepancies' => count($discrepancies),
             'extracted_text_snippet' => substr($extractedText, 0, 300) . '...',

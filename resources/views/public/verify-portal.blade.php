@@ -243,7 +243,7 @@
             </div>
 
             {{-- Form Audit Dokumen --}}
-            <form action="{{ route('public.verify.inspect') }}" method="POST" enctype="multipart/form-data">
+            <form id="verifyForm" action="{{ route('public.verify.inspect') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 {{-- Mode 1: Upload File PDF Dropzone --}}
@@ -294,7 +294,7 @@
                 </div>
 
                 {{-- Action Button --}}
-                <button type="submit" class="w-full mt-4 py-3 px-5 rounded-xl font-bold text-[13.5px] text-white flex items-center justify-center gap-2 ipnet-login-btn cursor-pointer">
+                <button type="submit" id="submitInspectBtn" class="w-full mt-4 py-3 px-5 rounded-xl font-bold text-[13.5px] text-white flex items-center justify-center gap-2 ipnet-login-btn cursor-pointer">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
@@ -555,10 +555,28 @@
         dropzone.addEventListener('drop', (e) => {
             const dt = e.dataTransfer;
             const files = dt.files;
-            if (files && files[0] && files[0].type === 'application/pdf') {
+            if (files && files[0] && (files[0].type === 'application/pdf' || files[0].name.toLowerCase().endsWith('.pdf'))) {
                 const input = document.getElementById('pdfInput');
                 input.files = files;
                 handleFileSelected(input);
+            }
+        });
+    }
+
+    // Submit loading state
+    const verifyForm = document.getElementById('verifyForm');
+    if (verifyForm) {
+        verifyForm.addEventListener('submit', function() {
+            const btn = document.getElementById('submitInspectBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Menguji Keabsahan &amp; Integritas Dokumen...</span>
+                `;
             }
         });
     }

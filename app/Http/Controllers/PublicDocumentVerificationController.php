@@ -24,17 +24,18 @@ class PublicDocumentVerificationController extends Controller
     {
         $prefillDocNumber = $request->get('doc', '');
         $document = null;
+        $result = session('inspection_result') ?? null;
 
-        if ($prefillDocNumber) {
+        if ($prefillDocNumber && !$result) {
             $document = ActivityDocumentSignature::with(['project', 'picUser', 'leadUser'])
                 ->where('document_number', $prefillDocNumber)
                 ->first();
         }
 
         return view('public.verify-portal', [
-            'prefillDocNumber' => $prefillDocNumber,
-            'document'         => $document,
-            'result'           => null,
+            'prefillDocNumber' => $prefillDocNumber ?: ($result['document_number'] ?? ''),
+            'document'         => $document ?: ($result['document'] ?? null),
+            'result'           => $result,
         ]);
     }
 
@@ -43,6 +44,11 @@ class PublicDocumentVerificationController extends Controller
      */
     public function inspect(Request $request)
     {
+        // Tangani jika ada request via GET (misal: refresh F5 browser di /verify/inspect)
+        if ($request->isMethod('get')) {
+            return $this->index($request);
+        }
+
         $request->validate([
             'document_file'   => 'nullable|file|mimes:pdf|max:10240', // Max 10MB
             'pdf_file'        => 'nullable|file|mimes:pdf|max:10240',
@@ -85,6 +91,7 @@ class PublicDocumentVerificationController extends Controller
                     'official_activities' => $activities,
                     'official_hash'       => $document->verification_hash,
                     'uploaded_hash'       => null,
+                    'is_hash_identical'   => null,
                     'discrepancies'       => [],
                     'total_discrepancies' => 0,
                 ];
@@ -96,15 +103,19 @@ class PublicDocumentVerificationController extends Controller
                     'document_number'     => $docNumber,
                     'document'            => null,
                     'discrepancies'       => [],
+                    'total_discrepancies' => 0,
                 ];
             }
         } else {
-            return redirect()->back()->with('error', 'Silakan pilih berkas PDF dokumen atau masukkan nomor dokumen untuk diuji keabsahannya.');
+            return redirect()->route('public.verify.index')->with('error', 'Silakan pilih berkas PDF dokumen atau masukkan nomor dokumen untuk diuji keabsahannya.');
         }
 
-        if ($request->wantsJson()) {
+        if ($request->wantsJson() || $request->ajax()) {
             return response()->json($result);
         }
+
+        // Simpan ke session flash agar tidak hilang jika di-refresh
+        session()->flash('inspection_result', $result);
 
         return view('public.verify-portal', [
             'prefillDocNumber' => $request->input('document_number', $result['document_number'] ?? ''),
