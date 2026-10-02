@@ -1010,7 +1010,6 @@
                         foreach ($documentTemplates as $tpl) {
                             $docsByCode[$tpl['code']] = [];
                         }
-                        $otherDocs = [];
 
                         foreach ($uploadedDocs as $doc) {
                             $matchedCode = null;
@@ -1046,9 +1045,21 @@
                                 }
                             }
 
-                            // 3. Fallback pencocokan dokumen yang sudah ada sebelumnya
+                            // 3. Fallback pencocokan dokumen (Khusus berkas Solusi / SA / Topologi / Proposal langsung masuk ke PRP)
                             if (!$matchedCode) {
-                                if (str_contains($docTitle, 'proposal') || str_contains($fileName, 'proposal')) {
+                                if (
+                                    str_contains($docTitle, 'proposal') || 
+                                    str_contains($fileName, 'proposal') ||
+                                    str_contains($docTitle, 'topologi') ||
+                                    str_contains($docTitle, 'arsitektur') ||
+                                    str_contains($docTitle, 'sizing') ||
+                                    str_contains($fileName, 'topologi') ||
+                                    str_contains($fileName, 'arsitektur') ||
+                                    str_contains($docKeyUpper, 'SOLUTION_ARCHITECTURE') ||
+                                    str_contains($docKeyUpper, 'TECHNICAL_PROPOSAL') ||
+                                    str_contains($docTypeUpper, 'TOPOLOGY') ||
+                                    ($doc->stage_name === 'Solution')
+                                ) {
                                     $matchedCode = 'PRP';
                                 } elseif (str_contains($docTitle, 'serah terima') || str_contains($fileName, 'bast')) {
                                     $matchedCode = 'BAST';
@@ -1076,13 +1087,16 @@
                                     $matchedCode = 'INF';
                                 } elseif (str_contains($docTitle, 'project') && !str_contains($docTitle, 'lampiran')) {
                                     $matchedCode = 'PRJ';
+                                } else {
+                                    // Sesuai permintaan, berkas lampiran lainnya langsung dimasukkan ke Dokumen Proposal (PRP)
+                                    $matchedCode = 'PRP';
                                 }
                             }
 
                             if ($matchedCode && isset($docsByCode[$matchedCode])) {
                                 $docsByCode[$matchedCode][] = $doc;
                             } else {
-                                $otherDocs[] = $doc;
+                                $docsByCode['PRP'][] = $doc;
                             }
                         }
 
@@ -1290,9 +1304,15 @@
                                                             <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                             </div>
-                                                            <div class="min-w-0">
-                                                                <span class="font-semibold text-[13px] text-slate-800 truncate block">{{ $doc->file_name ?? $doc->document_title }}</span>
-                                                                <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                                                            <div class="min-w-0 flex-1 pr-2">
+                                                                <span class="font-semibold text-[13px] text-slate-800 truncate block">
+                                                                    {{ $doc->document_title ?: ($doc->name ?: $doc->file_name) }}
+                                                                </span>
+                                                                <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5 truncate">
+                                                                    @if(!empty($doc->document_title) && $doc->document_title !== $doc->file_name)
+                                                                        <span class="text-slate-500 font-mono truncate max-w-[240px]" title="{{ $doc->file_name }}">{{ $doc->file_name }}</span>
+                                                                        <span class="text-slate-300">•</span>
+                                                                    @endif
                                                                     <span>{{ $doc->formatted_file_size }}</span>
                                                                     @if($doc->created_at)
                                                                         <span class="text-slate-300">•</span>
@@ -1300,7 +1320,7 @@
                                                                     @endif
                                                                     @if($doc->notes)
                                                                         <span class="text-slate-300">•</span>
-                                                                        <span class="italic text-slate-500 truncate max-w-[180px]">{{ $doc->notes }}</span>
+                                                                        <span class="italic text-slate-500 truncate max-w-[180px]" title="{{ $doc->notes }}">{{ $doc->notes }}</span>
                                                                     @endif
                                                                 </div>
                                                             </div>
@@ -1419,51 +1439,7 @@
                             @endforeach
                         </div>
 
-                        {{-- Lampiran Lainnya (Arsip berkas terdahulu yang tidak masuk dalam 14 kode standar) --}}
-                        @if(count($otherDocs) > 0)
-                            <div x-data="{ isOtherOpen: false }" class="mt-4 border border-dashed border-slate-300 rounded-xl overflow-hidden bg-slate-50/50">
-                                <button type="button" 
-                                        @click="isOtherOpen = !isOtherOpen" 
-                                        class="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-slate-100/60 transition cursor-pointer">
-                                    <div class="flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-                                        <span class="text-xs font-bold text-slate-700">Berkas Lampiran Tambahan Lainnya</span>
-                                        <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-slate-200 text-slate-700">
-                                            {{ count($otherDocs) }} Berkas
-                                        </span>
-                                    </div>
-                                    <svg class="w-4 h-4 text-slate-500 transition-transform duration-200" :class="{ 'rotate-180': isOtherOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                </button>
-                                <div x-show="isOtherOpen" x-cloak class="p-4 border-t border-slate-200 space-y-2 bg-white">
-                                    @foreach($otherDocs as $doc)
-                                        <div class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
-                                            <div class="flex items-center gap-2.5 min-w-0">
-                                                <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                </div>
-                                                <div class="min-w-0">
-                                                    <span class="font-semibold text-[13px] text-slate-800 truncate block">{{ $doc->document_title ?? ($doc->name ?? 'Lampiran') }}</span>
-                                                    <span class="text-[11px] text-slate-400 block">{{ $doc->file_name }} <span class="text-slate-300">•</span> {{ $doc->formatted_file_size }}</span>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center gap-1.5 shrink-0">
-                                                <a href="{{ route('projects.documents.download', [$project->id, $doc->id]) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shadow-2xs">
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                    <span>Unduh</span>
-                                                </a>
-                                                <form action="{{ route('projects.documents.delete', [$project->id, $doc->id]) }}" method="POST" onsubmit="return confirm('Hapus berkas ini?')" class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
+                    </div>
 
                     </div>
 

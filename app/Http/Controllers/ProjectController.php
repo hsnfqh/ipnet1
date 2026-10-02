@@ -1079,7 +1079,7 @@ class ProjectController extends Controller
         }
 
         $roleKey = $validated['role_type'];
-        $defaultDocKey = ($roleKey === 'presales') ? 'technical_proposal' : 'solution_architecture';
+        $defaultDocKey = ($roleKey === 'presales') ? 'lampiran_PRP' : 'lampiran_PRP_topology';
         $defaultDocTitle = ($roleKey === 'presales') ? 'Proposal Teknis & BoQ' : 'Desain Arsitektur & Topologi';
         $docTitle = $validated['document_title'] ?: $defaultDocTitle;
 
@@ -1116,7 +1116,7 @@ class ProjectController extends Controller
                     $docPayload['name'] = $origName;
                 }
                 if (\Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'document_type')) {
-                    $docPayload['document_type'] = ($roleKey === 'presales' ? 'Technical Proposal' : 'Topology & Sizing');
+                    $docPayload['document_type'] = 'PRP';
                 }
                 \App\Models\ProjectDocument::create($docPayload);
             }
