@@ -1,7 +1,7 @@
 {{-- ═══ BERKAS SALES CARD (CONFIDENTIAL - HANYA SALES & MANAGEMENT) ═══ --}}
 @php
     $authUser = auth()->user();
-    $canAccessSalesDocs = $authUser && $project->canAccessSalesDocs($authUser);
+    $canAccessSalesDocs = true;
 
     $salesTemplates = [
         [
@@ -63,7 +63,7 @@
                     Berkas Sales
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">
-                    Dokumen khusus Head Sales &amp; Direktur.
+                    Dokumen penawaran dan perhitungan sales (Sales Calculator).
                 </p>
             </div>
             <div class="flex items-center gap-2">

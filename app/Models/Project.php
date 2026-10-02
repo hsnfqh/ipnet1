@@ -379,40 +379,7 @@ class Project extends Model
      */
     public function canAccessSalesDocs($user = null): bool
     {
-        $user = $user ?: auth()->user();
-        if (!$user) return false;
-
-        $userRoles = method_exists($user, 'roles') ? $user->roles->pluck('name')->toArray() : [];
-
-        // 1. Direktur / Pimpinan Eksekutif / Super Admin
-        if (!empty(array_intersect([
-            'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Super Admin', 'Admin'
-        ], $userRoles))) {
-            return true;
-        }
-
-        // 2. Head Sales (Group Leader Commercial & Solution / Head of Sales)
-        if (!empty(array_intersect([
-            'Group Leader Commercial & Solution', 'Head Sales', 'Head of Sales', 'Lead Sales', 'Commercial Head'
-        ], $userRoles))) {
-            return true;
-        }
-
-        // 3. Otorisasi Pimpinan Eksekutif & Head Sales (Berdasarkan Nama & Email)
-        $lowerName = strtolower($user->name ?? '');
-        $lowerEmail = strtolower($user->email ?? '');
-
-        // Direktur (Pak Hariyadi, Pak Susanto)
-        if (str_contains($lowerName, 'santoso') || str_contains($lowerName, 'susanto') || str_contains($lowerName, 'hari') || str_contains($lowerName, 'hary')) {
-            return true;
-        }
-
-        // Head Sales (Farhan Ramadhan / gl.commercial)
-        if (str_contains($lowerName, 'farhan') || str_contains($lowerEmail, 'gl.commercial')) {
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
     public function clientModel()
