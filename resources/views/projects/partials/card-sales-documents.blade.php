@@ -48,7 +48,7 @@
 
 @if($canAccessSalesDocs)
     <div x-data="{ 
-            openSalesItems: { 'SC': true },
+            openSalesItems: {},
             toggleSalesItem(code) {
                 this.openSalesItems[code] = !this.openSalesItems[code];
             }
