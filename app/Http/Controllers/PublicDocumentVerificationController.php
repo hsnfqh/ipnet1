@@ -45,17 +45,20 @@ class PublicDocumentVerificationController extends Controller
     {
         $request->validate([
             'document_file'   => 'nullable|file|mimes:pdf|max:10240', // Max 10MB
+            'pdf_file'        => 'nullable|file|mimes:pdf|max:10240',
             'document_number' => 'nullable|string|max:50',
         ]);
 
         $result = null;
 
-        if ($request->hasFile('document_file')) {
-            $file = $request->file('document_file');
-            $pdfContent = file_get_contents($file->getRealPath());
-            $manualDocNumber = $request->input('document_number');
+        $file = $request->file('document_file') ?? $request->file('pdf_file');
 
-            $result = $this->discrepancyService->inspect($pdfContent, $manualDocNumber);
+        if ($file) {
+            $pdfContent       = file_get_contents($file->getRealPath());
+            $manualDocNumber  = $request->input('document_number');
+            $originalFilename = $file->getClientOriginalName();
+
+            $result = $this->discrepancyService->inspect($pdfContent, $manualDocNumber, $originalFilename);
         } elseif ($request->filled('document_number')) {
             $docNumber = trim($request->input('document_number'));
             $document = ActivityDocumentSignature::with(['project', 'picUser', 'leadUser'])
@@ -96,7 +99,7 @@ class PublicDocumentVerificationController extends Controller
                 ];
             }
         } else {
-            return redirect()->back()->with('error', 'Silakan pilih file PDF dokumen atau masukkan nomor dokumen untuk diverifikasi.');
+            return redirect()->back()->with('error', 'Silakan pilih berkas PDF dokumen atau masukkan nomor dokumen untuk diuji keabsahannya.');
         }
 
         if ($request->wantsJson()) {
@@ -104,7 +107,7 @@ class PublicDocumentVerificationController extends Controller
         }
 
         return view('public.verify-portal', [
-            'prefillDocNumber' => $request->input('document_number', ''),
+            'prefillDocNumber' => $request->input('document_number', $result['document_number'] ?? ''),
             'document'         => $result['document'] ?? null,
             'result'           => $result,
         ]);

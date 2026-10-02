@@ -198,6 +198,32 @@
             {{-- Flowing Red Shimmer Rim Beam at Top of Card --}}
             <div class="absolute top-0 left-0 right-0 h-[4px] card-top-rim"></div>
 
+            {{-- Alert Notifikasi / Feedback --}}
+            @if(session('error'))
+                <div class="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[12.5px] flex items-center gap-2.5">
+                    <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
+            @if(isset($errors) && $errors->any())
+                <div class="mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[12.5px]">
+                    <div class="font-bold mb-1 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Terdapat kesalahan input:
+                    </div>
+                    <ul class="list-disc list-inside text-[11.5px] text-rose-700 space-y-0.5">
+                        @foreach($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             {{-- Segmented Navigation Tabs --}}
             <div class="bg-[#F1F5F9] p-1.5 rounded-2xl flex gap-1 mb-5 border border-[#E2E8F0]">
                 <button type="button" id="tabUploadBtn" onclick="switchVerificationTab('upload')"
@@ -223,7 +249,7 @@
                 {{-- Mode 1: Upload File PDF Dropzone --}}
                 <div id="uploadSection" class="transition-all">
                     <div id="dropzoneBox" onclick="document.getElementById('pdfInput').click()"
-                         class="border-2 border-dashed border-[#CBD5E1] hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-rose-50/30 rounded-2xl p-5 sm:p-7 text-center cursor-pointer transition-all duration-200 group flex flex-col items-center justify-center">
+                          class="border-2 border-dashed border-[#CBD5E1] hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-rose-50/30 rounded-2xl p-5 sm:p-7 text-center cursor-pointer transition-all duration-200 group flex flex-col items-center justify-center">
                         <div class="w-12 h-12 rounded-xl bg-[#8F0A0D]/10 text-[#8F0A0D] group-hover:bg-[#8F0A0D] group-hover:text-white flex items-center justify-center mb-2.5 transition-colors duration-200 shadow-sm">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -243,7 +269,7 @@
                             <span id="fileNameText">Berkas terpilih</span>
                         </div>
                     </div>
-                    <input type="file" id="pdfInput" name="pdf_file" accept="application/pdf" class="hidden" onchange="handleFileSelected(this)">
+                    <input type="file" id="pdfInput" name="document_file" accept="application/pdf" class="hidden" onchange="handleFileSelected(this)">
                 </div>
 
                 {{-- Mode 2: Input Manual Nomor Dokumen --}}
