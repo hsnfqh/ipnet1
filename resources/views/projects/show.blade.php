@@ -2995,72 +2995,193 @@
     <div id="modal-verify-technical" x-show="isVerifyTechnicalModalOpen" x-cloak 
          @click.self="isVerifyTechnicalModalOpen = false; window.closeModal('modal-verify-technical')"
          onclick="if(event.target === this) window.closeModal('modal-verify-technical')"
-         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
         <div @click.stop 
-             class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+             x-data="{ verifyDecision: 'approved' }"
+             class="relative bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-100 overflow-hidden m-auto animate-in fade-in zoom-in-95 duration-200">
             
-            <div class="flex items-center justify-between border-b pb-3">
-                <div>
-                    <h3 class="text-base font-bold text-slate-900">Verifikasi Kelayakan Dokumen Solusi</h3>
-                    <p class="text-[11.5px] text-slate-500 mt-0.5">Tinjau kesiapan proposal teknis, BoQ, dan desain topologi</p>
+            {{-- Header Modal --}}
+            <div class="px-6 py-4.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-[#8F0A0D] shadow-2xs shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 leading-tight">Verifikasi Kelayakan Dokumen Solusi</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Tinjau kesiapan proposal teknis, BoQ, dan desain topologi</p>
+                    </div>
                 </div>
-                <button type="button" @click="isVerifyTechnicalModalOpen = false; window.closeModal('modal-verify-technical')" onclick="window.closeModal('modal-verify-technical')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
+                <button type="button" @click="isVerifyTechnicalModalOpen = false; window.closeModal('modal-verify-technical')" onclick="window.closeModal('modal-verify-technical')" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
 
-            <form action="{{ route('projects.verify_technical', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold">
+            <form action="{{ route('projects.verify_technical', $project->id) }}" method="POST" class="p-6 space-y-5 text-xs">
                 @csrf
 
                 {{-- Ringkasan Berkas yang Terunggah --}}
-                <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-[11.5px]">
-                    <div class="font-bold text-slate-800 text-xs">Berkas yang Divalidasi:</div>
+                <div class="space-y-2.5">
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-600">Proposal &amp; BoQ (Pre-Sales):</span>
-                        <span class="font-bold {{ $isPresalesDone ? 'text-emerald-700' : 'text-amber-700' }}">
-                            {{ $isPresalesDone ? ($presalesAssignment['document_name'] ?? 'Terunggah') : 'Belum Terunggah' }}
-                        </span>
+                        <label class="block text-slate-700 font-bold uppercase tracking-wider text-[10.5px]">BERKAS YANG DIVALIDASI</label>
+                        <span class="text-[11px] text-slate-400 font-medium">2 Dokumen Deliverable</span>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-600">Desain Topologi (Solution Architect):</span>
-                        <span class="font-bold {{ $isArchitectDone ? 'text-emerald-700' : 'text-amber-700' }}">
-                            {{ $isArchitectDone ? ($architectAssignment['document_name'] ?? 'Terunggah') : 'Belum Terunggah' }}
-                        </span>
+
+                    {{-- Document 1: Proposal & BoQ (Pre-Sales) --}}
+                    <div class="p-3.5 bg-slate-50/80 hover:bg-slate-50 rounded-xl border border-slate-200/80 transition flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl {{ $isPresalesDone ? 'bg-emerald-100/70 text-emerald-700 border border-emerald-200/60' : 'bg-amber-100/70 text-amber-700 border border-amber-200/60' }} flex items-center justify-center shrink-0 shadow-2xs">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-bold text-slate-900 text-xs">Proposal Teknis &amp; BoQ</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9.5px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+                                        Pre-Sales: {{ $presalesAssignment['assigned_to'] ?? 'Pre-Sales Specialist' }}
+                                    </span>
+                                </div>
+                                @if($isPresalesDone)
+                                    <div class="text-[11px] font-mono text-slate-600 truncate mt-1 max-w-[240px] sm:max-w-[320px]" title="{{ $presalesAssignment['document_name'] ?? 'Dokumen Proposal' }}">
+                                        📄 {{ $presalesAssignment['document_name'] ?? 'Dokumen Proposal Terlampir' }}
+                                    </div>
+                                @else
+                                    <div class="text-[11px] text-amber-600 font-medium flex items-center gap-1 mt-1">
+                                        <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                        Belum diunggah oleh Pre-Sales
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="shrink-0 flex items-center gap-1.5">
+                            @if($isPresalesDone && !empty($presalesAssignment['document_path']))
+                                <a href="{{ \App\Helpers\FileUploadHelper::url($presalesAssignment['document_path']) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-100 hover:text-[#8F0A0D] border border-slate-200 shadow-2xs transition">
+                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <span>Lihat</span>
+                                </a>
+                            @else
+                                <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Belum Ada</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Document 2: SA Topology & Design --}}
+                    <div class="p-3.5 bg-slate-50/80 hover:bg-slate-50 rounded-xl border border-slate-200/80 transition flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl {{ $isArchitectDone ? 'bg-sky-100/70 text-sky-700 border border-sky-200/60' : 'bg-amber-100/70 text-amber-700 border border-amber-200/60' }} flex items-center justify-center shrink-0 shadow-2xs">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-bold text-slate-900 text-xs">Desain Arsitektur &amp; Topologi</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9.5px] font-semibold bg-sky-50 text-sky-700 border border-sky-200/60">
+                                        Architect: {{ $architectAssignment['assigned_to'] ?? 'Solution Architect' }}
+                                    </span>
+                                </div>
+                                @if($isArchitectDone)
+                                    <div class="text-[11px] font-mono text-slate-600 truncate mt-1 max-w-[240px] sm:max-w-[320px]" title="{{ $architectAssignment['document_name'] ?? 'Dokumen Desain Topologi' }}">
+                                        📐 {{ $architectAssignment['document_name'] ?? 'Dokumen Desain Topologi Terlampir' }}
+                                    </div>
+                                @else
+                                    <div class="text-[11px] text-amber-600 font-medium flex items-center gap-1 mt-1">
+                                        <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                        Belum diunggah oleh Solution Architect
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="shrink-0 flex items-center gap-1.5">
+                            @if($isArchitectDone && !empty($architectAssignment['document_path']))
+                                <a href="{{ \App\Helpers\FileUploadHelper::url($architectAssignment['document_path']) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-100 hover:text-[#8F0A0D] border border-slate-200 shadow-2xs transition">
+                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <span>Lihat</span>
+                                </a>
+                            @else
+                                <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Belum Ada</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
+                {{-- Pilihan Keputusan Verifikasi --}}
                 <div>
-                    <label class="block text-slate-700 mb-2 uppercase tracking-wider text-[10.5px]">KEPUTUSAN VERIFIKASI BD</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="p-3.5 rounded-xl border-2 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 cursor-pointer flex flex-col justify-between transition">
-                            <div class="flex items-center gap-2">
-                                <input type="radio" name="decision" value="approved" checked class="text-emerald-600 focus:ring-emerald-500 cursor-pointer">
-                                <span class="font-extrabold text-emerald-900 text-xs">✓ Disetujui (Approve)</span>
+                    <label class="block text-slate-700 font-bold uppercase tracking-wider text-[10.5px] mb-2">KEPUTUSAN VERIFIKASI BD</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {{-- Approve Card --}}
+                        <label @click="verifyDecision = 'approved'"
+                               :class="verifyDecision === 'approved' ? 'border-emerald-500 bg-emerald-50/70 ring-2 ring-emerald-500/20 shadow-xs' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'"
+                               class="relative p-3.5 rounded-xl border-2 cursor-pointer flex flex-col justify-between transition-all select-none">
+                            <div class="flex items-start gap-2.5">
+                                <input type="radio" name="decision" value="approved" x-model="verifyDecision" class="mt-0.5 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                <div>
+                                    <span class="font-extrabold text-emerald-950 text-xs flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        Disetujui (Approve)
+                                    </span>
+                                    <p class="text-[10.5px] text-emerald-800/90 font-normal leading-relaxed mt-1">Dokumen sah, layak secara teknis, dan diteruskan ke Sales untuk diajukan ke klien.</p>
+                                </div>
                             </div>
-                            <p class="text-[10px] text-emerald-700 mt-1 pl-5">Dokumen sah dan diteruskan ke Sales untuk dikirim ke klien.</p>
                         </label>
 
-                        <label class="p-3.5 rounded-xl border-2 border-rose-200 bg-rose-50/50 hover:bg-rose-50 cursor-pointer flex flex-col justify-between transition">
-                            <div class="flex items-center gap-2">
-                                <input type="radio" name="decision" value="revision" class="text-rose-600 focus:ring-rose-500 cursor-pointer">
-                                <span class="font-extrabold text-rose-900 text-xs">⚠ Perlu Revisi</span>
+                        {{-- Revision Card --}}
+                        <label @click="verifyDecision = 'revision'"
+                               :class="verifyDecision === 'revision' ? 'border-rose-500 bg-rose-50/70 ring-2 ring-rose-500/20 shadow-xs' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'"
+                               class="relative p-3.5 rounded-xl border-2 cursor-pointer flex flex-col justify-between transition-all select-none">
+                            <div class="flex items-start gap-2.5">
+                                <input type="radio" name="decision" value="revision" x-model="verifyDecision" class="mt-0.5 text-rose-600 focus:ring-rose-500 cursor-pointer">
+                                <div>
+                                    <span class="font-extrabold text-rose-950 text-xs flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                        Perlu Revisi
+                                    </span>
+                                    <p class="text-[10.5px] text-rose-800/90 font-normal leading-relaxed mt-1">Kembalikan ke Presales &amp; SA disertai catatan poin teknis yang perlu diperbaiki.</p>
+                                </div>
                             </div>
-                            <p class="text-[10px] text-rose-700 mt-1 pl-5">Kembalikan ke Presales &amp; SA dengan catatan revisi.</p>
                         </label>
                     </div>
                 </div>
 
+                {{-- Catatan / Feedback Field --}}
                 <div>
-                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">CATATAN / FEEDBACK VERIFIKASI (WAJIB JIKA REVISI)</label>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-slate-700 font-bold uppercase tracking-wider text-[10.5px]">
+                            CATATAN / FEEDBACK VERIFIKASI
+                        </label>
+                        <span x-show="verifyDecision === 'revision'" class="text-[10px] font-bold text-rose-600 flex items-center gap-1">
+                            * Wajib diisi jika revisi
+                        </span>
+                        <span x-show="verifyDecision === 'approved'" class="text-[10px] text-slate-400 font-normal">
+                            Opsional
+                        </span>
+                    </div>
                     <textarea name="notes" rows="3" 
-                              placeholder="Masukkan catatan / feedback verifikasi..."
-                              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
+                              :required="verifyDecision === 'revision'"
+                              :placeholder="verifyDecision === 'revision' ? 'Sebutkan rincian yang perlu direvisi (misal: perbaiki BoQ modul transceiver atau sesuaikan topologi redundansi)...' : 'Masukkan catatan opsional atau rekomendasi untuk penawaran solusi ini...'"
+                              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition bg-white"></textarea>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isVerifyTechnicalModalOpen = false; window.closeModal('modal-verify-technical')" onclick="window.closeModal('modal-verify-technical')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                {{-- Footer Tombol Aksi --}}
+                <div class="flex items-center justify-end gap-2.5 pt-3.5 border-t border-slate-100">
+                    <button type="button" @click="isVerifyTechnicalModalOpen = false; window.closeModal('modal-verify-technical')" onclick="window.closeModal('modal-verify-technical')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-100 hover:text-slate-800 transition cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                        Simpan Keputusan Verifikasi
+                    <button type="submit" 
+                            :class="verifyDecision === 'approved' ? 'bg-[#8F0A0D] hover:bg-[#78080B] shadow-red-900/20' : 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20'"
+                            class="px-5 py-2.5 rounded-xl font-bold text-xs text-white shadow-md hover:shadow-lg transition cursor-pointer flex items-center gap-2">
+                        <template x-if="verifyDecision === 'approved'">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span>Simpan &amp; Setujui Solusi</span>
+                            </span>
+                        </template>
+                        <template x-if="verifyDecision === 'revision'">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <span>Kirim Catatan Revisi</span>
+                            </span>
+                        </template>
                     </button>
                 </div>
             </form>
