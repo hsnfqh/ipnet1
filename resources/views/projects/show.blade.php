@@ -1441,8 +1441,6 @@
 
                     </div>
 
-                    </div>
-
                 </div>
 
                 {{-- ══ RIGHT SIDEBAR COLUMN (lg:col-span-4) ══ --}}
