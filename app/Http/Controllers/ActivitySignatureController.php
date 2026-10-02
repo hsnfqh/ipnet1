@@ -36,6 +36,12 @@ class ActivitySignatureController extends Controller
         $sig = null;
         try {
             $sig = ActivityDocumentSignature::where('scope_key', $scopeKey)->first();
+            if (!$sig && str_starts_with($scopeKey, 'proj_')) {
+                $pId = (int) substr($scopeKey, 5);
+                if ($pId > 0) {
+                    $sig = ActivityDocumentSignature::where('project_id', $pId)->first();
+                }
+            }
         } catch (\Throwable $e) {
             // Tabel belum dimigrate di remote host
         }

@@ -204,6 +204,18 @@
                 $grouped = $activities->getCollection()->groupBy(function($act) {
                     return $act->project_id ? ('proj_' . $act->project_id) : ('no_proj_' . $act->user_id);
                 });
+
+                // Preload status tanda tangan untuk seluruh grup di halaman ini agar instan
+                $preloadedSigList = collect();
+                try {
+                    $allScopeKeys = $grouped->keys()->toArray();
+                    $allProjectIds = $grouped->map(fn($g) => $g->first()->project_id)->filter()->values()->toArray();
+                    $preloadedSigList = \App\Models\ActivityDocumentSignature::whereIn('scope_key', $allScopeKeys)
+                        ->orWhereIn('project_id', $allProjectIds)
+                        ->get();
+                } catch (\Throwable $e) {
+                    // Abaikan jika belum siap
+                }
             @endphp
 
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 anim-fade-up anim-delay-2">
@@ -293,9 +305,41 @@
                             ];
                         });
 
+                        // Match signature status for this group
+                        $matchedSig = $preloadedSigList->first(function($s) use ($groupKey, $firstAct) {
+                            return $s->scope_key === $groupKey || ($firstAct->project_id && (int)$s->project_id === (int)$firstAct->project_id);
+                        });
+
+                        $sigData = $matchedSig ? [
+                            'exists'          => true,
+                            'document_number' => $matchedSig->document_number,
+                            'scope_key'       => $matchedSig->scope_key ?? $groupKey,
+                            'status'          => $matchedSig->status,
+                            'verification_hash' => $matchedSig->verification_hash,
+                            'pic' => [
+                                'signed'    => !empty($matchedSig->pic_signature),
+                                'name'      => $matchedSig->pic_name,
+                                'title'     => $matchedSig->pic_title ?? 'PIC Field Engineer',
+                                'signed_at' => $matchedSig->pic_signed_at ? $matchedSig->pic_signed_at->format('d M Y, H:i') . ' WIB' : null,
+                            ],
+                            'lead' => [
+                                'signed'    => !empty($matchedSig->lead_signature),
+                                'name'      => $matchedSig->lead_name,
+                                'title'     => $matchedSig->lead_title ?? 'Lead Network Engineer',
+                                'signed_at' => $matchedSig->lead_signed_at ? $matchedSig->lead_signed_at->format('d M Y, H:i') . ' WIB' : null,
+                            ],
+                            'head' => [
+                                'signed'    => !empty($matchedSig->head_signature),
+                                'name'      => $matchedSig->head_name,
+                                'title'     => $matchedSig->head_title ?? 'Head of Division',
+                                'signed_at' => $matchedSig->head_signed_at ? $matchedSig->head_signed_at->format('d M Y, H:i') . ' WIB' : null,
+                            ],
+                        ] : null;
+
                         // Build full modal data
                         $groupJson = json_encode([
                             'scope_key'     => $groupKey,
+                            'sig_info'      => $sigData,
                             'project_id'    => $firstAct->project_id,
                             'project_name'  => $projectName,
                             'client_name'   => $clientName,
@@ -392,10 +436,18 @@
                         {{-- Header Card --}}
                         <div class="activity-card-header">
                             <div class="flex items-center justify-between gap-2 mb-2">
-                                <span class="agenda-badge">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                    {{ $totalInGroup }} Agenda
-                                </span>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="agenda-badge">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                        {{ $totalInGroup }} Agenda
+                                    </span>
+                                    @if(!empty($sigData['status']) && $sigData['status'] === 'fully_approved')
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200" title="Dokumen telah disahkan lengkap 3/3 TTD">
+                                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            Disahkan Resmi
+                                        </span>
+                                    @endif
+                                </div>
                                 <span class="text-[11px] font-semibold text-gray-400 tabular-nums">
                                     {{ $firstAct->activity_date ? $firstAct->activity_date->format('d M Y') : '-' }}
                                 </span>
@@ -620,11 +672,11 @@
                         $canLead = $isLead || ($curUser && $curUser->hasAnyRole(['Lead Engineer', 'Team Leader', 'Team Leader Engineering', 'Lead Maintenance', 'Lead Divisi', 'PMO', 'Project Manager']));
                     @endphp
 
-                    {{-- Tombol Aksi TTD Sesuai Hak Akses --}}
+                    {{-- Tombol Aksi TTD Sesuai Hak Akses & Status Otorisasi --}}
                     <div class="flex items-center gap-2">
-                        {{-- Tombol TTD PIC (Selalu tampil jika belum di-TTD PIC) --}}
+                        {{-- Tombol TTD PIC (Hanya jika belum di-TTD PIC & dokumen belum fully_approved) --}}
                         <button type="button"
-                                x-show="!sigInfo?.pic?.signed"
+                                x-show="sigInfo && sigInfo.status !== 'fully_approved' && !sigInfo?.pic?.signed"
                                 @click="openSignaturePad('pic', 'PIC Field Engineer')"
                                 class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#72080a] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -632,9 +684,9 @@
                         </button>
 
                         @if($canLead || $canHead)
-                        {{-- Tombol TTD Lead --}}
+                        {{-- Tombol TTD Lead (Hanya jika PIC sudah TTD, Lead belum TTD, & belum fully_approved) --}}
                         <button type="button"
-                                x-show="!sigInfo?.lead?.signed"
+                                x-show="sigInfo && sigInfo.status !== 'fully_approved' && sigInfo?.pic?.signed && !sigInfo?.lead?.signed"
                                 @click="openSignaturePad('lead', 'Lead Network Engineer')"
                                 class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#1D4ED8] hover:bg-[#1E40AF] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -643,22 +695,22 @@
                         @endif
 
                         @if($canHead)
-                        {{-- Tombol TTD Head Division --}}
+                        {{-- Tombol TTD Head Division (Warna Hijau Korporat IP-Net #0F6B43, hanya jika Lead sudah TTD & Head belum TTD) --}}
                         <button type="button"
-                                x-show="!sigInfo?.head?.signed"
+                                x-show="sigInfo && sigInfo.status !== 'fully_approved' && sigInfo?.lead?.signed && !sigInfo?.head?.signed"
                                 @click="openSignaturePad('head', 'Head of Division')"
-                                class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#6D28D9] hover:bg-[#5B21B6] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#0F6B43] hover:bg-[#0B5233] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                             Sahkan &amp; TTD (Head Div)
                         </button>
                         @endif
 
-                        {{-- Badge Sudah Sah Semua --}}
-                        <span x-show="sigInfo?.status === 'fully_approved'"
-                              class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 text-white shadow-2xs flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Sah &amp; Terverifikasi
-                        </span>
+                        {{-- Badge Sudah Sah Lengkap Semua (3/3 TTD) --}}
+                        <div x-show="sigInfo?.status === 'fully_approved'"
+                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0F6B43] text-white shadow-2xs">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>Dokumen Telah Disahkan Lengkap (3/3 TTD)</span>
+                        </div>
                     </div>
                 </div>
 
@@ -971,7 +1023,7 @@ function engineerActivityManager() {
 
         openDetailModal(groupData) {
             this.selectedDetail = groupData;
-            this.sigInfo = null;
+            this.sigInfo = groupData?.sig_info || null;
             this.isDetailModalOpen = true;
             if (groupData && groupData.scope_key) {
                 this.fetchSignatureStatus(groupData.scope_key);

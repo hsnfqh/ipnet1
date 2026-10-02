@@ -361,11 +361,11 @@ Route::middleware(['auth'])->group(function () {
     // Digital Signature Dokumen Aktivitas (PIC -> Lead -> Head Division)
     Route::get('/engineer/activity-logs/signature-status', [ActivitySignatureController::class, 'getStatus'])
         ->name('engineer.activity_log.signature_status')
-        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager');
+        ->middleware('auth');
 
     Route::post('/engineer/activity-logs/signature', [ActivitySignatureController::class, 'storeSignature'])
         ->name('engineer.activity_log.signature_store')
-        ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager');
+        ->middleware('auth');
 
     // Route trigger migrasi cepat via web jika hosting tidak punya akses SSH
     Route::get('/run-signature-migration', function () {
