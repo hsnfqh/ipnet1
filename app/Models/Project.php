@@ -372,10 +372,10 @@ class Project extends Model
     /**
      * Cek otorisasi akses khusus Berkas Sales (Confidential)
      * Hanya dapat diakses oleh:
-     * 1. Sales itu sendiri (Sales PIC / Pembuat Proyek / Role Sales / Account Manager)
-     * 2. Head Division / Head Divisi
-     * 3. Direktur / Pimpinan Eksekutif (Pak Santoso, Pak Hariyadi) / Super Admin
-     * (Catatan: BD, Presales, SA, PM, Engineer, dll. TIDAK memiliki akses ke Berkas Sales)
+     * 1. Head Sales (Group Leader Commercial & Solution / Head of Sales / Farhan Ramadhan)
+     * 2. Direktur / Pimpinan Eksekutif (Pak Hariyadi, Pak Susanto, Director, Direktur)
+     * 3. Super Admin / Admin
+     * (Catatan: Sales biasa, Account Manager, BD, Presales, SA, PM, Engineer, dll. TIDAK memiliki akses ke Berkas Sales)
      */
     public function canAccessSalesDocs($user = null): bool
     {
@@ -384,27 +384,31 @@ class Project extends Model
 
         $userRoles = method_exists($user, 'roles') ? $user->roles->pluck('name')->toArray() : [];
 
-        // 1. Sales creator / PIC proyek
-        if ($this->created_by === $user->id || $this->sales_name === $user->name || ($this->sales_id && $this->sales_id === $user->id)) {
-            return true;
-        }
-
-        // 2. Role Sales / Account Manager
-        if (!empty(array_intersect(['Sales', 'Account Manager'], $userRoles))) {
-            return true;
-        }
-
-        // 3. Head Division & Direktur / Manajemen Eksekutif / Super Admin
+        // 1. Direktur / Pimpinan Eksekutif / Super Admin
         if (!empty(array_intersect([
-            'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Head Division',
-            'Group Leader Commercial & Solution', 'Super Admin', 'Admin'
+            'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Super Admin', 'Admin'
         ], $userRoles))) {
             return true;
         }
 
-        // 4. Otorisasi Pimpinan Eksekutif (Berdasarkan Nama)
+        // 2. Head Sales (Group Leader Commercial & Solution / Head of Sales)
+        if (!empty(array_intersect([
+            'Group Leader Commercial & Solution', 'Head Sales', 'Head of Sales', 'Lead Sales', 'Commercial Head'
+        ], $userRoles))) {
+            return true;
+        }
+
+        // 3. Otorisasi Pimpinan Eksekutif & Head Sales (Berdasarkan Nama & Email)
         $lowerName = strtolower($user->name ?? '');
+        $lowerEmail = strtolower($user->email ?? '');
+
+        // Direktur (Pak Hariyadi, Pak Susanto)
         if (str_contains($lowerName, 'santoso') || str_contains($lowerName, 'susanto') || str_contains($lowerName, 'hari') || str_contains($lowerName, 'hary')) {
+            return true;
+        }
+
+        // Head Sales (Farhan Ramadhan / gl.commercial)
+        if (str_contains($lowerName, 'farhan') || str_contains($lowerEmail, 'gl.commercial')) {
             return true;
         }
 

@@ -63,14 +63,10 @@
                     Berkas Sales
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">
-                    Kerahasiaan dokumen terbatas untuk Sales PIC &amp; Manajemen.
+                    Dokumen khusus Head Sales &amp; Direktur.
                 </p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    <span>Confidential</span>
-                </span>
                 @if($salesDocs->count() > 0)
                     <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                         Total {{ $salesDocs->count() }} Berkas
