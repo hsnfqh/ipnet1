@@ -121,14 +121,14 @@
             @if((!$isHeadAssigned && ($canAssignSales ?? false)) || ($canApproveHead && $isHeadAssigned))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isHeadAssigned && ($canAssignSales ?? false))
-                        <button type="button" @click.stop="openAssignModal('head')" onclick="event.stopPropagation(); window.openAssignModalCustom('head')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-xs active:scale-95">
+                        <button type="button" @click.stop="openAssignModal('head')" onclick="event.stopPropagation(); window.openAssignModalCustom('head')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             <span>Ajukan ke Head Divisi</span>
                         </button>
                     @endif
 
                     @if($canApproveHead && $isHeadAssigned)
-                        <button type="button" @click.stop="openApproveModal('head')" onclick="event.stopPropagation(); window.openApproveModalCustom('head')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-xs active:scale-95">
+                        <button type="button" @click.stop="openApproveModal('head')" onclick="event.stopPropagation(); window.openApproveModalCustom('head')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             <span>{{ empty($headApproval['approved']) ? 'Verifikasi & Setujui' : 'Perbarui Persetujuan' }}</span>
                         </button>
@@ -217,14 +217,14 @@
             @if((!$isDirectorAssigned && ($canAssignSales ?? false)) || ($canApproveDirector && $isDirectorAssigned))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isDirectorAssigned && ($canAssignSales ?? false))
-                        <button type="button" @click.stop="openAssignModal('director')" onclick="event.stopPropagation(); window.openAssignModalCustom('director')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-xs active:scale-95">
+                        <button type="button" @click.stop="openAssignModal('director')" onclick="event.stopPropagation(); window.openAssignModalCustom('director')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             <span>Ajukan ke Direktur</span>
                         </button>
                     @endif
 
                     @if($canApproveDirector && $isDirectorAssigned)
-                        <button type="button" @click.stop="openApproveModal('director')" onclick="event.stopPropagation(); window.openApproveModalCustom('director')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-xs active:scale-95">
+                        <button type="button" @click.stop="openApproveModal('director')" onclick="event.stopPropagation(); window.openApproveModalCustom('director')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-white btn-ipnet-primary transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             <span>{{ empty($directorApproval['approved']) ? 'Verifikasi & Sahkan' : 'Perbarui Otorisasi' }}</span>
                         </button>

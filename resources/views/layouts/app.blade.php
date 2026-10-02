@@ -181,13 +181,13 @@
             background: linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%) !important;
             color: #FFFFFF !important;
             border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            box-shadow: 0 4px 14px rgba(143, 10, 13, 0.28) !important;
+            box-shadow: none !important;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
         }
         .btn-ipnet-primary:hover, .btn-ipnet-gradient:hover {
             background: linear-gradient(135deg, #C52222 0%, #9C0C0F 60%, #83080A 100%) !important;
             transform: translateY(-1px) !important;
-            box-shadow: 0 6px 20px rgba(143, 10, 13, 0.38) !important;
+            box-shadow: none !important;
         }
         .btn-ipnet-primary:active, .btn-ipnet-gradient:active {
             transform: translateY(0) !important;

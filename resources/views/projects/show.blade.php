@@ -18,15 +18,15 @@
         color: #8F0A0D;
     }
     .btn-ipnet-primary {
-        background: linear-gradient(135deg, #8F0A0D 0%, #B81525 100%);
-        color: #FFFFFF;
-        box-shadow: 0 2px 4px rgba(143, 10, 13, 0.2);
+        background: linear-gradient(135deg, #8F0A0D 0%, #B81525 100%) !important;
+        color: #FFFFFF !important;
+        box-shadow: none !important;
         transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .btn-ipnet-primary:hover {
-        background: linear-gradient(135deg, #7A080A 0%, #A0121F 100%);
-        box-shadow: 0 4px 10px rgba(143, 10, 13, 0.3);
-        color: #FFFFFF;
+        background: linear-gradient(135deg, #7A080A 0%, #A0121F 100%) !important;
+        box-shadow: none !important;
+        color: #FFFFFF !important;
     }
     .btn-ipnet-secondary {
         background-color: #FFFFFF;
