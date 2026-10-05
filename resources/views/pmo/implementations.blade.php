@@ -17,10 +17,10 @@
             <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-2xs">
                 <div class="pb-4 mb-4 border-b border-[#E2E8F0]">
                     <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> MANAJEMEN PORTOFOLIO
+                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> KONTROL PENGIRIMAN &amp; SERAH TERIMA
                     </p>
-                    <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Daftar Proyek &amp; Integrasi Lapangan</h2>
-                    <p class="text-[13px] text-[#64748B] mt-0.5">Kelola pelaksanaan proyek klien, jadwal visit berkala, dan monitoring progres instalasi</p>
+                    <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Pusat Kendali Project Delivery &amp; Serah Terima</h2>
+                    <p class="text-[13px] text-[#64748B] mt-0.5">Verifikasi serah terima Sales, monitoring kepatuhan timeline jadwal (SLA), dan kontrol implementasi lapangan</p>
                 </div>
 
                 <!-- Filter Controls -->
@@ -32,31 +32,39 @@
                         <input type="text" 
                                x-model="search"
                                @input="currentPage = 1"
-                               placeholder="Cari nama project, client, sales, atau lokasi..." 
-                               class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
+                               placeholder="Cari nama project, nomor SO, client, sales, atau PIC..." 
+                               class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
                     </div>
                     
                     <select x-model="statusFilter" @change="currentPage = 1" 
-                            class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="Semua">Semua Status</option>
+                            class="w-full sm:w-48 px-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="Semua">Semua Status Deliver</option>
                         <option value="Deliver">Tahap Deliver (Aktif)</option>
-                        <option value="Pending">Menunggu Review</option>
+                        <option value="Pending">Menunggu Review PMO</option>
                         <option value="Completed">Selesai Lapangan</option>
                     </select>
 
                     <select x-model="selectedDivision" @change="currentPage = 1" 
-                            class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="all">Semua Tipe Proyek</option>
+                            class="w-full sm:w-48 px-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="all">Semua Divisi Pelaksana</option>
                         @foreach($divisions ?? [] as $div)
                             <option value="{{ $div->id }}">{{ $div->name }}</option>
                         @endforeach
                     </select>
 
+                    <select x-model="selectedPm" @change="currentPage = 1" 
+                            class="w-full sm:w-48 px-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="all">Semua Project Manager</option>
+                        @foreach($pmList ?? [] as $pm)
+                            <option value="{{ $pm->id }}">{{ $pm->name }}</option>
+                        @endforeach
+                    </select>
+
                     {{-- Reset Button --}}
                     <button type="button"
-                            x-show="search || statusFilter !== 'Semua' || selectedDivision !== 'all'"
-                            @click="search = ''; statusFilter = 'Semua'; selectedDivision = 'all'; currentPage = 1;"
-                            class="px-3 py-2 text-[12px] font-bold text-[#64748B] hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-[#FEF2F2] border border-[#E2E8F0] hover:border-[#FCA5A5] rounded-xl transition cursor-pointer">
+                            x-show="search || statusFilter !== 'Semua' || selectedDivision !== 'all' || selectedPm !== 'all'"
+                            @click="search = ''; statusFilter = 'Semua'; selectedDivision = 'all'; selectedPm = 'all'; currentPage = 1;"
+                            class="px-3.5 py-2.5 text-[12px] font-bold text-[#64748B] hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-[#FEF2F2] border border-[#E2E8F0] hover:border-[#FCA5A5] rounded-xl transition cursor-pointer">
                         Reset Filter
                     </button>
                 </div>
@@ -272,42 +280,23 @@
                     </div>
                 </div>
 
-                {{-- B. Table Toolbar: Search & Select Filters --}}
-                <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5 bg-white">
-                    <div class="relative w-full md:w-96">
-                        <input type="text" 
-                               x-model="search" 
-                               @input="currentPage = 1" 
-                               placeholder="Cari nama proyek, nomor SO, klien, atau PIC..." 
-                               class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#8F0A0D] focus:ring-2 focus:ring-red-500/20 transition outline-none">
-                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
+                {{-- B. Table Info Bar: Counter & Pagination Context --}}
+                <div class="px-5 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-white">
+                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                        <span>Menampilkan:</span>
+                        <span class="px-2.5 py-0.5 rounded-md bg-red-50 text-[#8F0A0D] font-extrabold" x-text="filteredProjects.length + ' Proyek'"></span>
+                        <span class="text-slate-400">&bull;</span>
+                        <span class="text-slate-500" x-text="'Halaman ' + currentPage + ' dari ' + (totalPages || 1)"></span>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        {{-- Filter Divisi --}}
-                        <select x-model="selectedDivision" @change="currentPage = 1" 
-                                class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none hover:border-slate-300 focus:border-[#8F0A0D] focus:bg-white transition cursor-pointer">
-                            <option value="all">Semua Divisi Pelaksana</option>
-                            @foreach($divisions ?? [] as $div)
-                                <option value="{{ $div->id }}">{{ $div->name }}</option>
-                            @endforeach
+                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                        <span class="hidden sm:inline text-slate-400">Tampilkan per halaman:</span>
+                        <select x-model="perPage" @change="currentPage = 1" class="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 outline-none hover:border-slate-300">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="all">Semua</option>
                         </select>
-
-                        {{-- Filter PM --}}
-                        <select x-model="selectedPm" @change="currentPage = 1" 
-                                class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none hover:border-slate-300 focus:border-[#8F0A0D] focus:bg-white transition cursor-pointer">
-                            <option value="all">Semua Project Manager</option>
-                            @foreach($pmList ?? [] as $pm)
-                                <option value="{{ $pm->id }}">{{ $pm->name }}</option>
-                            @endforeach
-                        </select>
-
-                        {{-- Total Counter Badge --}}
-                        <span class="px-3 py-2 bg-slate-100/70 border border-slate-200 rounded-xl text-xs text-slate-600 font-medium whitespace-nowrap">
-                            Hasil: <strong class="text-slate-900 font-extrabold" x-text="filteredProjects.length"></strong> Proyek
-                        </span>
                     </div>
                 </div>
 
