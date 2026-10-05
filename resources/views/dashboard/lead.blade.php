@@ -775,7 +775,7 @@
                                     <h3 class="text-[16px] font-bold text-[#292929]">Status Beban Kerja</h3>
                                 </div>
                             </div>
-                            <div style="height: 230px;" class="flex items-center justify-center">
+                            <div style="height: 260px;" class="flex items-center justify-center">
                                 <canvas id="taskStatusChart"></canvas>
                             </div>
                         </div>
@@ -900,12 +900,29 @@
                     datasets: [{
                         data: statusData.map(d => d.value),
                         backgroundColor: ['#3B82F6', '#F59E0B', '#8B5CF6', '#10B981'],
+                        borderWidth: 2,
+                        borderColor: '#FFFFFF',
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '65%'
+                    cutout: '68%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                font: {
+                                    size: 11,
+                                    family: "'Inter', sans-serif"
+                                },
+                                color: '#4B5563',
+                                padding: 14
+                            }
+                        }
+                    }
                 }
             });
         }
