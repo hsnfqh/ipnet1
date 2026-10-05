@@ -12,7 +12,58 @@
         <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1680px] mx-auto">
             
             <!-- ========================================================== -->
-            <!-- 1. 4 EXECUTIVE KPI METRIC CARDS                            -->
+            <!-- 1. SECTION HEADER & FILTER CONTROLS                        -->
+            <!-- ========================================================== -->
+            <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-2xs">
+                <div class="pb-4 mb-4 border-b border-[#E2E8F0]">
+                    <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> MANAJEMEN PORTOFOLIO
+                    </p>
+                    <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Daftar Proyek &amp; Integrasi Lapangan</h2>
+                    <p class="text-[13px] text-[#64748B] mt-0.5">Kelola pelaksanaan proyek klien, jadwal visit berkala, dan monitoring progres instalasi</p>
+                </div>
+
+                <!-- Filter Controls -->
+                <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3">
+                    <div class="relative flex-1 min-w-[240px] w-full sm:w-auto">
+                        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" 
+                               x-model="search"
+                               @input="currentPage = 1"
+                               placeholder="Cari nama project, client, sales, atau lokasi..." 
+                               class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
+                    </div>
+                    
+                    <select x-model="statusFilter" @change="currentPage = 1" 
+                            class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="Semua">Semua Status</option>
+                        <option value="Deliver">Tahap Deliver (Aktif)</option>
+                        <option value="Pending">Menunggu Review</option>
+                        <option value="Completed">Selesai Lapangan</option>
+                    </select>
+
+                    <select x-model="selectedDivision" @change="currentPage = 1" 
+                            class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="all">Semua Tipe Proyek</option>
+                        @foreach($divisions ?? [] as $div)
+                            <option value="{{ $div->id }}">{{ $div->name }}</option>
+                        @endforeach
+                    </select>
+
+                    {{-- Reset Button --}}
+                    <button type="button"
+                            x-show="search || statusFilter !== 'Semua' || selectedDivision !== 'all'"
+                            @click="search = ''; statusFilter = 'Semua'; selectedDivision = 'all'; currentPage = 1;"
+                            class="px-3 py-2 text-[12px] font-bold text-[#64748B] hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-[#FEF2F2] border border-[#E2E8F0] hover:border-[#FCA5A5] rounded-xl transition cursor-pointer">
+                        Reset Filter
+                    </button>
+                </div>
+            </div>
+
+            <!-- ========================================================== -->
+            <!-- 2. 4 EXECUTIVE KPI METRIC CARDS                            -->
             <!-- ========================================================== -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                 
@@ -1085,6 +1136,7 @@
             readyToOperateCount: {{ $readyToOperateCount ?? 0 }},
 
             search: '',
+            statusFilter: 'Semua',
             selectedDivision: 'all',
             selectedPm: 'all',
             selectedStage: 'all',
@@ -1165,6 +1217,15 @@
                     const matchStg = this.selectedStage === 'all' || p.stage === this.selectedStage;
                     const matchHandover = this.handoverFilter === 'all' || (this.handoverFilter === 'pending' && (p.handover_status === 'Submitted' || p.handover_status === 'Conditional'));
 
+                    let matchStatusFilter = true;
+                    if (this.statusFilter === 'Deliver') {
+                        matchStatusFilter = (p.stage === 'Deliver');
+                    } else if (this.statusFilter === 'Pending') {
+                        matchStatusFilter = (p.handover_status === 'Submitted' || p.handover_status === 'Conditional');
+                    } else if (this.statusFilter === 'Completed') {
+                        matchStatusFilter = (p.stage === 'Operate' || p.stage === 'Completed' || p.progress >= 100);
+                    }
+
                     let matchTab = true;
                     if (this.activeTab === 'deliver') {
                         matchTab = (p.stage === 'Deliver');
@@ -1174,7 +1235,7 @@
                         matchTab = (p.stage === 'Deliver' && (p.progress >= 100 || p.docs_completed_count >= 11));
                     }
 
-                    return matchSearch && matchDiv && matchPm && matchStg && matchHandover && matchTab;
+                    return matchSearch && matchDiv && matchPm && matchStg && matchHandover && matchTab && matchStatusFilter;
                 });
             },
 
