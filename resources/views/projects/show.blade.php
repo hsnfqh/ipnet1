@@ -283,6 +283,33 @@
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
     );
     $canAssignScope = $authUser && ($isAdmin || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
+
+    // Hak otorisasi Berkas Sales: Hanya Head Division, Sales itu sendiri (PIC Proyek), dan Direktur.
+    // Pre-Sales, Solution Architect (SA), dan BD mutlak dilarang mengakses/melihat berkas ini.
+    $userPosLower = strtolower($authUser->position ?? '');
+    $userNameLower = strtolower($authUser->name ?? '');
+    $userEmailLower = strtolower($authUser->email ?? '');
+
+    $isForbiddenTechnicalOrBd = !empty(array_intersect([
+        'Presales', 'Pre-Sales',
+        'Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D',
+        'BDM', 'BusDev', 'Business Development', 'Product Manager'
+    ], $userRoles))
+        || str_contains($userPosLower, 'presales')
+        || str_contains($userPosLower, 'pre-sales')
+        || str_contains($userPosLower, 'architect')
+        || str_contains($userPosLower, 'solution architect')
+        || str_contains($userPosLower, 'business development')
+        || str_contains($userPosLower, 'busdev')
+        || str_contains($userPosLower, 'bdm')
+        || str_contains($userEmailLower, 'aris')
+        || str_contains($userEmailLower, 'akbar')
+        || str_contains($userNameLower, 'aris')
+        || str_contains($userNameLower, 'akbar')
+        || str_contains($userNameLower, 'novan')
+        || str_contains($userNameLower, 'kurnijanto');
+
+    $canAccessSalesDocs = !$isForbiddenTechnicalOrBd && $authUser && $project->canAccessSalesDocs($authUser);
 @endphp
 
 <script>
@@ -911,7 +938,7 @@
                     @include('projects.partials.workflow-leadership')
 
                     {{-- Berkas Sales (Confidential - Hanya Head Division, Sales Terkait & Direktur) --}}
-                    @if($project->canAccessSalesDocs())
+                    @if($canAccessSalesDocs)
                         @include('projects.partials.card-sales-documents')
                     @endif
 
@@ -2578,7 +2605,7 @@
     </div>
 
     {{-- 5B. UPLOAD SALES DOCUMENT MODAL (KHUSUS HEAD SALES & DIREKTUR) --}}
-    @if($project->canAccessSalesDocs())
+    @if($canAccessSalesDocs)
     <div id="modal-upload-sales-doc" x-show="isUploadSalesDocModalOpen" x-cloak 
          @click.self="isUploadSalesDocModalOpen = false; window.closeModal('modal-upload-sales-doc')"
          onclick="if(event.target === this) window.closeModal('modal-upload-sales-doc')"

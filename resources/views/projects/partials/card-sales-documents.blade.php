@@ -1,7 +1,30 @@
 {{-- ═══ BERKAS SALES CARD (CONFIDENTIAL - HANYA SALES & MANAGEMENT) ═══ --}}
 @php
     $authUser = auth()->user();
-    $canAccessSalesDocs = $authUser && $project->canAccessSalesDocs($authUser);
+    $userRoles = $authUser ? (method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : []) : [];
+    $userPosLower = strtolower($authUser->position ?? '');
+    $userNameLower = strtolower($authUser->name ?? '');
+    $userEmailLower = strtolower($authUser->email ?? '');
+
+    $isForbiddenTechnicalOrBd = !empty(array_intersect([
+        'Presales', 'Pre-Sales',
+        'Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D',
+        'BDM', 'BusDev', 'Business Development', 'Product Manager'
+    ], $userRoles))
+        || str_contains($userPosLower, 'presales')
+        || str_contains($userPosLower, 'pre-sales')
+        || str_contains($userPosLower, 'architect')
+        || str_contains($userPosLower, 'business development')
+        || str_contains($userPosLower, 'busdev')
+        || str_contains($userPosLower, 'bdm')
+        || str_contains($userEmailLower, 'aris')
+        || str_contains($userEmailLower, 'akbar')
+        || str_contains($userNameLower, 'aris')
+        || str_contains($userNameLower, 'akbar')
+        || str_contains($userNameLower, 'novan')
+        || str_contains($userNameLower, 'kurnijanto');
+
+    $canAccessSalesDocs = !$isForbiddenTechnicalOrBd && $authUser && $project->canAccessSalesDocs($authUser);
 
     $salesTemplates = [
         [

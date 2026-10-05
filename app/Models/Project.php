@@ -392,9 +392,29 @@ class Project extends Model
         $lowerEmail = strtolower($user->email ?? '');
         $lowerPos = strtolower($user->position ?? '');
 
-        // 1. Super Admin & Admin (Akses Penuh Pengelola Sistem)
-        if (!empty(array_intersect(['Super Admin', 'Admin'], $userRoles))) {
-            return true;
+        // 1. BLOKIR MUTLAK: Pre-Sales, Solution Architect (SA), dan Business Development (BD)
+        // Sesuai instruksi: Sembunyikan dan jangan ada di Pre-Sales, SA, dan BD.
+        $isPresalesOrSaOrBd = !empty(array_intersect([
+            'Presales', 'Pre-Sales',
+            'Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D',
+            'BDM', 'BusDev', 'Business Development', 'Product Manager'
+        ], $userRoles))
+            || str_contains($lowerPos, 'presales')
+            || str_contains($lowerPos, 'pre-sales')
+            || str_contains($lowerPos, 'architect')
+            || str_contains($lowerPos, 'solution architect')
+            || str_contains($lowerPos, 'business development')
+            || str_contains($lowerPos, 'busdev')
+            || str_contains($lowerPos, 'bdm')
+            || str_contains($lowerEmail, 'aris')
+            || str_contains($lowerEmail, 'akbar')
+            || str_contains($lowerName, 'aris')
+            || str_contains($lowerName, 'akbar')
+            || str_contains($lowerName, 'novan')
+            || str_contains($lowerName, 'kurnijanto');
+
+        if ($isPresalesOrSaOrBd) {
+            return false;
         }
 
         // 2. Direktur / Pimpinan Eksekutif (Pak Hariyadi, Pak Susanto)
@@ -408,11 +428,11 @@ class Project extends Model
             return true;
         }
 
-        // 3. Head Division / Group Leader Commercial & Solution / Head of Sales
+        // 3. Head Division / Group Leader Commercial & Solution / Head of Sales (Bukan Lead Engineering/Lead Divisi Teknis)
         $isHeadDivision = !empty(array_intersect([
             'Division Head', 'Head Divisi', 'Head Division',
-            'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation',
-            'Lead Divisi', 'Head of Sales', 'Head Sales', 'Commercial Head'
+            'Group Leader Commercial & Solution',
+            'Head of Sales', 'Head Sales', 'Commercial Head'
         ], $userRoles))
             || str_contains($lowerName, 'farhan')
             || str_contains($lowerEmail, 'gl.commercial');
@@ -421,28 +441,12 @@ class Project extends Model
             return true;
         }
 
-        // Sembunyikan & blokir mutlak jika user adalah Pre-Sales, Solution Architect (SA), atau Business Development (BD)
-        $isPresalesOrSaOrBd = !empty(array_intersect([
-            'Presales', 'Pre-Sales',
-            'Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D',
-            'BDM', 'BusDev', 'Business Development', 'Product Manager'
-        ], $userRoles))
-            || str_contains($lowerPos, 'presales')
-            || str_contains($lowerPos, 'pre-sales')
-            || str_contains($lowerPos, 'architect')
-            || str_contains($lowerPos, 'business development')
-            || str_contains($lowerPos, 'busdev')
-            || str_contains($lowerPos, 'bdm')
-            || str_contains($lowerName, 'akbar')
-            || str_contains($lowerName, 'aris')
-            || str_contains($lowerName, 'novan')
-            || str_contains($lowerName, 'kurnijanto');
-
-        if ($isPresalesOrSaOrBd) {
-            return false;
+        // 4. Super Admin & Admin
+        if (!empty(array_intersect(['Super Admin', 'Admin'], $userRoles))) {
+            return true;
         }
 
-        // 4. Sales itu sendiri (Sales PIC pemilik / penanggung jawab proyek ini)
+        // 5. Sales itu sendiri (Sales PIC pemilik / penanggung jawab proyek ini)
         $isSalesRole = !empty(array_intersect(['Sales', 'Account Manager'], $userRoles))
             || str_contains($lowerPos, 'sales')
             || str_contains($lowerPos, 'account manager');
