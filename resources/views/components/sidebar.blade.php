@@ -56,7 +56,7 @@
             ['key' => 'activities',   'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',    'label' => 'Work Schedule',     'route' => 'schedules.index'],
             ['key' => 'timesheets',   'label' => 'Timesheet',         'route' => 'timesheets.index'],
-            ['key' => 'attendance',   'label' => 'Attendance',        'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
+            // ['key' => 'attendance',   'label' => 'Attendance',        'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
         ];
         if (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
             $navItems[] = ['key' => 'users', 'label' => 'Users', 'route' => 'users.index'];
@@ -114,7 +114,7 @@
             ['key' => 'activities',  'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',   'label' => 'Work Schedule',     'route' => 'schedules.index'],
             ['key' => 'timesheets',  'label' => 'Timesheet',         'route' => 'timesheets.index'],
-            ['key' => 'attendance',  'label' => 'Attendance',        'route' => 'attendance.recap'],
+            // ['key' => 'attendance',  'label' => 'Attendance',        'route' => 'attendance.recap'],
             ['key' => 'users',       'label' => 'Users',             'route' => 'users.index'],
         ];
     } else {
@@ -124,7 +124,7 @@
             ['key' => 'activities',  'label' => 'Activity Log',       'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',   'label' => 'Work Schedule',      'route' => 'schedules.index'],
             ['key' => 'timesheets',  'label' => 'Timesheet',          'route' => 'timesheets.index'],
-            ['key' => 'attendance',  'label' => 'Attendance',         'route' => 'attendance.index'],
+            // ['key' => 'attendance',  'label' => 'Attendance',         'route' => 'attendance.index'],
         ];
     }
 @endphp
