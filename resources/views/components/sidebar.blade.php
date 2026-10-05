@@ -64,13 +64,13 @@
     } elseif ($isPmoUser) {
         // Project Manager & PMO: Kontrol pengiriman proyek (Deliver) & Monitoring Penugasan
         $navItems = [
-            ['key' => 'pmo_dashboard',       'label' => 'Dashboard',           'route' => 'pmo.dashboard'],
-            ['key' => 'pmo_implementations', 'label' => 'Tata Kelola Proyek',  'route' => 'pmo.implementations.index'],
-            ['key' => 'projects',            'label' => 'Projects',            'route' => 'projects.index'],
-            ['key' => 'tasks',               'label' => 'Team Tasks',          'route' => 'tasks.index'],
-            ['key' => 'activities',          'label' => 'Activity Log',        'route' => 'engineer.activity_log.index'],
-            ['key' => 'schedules',           'label' => 'Work Schedule',       'route' => 'schedules.index'],
-            ['key' => 'timesheets',          'label' => 'Timesheet',           'route' => 'timesheets.index'],
+            ['key' => 'pmo_dashboard',       'label' => 'Dashboard',         'route' => 'pmo.dashboard'],
+            ['key' => 'pmo_implementations', 'label' => 'Project Delivery',  'route' => 'pmo.implementations.index'],
+            ['key' => 'projects',            'label' => 'Projects',          'route' => 'projects.index'],
+            ['key' => 'tasks',               'label' => 'Team Tasks',        'route' => 'tasks.index'],
+            ['key' => 'activities',          'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
+            ['key' => 'schedules',           'label' => 'Work Schedule',     'route' => 'schedules.index'],
+            ['key' => 'timesheets',          'label' => 'Timesheet',         'route' => 'timesheets.index'],
         ];
     } elseif ($isArchitect) {
         $navItems = [

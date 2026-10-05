@@ -28,15 +28,18 @@ class PmoController extends Controller
             'delayed'  => $data['delayedCount'],
         ];
 
-        // Chart Distribusi Beban per Divisi
-        $networkCount = $data['formattedProjects']->filter(fn($p) => str_contains(strtolower($p['division']), 'network'))->count();
-        $securityCount = $data['formattedProjects']->filter(fn($p) => str_contains(strtolower($p['division']), 'security'))->count();
-        $otherDivCount = $data['formattedProjects']->count() - ($networkCount + $securityCount);
+        // Chart Distribusi Beban per Divisi (Hanya Divisi Network & Divisi Security di PMO)
+        $networkCount = $data['formattedProjects']->filter(fn($p) => str_contains(strtolower($p['division'] ?? ''), 'network'))->count();
+        $securityCount = $data['formattedProjects']->filter(fn($p) => str_contains(strtolower($p['division'] ?? ''), 'security'))->count();
+        $unassignedCount = max(0, $data['formattedProjects']->count() - ($networkCount + $securityCount));
+        
         $divisionChartData = [
             'Divisi Network'  => $networkCount,
             'Divisi Security' => $securityCount,
-            'Lainnya / PMO'   => max(0, $otherDivCount),
         ];
+        if ($unassignedCount > 0) {
+            $divisionChartData['Belum Didelegasikan'] = $unassignedCount;
+        }
 
         return view('pmo.dashboard', array_merge($data, compact(
             'recentProjects',
