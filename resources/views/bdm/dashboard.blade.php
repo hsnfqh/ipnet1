@@ -211,6 +211,16 @@
             {{-- ======================================================== --}}
             {{-- 2. METRIC SUMMARY CARDS (4 KPI CARDS)                    --}}
             {{-- ======================================================== --}}
+            @php
+                $totalNilaiProject = $totalNilaiProject ?? 0;
+                $totalProjectCount = $totalProjectCount ?? 0;
+                $totalNilaiOpportunity = $totalNilaiOpportunity ?? 0;
+                $totalOpportunityCount = $totalOpportunityCount ?? 0;
+                $totalHandoverCount = $totalHandoverCount ?? 0;
+                $conversionRate = $conversionRate ?? 0;
+                $totalWonValue = $totalWonValue ?? 0;
+                $totalWonCount = $totalWonCount ?? 0;
+            @endphp
             <div class="anim-fade-up anim-delay-1">
                 <div class="flex items-center justify-between mb-3">
                     <div>
@@ -421,7 +431,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // 1. Chart Tren Nilai Pipeline Bulanan
-        const monthlyData = @json($monthlyDataInMillions);
+        const monthlyData = @json($monthlyDataInMillions ?? []);
         const ctxTrend = document.getElementById('monthlyTrendChart').getContext('2d');
         
         const gradient = ctxTrend.createLinearGradient(0, 0, 0, 240);
@@ -478,8 +488,8 @@
         });
 
         // 2. Chart Distribusi Sektor Klien
-        const sectorData = @json($sectorDataInMillions);
-        const sectorLabels = @json(array_keys($sectorCounts));
+        const sectorData = @json($sectorDataInMillions ?? []);
+        const sectorLabels = @json(isset($sectorCounts) ? array_keys($sectorCounts) : []);
         const ctxSector = document.getElementById('sectorDoughnutChart').getContext('2d');
 
         new Chart(ctxSector, {
