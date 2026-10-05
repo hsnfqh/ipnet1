@@ -92,8 +92,8 @@
                     </svg>
                 </div>
 
-                <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div class="max-w-2xl">
+                <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div class="min-w-0 flex-1">
                         <div class="inline-flex items-center mb-1.5 px-2.5 py-0.5 text-[10.5px] font-bold text-white bg-white/15 backdrop-blur-md rounded-full border border-white/20 tracking-wider uppercase">
                             <span class="w-1.5 h-1.5 mr-1.5 bg-white rounded-full inline-block"></span>
                             PT IP NETWORK SOLUSINDO &bull; PROJECT MANAGEMENT OFFICE
@@ -101,7 +101,7 @@
                         <h1 class="text-[19px] sm:text-[22px] font-extrabold text-white tracking-tight leading-tight">
                             Pusat Kendali Pengawasan Proyek
                         </h1>
-                        <p class="mt-1 text-[12.5px] text-white/85 leading-relaxed">
+                        <p class="mt-0.5 text-[12px] sm:text-[13px] text-white/85 leading-relaxed truncate">
                             Monitoring terpadu implementasi teknis tahap Deliver, kepatuhan jadwal (SLA), dan verifikasi kelengkapan berkas serah terima.
                         </p>
                     </div>

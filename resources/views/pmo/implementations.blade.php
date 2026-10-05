@@ -2,25 +2,6 @@
 
 @section('title', 'Project Delivery - PMO Implementasi & Handover')
 
-@push('styles')
-<style>
-    .ipnet-hero-banner {
-        background: linear-gradient(125deg, #B81525 0%, #9E0E1D 40%, #830B17 75%, #63050F 100%);
-        position: relative;
-        overflow: hidden;
-    }
-
-    @keyframes heroReveal {
-        0% { opacity: 0; transform: translateY(18px) scale(0.99); }
-        100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .anim-hero-reveal {
-        animation: heroReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-</style>
-@endpush
-
 @section('content')
 <div class="flex h-screen overflow-hidden" x-data="pmoDashboard()" x-cloak>
     @include('components.sidebar')
@@ -31,85 +12,7 @@
         <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1680px] mx-auto">
             
             <!-- ========================================================== -->
-            <!-- 1. EXECUTIVE HERO BANNER (IPNET BRAND GEOMETRIC PATTERN)   -->
-            <!-- ========================================================== -->
-            <div class="ipnet-hero-banner rounded-2xl px-5 py-4 sm:px-6 sm:py-5 text-white shadow-md shadow-red-950/15 relative anim-hero-reveal">
-                {{-- Layered Geometric Faceted Red Planes --}}
-                <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
-                    <svg class="w-full h-full object-cover" viewBox="0 0 1440 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="pmoImplRedGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#C61828" />
-                                <stop offset="100%" stop-color="#9E0E1D" />
-                            </linearGradient>
-                            <linearGradient id="pmoImplRedGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#B01423" />
-                                <stop offset="100%" stop-color="#7A0813" />
-                            </linearGradient>
-                            <linearGradient id="pmoImplRedGrad3" x1="0%" y1="100%" x2="100%" y2="0%">
-                                <stop offset="0%" stop-color="#940E1B" />
-                                <stop offset="100%" stop-color="#5A040C" />
-                            </linearGradient>
-                            <linearGradient id="pmoImplRedGradHighlight" x1="0%" y1="0%" x2="100%" y2="50%">
-                                <stop offset="0%" stop-color="#FFA8B2" stop-opacity="0.20" />
-                                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
-                            </linearGradient>
-                            <filter id="pmoImplFacetDropShadow" x="-10%" y="-10%" width="130%" height="130%">
-                                <feDropShadow dx="-8" dy="10" stdDeviation="14" flood-color="#3A0207" flood-opacity="0.4" />
-                            </filter>
-                        </defs>
-
-                        <!-- Base Background -->
-                        <rect width="1440" height="200" fill="url(#pmoImplRedGrad1)" />
-
-                        <!-- Top-Left Large Diagonal Angled Plane -->
-                        <polygon points="0,0 650,0 280,200 0,200" fill="url(#pmoImplRedGrad1)" />
-
-                        <!-- Intersecting Broad Diagonal Facet Strip -->
-                        <polygon points="220,0 850,0 1300,200 600,200" fill="url(#pmoImplRedGrad2)" filter="url(#pmoImplFacetDropShadow)" />
-
-                        <!-- Crossing Foreground Diagonal Bright Red Plane -->
-                        <polygon points="0,0 520,0 1080,200 480,200" fill="url(#pmoImplRedGrad1)" opacity="0.9" filter="url(#pmoImplFacetDropShadow)" />
-
-                        <!-- Right Edge Deeper Contrast Facet -->
-                        <polygon points="780,0 1440,0 1440,200 1100,200" fill="url(#pmoImplRedGrad3)" filter="url(#pmoImplFacetDropShadow)" />
-
-                        <!-- Soft Angular Ambient Highlight Overlays -->
-                        <polygon points="0,0 680,0 1120,200 380,200" fill="url(#pmoImplRedGradHighlight)" />
-                    </svg>
-                </div>
-
-                <div class="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div class="max-w-2xl">
-                        <div class="inline-flex items-center mb-1.5 px-2.5 py-0.5 text-[10.5px] font-bold text-white bg-white/15 backdrop-blur-md rounded-full border border-white/20 tracking-wider uppercase">
-                            <span class="w-1.5 h-1.5 mr-1.5 bg-white rounded-full inline-block"></span>
-                            PT IP NETWORK SOLUSINDO &bull; PROJECT MANAGEMENT OFFICE
-                        </div>
-                        <h1 class="text-[19px] sm:text-[22px] font-extrabold text-white tracking-tight leading-tight">
-                            Pusat Kendali Project Delivery &amp; Serah Terima
-                        </h1>
-                        <p class="mt-1 text-[12.5px] text-white/85 leading-relaxed">
-                            Manajemen terpadu implementasi teknis tahap Deliver, monitoring kepatuhan timeline jadwal (SLA), serta verifikasi serah terima proyek.
-                        </p>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-                        <div class="px-3.5 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold text-white flex items-center gap-2 shadow-2xs">
-                            <span class="text-white/80 font-medium">Total Implementasi:</span>
-                            <span class="text-white font-black text-sm" x-text="stageCounts.Deliver || 0"></span>
-                            <span class="text-white/70 text-[11px] font-normal">Proyek</span>
-                        </div>
-                        <div class="px-3.5 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold text-white flex items-center gap-2 shadow-2xs">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                            <span class="text-white/80 font-medium">Sesuai Jadwal:</span>
-                            <span class="text-emerald-300 font-black text-sm" x-text="onTrackCount"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ========================================================== -->
-            <!-- 2. 4 EXECUTIVE KPI METRIC CARDS                            -->
+            <!-- 1. 4 EXECUTIVE KPI METRIC CARDS                            -->
             <!-- ========================================================== -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                 
