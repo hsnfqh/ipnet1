@@ -3,6 +3,19 @@
 @section('title', 'Dashboard PMO - Pusat Kendali & Pengawasan Implementasi')
 
 @section('content')
+@php
+    $formattedProjects = $formattedProjects ?? collect();
+    $recentProjects = $recentProjects ?? $formattedProjects->take(5)->values();
+    $stageCounts = $stageCounts ?? [];
+    $onTrackCount = $onTrackCount ?? 0;
+    $delayedCount = $delayedCount ?? 0;
+    $atRiskCount = $atRiskCount ?? 0;
+    $handoverPendingCount = $handoverPendingCount ?? 0;
+    $handoverConditionalCount = $handoverConditionalCount ?? 0;
+    $readyToOperateCount = $readyToOperateCount ?? 0;
+    $slaChartData = $slaChartData ?? ['on_track' => $onTrackCount, 'at_risk' => $atRiskCount, 'delayed' => $delayedCount];
+    $divisionChartData = $divisionChartData ?? [];
+@endphp
 <div class="flex h-screen overflow-hidden" x-data="{}" x-cloak>
     @include('components.sidebar')
     
