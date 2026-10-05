@@ -320,18 +320,12 @@
 
                     <div style="background:white; border-radius:20px; width:660px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 60px rgba(15,23,42,0.22); margin:auto; position:relative; border:1px solid #E2E8F0; animation:fadeInUp 0.2s ease;">
 
-                        <!-- Modal Header -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 24px; position:sticky; top:0; background:white; border-bottom:1px solid #E2E8F0; border-radius:20px 20px 0 0; z-index:10;">
-                            <div>
-                                <div style="display:inline-flex; align-items:center; gap:6px; background:#FEF2F2; border:1px solid #FECACA; padding:2px 8px; border-radius:6px; margin-bottom:4px;">
-                                    <span style="width:6px; height:6px; border-radius:50%; background:#8F0A0D;"></span>
-                                    <span style="font-size:10.5px; font-weight:700; color:#8F0A0D; text-transform:uppercase; letter-spacing:0.5px;" x-text="isMaintenance ? 'TUGAS MAINTENANCE & SLA' : 'MANAJEMEN PENUGASAN'"></span>
-                                </div>
-                                <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:17px; font-weight:800; color:#0F172A;" x-text="editing ? 'Edit Penugasan Task' : (isMaintenance ? 'Buat & Delegasikan Tugas Maintenance' : 'Buat & Assign Task')"></h3>
-                            </div>
-                            <button @click="modalOpen = false" style="background:#F8FAFC; border:1px solid #E2E8F0; cursor:pointer; color:#64748B; padding:7px; border-radius:10px; transition:all 0.15s ease; flex-shrink:0; display:flex; align-items:center; justify-content:center;" onmouseover="this.style.background='#F1F5F9'; this.style.color='#0F172A'; this.style.borderColor='#CBD5E1'" onmouseout="this.style.background='#F8FAFC'; this.style.color='#64748B'; this.style.borderColor='#E2E8F0'">
-                                <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        <!-- Modal Header (Konsisten dengan Catat Log Aktivitas Kerja Baru) -->
+                        <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] sticky top-0 z-10" style="border-radius:20px 20px 0 0;">
+                            <h3 class="text-[16px] font-bold text-[#1E293B]" x-text="editing ? 'Edit Penugasan Task' : (isMaintenance ? 'Buat & Delegasikan Tugas Maintenance' : 'Buat & Assign Task')"></h3>
+                            <button type="button" @click="modalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
@@ -580,17 +574,13 @@
 
                     <div class="bg-white rounded-2xl w-[540px] max-w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-[#E2E8F0] my-auto anim-fade-up">
 
-                        {{-- Modal Header --}}
-                        <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
-                            <div>
-                                <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-red-50 text-[#8F0A0D] text-[10.5px] font-bold uppercase tracking-wider mb-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                    <span>Progres Tugas Lapangan</span>
-                                </div>
-                                <h3 class="text-[17px] font-bold text-[#1E293B]">Update Progres Pekerjaan</h3>
-                            </div>
-                            <button type="button" @click="progressModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        {{-- Modal Header (Konsisten dengan Catat Log Aktivitas Kerja Baru) --}}
+                        <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0" style="border-radius:16px 16px 0 0;">
+                            <h3 class="text-[16px] font-bold text-[#1E293B]">Update Progres Pekerjaan</h3>
+                            <button type="button" @click="progressModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
                             </button>
                         </div>
 
@@ -723,18 +713,12 @@
 
                     <div style="background:white; border-radius:20px; width:580px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 60px rgba(15,23,42,0.22); margin:auto; position:relative; border:1px solid #E2E8F0; animation:fadeInUp 0.2s ease;">
 
-                        <!-- Modal Header -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 24px; position:sticky; top:0; background:white; border-bottom:1px solid #E2E8F0; border-radius:20px 20px 0 0; z-index:10;">
-                            <div>
-                                <div style="display:inline-flex; align-items:center; gap:6px; background:#FEF2F2; border:1px solid #FECACA; padding:2px 8px; border-radius:6px; margin-bottom:4px;">
-                                    <span style="width:6px; height:6px; border-radius:50%; background:#8F0A0D;"></span>
-                                    <span style="font-size:10.5px; font-weight:700; color:#8F0A0D; text-transform:uppercase; letter-spacing:0.5px;">DETAIL PENUGASAN</span>
-                                </div>
-                                <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:17px; font-weight:800; color:#0F172A;">Detail & Dokumentasi Task</h3>
-                            </div>
-                            <button @click="detailModalOpen = false" style="background:#F8FAFC; border:1px solid #E2E8F0; cursor:pointer; color:#64748B; padding:7px; border-radius:10px; transition:all 0.15s ease; flex-shrink:0;" onmouseover="this.style.background='#F1F5F9'; this.style.color='#0F172A'" onmouseout="this.style.background='#F8FAFC'; this.style.color='#64748B'">
-                                <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        <!-- Modal Header (Konsisten dengan Catat Log Aktivitas Kerja Baru) -->
+                        <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] sticky top-0 z-10" style="border-radius:20px 20px 0 0;">
+                            <h3 class="text-[16px] font-bold text-[#1E293B]">Detail & Dokumentasi Task</h3>
+                            <button type="button" @click="detailModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>

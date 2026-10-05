@@ -259,14 +259,11 @@
              x-cloak 
              class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col overflow-hidden" @click.away="isCreateModalOpen = false">
-                <!-- Fixed Header -->
-                <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
-                    <div>
-                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">Tiket Maintenance Baru</p>
-                        <h3 class="text-[16px] font-bold text-[#1E293B]">Buat Tiket Maintenance (PM / CM)</h3>
-                    </div>
-                    <button @click="isCreateModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                <!-- Fixed Header (Konsisten dengan Catat Log Aktivitas Kerja Baru) -->
+                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
+                    <h3 class="text-[16px] font-bold text-[#1E293B]">Buat Tiket Maintenance (PM / CM)</h3>
+                    <button type="button" @click="isCreateModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
@@ -372,14 +369,11 @@
              x-cloak 
              class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col overflow-hidden" @click.away="isUpdateModalOpen = false">
-                <!-- Fixed Header -->
-                <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
-                    <div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-[#8F0A0D]">Tiket Service Update</span>
-                        <h3 class="text-[16px] font-bold text-[#1E293B]" x-text="activeTicket.ticket_number + ' - ' + activeTicket.title"></h3>
-                    </div>
-                    <button @click="isUpdateModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                <!-- Fixed Header (Konsisten dengan Catat Log Aktivitas Kerja Baru) -->
+                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
+                    <h3 class="text-[16px] font-bold text-[#1E293B]" x-text="activeTicket.ticket_number + ' - ' + activeTicket.title"></h3>
+                    <button type="button" @click="isUpdateModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 

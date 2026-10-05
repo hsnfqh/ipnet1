@@ -756,19 +756,12 @@
                      @click.self="modalOpen = false">
 
                     <div style="background:white; border-radius:18px; width:560px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 50px rgba(14,13,18,0.18); margin:auto; position:relative; animation:jkwFadeUp 0.18s ease; border:1px solid #E2E8F0;">
-                        <!-- Modal Header -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 22px; position:sticky; top:0; background:white; border-bottom:1px solid #E2E8F0; border-radius:18px 18px 0 0; z-index:10;">
-                            <div>
-                                <div style="display:inline-flex; align-items:center; gap:6px; background:#FEF2F2; border:1px solid #FECACA; padding:2px 8px; border-radius:6px; margin-bottom:4px;">
-                                    <span style="width:6px; height:6px; border-radius:50%; background:#8F0A0D; flex-shrink:0;"></span>
-                                    <span style="font-size:10px; font-weight:700; color:#8F0A0D; text-transform:uppercase; letter-spacing:0.5px;" x-text="modalMode === 'form' ? (editing ? 'EDIT JADWAL' : 'TAMBAH JADWAL') : 'DETAIL JADWAL'"></span>
-                                </div>
-                                <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:16.5px; font-weight:800; color:#0F172A;" x-text="modalMode === 'form' ? (editing ? 'Edit Jadwal Kegiatan' : 'Buat Jadwal Baru') : 'Detail & Informasi Jadwal'"></h3>
-                                <p style="margin:2px 0 0; font-size:11.5px; color:#64748B;" x-text="modalMode === 'form' ? 'Atur rincian agenda, waktu, dan penugasan personel' : 'Detail informasi agenda dan jadwal kegiatan'"></p>
-                            </div>
-                            <button @click="modalOpen = false" style="background:#F8FAFC; border:1px solid #E2E8F0; cursor:pointer; color:#64748B; padding:6px; border-radius:8px; transition:all 0.15s ease; flex-shrink:0;" onmouseover="this.style.background='#F1F5F9'; this.style.color='#0F172A'" onmouseout="this.style.background='#F8FAFC'; this.style.color='#64748B'" title="Tutup">
-                                <svg style="width:17px; height:17px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        <!-- Modal Header (Konsisten dengan Catat Log Aktivitas Kerja Baru) -->
+                        <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] sticky top-0 z-10" style="border-radius:18px 18px 0 0;">
+                            <h3 class="text-[16px] font-bold text-[#1E293B]" x-text="modalMode === 'form' ? (editing ? 'Edit Jadwal Kegiatan' : 'Buat Jadwal Baru') : 'Detail & Informasi Jadwal'"></h3>
+                            <button type="button" @click="modalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
