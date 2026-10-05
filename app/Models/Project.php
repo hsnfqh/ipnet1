@@ -372,14 +372,104 @@ class Project extends Model
     /**
      * Cek otorisasi akses khusus Berkas Sales (Confidential)
      * Hanya dapat diakses oleh:
-     * 1. Head Sales (Group Leader Commercial & Solution / Head of Sales / Farhan Ramadhan)
-     * 2. Direktur / Pimpinan Eksekutif (Pak Hariyadi, Pak Susanto, Director, Direktur)
-     * 3. Super Admin / Admin
-     * (Catatan: Sales biasa, Account Manager, BD, Presales, SA, PM, Engineer, dll. TIDAK memiliki akses ke Berkas Sales)
+     * 1. Direktur / Pimpinan Eksekutif (Pak Hariyadi, Pak Susanto, Director, Direktur)
+     * 2. Head Division (Division Head, Head Divisi, Group Leader Commercial & Solution, Group Leader)
+     * 3. Sales itu sendiri (Sales PIC pemilik / penanggung jawab proyek ini)
+     * 4. Super Admin / Admin
+     * 
+     * Sesuai ketentuan: Pre-Sales, Solution Architect (SA), dan Business Development (BD) 
+     * TIDAK BOLEH melihat atau mengakses Berkas Sales.
      */
     public function canAccessSalesDocs($user = null): bool
     {
-        return true;
+        $user = $user ?: auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        $userRoles = method_exists($user, 'roles') ? $user->roles->pluck('name')->toArray() : [];
+        $lowerName = strtolower($user->name ?? '');
+        $lowerEmail = strtolower($user->email ?? '');
+        $lowerPos = strtolower($user->position ?? '');
+
+        // 1. Super Admin & Admin (Akses Penuh Pengelola Sistem)
+        if (!empty(array_intersect(['Super Admin', 'Admin'], $userRoles))) {
+            return true;
+        }
+
+        // 2. Direktur / Pimpinan Eksekutif (Pak Hariyadi, Pak Susanto)
+        $isDirector = !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur'], $userRoles))
+            || (\class_exists(\App\Helpers\ScopeHelper::class) && \App\Helpers\ScopeHelper::isExecutive($user))
+            || str_contains($lowerName, 'hariyadi')
+            || str_contains($lowerName, 'susanto')
+            || str_contains($lowerName, 'santoso');
+
+        if ($isDirector) {
+            return true;
+        }
+
+        // 3. Head Division / Group Leader Commercial & Solution / Head of Sales
+        $isHeadDivision = !empty(array_intersect([
+            'Division Head', 'Head Divisi', 'Head Division',
+            'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation',
+            'Lead Divisi', 'Head of Sales', 'Head Sales', 'Commercial Head'
+        ], $userRoles))
+            || str_contains($lowerName, 'farhan')
+            || str_contains($lowerEmail, 'gl.commercial');
+
+        if ($isHeadDivision) {
+            return true;
+        }
+
+        // Sembunyikan & blokir mutlak jika user adalah Pre-Sales, Solution Architect (SA), atau Business Development (BD)
+        $isPresalesOrSaOrBd = !empty(array_intersect([
+            'Presales', 'Pre-Sales',
+            'Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D',
+            'BDM', 'BusDev', 'Business Development', 'Product Manager'
+        ], $userRoles))
+            || str_contains($lowerPos, 'presales')
+            || str_contains($lowerPos, 'pre-sales')
+            || str_contains($lowerPos, 'architect')
+            || str_contains($lowerPos, 'business development')
+            || str_contains($lowerPos, 'busdev')
+            || str_contains($lowerPos, 'bdm')
+            || str_contains($lowerName, 'akbar')
+            || str_contains($lowerName, 'aris')
+            || str_contains($lowerName, 'novan')
+            || str_contains($lowerName, 'kurnijanto');
+
+        if ($isPresalesOrSaOrBd) {
+            return false;
+        }
+
+        // 4. Sales itu sendiri (Sales PIC pemilik / penanggung jawab proyek ini)
+        $isSalesRole = !empty(array_intersect(['Sales', 'Account Manager'], $userRoles))
+            || str_contains($lowerPos, 'sales')
+            || str_contains($lowerPos, 'account manager');
+
+        $isProjectSales = false;
+        if (!empty($this->sales_id) && (int)$this->sales_id === (int)$user->id) {
+            $isProjectSales = true;
+        }
+        if (!empty($this->sales_name)) {
+            $cleanSalesName = trim(strtolower($this->sales_name));
+            if ($cleanSalesName !== '' && (
+                $cleanSalesName === $lowerName ||
+                str_contains($lowerName, $cleanSalesName) ||
+                str_contains($cleanSalesName, $lowerName)
+            )) {
+                $isProjectSales = true;
+            }
+        }
+        if (!empty($this->created_by) && (int)$this->created_by === (int)$user->id) {
+            $isProjectSales = true;
+        }
+
+        if ($isSalesRole && $isProjectSales) {
+            return true;
+        }
+
+        return false;
     }
 
     public function clientModel()

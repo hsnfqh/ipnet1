@@ -910,8 +910,10 @@
                     {{-- Otorisasi Pimpinan (Pak Susanto Djaya & Pak Hariyadi) --}}
                     @include('projects.partials.workflow-leadership')
 
-                    {{-- Berkas Sales (Confidential - Sales PIC & Manajemen) Ditaruh Langsung di Bawah Persetujuan Pimpinan --}}
-                    @include('projects.partials.card-sales-documents')
+                    {{-- Berkas Sales (Confidential - Hanya Head Division, Sales Terkait & Direktur) --}}
+                    @if($project->canAccessSalesDocs())
+                        @include('projects.partials.card-sales-documents')
+                    @endif
 
                     {{-- 3. Tim Solusi Teknis (PIC BD, Presales Akbar, SA Aris Sadewo) --}}
                     @include('projects.partials.workflow-technical-solution')

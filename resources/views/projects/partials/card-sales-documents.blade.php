@@ -1,7 +1,7 @@
 {{-- ═══ BERKAS SALES CARD (CONFIDENTIAL - HANYA SALES & MANAGEMENT) ═══ --}}
 @php
     $authUser = auth()->user();
-    $canAccessSalesDocs = true;
+    $canAccessSalesDocs = $authUser && $project->canAccessSalesDocs($authUser);
 
     $salesTemplates = [
         [
