@@ -31,11 +31,6 @@
 
 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11.5px] font-bold tracking-[0.1px] whitespace-nowrap border shadow-2xs transition-all duration-200"
       style="background: {{ $s['bg'] }}; color: {{ $s['fg'] }}; border-color: {{ $s['dot'] }}33;">
-    <span class="relative flex h-2 w-2 shrink-0">
-        @if($s['pulse'])
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style="background: {{ $s['dot'] }};"></span>
-        @endif
-        <span class="relative inline-flex rounded-full h-2 w-2" style="background: {{ $s['dot'] }}; box-shadow: 0 0 4px {{ $s['dot'] }}88;"></span>
-    </span>
+    <span class="inline-flex rounded-full h-2 w-2 shrink-0" style="background: {{ $s['dot'] }};"></span>
     {{ $status }}
 </span>

@@ -81,7 +81,7 @@
                 </span>
             @else
                 <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-red-50 text-[#8F0A0D] border border-red-200">
-                    <span class="w-2 h-2 rounded-full bg-[#8F0A0D] animate-ping"></span>
+                    <span class="w-2 h-2 rounded-full bg-[#8F0A0D] shrink-0"></span>
                     <span>Tahap {{ $currentStageIndex }} dari 5: {{ $currentSalesStage }}</span>
                 </span>
             @endif
