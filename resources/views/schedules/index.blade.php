@@ -949,120 +949,76 @@
                                     <!-- Pilihan Kategori Jadwal -->
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">
-                                            Kategori {{ ($isArchitect ?? false) ? 'Agenda' : 'Jadwal' }}
+                                            Kategori {{ ($isCommercialOrSolution ?? false) ? 'Agenda' : 'Jadwal' }}
                                         </label>
                                         <div>
-                                            @if($isArchitect ?? false)
-                                            <div style="display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px;">
+                                            @if($isCommercialOrSolution ?? false)
+                                            <!-- Khusus Tim Solution Architect, Pre-Sales, Sales & BD: HANYA 2 KATEGORI RAPI & PROPORSIONAL -->
+                                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                                                 <button type="button" 
                                                         class="jkw-cat-btn jkw-cat-btn--poc"
-                                                        :class="{ 'is-active': form.category === 'PoC / Lab' || form.category === 'Sesi PoC & Lab' }"
-                                                        @click="setCategory('Sesi PoC & Lab')">
-                                                    <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        :class="{ 'is-active': form.category === 'PoC & Demo' || form.category === 'PoC' || form.category === 'PoC / Lab' || form.category === 'Sesi PoC & Lab' }"
+                                                        @click="setCategory('PoC & Demo')">
+                                                    <svg style="width:16px; height:16px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
                                                     </svg>
-                                                    <span>PoC & Lab</span>
+                                                    <span>PoC</span>
                                                 </button>
 
                                                 <button type="button" 
-                                                        class="jkw-cat-btn jkw-cat-btn--design"
-                                                        :class="{ 'is-active': form.category === 'Review Desain & SOW' || form.category === 'Desain & SOW' || form.category === 'Kajian Solusi' }"
-                                                        @click="setCategory('Review Desain & SOW')">
-                                                    <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                        class="jkw-cat-btn jkw-cat-btn--meeting-sa"
+                                                        :class="{ 'is-active': form.category === 'Meeting Klien / Principal' || form.category === 'Meeting' || form.category === 'Klien / Principal' || form.category === 'Review Desain & SOW' }"
+                                                        @click="setCategory('Meeting Klien / Principal')">
+                                                    <svg style="width:16px; height:16px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                                                     </svg>
-                                                    <span>Desain & SOW</span>
+                                                    <span>Klien / Principal</span>
+                                                </button>
+                                            </div>
+                                            @else
+                                            <!-- Tim Operasional Teknis / Lead Engineer -->
+                                            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                                                <button type="button" 
+                                                        class="jkw-cat-btn jkw-cat-btn--meeting"
+                                                        :class="{ 'is-active': form.category === 'Meeting' }"
+                                                        @click="setCategory('Meeting')">
+                                                    <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                                    </svg>
+                                                    <span>Meeting</span>
                                                 </button>
 
-                                                    <button type="button" 
-                                                            class="jkw-cat-btn jkw-cat-btn--meeting-sa"
-                                                            :class="{ 'is-active': form.category === 'Meeting Klien / Principal' || form.category === 'Meeting' }"
-                                                            @click="setCategory('Meeting Klien / Principal')">
-                                                        <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                                        </svg>
-                                                        <span>Klien/Principal</span>
-                                                    </button>
+                                                <button type="button" 
+                                                        class="jkw-cat-btn jkw-cat-btn--task"
+                                                        :class="{ 'is-active': form.category === 'Task' || form.category === 'Kegiatan' }"
+                                                        @click="setCategory('Task')">
+                                                    <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                                    </svg>
+                                                    <span>Task / Kegiatan</span>
+                                                </button>
 
-                                                    <button type="button" 
-                                                            class="jkw-cat-btn jkw-cat-btn--dayoff"
-                                                            :class="{ 'is-active': form.category === 'Day Off' }"
-                                                            @click="setCategory('Day Off')">
-                                                        <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <circle cx="12" cy="12" r="5"/>
-                                                            <line x1="12" y1="1" x2="12" y2="3"/>
-                                                            <line x1="12" y1="21" x2="12" y2="23"/>
-                                                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                                                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                                                        </svg>
-                                                        <span>Day Off</span>
-                                                    </button>
-                                                </div>
-                                                @elseif($isCommercial ?? false)
-                                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                                                    <button type="button" 
-                                                            class="jkw-cat-btn jkw-cat-btn--meeting-sales"
-                                                            :class="{ 'is-active': form.category === 'Meeting' }"
-                                                            @click="setCategory('Meeting')">
-                                                        <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                                        </svg>
-                                                        <span>Meeting</span>
-                                                    </button>
-
-                                                    <button type="button" 
-                                                            class="jkw-cat-btn jkw-cat-btn--poc"
-                                                            :class="{ 'is-active': form.category === 'PoC & Demo' || form.category === 'Sesi PoC & Demo' || form.category === 'PoC / Lab' || form.category === 'Sesi PoC & Lab' }"
-                                                            @click="setCategory('PoC & Demo')">
-                                                        <svg style="width:14px; height:14px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                                                        </svg>
-                                                        <span>PoC &amp; Demo</span>
-                                                    </button>
-                                                </div>
-                                                @else
-                                                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-                                                    <button type="button" 
-                                                            class="jkw-cat-btn jkw-cat-btn--meeting"
-                                                            :class="{ 'is-active': form.category === 'Meeting' }"
-                                                            @click="setCategory('Meeting')">
-                                                        <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                                        </svg>
-                                                        <span>Meeting</span>
-                                                    </button>
-
-                                                    <button type="button" 
-                                                            class="jkw-cat-btn jkw-cat-btn--task"
-                                                            :class="{ 'is-active': form.category === 'Task' || form.category === 'Kegiatan' }"
-                                                            @click="setCategory('Task')">
-                                                        <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                                                        </svg>
-                                                        <span>Task / Kegiatan</span>
-                                                    </button>
-
-                                                    <button type="button" 
-                                                            class="jkw-cat-btn jkw-cat-btn--dayoff"
-                                                            :class="{ 'is-active': form.category === 'Day Off' }"
-                                                            @click="setCategory('Day Off')">
-                                                        <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                            <circle cx="12" cy="12" r="5"/>
-                                                            <line x1="12" y1="1" x2="12" y2="3"/>
-                                                            <line x1="12" y1="21" x2="12" y2="23"/>
-                                                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                                                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                                                        </svg>
-                                                        <span>Day Off / Cuti</span>
-                                                    </button>
-                                                </div>
-                                                @endif
+                                                <button type="button" 
+                                                        class="jkw-cat-btn jkw-cat-btn--dayoff"
+                                                        :class="{ 'is-active': form.category === 'Day Off' }"
+                                                        @click="setCategory('Day Off')">
+                                                    <svg style="width:15px; height:15px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <circle cx="12" cy="12" r="5"/>
+                                                        <line x1="12" y1="1" x2="12" y2="3"/>
+                                                        <line x1="12" y1="21" x2="12" y2="23"/>
+                                                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                                    </svg>
+                                                    <span>Day Off / Cuti</span>
+                                                </button>
                                             </div>
+                                            @endif
+                                        </div>
                                     </div>
 
                                     <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Judul {{ ($isArchitect ?? false) ? 'Agenda / Catatan' : 'Jadwal' }}</label>
-                                        <input type="text" x-model="form.title" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; color:#0F172A; cursor:default;' : 'background:#FFFFFF; color:#0F172A;'" :placeholder="form.category === 'Day Off' ? 'Contoh: Day Off / Cuti' : (isArchitect ? 'Contoh: Kajian Arsitektur Proyek XYZ / Sesi PoC Lab' : (form.category === 'PoC & Demo' ? 'Contoh: Sesi PoC Fortinet / Demo Solusi SD-WAN' : 'Contoh: Meeting Koordinasi Proyek ABC'))" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;" required>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Judul {{ ($isCommercialOrSolution ?? false) ? 'Agenda / Catatan' : 'Jadwal' }}</label>
+                                        <input type="text" x-model="form.title" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; color:#0F172A; cursor:default;' : 'background:#FFFFFF; color:#0F172A;'" :placeholder="form.category === 'Day Off' ? 'Contoh: Day Off / Cuti' : ((isCommercialOrSolution || isArchitect) ? ((form.category === 'PoC & Demo' || form.category === 'PoC') ? 'Contoh: Sesi PoC Solusi Fortinet / Demo SD-WAN' : 'Contoh: Meeting Klien PT Telkom / Koordinasi Principal') : (form.category === 'PoC & Demo' ? 'Contoh: Sesi PoC Fortinet / Demo Solusi SD-WAN' : 'Contoh: Meeting Koordinasi Proyek ABC'))" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;" required>
                                     </div>
 
                                     @if(!($isMaintenance ?? false))
@@ -1087,11 +1043,11 @@
                                     </div>
                                     @endif
 
-                                    @if(!($isArchitect ?? false))
+                                    <!-- Personel / Peserta Kegiatan (Sama persis & lengkap seperti Lead Engineer) -->
                                     <div>
                                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                                             <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
-                                                <span x-text="form.category === 'Day Off' ? 'Personel yang Cuti / Libur' : (form.category === 'PoC & Demo' ? 'Presales & Peserta PoC' : 'Personel / Peserta Meeting')"></span>
+                                                <span x-text="form.category === 'Day Off' ? 'Personel yang Cuti / Libur' : ((form.category === 'PoC & Demo' || form.category === 'PoC' || form.category === 'PoC & Lab' || form.category === 'Sesi PoC & Lab') ? 'Presales & PIC PoC' : 'Personel / Peserta Agenda')"></span>
                                             </label>
                                             <template x-if="canManageSchedule">
                                                 <div style="display:flex; align-items:center; gap:8px;">
@@ -1116,7 +1072,7 @@
                                                 <div style="display:inline-flex; align-items:center; gap:6px; background:#FFFFFF; border:1px solid #CBD5E1; padding:3px 8px 3px 6px; border-radius:20px; font-size:11.5px; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
                                                     <span style="width:7px; height:7px; border-radius:50%;" :style="{ background: form.category === 'Day Off' ? '#64748B' : (idx === 0 ? '#C81E2C' : '#2563EB') }"></span>
                                                     <span style="font-weight:600; color:#0F172A;" x-text="getEngineerName(engId)"></span>
-                                                    <template x-if="form.category === 'Meeting' || form.category === 'PoC & Demo'">
+                                                    <template x-if="form.category !== 'Day Off'">
                                                         <span style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:10px;" :style="{ background: idx === 0 ? '#FDF1F2' : '#EFF6FF', color: idx === 0 ? '#C81E2C' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC / Partner' : 'Peserta'"></span>
                                                     </template>
                                                     <template x-if="canManageSchedule">
@@ -1169,7 +1125,7 @@
                                                             </template>
                                                         </div>
                                                     </div>
-                                                    <template x-if="(form.category === 'Meeting' || form.category === 'PoC & Demo') && form.engineer_ids && form.engineer_ids.includes(engineer.id)">
+                                                    <template x-if="form.category !== 'Day Off' && form.engineer_ids && form.engineer_ids.includes(engineer.id)">
                                                         <span style="font-size:10px; font-weight:700; padding:1px 7px; border-radius:10px; flex-shrink:0;" 
                                                               :style="{ background: form.engineer_ids.indexOf(engineer.id) === 0 ? '#FDF1F2' : '#EFF6FF', color: form.engineer_ids.indexOf(engineer.id) === 0 ? '#C81E2C' : '#1D4ED8' }" 
                                                               x-text="form.engineer_ids.indexOf(engineer.id) === 0 ? 'PIC / Partner' : 'Peserta'"></span>
@@ -1178,7 +1134,6 @@
                                             </template>
                                         </div>
                                     </div>
-                                    @endif
 
                                     <!-- Sesi Tanggal & Waktu (Multi-Date / Multi-Session / Date Range Proyek Panjang) -->
                                     <div style="margin-bottom:14px;">
@@ -1187,8 +1142,7 @@
                                                 Tanggal &amp; Waktu Kegiatan
                                             </label>
 
-                                            <!-- Mode Switcher Pill (Sesi Harian vs Rentang Tanggal) - Hanya untuk Tim Operasional / Lead Engineer -->
-                                            @if(!($isCommercial ?? false))
+                                            <!-- Mode Switcher Pill (Sesi Harian vs Rentang Tanggal) - Tersedia untuk semua peran pengatur jadwal -->
                                             <template x-if="canManageSchedule && !editing">
                                                 <div class="jkw-mode-segmented">
                                                     <button type="button" 
@@ -1212,7 +1166,6 @@
                                                     </button>
                                                 </div>
                                             </template>
-                                            @endif
                                         </div>
 
                                         <!-- MODE 1: SESI HARIAN (MULTI-SESSION) -->
@@ -1344,7 +1297,7 @@
                                     </div>
                                 </div>
 
-                                    <div style="display:flex; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid #E2E8F0;">
+                                    <div style="display:flex; gap:10px; margin-top:20px; padding:14px 0 4px 0; border-top:1px solid #E2E8F0; position:sticky; bottom:0; background:white; z-index:10; border-radius:0 0 14px 14px;">
                                         <button type="submit" 
                                                 class="btn-ipnet-gradient"
                                                 style="flex:1; justify-content:center; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; box-sizing:border-box;">
@@ -2091,19 +2044,19 @@
 
 .jkw-cat-btn--poc {
     background: #FFFFFF !important;
-    color: #3B82F6 !important;
-    border: 1.5px solid #BFDBFE !important;
+    color: #059669 !important;
+    border: 1.5px solid #A7F3D0 !important;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
 }
 .jkw-cat-btn--poc:hover {
-    background: #EFF6FF !important;
-    border-color: #93C5FD !important;
+    background: #ECFDF5 !important;
+    border-color: #6EE7B7 !important;
 }
 .jkw-cat-btn--poc.is-active {
-    background: #3B82F6 !important;
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
     color: #FFFFFF !important;
-    border-color: #3B82F6 !important;
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35) !important;
+    border-color: #059669 !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
 }
 .jkw-cat-btn--poc.is-active svg {
     color: #FFFFFF !important;
@@ -2131,7 +2084,7 @@
 
 .jkw-cat-btn--meeting-sa {
     background: #FFFFFF !important;
-    color: #8B5CF6 !important;
+    color: #7C3AED !important;
     border: 1.5px solid #DDD6FE !important;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
 }
@@ -2140,10 +2093,10 @@
     border-color: #C4B5FD !important;
 }
 .jkw-cat-btn--meeting-sa.is-active {
-    background: #8B5CF6 !important;
+    background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%) !important;
     color: #FFFFFF !important;
-    border-color: #8B5CF6 !important;
-    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35) !important;
+    border-color: #6D28D9 !important;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
 }
 .jkw-cat-btn--meeting-sa.is-active svg {
     color: #FFFFFF !important;
@@ -2396,6 +2349,7 @@
                 selectedTicketId: '',
                 isArchitect: @json($isArchitect ?? false),
                 isCommercial: @json($isCommercial ?? false),
+                isCommercialOrSolution: @json($isCommercialOrSolution ?? false),
                 canManageSchedule: @json($canManageSchedule ?? false),
                 viewMode: 'week',
                 currentDate: new Date(),
@@ -3306,7 +3260,7 @@
                         this.form = {
                             id: null,
                             title: '',
-                            category: this.isArchitect ? 'Sesi PoC & Lab' : 'Meeting',
+                            category: (this.isCommercialOrSolution || this.isArchitect || this.isCommercial) ? 'PoC & Demo' : 'Meeting',
                             project_id: null,
                             new_project_name: '',
                             engineer_id: initialEngIds[0] || null,
@@ -3467,11 +3421,11 @@
                         return;
                     }
                     try {
-                        if (this.isArchitect) {
+                        if (this.isCommercialOrSolution || this.isArchitect || this.isCommercial) {
                             if (!this.form.engineer_ids || this.form.engineer_ids.length === 0) {
                                 this.form.engineer_ids = [{{ auth()->id() }}];
                             }
-                            this.form.engineer_id = {{ auth()->id() }};
+                            this.form.engineer_id = this.form.engineer_ids[0] || {{ auth()->id() }};
                         } else {
                             if (this.form.category !== 'Day Off') {
                                 if (this.form.project_id === 'other') {
@@ -3479,7 +3433,7 @@
                                         this.showToast('Silakan masukkan nama project / meeting!');
                                         return;
                                     }
-                                } else if (!this.form.project_id) {
+                                } else if (!this.form.project_id && this.form.category !== 'Meeting') {
                                     this.showToast('Silakan pilih project!');
                                     return;
                                 }

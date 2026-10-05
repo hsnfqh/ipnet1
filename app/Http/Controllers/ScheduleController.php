@@ -28,8 +28,9 @@ class ScheduleController extends Controller
         $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
         $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
         $isCommercial = $isExecutive || $user->hasAnyRole(['Sales', 'Account Manager', 'BusDev', 'BDM', 'Business Development', 'CRO', 'Customer Relation Officer']);
+        $isCommercialOrSolution = $isArchitect || $isCommercial || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'CRO', 'Customer Relation Officer']);
         $isLead       = (ScopeHelper::isManagerial($user) || $isCommercial) && !$isArchitect;
-        $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect);
+        $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect || $isCommercialOrSolution);
         $scopeIds     = $isExecutive ? null : ScopeHelper::getScopeUserIds($user);
         $hasScheduleUser = Schema::hasTable('schedule_user');
 
@@ -323,13 +324,19 @@ class ScheduleController extends Controller
                 ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
                 ->orderBy('name')
                 ->get();
-            $rawEngineers = $isArchitect ? collect([$user]) : ScopeHelper::getAssignableEngineers($user);
-            if ($isCommercial) {
+            $isCommercialOrSolution = $isArchitect || $isCommercial || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development', 'CRO', 'Customer Relation Officer']);
+            if ($isCommercialOrSolution) {
+                $rawEngineers = $executiveTeamUsers;
+                if (!$rawEngineers->contains('id', $user->id)) {
+                    $rawEngineers = $rawEngineers->concat(collect([$user]));
+                }
                 // Urutkan Presales & Solution Architect di urutan teratas agar Sales langsung menemukan partner untuk POC / meeting
                 $rawEngineers = $rawEngineers->sortByDesc(function($e) {
                     $isPresalesOrSA = method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA']);
-                    return $isPresalesOrSA ? 2 : (method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Sales', 'Account Manager', 'BDM']) ? 1 : 0);
+                    return $isPresalesOrSA ? 2 : (method_exists($e, 'hasAnyRole') && $e->hasAnyRole(['Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']) ? 1 : 0);
                 })->values();
+            } else {
+                $rawEngineers = ScopeHelper::getAssignableEngineers($user);
             }
         }
         $engineers = $rawEngineers->map(function($e) {
@@ -423,7 +430,7 @@ class ScheduleController extends Controller
             'division_id' => $u->division_id,
         ]);
 
-        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'allUsers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect', 'isMaintenance', 'msTickets', 'isCommercial', 'isExecutive'));
+        return view('schedules.index', compact('schedules', 'projects', 'engineers', 'allUsers', 'tasks', 'calendarProjects', 'isLead', 'canManageSchedule', 'isArchitect', 'isMaintenance', 'msTickets', 'isCommercial', 'isCommercialOrSolution', 'isExecutive'));
     }
 
     /**
@@ -436,8 +443,7 @@ class ScheduleController extends Controller
             $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
             $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
             $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
-            $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
-            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect);
+            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']));
 
             if (!$canManageSchedule) {
                 if ($request->wantsJson() || $request->ajax()) {
@@ -748,8 +754,7 @@ class ScheduleController extends Controller
             $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
             $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
             $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
-            $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
-            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect);
+            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']));
 
             if (!$canManageSchedule) {
                 if ($request->wantsJson() || $request->ajax()) {
@@ -970,8 +975,7 @@ class ScheduleController extends Controller
             $isSusanto    = str_contains(strtolower($user->name ?? ''), 'susanto') || $user->hasAnyRole(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution']);
             $isHariyadi   = str_contains(strtolower($user->name ?? ''), 'hariyadi') || $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']);
             $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
-            $isArchitect  = $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA']);
-            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect);
+            $canManageSchedule = !$isExecutive && (ScopeHelper::canManageSchedules($user) || $isArchitect || $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Presales', 'Pre-Sales', 'Sales', 'Account Manager', 'BDM', 'BusDev', 'Business Development']));
 
             if (!$canManageSchedule) {
                 if (request()->wantsJson() || request()->ajax()) {
