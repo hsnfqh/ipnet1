@@ -930,9 +930,9 @@
 
                         <!-- 2. FORM TAMBAH / EDIT JADWAL (Hanya untuk Lead / Manajerial) -->
                         @if($canManageSchedule ?? false)
-                        <div style="padding:22px 24px;" x-show="canManageSchedule && modalMode === 'form'">
+                        <div style="padding:18px 22px;" x-show="canManageSchedule && modalMode === 'form'">
                             <form @submit.prevent="saveSchedule">
-                                <div style="display:flex; flex-direction:column; gap:16px;">
+                                <div style="display:flex; flex-direction:column; gap:14px;">
                                     @if($isMaintenance ?? false)
                                     <div x-show="!editing && msTickets && msTickets.length > 0">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Pilih Tiket SLA (Opsional)</label>
@@ -948,9 +948,7 @@
 
                                     <!-- Pilihan Kategori Jadwal -->
                                     <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">
-                                            Kategori {{ ($isCommercialOrSolution ?? false) ? 'Agenda' : 'Jadwal' }}
-                                        </label>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Kategori</label>
                                         <div>
                                             @if($isCommercialOrSolution ?? false)
                                             <!-- Khusus Tim Solution Architect, Pre-Sales, Sales & BD: HANYA 2 KATEGORI RAPI & PROPORSIONAL -->
@@ -1017,7 +1015,7 @@
                                     </div>
 
                                     <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Judul {{ ($isCommercialOrSolution ?? false) ? 'Agenda / Catatan' : 'Jadwal' }}</label>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Judul Agenda</label>
                                         <input type="text" x-model="form.title" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; color:#0F172A; cursor:default;' : 'background:#FFFFFF; color:#0F172A;'" :placeholder="form.category === 'Day Off' ? 'Contoh: Day Off / Cuti' : ((isCommercialOrSolution || isArchitect) ? ((form.category === 'PoC & Demo' || form.category === 'PoC') ? 'Contoh: Sesi PoC Solusi Fortinet / Demo SD-WAN' : 'Contoh: Meeting Klien PT Telkom / Koordinasi Principal') : (form.category === 'PoC & Demo' ? 'Contoh: Sesi PoC Fortinet / Demo Solusi SD-WAN' : 'Contoh: Meeting Koordinasi Proyek ABC'))" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;" required>
                                     </div>
 
@@ -1979,11 +1977,11 @@
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 8px !important;
-    height: 42px !important;
-    padding: 0 16px !important;
+    gap: 6px !important;
+    height: 38px !important;
+    padding: 0 14px !important;
     border-radius: 9px !important;
-    font-size: 13px !important;
+    font-size: 12.5px !important;
     font-weight: 700 !important;
     cursor: pointer !important;
     box-sizing: border-box !important;
@@ -1991,6 +1989,7 @@
     outline: none !important;
     user-select: none !important;
     text-align: center !important;
+    white-space: nowrap !important;
 }
 .jkw-cat-btn:focus, .jkw-cat-btn:active, .jkw-cat-btn:focus-visible {
     outline: none !important;
