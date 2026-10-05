@@ -438,26 +438,24 @@
             });
         }
 
-        // 2. Chart Distribusi Beban per Divisi (Bar) - Palet Warna IPNET Brand
-        const divData = @json($divisionChartData ?? []);
+        // 2. Chart Distribusi Beban per Divisi (Murni Divisi Network & Divisi Security)
+        const divData = @json($divisionChartData ?? ['Divisi Network' => 0, 'Divisi Security' => 0]);
         const ctxDiv = document.getElementById('pmoDivisionChart');
         if (ctxDiv) {
-            const keys = Object.keys(divData);
-            // Divisi Network = #8F0A0D, Divisi Security = #C61828, Belum Didelegasikan = #CBD5E1
-            const brandColors = ['#8F0A0D', '#C61828', '#CBD5E1'];
-            const hoverColors = ['#73080A', '#9E0E1D', '#94A3B8'];
-
             new Chart(ctxDiv.getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: keys,
+                    labels: ['Divisi Network', 'Divisi Security'],
                     datasets: [{
                         label: 'Jumlah Proyek',
-                        data: Object.values(divData),
-                        backgroundColor: brandColors.slice(0, keys.length),
-                        hoverBackgroundColor: hoverColors.slice(0, keys.length),
+                        data: [
+                            divData['Divisi Network'] ?? 0,
+                            divData['Divisi Security'] ?? 0
+                        ],
+                        backgroundColor: ['#8F0A0D', '#C61828'],
+                        hoverBackgroundColor: ['#73080A', '#9E0E1D'],
                         borderRadius: 8,
-                        maxBarThickness: 40
+                        maxBarThickness: 52
                     }]
                 },
                 options: {
