@@ -442,8 +442,8 @@
                                         {{ $totalInGroup }} Agenda
                                     </span>
                                     @if(!empty($sigData['status']) && $sigData['status'] === 'fully_approved')
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200" title="Dokumen telah disahkan lengkap 3/3 TTD">
-                                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200" title="Dokumen telah disahkan lengkap 3/3 TTD">
+                                            <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                             Disahkan Resmi
                                         </span>
                                     @endif
@@ -580,58 +580,52 @@
         <div x-show="isDetailModalOpen" x-cloak
              class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
              @click.self="isDetailModalOpen = false">
-            <div class="bg-white rounded-2xl max-w-5xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden anim-fade-up">
-                <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
+            <div class="bg-white rounded-2xl max-w-6xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden anim-fade-up">
+                {{-- Header Modal: Judul Proyek, Info Kreator/Dokumen, Tombol Download PDF & Excel, Tombol Close --}}
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] p-5 sm:px-6 py-4 shrink-0 bg-white">
                     <div>
-                        <div class="flex items-center gap-2 mb-1">
+                        <div class="flex items-center gap-2 mb-1 flex-wrap">
                             <span class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">DETAIL AKTIVITAS ENGINEER</span>
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200"
                                   x-text="(selectedDetail?.total || 0) + ' Agenda'"></span>
+                            <template x-if="sigInfo?.document_number">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                    <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    <span x-text="sigInfo.document_number"></span>
+                                </span>
+                            </template>
                         </div>
                         <h3 class="text-[17px] font-bold text-[#1E293B]" x-text="selectedDetail?.project_name || 'Detail Aktivitas'"></h3>
+                        <div class="text-gray-500 text-[11px] mt-0.5 flex items-center gap-1.5">
+                            <span>Dibuat oleh:</span>
+                            <strong class="text-gray-800" x-text="selectedDetail?.creator_name || selectedDetail?.engineer_name || '-'"></strong>
+                        </div>
                     </div>
-                    <button type="button" @click="isDetailModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
 
-                <div class="px-5 sm:px-6 py-3 bg-[#F8FAFC] border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <div>
-                            <span class="text-gray-400 font-medium">Proyek:</span>
-                            <strong class="text-gray-800 ml-1" x-text="selectedDetail?.project_name || '-'"></strong>
-                        </div>
-                        <span class="text-gray-300">•</span>
-                        <div class="text-gray-500 text-[11px]">
-                            Dibuat oleh: <strong class="text-gray-800" x-text="selectedDetail?.creator_name || selectedDetail?.engineer_name || '-'"></strong>
-                        </div>
-                        <template x-if="sigInfo?.document_number">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                <span x-text="sigInfo.document_number"></span>
-                            </span>
-                        </template>
-                    </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
                         <a :href="buildExportUrl('pdf')" target="_blank"
-                           class="px-4 py-1.5 text-xs font-bold text-[#8F0A0D] bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-full transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                            Download PDF
+                           class="px-3.5 py-1.5 text-xs font-bold text-[#8F0A0D] bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-lg transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                            <span>Download PDF</span>
                         </a>
                         <a :href="buildExportUrl('excel')"
-                           class="px-4 py-1.5 text-xs font-bold text-[#0F6B43] bg-white hover:bg-emerald-50 border border-emerald-200 hover:border-emerald-300 rounded-full transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            Download Excel
+                           class="px-3.5 py-1.5 text-xs font-bold text-[#0F6B43] bg-white hover:bg-emerald-50 border border-emerald-200 hover:border-emerald-300 rounded-lg transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#0F6B43]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Download Excel</span>
                         </a>
+                        <div class="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+                        <button type="button" @click="isDetailModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer" title="Tutup">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
                     </div>
                 </div>
 
                 {{-- ══ Otorisasi & Digital Signature Berjenjang (PIC -> Lead -> Head Div) ══ --}}
-                <div class="px-5 sm:px-6 py-2.5 bg-gradient-to-r from-[#F8FAFC] via-white to-red-50/20 border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
+                <div class="px-5 sm:px-6 py-2.5 bg-gradient-to-r from-[#F8FAFC] via-white to-red-50/20 border-b border-[#E2E8F0] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs shrink-0">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1 shrink-0 mr-1">
                             <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                            Otorisasi TTD:
+                            OTORISASI TTD:
                         </span>
 
                         {{-- Step 1: PIC Lapangan --}}
@@ -643,7 +637,7 @@
                             <span x-show="sigInfo?.pic?.signed" class="text-[9.5px] opacity-80 font-normal" x-text="'(' + (sigInfo?.pic?.name || '') + ')'"></span>
                         </div>
 
-                        <span class="text-slate-300 font-bold">➔</span>
+                        <span class="text-slate-300 font-bold text-[10px]">➔</span>
 
                         {{-- Step 2: Lead Engineer --}}
                         <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all shadow-2xs"
@@ -654,7 +648,7 @@
                             <span x-show="sigInfo?.lead?.signed" class="text-[9.5px] opacity-80 font-normal" x-text="'(' + (sigInfo?.lead?.name || '') + ')'"></span>
                         </div>
 
-                        <span class="text-slate-300 font-bold">➔</span>
+                        <span class="text-slate-300 font-bold text-[10px]">➔</span>
 
                         {{-- Step 3: Head Division --}}
                         <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all shadow-2xs"
@@ -673,14 +667,14 @@
                     @endphp
 
                     {{-- Tombol Aksi TTD Sesuai Hak Akses & Status Otorisasi --}}
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 shrink-0 md:ml-auto">
                         {{-- Tombol TTD PIC (Hanya jika belum di-TTD PIC & dokumen belum fully_approved) --}}
                         <button type="button"
                                 x-show="sigInfo && sigInfo.status !== 'fully_approved' && !sigInfo?.pic?.signed"
                                 @click="openSignaturePad('pic', 'PIC Field Engineer')"
-                                class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#72080a] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                class="btn-ipnet-gradient px-3.5 py-1.5 text-xs font-bold text-white rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                            Tanda Tangani (PIC)
+                            <span>Tanda Tangani (PIC)</span>
                         </button>
 
                         @if($canLead || $canHead)
@@ -690,24 +684,24 @@
                                 @click="openSignaturePad('lead', 'Lead Network Engineer')"
                                 class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#1D4ED8] hover:bg-[#1E40AF] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Verifikasi &amp; TTD (Lead)
+                            <span>Verifikasi &amp; TTD (Lead)</span>
                         </button>
                         @endif
 
                         @if($canHead)
-                        {{-- Tombol TTD Head Division (Warna Hijau Korporat IP-Net #0F6B43, hanya jika Lead sudah TTD & Head belum TTD) --}}
+                        {{-- Tombol TTD Head Division (hanya jika Lead sudah TTD & Head belum TTD) --}}
                         <button type="button"
                                 x-show="sigInfo && sigInfo.status !== 'fully_approved' && sigInfo?.lead?.signed && !sigInfo?.head?.signed"
                                 @click="openSignaturePad('head', 'Head of Division')"
                                 class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#0F6B43] hover:bg-[#0B5233] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                            Sahkan &amp; TTD (Head Div)
+                            <span>Sahkan &amp; TTD (Head Div)</span>
                         </button>
                         @endif
 
-                        {{-- Badge Sudah Sah Lengkap Semua (3/3 TTD) --}}
+                        {{-- Badge Sudah Sah Lengkap Semua (3/3 TTD) - MERAH SESUAI PERMINTAAN USER --}}
                         <div x-show="sigInfo?.status === 'fully_approved'"
-                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0F6B43] text-white shadow-2xs">
+                             class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs tracking-wide">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             <span>Dokumen Telah Disahkan Lengkap (3/3 TTD)</span>
                         </div>
