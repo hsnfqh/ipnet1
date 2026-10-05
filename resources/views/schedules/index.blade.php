@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'Jadwal Kerja & Agenda Lapangan - PT IP Network Solusindo')
 
@@ -145,7 +145,7 @@
             <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2"
                  x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-avail-head">
-                    <span class="jkw-eyebrow">Ketersediaan Tim — <span x-text="periodLabel"></span></span>
+                    <span class="jkw-eyebrow">Ketersediaan Tim â€” <span x-text="periodLabel"></span></span>
                     <label class="jkw-check">
                         <input type="checkbox" x-model="showOnlyAvailable">
                         <span>Hanya yang tersedia</span>
@@ -181,7 +181,7 @@
             <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2"
                  x-transition:enter="jkw-fade-enter" x-transition:enter-start="jkw-fade-start" x-transition:enter-end="jkw-fade-end">
                 <div class="jkw-avail-head">
-                    <span class="jkw-eyebrow">Ketersediaan Engineer — <span x-text="periodLabel"></span></span>
+                    <span class="jkw-eyebrow">Ketersediaan Engineer â€” <span x-text="periodLabel"></span></span>
                     <label class="jkw-check">
                         <input type="checkbox" x-model="showOnlyAvailable">
                         <span>Hanya yang tersedia</span>
@@ -362,7 +362,7 @@
                                         <!-- Project Name -->
                                         <template x-if="schedule.project && schedule.project.name && schedule.project.name !== '-'">
                                             <span style="display:inline-flex; align-items:center; gap:6px;">
-                                                <span class="jkw-sep">·</span>
+                                                <span class="jkw-sep">Â·</span>
                                                 <span style="color:#475569; font-weight:500;" x-text="schedule.project.name"></span>
                                             </span>
                                         </template>
@@ -370,7 +370,7 @@
                                         <!-- Location -->
                                         <template x-if="schedule.location && schedule.location !== '-'">
                                             <span style="display:inline-flex; align-items:center; gap:6px;">
-                                                <span class="jkw-sep">·</span>
+                                                <span class="jkw-sep">Â·</span>
                                                 <span style="color:#64748B;" x-text="schedule.location"></span>
                                             </span>
                                         </template>
@@ -524,14 +524,14 @@
                                             <div class="jkw-mini-card" 
                                                  :class="'jkw-mini-card--' + event._type"
                                                  :style="'border-left: 3px solid ' + event._color + '; cursor:pointer;'"
-                                                 :title="event._tooltip + (canManageSchedule ? ' • Klik untuk detail / edit' : ' • Klik untuk melihat detail')"
+                                                 :title="event._tooltip + (canManageSchedule ? ' â€¢ Klik untuk detail / edit' : ' â€¢ Klik untuk melihat detail')"
                                                  @click="handleEventClick(event)">
                                                 <div class="jkw-mini-time" x-text="event._timeLabel" style="font-size:10px; font-weight:700;" :style="{ color: event._color }"></div>
                                                 <div class="jkw-mini-title" x-text="event._displayTitle"></div>
                                                 <div class="jkw-mini-eng" x-text="event._subLabel"></div>
                                             </div>
                                         </template>
-                                        <div class="jkw-mini-empty" x-show="getAllEventsForDay(day.fullDate).length === 0">—</div>
+                                        <div class="jkw-mini-empty" x-show="getAllEventsForDay(day.fullDate).length === 0">â€”</div>
                                     </div>
                                 </div>
                             </template>
@@ -598,7 +598,7 @@
                                             <template x-for="event in getAllEventsForDay(day.fullDate).slice(0, 3)" :key="event._uid">
                                                 <div class="jkw-month-event"
                                                      :style="'background:' + event._color + '; color:#fff; display:flex; align-items:center; gap:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:2px 6px; border-radius:4px; font-size:10px; margin-bottom:2px; cursor:pointer; opacity:1;'"
-                                                     :title="event._tooltip + (canManageSchedule ? ' • Klik untuk detail / edit' : ' • Klik untuk melihat detail')"
+                                                     :title="event._tooltip + (canManageSchedule ? ' â€¢ Klik untuk detail / edit' : ' â€¢ Klik untuk melihat detail')"
                                                      @click="handleEventClick(event)">
                                                     <span x-show="(event._type === 'schedule' || event._type === 'day_off') && event.start_time" style="font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:9.5px; opacity:0.95; flex-shrink:0;" x-text="event.start_time"></span>
                                                     <span x-show="event._type === 'task' && event.deadline_time" style="font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:9.5px; opacity:0.95; flex-shrink:0;" x-text="event.deadline_time"></span>
@@ -869,7 +869,7 @@
                                             <div style="display:flex; align-items:center; justify-content:space-between; background:white; border:1px solid #E2E8F0; padding:6px 10px; border-radius:7px; font-size:11.5px;">
                                                 <div style="display:flex; align-items:center; gap:6px;">
                                                     <span style="font-weight:700; color:#8F0A0D;" x-text="'Sesi ' + (sIdx + 1)"></span>
-                                                    <span style="color:#CBD5E1;">•</span>
+                                                    <span style="color:#CBD5E1;">â€¢</span>
                                                     <span style="font-weight:600; color:#1E293B;" x-text="formatDetailDate(ses.date)"></span>
                                                 </div>
                                                 <span style="color:#64748B; font-weight:600;" x-text="ses.start_time ? (ses.start_time + (ses.end_time ? ' - ' + ses.end_time : '') + ' WIB') : (ses.location || '-')"></span>
@@ -1016,13 +1016,13 @@
 
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">{{ ($isCommercialOrSolution ?? false) ? 'Judul Agenda' : 'Judul Jadwal' }}</label>
-                                        <input type="text" x-model="form.title" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; color:#0F172A; cursor:default;' : 'background:#FFFFFF; color:#0F172A;'" :placeholder="form.category === 'Day Off' ? 'Contoh: Day Off / Cuti' : ((isCommercialOrSolution || isArchitect) ? ((form.category === 'PoC & Demo' || form.category === 'PoC') ? 'Contoh: Sesi PoC Solusi Fortinet / Demo SD-WAN' : 'Contoh: Meeting Klien PT Telkom / Koordinasi Principal') : (form.category === 'PoC & Demo' ? 'Contoh: Sesi PoC Fortinet / Demo Solusi SD-WAN' : 'Contoh: Meeting Koordinasi Proyek ABC'))" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;" required>
+                                        <input type="text" x-model="form.title" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; cursor:default;' : 'background:#FFFFFF;'" :placeholder="form.category === 'Day Off' ? 'Contoh: Day Off / Cuti' : ((isCommercialOrSolution || isArchitect) ? ((form.category === 'PoC & Demo' || form.category === 'PoC') ? 'Contoh: Sesi PoC Solusi Fortinet / Demo SD-WAN' : 'Contoh: Meeting Klien PT Telkom / Koordinasi Principal') : (form.category === 'PoC & Demo' ? 'Contoh: Sesi PoC Fortinet / Demo Solusi SD-WAN' : 'Contoh: Meeting Koordinasi Proyek ABC'))" class="jkw-form-input" required>
                                     </div>
 
                                     @if(!($isMaintenance ?? false))
                                     <div x-show="form.category !== 'Day Off'">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Project Terkait (Opsional)</label>
-                                        <select x-model="form.project_id" :disabled="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; color:#0F172A; cursor:default; pointer-events:none;' : 'background:#FFFFFF; color:#0F172A;'" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;">
+                                        <select x-model="form.project_id" :disabled="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; cursor:default; pointer-events:none;' : 'background:#FFFFFF;'" class="jkw-form-input" style="cursor:pointer;">
                                             <option value="">-- Tanpa Project / Internal --</option>
                                             <template x-for="project in projects" :key="project.id">
                                                 <option :value="project.id" x-text="project.name"></option>
@@ -1034,9 +1034,9 @@
                                             <label style="display:block; font-size:11px; font-weight:700; color:#C81E2C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">
                                                 Nama Project / Meeting Baru
                                             </label>
-                                            <input type="text" x-model="form.new_project_name" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; color:#0F172A; cursor:default;' : 'background:#FFF5F5; color:#0F172A;'"
-                                                   placeholder="Masukkan nama project atau topik pembahasan..."
-                                                   style="width:100%; padding:9px 12px; border-radius:8px; border:1.5px solid #C81E2C; font-size:13.5px; outline:none; box-sizing:border-box;">
+                                             <input type="text" x-model="form.new_project_name" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; cursor:default;' : 'background:#FFF5F5;'"
+                                                    placeholder="Masukkan nama project atau topik pembahasan..."
+                                                    class="jkw-form-input" style="border-color:#C81E2C; box-shadow:0 0 0 3px rgba(200,30,44,0.08);">
                                         </div>
                                     </div>
                                     @endif
@@ -1291,7 +1291,7 @@
 
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Keterangan / Deskripsi</label>
-                                        <textarea x-model="form.description" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; color:#0F172A; cursor:default;' : 'background:#FFFFFF; color:#0F172A;'" placeholder="Catatan tambahan, agenda pembahasan, atau alasan cuti..." style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; outline:none; min-height:75px; transition:border-color 0.15s ease; box-sizing:border-box; resize:none;" rows="3"></textarea>
+                                        <textarea x-model="form.description" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; cursor:default;' : 'background:#FFFFFF;'" placeholder="Catatan tambahan, agenda pembahasan, atau alasan cuti..." class="jkw-form-input" style="height:auto; min-height:80px; resize:none; padding-top:10px; padding-bottom:10px;" rows="3"></textarea>
                                     </div>
                                 </div>
 
@@ -1373,7 +1373,7 @@
 
 <style>
 /* ============================================================
-   JADWAL KERJA — SCOPED STYLES
+   JADWAL KERJA â€” SCOPED STYLES
    ============================================================ */
 .jkw, .jkw * { box-sizing: border-box !important; }
 .jkw [x-cloak] { display: none !important; }
@@ -2647,7 +2647,7 @@
                     return days;
                 },
                 get weekRange() {
-                    return this.weekDays[0].fullDate + ' — ' + this.weekDays[6].fullDate;
+                    return this.weekDays[0].fullDate + ' â€” ' + this.weekDays[6].fullDate;
                 },
                 changeWeek: function(delta) {
                     var d = new Date(this.currentDate);
@@ -2866,7 +2866,7 @@
                             _color: eventColor,
                             _displayTitle: s.title,
                             _timeLabel: timeLabel,
-                            _tooltip: tooltipPrefix + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + (isTaskCompleted ? ' • (Selesai)' : ' • Klik untuk edit'),
+                            _tooltip: tooltipPrefix + s.title + (sTime && !isDayOff ? ' (' + timeLabel + ')' : '') + (engLabel ? '\nEngineer: ' + engLabel : '') + (isTaskCompleted ? ' â€¢ (Selesai)' : ' â€¢ Klik untuk edit'),
                             _subLabel: engLabel,
                             category: s.category || 'Meeting',
                             status: s.status || s.task_status,
@@ -3598,8 +3598,8 @@
                     }
 
                     var engText = engNames.length > 0 
-                        ? engNames.map(function(name, i) { return (i === 0 ? '• ' + name + ' (PIC / Koordinator)' : '• ' + name); }).join('\n')
-                        : '• Seluruh Rekan Tim Terkait';
+                        ? engNames.map(function(name, i) { return (i === 0 ? 'â€¢ ' + name + ' (PIC / Koordinator)' : 'â€¢ ' + name); }).join('\n')
+                        : 'â€¢ Seluruh Rekan Tim Terkait';
 
                     var timeText = schedule.start_time ? schedule.start_time.substring(0, 5).replace(':', '.') + ' WIB' : 'Menyesuaikan';
                     var locText = (schedule.location && schedule.location.trim()) ? schedule.location.trim() : 'Menyesuaikan';
