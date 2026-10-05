@@ -1096,16 +1096,15 @@
                                                             <span style="font-weight:600;" 
                                                                   :style="{ color: (isEngineerDayOff(engineer.id, form.date) && form.category !== 'Day Off') ? '#64748B' : '#0F172A' }" 
                                                                   x-text="engineer.name"></span>
-                                                            <!-- Badge Presales / Solution Architect -->
-                                                            <template x-if="engineer.role && (engineer.role.includes('Presales') || engineer.role.includes('Solution Architect') || engineer.role.includes('Pre-Sales'))">
-                                                                <span style="font-size:9.5px; font-weight:700; background:#ECFDF5; color:#065F46; padding:1px 7px; border-radius:6px; border:1px solid #A7F3D0; display:inline-flex; align-items:center;">
-                                                                    Presales / SA
-                                                                </span>
-                                                            </template>
-                                                            <!-- Badge Sales / Commercial -->
-                                                            <template x-if="engineer.role && (engineer.role.includes('Sales') || engineer.role.includes('Account Manager') || engineer.role.includes('BDM'))">
-                                                                <span style="font-size:9.5px; font-weight:700; background:#FFFBEB; color:#92400E; padding:1px 7px; border-radius:6px; border:1px solid #FDE68A; display:inline-flex; align-items:center;">
-                                                                    Sales / BDM
+                                                            <!-- Role Badge Sesuai Pekerjaan Masing-Masing (Sales, BDM, PMO, Presales, Solution Architect, Lead Engineer, Engineer) -->
+                                                            <template x-if="getPersonRoleBadge(engineer)">
+                                                                <span style="font-size:9.5px; font-weight:700; padding:1px 7px; border-radius:6px; display:inline-flex; align-items:center;"
+                                                                      :style="{
+                                                                          background: getPersonRoleBadge(engineer).bg,
+                                                                          color: getPersonRoleBadge(engineer).color,
+                                                                          border: '1px solid ' + getPersonRoleBadge(engineer).border
+                                                                      }"
+                                                                      x-text="getPersonRoleBadge(engineer).label">
                                                                 </span>
                                                             </template>
                                                             <!-- Badge Sedang Day Off -->
@@ -2034,19 +2033,19 @@
 
 .jkw-cat-btn--poc {
     background: #FFFFFF !important;
-    color: #059669 !important;
-    border: 1.5px solid #A7F3D0 !important;
+    color: #8F0A0D !important;
+    border: 1.5px solid #FECDD3 !important;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
 }
 .jkw-cat-btn--poc:hover {
-    background: #ECFDF5 !important;
-    border-color: #6EE7B7 !important;
+    background: #FFF1F2 !important;
+    border-color: #FDA4AF !important;
 }
 .jkw-cat-btn--poc.is-active {
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    background: linear-gradient(135deg, #C81E2C 0%, #8F0A0D 100%) !important;
     color: #FFFFFF !important;
-    border-color: #059669 !important;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35) !important;
+    border-color: #8F0A0D !important;
+    box-shadow: 0 4px 14px rgba(143, 10, 13, 0.35) !important;
 }
 .jkw-cat-btn--poc.is-active svg {
     color: #FFFFFF !important;
@@ -2074,19 +2073,19 @@
 
 .jkw-cat-btn--meeting-sa {
     background: #FFFFFF !important;
-    color: #7C3AED !important;
-    border: 1.5px solid #DDD6FE !important;
+    color: #1D4ED8 !important;
+    border: 1.5px solid #BFDBFE !important;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
 }
 .jkw-cat-btn--meeting-sa:hover {
-    background: #F5F3FF !important;
-    border-color: #C4B5FD !important;
+    background: #EFF6FF !important;
+    border-color: #93C5FD !important;
 }
 .jkw-cat-btn--meeting-sa.is-active {
-    background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%) !important;
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
     color: #FFFFFF !important;
-    border-color: #6D28D9 !important;
-    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
+    border-color: #1D4ED8 !important;
+    box-shadow: 0 4px 14px rgba(29, 78, 216, 0.35) !important;
 }
 .jkw-cat-btn--meeting-sa.is-active svg {
     color: #FFFFFF !important;
@@ -2581,6 +2580,40 @@
                     }
                     return list;
                 },
+                getPersonRoleBadge: function(eng) {
+                    if (!eng) return null;
+                    var roleStr = String((eng.role || '') + ' ' + (eng.position || '')).toLowerCase();
+
+                    // 1. Lead Engineer (Prioritas sebelum Engineer biasa, jangan disamakan)
+                    if (roleStr.includes('lead engineer') || roleStr.includes('team leader') || roleStr.includes('lead divisi') || roleStr.includes('lead maintenance')) {
+                        return { label: 'Lead Engineer', bg: '#EFF6FF', color: '#1E40AF', border: '#BFDBFE' };
+                    }
+                    // 2. PMO / Project Manager
+                    if (roleStr.includes('pmo') || roleStr.includes('project manager')) {
+                        return { label: 'PMO', bg: '#F5F3FF', color: '#6D28D9', border: '#DDD6FE' };
+                    }
+                    // 3. BDM / Business Development (Terpisah dari Sales)
+                    if (roleStr.includes('bdm') || roleStr.includes('busdev') || roleStr.includes('business development') || roleStr.includes('business dev')) {
+                        return { label: 'BDM', bg: '#FFFBEB', color: '#B45309', border: '#FDE68A' };
+                    }
+                    // 4. Sales / Account Manager (Terpisah dari BDM)
+                    if (roleStr.includes('sales') || roleStr.includes('account manager')) {
+                        return { label: 'Sales', bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' };
+                    }
+                    // 5. Solution Architect
+                    if (roleStr.includes('solution architect') || roleStr.includes('solutions architect') || roleStr.includes('sa')) {
+                        return { label: 'Solution Architect', bg: '#ECFEFF', color: '#0E7490', border: '#A5F3FC' };
+                    }
+                    // 6. Presales
+                    if (roleStr.includes('presales') || roleStr.includes('pre-sales')) {
+                        return { label: 'Presales', bg: '#ECFDF5', color: '#047857', border: '#A7F3D0' };
+                    }
+                    // 7. Engineer (Network / Security / Field Support / Maintenance - terpisah dari Lead)
+                    if (roleStr.includes('engineer') || roleStr.includes('network') || roleStr.includes('field support') || roleStr.includes('maintenance')) {
+                        return { label: 'Engineer', bg: '#F1F5F9', color: '#334155', border: '#CBD5E1' };
+                    }
+                    return null;
+                },
                 categoryBadgeStyle: function(cat) {
                     if (!cat) return 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
                     var lower = String(cat).toLowerCase();
@@ -2591,13 +2624,13 @@
                         return 'background:#FEF2F2; color:#8F0A0D; border:1px solid #FECACA;';
                     }
                     if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) {
-                        return 'background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0;';
+                        return 'background:#FDF1F2; color:#8F0A0D; border:1px solid #FECDD3;';
                     }
                     if (lower.includes('desain') || lower.includes('sow') || lower.includes('review')) {
                         return 'background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE;';
                     }
                     if (lower.includes('meeting') || lower.includes('principal') || lower.includes('klien')) {
-                        return 'background:#F5F3FF; color:#5B21B6; border:1px solid #DDD6FE;';
+                        return 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
                     }
                     return 'background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE;';
                 },
@@ -2606,9 +2639,9 @@
                     var lower = String(cat).toLowerCase();
                     if (lower.includes('cuti') || lower.includes('day off')) return '#64748B';
                     if (lower.includes('task') || lower.includes('kegiatan') || lower.includes('maintenance')) return '#8F0A0D';
-                    if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) return '#10B981';
+                    if (lower.includes('poc') || lower.includes('lab') || lower.includes('demo')) return '#C81E2C';
                     if (lower.includes('desain') || lower.includes('sow') || lower.includes('review')) return '#2563EB';
-                    if (lower.includes('meeting') || lower.includes('principal') || lower.includes('klien')) return '#8B5CF6';
+                    if (lower.includes('meeting') || lower.includes('principal') || lower.includes('klien')) return '#2563EB';
                     return '#2563EB';
                 },
                 categoryLabel: function(cat) {
