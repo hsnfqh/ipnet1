@@ -265,7 +265,7 @@
                             </div>
                             <div class="inline-flex items-center gap-2 self-start sm:self-auto">
                                 <span class="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
-                                    Total YTD: <strong class="text-slate-900">{{ \App\Helpers\CurrencyHelper::formatCompact($totalProjectValue) }}</strong>
+                                    Total Project {{ $selectedYear }}: <strong class="text-slate-900">{{ \App\Helpers\CurrencyHelper::formatCompact($totalProjectValue) }}</strong>
                                 </span>
                             </div>
                         </div>

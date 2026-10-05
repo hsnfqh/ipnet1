@@ -339,7 +339,7 @@
                         <p class="text-xs text-slate-500 mt-0.5">Total perolehan project komersial per bulan — Tahun {{ $selectedYear }}</p>
                     </div>
                     <div class="text-right shrink-0">
-                        <p class="text-xs font-semibold text-slate-400">Total YTD</p>
+                        <p class="text-xs font-semibold text-slate-400">Total Project ({{ $selectedYear }})</p>
                         <p class="text-base font-black text-slate-900">{{ \App\Helpers\CurrencyHelper::formatCompact($totalProjectValue) }}</p>
                     </div>
                 </div>
