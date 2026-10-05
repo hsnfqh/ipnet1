@@ -198,19 +198,16 @@
                             </div>
                         </form>
 
-                        <a href="{{ route('bdm.opportunities.index') }}" class="px-3.5 py-2 rounded-xl bg-white text-[#8F0A0D] font-semibold text-xs hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        <a href="{{ route('sales.pipeline.index') }}" class="px-3.5 py-2 rounded-xl bg-white text-[#8F0A0D] font-semibold text-xs hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                             </svg>
-                            <span>Inisiasi Peluang</span>
+                            <span>Buka Projects</span>
                         </a>
                     </div>
                 </div>
             </div>
 
-            {{-- ======================================================== --}}
-            {{-- 2. METRIC SUMMARY CARDS (4 KPI CARDS)                    --}}
-            {{-- ======================================================== --}}
             @php
                 $totalNilaiProject = $totalNilaiProject ?? 0;
                 $totalProjectCount = $totalProjectCount ?? 0;
@@ -220,7 +217,47 @@
                 $conversionRate = $conversionRate ?? 0;
                 $totalWonValue = $totalWonValue ?? 0;
                 $totalWonCount = $totalWonCount ?? 0;
+                $pendingVerificationProjects = $pendingVerificationProjects ?? collect();
+                $pendingVerificationCount = $pendingVerificationCount ?? $pendingVerificationProjects->count();
             @endphp
+
+            {{-- ======================================================== --}}
+            {{-- NOTIFIKASI: VERIFIKASI DOKUMEN SOLUSI OLEH BD           --}}
+            {{-- ======================================================== --}}
+            @if($pendingVerificationCount > 0)
+                <div class="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-50/70 to-orange-50 border border-amber-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 anim-fade-up">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white uppercase tracking-wider">Perlu Tindakan BD</span>
+                                <span class="text-xs font-semibold text-amber-900">{{ $pendingVerificationCount }} Project Menunggu Pengesahan</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-gray-900 mt-1">Dokumen Solusi Teknis Perlu Verifikasi</h3>
+                            <p class="text-xs text-gray-600 mt-0.5">
+                                Berkas proposal spesifikasi BoQ / topologi telah diunggah oleh tim teknis dan membutuhkan verifikasi pengesahan PIC BD sebelum diserahkan ke Sales.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        @if($pendingVerificationProjects->isNotEmpty())
+                            @php $firstProject = $pendingVerificationProjects->first(); @endphp
+                            <a href="{{ route('projects.show', $firstProject->id) }}" class="px-4 py-2 bg-[#8F0A0D] hover:bg-[#72080a] text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5">
+                                <span>Verifikasi Dokumen ({{ Str::limit($firstProject->name, 22) }})</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            {{-- ======================================================== --}}
+            {{-- 2. METRIC SUMMARY CARDS (4 KPI CARDS)                    --}}
+            {{-- ======================================================== --}}
             <div class="anim-fade-up anim-delay-1">
                 <div class="flex items-center justify-between mb-3">
                     <div>
@@ -345,17 +382,17 @@
             </div>
 
             {{-- ======================================================== --}}
-            {{-- 4. BOTTOM SECTION: PELUANG TERBARU                       --}}
+            {{-- 4. BOTTOM SECTION: DAFTAR PROJECT TERBARU                --}}
             {{-- ======================================================== --}}
             <div class="anim-fade-up anim-delay-3">
                 <div class="ipnet-card p-5 sm:p-6 space-y-4 w-full">
                     <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
-                            <h3 class="text-sm font-bold text-gray-800 tracking-tight">Peluang &amp; Tender Prospek Terkini</h3>
+                            <h3 class="text-sm font-bold text-gray-800 tracking-tight">Daftar Project &amp; Pipeline Terkini</h3>
                         </div>
-                        <a href="{{ route('bdm.opportunities.index') }}" class="text-xs font-semibold text-[#8F0A0D] hover:underline flex items-center gap-1">
-                            <span>Buka Inisiasi Peluang</span>
+                        <a href="{{ route('sales.pipeline.index') }}" class="text-xs font-semibold text-[#8F0A0D] hover:underline flex items-center gap-1">
+                            <span>Buka Manajemen Project</span>
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </a>
                     </div>
@@ -364,7 +401,7 @@
                         <table class="w-full text-left text-xs">
                             <thead class="bg-gray-50/80 text-gray-500 uppercase text-[10.5px] font-semibold tracking-wider">
                                 <tr>
-                                    <th class="py-3 px-4 rounded-l-lg">Peluang / Tender</th>
+                                    <th class="py-3 px-4 rounded-l-lg">Nama Project</th>
                                     <th class="py-3 px-4">Klien &amp; Sektor</th>
                                     <th class="py-3 px-4 text-right">Nilai Kontrak</th>
                                     <th class="py-3 px-4 text-center">Status Handover</th>
@@ -412,7 +449,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="py-8 text-center text-gray-400 text-xs font-medium">Belum ada peluang tender tercatat.</td>
+                                        <td colspan="5" class="py-8 text-center text-gray-400 text-xs font-medium">Belum ada data project tercatat.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

@@ -143,6 +143,21 @@ class BdmController extends Controller
             return round($val / 1000000, 2);
         }, array_values($sectorCounts));
 
+        // 4. Proyek yang Memerlukan Verifikasi Dokumen oleh PIC BD/BDM
+        $pendingVerificationProjects = $projects->filter(function($p) {
+            $hd = is_array($p->handover_data) ? $p->handover_data : (json_decode($p->handover_data ?? '', true) ?: []);
+            $technical = $hd['technical_assignments'] ?? [];
+            $bdVerif = $technical['bd_verification'] ?? [];
+            $bdStatus = $bdVerif['status'] ?? '';
+            
+            $isPresalesDone = !empty($technical['presales']['document_path']);
+            $isArchitectDone = !empty($technical['architect']['document_path']);
+            
+            return $bdStatus === 'Pending Verification' 
+                || (($isPresalesDone || $isArchitectDone) && $bdStatus !== 'Approved');
+        })->values();
+        $pendingVerificationCount = $pendingVerificationProjects->count();
+
         // Recent Highlights (Personalized strictly for the assigned BDM)
         $recentOpportunities = $projects->sortByDesc('created_at')->take(8)->values();
 
@@ -159,6 +174,8 @@ class BdmController extends Controller
             'conversionRate',
             'totalWonCount',
             'totalWonValue',
+            'pendingVerificationProjects',
+            'pendingVerificationCount',
             'monthlyDataInMillions',
             'sectorDataInMillions',
             'sectorCounts',

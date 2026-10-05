@@ -135,13 +135,15 @@ class SalesCrmController extends Controller
                 })->where('sales_stage', '!=', 'Closed Won');
             } elseif ($f === 'in progress' || $f === 'in_progress') {
                 $allProjectsQuery->where(function($q) {
-                    $q->whereIn('status', ['In Progress', 'On Progress', 'Active', 'Development', 'Testing', 'in progress'])
-                      ->orWhere('sales_stage', 'Closed Won');
-                })->whereNotIn('status', ['Completed', 'Finished', 'Delivered']);
+                    $q->whereIn('status', ['In Progress', 'On Progress', 'Active', 'Development', 'Testing', 'in progress']);
+                })->where('sales_stage', '!=', 'Closed Won')->whereNotIn('status', ['Completed', 'Finished', 'Delivered', 'Closed Won']);
             } elseif ($f === 'pending') {
                 $allProjectsQuery->whereIn('status', ['Pending', 'On Hold', 'Review', 'pending']);
             } elseif ($f === 'completed') {
-                $allProjectsQuery->whereIn('status', ['Completed', 'Finished', 'Delivered', 'Done', 'completed']);
+                $allProjectsQuery->where(function($q) {
+                    $q->whereIn('status', ['Completed', 'Finished', 'Delivered', 'Done', 'Closed Won', 'completed'])
+                      ->orWhere('sales_stage', 'Closed Won');
+                });
             } else {
                 $allProjectsQuery->where(function($q) use ($filterApproval) {
                     $q->where('handover_status', $filterApproval)
@@ -230,7 +232,7 @@ class SalesCrmController extends Controller
                 $st = strtolower($p->status ?? '');
                 $stage = strtolower($p->stage ?? '');
                 $salesStage = strtolower($p->sales_stage ?? '');
-                if (in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing', 'completed', 'finished', 'delivered', 'done', 'cancelled']) || $salesStage === 'closed won' || $salesStage === 'closed lost') {
+                if (in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing', 'completed', 'finished', 'delivered', 'done', 'cancelled', 'closed won']) || in_array($salesStage, ['closed won', 'closed lost'])) {
                     return false;
                 }
                 return $st === 'opportunity' || $st === 'prospect' || ($stage === 'acquire' && !in_array($st, ['draft', 'planning']));
@@ -238,10 +240,10 @@ class SalesCrmController extends Controller
             'in_progress' => $allProjects->filter(function($p) {
                 $st = strtolower($p->status ?? '');
                 $salesStage = strtolower($p->sales_stage ?? '');
-                if (in_array($st, ['completed', 'finished', 'delivered', 'done', 'cancelled']) || $salesStage === 'closed lost') {
+                if (in_array($st, ['completed', 'finished', 'delivered', 'done', 'cancelled', 'closed won']) || in_array($salesStage, ['closed won', 'closed lost'])) {
                     return false;
                 }
-                return in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing']) || $salesStage === 'closed won';
+                return in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing']);
             }),
             'pending' => $allProjects->filter(function($p) {
                 $st = strtolower($p->status ?? '');
@@ -249,7 +251,8 @@ class SalesCrmController extends Controller
             }),
             'completed' => $allProjects->filter(function($p) {
                 $st = strtolower($p->status ?? '');
-                return in_array($st, ['completed', 'finished', 'delivered', 'done']);
+                $salesStage = strtolower($p->sales_stage ?? '');
+                return in_array($st, ['completed', 'finished', 'delivered', 'done', 'closed won']) || $salesStage === 'closed won';
             }),
         ];
 
