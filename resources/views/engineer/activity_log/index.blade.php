@@ -701,9 +701,10 @@
 
                         {{-- Badge Sudah Sah Lengkap Semua (3/3 TTD) - MERAH SESUAI PERMINTAAN USER --}}
                         <div x-show="sigInfo?.status === 'fully_approved'"
-                             class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs tracking-wide">
+                             title="Dokumen telah disahkan lengkap (3/3 TTD)"
+                             class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs tracking-wide">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>Dokumen Telah Disahkan Lengkap (3/3 TTD)</span>
+                            <span>Disahkan (3/3 TTD)</span>
                         </div>
                     </div>
                 </div>
