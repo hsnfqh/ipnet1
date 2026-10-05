@@ -932,7 +932,7 @@
                         @if($canManageSchedule ?? false)
                         <div style="padding:18px 22px;" x-show="canManageSchedule && modalMode === 'form'">
                             <form @submit.prevent="saveSchedule">
-                                <div style="display:flex; flex-direction:column; gap:14px;">
+                                <div style="display:flex; flex-direction:column; gap:16px;">
                                     @if($isMaintenance ?? false)
                                     <div x-show="!editing && msTickets && msTickets.length > 0">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Pilih Tiket SLA (Opsional)</label>
@@ -948,7 +948,7 @@
 
                                     <!-- Pilihan Kategori Jadwal -->
                                     <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Kategori</label>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">{{ ($isCommercialOrSolution ?? false) ? 'Kategori Agenda' : 'Kategori Jadwal' }}</label>
                                         <div>
                                             @if($isCommercialOrSolution ?? false)
                                             <!-- Khusus Tim Solution Architect, Pre-Sales, Sales & BD: HANYA 2 KATEGORI RAPI & PROPORSIONAL -->
@@ -1015,7 +1015,7 @@
                                     </div>
 
                                     <div>
-                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Judul Agenda</label>
+                                        <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">{{ ($isCommercialOrSolution ?? false) ? 'Judul Agenda' : 'Judul Jadwal' }}</label>
                                         <input type="text" x-model="form.title" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; color:#0F172A; cursor:default;' : 'background:#FFFFFF; color:#0F172A;'" :placeholder="form.category === 'Day Off' ? 'Contoh: Day Off / Cuti' : ((isCommercialOrSolution || isArchitect) ? ((form.category === 'PoC & Demo' || form.category === 'PoC') ? 'Contoh: Sesi PoC Solusi Fortinet / Demo SD-WAN' : 'Contoh: Meeting Klien PT Telkom / Koordinasi Principal') : (form.category === 'PoC & Demo' ? 'Contoh: Sesi PoC Fortinet / Demo Solusi SD-WAN' : 'Contoh: Meeting Koordinasi Proyek ABC'))" style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;" required>
                                     </div>
 
@@ -1291,7 +1291,7 @@
 
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Keterangan / Deskripsi</label>
-                                        <textarea x-model="form.description" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; color:#0F172A; cursor:default;' : 'background:#FFFFFF; color:#0F172A;'" placeholder="Catatan tambahan, agenda pembahasan, atau alasan cuti..." style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; outline:none; min-height:75px; transition:border-color 0.15s ease; box-sizing:border-box;" rows="2"></textarea>
+                                        <textarea x-model="form.description" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; color:#0F172A; cursor:default;' : 'background:#FFFFFF; color:#0F172A;'" placeholder="Catatan tambahan, agenda pembahasan, atau alasan cuti..." style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; outline:none; min-height:75px; transition:border-color 0.15s ease; box-sizing:border-box; resize:none;" rows="3"></textarea>
                                     </div>
                                 </div>
 
