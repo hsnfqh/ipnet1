@@ -316,6 +316,7 @@ Route::middleware(['auth'])->group(function () {
     // PMO & Project Management Office Dashboard (Dashboard 1)
     Route::prefix('pmo')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager')->group(function () {
         Route::get('/dashboard', [PmoController::class, 'dashboard'])->name('pmo.dashboard');
+        Route::get('/implementations', [PmoController::class, 'implementations'])->name('pmo.implementations.index');
         Route::post('/projects/{project}/stage', [PmoController::class, 'updateStage'])->name('pmo.stage.update');
         Route::post('/projects/{project}/documents', [PmoController::class, 'updateDocuments'])->name('pmo.documents.update');
         Route::post('/projects/{project}/handover-approve', [PmoController::class, 'approveHandover'])->name('pmo.handover.approve');

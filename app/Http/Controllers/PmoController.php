@@ -12,9 +12,52 @@ use Carbon\Carbon;
 class PmoController extends Controller
 {
     /**
-     * Tampilan Dashboard Utama PMO (Project Control Tower)
+     * Tampilan Dashboard Utama PMO (Executive Overview & Ringkasan Portofolio)
      */
     public function dashboard(Request $request)
+    {
+        $data = $this->getPmoBaseData($request);
+        
+        // 5 Proyek Implementasi Terkini untuk Preview di Dashboard
+        $recentProjects = $data['formattedProjects']->take(5)->values();
+
+        // Chart Kepatuhan SLA: On-Track, At-Risk, Delayed
+        $slaChartData = [
+            'on_track' => $data['onTrackCount'],
+            'at_risk'  => $data['atRiskCount'],
+            'delayed'  => $data['delayedCount'],
+        ];
+
+        // Chart Distribusi Beban per Divisi
+        $networkCount = $data['formattedProjects']->filter(fn($p) => str_contains(strtolower($p['division']), 'network'))->count();
+        $securityCount = $data['formattedProjects']->filter(fn($p) => str_contains(strtolower($p['division']), 'security'))->count();
+        $otherDivCount = $data['formattedProjects']->count() - ($networkCount + $securityCount);
+        $divisionChartData = [
+            'Divisi Network'  => $networkCount,
+            'Divisi Security' => $securityCount,
+            'Lainnya / PMO'   => max(0, $otherDivCount),
+        ];
+
+        return view('pmo.dashboard', array_merge($data, compact(
+            'recentProjects',
+            'slaChartData',
+            'divisionChartData'
+        )));
+    }
+
+    /**
+     * Halaman Dedicated: Tata Kelola Proyek & Serah Terima Implementasi (Kontrol Penuh Portofolio)
+     */
+    public function implementations(Request $request)
+    {
+        $data = $this->getPmoBaseData($request);
+        return view('pmo.implementations', $data);
+    }
+
+    /**
+     * Helper: Menghasilkan Data Inti Portofolio PMO
+     */
+    private function getPmoBaseData(Request $request)
     {
         $user = auth()->user();
 
@@ -144,7 +187,7 @@ class PmoController extends Controller
             ],
         ];
 
-        // Format data project untuk dashboard
+        // Format data project untuk dashboard & manajemen implementasi
         $formattedProjects = $allProjects->map(function ($p) use ($handoverFormStructure) {
             $totalTasks = $p->tasks->count();
             $completedTasks = $p->tasks->whereIn('status', ['Done', 'Completed'])->count();
@@ -258,7 +301,8 @@ class PmoController extends Controller
             $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Divisi', 'Group Leader', 'Direktur', 'HD / Direktur']);
         })->orWhere('name', 'like', '%Rizki%')->orWhere('name', 'like', '%Kuncoro%')->get(['id', 'name', 'email']);
 
-        return view('pmo.dashboard', compact(
+        return compact(
+            'allProjects',
             'formattedProjects',
             'handoverFormStructure',
             'totalDeliver',
@@ -273,7 +317,7 @@ class PmoController extends Controller
             'stageCounts',
             'divisions',
             'pmList'
-        ));
+        );
     }
 
     /**

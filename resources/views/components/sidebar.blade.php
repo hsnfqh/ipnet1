@@ -64,12 +64,13 @@
     } elseif ($isPmoUser) {
         // Project Manager & PMO: Kontrol pengiriman proyek (Deliver) & Monitoring Penugasan
         $navItems = [
-            ['key' => 'pmo_dashboard',   'label' => 'Dashboard',           'route' => 'pmo.dashboard'],
-            ['key' => 'projects',        'label' => 'Projects',            'route' => 'projects.index'],
-            ['key' => 'tasks',           'label' => 'Team Tasks',          'route' => 'tasks.index'],
-            ['key' => 'activities',      'label' => 'Activity Log',        'route' => 'engineer.activity_log.index'],
-            ['key' => 'schedules',       'label' => 'Work Schedule',       'route' => 'schedules.index'],
-            ['key' => 'timesheets',      'label' => 'Timesheet',           'route' => 'timesheets.index'],
+            ['key' => 'pmo_dashboard',       'label' => 'Dashboard',           'route' => 'pmo.dashboard'],
+            ['key' => 'pmo_implementations', 'label' => 'Tata Kelola Proyek',  'route' => 'pmo.implementations.index'],
+            ['key' => 'projects',            'label' => 'Projects',            'route' => 'projects.index'],
+            ['key' => 'tasks',               'label' => 'Team Tasks',          'route' => 'tasks.index'],
+            ['key' => 'activities',          'label' => 'Activity Log',        'route' => 'engineer.activity_log.index'],
+            ['key' => 'schedules',           'label' => 'Work Schedule',       'route' => 'schedules.index'],
+            ['key' => 'timesheets',          'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];
     } elseif ($isArchitect) {
         $navItems = [
@@ -453,6 +454,11 @@
                     @case('pmo_dashboard')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+                    </svg>
+                    @break
+                    @case('pmo_implementations')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                     </svg>
                     @break
                     @case('dashboard')
