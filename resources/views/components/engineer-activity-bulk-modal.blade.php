@@ -75,13 +75,10 @@
 
         <div class="bg-white rounded-2xl max-w-7xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden">
             
-            {{-- Header Modal --}}
-            <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
-                <div>
-                    <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">AKTIVITAS BARU</p>
-                    <h3 class="text-[17px] font-bold text-[#1E293B]">Input Aktivitas</h3>
-                </div>
-                <button type="button" @click="isBulkModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
+            {{-- Header Modal (Konsisten dengan Template Modal) --}}
+            <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
+                <h3 class="text-[16px] font-bold text-[#1E293B]">Input Aktivitas</h3>
+                <button type="button" @click="isBulkModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
