@@ -178,7 +178,7 @@
                             Selamat Datang, {{ auth()->user()->name }}
                         </h1>
                         <p class="mt-0.5 text-xs text-white/80 leading-relaxed line-clamp-1">
-                            Kelola inisiasi peluang pasar, serah terima prospek tender ke tim Sales, dan perluas ekosistem mitra teknologi.
+                            Kelola inisiasi peluang pasar dan serah terima prospek tender strategis ke tim Sales.
                         </p>
                     </div>
 
@@ -209,7 +209,7 @@
             </div>
 
             {{-- ======================================================== --}}
-            {{-- 2. METRIC SUMMARY CARDS (5 KPI CARDS)                    --}}
+            {{-- 2. METRIC SUMMARY CARDS (4 KPI CARDS)                    --}}
             {{-- ======================================================== --}}
             <div class="anim-fade-up anim-delay-1">
                 <div class="flex items-center justify-between mb-3">
@@ -217,11 +217,11 @@
                         <p class="text-[#8F0A0D] text-[11px] font-semibold inline-flex items-center uppercase tracking-wider">
                             <span class="ipnet-badge-dot"></span> RINGKASAN INISIASI &amp; STRATEGI
                         </p>
-                        <h2 class="text-base font-bold text-gray-800 tracking-tight">Status Portofolio &amp; Ekosistem Kemitraan</h2>
+                        <h2 class="text-base font-bold text-gray-800 tracking-tight">Status Portofolio &amp; Pipeline Prospek</h2>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     
                     {{-- Card 1: Total Nilai Pipeline --}}
                     <div class="ipnet-metric-card flex flex-col justify-between space-y-2">
@@ -241,10 +241,10 @@
                         </div>
                     </div>
 
-                    {{-- Card 2: Peluang Baru (TOR/RFP) --}}
+                    {{-- Card 2: Peluang Baru (Draft / Inisiasi) --}}
                     <div class="ipnet-metric-card flex flex-col justify-between space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Peluang Baru</span>
+                            <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Draft Inisiasi</span>
                             <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
@@ -255,7 +255,7 @@
                             <div class="text-xl font-bold text-amber-800 tracking-tight">
                                 Rp {{ $totalNilaiOpportunity > 0 ? number_format($totalNilaiOpportunity / 1000000, 1, ',', '.') . 'Jt' : '0,0Jt' }}
                             </div>
-                            <p class="text-[11px] text-amber-600 font-medium mt-0.5">{{ $totalOpportunityCount }} Prospek TOR/RFP</p>
+                            <p class="text-[11px] text-amber-600 font-medium mt-0.5">{{ $totalOpportunityCount }} Prospek Inisiasi</p>
                         </div>
                     </div>
 
@@ -277,39 +277,21 @@
                         </div>
                     </div>
 
-                    {{-- Card 4: Market Intelligence --}}
+                    {{-- Card 4: Deal / Won Pipeline --}}
                     <div class="ipnet-metric-card flex flex-col justify-between space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Market Intel</span>
-                            <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="text-xl font-bold text-purple-800 tracking-tight">
-                                {{ $intelCount }} Laporan
-                            </div>
-                            <p class="text-[11px] text-purple-600 font-medium mt-0.5">Riset &amp; Tren Industri</p>
-                        </div>
-                    </div>
-
-                    {{-- Card 5: Jaringan Mitra & Prinsipal --}}
-                    <div class="ipnet-metric-card flex flex-col justify-between space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Mitra &amp; Prinsipal</span>
+                            <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Closing / Deal</span>
                             <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
                         </div>
                         <div>
                             <div class="text-xl font-bold text-emerald-800 tracking-tight">
-                                {{ $partnerCount }} Vendor Aktif
+                                Rp {{ $totalWonValue > 0 ? number_format($totalWonValue / 1000000, 1, ',', '.') . 'Jt' : '0,0Jt' }}
                             </div>
-                            <p class="text-[11px] text-emerald-600 font-medium mt-0.5">Channel Ekosistem Resmi</p>
+                            <p class="text-[11px] text-emerald-600 font-medium mt-0.5">{{ $totalWonCount }} Proyek Closing / Won</p>
                         </div>
                     </div>
 
@@ -353,12 +335,10 @@
             </div>
 
             {{-- ======================================================== --}}
-            {{-- 4. BOTTOM SECTION: PELUANG TERBARU & WIDGETS             --}}
+            {{-- 4. BOTTOM SECTION: PELUANG TERBARU                       --}}
             {{-- ======================================================== --}}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 anim-fade-up anim-delay-3">
-                
-                {{-- Left 2-Col: Daftar Peluang Tender Terbaru --}}
-                <div class="lg:col-span-2 ipnet-card p-5 sm:p-6 space-y-4">
+            <div class="anim-fade-up anim-delay-3">
+                <div class="ipnet-card p-5 sm:p-6 space-y-4 w-full">
                     <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
@@ -429,64 +409,6 @@
                         </table>
                     </div>
                 </div>
-
-                {{-- Right 1-Col: Market Intel & Direktori Mitra --}}
-                <div class="space-y-6">
-                    
-                    {{-- Market Intelligence Terbaru --}}
-                    <div class="ipnet-card p-5 space-y-3.5">
-                        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
-                                <h3 class="text-xs font-bold text-gray-800">Market Intelligence Terbaru</h3>
-                            </div>
-                            <a href="{{ route('bdm.intelligence.index') }}" class="text-xs font-semibold text-purple-600 hover:underline">Kelola &rarr;</a>
-                        </div>
-
-                        <div class="divide-y divide-gray-50">
-                            @forelse($recentIntels as $intel)
-                                <div class="py-2.5 space-y-1">
-                                    <div class="font-semibold text-gray-800 text-xs truncate">{{ $intel->title }}</div>
-                                    <div class="text-[11px] text-gray-400 flex items-center justify-between">
-                                        <span>{{ $intel->industry_sector }}</span>
-                                        <span class="font-medium text-purple-700 px-2 py-0.5 rounded-md bg-purple-50 text-[10px]">{{ $intel->impact_level }} Impact</span>
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="py-4 text-center text-gray-400 text-xs font-medium">Belum ada data market intelligence.</div>
-                            @endforelse
-                        </div>
-                    </div>
-
-                    {{-- Mitra Vendor & Prinsipal --}}
-                    <div class="ipnet-card p-5 space-y-3.5">
-                        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-                                <h3 class="text-xs font-bold text-gray-800">Mitra Vendor &amp; Prinsipal</h3>
-                            </div>
-                            <a href="{{ route('bdm.partnerships.index') }}" class="text-xs font-semibold text-emerald-600 hover:underline">Kelola &rarr;</a>
-                        </div>
-
-                        <div class="divide-y divide-gray-50">
-                            @forelse($recentPartners as $partner)
-                                <div class="py-2 flex items-center justify-between text-xs">
-                                    <div>
-                                        <div class="font-semibold text-gray-800">{{ $partner->partner_name }}</div>
-                                        <div class="text-[10.5px] text-gray-400">{{ $partner->partner_type }}</div>
-                                    </div>
-                                    <span class="text-[10.5px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                                        {{ $partner->tier_level }}
-                                    </span>
-                                </div>
-                            @empty
-                                <div class="py-3 text-center text-gray-400 text-xs font-medium">Belum ada vendor terdaftar.</div>
-                            @endforelse
-                        </div>
-                    </div>
-
-                </div>
-
             </div>
 
         </div>

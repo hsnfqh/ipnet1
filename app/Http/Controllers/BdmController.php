@@ -74,28 +74,38 @@ class BdmController extends Controller
             })->values();
         }
 
-        // 5 Summary Metrics
+        // Summary Metrics Terstruktur & Akurat untuk BD:
         $totalProjectCount = $projects->count();
         $totalNilaiProject = $projects->sum('contract_value');
 
-        $opportunityProjects = $projects->whereIn('status', ['Opportunity', 'Draft', 'Planning']);
+        // 1. Peluang Baru / Draft Inisiasi (yang belum diserahkan ke Sales)
+        $opportunityProjects = $projects->filter(function($p) {
+            $statusLower = strtolower($p->bdm_handover_status ?? '');
+            return !in_array($statusLower, ['handed over to sales', 'accepted by sales']);
+        });
         $totalOpportunityCount = $opportunityProjects->count();
         $totalNilaiOpportunity = $opportunityProjects->sum('contract_value');
 
-        $handedOverCount = $projects->where('bdm_handover_status', 'Handed Over to Sales')->count();
-        $acceptedBySalesCount = $projects->where('bdm_handover_status', 'Accepted by Sales')->count();
+        // 2. Handover ke Tim Sales
+        $handedOverCount = $projects->filter(function($p) {
+            return strtolower($p->bdm_handover_status ?? '') === 'handed over to sales';
+        })->count();
+        $acceptedBySalesCount = $projects->filter(function($p) {
+            return strtolower($p->bdm_handover_status ?? '') === 'accepted by sales';
+        })->count();
         $totalHandoverCount = $handedOverCount + $acceptedBySalesCount;
-        $conversionRate = $totalOpportunityCount > 0 ? round(($totalHandoverCount / $totalOpportunityCount) * 100, 1) : 0;
+        $totalHandoverValue = $projects->filter(function($p) {
+            return in_array(strtolower($p->bdm_handover_status ?? ''), ['handed over to sales', 'accepted by sales']);
+        })->sum('contract_value');
+        $conversionRate = $totalProjectCount > 0 ? round(($totalHandoverCount / $totalProjectCount) * 100, 1) : 0;
 
-        $intelQuery = MarketIntelligence::query();
-        $partnerQuery = Partnership::query();
-        if (!$isManagerial) {
-            $intelQuery->where('author_id', $user->id);
-            $partnerQuery->where('created_by', $user->id);
-        }
-
-        $intelCount = $intelQuery->count();
-        $partnerCount = (clone $partnerQuery)->where('status', 'Active')->count();
+        // 3. Proyek Closing / Won / Deal Berjalan di Sales
+        $wonProjects = $projects->filter(function($p) {
+            return in_array(strtolower($p->status ?? ''), ['completed', 'closed won', 'on progress', 'in progress'])
+                || in_array(strtolower($p->stage ?? ''), ['closing', 'won', 'deal']);
+        });
+        $totalWonCount = $wonProjects->count();
+        $totalWonValue = $wonProjects->sum('contract_value');
 
         // Monthly Trend
         $monthlyValues = array_fill(1, 12, 0);
@@ -134,9 +144,7 @@ class BdmController extends Controller
         }, array_values($sectorCounts));
 
         // Recent Highlights (Personalized strictly for the assigned BDM)
-        $recentOpportunities = $projects->sortByDesc('created_at')->take(5)->values();
-        $recentIntels = (clone $intelQuery)->latest()->take(3)->get();
-        $recentPartners = (clone $partnerQuery)->latest()->take(3)->get();
+        $recentOpportunities = $projects->sortByDesc('created_at')->take(8)->values();
 
         return view('bdm.dashboard', compact(
             'selectedYear',
@@ -147,15 +155,14 @@ class BdmController extends Controller
             'handedOverCount',
             'acceptedBySalesCount',
             'totalHandoverCount',
+            'totalHandoverValue',
             'conversionRate',
-            'intelCount',
-            'partnerCount',
+            'totalWonCount',
+            'totalWonValue',
             'monthlyDataInMillions',
             'sectorDataInMillions',
             'sectorCounts',
-            'recentOpportunities',
-            'recentIntels',
-            'recentPartners'
+            'recentOpportunities'
         ));
     }
 
