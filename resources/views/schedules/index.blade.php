@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Jadwal Kerja & Agenda Lapangan - PT IP Network Solusindo')
 
@@ -937,7 +937,7 @@
                                     <div x-show="!editing && msTickets && msTickets.length > 0">
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Pilih Tiket SLA (Opsional)</label>
                                         <select x-model="selectedTicketId" @change="applyTicketScheduleAutoFill($event.target.value)"
-                                                style="width:100%; padding:10px 14px; border-radius:9px; border:1.5px solid #E2E8F0; font-size:13.5px; color:#0F172A; outline:none; background:#FFFFFF; box-sizing:border-box; transition:border-color 0.15s ease; cursor:pointer;">
+                                                class="jkw-form-input" style="cursor:pointer;">
                                             <option value="">-- Pilih Tiket SLA --</option>
                                             <template x-for="t in msTickets" :key="t.id">
                                                 <option :value="t.id" x-text="'[' + t.ticket_number + '] ' + (t.client_name || (t.project ? t.project.name : '')) + ' - ' + t.title + ' (' + (t.priority || 'Medium') + ')'"></option>
@@ -1030,52 +1030,52 @@
                                             <option value="other" style="font-weight:700; color:#C81E2C;">+ Input Project Lainnya (Other)</option>
                                         </select>
                                         <!-- Input nama project jika memilih 'other' -->
-                                        <div x-show="form.project_id === 'other'" style="margin-top:8px;">
-                                            <label style="display:block; font-size:11px; font-weight:700; color:#C81E2C; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">
-                                                Nama Project / Meeting Baru
+                                        <div x-show="form.project_id === 'other'" style="margin-top:8px; background:#FEF2F2; border:1px solid #FECACA; border-radius:10px; padding:10px 12px;">
+                                            <label style="display:block; font-size:10.5px; font-weight:700; color:#8F0A0D; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">
+                                                Nama Project / Topik Meeting Baru
                                             </label>
-                                             <input type="text" x-model="form.new_project_name" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; cursor:default;' : 'background:#FFF5F5;'"
+                                             <input type="text" x-model="form.new_project_name" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; cursor:default;' : 'background:#FFFFFF;'"
                                                     placeholder="Masukkan nama project atau topik pembahasan..."
-                                                    class="jkw-form-input" style="border-color:#C81E2C; box-shadow:0 0 0 3px rgba(200,30,44,0.08);">
+                                                    class="jkw-form-input" style="border-color:#FCA5A5;">
                                         </div>
                                     </div>
                                     @endif
 
                                     <!-- Personel / Peserta Kegiatan (Sama persis & lengkap seperti Lead Engineer) -->
                                     <div>
-                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                                             <label style="font-size:11px; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:0.5px;">
                                                 <span x-text="form.category === 'Day Off' ? 'Personel yang Cuti / Libur' : ((form.category === 'PoC & Demo' || form.category === 'PoC' || form.category === 'PoC & Lab' || form.category === 'Sesi PoC & Lab') ? 'Presales & PIC PoC' : 'Personel / Peserta Agenda')"></span>
                                             </label>
                                             <template x-if="canManageSchedule">
-                                                <div style="display:flex; align-items:center; gap:8px;">
+                                                <div style="display:flex; align-items:center; gap:6px;">
                                                     <button type="button" @click="selectAllEngineers()" 
-                                                            style="background:none; border:none; color:#C81E2C; font-size:11.5px; font-weight:700; cursor:pointer; padding:0; text-decoration:underline;">
-                                                        + Pilih Semua
+                                                            class="jkw-micro-btn jkw-micro-btn--primary">
+                                                        <svg style="width:11px; height:11px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                        Pilih Semua
                                                     </button>
-                                                    <span style="color:#CBD5E1; font-size:10px;">|</span>
                                                     <button type="button" @click="clearEngineers()" 
-                                                            style="background:none; border:none; color:#64748B; font-size:11.5px; font-weight:600; cursor:pointer; padding:0;">
+                                                            class="jkw-micro-btn jkw-micro-btn--secondary">
                                                         Kosongkan
                                                     </button>
-                                                    <span style="font-size:11px; color:#C81E2C; font-weight:700; background:#FDF1F2; padding:2px 8px; border-radius:12px;" 
+                                                    <span class="jkw-micro-badge" 
                                                           x-text="(form.engineer_ids?.length || 0) + ' Dipilih'"></span>
                                                 </div>
                                             </template>
                                         </div>
 
                                         <!-- Chip tag engineer terpilih -->
-                                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; min-height:38px; padding:6px 8px; background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:9px; align-items:center;">
+                                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; min-height:38px; padding:6px 8px; background:#F8FAFC; border:1.5px solid #CBD5E1; border-radius:9px; align-items:center;">
                                             <template x-for="(engId, idx) in form.engineer_ids" :key="engId">
                                                 <div style="display:inline-flex; align-items:center; gap:6px; background:#FFFFFF; border:1px solid #CBD5E1; padding:3px 8px 3px 6px; border-radius:20px; font-size:11.5px; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
-                                                    <span style="width:7px; height:7px; border-radius:50%;" :style="{ background: form.category === 'Day Off' ? '#64748B' : (idx === 0 ? '#C81E2C' : '#2563EB') }"></span>
+                                                    <span style="width:7px; height:7px; border-radius:50%;" :style="{ background: form.category === 'Day Off' ? '#64748B' : (idx === 0 ? '#8F0A0D' : '#2563EB') }"></span>
                                                     <span style="font-weight:600; color:#0F172A;" x-text="getEngineerName(engId)"></span>
                                                     <template x-if="form.category !== 'Day Off'">
-                                                        <span style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:10px;" :style="{ background: idx === 0 ? '#FDF1F2' : '#EFF6FF', color: idx === 0 ? '#C81E2C' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC / Partner' : 'Peserta'"></span>
+                                                        <span style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:10px;" :style="{ background: idx === 0 ? '#FEF2F2' : '#EFF6FF', color: idx === 0 ? '#8F0A0D' : '#1D4ED8' }" x-text="idx === 0 ? 'PIC / Partner' : 'Peserta'"></span>
                                                     </template>
                                                     <template x-if="canManageSchedule">
-                                                        <button type="button" @click="toggleEngineer(engId)" style="background:none; border:none; color:#94A3B8; cursor:pointer; padding:0; display:flex; align-items:center; transition:color 0.15s;" onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='#94A3B8'" title="Hapus">
-                                                            <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                        <button type="button" @click="toggleEngineer(engId)" style="background:#F1F5F9; border:none; color:#64748B; cursor:pointer; width:16px; height:16px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; transition:all 0.15s ease; margin-left:2px;" onmouseover="this.style.background='#FEE2E2'; this.style.color='#DC2626'" onmouseout="this.style.background='#F1F5F9'; this.style.color='#64748B'" title="Hapus">
+                                                            <svg style="width:10px; height:10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                                         </button>
                                                     </template>
                                                 </div>
@@ -1084,7 +1084,7 @@
                                         </div>
 
                                         <!-- Checklist engineer (Hanya untuk yang memiliki akses manajemen) -->
-                                        <div x-show="canManageSchedule" style="max-height:170px; overflow-y:auto; border:1.5px solid #E2E8F0; border-radius:9px; background:white; padding:4px;">
+                                        <div x-show="canManageSchedule" style="max-height:170px; overflow-y:auto; border:1.5px solid #CBD5E1; border-radius:9px; background:white; padding:4px;">
                                             <template x-for="engineer in engineers" :key="engineer.id">
                                                 <div @click="toggleEngineer(engineer.id)" 
                                                      style="display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:7px; cursor:pointer; font-size:12.5px; transition:all 0.12s ease; margin-bottom:2px;"
@@ -1171,7 +1171,7 @@
                                             <!-- List Kartu Sesi -->
                                             <div style="display:flex; flex-direction:column; gap:14px;">
                                                 <template x-for="(session, sIdx) in (form.sessions || [])" :key="sIdx">
-                                                    <div style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:16px 18px; position:relative; display:flex; flex-direction:column; gap:16px; transition:all 0.15s ease;">
+                                                    <div style="background:#F8FAFC; border:1.5px solid #CBD5E1; border-radius:10px; padding:14px 16px; position:relative; display:flex; flex-direction:column; gap:14px; transition:all 0.15s ease;">
                                                         <!-- Header Sesi jika lebih dari 1 sesi -->
                                                         <div x-show="canManageSchedule && !editing && form.sessions && form.sessions.length > 1" style="display:flex; align-items:center; justify-content:space-between; padding-bottom:10px; border-bottom:1px solid #E2E8F0;">
                                                             <div style="display:flex; align-items:center; gap:6px;">
@@ -1216,17 +1216,17 @@
                                             <template x-if="canManageSchedule && !editing">
                                                 <button type="button" 
                                                         @click="addSession()" 
-                                                        style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px 14px; background:#F8FAFC; border:1.5px dashed #CBD5E1; border-radius:9px; font-size:12px; font-weight:700; color:#C81E2C; cursor:pointer; transition:all 0.15s ease; margin-top:10px;"
-                                                        onmouseover="this.style.background='#FDF1F2'; this.style.borderColor='#C81E2C';"
-                                                        onmouseout="this.style.background='#F8FAFC'; this.style.borderColor='#CBD5E1';">
+                                                        style="width:100%; display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 14px; background:#FFFFFF; border:1.5px dashed #CBD5E1; border-radius:9px; font-size:12px; font-weight:700; color:#8F0A0D; cursor:pointer; transition:all 0.15s ease; margin-top:10px;"
+                                                        onmouseover="this.style.background='#FEF2F2'; this.style.borderColor='#8F0A0D';"
+                                                        onmouseout="this.style.background='#FFFFFF'; this.style.borderColor='#CBD5E1';">
                                                     <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                                     <span>Tambah Tanggal / Sesi Jadwal</span>
                                                 </button>
                                             </template>
                                         </div>
 
-                                        <!-- MODE 2: RENTANG TANGGAL (KONSISTEN, RAPIH & PROPORSIONAL DENGAN SESI HARIAN) -->
-                                        <div x-show="form.date_mode === 'range' && !editing" style="background:#F8FAFC; border:1.5px solid #E2E8F0; border-radius:10px; padding:16px 18px; position:relative; display:flex; flex-direction:column; gap:16px;">
+                                        <!-- MODE 2: RENTANG TANGGAL -->
+                                        <div x-show="form.date_mode === 'range' && !editing" style="background:#F8FAFC; border:1.5px solid #CBD5E1; border-radius:10px; padding:14px 16px; position:relative; display:flex; flex-direction:column; gap:14px;">
                                             <!-- Grid Baris 1: Tanggal Mulai & Tanggal Selesai -->
                                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
                                                 <div>
@@ -1261,7 +1261,7 @@
                                             </div>
 
                                             <!-- Opsi Filter Hari Kerja / Libur -->
-                                            <div x-show="canManageSchedule" style="background:white; border:1.5px solid #E2E8F0; border-radius:9px; padding:14px 16px; margin-top:2px; display:flex; flex-direction:column; gap:10px;">
+                                            <div x-show="canManageSchedule" style="background:white; border:1.5px solid #CBD5E1; border-radius:9px; padding:12px 14px; margin-top:2px; display:flex; flex-direction:column; gap:8px;">
                                                 <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
                                                     <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">
                                                         <svg style="width:13px; height:13px; color:#C81E2C;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
@@ -1291,34 +1291,32 @@
 
                                     <div>
                                         <label style="display:block; font-size:11px; font-weight:700; color:#64748B; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Keterangan / Deskripsi</label>
-                                        <textarea x-model="form.description" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; cursor:default;' : 'background:#FFFFFF;'" placeholder="Catatan tambahan, agenda pembahasan, atau alasan cuti..." class="jkw-form-input" style="height:auto; min-height:80px; resize:none; padding-top:10px; padding-bottom:10px;" rows="3"></textarea>
+                                        <textarea x-model="form.description" :disabled="!canManageSchedule" :readonly="!canManageSchedule" :style="!canManageSchedule ? 'background:#F8FAFC; cursor:default;' : 'background:#FFFFFF;'" placeholder="Catatan tambahan, agenda pembahasan, atau alasan cuti..." class="jkw-textarea" rows="3"></textarea>
                                     </div>
                                 </div>
 
-                                    <div style="display:flex; gap:10px; margin-top:20px; padding:14px 0 4px 0; border-top:1px solid #E2E8F0; position:sticky; bottom:0; background:white; z-index:10; border-radius:0 0 14px 14px;">
-                                        <button type="submit" 
-                                                class="btn-ipnet-gradient"
-                                                style="flex:1; justify-content:center; padding:11px 18px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; box-sizing:border-box;">
-                                            Simpan Jadwal
-                                        </button>
+                                    <div style="display:flex; align-items:center; gap:10px; margin-top:22px; padding:14px 22px 18px; margin-left:-22px; margin-right:-22px; margin-bottom:-18px; border-top:1px solid #E2E8F0; position:sticky; bottom:0; background:#FFFFFF; z-index:10; border-radius:0 0 18px 18px; box-shadow:0 -4px 14px rgba(15,23,42,0.03);">
                                         <template x-if="editing">
                                             <button type="button"
                                                     @click="modalMode = 'detail'"
-                                                    style="background:white; color:#475569; border:1.5px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:600; font-size:13px; cursor:pointer;"
-                                                    onmouseover="this.style.background='#F8FAFC'"
-                                                    onmouseout="this.style.background='#FFFFFF'">
+                                                    class="jkw-btn-cancel">
                                                 Kembali ke Detail
                                             </button>
                                         </template>
                                         <template x-if="!editing">
                                             <button type="button"
                                                     @click="modalOpen = false"
-                                                    style="background:white; color:#475569; border:1.5px solid #CBD5E1; padding:11px 18px; border-radius:10px; font-weight:600; font-size:13px; cursor:pointer;"
-                                                    onmouseover="this.style.background='#F8FAFC'"
-                                                    onmouseout="this.style.background='#FFFFFF'">
+                                                    class="jkw-btn-cancel">
                                                 Batal
                                             </button>
                                         </template>
+                                        <button type="submit" 
+                                                class="btn-ipnet-gradient jkw-btn-submit">
+                                            <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            <span x-text="editing ? 'Simpan Perubahan' : 'Simpan Jadwal'"></span>
+                                        </button>
                                     </div>
                                 </form>
                             </div>
@@ -2169,7 +2167,7 @@
     flex-direction: row !important;
     align-items: center !important;
     background: #F1F5F9 !important;
-    border: 1px solid #E2E8F0 !important;
+    border: 1px solid #CBD5E1 !important;
     border-radius: 9px !important;
     padding: 3px !important;
     gap: 3px !important;
@@ -2183,7 +2181,8 @@
     align-items: center !important;
     justify-content: center !important;
     gap: 6px !important;
-    padding: 5px 12px !important;
+    height: 32px !important;
+    padding: 0 12px !important;
     border-radius: 7px !important;
     font-size: 11.5px !important;
     font-weight: 600 !important;
@@ -2195,15 +2194,15 @@
     user-select: none !important;
     outline: none !important;
     box-shadow: none !important;
-    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.15s ease !important;
     line-height: 1 !important;
     flex-shrink: 0 !important;
     text-decoration: none !important;
 }
 
 .jkw-mode-btn svg {
-    width: 13.5px !important;
-    height: 13.5px !important;
+    width: 14px !important;
+    height: 14px !important;
     flex-shrink: 0 !important;
     display: inline-block !important;
     stroke: currentColor !important;
@@ -2217,20 +2216,113 @@
 }
 
 .jkw-mode-btn:hover {
-    color: #1E293B !important;
-    background: rgba(255, 255, 255, 0.6) !important;
+    color: #0F172A !important;
+    background: rgba(255, 255, 255, 0.7) !important;
 }
 
 .jkw-mode-btn.is-active {
-    background: #FFFFFF !important;
-    color: #C81E2C !important;
+    background: #8F0A0D !important;
+    color: #FFFFFF !important;
     font-weight: 700 !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    box-shadow: 0 2px 6px rgba(143, 10, 13, 0.25) !important;
 }
 
 .jkw-mode-btn.is-active svg {
-    color: #C81E2C !important;
-    stroke: #C81E2C !important;
+    color: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+}
+
+/* Micro Action Buttons in Modal */
+.jkw-micro-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 3px 9px !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    border: 1px solid transparent !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+}
+.jkw-micro-btn--primary {
+    background: #FEF2F2 !important;
+    color: #8F0A0D !important;
+    border-color: #FECACA !important;
+}
+.jkw-micro-btn--primary:hover {
+    background: #FEE2E2 !important;
+    border-color: #FCA5A5 !important;
+}
+.jkw-micro-btn--secondary {
+    background: #F1F5F9 !important;
+    color: #475569 !important;
+    border-color: #E2E8F0 !important;
+}
+.jkw-micro-btn--secondary:hover {
+    background: #E2E8F0 !important;
+    color: #0F172A !important;
+}
+.jkw-micro-badge {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #8F0A0D !important;
+    background: #FEF2F2 !important;
+    border: 1px solid #FECACA !important;
+    padding: 3px 8px !important;
+    border-radius: 6px !important;
+    line-height: 1.4 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+/* Modal Bottom Action Buttons */
+.jkw-btn-cancel {
+    flex: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    height: 42px !important;
+    padding: 0 16px !important;
+    border-radius: 10px !important;
+    background: #F8FAFC !important;
+    color: #334155 !important;
+    border: 1.5px solid #CBD5E1 !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    user-select: none !important;
+    box-sizing: border-box !important;
+}
+.jkw-btn-cancel:hover {
+    background: #F1F5F9 !important;
+    border-color: #94A3B8 !important;
+    color: #0F172A !important;
+}
+
+.jkw-btn-submit {
+    flex: 1.4 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    height: 42px !important;
+    padding: 0 20px !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    box-shadow: 0 4px 14px rgba(143, 10, 13, 0.28) !important;
+    transition: all 0.15s ease !important;
+    box-sizing: border-box !important;
+}
+.jkw-btn-submit:hover {
+    box-shadow: 0 6px 18px rgba(143, 10, 13, 0.35) !important;
 }
 
 /* Form Inputs for Schedules */
@@ -2260,6 +2352,35 @@
 }
 .jkw-form-input::-webkit-calendar-picker-indicator:hover {
     opacity: 1 !important;
+}
+
+/* Textarea - derived from jkw-form-input tapi tanpa height fix */
+.jkw-textarea {
+    width: 100% !important;
+    min-height: 82px !important;
+    height: auto !important;
+    padding: 10px 13px !important;
+    border-radius: 8px !important;
+    border: 1.5px solid #CBD5E1 !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    color: #0F172A !important;
+    background: #FFFFFF !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    resize: none !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    line-height: 1.55 !important;
+    font-family: inherit !important;
+    display: block !important;
+}
+.jkw-textarea:focus {
+    border-color: #C81E2C !important;
+    box-shadow: 0 0 0 3px rgba(200, 30, 44, 0.08) !important;
+}
+.jkw-textarea::placeholder {
+    color: #94A3B8 !important;
+    font-weight: 400 !important;
 }
 
 /* ===================== RESPONSIVE BREAKPOINTS ===================== */
