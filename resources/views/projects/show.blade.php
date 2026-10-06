@@ -1011,6 +1011,7 @@
                         $documentTemplates = [
                             ['code' => 'REQ',   'name' => 'Surat Permohonan'],
                             ['code' => 'INF',   'name' => 'Surat Informasi'],
+                            ['code' => 'SP',    'name' => 'Surat Penawaran'],
                             ['code' => 'BRD',   'name' => 'Dokumen Business Requirement Document'],
                             ['code' => 'PRP',   'name' => 'Dokumen Proposal'],
                             ['code' => 'TND',   'name' => 'Dokumen Tender'],
@@ -1114,6 +1115,8 @@
                                     $matchedCode = 'REQ';
                                 } elseif (str_contains($docTitle, 'informasi') || str_contains($fileName, 'inf')) {
                                     $matchedCode = 'INF';
+                                } elseif (str_contains($docTitle, 'penawaran') || str_contains($fileName, 'penawaran') || str_starts_with($fileName, 'sp_') || str_starts_with($fileName, 'sp-')) {
+                                    $matchedCode = 'SP';
                                 } elseif (str_contains($docTitle, 'project') && !str_contains($docTitle, 'lampiran')) {
                                     $matchedCode = 'PRJ';
                                 } else {
@@ -1219,6 +1222,7 @@
                                         $docSubtitles = [
                                             'REQ'   => 'Surat formal dari klien yang meminta layanan',
                                             'INF'   => 'Surat penyampaian informasi kepada klien',
+                                            'SP'    => 'Surat penawaran harga dan solusi teknis kepada klien',
                                             'BRD'   => 'Dokumen kebutuhan bisnis & persyaratan sistem',
                                             'PRP'   => 'Proposal penawaran teknis & komersial',
                                             'TND'   => 'Dokumen lelang / tender proyek',
