@@ -641,6 +641,72 @@ class ProjectController extends Controller
     }
 
     /**
+     * Input Bulk Spreadsheet Timeline & Milestones Proyek (PMO / Project Manager / Executive)
+     */
+    public function bulkStoreMilestones(Request $request, Project $project)
+    {
+        $authUser = auth()->user();
+        $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
+        $canManage = $authUser && (
+            $project->created_by === $authUser->id
+            || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution', 'PMO', 'Project Manager', 'Super Admin', 'Admin'], $userRoles))
+        );
+        abort_unless($canManage, 403, 'Anda tidak memiliki hak akses untuk menyusun timeline proyek ini.');
+
+        $milestones = $request->input('milestones', []);
+        if (!is_array($milestones) || empty($milestones)) {
+            return redirect()->back()->with('error', 'Tidak ada data milestone yang diisi.');
+        }
+
+        $createdCount = 0;
+        foreach ($milestones as $row) {
+            $title = trim($row['title'] ?? '');
+            if (empty($title)) {
+                continue;
+            }
+
+            $startDate = !empty($row['start_date']) ? $row['start_date'] : null;
+            $deadline  = !empty($row['deadline']) ? $row['deadline'] : ($startDate ? date('Y-m-d', strtotime($startDate . ' +7 days')) : date('Y-m-d', strtotime('+7 days')));
+            $division  = trim($row['division_name'] ?? '');
+            $deliverable = trim($row['deliverable'] ?? '');
+            $notes     = trim($row['notes'] ?? '');
+
+            $descParts = [];
+            if ($division !== '') {
+                $descParts[] = "[Divisi: {$division}]";
+            }
+            if ($deliverable !== '') {
+                $descParts[] = "[Deliverable: {$deliverable}]";
+            }
+            if ($notes !== '') {
+                $descParts[] = $notes;
+            }
+            $description = !empty($descParts) ? implode(" | ", $descParts) : null;
+
+            \App\Models\Task::create([
+                'title'       => $title,
+                'project_id'  => $project->id,
+                'priority'    => $row['priority'] ?? 'Medium',
+                'status'      => 'Pending',
+                'start_date'  => $startDate,
+                'deadline'    => $deadline,
+                'progress'    => 0,
+                'attachments' => 0,
+                'description' => $description,
+                'created_by'  => $authUser->id,
+            ]);
+
+            $createdCount++;
+        }
+
+        if ($createdCount === 0) {
+            return redirect()->back()->with('error', 'Mohon isi setidaknya satu nama tahapan milestone.');
+        }
+
+        return redirect()->back()->with('success', "Berhasil menyimpan {$createdCount} tahapan timeline proyek.");
+    }
+
+    /**
      * Penugasan Review Draft ke Pimpinan (Head Divisi / Direktur) oleh Sales
      */
     public function assignApprover(Request $request, Project $project)

@@ -948,13 +948,13 @@
                     {{-- 4. Serah Terima & Divisi Pelaksana (PMO Rizki & Lead Engineer Nugraha Pratama) --}}
                     @include('projects.partials.workflow-delivery')
 
-                    {{-- MILESTONES CARD --}}
+                    {{-- MILESTONES / TIMELINE CARD --}}
                     <div class="ipnet-card p-6 space-y-4">
-                        <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-100">
                             <div class="flex items-center gap-2.5">
                                 <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
                                     <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
-                                    Milestones Pekerjaan
+                                    Timeline &amp; Milestones Proyek
                                 </h3>
                                 <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
                                     {{ $project->tasks->where('status', 'Completed')->count() }}/{{ $project->tasks->count() }} Selesai
@@ -966,8 +966,8 @@
                                     $project->created_by === $authUser->id 
                                     || $project->sales_name === $authUser->name 
                                     || ($project->sales_id && $project->sales_id === $authUser->id)
-                                    || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager', 'Super Admin', 'Admin', 'Sales', 'Account Manager'], $userRoles))
-                                ) && empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles));
+                                    || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager', 'Super Admin', 'Admin'], $userRoles))
+                                );
                             @endphp
                             @if($canAddMilestone)
                             <button type="button" 
@@ -975,33 +975,87 @@
                                     onclick="window.openModal('modal-add-milestone')"
                                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200 shadow-2xs">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span>Tambah Milestone</span>
+                                <span>+ Susun Timeline Proyek</span>
                             </button>
                             @endif
                         </div>
 
                         @if($project->tasks->count() > 0)
-                            <div class="space-y-2">
-                                @foreach($project->tasks as $task)
-                                    <div class="p-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs hover:border-slate-300 transition shadow-2xs">
-                                        <div class="flex items-center gap-3 min-w-0">
-                                             <input type="checkbox" {{ $task->status === 'Completed' ? 'checked' : '' }} disabled class="w-4 h-4 rounded text-[#8F0A0D] shrink-0 border-slate-300">
-                                            <div class="min-w-0">
-                                                <span class="font-bold text-slate-900 truncate block">{{ $task->title ?? $task->name }}</span>
-                                                @if($task->engineer)
-                                                    <div class="text-[11px] text-slate-500">Engineer: {{ $task->engineer->name }}</div>
-                                                @endif
+                            <div class="space-y-2.5">
+                                @foreach($project->tasks as $index => $task)
+                                    @php
+                                        $desc = $task->description ?? '';
+                                        $divBadge = null;
+                                        if (preg_match('/\[Divisi:\s*([^\]]+)\]/', $desc, $matches)) {
+                                            $divBadge = trim($matches[1]);
+                                        }
+                                        $delivBadge = null;
+                                        if (preg_match('/\[Deliverable:\s*([^\]]+)\]/', $desc, $matches)) {
+                                            $delivBadge = trim($matches[1]);
+                                        }
+                                        $cleanNotes = trim(preg_replace('/\[(Divisi|Deliverable):[^\]]+\]\s*\|?\s*/', '', $desc));
+                                    @endphp
+                                    <div class="p-3.5 rounded-xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-slate-300 transition shadow-2xs">
+                                        <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                                            <div class="w-6 h-6 rounded-lg bg-slate-100 text-slate-500 font-mono font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                                                {{ $index + 1 }}
+                                            </div>
+                                            <div class="min-w-0 flex-1 space-y-1">
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <span class="font-bold text-slate-900 text-[13px]">{{ $task->title ?? $task->name }}</span>
+                                                    @if($divBadge)
+                                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                            {{ $divBadge }}
+                                                        </span>
+                                                    @endif
+                                                    @if($delivBadge)
+                                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                                            Target: {{ $delivBadge }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                <div class="text-[11px] text-slate-400 flex items-center gap-2 flex-wrap">
+                                                    @if($task->start_date || $task->deadline)
+                                                        <span class="inline-flex items-center gap-1 font-medium text-slate-600">
+                                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                            <span>{{ $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d M Y') : 'Mulai' }} s/d {{ $task->deadline ? \Carbon\Carbon::parse($task->deadline)->format('d M Y') : '-' }}</span>
+                                                        </span>
+                                                    @endif
+                                                    @if($task->engineer)
+                                                        <span>•</span>
+                                                        <span class="text-slate-600">Teknisi: {{ $task->engineer->name }}</span>
+                                                    @endif
+                                                    @if(!empty($cleanNotes))
+                                                        <span>•</span>
+                                                        <span class="italic text-slate-500 truncate max-w-[280px]" title="{{ $cleanNotes }}">{{ $cleanNotes }}</span>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
-                                        <span class="px-2.5 py-0.5 rounded-md text-[10.5px] font-bold {{ $task->status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
-                                            {{ $task->status }}
-                                        </span>
+                                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                                            <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border {{ $task->status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($task->status === 'In Progress' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-600 border-slate-200') }}">
+                                                {{ $task->status }}
+                                            </span>
+                                            @if($canAddMilestone)
+                                                <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" onsubmit="return confirm('Hapus tahapan timeline ini?')" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer" title="Hapus Milestone">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
                                     </div>
                                 @endforeach
                             </div>
                         @else
-                            <div class="p-5 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center text-xs text-slate-400">
-                                Belum ada milestone yang dibuat.
+                            <div class="p-6 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 text-center space-y-2">
+                                <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <div class="text-xs text-slate-500 font-semibold">Belum ada timeline atau milestones yang dibuat.</div>
+                                <p class="text-[11px] text-slate-400 max-w-sm mx-auto">PMO dapat menyusun jadwal tahapan kerja dengan menekan tombol <strong>+ Susun Timeline Proyek</strong> di atas.</p>
                             </div>
                         @endif
                     </div>
@@ -2434,53 +2488,199 @@
         </div>
     </div>
 
-    {{-- 3. ADD MILESTONE MODAL --}}
+    {{-- 3. SPREADSHEET BULK TIMELINE & MILESTONES MODAL (PMO & PROJECT MANAGER) --}}
     <div id="modal-add-milestone" x-show="isAddMilestoneModalOpen" x-cloak 
          @click.self="isAddMilestoneModalOpen = false; window.closeModal('modal-add-milestone')"
          onclick="if(event.target === this) window.closeModal('modal-add-milestone')"
-         class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
+         class="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-2xs overflow-y-auto">
         <div @click.stop 
-             class="relative bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
+             x-data="{
+                 rows: [
+                     { title: '', start_date: '{{ date('Y-m-d') }}', deadline: '{{ date('Y-m-d', strtotime('+7 days')) }}', division_name: '{{ $project->division ? $project->division->name : 'Divisi Network' }}', deliverable: '', notes: '', priority: 'Medium' },
+                     { title: '', start_date: '{{ date('Y-m-d', strtotime('+7 days')) }}', deadline: '{{ date('Y-m-d', strtotime('+14 days')) }}', division_name: '{{ $project->division ? $project->division->name : 'Divisi Network' }}', deliverable: '', notes: '', priority: 'Medium' },
+                     { title: '', start_date: '{{ date('Y-m-d', strtotime('+14 days')) }}', deadline: '{{ date('Y-m-d', strtotime('+21 days')) }}', division_name: '{{ $project->division ? $project->division->name : 'Divisi Network' }}', deliverable: '', notes: '', priority: 'Medium' },
+                     { title: '', start_date: '{{ date('Y-m-d', strtotime('+21 days')) }}', deadline: '{{ date('Y-m-d', strtotime('+28 days')) }}', division_name: '{{ $project->division ? $project->division->name : 'Divisi Network' }}', deliverable: '', notes: '', priority: 'Medium' },
+                     { title: '', start_date: '{{ date('Y-m-d', strtotime('+28 days')) }}', deadline: '{{ date('Y-m-d', strtotime('+35 days')) }}', division_name: '{{ $project->division ? $project->division->name : 'Divisi Network' }}', deliverable: '', notes: '', priority: 'Medium' }
+                 ],
+                 addRow() {
+                     const last = this.rows[this.rows.length - 1];
+                     const lastDue = last && last.deadline ? last.deadline : '{{ date('Y-m-d') }}';
+                     this.rows.push({
+                         title: '',
+                         start_date: lastDue,
+                         deadline: lastDue,
+                         division_name: '{{ $project->division ? $project->division->name : '' }}',
+                         deliverable: '',
+                         notes: '',
+                         priority: 'Medium'
+                     });
+                 },
+                 addMultiple(count) {
+                     for (let i = 0; i < count; i++) {
+                         this.addRow();
+                     }
+                 },
+                 removeRow(idx) {
+                     if (this.rows.length > 1) {
+                         this.rows.splice(idx, 1);
+                     } else {
+                         this.rows[0] = { title: '', start_date: '{{ date('Y-m-d') }}', deadline: '{{ date('Y-m-d', strtotime('+7 days')) }}', division_name: '{{ $project->division ? $project->division->name : '' }}', deliverable: '', notes: '', priority: 'Medium' };
+                     }
+                 }
+             }"
+             class="relative bg-white rounded-2xl max-w-7xl w-full shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col overflow-hidden m-auto">
             
-            <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="text-base font-bold text-slate-900">Tambah Milestone</h3>
+            {{-- Header Modal --}}
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Susun Timeline &amp; Milestones Proyek</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Input matriks jadwal pelaksanaan, target tanggal, penanggung jawab divisi, dan deliverables proyek.</p>
+                </div>
                 <button type="button" @click="isAddMilestoneModalOpen = false; window.closeModal('modal-add-milestone')" onclick="window.closeModal('modal-add-milestone')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
 
-            <form action="{{ route('tasks.store') }}" method="POST" class="space-y-4 text-xs font-semibold">
+            {{-- Form Spreadsheet --}}
+            <form action="{{ route('projects.milestones.bulk_store', $project->id) }}" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                 @csrf
-                <input type="hidden" name="project_id" value="{{ $project->id }}">
-                <input type="hidden" name="status" value="Pending">
 
-                <div>
-                    <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">NAMA MILESTONE</label>
-                    <input type="text" name="title" required placeholder="Contoh: Pengiriman Aruba AP-505 dan APC" 
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                {{-- Bar Informasi Proyek --}}
+                <div class="p-4 bg-slate-50/80 border-b border-slate-200 shrink-0">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                        <div class="p-2.5 rounded-xl bg-white border border-slate-200">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">PROYEK TUJUAN</span>
+                            <span class="font-bold text-slate-900 truncate block mt-0.5">{{ $project->name }}</span>
+                            <span class="text-[11px] text-slate-500">Klien: {{ $project->client ?: '-' }}</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-white border border-slate-200">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">DIVISI PELAKSANA TEKNIS</span>
+                            <span class="font-bold text-slate-900 truncate block mt-0.5">
+                                {{ $project->division ? $project->division->name : 'Belum Didelegasikan' }}
+                            </span>
+                            <span class="text-[11px] text-slate-500">Wewenang Eksekusi Teknis Lapangan</span>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-white border border-slate-200">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">TARGET WAKTU KONTRAK</span>
+                            <span class="font-bold text-slate-900 truncate block mt-0.5">
+                                {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : 'TBA' }} s/d {{ $project->deadline ? \Carbon\Carbon::parse($project->deadline)->format('d M Y') : 'TBA' }}
+                            </span>
+                            <span class="text-[11px] text-slate-500">Durasi Pekerjaan Proyek</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">PRIORITAS</label>
-                        <select name="priority" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
-                            <option value="Low">Low</option>
-                            <option value="Medium" selected>Medium</option>
-                            <option value="High">High</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[10.5px]">DEADLINE</label>
-                        <input type="date" name="deadline" value="{{ date('Y-m-d', strtotime('+7 days')) }}" 
-                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500">
+                {{-- Table Spreadsheet Input --}}
+                <div class="flex-1 overflow-x-auto overflow-y-auto p-4">
+                    <table class="w-full text-left border-collapse min-w-[1000px]">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
+                                <th class="w-12 px-3 py-2.5 text-center">NO</th>
+                                <th class="min-w-[240px] px-3 py-2.5">TAHAPAN / MILESTONE <span class="text-[#8F0A0D]">*</span></th>
+                                <th class="w-36 px-2.5 py-2.5">TGL MULAI</th>
+                                <th class="w-36 px-2.5 py-2.5">TGL SELESAI</th>
+                                <th class="w-44 px-2.5 py-2.5">DIVISI / PIC</th>
+                                <th class="w-44 px-2.5 py-2.5">OUTPUT DOKUMEN</th>
+                                <th class="min-w-[200px] px-2.5 py-2.5">NOTES</th>
+                                <th class="w-12 px-2 py-2.5 text-center">AKSI</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs">
+                            <template x-for="(row, index) in rows" :key="index">
+                                <tr class="hover:bg-slate-50/70 transition">
+                                    <td class="px-3 py-2 text-center font-mono font-bold text-slate-400" x-text="index + 1"></td>
+                                    <td class="px-2 py-2">
+                                        <input type="text" 
+                                               :name="'milestones[' + index + '][title]'" 
+                                               x-model="row.title" 
+                                               placeholder="Rincian aktivitas / tahapan teknis..." 
+                                               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
+                                    </td>
+                                    <td class="px-2 py-2">
+                                        <input type="date" 
+                                               :name="'milestones[' + index + '][start_date]'" 
+                                               x-model="row.start_date" 
+                                               class="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
+                                    </td>
+                                    <td class="px-2 py-2">
+                                        <input type="date" 
+                                               :name="'milestones[' + index + '][deadline]'" 
+                                               x-model="row.deadline" 
+                                               class="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
+                                    </td>
+                                    <td class="px-2 py-2">
+                                        <select :name="'milestones[' + index + '][division_name]'" 
+                                                x-model="row.division_name" 
+                                                class="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
+                                            <option value="">-- Pilih PIC --</option>
+                                            <option value="Divisi Network">Divisi Network</option>
+                                            <option value="Divisi Security">Divisi Security</option>
+                                            <option value="Network & Security">Network &amp; Security</option>
+                                            <option value="PMO / Project Manager">PMO / Project Manager</option>
+                                            <option value="Pre-Sales / Solution">Pre-Sales / Solution</option>
+                                            <option value="Klien / Customer">Klien / Customer</option>
+                                            <option value="Vendor / Partner">Vendor / Partner</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-2 py-2">
+                                        <input type="text" 
+                                               :name="'milestones[' + index + '][deliverable]'" 
+                                               x-model="row.deliverable" 
+                                               placeholder="Surat Jalan, UAT, BAST..." 
+                                               class="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
+                                    </td>
+                                    <td class="px-2 py-2">
+                                        <input type="text" 
+                                               :name="'milestones[' + index + '][notes]'" 
+                                               x-model="row.notes" 
+                                               placeholder="Catatan / prasyarat..." 
+                                               class="w-full px-2.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 bg-white">
+                                    </td>
+                                    <td class="px-2 py-2 text-center">
+                                        <button type="button" 
+                                                @click="removeRow(index)" 
+                                                class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer" 
+                                                title="Hapus Baris">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+
+                    {{-- Tombol Tambah Baris --}}
+                    <div class="flex items-center gap-2 pt-3">
+                        <button type="button" 
+                                @click="addRow()" 
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-slate-300 text-xs font-semibold text-slate-600 hover:border-red-400 hover:text-[#8F0A0D] hover:bg-red-50/50 transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            <span>+ Tambah Baris</span>
+                        </button>
+                        <button type="button" 
+                                @click="addMultiple(5)" 
+                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-100 transition cursor-pointer">
+                            <span>+ Tambah 5 Baris</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-3 border-t">
-                    <button type="button" @click="isAddMilestoneModalOpen = false; window.closeModal('modal-add-milestone')" onclick="window.closeModal('modal-add-milestone')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
-                        Batal
-                    </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
-                        Simpan Milestone
-                    </button>
+                {{-- Footer Modal --}}
+                <div class="px-6 py-3.5 border-t border-slate-100 bg-white flex items-center justify-between shrink-0">
+                    <div class="text-[11px] text-slate-400 italic">
+                        Tip: Hanya baris dengan nama tahapan yang terisi yang akan disimpan ke timeline.
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" 
+                                @click="isAddMilestoneModalOpen = false; window.closeModal('modal-add-milestone')" 
+                                onclick="window.closeModal('modal-add-milestone')" 
+                                class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="submit" 
+                                class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold btn-ipnet-primary cursor-pointer transition shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>Simpan Semua Timeline</span>
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>

@@ -608,6 +608,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{project}/update-client', [ProjectController::class, 'updateClientInfo'])->name('projects.update_client');
         Route::post('/{project}/handover-to-ms', [ProjectController::class, 'handoverToMs'])->name('projects.handover_to_ms');
         Route::post('/{project}/assign-ms-engineer', [ProjectController::class, 'assignMsEngineer'])->name('projects.assign_ms_engineer');
+        Route::post('/{project}/milestones/bulk', [ProjectController::class, 'bulkStoreMilestones'])->name('projects.milestones.bulk_store');
 
         // 6-Stage Handover & Document Flow (Commercial to Operation)
         Route::get('/{project}/document-flow', [\App\Http\Controllers\ProjectDocumentController::class, 'getProjectFlow'])->name('projects.document_flow');
@@ -621,10 +622,10 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('tasks')->group(function () {
         Route::get('/', [TaskController::class, 'index'])->name('tasks.index');
         Route::post('/', [TaskController::class, 'store'])->name('tasks.store')
-            ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service');
+            ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service|PMO|Project Manager|Super Admin|Admin');
         Route::put('/{task}', [TaskController::class, 'update'])->name('tasks.update');
         Route::delete('/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy')
-            ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service');
+            ->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Managed Service|PMO|Project Manager|Super Admin|Admin');
         Route::get('/kanban-data', [TaskController::class, 'getKanbanData'])->name('tasks.kanban');
     });
 
