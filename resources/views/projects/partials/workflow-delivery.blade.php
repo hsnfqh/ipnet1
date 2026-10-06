@@ -323,31 +323,39 @@
                             </div>
                         </div>
                     @else
-                        <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1.5">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
-                                    <svg class="w-3.5 h-3.5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="font-bold text-amber-900 text-xs">Pilih Divisi Pelaksana</div>
-                                    <div class="text-[10.5px] text-amber-800 truncate">Delegasikan wewenang teknis ke Divisi Network, Security, atau Keduanya</div>
+                        @if(!empty($canAssignScope))
+                            <div @click.stop="openAssignDivisionModal()" 
+                                 onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
+                                 class="p-3 rounded-lg bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200 text-amber-900 space-y-1.5 cursor-pointer transition shadow-2xs group">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                                        <svg class="w-3.5 h-3.5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="font-bold text-amber-900 text-xs flex items-center justify-between">
+                                            <span>Pilih Divisi Pelaksana</span>
+                                            <svg class="w-3.5 h-3.5 text-amber-700 opacity-60 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </div>
+                                        <div class="text-[10.5px] text-amber-800 truncate">Delegasikan wewenang teknis ke Divisi Network, Security, atau Keduanya</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        @else
+                            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 space-y-1">
+                                <div class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Menunggu Penetapan Divisi</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-400">Penetapan divisi teknis pelaksana dilakukan oleh tim Pre-Sales.</div>
+                            </div>
+                        @endif
                     @endif
                 </div>
 
             </div>
 
-            {{-- Actions Footer: Hanya dapat diubah oleh PM / PMO / Executive --}}
-            @php
-                $canChangeDivision = $authUser && (
-                    \App\Helpers\ScopeHelper::isPmo($authUser)
-                    || ($project->pm_id && $project->pm_id == $authUser->id)
-                    || ($isExecutive ?? false)
-                ) && !\App\Helpers\ScopeHelper::isTeamLeader($authUser);
-            @endphp
-            @if($canChangeDivision)
+            {{-- Actions Footer: Wewenang Pre-Sales Specialist & Admin (PM / PMO dikunci) --}}
+            @if(!empty($canAssignScope))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     <button type="button" 
                             @click.stop="openAssignDivisionModal()" 
@@ -356,6 +364,16 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                         <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Perbarui Divisi Pelaksana' : 'Tetapkan Divisi Pelaksana' }}</span>
                     </button>
+                </div>
+            @else
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    <span class="inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
+                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Wewenang Pre-Sales Specialist
+                    </span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                        Pre-Sales
+                    </span>
                 </div>
             @endif
         </div>

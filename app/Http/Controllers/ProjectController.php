@@ -529,13 +529,19 @@ class ProjectController extends Controller
     public function assignDivision(Request $request, Project $project)
     {
         $authUser = auth()->user();
-        $canAssign = $authUser && (
-            \App\Helpers\ScopeHelper::isPmo($authUser)
-            || ($project->pm_id && $project->pm_id == $authUser->id)
-            || \App\Helpers\ScopeHelper::isExecutive($authUser)
-            || $authUser->hasRole('Super Admin')
+        $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
+        $isAdmin = !empty(array_intersect(['Super Admin', 'Admin', 'Admin Support'], $userRoles));
+        $technical = is_array($project->technical_solution) ? $project->technical_solution : (json_decode($project->technical_solution ?? '', true) ?: []);
+        $presalesAssignedId = $technical['presales']['assigned_user_id'] ?? ($project->presales_id ?? null);
+        $isPresalesUser = $authUser && (
+            (!empty($presalesAssignedId) && $authUser->id == $presalesAssignedId)
+            || !empty(array_intersect(['Presales', 'Pre-Sales'], $userRoles))
+            || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
+            || str_contains(strtolower($authUser->email ?? ''), 'akbar')
+            || str_contains(strtolower($authUser->name ?? ''), 'akbar')
         );
-        abort_unless($canAssign, 403, 'Disposisi divisi pelaksana hanya dapat dilakukan oleh Project Manager (PM) atau PMO.');
+        $canAssign = $authUser && ($isAdmin || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
+        abort_unless($canAssign, 403, 'Penetapan divisi pelaksana teknis merupakan wewenang tim Pre-Sales Specialist.');
 
         $validated = $request->validate([
             'target_division' => 'required|in:network,security,both',
