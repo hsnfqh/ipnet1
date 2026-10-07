@@ -601,11 +601,11 @@
                     </div>
 
                     <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
-                        <a :href="buildExportUrl('pdf')" target="_blank"
+                        <button type="button" @click="downloadReportPdf('download')"
                            class="px-3.5 py-1.5 text-xs font-bold text-[#8F0A0D] bg-white hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-lg transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                             <span>Download PDF</span>
-                        </a>
+                        </button>
                         <a :href="buildExportUrl('excel')"
                            class="px-3.5 py-1.5 text-xs font-bold text-[#0F6B43] bg-white hover:bg-emerald-50 border border-emerald-200 hover:border-emerald-300 rounded-lg transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-[#0F6B43]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -1554,21 +1554,75 @@ function engineerActivityManager() {
             }
         },
 
-        buildExportUrl(type) {
+        buildExportUrl(type, extraParams = {}) {
             const base = type === 'pdf'
                 ? '{{ route("engineer.activity_log.export_pdf") }}'
                 : '{{ route("engineer.activity_log.export_excel") }}';
-            const params = new URLSearchParams(window.location.search);
+            const params = new URLSearchParams();
             if (this.selectedDetail) {
                 if (this.selectedDetail.scope_key) params.set('scope_key', this.selectedDetail.scope_key);
+                if (this.selectedDetail.project_id) params.set('project_id', this.selectedDetail.project_id);
                 if (this.selectedDetail.project_name) params.set('project_name', this.selectedDetail.project_name);
                 if (this.selectedDetail.items && this.selectedDetail.items.length > 0) {
                     const ids = this.selectedDetail.items.map(item => item.id).filter(Boolean);
                     if (ids.length > 0) params.set('log_ids', ids.join(','));
                 }
+            } else {
+                const currentParams = new URLSearchParams(window.location.search);
+                currentParams.forEach((val, key) => params.set(key, val));
+            }
+            if (extraParams && typeof extraParams === 'object') {
+                Object.entries(extraParams).forEach(([k, v]) => params.set(k, v));
             }
             const qs = params.toString();
             return qs ? (base + '?' + qs) : base;
+        },
+
+        async saveReportFormSilently() {
+            if (!this.selectedDetail?.scope_key || !this.reportFormData) return;
+            const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            try {
+                const res = await fetch('{{ route("engineer.activity_log.save_report_data") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token
+                    },
+                    body: JSON.stringify({
+                        scope_key: this.selectedDetail.scope_key,
+                        project_id: this.selectedDetail.project_id,
+                        project_name: this.selectedDetail.project_name,
+                        report_data: this.reportFormData
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success && data.document_number) {
+                    if (!this.sigInfo) this.sigInfo = {};
+                    this.sigInfo.document_number = data.document_number;
+                    this.reportFormData.identitas.no_laporan = data.document_number;
+                }
+            } catch (e) {
+                console.warn('Silently saving report form:', e);
+            }
+        },
+
+        async downloadReportPdf(action = 'download') {
+            // Simpan isian form terlebih dahulu agar PDF memuat data termutakhir
+            if (this.selectedDetail?.scope_key && this.reportFormData) {
+                await this.saveReportFormSilently();
+            }
+            const exportUrl = this.buildExportUrl('pdf', action === 'stream' ? { stream: 1 } : {});
+            if (action === 'stream') {
+                window.open(exportUrl, '_blank');
+            } else {
+                const downloadLink = document.createElement('a');
+                downloadLink.href = exportUrl;
+                downloadLink.setAttribute('download', '');
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                setTimeout(() => downloadLink.remove(), 500);
+            }
         },
     };
 }

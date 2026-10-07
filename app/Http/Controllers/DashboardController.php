@@ -1933,61 +1933,103 @@ class DashboardController extends Controller
     // ─── Engineer Activity Log: Export PDF ──────────────────────────────────────
     public function exportActivityLogPdf(\Illuminate\Http\Request $request)
     {
+        @ini_set('memory_limit', '512M');
+        @set_time_limit(120);
+
         $authUser = auth()->user();
         $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
         $linkedProjectIds = $this->getLinkedProjectIds($authUser);
 
         $query = EngineerActivityLog::with(['engineer', 'project']);
 
-        if (!$isLead) {
-            $query->where(function ($q) use ($authUser, $linkedProjectIds) {
-                $q->where('user_id', $authUser->id)
-                  ->orWhere('notes', 'like', "%{$authUser->name}%");
-                if ($linkedProjectIds->isNotEmpty()) {
-                    $q->orWhereIn('project_id', $linkedProjectIds);
-                }
-            });
-        } else {
-            if ($request->filled('user_id')) {
-                $query->where('user_id', $request->user_id);
-            }
-        }
-
-        // Filter log_ids spesifik dari modal popup
+        // 1. Jika log_ids spesifik dikirim dari modal detail
         if ($request->filled('log_ids')) {
             $logIds = array_filter(array_map('trim', explode(',', $request->log_ids)));
             if (!empty($logIds)) {
                 $query->whereIn('id', $logIds);
             }
-        }
-
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
-                $q->where('description', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%")
-                  ->orWhereHas('engineer', fn($sq) => $sq->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('project', fn($sq) => $sq->where('name', 'like', "%{$search}%")->orWhere('client', 'like', "%{$search}%"));
-            });
-        }
-
-        if ($request->filled('activity_type')) {
-            $query->where('activity_type', $request->activity_type);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('project_id')) {
+        } elseif ($request->filled('project_id')) {
             $query->where('project_id', $request->project_id);
-        }
+        } elseif ($request->filled('scope_key') && str_starts_with($request->scope_key, 'proj_')) {
+            $pId = (int) substr($request->scope_key, 5);
+            $query->where('project_id', $pId);
+        } else {
+            // Filter kepemilikan global jika export dari tabel utama
+            if (!$isLead) {
+                $query->where(function ($q) use ($authUser, $linkedProjectIds) {
+                    $q->where('user_id', $authUser->id)
+                      ->orWhere('notes', 'like', "%{$authUser->name}%");
+                    if ($linkedProjectIds->isNotEmpty()) {
+                        $q->orWhereIn('project_id', $linkedProjectIds);
+                    }
+                });
+            } else {
+                if ($request->filled('user_id')) {
+                    $query->where('user_id', $request->user_id);
+                }
+            }
 
-        if ($request->filled('date')) {
-            $query->whereDate('activity_date', $request->date);
+            if ($request->filled('search')) {
+                $search = trim($request->search);
+                $query->where(function ($q) use ($search) {
+                    $q->where('description', 'like', "%{$search}%")
+                      ->orWhere('notes', 'like', "%{$search}%")
+                      ->orWhereHas('engineer', fn($sq) => $sq->where('name', 'like', "%{$search}%"))
+                      ->orWhereHas('project', fn($sq) => $sq->where('name', 'like', "%{$search}%")->orWhere('client', 'like', "%{$search}%"));
+                });
+            }
+
+            if ($request->filled('activity_type')) {
+                $query->where('activity_type', $request->activity_type);
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            if ($request->filled('date')) {
+                $query->whereDate('activity_date', $request->date);
+            }
         }
 
         $activities = $query->orderBy('activity_date', 'asc')->orderBy('start_time', 'asc')->orderBy('created_at', 'asc')->get();
+
+        // Fallback resolve Project & Scope Key
+        $resolvedProject = null;
+        if ($request->filled('project_id')) {
+            $resolvedProject = \App\Models\Project::find($request->project_id);
+        } elseif ($request->filled('scope_key') && str_starts_with($request->scope_key, 'proj_')) {
+            $resolvedProject = \App\Models\Project::find((int) substr($request->scope_key, 5));
+        } elseif ($activities->isNotEmpty() && $activities->first()->project) {
+            $resolvedProject = $activities->first()->project;
+        }
+
+        $scopeKey = $request->scope_key ?: ($resolvedProject ? ('proj_' . $resolvedProject->id) : ($activities->first()?->project_id ? ('proj_' . $activities->first()->project_id) : ('no_proj_' . ($activities->first()?->user_id ?? $authUser->id))));
+
+        // Ambil tanda tangan & report_data resmi
+        $documentSignature = null;
+        if ($scopeKey) {
+            try {
+                $documentSignature = ActivityDocumentSignature::where('scope_key', $scopeKey)->first();
+            } catch (\Throwable $e) {}
+        }
+
+        // Jika report_data dikirim via request (POST/GET), prioritaskan
+        if ($request->filled('report_data')) {
+            $rawReport = is_string($request->report_data) ? json_decode($request->report_data, true) : $request->report_data;
+            if (is_array($rawReport)) {
+                if (!$documentSignature) {
+                    $documentSignature = new ActivityDocumentSignature([
+                        'scope_key'       => $scopeKey,
+                        'project_id'      => $resolvedProject?->id,
+                        'project_name'    => $resolvedProject?->name ?? 'Project',
+                        'document_number' => ActivityDocumentSignature::generateDocumentNumber(),
+                        'status'          => 'draft'
+                    ]);
+                }
+                $documentSignature->report_data = $rawReport;
+            }
+        }
 
         // Urai data persis seperti format tabel form: NO, AKTIVITAS, TANGGAL, WAKTU (JAM), PIC KLIEN, PIC IPNET, NOTED
         $parsedActivities = $activities->map(function ($a, $idx) {
@@ -2032,8 +2074,8 @@ class DashboardController extends Controller
         });
 
         // Nama Proyek & Engineer untuk Kop Laporan
-        $projectName  = $request->project_name ?: ($activities->first()?->project?->name ?? 'Aktivitas Engineer');
-        $engineerName = $activities->first()?->engineer?->name ?? $authUser->name;
+        $projectName  = $request->project_name ?: ($documentSignature?->project_name ?: ($resolvedProject?->name ?: ($activities->first()?->project?->name ?? 'Aktivitas Engineer')));
+        $engineerName = $activities->first()?->engineer?->name ?? ($documentSignature?->pic_name ?? $authUser->name);
         $printedBy    = $authUser->name;
 
         // Base64 Logo untuk stabilitas render DomPDF
@@ -2042,17 +2084,6 @@ class DashboardController extends Controller
             $logoPath = public_path('images/ipnet.png');
         }
         $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
-
-        // Deteksi atau ambil Tanda Tangan Digital Resmi
-        $firstAct = $activities->first();
-        $scopeKey = $request->scope_key ?: ($firstAct?->project_id ? ('proj_' . $firstAct->project_id) : ('no_proj_' . ($firstAct?->user_id ?? $authUser->id)));
-        
-        $documentSignature = null;
-        try {
-            $documentSignature = ActivityDocumentSignature::where('scope_key', $scopeKey)->first();
-        } catch (\Throwable $e) {
-            // Abaikan jika koneksi/tabel belum ready
-        }
 
         $verifyDocNumber = $documentSignature?->document_number ?? ('IPNET-ACT-' . date('Ym') . '-DRAFT');
         $verifyUrl       = url('/verify-document/' . $verifyDocNumber);
@@ -2081,6 +2112,10 @@ class DashboardController extends Controller
 
         $safeName = \Illuminate\Support\Str::slug($projectName, '_');
         $filename = "Laporan_Aktivitas_{$safeName}_" . now()->format('Ymd_His') . ".pdf";
+
+        if ($request->get('action') === 'stream' || $request->has('stream')) {
+            return $pdf->stream($filename);
+        }
 
         return $pdf->download($filename);
     }

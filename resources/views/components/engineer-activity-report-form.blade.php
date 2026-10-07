@@ -39,11 +39,19 @@
                     <svg x-show="!reportFormSaving" class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                     <span x-text="reportFormSaving ? 'Menyimpan...' : 'Simpan Form Laporan'"></span>
                 </button>
-                <a :href="buildExportUrl('pdf')" target="_blank"
-                   class="px-3.5 py-2 bg-white hover:bg-red-50 text-[#8F0A0D] border border-red-200 hover:border-red-300 font-bold text-xs rounded-lg transition shadow-xs inline-flex items-center gap-1.5 cursor-pointer">
-                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                    <span>Download PDF (2 Hal)</span>
-                </a>
+                <div class="inline-flex rounded-lg shadow-xs">
+                    <button type="button" @click="downloadReportPdf('download')"
+                       class="px-3 py-2 bg-white hover:bg-red-50 text-[#8F0A0D] border border-red-200 hover:border-red-300 font-bold text-xs rounded-l-lg transition inline-flex items-center gap-1.5 cursor-pointer"
+                       title="Download file PDF 2 Halaman">
+                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        <span>Download PDF (2 Hal)</span>
+                    </button>
+                    <button type="button" @click="downloadReportPdf('stream')"
+                       class="px-2 py-2 bg-white hover:bg-red-50 text-[#8F0A0D] border-t border-b border-r border-red-200 hover:border-red-300 font-bold text-xs rounded-r-lg transition inline-flex items-center cursor-pointer"
+                       title="Buka / Preview PDF di Tab Baru">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -650,11 +658,18 @@
                 <svg x-show="!reportFormSaving" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                 <span x-text="reportFormSaving ? 'Menyimpan...' : 'Simpan Form Laporan'"></span>
             </button>
-            <a :href="buildExportUrl('pdf')" target="_blank"
-               class="px-4 py-2 bg-white hover:bg-red-50 text-[#8F0A0D] border border-red-200 hover:border-red-300 font-bold text-xs rounded-xl transition shadow-xs inline-flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                <span>Download PDF Resmi</span>
-            </a>
+            <div class="inline-flex rounded-xl shadow-xs">
+                <button type="button" @click="downloadReportPdf('download')"
+                   class="px-4 py-2 bg-white hover:bg-red-50 text-[#8F0A0D] border border-red-200 hover:border-red-300 font-bold text-xs rounded-l-xl transition inline-flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    <span>Download PDF Resmi</span>
+                </button>
+                <button type="button" @click="downloadReportPdf('stream')"
+                   class="px-2.5 py-2 bg-white hover:bg-red-50 text-[#8F0A0D] border-t border-b border-r border-red-200 hover:border-red-300 font-bold text-xs rounded-r-xl transition inline-flex items-center cursor-pointer"
+                   title="Buka / Preview PDF di Tab Baru">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </button>
+            </div>
         </div>
     </div>
 
