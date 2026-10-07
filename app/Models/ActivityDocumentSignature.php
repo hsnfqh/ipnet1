@@ -35,10 +35,12 @@ class ActivityDocumentSignature extends Model
         'status',
         'verification_hash',
         'notes',
+        'report_data',
     ];
 
     protected $casts = [
         'log_ids'       => 'array',
+        'report_data'   => 'array',
         'pic_signed_at' => 'datetime',
         'lead_signed_at'=> 'datetime',
         'head_signed_at'=> 'datetime',

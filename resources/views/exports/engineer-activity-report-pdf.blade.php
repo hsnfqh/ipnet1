@@ -2,152 +2,203 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Aktivitas Engineer - IP Network Solusindo</title>
+    <title>Form Laporan Aktivitas Engineer - PT IP Network Solusindo</title>
     <style>
         @page {
-            margin: 20px 25px 25px 25px;
-            size: A4 landscape;
+            margin: 10mm 12mm 10mm 12mm;
+            size: a4 portrait;
+        }
+        * {
+            box-sizing: border-box;
         }
         body {
             font-family: 'Helvetica', Arial, sans-serif;
-            font-size: 10px;
-            color: #1E293B;
-            line-height: 1.4;
+            font-size: 7.2pt;
+            color: #000000;
+            line-height: 1.25;
             margin: 0;
             padding: 0;
         }
-        .header-table {
+        .page-container {
             width: 100%;
-            border-bottom: 2px solid #C81E2C;
-            margin-bottom: 16px;
+            height: 100%;
         }
-        .header-cell {
-            padding-bottom: 14px;
-            vertical-align: middle;
+        .page-break {
+            page-break-after: always;
         }
-        .company-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #C81E2C;
-            margin: 0;
-            letter-spacing: 0.5px;
-        }
-        .company-subtitle {
-            font-size: 9.5px;
-            font-weight: bold;
-            color: #64748B;
-            letter-spacing: 0.8px;
-            margin-top: 3px;
-        }
-        .report-badge {
-            display: inline-block;
-            background: #FDF1F2;
-            color: #C81E2C;
-            border: 1px solid #FADADF;
-            padding: 5px 12px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 10px;
-        }
-        .meta-container {
-            width: 100%;
-            margin-bottom: 14px;
-            background: #F8FAFC;
-            border: 1px solid #E2E8F0;
-            border-radius: 6px;
-            padding: 8px 12px;
-        }
-        .meta-table {
-            width: 100%;
-            font-size: 10px;
-        }
-        .meta-table td {
-            padding: 2.5px 4px;
-        }
-        .summary-cards {
-            width: 100%;
-            margin-bottom: 14px;
-        }
-        .summary-box {
-            border: 1px solid #E2E8F0;
-            background: #FFFFFF;
-            border-radius: 6px;
-            padding: 7px 10px;
-            text-align: center;
-        }
-        .summary-title {
-            font-size: 9px;
-            font-weight: bold;
-            color: #64748B;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .summary-value {
-            font-size: 15px;
-            font-weight: bold;
-            color: #0F172A;
-            margin-top: 3px;
-        }
-        .data-table {
+
+        /* ── Header Dokumen ── */
+        .doc-header-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 14px;
-            font-size: 10px;
+            border: none;
+            margin-bottom: 4px;
+        }
+        .doc-header-table td {
+            border: none;
+            padding: 0;
+            vertical-align: middle;
+        }
+        .doc-title {
+            font-size: 11.5pt;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            text-align: center;
+        }
+        .doc-intro {
+            font-size: 6.8pt;
+            color: #1E293B;
+            margin-top: 3px;
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+
+        /* ── Judul Section ── */
+        .section-title {
+            font-size: 7.8pt;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            margin-top: 5px;
+            margin-bottom: 2px;
+            letter-spacing: 0.2px;
+        }
+
+        /* ── Tabel Standar ── */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 4px;
             table-layout: fixed;
         }
-        .data-table th {
-            background-color: #1E293B;
-            color: #FFFFFF;
+        .report-table th {
+            background-color: #EBF3FB;
+            color: #000000;
             font-weight: bold;
-            font-size: 10px;
-            padding: 8px 6px;
-            border: 1px solid #475569;
-        }
-        .data-table td {
-            padding: 7px 6px;
-            border: 1px solid #CBD5E1;
+            font-size: 6.8pt;
+            padding: 2.5px 3px;
+            border: 1px solid #000000;
+            text-align: center;
             vertical-align: middle;
-            font-size: 10px;
-            font-weight: normal;
-            color: #1E293B;
-            line-height: 1.4;
+        }
+        .report-table td {
+            font-size: 6.8pt;
+            padding: 2px 3.5px;
+            border: 1px solid #000000;
+            vertical-align: middle;
+            color: #000000;
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
-        .row-even {
-            background-color: #F8FAFC;
-        }
-        .text-center {
-            text-align: center;
-        }
-        .text-right {
-            text-align: right;
-        }
-        .total-row td {
-            background-color: #F1F5F9;
+        .report-table td.label-cell {
             font-weight: bold;
-            font-size: 10px;
-            border-top: 2px solid #64748B;
-            padding: 7px 6px;
+            background-color: #FFFFFF;
         }
-        .signature-table {
-            width: 100%;
-            margin-top: 22px;
-            page-break-inside: avoid;
-        }
-        .signature-box {
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .align-top { vertical-align: top !important; }
+
+        /* ── Checkbox Resmi ── */
+        .check-box {
+            display: inline-block;
+            width: 8.5px;
+            height: 8.5px;
+            border: 1px solid #000000;
             text-align: center;
-            width: 200px;
+            line-height: 8px;
+            font-size: 7.5pt;
+            font-weight: bold;
+            vertical-align: middle;
+            margin-right: 3px;
+            margin-bottom: 1px;
+        }
+
+        /* ── Footer Dokumen ── */
+        .doc-footer {
+            width: 100%;
+            margin-top: 6px;
+            padding-top: 3px;
+            border-top: 1px solid #000000;
+        }
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+        }
+        .footer-table td {
+            border: none;
+            padding: 0;
+            vertical-align: middle;
+            font-size: 5.8pt;
+            color: #000000;
+            line-height: 1.15;
+        }
+        .paraf-box {
+            display: inline-block;
+            width: 38px;
+            height: 16px;
+            border: 1px solid #000000;
+            vertical-align: middle;
+            margin-left: 3px;
+            margin-right: 5px;
+        }
+
+        /* ── Kotak Foto Dokumentasi ── */
+        .photo-placeholder {
+            width: 100%;
+            height: 82px;
+            border: 1px dashed #94A3B8;
+            background-color: #F8FAFC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #64748B;
+            font-size: 6.8pt;
+            font-weight: bold;
+            padding: 4px;
+        }
+        .photo-img {
+            max-width: 100%;
+            max-height: 82px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* ── Kotak Tanda Tangan ── */
+        .sig-container {
+            height: 46px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .sig-img {
+            max-height: 42px;
+            max-width: 110px;
+            display: block;
+            margin: 0 auto;
         }
     </style>
 </head>
 <body>
 @php
-    $items = [];
-    if (!empty($parsedActivities) && (is_array($parsedActivities) || $parsedActivities instanceof \Countable || is_iterable($parsedActivities))) {
-        $items = $parsedActivities;
-    } elseif (!empty($activities) && (is_array($activities) || $activities instanceof \Countable || is_iterable($activities))) {
-        $items = collect($activities)->map(function($a, $idx) {
+    // Inisialisasi Data & Fallback
+    $docSig = $documentSignature ?? null;
+    $rData  = $docSig?->report_data ?? [];
+
+    $firstAct = !empty($activities) ? (is_array($activities) ? ($activities[0] ?? null) : $activities->first()) : null;
+    $lastAct  = !empty($activities) ? (is_array($activities) ? (end($activities) ?: null) : $activities->last()) : null;
+    $project  = $firstAct?->project ?? null;
+
+    // Normalisasi parsedActivities
+    $actItems = [];
+    if (!empty($parsedActivities) && (is_array($parsedActivities) || is_iterable($parsedActivities))) {
+        $actItems = $parsedActivities;
+    } elseif (!empty($activities) && (is_array($activities) || is_iterable($activities))) {
+        $actItems = collect($activities)->map(function($a, $idx) {
             $rawNotes  = $a->notes ?? '';
             $clientPic = '';
             $ipnetPic  = '';
@@ -168,29 +219,26 @@
                 $notedOnly = implode(' | ', array_filter($notedParts));
             }
 
-            if (!$ipnetPic) {
-                $ipnetPic = $a->engineer->name ?? '-';
-            }
-
-            $description = $a->description ?? '-';
-            if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $description, $m)) {
-                $description = $m[2] ?: $m[1];
+            $desc = $a->description ?? '-';
+            if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $desc, $m)) {
+                $desc = $m[2] ?: $m[1];
             }
 
             return [
                 'no'         => $idx + 1,
-                'activity'   => $description,
-                'date'       => $a->activity_date ? (\Carbon\Carbon::parse($a->activity_date)->format('d/m/Y')) : '-',
-                'time'       => $a->start_time ? (\Carbon\Carbon::parse($a->start_time)->format('H:i')) : '-',
+                'activity'   => $desc,
+                'date'       => $a->activity_date ? \Carbon\Carbon::parse($a->activity_date)->format('d/m/Y') : '-',
+                'time'       => $a->start_time ? \Carbon\Carbon::parse($a->start_time)->format('H:i') : '-',
+                'location'   => $a->location ?? '-',
+                'status'     => $a->status ?? 'Selesai',
                 'client_pic' => $clientPic ?: '-',
-                'ipnet_pic'  => $ipnetPic,
+                'ipnet_pic'  => $ipnetPic ?: ($a->engineer->name ?? '-'),
                 'notes'      => $notedOnly ?: '-',
             ];
-        });
+        })->toArray();
     }
 
-    $totalCount = is_countable($items) ? count($items) : 0;
-
+    // Logo Base64
     if (empty($logoBase64)) {
         $logoPath = public_path('images/ipnet1.png');
         if (!file_exists($logoPath)) {
@@ -201,251 +249,649 @@
         }
     }
 
-    $documentSignature = $documentSignature ?? null;
-    $verifyDocNumber   = $verifyDocNumber ?? ($documentSignature?->document_number ?? ('IPNET-ACT-' . date('Ym') . '-DRAFT'));
-    $qrPngBase64       = $qrPngBase64 ?? '';
-    $qrRawSvg          = $qrRawSvg ?? '';
-    $qrApiUrl          = $qrApiUrl ?? ('https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' . urlencode(url('/verify-document/' . $verifyDocNumber)));
-    $qrCodeBase64      = $qrCodeBase64 ?? ($qrSvgBase64 ?? '');
-    $qrSvgBase64       = $qrCodeBase64;
+    // Nilai Bagian A (Identitas Pekerjaan)
+    $actDate = $firstAct?->activity_date ? \Carbon\Carbon::parse($firstAct->activity_date) : now();
+    $hariTanggal = $rData['identitas']['hari_tanggal'] ?? $actDate->locale('id')->isoFormat('dddd, D MMMM Y');
+    $noLaporan   = $rData['identitas']['no_laporan'] ?? (($verifyDocNumber ?? null) ?: ($docSig?->document_number ?? 'IPNET-ACT-' . date('Ym') . '-0001'));
+    $namaProject = $rData['identitas']['nama_project'] ?? (($projectName ?? null) ?: ($project?->name ?? 'Project Technical Support'));
+    $noSoSpk     = $rData['identitas']['no_so_spk'] ?? ($project?->po_number ?? '-');
+    $lokasiSite  = $rData['identitas']['lokasi_site'] ?? ($project?->location ?? ($firstAct?->location ?? '-'));
+    $workOrder   = $rData['identitas']['work_order'] ?? '-';
+    $namaEngineer= $rData['identitas']['nama_engineer'] ?? (($engineerName ?? null) ?: ($docSig?->pic_name ?? (auth()->user()?->name ?? 'PIC Engineer')));
+    $customer    = $rData['identitas']['customer'] ?? ($project?->client ?? '-');
+    $jenisPekerjaan = $rData['identitas']['jenis_pekerjaan'] ?? ($firstAct?->activity_type ?? 'Implementasi / Troubleshooting');
+    $picCustomer = $rData['identitas']['pic_customer'] ?? ($project?->customer_pic_technical ?? (!empty($actItems[0]['client_pic']) && $actItems[0]['client_pic'] !== '-' ? $actItems[0]['client_pic'] : '-'));
+    $kategoriPekerjaan = strtolower($rData['identitas']['kategori_pekerjaan'] ?? (str_contains(strtolower($namaProject . ' ' . $jenisPekerjaan), 'maintenance') ? 'maintenance' : 'implement'));
+    $jabatanEngineer   = $rData['identitas']['jabatan'] ?? ($docSig?->pic_title ?? (auth()->user()?->position ?: 'Network Leader'));
+    $jamMulai    = $rData['identitas']['jam_mulai'] ?? ($firstAct?->start_time ? \Carbon\Carbon::parse($firstAct->start_time)->format('H:i') . ' WIB' : '09:00 WIB');
+    $jamSelesai  = $rData['identitas']['jam_selesai'] ?? ($lastAct?->end_time ? \Carbon\Carbon::parse($lastAct->end_time)->format('H:i') . ' WIB' : ($lastAct?->start_time ? \Carbon\Carbon::parse($lastAct->start_time)->format('H:i') . ' WIB' : '17:00 WIB'));
+
+    // Nilai Bagian B (Komposisi Tenaga Kerja)
+    $manpowerList = $rData['manpower'] ?? [];
+    if (empty($manpowerList)) {
+        $collectedNames = collect();
+        if (!empty($activities)) {
+            foreach ($activities as $a) {
+                if (!empty($a->engineer?->name)) {
+                    $collectedNames->push([
+                        'nama'       => $a->engineer->name,
+                        'unit_kerja' => $a->engineer->division?->name ?? 'Technical Support',
+                        'jabatan'    => $a->engineer->position ?? 'Field Engineer',
+                        'keterangan' => 'PIC Kontributor',
+                    ]);
+                }
+            }
+        }
+        if ($collectedNames->isEmpty()) {
+            $collectedNames->push([
+                'nama'       => $namaEngineer,
+                'unit_kerja' => auth()->user()?->division?->name ?? 'Technical Support',
+                'jabatan'    => $jabatanEngineer,
+                'keterangan' => 'PIC Utama',
+            ]);
+        }
+        $manpowerList = $collectedNames->unique('nama')->values()->toArray();
+    }
+    $totalTenagaKerja = $rData['total_tenaga_kerja'] ?? count($manpowerList);
+
+    // Nilai Bagian C (Ruang Lingkup / Target Pekerjaan)
+    $scopeC = $rData['ruang_lingkup'] ?? [];
+    $targetHariIni   = $scopeC['target_hari_ini'] ?? ($firstAct?->description ? (preg_match('/^\[(.+?)\]\s*(.*)$/s', $firstAct->description, $m) ? $m[1] : $firstAct->description) : ($namaProject . ' - Kegiatan Lapangan'));
+    $durasiProject   = $scopeC['durasi_project'] ?? '1 Hari Kerja (Sesuai Penugasan WO)';
+    $scopePekerjaan  = $scopeC['scope_pekerjaan'] ?? ($project?->description ?: 'Instalasi, konfigurasi, monitoring, dan pengujian performa sistem');
+    $perangkatSistem = $scopeC['perangkat_sistem'] ?? 'Router, Switch, Access Point & Infrastruktur Jaringan';
+    $kriteriaSelesai = $scopeC['kriteria_selesai'] ?? 'Sistem terpasang, terhubung normal, terverifikasi fungsionalitas dan disetujui PIC Klien';
+
+    // Nilai Bagian D (Rincian Aktivitas)
+    $dActivities = $rData['rincian_aktivitas'] ?? [];
+    if (empty($dActivities)) {
+        if (!empty($actItems)) {
+            $dActivities = array_map(function($it, $i) {
+                return [
+                    'no'           => $i + 1,
+                    'waktu'        => $it['time'] ?? '-',
+                    'aktivitas'    => $it['activity'] ?? '-',
+                    'perangkat'    => $it['location'] ?? 'Area Kerja / Site',
+                    'hasil'        => 'Normal / Berhasil',
+                    'status'       => $it['status'] ?? 'Selesai',
+                    'kendala'      => '-',
+                    'tindak_lanjut'=> $it['notes'] !== '-' ? $it['notes'] : '-',
+                ];
+            }, $actItems, array_keys($actItems));
+        } else {
+            $dActivities = [[
+                'no' => 1, 'waktu' => '09:00', 'aktivitas' => 'Pemeriksaan rutin dan penanganan pekerjaan teknis di lokasi',
+                'perangkat' => 'Perangkat Site', 'hasil' => 'Normal / Terverifikasi', 'status' => 'Selesai', 'kendala' => '-', 'tindak_lanjut' => '-'
+            ]];
+        }
+    }
+
+    // Nilai Bagian E, F, G
+    $materials   = $rData['materials'] ?? [];
+    $testResults = $rData['test_results'] ?? [];
+    $incidents   = $rData['incidents'] ?? [];
+
+    // Nilai Bagian H (Hasil Akhir Pekerjaan)
+    $hasilAkhir = $rData['hasil_akhir'] ?? [];
+    $statusPekerjaan = strtolower($hasilAkhir['status_pekerjaan'] ?? 'selesai');
+    $progressPercent = $hasilAkhir['progress_percent'] ?? ($project?->progress ?? '100');
+    $kondisiSistem   = $hasilAkhir['kondisi_sistem'] ?? 'Sistem dan perangkat beroperasi normal, handal dan stabil';
+    $outstanding     = $hasilAkhir['outstanding'] ?? 'Tidak ada (Seluruh target aktivitas hari ini selesai)';
+    $rekomendasi     = $hasilAkhir['rekomendasi'] ?? 'Monitoring berkala performa perangkat dan pencatatan log rutin';
+    $eskalasiPic     = $hasilAkhir['eskalasi_pic'] ?? '-';
+
+    // Nilai Bagian I (Dokumentasi Foto)
+    $photos = $rData['foto_dokumentasi'] ?? [];
+    $beforePhoto   = $photos['before'] ?? null;
+    $progressPhoto = $photos['progress'] ?? null;
+    $afterPhoto    = $photos['after'] ?? null;
+
+    // Nilai Bagian K (Catatan Administrasi Dokumen)
+    $adminK = $rData['administrasi'] ?? [];
+    $nomorWoTicket = $adminK['nomor_wo'] ?? ($workOrder !== '-' ? $workOrder : ($project?->id ? 'WO-IPNET-' . str_pad($project->id, 5, '0', STR_PAD_LEFT) : '-'));
+    $nomorBaBast   = $adminK['nomor_ba'] ?? '-';
+    $lampiranExtra = $adminK['lampiran'] ?? 'Dokumentasi Foto Fisik & Checklist';
+    $namaFileFolder= $adminK['folder'] ?? ('DOK-' . \Illuminate\Support\Str::slug($namaProject, '_'));
+
+    // Data TTD / Verifikasi Bagian J
+    $picSignerName  = $docSig?->pic_name ?? $namaEngineer;
+    $leadSignerName = $docSig?->lead_name ?? ($docSig?->leadUser?->name ?? 'Lead Network Engineer');
+    $custSignerName = $picCustomer !== '-' ? $picCustomer : 'PIC Site / Representative';
+
+    $picSignedAt  = $docSig?->pic_signed_at ? $docSig->pic_signed_at->format('d/m/Y') : ($hariTanggal ? date('d/m/Y') : '-');
+    $leadSignedAt = $docSig?->lead_signed_at ? $docSig->lead_signed_at->format('d/m/Y') : ($docSig?->pic_signed_at ? $docSig->pic_signed_at->format('d/m/Y') : '-');
+    $custSignedAt = date('d/m/Y');
 @endphp
 
-    <!-- Header dengan Logo di Sebelah Kiri -->
-    <table class="header-table" cellpadding="0" cellspacing="0">
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+{{-- ═════════════════════════ HALAMAN 1 ════════════════════════════ --}}
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+<div class="page-container page-break">
+
+    {{-- KOP SURAT / HEADER --}}
+    <table class="doc-header-table">
         <tr>
-            <td class="header-cell" style="width: 70%;">
-                <table cellpadding="0" cellspacing="0" style="border: none; margin: 0; padding: 0;">
-                    <tr>
-                        @if(!empty($logoBase64))
-                        <td style="width: 44px; vertical-align: middle; padding-right: 12px; border: none; padding-bottom: 0;">
-                            <img src="{{ $logoBase64 }}" alt="Logo" style="height: 38px; width: auto; max-width: 44px; display: block;">
-                        </td>
-                        @endif
-                        <td style="vertical-align: middle; border: none; text-align: left; padding-bottom: 0;">
-                            <div class="company-title">PT IP NETWORK SOLUSINDO</div>
-                            <div class="company-subtitle">FIELD SYSTEM MANAGEMENT - LEMBAR KERJA / CATATAN AKTIVITAS</div>
-                        </td>
-                    </tr>
-                </table>
+            <td style="width: 15%; text-align: left; vertical-align: middle;">
+                @if(!empty($logoBase64))
+                    <img src="{{ $logoBase64 }}" alt="Logo" style="height: 38px; width: auto; max-width: 80px; display: block;">
+                @endif
             </td>
-            <td class="header-cell" style="width: 30%; text-align: right;">
-                <span class="report-badge">DOKUMEN REKAP KERJA</span>
+            <td style="width: 85%; text-align: center; vertical-align: middle;">
+                <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER – PROJECT</div>
             </td>
         </tr>
     </table>
 
-    <!-- Metadata Filter -->
-    <div class="meta-container">
-        <table class="meta-table">
+    <div class="doc-intro">
+        Dokumen ini digunakan sebagai laporan aktivitas engineer di lokasi pekerjaan dan sebagai bukti pelaksanaan pekerjaan lapangan.
+    </div>
+
+    {{-- A. IDENTITAS PEKERJAAN --}}
+    <div class="section-title">A. IDENTITAS PEKERJAAN</div>
+    <table class="report-table">
+        <tr>
+            <td class="label-cell" style="width: 20%;">Hari/Tanggal</td>
+            <td style="width: 30%;">{{ $hariTanggal }}</td>
+            <td class="label-cell" style="width: 20%;">No. Laporan</td>
+            <td style="width: 30%;">{{ $noLaporan }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Nama Project</td>
+            <td>{{ $namaProject }}</td>
+            <td class="label-cell">No. SO / SPK / Contract</td>
+            <td>{{ $noSoSpk }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Lokasi / Site</td>
+            <td>{{ $lokasiSite }}</td>
+            <td class="label-cell">Work Order / WO</td>
+            <td>{{ $workOrder }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Nama Engineer</td>
+            <td>{{ $namaEngineer }}</td>
+            <td class="label-cell">Customer</td>
+            <td>{{ $customer }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Jenis Pekerjaan</td>
+            <td>{{ $jenisPekerjaan }}</td>
+            <td class="label-cell">PIC Customer</td>
+            <td>{{ $picCustomer }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Kategori Pekerjaan</td>
+            <td>
+                <span class="check-box">{!! $kategoriPekerjaan === 'implement' ? '&#10003;' : '' !!}</span> Implement
+                &nbsp;&nbsp;&nbsp;
+                <span class="check-box">{!! $kategoriPekerjaan === 'maintenance' ? '&#10003;' : '' !!}</span> Maintenance
+            </td>
+            <td class="label-cell">Jabatan</td>
+            <td>{{ $jabatanEngineer }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Jam Mulai</td>
+            <td>{{ $jamMulai }}</td>
+            <td class="label-cell">Jam Selesai</td>
+            <td>{{ $jamSelesai }}</td>
+        </tr>
+    </table>
+
+    {{-- B. KOMPOSISI TENAGA KERJA --}}
+    <div class="section-title">B. KOMPOSISI TENAGA KERJA</div>
+    <table class="report-table">
+        <thead>
             <tr>
-                <td style="width: 15%; font-weight: bold; color: #75727C;">Filter Engineer</td>
-                <td style="width: 35%;">: {{ $engineerName ?? 'Semua Engineer' }}</td>
-                <td style="width: 15%; font-weight: bold; color: #75727C;">Periode</td>
-                <td style="width: 35%;">: {{ now()->locale('id')->isoFormat('D MMMM Y') }}</td>
+                <th style="width: 6%;">No.</th>
+                <th style="width: 34%;">Nama Personel</th>
+                <th style="width: 20%;">Unit Kerja</th>
+                <th style="width: 20%;">Jabatan</th>
+                <th style="width: 20%;">Keterangan</th>
             </tr>
+        </thead>
+        <tbody>
+            @forelse($manpowerList as $idx => $mp)
+                <tr>
+                    <td class="text-center">{{ $idx + 1 }}</td>
+                    <td><strong>{{ $mp['nama'] ?? '-' }}</strong></td>
+                    <td>{{ $mp['unit_kerja'] ?? '-' }}</td>
+                    <td>{{ $mp['jabatan'] ?? '-' }}</td>
+                    <td>{{ $mp['keterangan'] ?? '-' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td class="text-center">1</td>
+                    <td>{{ $namaEngineer }}</td>
+                    <td>Technical Support</td>
+                    <td>{{ $jabatanEngineer }}</td>
+                    <td>PIC Utama</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+    <div style="font-size: 6.8pt; margin-top: 1px; margin-bottom: 4px;">
+        Total tenaga kerja: <u>&nbsp;&nbsp;<strong>{{ $totalTenagaKerja }}</strong>&nbsp;&nbsp;</u> orang
+    </div>
+
+    {{-- C. RUANG LINGKUP / TARGET PEKERJAAN --}}
+    <div class="section-title">C. RUANG LINGKUP / TARGET PEKERJAAN</div>
+    <table class="report-table">
+        <tr>
+            <td class="label-cell" style="width: 38%;">1. Target pekerjaan hari ini</td>
+            <td style="width: 62%;">{{ $targetHariIni }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">2. Durasi waktu Project yang ditugaskan</td>
+            <td>{{ $durasiProject }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">3. Scope / pekerjaan yang ditugaskan</td>
+            <td>{{ $scopePekerjaan }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">4. Perangkat / sistem yang ditangani</td>
+            <td>{{ $perangkatSistem }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">5. Kriteria pekerjaan dinyatakan selesai</td>
+            <td>{{ $kriteriaSelesai }}</td>
+        </tr>
+    </table>
+
+    {{-- D. RINCIAN AKTIVITAS ENGINEER --}}
+    <div class="section-title">D. RINCIAN AKTIVITAS ENGINEER</div>
+    <table class="report-table">
+        <thead>
             <tr>
-                <td style="font-weight: bold; color: #75727C;">Filter Project</td>
-                <td>: {{ $projectName ?? 'Semua Project' }}</td>
-                <td style="font-weight: bold; color: #75727C;">Tanggal Cetak</td>
-                <td>: {{ now()->locale('id')->isoFormat('D MMMM Y, H:mm') }} WIB</td>
+                <th style="width: 5%;">No.</th>
+                <th style="width: 9%;">Waktu</th>
+                <th style="width: 26%;">Aktivitas / Tindakan</th>
+                <th style="width: 15%;">Perangkat / Area</th>
+                <th style="width: 15%;">Hasil / Kondisi</th>
+                <th style="width: 10%;">Status</th>
+                <th style="width: 10%;">Kendala</th>
+                <th style="width: 10%;">Tindak Lanjut</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(array_slice($dActivities, 0, 7) as $act)
+                <tr>
+                    <td class="text-center">{{ $act['no'] ?? $loop->iteration }}</td>
+                    <td class="text-center">{{ $act['waktu'] ?? '-' }}</td>
+                    <td>{{ $act['aktivitas'] ?? '-' }}</td>
+                    <td>{{ $act['perangkat'] ?? '-' }}</td>
+                    <td>{{ $act['hasil'] ?? '-' }}</td>
+                    <td class="text-center"><strong>{{ $act['status'] ?? 'Selesai' }}</strong></td>
+                    <td>{{ $act['kendala'] ?? '-' }}</td>
+                    <td>{{ $act['tindak_lanjut'] ?? '-' }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    {{-- E. MATERIAL, PERALATAN & SPARE PART --}}
+    <div class="section-title">E. MATERIAL, PERALATAN &amp; SPARE PART</div>
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th style="width: 5%;">No.</th>
+                <th style="width: 25%;">Nama Item</th>
+                <th style="width: 24%;">Spesifikasi/Type</th>
+                <th style="width: 8%;">Qty</th>
+                <th style="width: 10%;">Satuan</th>
+                <th style="width: 12%;">Kondisi</th>
+                <th style="width: 16%;">Keterangan</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($materials as $idx => $mat)
+                <tr>
+                    <td class="text-center">{{ $idx + 1 }}</td>
+                    <td>{{ $mat['nama'] ?? '-' }}</td>
+                    <td>{{ $mat['spesifikasi'] ?? '-' }}</td>
+                    <td class="text-center">{{ $mat['qty'] ?? '-' }}</td>
+                    <td class="text-center">{{ $mat['satuan'] ?? '-' }}</td>
+                    <td class="text-center">{{ $mat['kondisi'] ?? '-' }}</td>
+                    <td>{{ $mat['keterangan'] ?? '-' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    {{-- F. HASIL PENGUJIAN / PENGUKURAN --}}
+    <div class="section-title">F. HASIL PENGUJIAN / PENGUKURAN</div>
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th style="width: 5%;">No.</th>
+                <th style="width: 25%;">Parameter</th>
+                <th style="width: 14%;">Sebelum</th>
+                <th style="width: 14%;">Sesudah</th>
+                <th style="width: 12%;">Satuan</th>
+                <th style="width: 15%;">Metode/Alat</th>
+                <th style="width: 15%;">Keterangan</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($testResults as $idx => $test)
+                <tr>
+                    <td class="text-center">{{ $idx + 1 }}</td>
+                    <td>{{ $test['parameter'] ?? '-' }}</td>
+                    <td class="text-center">{{ $test['sebelum'] ?? '-' }}</td>
+                    <td class="text-center">{{ $test['sesudah'] ?? '-' }}</td>
+                    <td class="text-center">{{ $test['satuan'] ?? '-' }}</td>
+                    <td>{{ $test['metode'] ?? '-' }}</td>
+                    <td>{{ $test['keterangan'] ?? '-' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    {{-- G. KENDALA / INCIDENT / DEVIASI --}}
+    <div class="section-title">G. KENDALA / INCIDENT / DEVIASI</div>
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th style="width: 5%;">No.</th>
+                <th style="width: 10%;">Waktu</th>
+                <th style="width: 24%;">Kendala / Incident</th>
+                <th style="width: 23%;">Dampak</th>
+                <th style="width: 26%;">Tindakan Penanganan</th>
+                <th style="width: 12%;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($incidents as $idx => $inc)
+                <tr>
+                    <td class="text-center">{{ $idx + 1 }}</td>
+                    <td class="text-center">{{ $inc['waktu'] ?? '-' }}</td>
+                    <td>{{ $inc['kendala'] ?? '-' }}</td>
+                    <td>{{ $inc['dampak'] ?? '-' }}</td>
+                    <td>{{ $inc['tindakan'] ?? '-' }}</td>
+                    <td class="text-center">{{ $inc['status'] ?? '-' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                    <td class="text-center">-</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    {{-- H. HASIL AKHIR PEKERJAAN (Baris Status pada Halaman 1) --}}
+    <div class="section-title">H. HASIL AKHIR PEKERJAAN</div>
+    <table class="report-table">
+        <tr>
+            <td class="label-cell" style="width: 30%;">Status pekerjaan</td>
+            <td style="width: 70%;">
+                <span class="check-box">{!! in_array($statusPekerjaan, ['selesai', 'closed', 'done']) ? '&#10003;' : '' !!}</span> Selesai
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="check-box">{!! in_array($statusPekerjaan, ['selesai sebagian', 'partial']) ? '&#10003;' : '' !!}</span> Selesai Sebagian
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="check-box">{!! in_array($statusPekerjaan, ['belum selesai', 'pending', 'open']) ? '&#10003;' : '' !!}</span> Belum Selesai
+            </td>
+        </tr>
+    </table>
+
+    {{-- FOOTER HALAMAN 1 --}}
+    <div class="doc-footer">
+        <table class="footer-table">
+            <tr>
+                <td style="width: 65%;">
+                    <div style="font-weight: bold; color: #000000; font-size: 6.2pt;">Dokumen ini merupakan milik PT.IP Network Solusindo</div>
+                    <div style="color: #334155; margin-top: 1px;">
+                        Seluruh isi dokumen hanya dipergunakan untuk kepentingan penyelenggaraan tata kelola perusahaan dan tidak diperkenankan diperbanyak, disalin, dipublikasikan ataupun didistribusikan kepada pihak lain, baik sebagian maupun seluruhnya, tanpa persetujuan tertulis dari Direksi PT.IP Network Solusindo
+                    </div>
+                </td>
+                <td style="width: 35%; text-align: right; vertical-align: top;">
+                    <div style="font-weight: bold; color: #000000; font-size: 6.2pt;">&copy;PT.IP Network Solusindo, Seluruh Hak Dilindungi.</div>
+                    <div style="margin-top: 2px;">
+                        <span>Paraf</span>
+                        <span class="paraf-box"></span>
+                        <strong style="font-size: 6.8pt; color: #000000;">Hal 1</strong>
+                    </div>
+                </td>
             </tr>
         </table>
     </div>
 
-    <!-- Summary Box -->
-    <table class="summary-cards" style="width: 100%; border-spacing: 6px 0; margin-left: -6px; margin-right: -6px;">
+</div>
+
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+{{-- ═════════════════════════ HALAMAN 2 ════════════════════════════ --}}
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+<div class="page-container">
+
+    {{-- KOP SURAT / HEADER HALAMAN 2 --}}
+    <table class="doc-header-table" style="margin-bottom: 6px;">
         <tr>
-            <td style="width: 25%;">
-                <div class="summary-box">
-                    <div class="summary-title">TOTAL AKTIVITAS</div>
-                    <div class="summary-value" style="color: #C81E2C;">{{ $totalCount }} Agenda</div>
-                </div>
+            <td style="width: 15%; text-align: left; vertical-align: middle;">
+                @if(!empty($logoBase64))
+                    <img src="{{ $logoBase64 }}" alt="Logo" style="height: 38px; width: auto; max-width: 80px; display: block;">
+                @endif
             </td>
-            <td style="width: 25%;">
-                <div class="summary-box">
-                    <div class="summary-title">TOTAL HARI KERJA</div>
-                    <div class="summary-value">1 Hari</div>
-                </div>
-            </td>
-            <td style="width: 25%;">
-                <div class="summary-box">
-                    <div class="summary-title">TOTAL ENTRI LOG</div>
-                    <div class="summary-value">{{ $totalCount }} Entri</div>
-                </div>
-            </td>
-            <td style="width: 25%;">
-                <div class="summary-box">
-                    <div class="summary-title">JUMLAH ENGINEER</div>
-                    <div class="summary-value">1 Orang</div>
-                </div>
+            <td style="width: 85%; text-align: center; vertical-align: middle;">
+                <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER – PROJECT</div>
             </td>
         </tr>
     </table>
 
-    <!-- Data Table -->
-    <table class="data-table">
+    {{-- KELANJUTAN BAGIAN H --}}
+    <table class="report-table" style="margin-top: 4px;">
+        <tr>
+            <td class="label-cell" style="width: 42%;">Persentase progress</td>
+            <td style="width: 58%;"><u>&nbsp;&nbsp;<strong>{{ $progressPercent }}</strong>&nbsp;&nbsp;</u> %</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Kondisi sistem/perangkat setelah pekerjaan</td>
+            <td>{{ $kondisiSistem }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Outstanding / pekerjaan tersisa</td>
+            <td>{{ $outstanding }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Rekomendasi / kebutuhan tindak lanjut</td>
+            <td>{{ $rekomendasi }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Dilakukan Eskalasi pekerjaan (PIC)</td>
+            <td>{{ $eskalasiPic }}</td>
+        </tr>
+    </table>
+
+    {{-- I. REKAP DOKUMENTASI FOTO --}}
+    <div class="section-title" style="margin-top: 7px;">I. REKAP DOKUMENTASI FOTO</div>
+    <div style="font-size: 6.8pt; color: #1E293B; margin-bottom: 3px;">
+        Lampirkan foto yang menunjukkan kondisi aktual. Minimal: Before, Progress (bila ada), dan After. Cantumkan waktu/lokasi singkat pada caption.
+    </div>
+    <table class="report-table">
         <thead>
             <tr>
-                <th style="width: 30px; text-align: center;">No</th>
-                <th style="width: 75px; text-align: center;">Tanggal</th>
-                <th style="width: 38%; text-align: left; padding-left: 8px;">Uraian Aktivitas</th>
-                <th style="width: 95px; text-align: center;">PIC Klien</th>
-                <th style="width: 95px; text-align: center;">PIC IPNET</th>
-                <th style="width: 32%; text-align: left; padding-left: 8px;">Notes</th>
+                <th style="width: 6%;">No.</th>
+                <th style="width: 15%;">Tahap</th>
+                <th style="width: 25%;">Area / Objek</th>
+                <th style="width: 34%;">Foto / Tempat Menempel Foto</th>
+                <th style="width: 20%;">Keterangan / Caption</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($items as $index => $item)
-                @php
-                    $isArr = is_array($item);
-                    $no    = $isArr ? ($item['no'] ?? ($index + 1)) : ($item->no ?? ($index + 1));
-                    $act   = $isArr ? ($item['activity'] ?? '') : ($item->activity ?? ($item->description ?? ''));
-                    $dt    = $isArr ? ($item['date'] ?? '') : ($item->date ?? '');
-                    $cpic  = $isArr ? ($item['client_pic'] ?? '') : ($item->client_pic ?? '');
-                    $ipic  = $isArr ? ($item['ipnet_pic'] ?? '') : ($item->ipnet_pic ?? '');
-                    $nt    = $isArr ? ($item['notes'] ?? '') : ($item->notes ?? '');
-                @endphp
-                <tr class="{{ $index % 2 === 1 ? 'row-even' : '' }}">
-                    <td class="text-center">{{ $no }}</td>
-                    <td class="text-center">{{ $dt ?: '-' }}</td>
-                    <td style="text-align: left; padding-left: 8px;">{{ $act ?: '-' }}</td>
-                    <td class="text-center">{{ (!empty($cpic) && $cpic !== '-') ? $cpic : '-' }}</td>
-                    <td class="text-center">{{ (!empty($ipic) && $ipic !== '-') ? $ipic : '-' }}</td>
-                    <td style="text-align: left; padding-left: 8px;">{{ (!empty($nt) && $nt !== '-') ? $nt : '-' }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" class="text-center" style="padding: 18px; color: #64748B; font-style: italic;">
-                        Tidak ada catatan aktivitas untuk periode filter ini.
-                    </td>
-                </tr>
-            @endforelse
-
-            @if(!empty($items) && count($items) > 0)
-                <tr class="total-row">
-                    <td colspan="6" class="text-center" style="padding: 8px 14px; font-size: 10px; font-weight: bold; text-align: center;">
-                        TOTAL AKTIVITAS TERCATAT : <span style="color: #C81E2C;">{{ $totalCount }} CATATAN</span>
-                    </td>
-                </tr>
-            @endif
+            {{-- BEFORE --}}
+            <tr>
+                <td class="text-center">1</td>
+                <td class="text-center"><strong>BEFORE</strong></td>
+                <td>{{ $beforePhoto['area'] ?? 'Perangkat sebelum pengerjaan' }}</td>
+                <td style="text-align: center; padding: 3px;">
+                    @if(!empty($beforePhoto['url']))
+                        <img src="{{ $beforePhoto['url'] }}" alt="Before" class="photo-img">
+                    @else
+                        <div class="photo-placeholder">[TEMPEL FOTO DI SINI]</div>
+                    @endif
+                </td>
+                <td>{{ $beforePhoto['caption'] ?? 'Kondisi awal sebelum tindakan' }}</td>
+            </tr>
+            {{-- PROGRESS --}}
+            <tr>
+                <td class="text-center">2</td>
+                <td class="text-center"><strong>PROGRESS</strong></td>
+                <td>{{ $progressPhoto['area'] ?? 'Proses implementasi / maintenance' }}</td>
+                <td style="text-align: center; padding: 3px;">
+                    @if(!empty($progressPhoto['url']))
+                        <img src="{{ $progressPhoto['url'] }}" alt="Progress" class="photo-img">
+                    @else
+                        <div class="photo-placeholder">[TEMPEL FOTO DI SINI]</div>
+                    @endif
+                </td>
+                <td>{{ $progressPhoto['caption'] ?? 'Aktivitas teknis berjalan' }}</td>
+            </tr>
+            {{-- AFTER --}}
+            <tr>
+                <td class="text-center">3</td>
+                <td class="text-center"><strong>AFTER</strong></td>
+                <td>{{ $afterPhoto['area'] ?? 'Perangkat setelah pengerjaan selesai' }}</td>
+                <td style="text-align: center; padding: 3px;">
+                    @if(!empty($afterPhoto['url']))
+                        <img src="{{ $afterPhoto['url'] }}" alt="After" class="photo-img">
+                    @else
+                        <div class="photo-placeholder">[TEMPEL FOTO DI SINI]</div>
+                    @endif
+                </td>
+                <td>{{ $afterPhoto['caption'] ?? 'Kondisi akhir perangkat beroperasi' }}</td>
+            </tr>
         </tbody>
     </table>
 
-    <!-- Signature Block: 3-Tier Multi-Signature (PIC -> Lead -> Head Div) + QR Code Verifikasi -->
-    <table class="signature-table" style="width: 100%; margin-top: 14px; border-collapse: collapse;">
+    {{-- J. VERIFIKASI & PENGESAHAN --}}
+    <div class="section-title" style="margin-top: 7px;">J. VERIFIKASI &amp; PENGESAHAN</div>
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th style="width: 28%;">Pihak</th>
+                <th style="width: 26%;">Nama</th>
+                <th style="width: 18%;">Tanggal</th>
+                <th style="width: 28%;">Tanda Tangan</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{-- 1. Engineer --}}
+            <tr>
+                <td class="label-cell">Engineer</td>
+                <td><strong>{{ $picSignerName }}</strong></td>
+                <td class="text-center">{{ $picSignedAt }}</td>
+                <td class="sig-container">
+                    @if(!empty($docSig?->pic_signature))
+                        <img src="{{ $docSig->pic_signature }}" alt="TTD PIC" class="sig-img">
+                    @elseif(!empty($qrCodeBase64))
+                        <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 38px; width: 38px; display: block; margin: 0 auto;">
+                    @else
+                        <div style="color: #94A3B8; font-size: 6.2pt; font-style: italic;">[Tanda Tangan / QR]</div>
+                    @endif
+                </td>
+            </tr>
+            {{-- 2. Project Manager / Team Leader --}}
+            <tr>
+                <td class="label-cell">Project Manager / Team Leader</td>
+                <td><strong>{{ $leadSignerName }}</strong></td>
+                <td class="text-center">{{ $leadSignedAt }}</td>
+                <td class="sig-container">
+                    @if(!empty($docSig?->lead_signature))
+                        <img src="{{ $docSig->lead_signature }}" alt="TTD Lead" class="sig-img">
+                    @elseif(!empty($qrCodeBase64) && !empty($docSig?->lead_signed_at))
+                        <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 38px; width: 38px; display: block; margin: 0 auto;">
+                    @else
+                        <div style="color: #94A3B8; font-size: 6.2pt; font-style: italic;">[Tanda Tangan / QR]</div>
+                    @endif
+                </td>
+            </tr>
+            {{-- 3. Customer / Site Representative --}}
+            <tr>
+                <td class="label-cell">Customer / Site Representative</td>
+                <td><strong>{{ $custSignerName }}</strong></td>
+                <td class="text-center">{{ $custSignedAt }}</td>
+                <td class="sig-container">
+                    @if(!empty($docSig?->head_signature))
+                        <img src="{{ $docSig->head_signature }}" alt="TTD Head/Customer" class="sig-img">
+                    @else
+                        <div style="color: #94A3B8; font-size: 6.2pt; font-style: italic;">[Tanda Tangan &amp; Stempel]</div>
+                    @endif
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    {{-- K. CATATAN ADMINISTRASI DOKUMEN --}}
+    <div class="section-title" style="margin-top: 7px;">K. CATATAN ADMINISTRASI DOKUMEN</div>
+    <table class="report-table">
         <tr>
-            <!-- Kolom 1: QR Code & Integritas Dokumen -->
-            <td style="width: 28%; vertical-align: top; padding-right: 12px;">
-                <table style="width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; background-color: #F8FAFC; padding: 6px;">
-                    <tr>
-                        <td style="width: 66px; vertical-align: middle; text-align: center; border: none; padding: 2px;">
-                            @if(!empty($qrPngBase64))
-                                <img src="{{ $qrPngBase64 }}" alt="QR Code" width="60" height="60" style="width: 60px; height: 60px; display: block; margin: 0 auto;">
-                            @elseif(!empty($qrRawSvg))
-                                <div style="width: 60px; height: 60px; display: block; margin: 0 auto;">
-                                    {!! $qrRawSvg !!}
-                                </div>
-                            @elseif(!empty($qrApiUrl))
-                                <img src="{{ $qrApiUrl }}" alt="QR Code" width="60" height="60" style="width: 60px; height: 60px; display: block; margin: 0 auto;">
-                            @elseif(!empty($qrCodeBase64))
-                                <img src="{{ $qrCodeBase64 }}" alt="QR Code" width="60" height="60" style="width: 60px; height: 60px; display: block; margin: 0 auto;">
-                            @else
-                                <div style="width: 60px; height: 60px; border: 1px dashed #CBD5E1; text-align: center; line-height: 60px; font-size: 8px; color: #94A3B8;">QR Code</div>
-                            @endif
-                        </td>
-                        <td style="vertical-align: middle; border: none; padding-left: 6px; text-align: left;">
-                            <div style="font-size: 8px; font-weight: bold; color: #0F172A; text-transform: uppercase; letter-spacing: 0.5px;">
-                                VERIFIKASI KEABSAHAN
-                            </div>
-                            <div style="font-size: 7.5px; font-weight: bold; color: #8F0A0D; margin-top: 1px;">
-                                {{ $verifyDocNumber }}
-                            </div>
-                            <div style="font-size: 7px; color: #475569; margin-top: 2px;">
-                                Status: <strong style="color: #C81E2C;">{{ ($documentSignature && $documentSignature->status === 'fully_approved') ? 'Sah & Terverifikasi' : (($documentSignature && $documentSignature->status !== 'draft') ? 'Proses Signing' : 'Draf Laporan') }}</strong>
-                            </div>
-                            @if(!empty($documentSignature?->verification_hash))
-                            <div style="font-size: 6px; color: #94A3B8; font-family: monospace; margin-top: 1px;">
-                                Hash: {{ substr($documentSignature->verification_hash, 0, 16) }}...
-                            </div>
-                            @endif
-                        </td>
-                    </tr>
-                </table>
-            </td>
-
-            <!-- Kolom 2: Dibuat Oleh (PIC Lapangan) -->
-            <td style="width: 24%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9.5px; color: #475569; margin-bottom: 2px;">
-                    Jakarta, {{ now()->locale('id')->isoFormat('D MMMM Y') }}<br>
-                    <strong>Dibuat Oleh (PIC Lapangan),</strong>
-                </div>
-                <div style="height: 48px; text-align: center; margin-bottom: 0px;">
-                    @if(!empty($documentSignature?->pic_signature))
-                        <img src="{{ $documentSignature->pic_signature }}" alt="TTD PIC" style="max-height: 48px; max-width: 140px; display: inline-block; vertical-align: bottom;">
-                    @else
-                        <div style="height: 46px;"></div>
-                    @endif
-                </div>
-                <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A; margin-top: 0px;">
-                    {{ $documentSignature?->pic_name ?? ($engineerName ?? 'PIC Field Engineer') }}
-                </div>
-                <div style="font-size: 8px; color: #64748B; margin-top: 2px;">
-                    {{ $documentSignature?->pic_title ?? 'PIC Field Engineer' }}
-                    @if(!empty($documentSignature?->pic_signed_at))
-                        <br><span style="font-size: 7.5px; font-weight: bold; color: #C81E2C;">Signed: {{ $documentSignature->pic_signed_at->format('d/m/Y H:i') }}</span>
-                    @endif
-                </div>
-            </td>
-
-            <!-- Kolom 3: Diperiksa Oleh (Lead Engineer) -->
-            <td style="width: 24%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9.5px; color: #475569; margin-bottom: 2px;">
-                    <br>
-                    <strong>Diperiksa Oleh (Lead),</strong>
-                </div>
-                <div style="height: 48px; text-align: center; margin-bottom: 0px;">
-                    @if(!empty($documentSignature?->lead_signature))
-                        <img src="{{ $documentSignature->lead_signature }}" alt="TTD Lead" style="max-height: 48px; max-width: 140px; display: inline-block; vertical-align: bottom;">
-                    @else
-                        <div style="height: 46px;"></div>
-                    @endif
-                </div>
-                <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A; margin-top: 0px;">
-                    {{ $documentSignature?->lead_name ?? 'Nugraha Pratama' }}
-                </div>
-                <div style="font-size: 8px; color: #64748B; margin-top: 2px;">
-                    {{ $documentSignature?->lead_title ?? 'Lead Network Engineer' }}
-                    @if(!empty($documentSignature?->lead_signed_at))
-                        <br><span style="font-size: 7.5px; font-weight: bold; color: #C81E2C;">Verified: {{ $documentSignature->lead_signed_at->format('d/m/Y H:i') }}</span>
-                    @endif
-                </div>
-            </td>
-
-            <!-- Kolom 4: Mengetahui & Menyetujui (Head Division) -->
-            <td style="width: 24%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9.5px; color: #475569; margin-bottom: 2px;">
-                    <br>
-                    <strong>Mengetahui &amp; Menyetujui,</strong>
-                </div>
-                <div style="height: 48px; text-align: center; margin-bottom: 0px;">
-                    @if(!empty($documentSignature?->head_signature))
-                        <img src="{{ $documentSignature->head_signature }}" alt="TTD Head Div" style="max-height: 48px; max-width: 140px; display: inline-block; vertical-align: bottom;">
-                    @else
-                        <div style="height: 46px;"></div>
-                    @endif
-                </div>
-                <div style="font-size: 9.5px; font-weight: bold; border-bottom: 1.5px solid #1E293B; padding-bottom: 1px; color: #0F172A; margin-top: 0px;">
-                    {{ $documentSignature?->head_name ?? 'Susanto Djaya' }}
-                </div>
-                <div style="font-size: 8px; color: #64748B; margin-top: 2px;">
-                    {{ $documentSignature?->head_title ?? 'Head of Division' }}
-                    @if(!empty($documentSignature?->head_signed_at))
-                        <br><span style="font-size: 7.5px; font-weight: bold; color: #C81E2C;">Approved: {{ $documentSignature->head_signed_at->format('d/m/Y H:i') }}</span>
-                    @endif
-                </div>
-            </td>
+            <td class="label-cell" style="width: 38%;">Nomor WO / Ticket</td>
+            <td style="width: 62%;">{{ $nomorWoTicket }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Nomor BA / BAST / Checklist terkait</td>
+            <td>{{ $nomorBaBast }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Lampiran tambahan</td>
+            <td>{{ $lampiranExtra }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Nama file / folder dokumentasi</td>
+            <td>{{ $namaFileFolder }}</td>
         </tr>
     </table>
+
+    <div style="font-size: 6.6pt; line-height: 1.25; margin-top: 4px; color: #000000;">
+        <strong>Catatan penggunaan:</strong> Form diisi oleh engineer/PIC berdasarkan aktivitas aktual. Setiap pekerjaan utama harus memiliki bukti aktivitas dan dokumentasi foto yang dapat ditelusuri ke project/WO. Jika pekerjaan berlangsung lebih dari satu hari, gunakan satu laporan per hari.
+    </div>
+
+    {{-- FOOTER HALAMAN 2 --}}
+    <div class="doc-footer" style="margin-top: 14px;">
+        <table class="footer-table">
+            <tr>
+                <td style="width: 65%;">
+                    <div style="font-weight: bold; color: #000000; font-size: 6.2pt;">Dokumen ini merupakan milik PT.IP Network Solusindo</div>
+                    <div style="color: #334155; margin-top: 1px;">
+                        Seluruh isi dokumen hanya dipergunakan untuk kepentingan penyelenggaraan tata kelola perusahaan dan tidak diperkenankan diperbanyak, disalin, dipublikasikan ataupun didistribusikan kepada pihak lain, baik sebagian maupun seluruhnya, tanpa persetujuan tertulis dari Direksi PT.IP Network Solusindo
+                    </div>
+                </td>
+                <td style="width: 35%; text-align: right; vertical-align: top;">
+                    <div style="font-weight: bold; color: #000000; font-size: 6.2pt;">&copy;PT.IP Network Solusindo, Seluruh Hak Dilindungi.</div>
+                    <div style="margin-top: 2px;">
+                        <span>Paraf</span>
+                        <span class="paraf-box"></span>
+                        <strong style="font-size: 6.8pt; color: #000000;">Hal 2</strong>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</div>
 
 </body>
 </html>

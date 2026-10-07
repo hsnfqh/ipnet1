@@ -214,7 +214,7 @@ Route::get('/verify-document/{documentNumber}', function ($documentNumber) {
         'qrSvgBase64'       => $qrPngBase64 ?: $qrApiUrl,
     ]);
 
-    $pdf->setPaper('a4', 'landscape');
+    $pdf->setPaper('a4', 'portrait');
     $pdf->setOption('isHtml5ParserEnabled', true);
     $pdf->setOption('isRemoteEnabled', true);
 
@@ -366,6 +366,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/engineer/activity-logs/signature', [ActivitySignatureController::class, 'storeSignature'])
         ->name('engineer.activity_log.signature_store')
+        ->middleware('auth');
+
+    Route::post('/engineer/activity-logs/report-data', [ActivitySignatureController::class, 'saveReportData'])
+        ->name('engineer.activity_log.save_report_data')
         ->middleware('auth');
 
     // Route trigger migrasi cepat via web jika hosting tidak punya akses SSH

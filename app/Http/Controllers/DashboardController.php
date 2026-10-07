@@ -2053,7 +2053,7 @@ class DashboardController extends Controller
             'qrSvgBase64'       => $qrData['qrPngBase64'] ?: $qrData['qrApiUrl'],
         ]);
 
-        $pdf->setPaper('a4', 'landscape');
+        $pdf->setPaper('a4', 'portrait');
         $pdf->setOption('isHtml5ParserEnabled', true);
         $pdf->setOption('isRemoteEnabled', true);
 
@@ -2158,7 +2158,7 @@ class DashboardController extends Controller
             'qrSvgBase64'       => $qrData['qrPngBase64'] ?: $qrData['qrApiUrl'],
         ]);
 
-        $pdf->setPaper('a4', 'landscape');
+        $pdf->setPaper('a4', 'portrait');
         $pdf->setOption('isHtml5ParserEnabled', true);
         $pdf->setOption('isRemoteEnabled', true);
 

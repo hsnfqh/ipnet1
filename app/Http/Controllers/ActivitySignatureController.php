@@ -100,6 +100,7 @@ class ActivitySignatureController extends Controller
                 'title'     => $sig?->head_title ?? 'Head of Division',
                 'signed_at' => $sig?->head_signed_at?->format('d M Y, H:i') . ' WIB',
             ],
+            'report_data'     => $sig?->report_data ?? null,
             'user_permissions' => [
                 'can_sign_pic'  => (bool) ($isEngineer || $isLead),
                 'can_sign_lead' => (bool) ($isLead || $isExecutiveOrGl),
@@ -222,6 +223,59 @@ class ActivitySignatureController extends Controller
             return response()->json([
                 'error'   => 'Gagal menyimpan tanda tangan.',
                 'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Simpan data formulir laporan aktivitas (Form Laporan Engineer - Project)
+     */
+    public function saveReportData(Request $request): JsonResponse
+    {
+        $request->validate([
+            'scope_key'   => 'required|string',
+            'project_id'  => 'nullable|integer',
+            'project_name'=> 'nullable|string',
+            'report_data' => 'required|array',
+        ]);
+
+        $currentUser = auth()->user();
+        if (!$currentUser) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $scopeKey = $request->input('scope_key');
+
+        if (!Schema::hasTable('activity_document_signatures')) {
+            try {
+                Artisan::call('migrate', ['--force' => true]);
+            } catch (\Throwable $e) {}
+        }
+
+        try {
+            $sig = ActivityDocumentSignature::firstOrNew(['scope_key' => $scopeKey]);
+
+            if (!$sig->exists) {
+                $sig->document_number = ActivityDocumentSignature::generateDocumentNumber();
+                $sig->scope_key       = $scopeKey;
+                $sig->project_id      = $request->input('project_id');
+                $sig->project_name    = $request->input('project_name');
+                $sig->status          = 'draft';
+            }
+
+            $sig->report_data = $request->input('report_data');
+            $sig->save();
+
+            return response()->json([
+                'success'         => true,
+                'message'         => 'Data Formulir Laporan Aktivitas berhasil disimpan!',
+                'document_number' => $sig->document_number,
+                'report_data'     => $sig->report_data,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'error'   => 'Gagal menyimpan formulir laporan.',
+                'message' => $e->getMessage(),
             ], 500);
         }
     }

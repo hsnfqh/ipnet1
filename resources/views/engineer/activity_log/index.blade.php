@@ -515,21 +515,19 @@
                             @if(!$canEdit)
                                 <button type="button" @click="openDetailModal({{ $groupJson }})"
                                         class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-[12px] font-bold text-[#8F0A0D] bg-red-50/70 hover:bg-red-100/90 border border-red-200/80 hover:border-red-300 transition-all duration-150 cursor-pointer shadow-2xs hover:shadow-xs group/btn">
-                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D] transition-transform duration-150 group-hover/btn:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    <svg class="w-4 h-4 text-[#8F0A0D] transition-transform duration-150 group-hover/btn:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                     </svg>
-                                    <span>Lihat Detail Aktivitas</span>
+                                    <span>Form Laporan Resmi &amp; Detail</span>
                                     <span class="ml-1 px-2 py-0.5 rounded-full bg-white text-[#8F0A0D] text-[10px] font-extrabold border border-red-200 shadow-2xs">{{ $totalInGroup }} Agenda</span>
                                 </button>
                             @else
                                 <button type="button" @click="openDetailModal({{ $groupJson }})"
                                         class="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50/70 hover:bg-red-100/80 border border-red-200/80 hover:border-red-300 transition-all cursor-pointer">
                                     <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                     </svg>
-                                    <span>Detail</span>
+                                    <span>Form Laporan</span>
                                     <span class="px-1.5 py-0.2 rounded-full bg-white text-[#8F0A0D] text-[9.5px] font-black border border-red-200/60">{{ $totalInGroup }}</span>
                                 </button>
 
@@ -580,12 +578,12 @@
         <div x-show="isDetailModalOpen" x-cloak
              class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
              @click.self="isDetailModalOpen = false">
-            <div class="bg-white rounded-2xl max-w-6xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden anim-fade-up">
+            <div class="bg-white rounded-2xl max-w-7xl w-full shadow-2xl border border-[#E2E8F0] max-h-[94vh] flex flex-col overflow-hidden anim-fade-up">
                 {{-- Header Modal: Judul Proyek, Info Kreator/Dokumen, Tombol Download PDF & Excel, Tombol Close --}}
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] p-5 sm:px-6 py-4 shrink-0 bg-white">
                     <div>
                         <div class="flex items-center gap-2 mb-1 flex-wrap">
-                            <span class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">DETAIL AKTIVITAS ENGINEER</span>
+                            <span class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">FORM LAPORAN AKTIVITAS ENGINEER – PROJECT</span>
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200"
                                   x-text="(selectedDetail?.total || 0) + ' Agenda'"></span>
                             <template x-if="sigInfo?.document_number">
@@ -699,7 +697,7 @@
                         </button>
                         @endif
 
-                        {{-- Badge Sudah Sah Lengkap Semua (3/3 TTD) - MERAH SESUAI PERMINTAAN USER --}}
+                        {{-- Badge Sudah Sah Lengkap Semua (3/3 TTD) --}}
                         <div x-show="sigInfo?.status === 'fully_approved'"
                              title="Dokumen telah disahkan lengkap (3/3 TTD)"
                              class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs tracking-wide">
@@ -709,7 +707,32 @@
                     </div>
                 </div>
 
-                <div class="flex-1 overflow-y-auto overflow-x-auto p-5 sm:p-6 bg-white">
+                {{-- Tab Navigasi: Form Laporan Resmi (Default) vs Log Mentah --}}
+                <div class="px-5 sm:px-6 pt-2 pb-0 bg-white border-b border-[#E2E8F0] flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="activeDetailTab = 'form'"
+                                class="pb-2.5 px-3.5 text-xs font-bold border-b-2 transition flex items-center gap-2 cursor-pointer"
+                                :class="activeDetailTab === 'form' ? 'border-[#8F0A0D] text-[#8F0A0D]' : 'border-transparent text-gray-500 hover:text-gray-800'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Form Laporan Resmi (Template PDF)</span>
+                        </button>
+                        <button type="button" @click="activeDetailTab = 'logs'"
+                                class="pb-2.5 px-3.5 text-xs font-bold border-b-2 transition flex items-center gap-2 cursor-pointer"
+                                :class="activeDetailTab === 'logs' ? 'border-[#8F0A0D] text-[#8F0A0D]' : 'border-transparent text-gray-500 hover:text-gray-800'">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                            <span>Daftar Agenda Mentah</span>
+                            <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-700 font-bold" x-text="(selectedDetail?.items?.length || 0)"></span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Tab 1: Form Laporan Resmi (Sesuai PDF) --}}
+                <div x-show="activeDetailTab === 'form'" class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F8FAFC]">
+                    @include('components.engineer-activity-report-form')
+                </div>
+
+                {{-- Tab 2: Tabel Rincian Aktivitas Mentah --}}
+                <div x-show="activeDetailTab === 'logs'" class="flex-1 overflow-y-auto overflow-x-auto p-5 sm:p-6 bg-white">
                     <table class="w-full border-collapse rounded-xl border border-[#E2E8F0] text-left text-xs min-w-[860px]">
                         <thead class="bg-[#F8FAFC] text-[#475569] font-bold uppercase text-[10.5px] tracking-wider border-b border-[#E2E8F0]">
                             <tr>
@@ -983,9 +1006,13 @@
 <script>
 function engineerActivityManager() {
     return {
-        // Detail modal
+        // Detail modal & Form Laporan
         isDetailModalOpen: false,
         selectedDetail: null,
+        activeDetailTab: 'form', // 'form' | 'logs'
+        reportFormData: null,
+        reportFormSaving: false,
+        reportFormSavedSuccess: false,
 
         // Edit modal
         isEditModalOpen: false,
@@ -1019,6 +1046,8 @@ function engineerActivityManager() {
         openDetailModal(groupData) {
             this.selectedDetail = groupData;
             this.sigInfo = groupData?.sig_info || null;
+            this.activeDetailTab = 'form';
+            this.initDefaultReportData();
             this.isDetailModalOpen = true;
             if (groupData && groupData.scope_key) {
                 this.fetchSignatureStatus(groupData.scope_key);
@@ -1179,10 +1208,216 @@ function engineerActivityManager() {
                 });
                 if (res.ok) {
                     this.sigInfo = await res.json();
+                    if (this.sigInfo?.report_data) {
+                        this.loadReportData(this.sigInfo.report_data);
+                    } else {
+                        this.initDefaultReportData();
+                    }
                 }
             } catch (e) {
                 console.error('Error fetching signature status:', e);
+                this.initDefaultReportData();
             }
+        },
+
+        initDefaultReportData() {
+            const detail = this.selectedDetail;
+            const items = detail?.items || [];
+            const firstItem = items[0] || {};
+            const lastItem = items[items.length - 1] || firstItem;
+
+            const todayDate = new Date();
+            const hariTanggal = todayDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const jamMulai = firstItem.time_str || '09:00 WIB';
+            const jamSelesai = lastItem.time_str || '17:00 WIB';
+
+            this.reportFormData = {
+                identitas: {
+                    hari_tanggal: firstItem.date ? firstItem.date : hariTanggal,
+                    no_laporan: this.sigInfo?.document_number || 'IPNET-ACT-' + todayDate.getFullYear() + String(todayDate.getMonth()+1).padStart(2, '0') + '-0001',
+                    nama_project: detail?.project_name || '',
+                    no_so_spk: '-',
+                    lokasi_site: firstItem.client_pic ? ('Client Site (' + firstItem.client_pic + ')') : '-',
+                    work_order: '-',
+                    nama_engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
+                    customer: detail?.client_name || '-',
+                    jenis_pekerjaan: 'Implementasi / Troubleshooting',
+                    pic_customer: firstItem.client_pic && firstItem.client_pic !== '-' ? firstItem.client_pic : '-',
+                    kategori_pekerjaan: (detail?.project_name || '').toLowerCase().includes('maintenance') ? 'maintenance' : 'implement',
+                    jabatan: '{{ auth()->user()?->position ?: (auth()->user()?->getRoleNames()->first() ?: 'Network Leader') }}',
+                    jam_mulai: jamMulai,
+                    jam_selesai: jamSelesai,
+                },
+                manpower: [
+                    {
+                        nama: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
+                        unit_kerja: 'Technical Support',
+                        jabatan: '{{ auth()->user()?->position ?: 'Field Engineer' }}',
+                        keterangan: 'PIC Utama'
+                    }
+                ],
+                total_tenaga_kerja: 1,
+                ruang_lingkup: {
+                    target_hari_ini: (detail?.project_name || 'Pekerjaan Lapangan') + ' - Penyelesaian Aktivitas Penugasan',
+                    durasi_project: '1 Hari Kerja (Sesuai Penugasan WO)',
+                    scope_pekerjaan: 'Instalasi, konfigurasi, monitoring, dan pengujian performa sistem di lokasi klien',
+                    perangkat_sistem: 'Router, Switch, Access Point & Infrastruktur Jaringan Terkait',
+                    kriteria_selesai: 'Sistem terpasang, terhubung normal, terverifikasi fungsionalitas dan disetujui PIC Klien',
+                },
+                rincian_aktivitas: items.map((it, idx) => ({
+                    no: idx + 1,
+                    waktu: it.date || '09:00',
+                    aktivitas: it.subject || '-',
+                    perangkat: 'Area Kerja / Site',
+                    hasil: 'Normal / Berhasil',
+                    status: it.status || 'Selesai',
+                    kendala: '-',
+                    tindak_lanjut: it.notes && it.notes !== '-' ? it.notes : '-',
+                })),
+                materials: [
+                    { nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: '', keterangan: '' }
+                ],
+                test_results: [
+                    { parameter: '', sebelum: '', sesudah: '', satuan: '', metode: '', keterangan: '' }
+                ],
+                incidents: [
+                    { waktu: '', kendala: '', dampak: '', tindakan: '', status: '' }
+                ],
+                hasil_akhir: {
+                    status_pekerjaan: 'selesai',
+                    progress_percent: 100,
+                    kondisi_sistem: 'Sistem dan perangkat beroperasi normal, handal dan stabil',
+                    outstanding: 'Tidak ada (Seluruh target aktivitas hari ini selesai)',
+                    rekomendasi: 'Monitoring berkala performa perangkat dan pencatatan log rutin',
+                    eskalasi_pic: '-',
+                },
+                foto_dokumentasi: {
+                    before: { area: 'Perangkat sebelum pengerjaan', url: '', caption: 'Kondisi awal sebelum tindakan teknis' },
+                    progress: { area: 'Proses implementasi / maintenance', url: '', caption: 'Aktivitas penanganan teknis berlangsung' },
+                    after: { area: 'Perangkat setelah pengerjaan selesai', url: '', caption: 'Kondisi akhir perangkat beroperasi normal' },
+                },
+                administrasi: {
+                    nomor_wo: '-',
+                    nomor_ba: '-',
+                    lampiran: 'Dokumentasi Foto Fisik & Checklist',
+                    folder: 'DOK-' + (detail?.project_name || 'PROJECT').replace(/[^a-zA-Z0-9]/g, '_').toUpperCase(),
+                }
+            };
+        },
+
+        loadReportData(data) {
+            this.initDefaultReportData();
+            if (data && typeof data === 'object') {
+                this.reportFormData = {
+                    ...this.reportFormData,
+                    ...data,
+                    identitas: { ...this.reportFormData.identitas, ...(data.identitas || {}) },
+                    ruang_lingkup: { ...this.reportFormData.ruang_lingkup, ...(data.ruang_lingkup || {}) },
+                    hasil_akhir: { ...this.reportFormData.hasil_akhir, ...(data.hasil_akhir || {}) },
+                    foto_dokumentasi: {
+                        before: { ...this.reportFormData.foto_dokumentasi.before, ...(data.foto_dokumentasi?.before || {}) },
+                        progress: { ...this.reportFormData.foto_dokumentasi.progress, ...(data.foto_dokumentasi?.progress || {}) },
+                        after: { ...this.reportFormData.foto_dokumentasi.after, ...(data.foto_dokumentasi?.after || {}) },
+                    },
+                    administrasi: { ...this.reportFormData.administrasi, ...(data.administrasi || {}) },
+                    manpower: Array.isArray(data.manpower) && data.manpower.length > 0 ? data.manpower : this.reportFormData.manpower,
+                    rincian_aktivitas: Array.isArray(data.rincian_aktivitas) && data.rincian_aktivitas.length > 0 ? data.rincian_aktivitas : this.reportFormData.rincian_aktivitas,
+                    materials: Array.isArray(data.materials) && data.materials.length > 0 ? data.materials : this.reportFormData.materials,
+                    test_results: Array.isArray(data.test_results) && data.test_results.length > 0 ? data.test_results : this.reportFormData.test_results,
+                    incidents: Array.isArray(data.incidents) && data.incidents.length > 0 ? data.incidents : this.reportFormData.incidents,
+                };
+            }
+        },
+
+        async saveReportForm() {
+            if (!this.selectedDetail?.scope_key) return;
+            this.reportFormSaving = true;
+            this.reportFormSavedSuccess = false;
+            const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+            try {
+                const res = await fetch('{{ route("engineer.activity_log.save_report_data") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token
+                    },
+                    body: JSON.stringify({
+                        scope_key: this.selectedDetail.scope_key,
+                        project_id: this.selectedDetail.project_id,
+                        project_name: this.selectedDetail.project_name,
+                        report_data: this.reportFormData
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    this.reportFormSavedSuccess = true;
+                    if (data.document_number) {
+                        if (!this.sigInfo) this.sigInfo = {};
+                        this.sigInfo.document_number = data.document_number;
+                        this.reportFormData.identitas.no_laporan = data.document_number;
+                    }
+                    setTimeout(() => { this.reportFormSavedSuccess = false; }, 3500);
+                } else {
+                    alert(data.message || data.error || 'Gagal menyimpan formulir laporan.');
+                }
+            } catch (e) {
+                alert('Terjadi kesalahan: ' + e.message);
+            } finally {
+                this.reportFormSaving = false;
+            }
+        },
+
+        handlePhotoUpload(e, stage) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Ukuran file foto maksimal 5 MB.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                this.reportFormData.foto_dokumentasi[stage].url = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        },
+
+        removePhoto(stage) {
+            this.reportFormData.foto_dokumentasi[stage].url = '';
+        },
+
+        addManpowerRow() {
+            this.reportFormData.manpower.push({ nama: '', unit_kerja: '', jabatan: '', keterangan: '' });
+            this.reportFormData.total_tenaga_kerja = this.reportFormData.manpower.length;
+        },
+        removeManpowerRow(idx) {
+            if (this.reportFormData.manpower.length > 1) {
+                this.reportFormData.manpower.splice(idx, 1);
+                this.reportFormData.total_tenaga_kerja = this.reportFormData.manpower.length;
+            }
+        },
+
+        addMaterialRow() {
+            this.reportFormData.materials.push({ nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: '', keterangan: '' });
+        },
+        removeMaterialRow(idx) {
+            this.reportFormData.materials.splice(idx, 1);
+        },
+
+        addTestResultRow() {
+            this.reportFormData.test_results.push({ parameter: '', sebelum: '', sesudah: '', satuan: '', metode: '', keterangan: '' });
+        },
+        removeTestResultRow(idx) {
+            this.reportFormData.test_results.splice(idx, 1);
+        },
+
+        addIncidentRow() {
+            this.reportFormData.incidents.push({ waktu: '', kendala: '', dampak: '', tindakan: '', status: '' });
+        },
+        removeIncidentRow(idx) {
+            this.reportFormData.incidents.splice(idx, 1);
         },
 
         openSignaturePad(roleType, roleLabel) {
