@@ -2108,16 +2108,23 @@ class DashboardController extends Controller
 
         $pdf->setPaper('a4', 'portrait');
         $pdf->setOption('isHtml5ParserEnabled', true);
-        $pdf->setOption('isRemoteEnabled', true);
+        $pdf->setOption('isRemoteEnabled', false);
 
-        $safeName = \Illuminate\Support\Str::slug($projectName, '_');
+        $safeName = \Illuminate\Support\Str::slug($projectName, '_') ?: 'Dokumen';
         $filename = "Laporan_Aktivitas_{$safeName}_" . now()->format('Ymd_His') . ".pdf";
 
         if ($request->get('action') === 'stream' || $request->has('stream')) {
-            return $pdf->stream($filename);
+            return response($pdf->output(), 200, [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            ]);
         }
 
-        return $pdf->download($filename);
+        return response($pdf->output(), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control'       => 'private, no-transform, no-store, must-revalidate',
+        ]);
     }
 
     /**
@@ -2217,9 +2224,12 @@ class DashboardController extends Controller
 
         $pdf->setPaper('a4', 'portrait');
         $pdf->setOption('isHtml5ParserEnabled', true);
-        $pdf->setOption('isRemoteEnabled', true);
+        $pdf->setOption('isRemoteEnabled', false);
 
-        return $pdf->stream("Laporan_Aktivitas_{$documentNumber}.pdf");
+        return response($pdf->output(), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="Laporan_Aktivitas_' . $documentNumber . '.pdf"',
+        ]);
     }
 
     // ─── Engineer Activity Log: Export Excel ─────────────────────────────────────
@@ -2617,76 +2627,33 @@ class DashboardController extends Controller
     }
 
     /**
-     * Generate multi-tier QR Code formats:
-     * 1. PNG Base64 via GD (fastest, standard PNG for DomPDF)
-     * 2. Raw SVG XML string via BaconQrCode (100% pure PHP string, zero extensions required)
-     * 3. External API URL as ultimate fallback
+     * Generate multi-tier QR Code formats secara 100% lokal tanpa dependensi request eksternal
+     * Menggunakan SimpleSoftwareIO\QrCode SVG format (native PHP, zero network latency)
      */
     protected function generateQrData(string $text): array
     {
-        $qrPngBase64 = '';
+        $qrSvgBase64 = '';
         $qrRawSvg    = '';
-        $qrApiUrl    = 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=' . urlencode($text);
 
-        // 1. Try GD PNG Base64
-        if (extension_loaded('gd') && function_exists('imagecreatetruecolor')) {
-            try {
-                $qr = \BaconQrCode\Encoder\Encoder::encode($text, \BaconQrCode\Common\ErrorCorrectionLevel::M());
-                $matrix = $qr->getMatrix();
-                $matrixWidth = $matrix->getWidth();
-                $matrixHeight = $matrix->getHeight();
-
-                $scale = 3;
-                $margin = 1;
-                $imgWidth = ($matrixWidth + ($margin * 2)) * $scale;
-                $imgHeight = ($matrixHeight + ($margin * 2)) * $scale;
-
-                $image = imagecreatetruecolor($imgWidth, $imgHeight);
-                $white = imagecolorallocate($image, 255, 255, 255);
-                $dark  = imagecolorallocate($image, 15, 23, 42); // slate-900
-
-                imagefill($image, 0, 0, $white);
-
-                for ($y = 0; $y < $matrixHeight; $y++) {
-                    for ($x = 0; $x < $matrixWidth; $x++) {
-                        if ($matrix->get($x, $y) === 1) {
-                            $x1 = ($x + $margin) * $scale;
-                            $y1 = ($y + $margin) * $scale;
-                            $x2 = $x1 + $scale - 1;
-                            $y2 = $y1 + $scale - 1;
-                            imagefilledrectangle($image, $x1, $y1, $x2, $y2, $dark);
-                        }
-                    }
-                }
-
-                ob_start();
-                imagepng($image);
-                $pngData = ob_get_clean();
-                imagedestroy($image);
-
-                $qrPngBase64 = 'data:image/png;base64,' . base64_encode($pngData);
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('QR PNG generation error: ' . $e->getMessage());
-            }
-        }
-
-        // 2. Try BaconQrCode SVG (Pure PHP string concatenation, requires no extensions)
         try {
-            $renderer = new \BaconQrCode\Renderer\ImageRenderer(
-                new \BaconQrCode\Renderer\RendererStyle\RendererStyle(60, 0),
-                new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
-            );
-            $writer = new \BaconQrCode\Writer($renderer);
-            $svg = $writer->writeString($text);
-            $qrRawSvg = preg_replace('/<\?xml.*?\?>/i', '', $svg);
+            $svg = (string) \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+                ->size(100)
+                ->margin(1)
+                ->errorCorrection('M')
+                ->generate($text);
+
+            $qrRawSvg    = preg_replace('/<\?xml.*?\?>/i', '', $svg);
+            $qrSvgBase64 = 'data:image/svg+xml;base64,' . base64_encode($svg);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('QR SVG generation error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('QR generation error: ' . $e->getMessage());
         }
 
         return [
-            'qrPngBase64' => $qrPngBase64,
-            'qrRawSvg'    => $qrRawSvg,
-            'qrApiUrl'    => $qrApiUrl,
+            'qrPngBase64'  => $qrSvgBase64,
+            'qrRawSvg'     => $qrRawSvg,
+            'qrApiUrl'     => '',
+            'qrCodeBase64' => $qrSvgBase64,
+            'qrSvgBase64'  => $qrSvgBase64,
         ];
     }
 }

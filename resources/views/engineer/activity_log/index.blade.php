@@ -1616,12 +1616,7 @@ function engineerActivityManager() {
             if (action === 'stream') {
                 window.open(exportUrl, '_blank');
             } else {
-                const downloadLink = document.createElement('a');
-                downloadLink.href = exportUrl;
-                downloadLink.setAttribute('download', '');
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                setTimeout(() => downloadLink.remove(), 500);
+                window.location.href = exportUrl;
             }
         },
     };
