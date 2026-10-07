@@ -1698,36 +1698,82 @@ class DashboardController extends Controller
         $authUser = auth()->user();
         $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
 
-        // Mode 1: Spreadsheet Multi-Row Bulk Entry
-        if ($request->has('activities') && is_array($request->activities)) {
+        $hasReportData = $request->filled('report_data');
+        $hasActivities = $request->has('activities') && is_array($request->activities);
+
+        // Mode 1: Form Laporan Aktivitas Resmi / Bulk Entry
+        if ($hasReportData || $hasActivities) {
             $projectId = $request->project_id ?: null;
 
             // Validasi hak akses proyek untuk engineer non-lead
             if (!$isLead && $projectId) {
+                $hasTaskUser = \Illuminate\Support\Facades\Schema::hasTable('task_user');
+                $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
                 $linkedProjectIds = $this->getLinkedProjectIds($authUser);
+
                 $hasAccess = $linkedProjectIds->contains($projectId)
                     || Project::where('id', $projectId)
-                        ->where(function ($q) use ($authUser) {
+                        ->where(function ($q) use ($authUser, $hasTaskUser, $hasScheduleUser) {
                             $q->where('created_by', $authUser->id)
-                              ->orWhereHas('tasks', fn($tq) => $tq->where('engineer_id', $authUser->id))
-                              ->orWhereHas('schedules', fn($sq) => $sq->where('engineer_id', $authUser->id));
+                              ->orWhereHas('tasks', function ($tq) use ($authUser, $hasTaskUser) {
+                                  $tq->where('engineer_id', $authUser->id);
+                                  if ($hasTaskUser) {
+                                      $tq->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $authUser->id));
+                                  }
+                              })
+                              ->orWhereHas('schedules', function ($sq) use ($authUser, $hasScheduleUser) {
+                                  $sq->where('engineer_id', $authUser->id);
+                                  if ($hasScheduleUser) {
+                                      $sq->orWhereHas('engineers', fn($esq) => $esq->where('users.id', $authUser->id));
+                                  }
+                              });
                         })->exists();
 
                 if (!$hasAccess) {
                     return redirect()->back()->with('error', 'Anda tidak memiliki hak akses penugasan untuk mencatat aktivitas pada proyek ini.');
                 }
             }
-            $activityTitle = trim($request->activity_title ?? '');
-            $itemsCreated = 0;
 
-            foreach ($request->activities as $row) {
+            $activityTitle = trim($request->activity_title ?? '');
+            $itemsCreated  = 0;
+
+            // Ekstrak data report_data jika ada
+            $rawReport = null;
+            if ($request->filled('report_data')) {
+                $rawReport = is_string($request->report_data) ? json_decode($request->report_data, true) : $request->report_data;
+            }
+
+            // Kumpulkan list activities dari $request->activities atau dari $rawReport['rincian_aktivitas']
+            $activitiesList = $hasActivities ? $request->activities : [];
+            if (empty($activitiesList) && is_array($rawReport) && !empty($rawReport['rincian_aktivitas'])) {
+                foreach ($rawReport['rincian_aktivitas'] as $ra) {
+                    $activitiesList[] = [
+                        'subject'       => $ra['aktivitas'] ?? '',
+                        'activity_date' => $rawReport['identitas']['hari_tanggal_raw'] ?? ($rawReport['identitas']['hari_tanggal'] ?? date('Y-m-d')),
+                        'time_str'      => $ra['waktu'] ?? '',
+                        'client_pic'    => $rawReport['identitas']['pic_customer'] ?? '',
+                        'ipnet_pic'     => $rawReport['identitas']['nama_engineer'] ?? '',
+                        'notes'         => !empty($ra['tindak_lanjut']) && $ra['tindak_lanjut'] !== '-' ? $ra['tindak_lanjut'] : ($ra['hasil'] ?? ''),
+                        'activity_type' => !empty($rawReport['identitas']['kategori_managed_service']) ? 'Maintenance' : 'Troubleshooting',
+                        'status'        => !empty($ra['status']) ? $ra['status'] : 'Selesai',
+                    ];
+                }
+            }
+
+            foreach ($activitiesList as $row) {
                 $subject = trim($row['subject'] ?? '');
                 if (empty($subject)) {
                     continue;
                 }
 
-                $date = !empty($row['activity_date']) ? $row['activity_date'] : date('Y-m-d');
-                $time = !empty($row['time_str']) ? trim($row['time_str']) : null;
+                $rawDate = !empty($row['activity_date']) ? $row['activity_date'] : date('Y-m-d');
+                try {
+                    $date = \Carbon\Carbon::parse($rawDate)->format('Y-m-d');
+                } catch (\Throwable $e) {
+                    $date = date('Y-m-d');
+                }
+
+                $time      = !empty($row['time_str']) ? trim($row['time_str']) : null;
                 $clientPic = trim($row['client_pic'] ?? '');
                 $ipnetPic  = trim($row['ipnet_pic'] ?? '');
                 $notedText = trim($row['notes'] ?? '');
@@ -1746,7 +1792,7 @@ class DashboardController extends Controller
                 $finalNotes = implode(' | ', $notesParts);
 
                 $location = $clientPic ? "Client Site ({$clientPic})" : null;
-                $actType = !empty($row['activity_type']) ? $row['activity_type'] : (!empty($request->activity_type) ? $request->activity_type : 'Troubleshooting');
+                $actType  = !empty($row['activity_type']) ? $row['activity_type'] : (!empty($request->activity_type) ? $request->activity_type : 'Troubleshooting');
 
                 $description = $subject;
                 if ($activityTitle !== '') {
@@ -1762,36 +1808,63 @@ class DashboardController extends Controller
                     'activity_date' => $date,
                     'start_time'    => $time,
                     'end_time'      => null,
-                    'status'        => 'Selesai',
+                    'status'        => !empty($row['status']) ? $row['status'] : 'Selesai',
                     'notes'         => $finalNotes ?: null,
                 ]);
 
                 $itemsCreated++;
             }
 
+            // Jika belum ada teks di baris rincian aktivitas, buatkan 1 baris otomatis agar dokumen tersimpan & tidak mental
+            if ($itemsCreated === 0 && !empty($rawReport)) {
+                $defaultSubject = $activityTitle ?: (!empty($rawReport['ruang_lingkup']['target_hari_ini']) ? $rawReport['ruang_lingkup']['target_hari_ini'] : 'Laporan Aktivitas Harian Project');
+                $rawDate        = $rawReport['identitas']['hari_tanggal_raw'] ?? ($rawReport['identitas']['hari_tanggal'] ?? date('Y-m-d'));
+                try {
+                    $date = \Carbon\Carbon::parse($rawDate)->format('Y-m-d');
+                } catch (\Throwable $e) {
+                    $date = date('Y-m-d');
+                }
+                $time           = $rawReport['identitas']['jam_mulai'] ?? null;
+                $clientPic      = $rawReport['identitas']['pic_customer'] ?? '';
+                $ipnetPic       = $rawReport['identitas']['nama_engineer'] ?? '';
+                $actType        = !empty($rawReport['identitas']['kategori_managed_service']) ? 'Maintenance' : 'Troubleshooting';
+
+                EngineerActivityLog::create([
+                    'user_id'       => auth()->id(),
+                    'project_id'    => $projectId,
+                    'activity_type' => $actType,
+                    'description'   => $defaultSubject,
+                    'location'      => $clientPic ? "Client Site ({$clientPic})" : null,
+                    'activity_date' => $date,
+                    'start_time'    => $time,
+                    'end_time'      => null,
+                    'status'        => 'Selesai',
+                    'notes'         => $clientPic ? "PIC Klien: {$clientPic}" : null,
+                ]);
+
+                $itemsCreated = 1;
+            }
+
             if ($itemsCreated === 0) {
-                return redirect()->back()->with('error', 'Silakan isi setidaknya satu baris aktivitas.');
+                return redirect()->back()->with('error', 'Silakan isi setidaknya satu baris aktivitas pekerjaan.');
             }
 
             // Simpan atau perbarui data formulir resmi (report_data) jika dikirim dari form
-            if ($request->filled('report_data') && $projectId) {
+            if ($projectId && !empty($rawReport) && is_array($rawReport)) {
                 try {
-                    $rawReport = is_string($request->report_data) ? json_decode($request->report_data, true) : $request->report_data;
-                    if (is_array($rawReport)) {
-                        $scopeKey = 'proj_' . $projectId;
-                        $sig = \App\Models\ActivityDocumentSignature::firstOrNew(['scope_key' => $scopeKey]);
-                        if (!$sig->exists) {
-                            $sig->document_number = \App\Models\ActivityDocumentSignature::generateDocumentNumber();
-                            $sig->scope_key       = $scopeKey;
-                            $sig->project_id      = $projectId;
-                            $sig->project_name    = \App\Models\Project::find($projectId)?->name ?? 'Project';
-                            $sig->status          = 'draft';
-                        }
-                        $sig->report_data = $rawReport;
-                        $sig->save();
+                    $scopeKey = 'proj_' . $projectId;
+                    $sig = \App\Models\ActivityDocumentSignature::firstOrNew(['scope_key' => $scopeKey]);
+                    if (!$sig->exists) {
+                        $sig->document_number = \App\Models\ActivityDocumentSignature::generateDocumentNumber();
+                        $sig->scope_key       = $scopeKey;
+                        $sig->project_id      = $projectId;
+                        $sig->project_name    = \App\Models\Project::find($projectId)?->name ?? 'Project';
+                        $sig->status          = 'draft';
                     }
+                    $sig->report_data = $rawReport;
+                    $sig->save();
                 } catch (\Throwable $e) {
-                    // Abaikan jika tabel belum siap
+                    \Illuminate\Support\Facades\Log::warning('Save signature report error: ' . $e->getMessage());
                 }
             }
 

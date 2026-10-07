@@ -250,6 +250,17 @@
 
     removePhoto(stage) {
         this.reportFormData.foto_dokumentasi[stage].url = '';
+    },
+
+    submitBulkForm(e) {
+        if (!this.bulkProjectId) {
+            alert('Silakan pilih proyek tujuan terlebih dahulu.');
+            e.preventDefault();
+            return;
+        }
+        if (this.$refs.reportDataInput) {
+            this.$refs.reportDataInput.value = JSON.stringify(this.reportFormData);
+        }
     }
 }"
 @open-engineer-activity-modal.window="isBulkModalOpen = true"
@@ -281,7 +292,7 @@
             </div>
 
             {{-- Form Submit --}}
-            <form action="{{ route('engineer.activity_log.store') }}" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <form action="{{ route('engineer.activity_log.store') }}" method="POST" @submit="submitBulkForm($event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                 @csrf
 
                 {{-- Bar Pilihan Proyek & Topik --}}
@@ -315,7 +326,7 @@
                 </div>
 
                 {{-- Hidden Inputs untuk Menyimpan ke EngineerActivityLog & ActivityDocumentSignature --}}
-                <input type="hidden" name="report_data" :value="JSON.stringify(reportFormData)">
+                <input type="hidden" name="report_data" x-ref="reportDataInput" :value="JSON.stringify(reportFormData)">
                 <template x-for="(act, idx) in reportFormData.rincian_aktivitas" :key="idx">
                     <div>
                         <input type="hidden" :name="'activities[' + idx + '][subject]'" :value="act.aktivitas">
@@ -554,7 +565,7 @@
                                                     <input type="time" x-model="act.waktu" class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium cursor-pointer">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B]">
-                                                    <textarea rows="2" x-model="act.aktivitas" required class="w-full p-1 text-xs border rounded bg-[#F8FAFC] font-semibold resize-none focus:bg-white"></textarea>
+                                                    <textarea rows="2" x-model="act.aktivitas" placeholder="Aktivitas / rincian tindakan..." class="w-full p-1 text-xs border rounded bg-[#F8FAFC] font-semibold resize-none focus:bg-white"></textarea>
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B]">
                                                     <input type="text" x-model="act.perangkat" class="w-full p-1 text-xs border-0 bg-transparent">
