@@ -441,12 +441,6 @@
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                         {{ $totalInGroup }} Agenda
                                     </span>
-                                    @if(!empty($sigData['status']) && $sigData['status'] === 'fully_approved')
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200" title="Dokumen telah disahkan lengkap 3/3 TTD">
-                                            <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                            Disahkan Resmi
-                                        </span>
-                                    @endif
                                 </div>
                                 <span class="text-[11px] font-semibold text-gray-400 tabular-nums">
                                     {{ $firstAct->activity_date ? $firstAct->activity_date->format('d M Y') : '-' }}
@@ -618,145 +612,9 @@
                     </div>
                 </div>
 
-                {{-- ══ Otorisasi & Digital Signature Berjenjang (PIC -> Lead -> Head Div) ══ --}}
-                <div class="px-5 sm:px-6 py-2.5 bg-gradient-to-r from-[#F8FAFC] via-white to-red-50/20 border-b border-[#E2E8F0] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs shrink-0">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1 shrink-0 mr-1">
-                            <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                            OTORISASI TTD:
-                        </span>
-
-                        {{-- Step 1: PIC Lapangan --}}
-                        <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all shadow-2xs"
-                             :class="sigInfo?.pic?.signed ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'"
-                             :title="sigInfo?.pic?.signed ? ('Ditandatangani ' + sigInfo?.pic?.signed_at) : 'Menunggu tanda tangan PIC Lapangan'">
-                            <span x-text="sigInfo?.pic?.signed ? '✓' : '1.'"></span>
-                            <span>PIC Lapangan</span>
-                            <span x-show="sigInfo?.pic?.signed" class="text-[9.5px] opacity-80 font-normal" x-text="'(' + (sigInfo?.pic?.name || '') + ')'"></span>
-                        </div>
-
-                        <span class="text-slate-300 font-bold text-[10px]">➔</span>
-
-                        {{-- Step 2: Lead Engineer --}}
-                        <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all shadow-2xs"
-                             :class="sigInfo?.lead?.signed ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'"
-                             :title="sigInfo?.lead?.signed ? ('Diverifikasi ' + sigInfo?.lead?.signed_at) : 'Menunggu review & verifikasi Lead'">
-                            <span x-text="sigInfo?.lead?.signed ? '✓' : '2.'"></span>
-                            <span>Lead Engineer</span>
-                            <span x-show="sigInfo?.lead?.signed" class="text-[9.5px] opacity-80 font-normal" x-text="'(' + (sigInfo?.lead?.name || '') + ')'"></span>
-                        </div>
-
-                        <span class="text-slate-300 font-bold text-[10px]">➔</span>
-
-                        {{-- Step 3: Head Division --}}
-                        <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all shadow-2xs"
-                             :class="sigInfo?.head?.signed ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'"
-                             :title="sigInfo?.head?.signed ? ('Disahkan ' + sigInfo?.head?.signed_at) : 'Menunggu approval Head of Division'">
-                            <span x-text="sigInfo?.head?.signed ? '✓' : '3.'"></span>
-                            <span>Head Division</span>
-                            <span x-show="sigInfo?.head?.signed" class="text-[9.5px] opacity-80 font-normal" x-text="'(' + (sigInfo?.head?.name || '') + ')'"></span>
-                        </div>
-                    </div>
-
-                    @php
-                        $curUser = auth()->user();
-                        $canHead = $curUser && ($curUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader']) || str_contains(strtolower($curUser->name ?? ''), 'susanto') || str_contains(strtolower($curUser->name ?? ''), 'hariyadi'));
-                        $canLead = $isLead || ($curUser && $curUser->hasAnyRole(['Lead Engineer', 'Team Leader', 'Team Leader Engineering', 'Lead Maintenance', 'Lead Divisi', 'PMO', 'Project Manager']));
-                    @endphp
-
-                    {{-- Tombol Aksi TTD Sesuai Hak Akses & Status Otorisasi --}}
-                    <div class="flex items-center gap-2 shrink-0 md:ml-auto">
-                        {{-- Tombol TTD PIC (Hanya jika belum di-TTD PIC & dokumen belum fully_approved) --}}
-                        <button type="button"
-                                x-show="sigInfo && sigInfo.status !== 'fully_approved' && !sigInfo?.pic?.signed"
-                                @click="openSignaturePad('pic', 'PIC Field Engineer')"
-                                class="btn-ipnet-gradient px-3.5 py-1.5 text-xs font-bold text-white rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                            <span>Tanda Tangani (PIC)</span>
-                        </button>
-
-                        @if($canLead || $canHead)
-                        {{-- Tombol TTD Lead (Hanya jika PIC sudah TTD, Lead belum TTD, & belum fully_approved) --}}
-                        <button type="button"
-                                x-show="sigInfo && sigInfo.status !== 'fully_approved' && sigInfo?.pic?.signed && !sigInfo?.lead?.signed"
-                                @click="openSignaturePad('lead', 'Lead Network Engineer')"
-                                class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#1D4ED8] hover:bg-[#1E40AF] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>Verifikasi &amp; TTD (Lead)</span>
-                        </button>
-                        @endif
-
-                        @if($canHead)
-                        {{-- Tombol TTD Head Division (hanya jika Lead sudah TTD & Head belum TTD) --}}
-                        <button type="button"
-                                x-show="sigInfo && sigInfo.status !== 'fully_approved' && sigInfo?.lead?.signed && !sigInfo?.head?.signed"
-                                @click="openSignaturePad('head', 'Head of Division')"
-                                class="px-3.5 py-1.5 text-xs font-bold text-white bg-[#0F6B43] hover:bg-[#0B5233] rounded-lg shadow-xs transition flex items-center gap-1.5 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                            <span>Sahkan &amp; TTD (Head Div)</span>
-                        </button>
-                        @endif
-
-                        {{-- Badge Sudah Sah Lengkap Semua (3/3 TTD) --}}
-                        <div x-show="sigInfo?.status === 'fully_approved'"
-                             title="Dokumen telah disahkan lengkap (3/3 TTD)"
-                             class="btn-ipnet-gradient inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs tracking-wide">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>Disahkan (3/3 TTD)</span>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Tab Navigasi: Form Laporan Resmi (Default) vs Log Mentah --}}
-                <div class="px-5 sm:px-6 pt-2 pb-0 bg-white border-b border-[#E2E8F0] flex items-center justify-between shrink-0">
-                    <div class="flex items-center gap-2">
-                        <button type="button" @click="activeDetailTab = 'form'"
-                                class="pb-2.5 px-3.5 text-xs font-bold border-b-2 transition flex items-center gap-2 cursor-pointer"
-                                :class="activeDetailTab === 'form' ? 'border-[#8F0A0D] text-[#8F0A0D]' : 'border-transparent text-gray-500 hover:text-gray-800'">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            <span>Form Laporan Resmi (Template PDF)</span>
-                        </button>
-                        <button type="button" @click="activeDetailTab = 'logs'"
-                                class="pb-2.5 px-3.5 text-xs font-bold border-b-2 transition flex items-center gap-2 cursor-pointer"
-                                :class="activeDetailTab === 'logs' ? 'border-[#8F0A0D] text-[#8F0A0D]' : 'border-transparent text-gray-500 hover:text-gray-800'">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                            <span>Daftar Agenda Mentah</span>
-                            <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-700 font-bold" x-text="(selectedDetail?.items?.length || 0)"></span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Tab 1: Form Laporan Resmi (Sesuai PDF) --}}
-                <div x-show="activeDetailTab === 'form'" class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F8FAFC]">
+                {{-- Form Laporan Resmi (Sesuai PDF) --}}
+                <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F8FAFC]">
                     @include('components.engineer-activity-report-form')
-                </div>
-
-                {{-- Tab 2: Tabel Rincian Aktivitas Mentah --}}
-                <div x-show="activeDetailTab === 'logs'" class="flex-1 overflow-y-auto overflow-x-auto p-5 sm:p-6 bg-white">
-                    <table class="w-full border-collapse rounded-xl border border-[#E2E8F0] text-left text-xs min-w-[860px]">
-                        <thead class="bg-[#F8FAFC] text-[#475569] font-bold uppercase text-[10.5px] tracking-wider border-b border-[#E2E8F0]">
-                            <tr>
-                                <th class="py-3 px-3 w-10 text-center">No</th>
-                                <th class="py-3 px-3 min-w-[200px]">Aktivitas</th>
-                                <th class="py-3 px-3 w-28">Tanggal</th>
-                                <th class="py-3 px-3 w-32">PIC Klien</th>
-                                <th class="py-3 px-3 w-32">PIC IPNET</th>
-                                <th class="py-3 px-3 min-w-[160px]">Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-[#E2E8F0]">
-                            <template x-for="(item, idx) in (selectedDetail?.items || [])" :key="idx">
-                                <tr class="hover:bg-[#F8FAFC]/80 transition-colors">
-                                    <td class="py-3 px-3 text-center font-bold text-[#8F0A0D]" x-text="item.no || (idx + 1)"></td>
-                                    <td class="py-3 px-3"><p class="font-semibold text-[#1E293B] leading-relaxed" x-text="item.subject || '-'"></p></td>
-                                    <td class="py-3 px-3 whitespace-nowrap"><div class="font-bold text-[#1E293B]" x-text="item.date || '-'"></div></td>
-                                    <td class="py-3 px-3"><span class="inline-block px-2.5 py-1 bg-[#F1F5F9] text-[#334155] rounded-md font-semibold text-[11px]" x-text="item.client_pic || '-'"></span></td>
-                                    <td class="py-3 px-3"><span class="inline-block px-2.5 py-1 bg-red-50 text-[#8F0A0D] border border-red-100 rounded-md font-semibold text-[11px]" x-text="item.ipnet_pic || '-'"></span></td>
-                                    <td class="py-3 px-3"><p class="text-gray-700 whitespace-pre-line leading-relaxed font-medium" x-text="item.notes || '-'"></p></td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
                 </div>
 
                 <div class="flex items-center justify-between p-4 px-6 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
@@ -1227,53 +1085,66 @@ function engineerActivityManager() {
             const lastItem = items[items.length - 1] || firstItem;
 
             const todayDate = new Date();
-            const hariTanggal = todayDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            const jamMulai = firstItem.time_str || '09:00 WIB';
-            const jamSelesai = lastItem.time_str || '17:00 WIB';
+            const pad = (n) => String(n).padStart(2, '0');
+            const todayIso = todayDate.getFullYear() + '-' + pad(todayDate.getMonth() + 1) + '-' + pad(todayDate.getDate());
+            const firstDateRaw = firstItem.date_raw || (firstItem.date && firstItem.date.includes('-') ? firstItem.date : todayIso);
+
+            const extractTime = (val, fallback) => {
+                if (!val) return fallback;
+                const m = val.match(/(\d{1,2}:\d{2})/);
+                return m ? m[1].padStart(5, '0') : fallback;
+            };
+
+            const jamMulai = extractTime(firstItem.time_str || firstItem.start_time, '09:00');
+            const jamSelesai = extractTime(lastItem.time_str || lastItem.end_time || lastItem.start_time, '17:00');
 
             this.reportFormData = {
                 identitas: {
-                    hari_tanggal: firstItem.date ? firstItem.date : hariTanggal,
+                    hari_tanggal: firstDateRaw,
                     no_laporan: this.sigInfo?.document_number || 'IPNET-ACT-' + todayDate.getFullYear() + String(todayDate.getMonth()+1).padStart(2, '0') + '-0001',
                     nama_project: detail?.project_name || '',
-                    no_so_spk: '-',
-                    lokasi_site: firstItem.client_pic ? ('Client Site (' + firstItem.client_pic + ')') : '-',
-                    work_order: '-',
-                    nama_engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
-                    customer: detail?.client_name || '-',
-                    jenis_pekerjaan: 'Implementasi / Troubleshooting',
-                    pic_customer: firstItem.client_pic && firstItem.client_pic !== '-' ? firstItem.client_pic : '-',
-                    kategori_pekerjaan: (detail?.project_name || '').toLowerCase().includes('maintenance') ? 'maintenance' : 'implement',
-                    jabatan: '{{ auth()->user()?->position ?: (auth()->user()?->getRoleNames()->first() ?: 'Network Leader') }}',
+                    no_so_spk: '',
+                    lokasi_site: '',
+                    work_order: '',
+                    nama_engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? '' }}',
+                    customer: detail?.client_name || '',
+                    jenis_pekerjaan: '',
+                    pic_customer: firstItem.client_pic && firstItem.client_pic !== '-' ? firstItem.client_pic : '',
+                    kategori_implementasi: false,
+                    kategori_managed_service: false,
+                    kategori_pekerjaan: '',
+                    jabatan: '{{ auth()->user()?->position ?: (auth()->user()?->getRoleNames()->first() ?: 'Network Engineer') }}',
                     jam_mulai: jamMulai,
                     jam_selesai: jamSelesai,
                 },
                 manpower: [
                     {
-                        nama: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
-                        unit_kerja: 'Technical Support',
+                        nama: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? '' }}',
+                        unit_kerja: '',
                         jabatan: '{{ auth()->user()?->position ?: 'Field Engineer' }}',
                         keterangan: 'PIC Utama'
                     }
                 ],
                 total_tenaga_kerja: 1,
                 ruang_lingkup: {
-                    target_hari_ini: (detail?.project_name || 'Pekerjaan Lapangan') + ' - Penyelesaian Aktivitas Penugasan',
-                    durasi_project: '1 Hari Kerja (Sesuai Penugasan WO)',
-                    scope_pekerjaan: 'Instalasi, konfigurasi, monitoring, dan pengujian performa sistem di lokasi klien',
-                    perangkat_sistem: 'Router, Switch, Access Point & Infrastruktur Jaringan Terkait',
-                    kriteria_selesai: 'Sistem terpasang, terhubung normal, terverifikasi fungsionalitas dan disetujui PIC Klien',
+                    target_hari_ini: '',
+                    durasi_project: '',
+                    scope_pekerjaan: '',
+                    perangkat_sistem: '',
+                    kriteria_selesai: '',
                 },
-                rincian_aktivitas: items.map((it, idx) => ({
+                rincian_aktivitas: items.length > 0 ? items.map((it, idx) => ({
                     no: idx + 1,
-                    waktu: it.date || '09:00',
-                    aktivitas: it.subject || '-',
-                    perangkat: 'Area Kerja / Site',
-                    hasil: 'Normal / Berhasil',
+                    waktu: extractTime(it.time_str || it.start_time, '09:00'),
+                    aktivitas: it.subject || '',
+                    perangkat: '',
+                    hasil: '',
                     status: it.status || 'Selesai',
-                    kendala: '-',
-                    tindak_lanjut: it.notes && it.notes !== '-' ? it.notes : '-',
-                })),
+                    kendala: '',
+                    tindak_lanjut: it.notes && it.notes !== '-' ? it.notes : '',
+                })) : [
+                    { no: 1, waktu: '09:00', aktivitas: '', perangkat: '', hasil: '', status: 'Selesai', kendala: '', tindak_lanjut: '' }
+                ],
                 materials: [
                     { nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: '', keterangan: '' }
                 ],
@@ -1281,26 +1152,26 @@ function engineerActivityManager() {
                     { parameter: '', sebelum: '', sesudah: '', satuan: '', metode: '', keterangan: '' }
                 ],
                 incidents: [
-                    { waktu: '', kendala: '', dampak: '', tindakan: '', status: '' }
+                    { waktu: '09:00', kendala: '', dampak: '', tindakan: '', status: '' }
                 ],
                 hasil_akhir: {
                     status_pekerjaan: 'selesai',
                     progress_percent: 100,
-                    kondisi_sistem: 'Sistem dan perangkat beroperasi normal, handal dan stabil',
-                    outstanding: 'Tidak ada (Seluruh target aktivitas hari ini selesai)',
-                    rekomendasi: 'Monitoring berkala performa perangkat dan pencatatan log rutin',
-                    eskalasi_pic: '-',
+                    kondisi_sistem: '',
+                    outstanding: '',
+                    rekomendasi: '',
+                    eskalasi_pic: '',
                 },
                 foto_dokumentasi: {
-                    before: { area: 'Perangkat sebelum pengerjaan', url: '', caption: 'Kondisi awal sebelum tindakan teknis' },
-                    progress: { area: 'Proses implementasi / maintenance', url: '', caption: 'Aktivitas penanganan teknis berlangsung' },
-                    after: { area: 'Perangkat setelah pengerjaan selesai', url: '', caption: 'Kondisi akhir perangkat beroperasi normal' },
+                    before: { area: '', url: '', caption: '' },
+                    progress: { area: '', url: '', caption: '' },
+                    after: { area: '', url: '', caption: '' },
                 },
                 administrasi: {
-                    nomor_wo: '-',
-                    nomor_ba: '-',
-                    lampiran: 'Dokumentasi Foto Fisik & Checklist',
-                    folder: 'DOK-' + (detail?.project_name || 'PROJECT').replace(/[^a-zA-Z0-9]/g, '_').toUpperCase(),
+                    nomor_wo: '',
+                    nomor_ba: '',
+                    lampiran: '',
+                    folder: '',
                 }
             };
         },
@@ -1326,6 +1197,16 @@ function engineerActivityManager() {
                     test_results: Array.isArray(data.test_results) && data.test_results.length > 0 ? data.test_results : this.reportFormData.test_results,
                     incidents: Array.isArray(data.incidents) && data.incidents.length > 0 ? data.incidents : this.reportFormData.incidents,
                 };
+
+                // Normalisasi checkbox kategori pekerjaan jika data lampau berupa string radio
+                if (this.reportFormData.identitas.kategori_implementasi === undefined) {
+                    const kat = String(this.reportFormData.identitas.kategori_pekerjaan || '').toLowerCase();
+                    this.reportFormData.identitas.kategori_implementasi = kat.includes('implement');
+                }
+                if (this.reportFormData.identitas.kategori_managed_service === undefined) {
+                    const kat = String(this.reportFormData.identitas.kategori_pekerjaan || '').toLowerCase();
+                    this.reportFormData.identitas.kategori_managed_service = kat.includes('managed') || kat.includes('maintenance');
+                }
             }
         },
 
@@ -1394,8 +1275,35 @@ function engineerActivityManager() {
         },
         removeManpowerRow(idx) {
             if (this.reportFormData.manpower.length > 1) {
-                this.reportFormData.manpower.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.manpower.splice(idx, 1);
+                } else {
+                    this.reportFormData.manpower.pop();
+                }
                 this.reportFormData.total_tenaga_kerja = this.reportFormData.manpower.length;
+            }
+        },
+
+        addActivityRow() {
+            const nextNo = (this.reportFormData.rincian_aktivitas?.length || 0) + 1;
+            this.reportFormData.rincian_aktivitas.push({
+                no: nextNo,
+                waktu: '09:00',
+                aktivitas: '',
+                perangkat: '',
+                hasil: '',
+                status: 'Selesai',
+                kendala: '',
+                tindak_lanjut: ''
+            });
+        },
+        removeActivityRow(idx) {
+            if (this.reportFormData.rincian_aktivitas.length > 1) {
+                if (typeof idx === 'number') {
+                    this.reportFormData.rincian_aktivitas.splice(idx, 1);
+                } else {
+                    this.reportFormData.rincian_aktivitas.pop();
+                }
             }
         },
 
@@ -1403,21 +1311,39 @@ function engineerActivityManager() {
             this.reportFormData.materials.push({ nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: '', keterangan: '' });
         },
         removeMaterialRow(idx) {
-            this.reportFormData.materials.splice(idx, 1);
+            if (this.reportFormData.materials.length > 1) {
+                if (typeof idx === 'number') {
+                    this.reportFormData.materials.splice(idx, 1);
+                } else {
+                    this.reportFormData.materials.pop();
+                }
+            }
         },
 
         addTestResultRow() {
             this.reportFormData.test_results.push({ parameter: '', sebelum: '', sesudah: '', satuan: '', metode: '', keterangan: '' });
         },
         removeTestResultRow(idx) {
-            this.reportFormData.test_results.splice(idx, 1);
+            if (this.reportFormData.test_results.length > 1) {
+                if (typeof idx === 'number') {
+                    this.reportFormData.test_results.splice(idx, 1);
+                } else {
+                    this.reportFormData.test_results.pop();
+                }
+            }
         },
 
         addIncidentRow() {
-            this.reportFormData.incidents.push({ waktu: '', kendala: '', dampak: '', tindakan: '', status: '' });
+            this.reportFormData.incidents.push({ waktu: '09:00', kendala: '', dampak: '', tindakan: '', status: '' });
         },
         removeIncidentRow(idx) {
-            this.reportFormData.incidents.splice(idx, 1);
+            if (this.reportFormData.incidents.length > 1) {
+                if (typeof idx === 'number') {
+                    this.reportFormData.incidents.splice(idx, 1);
+                } else {
+                    this.reportFormData.incidents.pop();
+                }
+            }
         },
 
         openSignaturePad(roleType, roleLabel) {

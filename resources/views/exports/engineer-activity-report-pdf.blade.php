@@ -257,22 +257,55 @@
     }
 
     // Nilai Bagian A (Identitas Pekerjaan)
-    $actDateVal = $firstActObj->activity_date ?? ($firstActObj->date ?? null);
-    $actDate = $actDateVal ? \Carbon\Carbon::parse($actDateVal) : now();
-    $hariTanggal = $rData['identitas']['hari_tanggal'] ?? $actDate->locale('id')->isoFormat('dddd, D MMMM Y');
-    $noLaporan   = $rData['identitas']['no_laporan'] ?? (($verifyDocNumber ?? null) ?: ($docSig?->document_number ?? 'IPNET-ACT-' . date('Ym') . '-0001'));
-    $namaProject = $rData['identitas']['nama_project'] ?? (($projectName ?? null) ?: ($project?->name ?? 'Project Technical Support'));
-    $noSoSpk     = $rData['identitas']['no_so_spk'] ?? ($project?->po_number ?? '-');
-    $lokasiSite  = $rData['identitas']['lokasi_site'] ?? ($project?->location ?? ($firstActObj->location ?? '-'));
-    $workOrder   = $rData['identitas']['work_order'] ?? '-';
-    $namaEngineer= $rData['identitas']['nama_engineer'] ?? (($engineerName ?? null) ?: ($docSig?->pic_name ?? (auth()->user()?->name ?? 'PIC Engineer')));
-    $customer    = $rData['identitas']['customer'] ?? ($project?->client ?? '-');
-    $jenisPekerjaan = $rData['identitas']['jenis_pekerjaan'] ?? ($firstActObj->activity_type ?? 'Implementasi / Troubleshooting');
-    $picCustomer = $rData['identitas']['pic_customer'] ?? ($project?->customer_pic_technical ?? (!empty($actItems[0]['client_pic']) && $actItems[0]['client_pic'] !== '-' ? $actItems[0]['client_pic'] : '-'));
-    $kategoriPekerjaan = strtolower($rData['identitas']['kategori_pekerjaan'] ?? (str_contains(strtolower($namaProject . ' ' . $jenisPekerjaan), 'maintenance') ? 'maintenance' : 'implement'));
-    $jabatanEngineer   = $rData['identitas']['jabatan'] ?? ($docSig?->pic_title ?? (auth()->user()?->position ?: 'Network Leader'));
-    $jamMulai    = $rData['identitas']['jam_mulai'] ?? (!empty($firstActObj->start_time) ? \Carbon\Carbon::parse($firstActObj->start_time)->format('H:i') . ' WIB' : (!empty($firstActObj->time) ? $firstActObj->time . ' WIB' : '09:00 WIB'));
-    $jamSelesai  = $rData['identitas']['jam_selesai'] ?? (!empty($lastActObj->end_time) ? \Carbon\Carbon::parse($lastActObj->end_time)->format('H:i') . ' WIB' : (!empty($lastActObj->start_time) ? \Carbon\Carbon::parse($lastActObj->start_time)->format('H:i') . ' WIB' : '17:00 WIB'));
+    $rawHariTgl = $rData['identitas']['hari_tanggal'] ?? null;
+    if (!empty($rawHariTgl)) {
+        try {
+            $hariTanggal = \Carbon\Carbon::parse($rawHariTgl)->locale('id')->isoFormat('dddd, D MMMM Y');
+        } catch (\Throwable $e) {
+            $hariTanggal = $rawHariTgl;
+        }
+    } else {
+        $actDateVal = $firstActObj->activity_date ?? ($firstActObj->date ?? null);
+        $actDate = $actDateVal ? \Carbon\Carbon::parse($actDateVal) : now();
+        $hariTanggal = $actDate->locale('id')->isoFormat('dddd, D MMMM Y');
+    }
+
+    $noLaporan   = !empty($rData['identitas']['no_laporan']) ? $rData['identitas']['no_laporan'] : (($verifyDocNumber ?? null) ?: ($docSig?->document_number ?? 'IPNET-ACT-' . date('Ym') . '-0001'));
+    $namaProject = !empty($rData['identitas']['nama_project']) ? $rData['identitas']['nama_project'] : (($projectName ?? null) ?: ($project?->name ?? 'Project Technical Support'));
+    $noSoSpk     = isset($rData['identitas']['no_so_spk']) ? ($rData['identitas']['no_so_spk'] ?: '-') : ($project?->po_number ?? '-');
+    $lokasiSite  = isset($rData['identitas']['lokasi_site']) ? ($rData['identitas']['lokasi_site'] ?: '-') : ($project?->location ?? ($firstActObj->location ?? '-'));
+    $workOrder   = isset($rData['identitas']['work_order']) ? ($rData['identitas']['work_order'] ?: '-') : '-';
+    $namaEngineer= !empty($rData['identitas']['nama_engineer']) ? $rData['identitas']['nama_engineer'] : (($engineerName ?? null) ?: ($docSig?->pic_name ?? (auth()->user()?->name ?? 'PIC Engineer')));
+    $customer    = isset($rData['identitas']['customer']) ? ($rData['identitas']['customer'] ?: '-') : ($project?->client ?? '-');
+    $jenisPekerjaan = isset($rData['identitas']['jenis_pekerjaan']) ? ($rData['identitas']['jenis_pekerjaan'] ?: '-') : ($firstActObj->activity_type ?? 'Implementasi / Troubleshooting');
+    $picCustomer = isset($rData['identitas']['pic_customer']) ? ($rData['identitas']['pic_customer'] ?: '-') : ($project?->customer_pic_technical ?? (!empty($actItems[0]['client_pic']) && $actItems[0]['client_pic'] !== '-' ? $actItems[0]['client_pic'] : '-'));
+
+    $isImplement = !empty($rData['identitas']['kategori_implementasi'])
+        || in_array('implement', (array)($rData['identitas']['kategori_pekerjaan'] ?? []))
+        || ($rData['identitas']['kategori_pekerjaan'] ?? '') === 'implement'
+        || str_contains(strtolower($rData['identitas']['kategori_pekerjaan'] ?? ''), 'implement');
+
+    $isManagedService = !empty($rData['identitas']['kategori_managed_service'])
+        || in_array('managed_service', (array)($rData['identitas']['kategori_pekerjaan'] ?? []))
+        || ($rData['identitas']['kategori_pekerjaan'] ?? '') === 'managed_service'
+        || str_contains(strtolower($rData['identitas']['kategori_pekerjaan'] ?? ''), 'managed')
+        || str_contains(strtolower($rData['identitas']['kategori_pekerjaan'] ?? ''), 'maintenance');
+
+    $jabatanEngineer = isset($rData['identitas']['jabatan']) ? ($rData['identitas']['jabatan'] ?: '-') : ($docSig?->pic_title ?? (auth()->user()?->position ?: 'Network Leader'));
+
+    $rawJamMulai = $rData['identitas']['jam_mulai'] ?? null;
+    if (!empty($rawJamMulai)) {
+        $jamMulai = $rawJamMulai . (!str_contains(strtolower($rawJamMulai), 'wib') ? ' WIB' : '');
+    } else {
+        $jamMulai = !empty($firstActObj->start_time) ? \Carbon\Carbon::parse($firstActObj->start_time)->format('H:i') . ' WIB' : (!empty($firstActObj->time) ? $firstActObj->time . ' WIB' : '09:00 WIB');
+    }
+
+    $rawJamSelesai = $rData['identitas']['jam_selesai'] ?? null;
+    if (!empty($rawJamSelesai)) {
+        $jamSelesai = $rawJamSelesai . (!str_contains(strtolower($rawJamSelesai), 'wib') ? ' WIB' : '');
+    } else {
+        $jamSelesai = !empty($lastActObj->end_time) ? \Carbon\Carbon::parse($lastActObj->end_time)->format('H:i') . ' WIB' : (!empty($lastActObj->start_time) ? \Carbon\Carbon::parse($lastActObj->start_time)->format('H:i') . ' WIB' : '17:00 WIB');
+    }
 
     // Nilai Bagian B (Komposisi Tenaga Kerja)
     $manpowerList = is_array($rData['manpower'] ?? null) ? $rData['manpower'] : [];
@@ -306,12 +339,13 @@
 
     // Nilai Bagian C (Ruang Lingkup / Target Pekerjaan)
     $scopeC = $rData['ruang_lingkup'] ?? [];
+    $hasScopeC = isset($rData['ruang_lingkup']);
     $firstDesc = $firstActObj->description ?? ($firstActObj->activity ?? '');
-    $targetHariIni   = $scopeC['target_hari_ini'] ?? (!empty($firstDesc) ? (preg_match('/^\[(.+?)\]\s*(.*)$/s', $firstDesc, $m) ? $m[1] : $firstDesc) : ($namaProject . ' - Kegiatan Lapangan'));
-    $durasiProject   = $scopeC['durasi_project'] ?? '1 Hari Kerja (Sesuai Penugasan WO)';
-    $scopePekerjaan  = $scopeC['scope_pekerjaan'] ?? ($project?->description ?: 'Instalasi, konfigurasi, monitoring, dan pengujian performa sistem');
-    $perangkatSistem = $scopeC['perangkat_sistem'] ?? 'Router, Switch, Access Point & Infrastruktur Jaringan';
-    $kriteriaSelesai = $scopeC['kriteria_selesai'] ?? 'Sistem terpasang, terhubung normal, terverifikasi fungsionalitas dan disetujui PIC Klien';
+    $targetHariIni   = $hasScopeC ? ($scopeC['target_hari_ini'] ?: '-') : (!empty($firstDesc) ? (preg_match('/^\[(.+?)\]\s*(.*)$/s', $firstDesc, $m) ? $m[1] : $firstDesc) : ($namaProject . ' - Kegiatan Lapangan'));
+    $durasiProject   = $hasScopeC ? ($scopeC['durasi_project'] ?: '-') : '-';
+    $scopePekerjaan  = $hasScopeC ? ($scopeC['scope_pekerjaan'] ?: '-') : ($project?->description ?: '-');
+    $perangkatSistem = $hasScopeC ? ($scopeC['perangkat_sistem'] ?: '-') : '-';
+    $kriteriaSelesai = $hasScopeC ? ($scopeC['kriteria_selesai'] ?: '-') : '-';
 
     // Nilai Bagian D (Rincian Aktivitas)
     $dActivities = $rData['rincian_aktivitas'] ?? [];
@@ -330,8 +364,8 @@
                     'no'           => $i + 1,
                     'waktu'        => $it['time'] ?? ($it['date'] ?? '-'),
                     'aktivitas'    => $it['activity'] ?? ($it['description'] ?? '-'),
-                    'perangkat'    => $it['location'] ?? 'Area Kerja / Site',
-                    'hasil'        => 'Normal / Berhasil',
+                    'perangkat'    => $it['location'] ?? '-',
+                    'hasil'        => '-',
                     'status'       => $it['status'] ?? 'Selesai',
                     'kendala'      => '-',
                     'tindak_lanjut'=> !empty($it['notes']) && $it['notes'] !== '-' ? $it['notes'] : '-',
@@ -339,8 +373,8 @@
             }
         } else {
             $dActivities = [[
-                'no' => 1, 'waktu' => '09:00', 'aktivitas' => 'Pemeriksaan rutin dan penanganan pekerjaan teknis di lokasi',
-                'perangkat' => 'Perangkat Site', 'hasil' => 'Normal / Terverifikasi', 'status' => 'Selesai', 'kendala' => '-', 'tindak_lanjut' => '-'
+                'no' => 1, 'waktu' => '09:00', 'aktivitas' => '-',
+                'perangkat' => '-', 'hasil' => '-', 'status' => 'Selesai', 'kendala' => '-', 'tindak_lanjut' => '-'
             ]];
         }
     }
@@ -352,12 +386,13 @@
 
     // Nilai Bagian H (Hasil Akhir Pekerjaan)
     $hasilAkhir = $rData['hasil_akhir'] ?? [];
+    $hasHasilAkhir = isset($rData['hasil_akhir']);
     $statusPekerjaan = strtolower($hasilAkhir['status_pekerjaan'] ?? 'selesai');
     $progressPercent = $hasilAkhir['progress_percent'] ?? ($project?->progress ?? '100');
-    $kondisiSistem   = $hasilAkhir['kondisi_sistem'] ?? 'Sistem dan perangkat beroperasi normal, handal dan stabil';
-    $outstanding     = $hasilAkhir['outstanding'] ?? 'Tidak ada (Seluruh target aktivitas hari ini selesai)';
-    $rekomendasi     = $hasilAkhir['rekomendasi'] ?? 'Monitoring berkala performa perangkat dan pencatatan log rutin';
-    $eskalasiPic     = $hasilAkhir['eskalasi_pic'] ?? '-';
+    $kondisiSistem   = $hasHasilAkhir ? ($hasilAkhir['kondisi_sistem'] ?: '-') : '-';
+    $outstanding     = $hasHasilAkhir ? ($hasilAkhir['outstanding'] ?: '-') : '-';
+    $rekomendasi     = $hasHasilAkhir ? ($hasilAkhir['rekomendasi'] ?: '-') : '-';
+    $eskalasiPic     = $hasHasilAkhir ? ($hasilAkhir['eskalasi_pic'] ?: '-') : '-';
 
     // Nilai Bagian I (Dokumentasi Foto)
     $photos = $rData['foto_dokumentasi'] ?? [];
@@ -441,9 +476,9 @@
         <tr>
             <td class="label-cell">Kategori Pekerjaan</td>
             <td>
-                <span class="check-box">{!! $kategoriPekerjaan === 'implement' ? '&#10003;' : '' !!}</span> Implement
+                <span class="check-box">{!! $isImplement ? '&#10003;' : '' !!}</span> Implementasi
                 &nbsp;&nbsp;&nbsp;
-                <span class="check-box">{!! $kategoriPekerjaan === 'maintenance' ? '&#10003;' : '' !!}</span> Maintenance
+                <span class="check-box">{!! $isManagedService ? '&#10003;' : '' !!}</span> Managed Service
             </td>
             <td class="label-cell">Jabatan</td>
             <td>{{ $jabatanEngineer }}</td>

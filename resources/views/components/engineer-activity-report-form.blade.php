@@ -67,7 +67,7 @@
                                 <tr class="border-b border-[#1E293B]">
                                     <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Hari/Tanggal</td>
                                     <td class="w-3/10 py-1 px-2 border-r border-[#1E293B]">
-                                        <input type="text" x-model="reportFormData.identitas.hari_tanggal" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-medium text-xs">
+                                        <input type="date" x-model="reportFormData.identitas.hari_tanggal" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-medium text-xs cursor-pointer">
                                     </td>
                                     <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">No. Laporan</td>
                                     <td class="w-3/10 py-1 px-2">
@@ -119,12 +119,12 @@
                                     <td class="py-1 px-2.5 border-r border-[#1E293B]">
                                         <div class="flex items-center gap-4 text-xs font-semibold">
                                             <label class="flex items-center gap-1.5 cursor-pointer">
-                                                <input type="radio" value="implement" x-model="reportFormData.identitas.kategori_pekerjaan" class="text-[#8F0A0D] focus:ring-[#8F0A0D]">
-                                                <span>Implement</span>
+                                                <input type="checkbox" x-model="reportFormData.identitas.kategori_implementasi" class="rounded text-[#8F0A0D] focus:ring-[#8F0A0D] w-3.5 h-3.5">
+                                                <span>Implementasi</span>
                                             </label>
                                             <label class="flex items-center gap-1.5 cursor-pointer">
-                                                <input type="radio" value="maintenance" x-model="reportFormData.identitas.kategori_pekerjaan" class="text-[#8F0A0D] focus:ring-[#8F0A0D]">
-                                                <span>Maintenance</span>
+                                                <input type="checkbox" x-model="reportFormData.identitas.kategori_managed_service" class="rounded text-[#8F0A0D] focus:ring-[#8F0A0D] w-3.5 h-3.5">
+                                                <span>Managed Service</span>
                                             </label>
                                         </div>
                                     </td>
@@ -136,11 +136,11 @@
                                 <tr>
                                     <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Jam Mulai</td>
                                     <td class="py-1 px-2 border-r border-[#1E293B]">
-                                        <input type="text" x-model="reportFormData.identitas.jam_mulai" placeholder="Contoh: 09:00 WIB" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
+                                        <input type="time" x-model="reportFormData.identitas.jam_mulai" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
                                     </td>
                                     <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Jam Selesai</td>
                                     <td class="py-1 px-2">
-                                        <input type="text" x-model="reportFormData.identitas.jam_selesai" placeholder="Contoh: 17:00 WIB" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
+                                        <input type="time" x-model="reportFormData.identitas.jam_selesai" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
                                     </td>
                                 </tr>
                             </tbody>
@@ -152,9 +152,14 @@
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. KOMPOSISI TENAGA KERJA</h3>
-                        <button type="button" @click="addManpowerRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                            <span>+ Tambah Personel</span>
-                        </button>
+                        <div class="flex items-center gap-3">
+                            <button type="button" @click="addManpowerRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                <span>+ Tambah Personel</span>
+                            </button>
+                            <button type="button" @click="removeManpowerRow()" x-show="reportFormData.manpower.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                <span>- Hapus Personel</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                         <table class="w-full border-collapse border border-[#1E293B]">
@@ -164,8 +169,7 @@
                                     <th class="py-1.5 px-2 w-1/3 border-r border-[#1E293B] text-left">Nama Personel</th>
                                     <th class="py-1.5 px-2 w-1/5 border-r border-[#1E293B] text-left">Unit Kerja</th>
                                     <th class="py-1.5 px-2 w-1/5 border-r border-[#1E293B] text-left">Jabatan</th>
-                                    <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Keterangan</th>
-                                    <th class="py-1.5 px-1 w-8 text-center"></th>
+                                    <th class="py-1.5 px-2 text-left">Keterangan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -175,10 +179,7 @@
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mp.nama" placeholder="Nama Personel" class="w-full p-1 text-xs border-0 bg-transparent font-semibold"></td>
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mp.unit_kerja" placeholder="Unit Kerja" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mp.jabatan" placeholder="Jabatan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                        <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mp.keterangan" placeholder="Keterangan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                        <td class="text-center p-1">
-                                            <button type="button" @click="removeManpowerRow(mpIdx)" class="text-red-500 hover:text-red-700 font-bold text-xs" title="Hapus">✕</button>
-                                        </td>
+                                        <td class="p-1"><input type="text" x-model="mp.keterangan" placeholder="Keterangan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -222,13 +223,23 @@
 
                 {{-- ═══ D. RINCIAN AKTIVITAS ENGINEER ═══ --}}
                 <div class="space-y-1.5">
-                    <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. RINCIAN AKTIVITAS ENGINEER</h3>
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. RINCIAN AKTIVITAS ENGINEER</h3>
+                        <div class="flex items-center gap-3">
+                            <button type="button" @click="addActivityRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                <span>+ Tambah Baris</span>
+                            </button>
+                            <button type="button" @click="removeActivityRow()" x-show="reportFormData.rincian_aktivitas.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                <span>- Hapus Baris</span>
+                            </button>
+                        </div>
+                    </div>
                     <div class="border border-[#1E293B] rounded-sm overflow-x-auto text-xs">
                         <table class="w-full border-collapse border border-[#1E293B] min-w-[750px]">
                             <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                 <tr>
                                     <th class="py-1.5 px-1.5 w-10 text-center border-r border-[#1E293B]">No.</th>
-                                    <th class="py-1.5 px-1.5 w-20 text-center border-r border-[#1E293B]">Waktu</th>
+                                    <th class="py-1.5 px-1.5 w-24 text-center border-r border-[#1E293B]">Waktu</th>
                                     <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Aktivitas / Tindakan</th>
                                     <th class="py-1.5 px-2 w-1/6 border-r border-[#1E293B] text-left">Perangkat / Area</th>
                                     <th class="py-1.5 px-2 w-1/6 border-r border-[#1E293B] text-left">Hasil / Kondisi</th>
@@ -241,7 +252,7 @@
                                 <template x-for="(act, actIdx) in reportFormData.rincian_aktivitas" :key="actIdx">
                                     <tr class="border-b border-[#1E293B]">
                                         <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="act.no || (actIdx + 1)"></td>
-                                        <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="act.waktu" class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium"></td>
+                                        <td class="p-1 border-r border-[#1E293B] text-center"><input type="time" x-model="act.waktu" class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium cursor-pointer"></td>
                                         <td class="p-1 border-r border-[#1E293B]"><textarea rows="2" x-model="act.aktivitas" class="w-full p-1 text-xs border-0 bg-transparent font-semibold resize-none"></textarea></td>
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="act.perangkat" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="act.hasil" class="w-full p-1 text-xs border-0 bg-transparent"></td>
@@ -259,9 +270,14 @@
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. MATERIAL, PERALATAN &amp; SPARE PART</h3>
-                        <button type="button" @click="addMaterialRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                            <span>+ Tambah Baris</span>
-                        </button>
+                        <div class="flex items-center gap-3">
+                            <button type="button" @click="addMaterialRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                <span>+ Tambah Baris</span>
+                            </button>
+                            <button type="button" @click="removeMaterialRow()" x-show="reportFormData.materials.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                <span>- Hapus Baris</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                         <table class="w-full border-collapse border border-[#1E293B]">
@@ -273,8 +289,7 @@
                                     <th class="py-1 px-1 w-14 text-center border-r border-[#1E293B]">Qty</th>
                                     <th class="py-1 px-1.5 w-16 text-center border-r border-[#1E293B]">Satuan</th>
                                     <th class="py-1 px-2 w-20 text-center border-r border-[#1E293B]">Kondisi</th>
-                                    <th class="py-1 px-2 border-r border-[#1E293B] text-left">Keterangan</th>
-                                    <th class="py-1 px-1 w-8 text-center"></th>
+                                    <th class="py-1 px-2 text-left">Keterangan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -286,8 +301,7 @@
                                         <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.qty" placeholder="1" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                         <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.satuan" placeholder="Pcs" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                         <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.kondisi" placeholder="Baik" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
-                                        <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mat.keterangan" placeholder="Keterangan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                        <td class="text-center p-1"><button type="button" @click="removeMaterialRow(matIdx)" class="text-red-500 font-bold text-xs">✕</button></td>
+                                        <td class="p-1"><input type="text" x-model="mat.keterangan" placeholder="Keterangan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -299,9 +313,14 @@
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. HASIL PENGUJIAN / PENGUKURAN</h3>
-                        <button type="button" @click="addTestResultRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                            <span>+ Tambah Baris</span>
-                        </button>
+                        <div class="flex items-center gap-3">
+                            <button type="button" @click="addTestResultRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                <span>+ Tambah Baris</span>
+                            </button>
+                            <button type="button" @click="removeTestResultRow()" x-show="reportFormData.test_results.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                <span>- Hapus Baris</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                         <table class="w-full border-collapse border border-[#1E293B]">
@@ -313,8 +332,7 @@
                                     <th class="py-1 px-2 w-1/6 text-center border-r border-[#1E293B]">Sesudah</th>
                                     <th class="py-1 px-1.5 w-16 text-center border-r border-[#1E293B]">Satuan</th>
                                     <th class="py-1 px-2 w-1/6 border-r border-[#1E293B] text-left">Metode/Alat</th>
-                                    <th class="py-1 px-2 border-r border-[#1E293B] text-left">Keterangan</th>
-                                    <th class="py-1 px-1 w-8 text-center"></th>
+                                    <th class="py-1 px-2 text-left">Keterangan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -326,8 +344,7 @@
                                         <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="test.sesudah" placeholder="-" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                         <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="test.satuan" placeholder="ms / Mbps" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="test.metode" placeholder="Ping / Speedtest" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                        <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="test.keterangan" placeholder="OK" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                        <td class="text-center p-1"><button type="button" @click="removeTestResultRow(testIdx)" class="text-red-500 font-bold text-xs">✕</button></td>
+                                        <td class="p-1"><input type="text" x-model="test.keterangan" placeholder="OK" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -339,33 +356,36 @@
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. KENDALA / INCIDENT / DEVIASI</h3>
-                        <button type="button" @click="addIncidentRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                            <span>+ Tambah Baris</span>
-                        </button>
+                        <div class="flex items-center gap-3">
+                            <button type="button" @click="addIncidentRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                <span>+ Tambah Baris</span>
+                            </button>
+                            <button type="button" @click="removeIncidentRow()" x-show="reportFormData.incidents.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                <span>- Hapus Baris</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                         <table class="w-full border-collapse border border-[#1E293B]">
                             <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                 <tr>
                                     <th class="py-1 px-1.5 w-10 text-center border-r border-[#1E293B]">No.</th>
-                                    <th class="py-1 px-2 w-20 text-center border-r border-[#1E293B]">Waktu</th>
+                                    <th class="py-1 px-2 w-24 text-center border-r border-[#1E293B]">Waktu</th>
                                     <th class="py-1 px-2 w-1/4 border-r border-[#1E293B] text-left">Kendala / Incident</th>
                                     <th class="py-1 px-2 w-1/4 border-r border-[#1E293B] text-left">Dampak</th>
                                     <th class="py-1 px-2 border-r border-[#1E293B] text-left">Tindakan Penanganan</th>
-                                    <th class="py-1 px-2 w-20 text-center border-r border-[#1E293B]">Status</th>
-                                    <th class="py-1 px-1 w-8 text-center"></th>
+                                    <th class="py-1 px-2 w-20 text-center">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <template x-for="(inc, incIdx) in reportFormData.incidents" :key="incIdx">
                                     <tr class="border-b border-[#1E293B]">
                                         <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="incIdx + 1"></td>
-                                        <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="inc.waktu" placeholder="Waktu" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
+                                        <td class="p-1 border-r border-[#1E293B] text-center"><input type="time" x-model="inc.waktu" class="w-full p-1 text-center text-xs border-0 bg-transparent cursor-pointer"></td>
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.kendala" placeholder="Kendala" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.dampak" placeholder="Dampak" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.tindakan" placeholder="Tindakan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                        <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="inc.status" placeholder="Closed" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
-                                        <td class="text-center p-1"><button type="button" @click="removeIncidentRow(incIdx)" class="text-red-500 font-bold text-xs">✕</button></td>
+                                        <td class="p-1 text-center"><input type="text" x-model="inc.status" placeholder="Closed" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -548,62 +568,33 @@
                         <table class="w-full border-collapse border border-[#1E293B]">
                             <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                 <tr>
-                                    <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Pihak</th>
+                                    <th class="py-1.5 px-3 w-1/5 border-r border-[#1E293B] text-left">Pihak</th>
                                     <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Nama</th>
-                                    <th class="py-1.5 px-3 w-1/5 border-r border-[#1E293B] text-center">Tanggal</th>
-                                    <th class="py-1.5 px-3 w-3/10 text-center">Tanda Tangan</th>
+                                    <th class="py-1.5 px-3 w-1/6 border-r border-[#1E293B] text-center">Tanggal</th>
+                                    <th class="py-1.5 px-3 w-2/5 text-center">Tanda Tangan</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {{-- Engineer --}}
                                 <tr class="border-b border-[#1E293B]">
-                                    <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Engineer</td>
-                                    <td class="py-2 px-3 font-bold border-r border-[#1E293B]" x-text="sigInfo?.pic?.name || reportFormData.identitas.nama_engineer"></td>
-                                    <td class="py-2 px-3 text-center border-r border-[#1E293B]" x-text="sigInfo?.pic?.signed ? sigInfo?.pic?.signed_at : '{{ date('d/m/Y') }}'"></td>
-                                    <td class="py-2 px-3 text-center">
-                                        <template x-if="sigInfo?.pic?.signed">
-                                            <span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-[11px] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                                ✓ Telah Ditandatangani
-                                            </span>
-                                        </template>
-                                        <template x-if="!sigInfo?.pic?.signed">
-                                            <button type="button" @click="openSignaturePad('pic', 'PIC Field Engineer')"
-                                                    class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-[#8F0A0D] border border-red-200 rounded font-bold text-[11px] cursor-pointer">
-                                                Bubuhkan TTD
-                                            </button>
-                                        </template>
-                                    </td>
+                                    <td class="py-4 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Engineer</td>
+                                    <td class="py-4 px-3 font-bold border-r border-[#1E293B] align-middle" x-text="sigInfo?.pic?.name || reportFormData.identitas.nama_engineer"></td>
+                                    <td class="py-4 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.pic?.signed ? sigInfo?.pic?.signed_at : '{{ date('d/m/Y') }}'"></td>
+                                    <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                 </tr>
                                 {{-- Project Manager / Team Leader --}}
                                 <tr class="border-b border-[#1E293B]">
-                                    <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Project Manager / Team Leader</td>
-                                    <td class="py-2 px-3 font-bold border-r border-[#1E293B]" x-text="sigInfo?.lead?.name || 'Lead Network Engineer'"></td>
-                                    <td class="py-2 px-3 text-center border-r border-[#1E293B]" x-text="sigInfo?.lead?.signed ? sigInfo?.lead?.signed_at : '{{ date('d/m/Y') }}'"></td>
-                                    <td class="py-2 px-3 text-center">
-                                        <template x-if="sigInfo?.lead?.signed">
-                                            <span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-[11px] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                                ✓ Telah Diverifikasi
-                                            </span>
-                                        </template>
-                                        <template x-if="!sigInfo?.lead?.signed && sigInfo?.user_permissions?.can_sign_lead">
-                                            <button type="button" @click="openSignaturePad('lead', 'Lead Network Engineer')"
-                                                    class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded font-bold text-[11px] cursor-pointer">
-                                                Verifikasi &amp; TTD
-                                            </button>
-                                        </template>
-                                        <template x-if="!sigInfo?.lead?.signed && !sigInfo?.user_permissions?.can_sign_lead">
-                                            <span class="text-gray-400 italic text-[11px]">Menunggu Review Lead</span>
-                                        </template>
-                                    </td>
+                                    <td class="py-4 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Project Manager / Team Leader</td>
+                                    <td class="py-4 px-3 font-bold border-r border-[#1E293B] align-middle" x-text="sigInfo?.lead?.name || 'Lead Network Engineer'"></td>
+                                    <td class="py-4 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.lead?.signed ? sigInfo?.lead?.signed_at : '{{ date('d/m/Y') }}'"></td>
+                                    <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                 </tr>
                                 {{-- Customer / Site Representative --}}
                                 <tr>
-                                    <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Customer / Site Representative</td>
-                                    <td class="py-2 px-3 font-bold border-r border-[#1E293B]" x-text="reportFormData.identitas.pic_customer || 'PIC Klien'"></td>
-                                    <td class="py-2 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
-                                    <td class="py-2 px-3 text-center">
-                                        <span class="text-gray-400 italic text-[11px]">[Tanda Tangan &amp; Stempel Basah Site]</span>
-                                    </td>
+                                    <td class="py-4 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Customer / Site Representative</td>
+                                    <td class="py-4 px-3 font-bold border-r border-[#1E293B] align-middle" x-text="reportFormData.identitas.pic_customer || 'PIC Klien'"></td>
+                                    <td class="py-4 px-3 text-center border-r border-[#1E293B] align-middle">{{ date('d/m/Y') }}</td>
+                                    <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -644,33 +635,6 @@
             </div>
         </template>
 
-    </div>
-
-    {{-- Bottom Sticky Save Bar --}}
-    <div class="sticky bottom-0 bg-white border border-[#E2E8F0] rounded-xl p-3.5 shadow-lg flex items-center justify-between gap-3">
-        <div class="text-xs text-gray-500">
-            Pastikan seluruh data terisi lengkap sebelum mencetak atau mengunduh PDF.
-        </div>
-        <div class="flex items-center gap-2">
-            <button type="button" @click="saveReportForm()" :disabled="reportFormSaving"
-                    class="px-5 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50">
-                <svg x-show="reportFormSaving" class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                <svg x-show="!reportFormSaving" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                <span x-text="reportFormSaving ? 'Menyimpan...' : 'Simpan Form Laporan'"></span>
-            </button>
-            <div class="inline-flex rounded-xl shadow-xs">
-                <button type="button" @click="downloadReportPdf('download')"
-                   class="px-4 py-2 bg-white hover:bg-red-50 text-[#8F0A0D] border border-red-200 hover:border-red-300 font-bold text-xs rounded-l-xl transition inline-flex items-center gap-1.5 cursor-pointer">
-                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                    <span>Download PDF Resmi</span>
-                </button>
-                <button type="button" @click="downloadReportPdf('stream')"
-                   class="px-2.5 py-2 bg-white hover:bg-red-50 text-[#8F0A0D] border-t border-b border-r border-red-200 hover:border-red-300 font-bold text-xs rounded-r-xl transition inline-flex items-center cursor-pointer"
-                   title="Buka / Preview PDF di Tab Baru">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                </button>
-            </div>
-        </div>
     </div>
 
 </div>
