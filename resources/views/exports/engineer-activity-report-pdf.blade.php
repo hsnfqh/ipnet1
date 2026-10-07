@@ -408,9 +408,9 @@
     $namaFileFolder= $adminK['folder'] ?? ('DOK-' . \Illuminate\Support\Str::slug($namaProject, '_'));
 
     // Data TTD / Verifikasi Bagian J
-    $picSignerName  = $docSig?->pic_name ?? $namaEngineer;
-    $leadSignerName = $docSig?->lead_name ?? ($docSig?->leadUser?->name ?? 'Lead Network Engineer');
-    $custSignerName = $picCustomer !== '-' ? $picCustomer : 'PIC Site / Representative';
+    $picSignerName  = !empty($rData['identitas']['nama_engineer']) ? $rData['identitas']['nama_engineer'] : ($docSig?->pic_name ?? $namaEngineer);
+    $leadSignerName = !empty($rData['identitas']['nama_leader']) ? $rData['identitas']['nama_leader'] : ($docSig?->lead_name ?? ($docSig?->leadUser?->name ?? 'Nugraha Pratama'));
+    $custSignerName = (!empty($rData['identitas']['pic_customer']) && $rData['identitas']['pic_customer'] !== '-') ? $rData['identitas']['pic_customer'] : ($picCustomer !== '-' ? $picCustomer : 'PIC Site / Representative');
 
     $picSignedAt  = $docSig?->pic_signed_at ? $docSig->pic_signed_at->format('d/m/Y') : ($hariTanggal ? date('d/m/Y') : '-');
     $leadSignedAt = $docSig?->lead_signed_at ? $docSig->lead_signed_at->format('d/m/Y') : ($docSig?->pic_signed_at ? $docSig->pic_signed_at->format('d/m/Y') : '-');

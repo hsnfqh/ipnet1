@@ -38,6 +38,7 @@
             lokasi_site: '',
             work_order: '',
             nama_engineer: '{{ auth()->user()?->name ?? 'Engineer' }}',
+            nama_leader: 'Nugraha Pratama',
             customer: '',
             jenis_pekerjaan: '',
             pic_customer: '',
@@ -855,19 +856,25 @@
                                     <tbody>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Engineer</td>
-                                            <td class="py-2.5 px-3 font-bold border-r border-[#1E293B]" x-text="reportFormData.identitas.nama_engineer"></td>
+                                            <td class="py-1 px-2 border-r border-[#1E293B]">
+                                                <input type="text" x-model="reportFormData.identitas.nama_engineer" placeholder="Nama Engineer" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
+                                            </td>
                                             <td class="py-2.5 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
                                             <td class="py-6 px-3 text-center min-h-[60px]"></td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Project Manager / Team Leader</td>
-                                            <td class="py-2.5 px-3 font-bold border-r border-[#1E293B]">Lead Network Engineer</td>
+                                            <td class="py-1 px-2 border-r border-[#1E293B]">
+                                                <input type="text" x-model="reportFormData.identitas.nama_leader" placeholder="Nama PM / Team Leader" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
+                                            </td>
                                             <td class="py-2.5 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
                                             <td class="py-6 px-3 text-center min-h-[60px]"></td>
                                         </tr>
                                         <tr>
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Customer / Site Representative</td>
-                                            <td class="py-2.5 px-3 font-bold border-r border-[#1E293B]" x-text="reportFormData.identitas.pic_customer || 'PIC Klien'"></td>
+                                            <td class="py-1 px-2 border-r border-[#1E293B]">
+                                                <input type="text" x-model="reportFormData.identitas.pic_customer" placeholder="Ketik nama PIC Klien / Customer..." class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
+                                            </td>
                                             <td class="py-2.5 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
                                             <td class="py-6 px-3 text-center min-h-[60px]"></td>
                                         </tr>

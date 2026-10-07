@@ -585,23 +585,29 @@
                             <tbody>
                                 {{-- Engineer --}}
                                 <tr class="border-b border-[#1E293B]">
-                                    <td class="py-4 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Engineer</td>
-                                    <td class="py-4 px-3 font-bold border-r border-[#1E293B] align-middle" x-text="sigInfo?.pic?.name || reportFormData.identitas.nama_engineer"></td>
-                                    <td class="py-4 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.pic?.signed ? sigInfo?.pic?.signed_at : '{{ date('d/m/Y') }}'"></td>
+                                    <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Engineer</td>
+                                    <td class="py-1 px-2 border-r border-[#1E293B] align-middle">
+                                        <input type="text" x-model="reportFormData.identitas.nama_engineer" placeholder="Nama Engineer" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
+                                    </td>
+                                    <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.pic?.signed ? sigInfo?.pic?.signed_at : '{{ date('d/m/Y') }}'"></td>
                                     <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                 </tr>
                                 {{-- Project Manager / Team Leader --}}
                                 <tr class="border-b border-[#1E293B]">
-                                    <td class="py-4 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Project Manager / Team Leader</td>
-                                    <td class="py-4 px-3 font-bold border-r border-[#1E293B] align-middle" x-text="sigInfo?.lead?.name || 'Lead Network Engineer'"></td>
-                                    <td class="py-4 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.lead?.signed ? sigInfo?.lead?.signed_at : '{{ date('d/m/Y') }}'"></td>
+                                    <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Project Manager / Team Leader</td>
+                                    <td class="py-1 px-2 border-r border-[#1E293B] align-middle">
+                                        <input type="text" x-model="reportFormData.identitas.nama_leader" placeholder="Nama PM / Team Leader" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
+                                    </td>
+                                    <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.lead?.signed ? sigInfo?.lead?.signed_at : '{{ date('d/m/Y') }}'"></td>
                                     <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                 </tr>
                                 {{-- Customer / Site Representative --}}
                                 <tr>
-                                    <td class="py-4 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Customer / Site Representative</td>
-                                    <td class="py-4 px-3 font-bold border-r border-[#1E293B] align-middle" x-text="reportFormData.identitas.pic_customer || 'PIC Klien'"></td>
-                                    <td class="py-4 px-3 text-center border-r border-[#1E293B] align-middle">{{ date('d/m/Y') }}</td>
+                                    <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Customer / Site Representative</td>
+                                    <td class="py-1 px-2 border-r border-[#1E293B] align-middle">
+                                        <input type="text" x-model="reportFormData.identitas.pic_customer" placeholder="Ketik nama PIC Klien / Customer..." class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
+                                    </td>
+                                    <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle">{{ date('d/m/Y') }}</td>
                                     <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                 </tr>
                             </tbody>
