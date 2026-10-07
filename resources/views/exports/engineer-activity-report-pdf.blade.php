@@ -858,10 +858,10 @@
                 <td class="sig-container">
                     @if(!empty($docSig?->pic_signature))
                         <img src="{{ $docSig->pic_signature }}" alt="TTD PIC" class="sig-img">
-                    @elseif(!empty($qrCodeBase64))
+                    @elseif(!empty($docSig?->pic_signed_at) && !empty($qrCodeBase64))
                         <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 38px; width: 38px; display: block; margin: 0 auto;">
                     @else
-                        <div style="color: #94A3B8; font-size: 6.2pt; font-style: italic;">[Tanda Tangan / QR]</div>
+                        &nbsp;
                     @endif
                 </td>
             </tr>
@@ -876,7 +876,7 @@
                     @elseif(!empty($qrCodeBase64) && !empty($docSig?->lead_signed_at))
                         <img src="{{ $qrCodeBase64 }}" alt="QR" style="height: 38px; width: 38px; display: block; margin: 0 auto;">
                     @else
-                        <div style="color: #94A3B8; font-size: 6.2pt; font-style: italic;">[Tanda Tangan / QR]</div>
+                        &nbsp;
                     @endif
                 </td>
             </tr>
@@ -889,7 +889,7 @@
                     @if(!empty($docSig?->head_signature))
                         <img src="{{ $docSig->head_signature }}" alt="TTD Head/Customer" class="sig-img">
                     @else
-                        <div style="color: #94A3B8; font-size: 6.2pt; font-style: italic;">[Tanda Tangan &amp; Stempel]</div>
+                        &nbsp;
                     @endif
                 </td>
             </tr>
