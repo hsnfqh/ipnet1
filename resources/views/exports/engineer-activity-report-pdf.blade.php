@@ -5,7 +5,7 @@
     <title>Form Laporan Aktivitas Engineer - PT IP Network Solusindo</title>
     <style>
         @page {
-            margin: 10mm 12mm 10mm 12mm;
+            margin: 9mm 12mm 9mm 12mm;
             size: a4 portrait;
         }
         * {
@@ -13,15 +13,16 @@
         }
         body {
             font-family: 'Helvetica', Arial, sans-serif;
-            font-size: 7.2pt;
+            font-size: 7.4pt;
             color: #000000;
-            line-height: 1.25;
+            line-height: 1.28;
             margin: 0;
             padding: 0;
         }
         .page-container {
             width: 100%;
-            height: 100%;
+            height: 275mm;
+            position: relative;
         }
         .page-break {
             page-break-after: always;
@@ -32,7 +33,8 @@
             width: 100%;
             border-collapse: collapse;
             border: none;
-            margin-bottom: 4px;
+            margin-top: 2px;
+            margin-bottom: 6px;
         }
         .doc-header-table td {
             border: none;
@@ -40,29 +42,29 @@
             vertical-align: middle;
         }
         .doc-title {
-            font-size: 11.5pt;
+            font-size: 13.5pt;
             font-weight: bold;
             color: #000000;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.4px;
             text-align: center;
         }
         .doc-intro {
-            font-size: 6.8pt;
+            font-size: 7.2pt;
             color: #1E293B;
-            margin-top: 3px;
-            margin-bottom: 6px;
-            line-height: 1.2;
+            margin-top: 5px;
+            margin-bottom: 14px;
+            line-height: 1.25;
         }
 
         /* ── Judul Section ── */
         .section-title {
-            font-size: 7.8pt;
+            font-size: 8.4pt;
             font-weight: bold;
             color: #000000;
             text-transform: uppercase;
-            margin-top: 5px;
-            margin-bottom: 2px;
+            margin-top: 8px;
+            margin-bottom: 3px;
             letter-spacing: 0.2px;
         }
 
@@ -70,27 +72,28 @@
         .report-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
             table-layout: fixed;
         }
         .report-table th {
             background-color: #EBF3FB;
             color: #000000;
             font-weight: bold;
-            font-size: 6.8pt;
-            padding: 2.5px 3px;
+            font-size: 7.2pt;
+            padding: 3.5px 3.5px;
             border: 1px solid #000000;
             text-align: center;
             vertical-align: middle;
         }
         .report-table td {
-            font-size: 6.8pt;
-            padding: 2px 3.5px;
+            font-size: 7.2pt;
+            padding: 3.2px 4.2px;
             border: 1px solid #000000;
             vertical-align: middle;
             color: #000000;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            line-height: 1.25;
         }
         .report-table td.label-cell {
             font-weight: bold;
@@ -104,12 +107,13 @@
         /* ── Checkbox Resmi ── */
         .check-box {
             display: inline-block;
-            width: 8.5px;
-            height: 8.5px;
+            font-family: 'DejaVu Sans', sans-serif;
+            width: 9.5px;
+            height: 9.5px;
             border: 1px solid #000000;
             text-align: center;
-            line-height: 8px;
-            font-size: 7.5pt;
+            line-height: 9px;
+            font-size: 8pt;
             font-weight: bold;
             vertical-align: middle;
             margin-right: 3px;
@@ -118,9 +122,12 @@
 
         /* ── Footer Dokumen ── */
         .doc-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
             width: 100%;
-            margin-top: 6px;
-            padding-top: 3px;
+            padding-top: 4px;
             border-top: 1px solid #000000;
         }
         .footer-table {
@@ -132,18 +139,9 @@
             border: none;
             padding: 0;
             vertical-align: middle;
-            font-size: 5.8pt;
+            font-size: 6pt;
             color: #000000;
-            line-height: 1.15;
-        }
-        .paraf-box {
-            display: inline-block;
-            width: 38px;
-            height: 16px;
-            border: 1px solid #000000;
-            vertical-align: middle;
-            margin-left: 3px;
-            margin-right: 5px;
+            line-height: 1.2;
         }
 
         /* ── Kotak Foto Dokumentasi ── */
@@ -157,7 +155,7 @@
             justify-content: center;
             text-align: center;
             color: #64748B;
-            font-size: 6.8pt;
+            font-size: 7pt;
             font-weight: bold;
             padding: 4px;
         }
@@ -171,12 +169,12 @@
 
         /* ── Kotak Tanda Tangan ── */
         .sig-container {
-            height: 46px;
+            height: 48px;
             text-align: center;
             vertical-align: middle;
         }
         .sig-img {
-            max-height: 42px;
+            max-height: 44px;
             max-width: 110px;
             display: block;
             margin: 0 auto;
@@ -691,10 +689,8 @@
                 </td>
                 <td style="width: 35%; text-align: right; vertical-align: top;">
                     <div style="font-weight: bold; color: #000000; font-size: 6.2pt;">&copy;PT.IP Network Solusindo, Seluruh Hak Dilindungi.</div>
-                    <div style="margin-top: 2px;">
-                        <span>Paraf</span>
-                        <span class="paraf-box"></span>
-                        <strong style="font-size: 6.8pt; color: #000000;">Hal 1</strong>
+                    <div style="margin-top: 3px;">
+                        <strong style="font-size: 7.4pt; color: #000000;">Hal 1</strong>
                     </div>
                 </td>
             </tr>
@@ -709,7 +705,7 @@
 <div class="page-container">
 
     {{-- KOP SURAT / HEADER HALAMAN 2 --}}
-    <table class="doc-header-table" style="margin-bottom: 6px;">
+    <table class="doc-header-table" style="margin-top: 2px; margin-bottom: 10px;">
         <tr>
             <td style="width: 15%; text-align: left; vertical-align: middle;">
                 @if(!empty($logoBase64))
@@ -891,7 +887,7 @@
     </div>
 
     {{-- FOOTER HALAMAN 2 --}}
-    <div class="doc-footer" style="margin-top: 14px;">
+    <div class="doc-footer">
         <table class="footer-table">
             <tr>
                 <td style="width: 65%;">
@@ -902,10 +898,8 @@
                 </td>
                 <td style="width: 35%; text-align: right; vertical-align: top;">
                     <div style="font-weight: bold; color: #000000; font-size: 6.2pt;">&copy;PT.IP Network Solusindo, Seluruh Hak Dilindungi.</div>
-                    <div style="margin-top: 2px;">
-                        <span>Paraf</span>
-                        <span class="paraf-box"></span>
-                        <strong style="font-size: 6.8pt; color: #000000;">Hal 2</strong>
+                    <div style="margin-top: 3px;">
+                        <strong style="font-size: 7.4pt; color: #000000;">Hal 2</strong>
                     </div>
                 </td>
             </tr>
