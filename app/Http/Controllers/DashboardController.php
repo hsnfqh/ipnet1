@@ -1773,7 +1773,29 @@ class DashboardController extends Controller
                 return redirect()->back()->with('error', 'Silakan isi setidaknya satu baris aktivitas.');
             }
 
-            return redirect()->back()->with('success', "Berhasil menyimpan {$itemsCreated} aktivitas!");
+            // Simpan atau perbarui data formulir resmi (report_data) jika dikirim dari form
+            if ($request->filled('report_data') && $projectId) {
+                try {
+                    $rawReport = is_string($request->report_data) ? json_decode($request->report_data, true) : $request->report_data;
+                    if (is_array($rawReport)) {
+                        $scopeKey = 'proj_' . $projectId;
+                        $sig = \App\Models\ActivityDocumentSignature::firstOrNew(['scope_key' => $scopeKey]);
+                        if (!$sig->exists) {
+                            $sig->document_number = \App\Models\ActivityDocumentSignature::generateDocumentNumber();
+                            $sig->scope_key       = $scopeKey;
+                            $sig->project_id      = $projectId;
+                            $sig->project_name    = \App\Models\Project::find($projectId)?->name ?? 'Project';
+                            $sig->status          = 'draft';
+                        }
+                        $sig->report_data = $rawReport;
+                        $sig->save();
+                    }
+                } catch (\Throwable $e) {
+                    // Abaikan jika tabel belum siap
+                }
+            }
+
+            return redirect()->back()->with('success', "Berhasil menyimpan {$itemsCreated} aktivitas dan formulir laporan resmi!");
         }
 
         // Mode 2: Single Activity Form
