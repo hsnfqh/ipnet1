@@ -221,6 +221,7 @@
                 // Preload status tanda tangan untuk seluruh grup di halaman ini agar instan
                 $preloadedSigList = collect();
                 try {
+                    \App\Models\ActivityDocumentSignature::ensureSchemaReady();
                     $allScopeKeys = $grouped->keys()->toArray();
                     $allProjectIds = $grouped->map(fn($g) => $g->first()->project_id)->filter()->values()->toArray();
                     $preloadedSigList = \App\Models\ActivityDocumentSignature::whereIn('scope_key', $allScopeKeys)
@@ -347,6 +348,7 @@
                                 'title'     => $matchedSig->head_title ?? 'Head of Division',
                                 'signed_at' => $matchedSig->head_signed_at ? $matchedSig->head_signed_at->format('d M Y, H:i') . ' WIB' : null,
                             ],
+                            'report_data'     => $matchedSig->report_data,
                         ] : null;
 
                         // Build full modal data
@@ -919,6 +921,9 @@ function engineerActivityManager() {
             this.sigInfo = groupData?.sig_info || null;
             this.activeDetailTab = 'form';
             this.initDefaultReportData();
+            if (this.sigInfo?.report_data) {
+                this.loadReportData(this.sigInfo.report_data);
+            }
             this.isDetailModalOpen = true;
             if (groupData && groupData.scope_key) {
                 this.fetchSignatureStatus(groupData.scope_key);
@@ -1078,16 +1083,14 @@ function engineerActivityManager() {
                     headers: { 'Accept': 'application/json' }
                 });
                 if (res.ok) {
-                    this.sigInfo = await res.json();
-                    if (this.sigInfo?.report_data) {
-                        this.loadReportData(this.sigInfo.report_data);
-                    } else {
-                        this.initDefaultReportData();
+                    const data = await res.json();
+                    this.sigInfo = data;
+                    if (data?.report_data) {
+                        this.loadReportData(data.report_data);
                     }
                 }
             } catch (e) {
                 console.error('Error fetching signature status:', e);
-                this.initDefaultReportData();
             }
         },
 

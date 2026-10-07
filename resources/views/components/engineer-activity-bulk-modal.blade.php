@@ -258,8 +258,14 @@
             e.preventDefault();
             return;
         }
-        if (this.$refs.reportDataInput) {
-            this.$refs.reportDataInput.value = JSON.stringify(this.reportFormData);
+        try {
+            const rawPayload = typeof Alpine !== 'undefined' && Alpine.raw ? Alpine.raw(this.reportFormData) : this.reportFormData;
+            const serialized = JSON.stringify(rawPayload);
+            if (this.$refs.reportDataInput) {
+                this.$refs.reportDataInput.value = serialized;
+            }
+        } catch (err) {
+            console.error('Error stringifying reportFormData:', err);
         }
     }
 }"

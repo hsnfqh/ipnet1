@@ -23,14 +23,7 @@ class ActivitySignatureController extends Controller
             return response()->json(['error' => 'scope_key parameter is required'], 400);
         }
 
-        // Auto-migrate tabel di hosting jika belum pernah dimigrasikan
-        if (!Schema::hasTable('activity_document_signatures')) {
-            try {
-                Artisan::call('migrate', ['--force' => true]);
-            } catch (\Throwable $e) {
-                // abaikan
-            }
-        }
+        ActivityDocumentSignature::ensureSchemaReady();
 
         $currentUser = auth()->user();
         $sig = null;
@@ -245,22 +238,26 @@ class ActivitySignatureController extends Controller
         }
 
         $scopeKey = $request->input('scope_key');
+        $projectId = $request->input('project_id');
 
-        if (!Schema::hasTable('activity_document_signatures')) {
-            try {
-                Artisan::call('migrate', ['--force' => true]);
-            } catch (\Throwable $e) {}
-        }
+        ActivityDocumentSignature::ensureSchemaReady();
 
         try {
-            $sig = ActivityDocumentSignature::firstOrNew(['scope_key' => $scopeKey]);
+            $sig = ActivityDocumentSignature::where('scope_key', $scopeKey)
+                ->orWhere(function($q) use ($projectId) {
+                    if ($projectId) $q->where('project_id', $projectId);
+                })
+                ->first();
 
-            if (!$sig->exists) {
+            if (!$sig) {
+                $sig = new ActivityDocumentSignature();
                 $sig->document_number = ActivityDocumentSignature::generateDocumentNumber();
                 $sig->scope_key       = $scopeKey;
-                $sig->project_id      = $request->input('project_id');
+                $sig->project_id      = $projectId;
                 $sig->project_name    = $request->input('project_name');
                 $sig->status          = 'draft';
+            } else {
+                $sig->scope_key = $scopeKey;
             }
 
             $sig->report_data = $request->input('report_data');

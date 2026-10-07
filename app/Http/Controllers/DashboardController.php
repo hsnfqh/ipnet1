@@ -1851,20 +1851,29 @@ class DashboardController extends Controller
 
             // Simpan atau perbarui data formulir resmi (report_data) jika dikirim dari form
             if ($projectId && !empty($rawReport) && is_array($rawReport)) {
+                \App\Models\ActivityDocumentSignature::ensureSchemaReady();
                 try {
                     $scopeKey = 'proj_' . $projectId;
-                    $sig = \App\Models\ActivityDocumentSignature::firstOrNew(['scope_key' => $scopeKey]);
-                    if (!$sig->exists) {
+                    $sig = \App\Models\ActivityDocumentSignature::where('scope_key', $scopeKey)
+                        ->orWhere('project_id', $projectId)
+                        ->first();
+
+                    if (!$sig) {
+                        $sig = new \App\Models\ActivityDocumentSignature();
                         $sig->document_number = \App\Models\ActivityDocumentSignature::generateDocumentNumber();
                         $sig->scope_key       = $scopeKey;
                         $sig->project_id      = $projectId;
                         $sig->project_name    = \App\Models\Project::find($projectId)?->name ?? 'Project';
                         $sig->status          = 'draft';
+                    } else {
+                        // Pastikan scope_key konsisten
+                        $sig->scope_key = $scopeKey;
                     }
+
                     $sig->report_data = $rawReport;
                     $sig->save();
                 } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning('Save signature report error: ' . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::error('Save signature report error: ' . $e->getMessage());
                 }
             }
 

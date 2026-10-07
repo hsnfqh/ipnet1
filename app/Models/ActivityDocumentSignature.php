@@ -67,10 +67,39 @@ class ActivityDocumentSignature extends Model
     }
 
     /**
+     * Pastikan tabel dan kolom report_data selalu siap di server MySQL
+     */
+    public static function ensureSchemaReady(): void
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('activity_document_signatures')) {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('activity_document_signatures')) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('activity_document_signatures', 'report_data')) {
+                    try {
+                        \Illuminate\Support\Facades\Schema::table('activity_document_signatures', function (\Illuminate\Database\Schema\Blueprint $table) {
+                            $table->longText('report_data')->nullable()->after('notes');
+                        });
+                    } catch (\Throwable $ex) {
+                        try {
+                            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                        } catch (\Throwable $e2) {}
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ensureSchemaReady: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Generate document registration number e.g. IPNET-ACT-202610-0001
      */
     public static function generateDocumentNumber(): string
     {
+        self::ensureSchemaReady();
         try {
             $prefix = 'IPNET-ACT-' . date('Ym') . '-';
             $count  = self::where('document_number', 'like', $prefix . '%')->count() + 1;
