@@ -1095,8 +1095,8 @@ function engineerActivityManager() {
                 return m ? m[1].padStart(5, '0') : fallback;
             };
 
-            const jamMulai = extractTime(firstItem.time_str || firstItem.start_time, '09:00');
-            const jamSelesai = extractTime(lastItem.time_str || lastItem.end_time || lastItem.start_time, '17:00');
+            const jamMulai = extractTime(firstItem.time_str || firstItem.start_time, '');
+            const jamSelesai = extractTime(lastItem.time_str || lastItem.end_time || lastItem.start_time, '');
 
             this.reportFormData = {
                 identitas: {
@@ -1122,7 +1122,7 @@ function engineerActivityManager() {
                         nama: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? '' }}',
                         unit_kerja: '',
                         jabatan: '{{ auth()->user()?->position ?: 'Field Engineer' }}',
-                        keterangan: 'PIC Utama'
+                        keterangan: ''
                     }
                 ],
                 total_tenaga_kerja: 1,
@@ -1135,15 +1135,15 @@ function engineerActivityManager() {
                 },
                 rincian_aktivitas: items.length > 0 ? items.map((it, idx) => ({
                     no: idx + 1,
-                    waktu: extractTime(it.time_str || it.start_time, '09:00'),
+                    waktu: extractTime(it.time_str || it.start_time, ''),
                     aktivitas: it.subject || '',
                     perangkat: '',
                     hasil: '',
-                    status: it.status || 'Selesai',
+                    status: it.status || '',
                     kendala: '',
                     tindak_lanjut: it.notes && it.notes !== '-' ? it.notes : '',
                 })) : [
-                    { no: 1, waktu: '09:00', aktivitas: '', perangkat: '', hasil: '', status: 'Selesai', kendala: '', tindak_lanjut: '' }
+                    { no: 1, waktu: '', aktivitas: '', perangkat: '', hasil: '', status: '', kendala: '', tindak_lanjut: '' }
                 ],
                 materials: [
                     { nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: '', keterangan: '' }
@@ -1152,11 +1152,11 @@ function engineerActivityManager() {
                     { parameter: '', sebelum: '', sesudah: '', satuan: '', metode: '', keterangan: '' }
                 ],
                 incidents: [
-                    { waktu: '09:00', kendala: '', dampak: '', tindakan: '', status: '' }
+                    { waktu: '', kendala: '', dampak: '', tindakan: '', status: '' }
                 ],
                 hasil_akhir: {
-                    status_pekerjaan: 'selesai',
-                    progress_percent: 100,
+                    status_pekerjaan: '',
+                    progress_percent: '',
                     kondisi_sistem: '',
                     outstanding: '',
                     rekomendasi: '',

@@ -30,42 +30,42 @@
     projectsMap: {{ Js::from($projectsLookup) }},
     reportFormData: {
         identitas: {
-            hari_tanggal: '{{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}',
+            hari_tanggal: '{{ date('Y-m-d') }}',
             hari_tanggal_raw: '{{ date('Y-m-d') }}',
             no_laporan: 'IPNET-ACT-{{ date('Ym') }}-DRAFT',
             nama_project: '',
-            no_so_spk: '-',
-            lokasi_site: '-',
-            work_order: '-',
+            no_so_spk: '',
+            lokasi_site: '',
+            work_order: '',
             nama_engineer: '{{ auth()->user()?->name ?? 'Engineer' }}',
-            customer: '-',
-            jenis_pekerjaan: 'Implementasi / Troubleshooting',
-            pic_customer: '-',
-            kategori_pekerjaan: 'implement',
+            customer: '',
+            jenis_pekerjaan: '',
+            pic_customer: '',
+            kategori_implementasi: false,
+            kategori_managed_service: false,
+            kategori_pekerjaan: '',
             jabatan: '{{ auth()->user()?->position ?: (auth()->user()?->getRoleNames()->first() ?: 'Field Engineer') }}',
-            jam_mulai: '09:00 WIB',
-            jam_selesai: '17:00 WIB',
+            jam_mulai: '',
+            jam_selesai: '',
         },
         manpower: [
             {
                 nama: '{{ auth()->user()?->name ?? 'Engineer' }}',
-                unit_kerja: 'Technical Support',
+                unit_kerja: '',
                 jabatan: '{{ auth()->user()?->position ?: 'Field Engineer' }}',
-                keterangan: 'PIC Utama'
+                keterangan: ''
             }
         ],
         total_tenaga_kerja: 1,
         ruang_lingkup: {
             target_hari_ini: '',
-            durasi_project: '1 Hari Kerja (Sesuai Penugasan WO)',
-            scope_pekerjaan: 'Instalasi, konfigurasi, monitoring, dan pengujian performa sistem di lokasi klien',
-            perangkat_sistem: 'Router, Switch, Access Point & Infrastruktur Jaringan Terkait',
-            kriteria_selesai: 'Sistem terpasang, terhubung normal, terverifikasi fungsionalitas dan disetujui PIC Klien',
+            durasi_project: '',
+            scope_pekerjaan: '',
+            perangkat_sistem: '',
+            kriteria_selesai: '',
         },
         rincian_aktivitas: [
-            { no: 1, waktu: '09:00', aktivitas: '', perangkat: 'Area Kerja / Site', hasil: 'Normal / Berhasil', status: 'Selesai', kendala: '-', tindak_lanjut: '-' },
-            { no: 2, waktu: '10:30', aktivitas: '', perangkat: 'Area Kerja / Site', hasil: 'Normal / Berhasil', status: 'Selesai', kendala: '-', tindak_lanjut: '-' },
-            { no: 3, waktu: '13:00', aktivitas: '', perangkat: 'Area Kerja / Site', hasil: 'Normal / Berhasil', status: 'Selesai', kendala: '-', tindak_lanjut: '-' }
+            { no: 1, waktu: '', aktivitas: '', perangkat: '', hasil: '', status: '', kendala: '', tindak_lanjut: '' }
         ],
         materials: [
             { nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: '', keterangan: '' }
@@ -77,23 +77,23 @@
             { waktu: '', kendala: '', dampak: '', tindakan: '', status: '' }
         ],
         hasil_akhir: {
-            status_pekerjaan: 'selesai',
-            progress_percent: 100,
-            kondisi_sistem: 'Sistem dan perangkat beroperasi normal, handal dan stabil',
-            outstanding: 'Tidak ada (Seluruh target aktivitas hari ini selesai)',
-            rekomendasi: 'Monitoring berkala performa perangkat dan pencatatan log rutin',
-            eskalasi_pic: '-',
+            status_pekerjaan: '',
+            progress_percent: '',
+            kondisi_sistem: '',
+            outstanding: '',
+            rekomendasi: '',
+            eskalasi_pic: '',
         },
         foto_dokumentasi: {
-            before: { area: 'Perangkat sebelum pengerjaan', url: '', caption: 'Kondisi awal sebelum tindakan teknis' },
-            progress: { area: 'Proses implementasi / maintenance', url: '', caption: 'Aktivitas penanganan teknis berlangsung' },
-            after: { area: 'Perangkat setelah pengerjaan selesai', url: '', caption: 'Kondisi akhir perangkat beroperasi normal' },
+            before: { area: '', url: '', caption: '' },
+            progress: { area: '', url: '', caption: '' },
+            after: { area: '', url: '', caption: '' },
         },
         administrasi: {
-            nomor_wo: '-',
-            nomor_ba: '-',
-            lampiran: 'Dokumentasi Foto Fisik & Checklist',
-            folder: 'DOK-LAPORAN',
+            nomor_wo: '',
+            nomor_ba: '',
+            lampiran: '',
+            folder: '',
         }
     },
 
@@ -102,16 +102,17 @@
         const p = this.projectsMap[this.bulkProjectId];
         if (p) {
             this.reportFormData.identitas.nama_project = p.name || '';
-            this.reportFormData.identitas.customer = p.client || '-';
-            this.reportFormData.identitas.lokasi_site = p.location || '-';
-            this.reportFormData.identitas.no_so_spk = p.po_number || '-';
-            this.reportFormData.identitas.pic_customer = p.customer_pic_technical || '-';
-            this.reportFormData.ruang_lingkup.target_hari_ini = p.name + ' - Pelaksanaan Aktivitas Lapangan';
-            if (p.description) this.reportFormData.ruang_lingkup.scope_pekerjaan = p.description;
+            this.reportFormData.identitas.customer = p.client || '';
+            this.reportFormData.identitas.lokasi_site = p.location || '';
+            this.reportFormData.identitas.no_so_spk = p.po_number || '';
+            this.reportFormData.identitas.pic_customer = p.customer_pic_technical || '';
             if (p.progress) this.reportFormData.hasil_akhir.progress_percent = p.progress;
-            this.reportFormData.administrasi.folder = 'DOK-' + (p.name || 'PROJECT').replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
-            if ((p.name || '').toLowerCase().includes('maintenance')) {
-                this.reportFormData.identitas.kategori_pekerjaan = 'maintenance';
+            if ((p.name || '').toLowerCase().includes('maintenance') || (p.name || '').toLowerCase().includes('managed')) {
+                this.reportFormData.identitas.kategori_managed_service = true;
+                this.reportFormData.identitas.kategori_implementasi = false;
+            } else {
+                this.reportFormData.identitas.kategori_implementasi = true;
+                this.reportFormData.identitas.kategori_managed_service = false;
             }
         }
     },
@@ -120,19 +121,23 @@
         const nextNo = this.reportFormData.rincian_aktivitas.length + 1;
         this.reportFormData.rincian_aktivitas.push({
             no: nextNo,
-            waktu: '14:00',
+            waktu: '',
             aktivitas: '',
-            perangkat: 'Area Kerja / Site',
-            hasil: 'Normal / Berhasil',
-            status: 'Selesai',
-            kendala: '-',
-            tindak_lanjut: '-'
+            perangkat: '',
+            hasil: '',
+            status: '',
+            kendala: '',
+            tindak_lanjut: ''
         });
     },
 
     removeActRow(idx) {
         if (this.reportFormData.rincian_aktivitas.length > 1) {
-            this.reportFormData.rincian_aktivitas.splice(idx, 1);
+            if (typeof idx === 'number') {
+                this.reportFormData.rincian_aktivitas.splice(idx, 1);
+            } else {
+                this.reportFormData.rincian_aktivitas.pop();
+            }
             this.reportFormData.rincian_aktivitas.forEach((r, i) => r.no = i + 1);
         } else {
             this.reportFormData.rincian_aktivitas[0].aktivitas = '';
@@ -145,7 +150,11 @@
     },
     removeManpowerRow(idx) {
         if (this.reportFormData.manpower.length > 1) {
-            this.reportFormData.manpower.splice(idx, 1);
+            if (typeof idx === 'number') {
+                this.reportFormData.manpower.splice(idx, 1);
+            } else {
+                this.reportFormData.manpower.pop();
+            }
             this.reportFormData.total_tenaga_kerja = this.reportFormData.manpower.length;
         }
     },
@@ -154,21 +163,39 @@
         this.reportFormData.materials.push({ nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: '', keterangan: '' });
     },
     removeMaterialRow(idx) {
-        this.reportFormData.materials.splice(idx, 1);
+        if (this.reportFormData.materials.length > 1) {
+            if (typeof idx === 'number') {
+                this.reportFormData.materials.splice(idx, 1);
+            } else {
+                this.reportFormData.materials.pop();
+            }
+        }
     },
 
     addTestResultRow() {
         this.reportFormData.test_results.push({ parameter: '', sebelum: '', sesudah: '', satuan: '', metode: '', keterangan: '' });
     },
     removeTestResultRow(idx) {
-        this.reportFormData.test_results.splice(idx, 1);
+        if (this.reportFormData.test_results.length > 1) {
+            if (typeof idx === 'number') {
+                this.reportFormData.test_results.splice(idx, 1);
+            } else {
+                this.reportFormData.test_results.pop();
+            }
+        }
     },
 
     addIncidentRow() {
         this.reportFormData.incidents.push({ waktu: '', kendala: '', dampak: '', tindakan: '', status: '' });
     },
     removeIncidentRow(idx) {
-        this.reportFormData.incidents.splice(idx, 1);
+        if (this.reportFormData.incidents.length > 1) {
+            if (typeof idx === 'number') {
+                this.reportFormData.incidents.splice(idx, 1);
+            } else {
+                this.reportFormData.incidents.pop();
+            }
+        }
     },
 
     handlePhotoUpload(e, stage) {
@@ -299,7 +326,7 @@
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Hari/Tanggal</td>
                                             <td class="w-3/10 py-1 px-2 border-r border-[#1E293B]">
-                                                <input type="text" x-model="reportFormData.identitas.hari_tanggal" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-medium text-xs">
+                                                <input type="date" x-model="reportFormData.identitas.hari_tanggal_raw" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-medium text-xs cursor-pointer">
                                             </td>
                                             <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">No. Laporan</td>
                                             <td class="w-3/10 py-1 px-2">
@@ -351,12 +378,12 @@
                                             <td class="py-1 px-2.5 border-r border-[#1E293B]">
                                                 <div class="flex items-center gap-4 text-xs font-semibold">
                                                     <label class="flex items-center gap-1.5 cursor-pointer">
-                                                        <input type="radio" value="implement" x-model="reportFormData.identitas.kategori_pekerjaan" class="text-[#8F0A0D] focus:ring-[#8F0A0D]">
-                                                        <span>Implement</span>
+                                                        <input type="checkbox" x-model="reportFormData.identitas.kategori_implementasi" class="rounded text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                                                        <span>Implementasi</span>
                                                     </label>
                                                     <label class="flex items-center gap-1.5 cursor-pointer">
-                                                        <input type="radio" value="maintenance" x-model="reportFormData.identitas.kategori_pekerjaan" class="text-[#8F0A0D] focus:ring-[#8F0A0D]">
-                                                        <span>Maintenance</span>
+                                                        <input type="checkbox" x-model="reportFormData.identitas.kategori_managed_service" class="rounded text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                                                        <span>Managed Service</span>
                                                     </label>
                                                 </div>
                                             </td>
@@ -368,11 +395,11 @@
                                         <tr>
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Jam Mulai</td>
                                             <td class="py-1 px-2 border-r border-[#1E293B]">
-                                                <input type="text" x-model="reportFormData.identitas.jam_mulai" placeholder="Contoh: 09:00 WIB" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
+                                                <input type="time" x-model="reportFormData.identitas.jam_mulai" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
                                             </td>
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Jam Selesai</td>
                                             <td class="py-1 px-2">
-                                                <input type="text" x-model="reportFormData.identitas.jam_selesai" placeholder="Contoh: 17:00 WIB" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
+                                                <input type="time" x-model="reportFormData.identitas.jam_selesai" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
                                             </td>
                                         </tr>
                                     </tbody>
@@ -384,9 +411,14 @@
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. KOMPOSISI TENAGA KERJA</h3>
-                                <button type="button" @click="addManpowerRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                                    <span>+ Tambah Personel</span>
-                                </button>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" @click="addManpowerRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>+ Tambah Personel</span>
+                                    </button>
+                                    <button type="button" @click="removeManpowerRow()" x-show="reportFormData.manpower.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>- Hapus Personel</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                 <table class="w-full border-collapse border border-[#1E293B]">
@@ -396,8 +428,7 @@
                                             <th class="py-1.5 px-2 w-1/3 border-r border-[#1E293B] text-left">Nama Personel</th>
                                             <th class="py-1.5 px-2 w-1/5 border-r border-[#1E293B] text-left">Unit Kerja</th>
                                             <th class="py-1.5 px-2 w-1/5 border-r border-[#1E293B] text-left">Jabatan</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Keterangan</th>
-                                            <th class="py-1.5 px-1 w-8 text-center"></th>
+                                            <th class="py-1.5 px-2 text-left">Keterangan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -407,8 +438,7 @@
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mp.nama" placeholder="Nama Personel" class="w-full p-1 text-xs border-0 bg-transparent font-semibold"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mp.unit_kerja" placeholder="Unit Kerja" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mp.jabatan" placeholder="Jabatan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mp.keterangan" placeholder="Keterangan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="text-center p-1"><button type="button" @click="removeManpowerRow(mpIdx)" class="text-red-500 font-bold text-xs">✕</button></td>
+                                                <td class="p-1"><input type="text" x-model="mp.keterangan" placeholder="Keterangan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -457,37 +487,60 @@
                                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. RINCIAN AKTIVITAS ENGINEER <span class="text-[#8F0A0D]">*</span></h3>
                                     <p class="text-[10.5px] text-gray-500">Isi rincian aktivitas teknis di bawah ini. Setidaknya satu baris aktivitas wajib diisi.</p>
                                 </div>
-                                <button type="button" @click="addActRow()" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer">
-                                    <span>+ Tambah Baris Aktivitas</span>
-                                </button>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" @click="addActRow()" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                                        <span>+ Tambah Baris</span>
+                                    </button>
+                                    <button type="button" @click="removeActRow()" x-show="reportFormData.rincian_aktivitas.length > 1" class="text-xs font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>- Hapus Baris</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="border border-[#1E293B] rounded-sm overflow-x-auto text-xs">
                                 <table class="w-full border-collapse border border-[#1E293B] min-w-[750px]">
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                         <tr>
                                             <th class="py-1.5 px-1.5 w-10 text-center border-r border-[#1E293B]">No.</th>
-                                            <th class="py-1.5 px-1.5 w-20 text-center border-r border-[#1E293B]">Waktu</th>
+                                            <th class="py-1.5 px-1.5 w-24 text-center border-r border-[#1E293B]">Waktu</th>
                                             <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Aktivitas / Tindakan <span class="text-red-500">*</span></th>
                                             <th class="py-1.5 px-2 w-1/6 border-r border-[#1E293B] text-left">Perangkat / Area</th>
                                             <th class="py-1.5 px-2 w-1/6 border-r border-[#1E293B] text-left">Hasil / Kondisi</th>
-                                            <th class="py-1.5 px-1.5 w-20 text-center border-r border-[#1E293B]">Status</th>
+                                            <th class="py-1.5 px-1.5 w-28 text-center border-r border-[#1E293B]">Status</th>
                                             <th class="py-1.5 px-2 w-1/8 border-r border-[#1E293B] text-left">Kendala</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Tindak Lanjut</th>
-                                            <th class="py-1.5 px-1 w-8 text-center"></th>
+                                            <th class="py-1.5 px-2 text-left">Tindak Lanjut</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <template x-for="(act, actIdx) in reportFormData.rincian_aktivitas" :key="actIdx">
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="actIdx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="act.waktu" placeholder="09:00" class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><textarea rows="2" x-model="act.aktivitas" placeholder="Rincian aktivitas teknis..." required class="w-full p-1 text-xs border rounded bg-[#F8FAFC] font-semibold resize-none focus:bg-white"></textarea></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="act.perangkat" placeholder="Area / Perangkat" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="act.hasil" placeholder="Hasil / Kondisi" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="act.status" class="w-full p-1 text-center font-bold text-xs border-0 bg-transparent text-[#8F0A0D]"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="act.kendala" placeholder="-" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="act.tindak_lanjut" placeholder="-" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="text-center p-1"><button type="button" @click="removeActRow(actIdx)" class="text-red-500 font-bold text-xs">✕</button></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center">
+                                                    <input type="time" x-model="act.waktu" class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium cursor-pointer">
+                                                </td>
+                                                <td class="p-1 border-r border-[#1E293B]">
+                                                    <textarea rows="2" x-model="act.aktivitas" required class="w-full p-1 text-xs border rounded bg-[#F8FAFC] font-semibold resize-none focus:bg-white"></textarea>
+                                                </td>
+                                                <td class="p-1 border-r border-[#1E293B]">
+                                                    <input type="text" x-model="act.perangkat" class="w-full p-1 text-xs border-0 bg-transparent">
+                                                </td>
+                                                <td class="p-1 border-r border-[#1E293B]">
+                                                    <input type="text" x-model="act.hasil" class="w-full p-1 text-xs border-0 bg-transparent">
+                                                </td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center">
+                                                    <select x-model="act.status" class="w-full p-1 text-center font-bold text-xs border-0 bg-transparent text-[#8F0A0D] cursor-pointer focus:ring-0">
+                                                        <option value="">- Status -</option>
+                                                        <option value="Selesai">Selesai</option>
+                                                        <option value="Dalam Proses">Dalam Proses</option>
+                                                        <option value="Tertunda">Tertunda</option>
+                                                        <option value="Kendala">Kendala</option>
+                                                    </select>
+                                                </td>
+                                                <td class="p-1 border-r border-[#1E293B]">
+                                                    <input type="text" x-model="act.kendala" class="w-full p-1 text-xs border-0 bg-transparent">
+                                                </td>
+                                                <td class="p-1">
+                                                    <input type="text" x-model="act.tindak_lanjut" class="w-full p-1 text-xs border-0 bg-transparent">
+                                                </td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -499,9 +552,14 @@
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. MATERIAL, PERALATAN &amp; SPARE PART</h3>
-                                <button type="button" @click="addMaterialRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                                    <span>+ Tambah Baris</span>
-                                </button>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" @click="addMaterialRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>+ Tambah Baris</span>
+                                    </button>
+                                    <button type="button" @click="removeMaterialRow()" x-show="reportFormData.materials.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>- Hapus Baris</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                 <table class="w-full border-collapse border border-[#1E293B]">
@@ -513,8 +571,7 @@
                                             <th class="py-1 px-1 w-14 text-center border-r border-[#1E293B]">Qty</th>
                                             <th class="py-1 px-1.5 w-16 text-center border-r border-[#1E293B]">Satuan</th>
                                             <th class="py-1 px-2 w-20 text-center border-r border-[#1E293B]">Kondisi</th>
-                                            <th class="py-1 px-2 border-r border-[#1E293B] text-left">Keterangan</th>
-                                            <th class="py-1 px-1 w-8 text-center"></th>
+                                            <th class="py-1 px-2 text-left">Keterangan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -526,8 +583,7 @@
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.qty" placeholder="1" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.satuan" placeholder="Pcs" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.kondisi" placeholder="Baik" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mat.keterangan" placeholder="Keterangan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="text-center p-1"><button type="button" @click="removeMaterialRow(matIdx)" class="text-red-500 font-bold text-xs">✕</button></td>
+                                                <td class="p-1"><input type="text" x-model="mat.keterangan" placeholder="Keterangan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -539,9 +595,14 @@
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. HASIL PENGUJIAN / PENGUKURAN</h3>
-                                <button type="button" @click="addTestResultRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                                    <span>+ Tambah Baris</span>
-                                </button>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" @click="addTestResultRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>+ Tambah Baris</span>
+                                    </button>
+                                    <button type="button" @click="removeTestResultRow()" x-show="reportFormData.test_results.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>- Hapus Baris</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                 <table class="w-full border-collapse border border-[#1E293B]">
@@ -553,8 +614,7 @@
                                             <th class="py-1 px-2 w-1/6 text-center border-r border-[#1E293B]">Sesudah</th>
                                             <th class="py-1 px-1.5 w-16 text-center border-r border-[#1E293B]">Satuan</th>
                                             <th class="py-1 px-2 w-1/6 border-r border-[#1E293B] text-left">Metode/Alat</th>
-                                            <th class="py-1 px-2 border-r border-[#1E293B] text-left">Keterangan</th>
-                                            <th class="py-1 px-1 w-8 text-center"></th>
+                                            <th class="py-1 px-2 text-left">Keterangan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -566,8 +626,7 @@
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="test.sesudah" placeholder="-" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="test.satuan" placeholder="ms / Mbps" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="test.metode" placeholder="Ping / Speedtest" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="test.keterangan" placeholder="OK" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="text-center p-1"><button type="button" @click="removeTestResultRow(testIdx)" class="text-red-500 font-bold text-xs">✕</button></td>
+                                                <td class="p-1"><input type="text" x-model="test.keterangan" placeholder="OK" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -579,9 +638,14 @@
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. KENDALA / INCIDENT / DEVIASI</h3>
-                                <button type="button" @click="addIncidentRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                                    <span>+ Tambah Baris</span>
-                                </button>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" @click="addIncidentRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>+ Tambah Baris</span>
+                                    </button>
+                                    <button type="button" @click="removeIncidentRow()" x-show="reportFormData.incidents.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>- Hapus Baris</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                 <table class="w-full border-collapse border border-[#1E293B]">
@@ -592,20 +656,20 @@
                                             <th class="py-1 px-2 w-1/4 border-r border-[#1E293B] text-left">Kendala / Incident</th>
                                             <th class="py-1 px-2 w-1/4 border-r border-[#1E293B] text-left">Dampak</th>
                                             <th class="py-1 px-2 border-r border-[#1E293B] text-left">Tindakan Penanganan</th>
-                                            <th class="py-1 px-2 w-20 text-center border-r border-[#1E293B]">Status</th>
-                                            <th class="py-1 px-1 w-8 text-center"></th>
+                                            <th class="py-1 px-2 w-20 text-center">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <template x-for="(inc, incIdx) in reportFormData.incidents" :key="incIdx">
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="incIdx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="inc.waktu" placeholder="Waktu" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center">
+                                                    <input type="time" x-model="inc.waktu" class="w-full p-1 text-center text-xs border-0 bg-transparent cursor-pointer">
+                                                </td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.kendala" placeholder="Kendala" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.dampak" placeholder="Dampak" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.tindakan" placeholder="Tindakan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="inc.status" placeholder="Closed" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
-                                                <td class="text-center p-1"><button type="button" @click="removeIncidentRow(incIdx)" class="text-red-500 font-bold text-xs">✕</button></td>
+                                                <td class="p-1 text-center"><input type="text" x-model="inc.status" placeholder="Closed" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -782,30 +846,30 @@
                                 <table class="w-full border-collapse border border-[#1E293B]">
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                         <tr>
-                                            <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Pihak</th>
+                                            <th class="py-1.5 px-3 w-1/5 border-r border-[#1E293B] text-left">Pihak</th>
                                             <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Nama</th>
-                                            <th class="py-1.5 px-3 w-1/5 border-r border-[#1E293B] text-center">Tanggal</th>
-                                            <th class="py-1.5 px-3 w-3/10 text-center">Tanda Tangan</th>
+                                            <th class="py-1.5 px-3 w-1/6 border-r border-[#1E293B] text-center">Tanggal</th>
+                                            <th class="py-1.5 px-3 w-2/5 text-center">Tanda Tangan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr class="border-b border-[#1E293B]">
-                                            <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Engineer</td>
-                                            <td class="py-2 px-3 font-bold border-r border-[#1E293B]" x-text="reportFormData.identitas.nama_engineer"></td>
-                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
-                                            <td class="py-2 px-3 text-center text-gray-500 italic text-[11px]">[Dapat ditandatangani setelah disimpan]</td>
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Engineer</td>
+                                            <td class="py-2.5 px-3 font-bold border-r border-[#1E293B]" x-text="reportFormData.identitas.nama_engineer"></td>
+                                            <td class="py-2.5 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
+                                            <td class="py-6 px-3 text-center min-h-[60px]"></td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
-                                            <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Project Manager / Team Leader</td>
-                                            <td class="py-2 px-3 font-bold border-r border-[#1E293B]">Lead Network Engineer</td>
-                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
-                                            <td class="py-2 px-3 text-center text-gray-500 italic text-[11px]">[Review &amp; Verifikasi Lead]</td>
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Project Manager / Team Leader</td>
+                                            <td class="py-2.5 px-3 font-bold border-r border-[#1E293B]">Lead Network Engineer</td>
+                                            <td class="py-2.5 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
+                                            <td class="py-6 px-3 text-center min-h-[60px]"></td>
                                         </tr>
                                         <tr>
-                                            <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Customer / Site Representative</td>
-                                            <td class="py-2 px-3 font-bold border-r border-[#1E293B]" x-text="reportFormData.identitas.pic_customer || 'PIC Klien'"></td>
-                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
-                                            <td class="py-2 px-3 text-center text-gray-500 italic text-[11px]">[Tanda Tangan &amp; Stempel Basah Site]</td>
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Customer / Site Representative</td>
+                                            <td class="py-2.5 px-3 font-bold border-r border-[#1E293B]" x-text="reportFormData.identitas.pic_customer || 'PIC Klien'"></td>
+                                            <td class="py-2.5 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
+                                            <td class="py-6 px-3 text-center min-h-[60px]"></td>
                                         </tr>
                                     </tbody>
                                 </table>

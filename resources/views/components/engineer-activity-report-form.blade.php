@@ -243,7 +243,7 @@
                                     <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Aktivitas / Tindakan</th>
                                     <th class="py-1.5 px-2 w-1/6 border-r border-[#1E293B] text-left">Perangkat / Area</th>
                                     <th class="py-1.5 px-2 w-1/6 border-r border-[#1E293B] text-left">Hasil / Kondisi</th>
-                                    <th class="py-1.5 px-1.5 w-20 text-center border-r border-[#1E293B]">Status</th>
+                                    <th class="py-1.5 px-1.5 w-28 text-center border-r border-[#1E293B]">Status</th>
                                     <th class="py-1.5 px-2 w-1/8 border-r border-[#1E293B] text-left">Kendala</th>
                                     <th class="py-1.5 px-2 text-left">Tindak Lanjut</th>
                                 </tr>
@@ -256,7 +256,15 @@
                                         <td class="p-1 border-r border-[#1E293B]"><textarea rows="2" x-model="act.aktivitas" class="w-full p-1 text-xs border-0 bg-transparent font-semibold resize-none"></textarea></td>
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="act.perangkat" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="act.hasil" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                        <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="act.status" class="w-full p-1 text-center font-bold text-xs border-0 bg-transparent text-[#8F0A0D]"></td>
+                                        <td class="p-1 border-r border-[#1E293B] text-center">
+                                            <select x-model="act.status" class="w-full p-1 text-center font-bold text-xs border-0 bg-transparent text-[#8F0A0D] cursor-pointer focus:ring-0">
+                                                <option value="">- Status -</option>
+                                                <option value="Selesai">Selesai</option>
+                                                <option value="Dalam Proses">Dalam Proses</option>
+                                                <option value="Tertunda">Tertunda</option>
+                                                <option value="Kendala">Kendala</option>
+                                            </select>
+                                        </td>
                                         <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="act.kendala" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                         <td class="p-1"><input type="text" x-model="act.tindak_lanjut" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                     </tr>
