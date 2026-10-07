@@ -69,17 +69,17 @@
             { no: 1, waktu: '', aktivitas: '', perangkat: '', hasil: '', status: '', kendala: '', tindak_lanjut: '' }
         ],
         materials: [
-            { nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: '', keterangan: '' }
+            { nama: '', spesifikasi: '', qty: 1, satuan: 'Pcs', kondisi: 'Baik', keterangan: '' }
         ],
         test_results: [
-            { parameter: '', sebelum: '', sesudah: '', satuan: '', metode: '', keterangan: '' }
+            { parameter: '', sebelum: 0, sesudah: 0, satuan: 'ms', metode: '', keterangan: '' }
         ],
         incidents: [
-            { waktu: '', kendala: '', dampak: '', tindakan: '', status: '' }
+            { waktu: '', kendala: '', dampak: '', tindakan: '', status: 'Closed' }
         ],
         hasil_akhir: {
-            status_pekerjaan: '',
-            progress_percent: '',
+            status_pekerjaan: 'selesai',
+            progress_percent: 100,
             kondisi_sistem: '',
             outstanding: '',
             rekomendasi: '',
@@ -161,7 +161,7 @@
     },
 
     addMaterialRow() {
-        this.reportFormData.materials.push({ nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: '', keterangan: '' });
+        this.reportFormData.materials.push({ nama: '', spesifikasi: '', qty: 1, satuan: 'Pcs', kondisi: 'Baik', keterangan: '' });
     },
     removeMaterialRow(idx) {
         if (this.reportFormData.materials.length > 1) {
@@ -174,7 +174,7 @@
     },
 
     addTestResultRow() {
-        this.reportFormData.test_results.push({ parameter: '', sebelum: '', sesudah: '', satuan: '', metode: '', keterangan: '' });
+        this.reportFormData.test_results.push({ parameter: '', sebelum: 0, sesudah: 0, satuan: 'ms', metode: '', keterangan: '' });
     },
     removeTestResultRow(idx) {
         if (this.reportFormData.test_results.length > 1) {
@@ -633,7 +633,7 @@
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="matIdx + 1"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mat.nama" placeholder="Item" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mat.spesifikasi" placeholder="Spesifikasi" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.qty" placeholder="1" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="number" min="1" x-model.number="mat.qty" placeholder="1" class="w-full p-1 text-center text-xs border-0 bg-transparent font-semibold"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.satuan" placeholder="Pcs" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.kondisi" placeholder="Baik" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1"><input type="text" x-model="mat.keterangan" placeholder="Keterangan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
@@ -675,8 +675,8 @@
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="testIdx + 1"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="test.parameter" placeholder="Parameter" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="test.sebelum" placeholder="-" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="test.sesudah" placeholder="-" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="number" step="any" x-model.number="test.sebelum" placeholder="0" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="number" step="any" x-model.number="test.sesudah" placeholder="0" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="test.satuan" placeholder="ms / Mbps" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="test.metode" placeholder="Ping / Speedtest" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1"><input type="text" x-model="test.keterangan" placeholder="OK" class="w-full p-1 text-xs border-0 bg-transparent"></td>

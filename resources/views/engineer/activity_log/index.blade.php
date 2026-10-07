@@ -1163,17 +1163,17 @@ function engineerActivityManager() {
                     { no: 1, waktu: '', aktivitas: '', perangkat: '', hasil: '', status: '', kendala: '', tindak_lanjut: '' }
                 ],
                 materials: [
-                    { nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: '', keterangan: '' }
+                    { nama: '', spesifikasi: '', qty: 1, satuan: 'Pcs', kondisi: 'Baik', keterangan: '' }
                 ],
                 test_results: [
-                    { parameter: '', sebelum: '', sesudah: '', satuan: '', metode: '', keterangan: '' }
+                    { parameter: '', sebelum: 0, sesudah: 0, satuan: 'ms', metode: '', keterangan: '' }
                 ],
                 incidents: [
-                    { waktu: '', kendala: '', dampak: '', tindakan: '', status: '' }
+                    { waktu: '', kendala: '', dampak: '', tindakan: '', status: 'Closed' }
                 ],
                 hasil_akhir: {
-                    status_pekerjaan: '',
-                    progress_percent: '',
+                    status_pekerjaan: 'selesai',
+                    progress_percent: 100,
                     kondisi_sistem: '',
                     outstanding: '',
                     rekomendasi: '',
@@ -1360,7 +1360,7 @@ function engineerActivityManager() {
         },
 
         addMaterialRow() {
-            this.reportFormData.materials.push({ nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: '', keterangan: '' });
+            this.reportFormData.materials.push({ nama: '', spesifikasi: '', qty: 1, satuan: 'Pcs', kondisi: 'Baik', keterangan: '' });
         },
         removeMaterialRow(idx) {
             if (this.reportFormData.materials.length > 1) {
@@ -1373,7 +1373,7 @@ function engineerActivityManager() {
         },
 
         addTestResultRow() {
-            this.reportFormData.test_results.push({ parameter: '', sebelum: '', sesudah: '', satuan: '', metode: '', keterangan: '' });
+            this.reportFormData.test_results.push({ parameter: '', sebelum: 0, sesudah: 0, satuan: 'ms', metode: '', keterangan: '' });
         },
         removeTestResultRow(idx) {
             if (this.reportFormData.test_results.length > 1) {
