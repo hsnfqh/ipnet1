@@ -199,18 +199,53 @@
         }
     },
 
-    handlePhotoUpload(e, stage) {
+    compressImage(file, maxDimension = 1000, quality = 0.72) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = Math.round((height * maxDimension) / width);
+                            width = maxDimension;
+                        } else {
+                            width = Math.round((width * maxDimension) / height);
+                            height = maxDimension;
+                        }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.onerror = () => resolve(e.target.result);
+                img.src = e.target.result;
+            };
+            reader.onerror = () => resolve('');
+            reader.readAsDataURL(file);
+        });
+    },
+
+    async handlePhotoUpload(e, stage) {
         const file = e.target.files[0];
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Ukuran file foto maksimal 5 MB.');
-            return;
+        try {
+            const compressed = await this.compressImage(file, 1000, 0.72);
+            if (compressed) {
+                this.reportFormData.foto_dokumentasi[stage].url = compressed;
+            }
+        } catch (err) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                this.reportFormData.foto_dokumentasi[stage].url = ev.target.result;
+            };
+            reader.readAsDataURL(file);
         }
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            this.reportFormData.foto_dokumentasi[stage].url = event.target.result;
-        };
-        reader.readAsDataURL(file);
     },
 
     removePhoto(stage) {

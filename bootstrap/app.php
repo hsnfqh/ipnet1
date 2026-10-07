@@ -22,5 +22,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, $request) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ukuran data atau file yang dikirim terlalu besar. Sistem telah mengaktifkan kompresi foto otomatis.',
+                ], 413);
+            }
+            return redirect()->back()->with('error', 'Ukuran data yang dikirim terlalu besar untuk server. Foto dokumentasi telah diatur agar otomatis dikompres.');
+        });
     })->create();
