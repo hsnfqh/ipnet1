@@ -2090,7 +2090,7 @@ class DashboardController extends Controller
         $qrData          = $this->generateQrData($verifyUrl);
 
         $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', [
-            'parsedActivities'  => $parsedActivities,
+            'parsedActivities'  => $parsedActivities->values()->toArray(),
             'activities'        => $activities,
             'projectName'       => $projectName,
             'engineerName'      => $engineerName,

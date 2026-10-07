@@ -191,15 +191,24 @@
 
     $firstAct = !empty($activities) ? (is_array($activities) ? ($activities[0] ?? null) : $activities->first()) : null;
     $lastAct  = !empty($activities) ? (is_array($activities) ? (end($activities) ?: null) : $activities->last()) : null;
-    $project  = $firstAct?->project ?? null;
+    $firstActObj = is_object($firstAct) ? $firstAct : (object) ($firstAct ?? []);
+    $lastActObj  = is_object($lastAct) ? $lastAct : (object) ($lastAct ?? []);
+    $project  = (is_object($firstAct) && isset($firstAct->project)) ? $firstAct->project : null;
 
     // Normalisasi parsedActivities
     $actItems = [];
-    if (!empty($parsedActivities) && (is_array($parsedActivities) || is_iterable($parsedActivities))) {
-        $actItems = $parsedActivities;
+    if (!empty($parsedActivities)) {
+        if (is_array($parsedActivities)) {
+            $actItems = $parsedActivities;
+        } elseif (is_object($parsedActivities) && method_exists($parsedActivities, 'toArray')) {
+            $actItems = $parsedActivities->toArray();
+        } else {
+            $actItems = (array) $parsedActivities;
+        }
     } elseif (!empty($activities) && (is_array($activities) || is_iterable($activities))) {
         $actItems = collect($activities)->map(function($a, $idx) {
-            $rawNotes  = $a->notes ?? '';
+            $aObj = is_object($a) ? $a : (object) $a;
+            $rawNotes  = $aObj->notes ?? '';
             $clientPic = '';
             $ipnetPic  = '';
             $notedOnly = $rawNotes;
@@ -219,7 +228,7 @@
                 $notedOnly = implode(' | ', array_filter($notedParts));
             }
 
-            $desc = $a->description ?? '-';
+            $desc = $aObj->description ?? ($aObj->activity ?? '-');
             if (preg_match('/^\[(.+?)\]\s*(.*)$/s', $desc, $m)) {
                 $desc = $m[2] ?: $m[1];
             }
@@ -227,13 +236,13 @@
             return [
                 'no'         => $idx + 1,
                 'activity'   => $desc,
-                'date'       => $a->activity_date ? \Carbon\Carbon::parse($a->activity_date)->format('d/m/Y') : '-',
-                'time'       => $a->start_time ? \Carbon\Carbon::parse($a->start_time)->format('H:i') : '-',
-                'location'   => $a->location ?? '-',
-                'status'     => $a->status ?? 'Selesai',
-                'client_pic' => $clientPic ?: '-',
-                'ipnet_pic'  => $ipnetPic ?: ($a->engineer->name ?? '-'),
-                'notes'      => $notedOnly ?: '-',
+                'date'       => !empty($aObj->activity_date) ? \Carbon\Carbon::parse($aObj->activity_date)->format('d/m/Y') : (!empty($aObj->date) ? $aObj->date : '-'),
+                'time'       => !empty($aObj->start_time) ? \Carbon\Carbon::parse($aObj->start_time)->format('H:i') : (!empty($aObj->time) ? $aObj->time : '-'),
+                'location'   => $aObj->location ?? '-',
+                'status'     => $aObj->status ?? 'Selesai',
+                'client_pic' => $clientPic ?: ($aObj->client_pic ?? '-'),
+                'ipnet_pic'  => $ipnetPic ?: (is_object($aObj->engineer ?? null) ? $aObj->engineer->name : ($aObj->ipnet_pic ?? '-')),
+                'notes'      => $notedOnly ?: ($aObj->notes ?? '-'),
             ];
         })->toArray();
     }
@@ -250,33 +259,36 @@
     }
 
     // Nilai Bagian A (Identitas Pekerjaan)
-    $actDate = $firstAct?->activity_date ? \Carbon\Carbon::parse($firstAct->activity_date) : now();
+    $actDateVal = $firstActObj->activity_date ?? ($firstActObj->date ?? null);
+    $actDate = $actDateVal ? \Carbon\Carbon::parse($actDateVal) : now();
     $hariTanggal = $rData['identitas']['hari_tanggal'] ?? $actDate->locale('id')->isoFormat('dddd, D MMMM Y');
     $noLaporan   = $rData['identitas']['no_laporan'] ?? (($verifyDocNumber ?? null) ?: ($docSig?->document_number ?? 'IPNET-ACT-' . date('Ym') . '-0001'));
     $namaProject = $rData['identitas']['nama_project'] ?? (($projectName ?? null) ?: ($project?->name ?? 'Project Technical Support'));
     $noSoSpk     = $rData['identitas']['no_so_spk'] ?? ($project?->po_number ?? '-');
-    $lokasiSite  = $rData['identitas']['lokasi_site'] ?? ($project?->location ?? ($firstAct?->location ?? '-'));
+    $lokasiSite  = $rData['identitas']['lokasi_site'] ?? ($project?->location ?? ($firstActObj->location ?? '-'));
     $workOrder   = $rData['identitas']['work_order'] ?? '-';
     $namaEngineer= $rData['identitas']['nama_engineer'] ?? (($engineerName ?? null) ?: ($docSig?->pic_name ?? (auth()->user()?->name ?? 'PIC Engineer')));
     $customer    = $rData['identitas']['customer'] ?? ($project?->client ?? '-');
-    $jenisPekerjaan = $rData['identitas']['jenis_pekerjaan'] ?? ($firstAct?->activity_type ?? 'Implementasi / Troubleshooting');
+    $jenisPekerjaan = $rData['identitas']['jenis_pekerjaan'] ?? ($firstActObj->activity_type ?? 'Implementasi / Troubleshooting');
     $picCustomer = $rData['identitas']['pic_customer'] ?? ($project?->customer_pic_technical ?? (!empty($actItems[0]['client_pic']) && $actItems[0]['client_pic'] !== '-' ? $actItems[0]['client_pic'] : '-'));
     $kategoriPekerjaan = strtolower($rData['identitas']['kategori_pekerjaan'] ?? (str_contains(strtolower($namaProject . ' ' . $jenisPekerjaan), 'maintenance') ? 'maintenance' : 'implement'));
     $jabatanEngineer   = $rData['identitas']['jabatan'] ?? ($docSig?->pic_title ?? (auth()->user()?->position ?: 'Network Leader'));
-    $jamMulai    = $rData['identitas']['jam_mulai'] ?? ($firstAct?->start_time ? \Carbon\Carbon::parse($firstAct->start_time)->format('H:i') . ' WIB' : '09:00 WIB');
-    $jamSelesai  = $rData['identitas']['jam_selesai'] ?? ($lastAct?->end_time ? \Carbon\Carbon::parse($lastAct->end_time)->format('H:i') . ' WIB' : ($lastAct?->start_time ? \Carbon\Carbon::parse($lastAct->start_time)->format('H:i') . ' WIB' : '17:00 WIB'));
+    $jamMulai    = $rData['identitas']['jam_mulai'] ?? (!empty($firstActObj->start_time) ? \Carbon\Carbon::parse($firstActObj->start_time)->format('H:i') . ' WIB' : (!empty($firstActObj->time) ? $firstActObj->time . ' WIB' : '09:00 WIB'));
+    $jamSelesai  = $rData['identitas']['jam_selesai'] ?? (!empty($lastActObj->end_time) ? \Carbon\Carbon::parse($lastActObj->end_time)->format('H:i') . ' WIB' : (!empty($lastActObj->start_time) ? \Carbon\Carbon::parse($lastActObj->start_time)->format('H:i') . ' WIB' : '17:00 WIB'));
 
     // Nilai Bagian B (Komposisi Tenaga Kerja)
-    $manpowerList = $rData['manpower'] ?? [];
+    $manpowerList = is_array($rData['manpower'] ?? null) ? $rData['manpower'] : [];
     if (empty($manpowerList)) {
         $collectedNames = collect();
         if (!empty($activities)) {
             foreach ($activities as $a) {
-                if (!empty($a->engineer?->name)) {
+                $aObj = is_object($a) ? $a : (object) $a;
+                $engName = is_object($aObj->engineer ?? null) ? $aObj->engineer->name : ($aObj->ipnet_pic ?? ($aObj->engineer_name ?? null));
+                if (!empty($engName) && $engName !== '-') {
                     $collectedNames->push([
-                        'nama'       => $a->engineer->name,
-                        'unit_kerja' => $a->engineer->division?->name ?? 'Technical Support',
-                        'jabatan'    => $a->engineer->position ?? 'Field Engineer',
+                        'nama'       => $engName,
+                        'unit_kerja' => (is_object($aObj->engineer ?? null) ? $aObj->engineer->division?->name : null) ?? 'Technical Support',
+                        'jabatan'    => (is_object($aObj->engineer ?? null) ? $aObj->engineer->position : null) ?? 'Field Engineer',
                         'keterangan' => 'PIC Kontributor',
                     ]);
                 }
@@ -296,7 +308,8 @@
 
     // Nilai Bagian C (Ruang Lingkup / Target Pekerjaan)
     $scopeC = $rData['ruang_lingkup'] ?? [];
-    $targetHariIni   = $scopeC['target_hari_ini'] ?? ($firstAct?->description ? (preg_match('/^\[(.+?)\]\s*(.*)$/s', $firstAct->description, $m) ? $m[1] : $firstAct->description) : ($namaProject . ' - Kegiatan Lapangan'));
+    $firstDesc = $firstActObj->description ?? ($firstActObj->activity ?? '');
+    $targetHariIni   = $scopeC['target_hari_ini'] ?? (!empty($firstDesc) ? (preg_match('/^\[(.+?)\]\s*(.*)$/s', $firstDesc, $m) ? $m[1] : $firstDesc) : ($namaProject . ' - Kegiatan Lapangan'));
     $durasiProject   = $scopeC['durasi_project'] ?? '1 Hari Kerja (Sesuai Penugasan WO)';
     $scopePekerjaan  = $scopeC['scope_pekerjaan'] ?? ($project?->description ?: 'Instalasi, konfigurasi, monitoring, dan pengujian performa sistem');
     $perangkatSistem = $scopeC['perangkat_sistem'] ?? 'Router, Switch, Access Point & Infrastruktur Jaringan';
@@ -304,20 +317,28 @@
 
     // Nilai Bagian D (Rincian Aktivitas)
     $dActivities = $rData['rincian_aktivitas'] ?? [];
+    if (is_object($dActivities) && method_exists($dActivities, 'toArray')) {
+        $dActivities = $dActivities->toArray();
+    } elseif (!is_array($dActivities)) {
+        $dActivities = (array) $dActivities;
+    }
+
     if (empty($dActivities)) {
         if (!empty($actItems)) {
-            $dActivities = array_map(function($it, $i) {
-                return [
+            $dActivities = [];
+            foreach (array_values($actItems) as $i => $it) {
+                $it = (array) $it;
+                $dActivities[] = [
                     'no'           => $i + 1,
-                    'waktu'        => $it['time'] ?? '-',
-                    'aktivitas'    => $it['activity'] ?? '-',
+                    'waktu'        => $it['time'] ?? ($it['date'] ?? '-'),
+                    'aktivitas'    => $it['activity'] ?? ($it['description'] ?? '-'),
                     'perangkat'    => $it['location'] ?? 'Area Kerja / Site',
                     'hasil'        => 'Normal / Berhasil',
                     'status'       => $it['status'] ?? 'Selesai',
                     'kendala'      => '-',
-                    'tindak_lanjut'=> $it['notes'] !== '-' ? $it['notes'] : '-',
+                    'tindak_lanjut'=> !empty($it['notes']) && $it['notes'] !== '-' ? $it['notes'] : '-',
                 ];
-            }, $actItems, array_keys($actItems));
+            }
         } else {
             $dActivities = [[
                 'no' => 1, 'waktu' => '09:00', 'aktivitas' => 'Pemeriksaan rutin dan penanganan pekerjaan teknis di lokasi',
@@ -327,9 +348,9 @@
     }
 
     // Nilai Bagian E, F, G
-    $materials   = $rData['materials'] ?? [];
-    $testResults = $rData['test_results'] ?? [];
-    $incidents   = $rData['incidents'] ?? [];
+    $materials   = is_array($rData['materials'] ?? null) ? $rData['materials'] : [];
+    $testResults = is_array($rData['test_results'] ?? null) ? $rData['test_results'] : [];
+    $incidents   = is_array($rData['incidents'] ?? null) ? $rData['incidents'] : [];
 
     // Nilai Bagian H (Hasil Akhir Pekerjaan)
     $hasilAkhir = $rData['hasil_akhir'] ?? [];
