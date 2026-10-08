@@ -1592,7 +1592,11 @@ function engineerActivityManager() {
         },
         removeMsKondisiRow(idx) {
             if (this.reportFormData.ms_kondisi_perangkat && this.reportFormData.ms_kondisi_perangkat.length > 1) {
-                this.reportFormData.ms_kondisi_perangkat.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.ms_kondisi_perangkat.splice(idx, 1);
+                } else {
+                    this.reportFormData.ms_kondisi_perangkat.pop();
+                }
             }
         },
 
@@ -1605,7 +1609,11 @@ function engineerActivityManager() {
         },
         removeMsActRow(idx) {
             if (this.reportFormData.ms_aktivitas && this.reportFormData.ms_aktivitas.length > 1) {
-                this.reportFormData.ms_aktivitas.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.ms_aktivitas.splice(idx, 1);
+                } else {
+                    this.reportFormData.ms_aktivitas.pop();
+                }
             }
         },
 
@@ -1618,7 +1626,11 @@ function engineerActivityManager() {
         },
         removeMsIncidentRow(idx) {
             if (this.reportFormData.ms_incident_escalation && this.reportFormData.ms_incident_escalation.length > 1) {
-                this.reportFormData.ms_incident_escalation.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.ms_incident_escalation.splice(idx, 1);
+                } else {
+                    this.reportFormData.ms_incident_escalation.pop();
+                }
             }
         },
 
@@ -1631,7 +1643,11 @@ function engineerActivityManager() {
         },
         removeMsPmRow(idx) {
             if (this.reportFormData.ms_pm_checklist && this.reportFormData.ms_pm_checklist.length > 1) {
-                this.reportFormData.ms_pm_checklist.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.ms_pm_checklist.splice(idx, 1);
+                } else {
+                    this.reportFormData.ms_pm_checklist.pop();
+                }
             }
         },
 
@@ -1644,7 +1660,11 @@ function engineerActivityManager() {
         },
         removeMsMaterialRow(idx) {
             if (this.reportFormData.ms_materials && this.reportFormData.ms_materials.length > 1) {
-                this.reportFormData.ms_materials.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.ms_materials.splice(idx, 1);
+                } else {
+                    this.reportFormData.ms_materials.pop();
+                }
             }
         },
 
@@ -1657,7 +1677,11 @@ function engineerActivityManager() {
         },
         removeMsEvidenceRow(idx) {
             if (this.reportFormData.ms_evidence && this.reportFormData.ms_evidence.length > 1) {
-                this.reportFormData.ms_evidence.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.ms_evidence.splice(idx, 1);
+                } else {
+                    this.reportFormData.ms_evidence.pop();
+                }
             }
         },
 
@@ -1690,7 +1714,11 @@ function engineerActivityManager() {
         },
         removeHdKondisiRow(idx) {
             if (this.reportFormData.hd_kondisi_awal && this.reportFormData.hd_kondisi_awal.length > 1) {
-                this.reportFormData.hd_kondisi_awal.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.hd_kondisi_awal.splice(idx, 1);
+                } else {
+                    this.reportFormData.hd_kondisi_awal.pop();
+                }
             }
         },
 
@@ -1703,7 +1731,11 @@ function engineerActivityManager() {
         },
         removeHdActRow(idx) {
             if (this.reportFormData.hd_aktivitas && this.reportFormData.hd_aktivitas.length > 1) {
-                this.reportFormData.hd_aktivitas.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.hd_aktivitas.splice(idx, 1);
+                } else {
+                    this.reportFormData.hd_aktivitas.pop();
+                }
             }
         },
 
@@ -1716,7 +1748,11 @@ function engineerActivityManager() {
         },
         removeHdTicketRow(idx) {
             if (this.reportFormData.hd_ticket_incident && this.reportFormData.hd_ticket_incident.length > 1) {
-                this.reportFormData.hd_ticket_incident.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.hd_ticket_incident.splice(idx, 1);
+                } else {
+                    this.reportFormData.hd_ticket_incident.pop();
+                }
             }
         },
 
@@ -1729,7 +1765,11 @@ function engineerActivityManager() {
         },
         removeHdMonitoringRow(idx) {
             if (this.reportFormData.hd_monitoring_status && this.reportFormData.hd_monitoring_status.length > 1) {
-                this.reportFormData.hd_monitoring_status.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.hd_monitoring_status.splice(idx, 1);
+                } else {
+                    this.reportFormData.hd_monitoring_status.pop();
+                }
             }
         },
 
@@ -1742,7 +1782,11 @@ function engineerActivityManager() {
         },
         removeHdFieldRow(idx) {
             if (this.reportFormData.hd_pekerjaan_field && this.reportFormData.hd_pekerjaan_field.length > 1) {
-                this.reportFormData.hd_pekerjaan_field.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.hd_pekerjaan_field.splice(idx, 1);
+                } else {
+                    this.reportFormData.hd_pekerjaan_field.pop();
+                }
             }
         },
 
@@ -1755,7 +1799,11 @@ function engineerActivityManager() {
         },
         removeHdKendalaRow(idx) {
             if (this.reportFormData.hd_kendala_escalation && this.reportFormData.hd_kendala_escalation.length > 1) {
-                this.reportFormData.hd_kendala_escalation.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.hd_kendala_escalation.splice(idx, 1);
+                } else {
+                    this.reportFormData.hd_kendala_escalation.pop();
+                }
             }
         },
 
@@ -1768,7 +1816,11 @@ function engineerActivityManager() {
         },
         removeHdHandoverRow(idx) {
             if (this.reportFormData.hd_handover && this.reportFormData.hd_handover.length > 1) {
-                this.reportFormData.hd_handover.splice(idx, 1);
+                if (typeof idx === 'number') {
+                    this.reportFormData.hd_handover.splice(idx, 1);
+                } else {
+                    this.reportFormData.hd_handover.pop();
+                }
             }
         },
 
