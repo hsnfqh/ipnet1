@@ -592,7 +592,8 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] p-5 sm:px-6 py-4 shrink-0 bg-white">
                     <div>
                         <div class="flex items-center gap-2 mb-1 flex-wrap">
-                            <span class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">FORM LAPORAN AKTIVITAS ENGINEER – PROJECT</span>
+                            <span class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider"
+                                  x-text="(reportFormData?.category === 'managed_service' ? 'FORM LAPORAN AKTIVITAS ENGINEER – MANAGED SERVICE' : (reportFormData?.category === 'help_desk' ? 'FORM LAPORAN AKTIVITAS ENGINEER – HELP DESK' : 'FORM LAPORAN AKTIVITAS ENGINEER – PROJECT'))"></span>
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200"
                                   x-text="(selectedDetail?.total || 0) + ' Agenda'"></span>
                             <template x-if="sigInfo?.document_number">
@@ -1115,9 +1116,10 @@ function engineerActivityManager() {
             const jamSelesai = extractTime(lastItem.time_str || lastItem.end_time || lastItem.start_time, '');
 
             this.reportFormData = {
+                category: 'project',
                 identitas: {
                     hari_tanggal: firstDateRaw,
-                    no_laporan: this.sigInfo?.document_number || 'IPNET-ACT-' + todayDate.getFullYear() + String(todayDate.getMonth()+1).padStart(2, '0') + '-0001',
+                    no_laporan: this.sigInfo?.document_number || 'IPNET-ACT-' + todayDate.getFullYear() + pad(todayDate.getMonth()+1) + '-0001',
                     nama_project: detail?.project_name || '',
                     no_so_spk: '',
                     lokasi_site: '',
@@ -1189,16 +1191,148 @@ function engineerActivityManager() {
                     nomor_ba: '',
                     lampiran: '',
                     folder: '',
+                },
+
+                // 2. MANAGED SERVICE DEFAULT DATA
+                ms_identitas: {
+                    tanggal: firstDateRaw,
+                    no_report: this.sigInfo?.document_number || 'IPNET-MS-' + todayDate.getFullYear() + pad(todayDate.getMonth()+1) + '-0001',
+                    customer: detail?.client_name || '',
+                    no_contract: '',
+                    site_lokasi: '',
+                    ticket_incident_no: '',
+                    engineer_pic: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
+                    shift: 'Pagi / Regular',
+                    jenis_aktivitas: {
+                        monitoring: true,
+                        pm: false,
+                        cm: false,
+                        incident: false,
+                        request: false,
+                        visit: false,
+                    },
+                    service_device: '',
+                    jam_mulai: jamMulai || '08:00',
+                    jam_selesai: jamSelesai || '17:00',
+                },
+                ms_sla: [
+                    { parameter: 'Ticket Received', waktu: '08:00', target_sla: '< 15 Menit', aktual: '5 Menit', status: 'Met', keterangan: 'Normal' },
+                    { parameter: 'Engineer Response', waktu: '08:05', target_sla: '< 30 Menit', aktual: '10 Menit', status: 'Met', keterangan: 'Respon cepat' },
+                    { parameter: 'Service Restore', waktu: '09:30', target_sla: '< 4 Jam', aktual: '1.5 Jam', status: 'Met', keterangan: 'Layanan pulih' },
+                    { parameter: 'Resolution / Close', waktu: '10:00', target_sla: '< 8 Jam', aktual: '2 Jam', status: 'Met', keterangan: 'Resolved' }
+                ],
+                ms_kondisi_perangkat: [
+                    { no: 1, service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: '' },
+                    { no: 2, service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: '' },
+                    { no: 3, service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: '' }
+                ],
+                ms_aktivitas: items.length > 0 ? items.map((it, idx) => ({
+                    no: idx + 1,
+                    waktu: extractTime(it.time_str || it.start_time, '09:00'),
+                    aktivitas: it.subject || '',
+                    ticket_alarm: '',
+                    hasil: '',
+                    status: it.status || 'Done',
+                    kendala: '',
+                    follow_up: it.notes && it.notes !== '-' ? it.notes : ''
+                })) : [
+                    { no: 1, waktu: '08:30', aktivitas: '', ticket_alarm: '', hasil: '', status: 'Done', kendala: '', follow_up: '' }
+                ],
+                ms_incident_escalation: [
+                    { no: 1, incident: '', impact: '', root_cause: '', corrective_action: '', escalation: '', status: 'Closed' }
+                ],
+                ms_pm_checklist: [
+                    { no: 1, item_pemeriksaan: '', kondisi: 'Baik', hasil: 'Normal', temuan: '', tindakan: '', status: 'OK' }
+                ],
+                ms_materials: [
+                    { no: 1, item: '', type: '', qty: '', used_replaced: '', old_new: '', keterangan: '' }
+                ],
+                ms_evidence: [
+                    { no: 1, evidence: '', waktu: '', foto_url: '', keterangan: '' }
+                ],
+                ms_closure: {
+                    service_status: { resolved: true, monitoring: false, escalated: false, closed: false },
+                    sla: { met: true, breach: false },
+                    customer_confirmation: 'Layanan berjalan normal',
+                    outstanding: '-'
+                },
+                ms_verifikasi: {
+                    engineer_name: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
+                    lead_name: this.sigInfo?.lead?.name || 'Nugraha Pratama',
+                    customer_name: ''
+                },
+
+                // 3. HELP DESK DEFAULT DATA
+                hd_identitas: {
+                    tanggal: firstDateRaw,
+                    shift: { pagi: true, siang: false, malam: false },
+                    nama_engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
+                    team_leader: this.sigInfo?.lead?.name || 'Nugraha Pratama',
+                    area_site: '',
+                    customer_service: detail?.client_name || '',
+                    jam_shift: '08:00 - 16:00 WIB',
+                    jumlah_engineer: 1
+                },
+                hd_kondisi_awal: [
+                    { no: 1, item_service: '', kondisi_awal: 'Normal', alarm_issue: 'Clear', status: 'OK', keterangan: '' }
+                ],
+                hd_aktivitas: items.length > 0 ? items.map((it, idx) => ({
+                    no: idx + 1,
+                    waktu: extractTime(it.time_str || it.start_time, '09:00'),
+                    aktivitas: it.subject || '',
+                    ticket_wo: '',
+                    lokasi_device: '',
+                    hasil: '',
+                    status: it.status || 'Done'
+                })) : [
+                    { no: 1, waktu: '08:30', aktivitas: '', ticket_wo: '', lokasi_device: '', hasil: '', status: 'Done' }
+                ],
+                hd_ticket_incident: [
+                    { no: 1, ticket: '', jenis: '', priority: 'Medium', start: '', restore: '', close_status: 'Closed', keterangan: '' }
+                ],
+                hd_monitoring_status: [
+                    { no: 1, service_device: '', status: 'Up', alarm: 'None', performance: '', action: '', keterangan: '' }
+                ],
+                hd_pekerjaan_field: [
+                    { no: 1, lokasi: '', pekerjaan: '', engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}', hasil: '', foto_evidence: '', status: 'Done' }
+                ],
+                hd_kendala_escalation: [
+                    { no: 1, kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: 'Normal', next_action: '' }
+                ],
+                hd_handover: [
+                    { no: 1, outstanding_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', pic: '', due_time: '', catatan: '' }
+                ],
+                hd_rekap_shift: {
+                    total_ticket_diterima: 0,
+                    total_ticket_closed: 0,
+                    total_incident: 0,
+                    outstanding: 0,
+                    service_kritis: '0',
+                    handover_diperlukan: false
+                },
+                hd_verifikasi: {
+                    engineer_name: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
+                    team_leader_name: this.sigInfo?.lead?.name || 'Nugraha Pratama',
+                    next_engineer_name: ''
                 }
             };
+        },
+
+        setDetailDocCategory(cat) {
+            if (!this.reportFormData) {
+                this.initDefaultReportData();
+            }
+            this.reportFormData.category = cat;
         },
 
         loadReportData(data) {
             this.initDefaultReportData();
             if (data && typeof data === 'object') {
+                const detectedCategory = data.category || (data.ms_identitas ? 'managed_service' : (data.hd_identitas ? 'help_desk' : 'project'));
                 this.reportFormData = {
                     ...this.reportFormData,
                     ...data,
+                    category: detectedCategory,
                     identitas: { ...this.reportFormData.identitas, ...(data.identitas || {}) },
                     ruang_lingkup: { ...this.reportFormData.ruang_lingkup, ...(data.ruang_lingkup || {}) },
                     hasil_akhir: { ...this.reportFormData.hasil_akhir, ...(data.hasil_akhir || {}) },
@@ -1213,6 +1347,49 @@ function engineerActivityManager() {
                     materials: Array.isArray(data.materials) && data.materials.length > 0 ? data.materials : this.reportFormData.materials,
                     test_results: Array.isArray(data.test_results) && data.test_results.length > 0 ? data.test_results : this.reportFormData.test_results,
                     incidents: Array.isArray(data.incidents) && data.incidents.length > 0 ? data.incidents : this.reportFormData.incidents,
+
+                    // Managed Service
+                    ms_identitas: {
+                        ...this.reportFormData.ms_identitas,
+                        ...(data.ms_identitas || {}),
+                        jenis_aktivitas: {
+                            ...this.reportFormData.ms_identitas.jenis_aktivitas,
+                            ...(data.ms_identitas?.jenis_aktivitas || {})
+                        }
+                    },
+                    ms_sla: Array.isArray(data.ms_sla) && data.ms_sla.length > 0 ? data.ms_sla : this.reportFormData.ms_sla,
+                    ms_kondisi_perangkat: Array.isArray(data.ms_kondisi_perangkat) && data.ms_kondisi_perangkat.length > 0 ? data.ms_kondisi_perangkat : this.reportFormData.ms_kondisi_perangkat,
+                    ms_aktivitas: Array.isArray(data.ms_aktivitas) && data.ms_aktivitas.length > 0 ? data.ms_aktivitas : this.reportFormData.ms_aktivitas,
+                    ms_incident_escalation: Array.isArray(data.ms_incident_escalation) && data.ms_incident_escalation.length > 0 ? data.ms_incident_escalation : this.reportFormData.ms_incident_escalation,
+                    ms_pm_checklist: Array.isArray(data.ms_pm_checklist) && data.ms_pm_checklist.length > 0 ? data.ms_pm_checklist : this.reportFormData.ms_pm_checklist,
+                    ms_materials: Array.isArray(data.ms_materials) && data.ms_materials.length > 0 ? data.ms_materials : this.reportFormData.ms_materials,
+                    ms_evidence: Array.isArray(data.ms_evidence) && data.ms_evidence.length > 0 ? data.ms_evidence : this.reportFormData.ms_evidence,
+                    ms_closure: {
+                        ...this.reportFormData.ms_closure,
+                        ...(data.ms_closure || {}),
+                        service_status: { ...this.reportFormData.ms_closure.service_status, ...(data.ms_closure?.service_status || {}) },
+                        sla: { ...this.reportFormData.ms_closure.sla, ...(data.ms_closure?.sla || {}) }
+                    },
+                    ms_verifikasi: { ...this.reportFormData.ms_verifikasi, ...(data.ms_verifikasi || {}) },
+
+                    // Help Desk
+                    hd_identitas: {
+                        ...this.reportFormData.hd_identitas,
+                        ...(data.hd_identitas || {}),
+                        shift: {
+                            ...this.reportFormData.hd_identitas.shift,
+                            ...(data.hd_identitas?.shift || {})
+                        }
+                    },
+                    hd_kondisi_awal: Array.isArray(data.hd_kondisi_awal) && data.hd_kondisi_awal.length > 0 ? data.hd_kondisi_awal : this.reportFormData.hd_kondisi_awal,
+                    hd_aktivitas: Array.isArray(data.hd_aktivitas) && data.hd_aktivitas.length > 0 ? data.hd_aktivitas : this.reportFormData.hd_aktivitas,
+                    hd_ticket_incident: Array.isArray(data.hd_ticket_incident) && data.hd_ticket_incident.length > 0 ? data.hd_ticket_incident : this.reportFormData.hd_ticket_incident,
+                    hd_monitoring_status: Array.isArray(data.hd_monitoring_status) && data.hd_monitoring_status.length > 0 ? data.hd_monitoring_status : this.reportFormData.hd_monitoring_status,
+                    hd_pekerjaan_field: Array.isArray(data.hd_pekerjaan_field) && data.hd_pekerjaan_field.length > 0 ? data.hd_pekerjaan_field : this.reportFormData.hd_pekerjaan_field,
+                    hd_kendala_escalation: Array.isArray(data.hd_kendala_escalation) && data.hd_kendala_escalation.length > 0 ? data.hd_kendala_escalation : this.reportFormData.hd_kendala_escalation,
+                    hd_handover: Array.isArray(data.hd_handover) && data.hd_handover.length > 0 ? data.hd_handover : this.reportFormData.hd_handover,
+                    hd_rekap_shift: { ...this.reportFormData.hd_rekap_shift, ...(data.hd_rekap_shift || {}) },
+                    hd_verifikasi: { ...this.reportFormData.hd_verifikasi, ...(data.hd_verifikasi || {}) },
                 };
 
                 // Normalisasi checkbox kategori pekerjaan jika data lampau berupa string radio
@@ -1398,6 +1575,203 @@ function engineerActivityManager() {
             }
         },
 
+        addActRow() {
+            this.addActivityRow();
+        },
+        removeActRow(idx) {
+            this.removeActivityRow(idx);
+        },
+
+        // ═══ MANAGED SERVICE ROW HELPERS ═══
+        addMsKondisiRow() {
+            if (!Array.isArray(this.reportFormData.ms_kondisi_perangkat)) this.reportFormData.ms_kondisi_perangkat = [];
+            const nextNo = this.reportFormData.ms_kondisi_perangkat.length + 1;
+            this.reportFormData.ms_kondisi_perangkat.push({
+                no: nextNo, service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: ''
+            });
+        },
+        removeMsKondisiRow(idx) {
+            if (this.reportFormData.ms_kondisi_perangkat && this.reportFormData.ms_kondisi_perangkat.length > 1) {
+                this.reportFormData.ms_kondisi_perangkat.splice(idx, 1);
+            }
+        },
+
+        addMsActRow() {
+            if (!Array.isArray(this.reportFormData.ms_aktivitas)) this.reportFormData.ms_aktivitas = [];
+            const nextNo = this.reportFormData.ms_aktivitas.length + 1;
+            this.reportFormData.ms_aktivitas.push({
+                no: nextNo, waktu: '09:00', aktivitas: '', ticket_alarm: '', hasil: '', status: 'Done', kendala: '', follow_up: ''
+            });
+        },
+        removeMsActRow(idx) {
+            if (this.reportFormData.ms_aktivitas && this.reportFormData.ms_aktivitas.length > 1) {
+                this.reportFormData.ms_aktivitas.splice(idx, 1);
+            }
+        },
+
+        addMsIncidentRow() {
+            if (!Array.isArray(this.reportFormData.ms_incident_escalation)) this.reportFormData.ms_incident_escalation = [];
+            const nextNo = this.reportFormData.ms_incident_escalation.length + 1;
+            this.reportFormData.ms_incident_escalation.push({
+                no: nextNo, incident: '', impact: '', root_cause: '', corrective_action: '', escalation: '', status: 'Closed'
+            });
+        },
+        removeMsIncidentRow(idx) {
+            if (this.reportFormData.ms_incident_escalation && this.reportFormData.ms_incident_escalation.length > 1) {
+                this.reportFormData.ms_incident_escalation.splice(idx, 1);
+            }
+        },
+
+        addMsPmRow() {
+            if (!Array.isArray(this.reportFormData.ms_pm_checklist)) this.reportFormData.ms_pm_checklist = [];
+            const nextNo = this.reportFormData.ms_pm_checklist.length + 1;
+            this.reportFormData.ms_pm_checklist.push({
+                no: nextNo, item_pemeriksaan: '', kondisi: 'Baik', hasil: 'Normal', temuan: '', tindakan: '', status: 'OK'
+            });
+        },
+        removeMsPmRow(idx) {
+            if (this.reportFormData.ms_pm_checklist && this.reportFormData.ms_pm_checklist.length > 1) {
+                this.reportFormData.ms_pm_checklist.splice(idx, 1);
+            }
+        },
+
+        addMsMaterialRow() {
+            if (!Array.isArray(this.reportFormData.ms_materials)) this.reportFormData.ms_materials = [];
+            const nextNo = this.reportFormData.ms_materials.length + 1;
+            this.reportFormData.ms_materials.push({
+                no: nextNo, item: '', type: '', qty: '', used_replaced: '', old_new: '', keterangan: ''
+            });
+        },
+        removeMsMaterialRow(idx) {
+            if (this.reportFormData.ms_materials && this.reportFormData.ms_materials.length > 1) {
+                this.reportFormData.ms_materials.splice(idx, 1);
+            }
+        },
+
+        addMsEvidenceRow() {
+            if (!Array.isArray(this.reportFormData.ms_evidence)) this.reportFormData.ms_evidence = [];
+            const nextNo = this.reportFormData.ms_evidence.length + 1;
+            this.reportFormData.ms_evidence.push({
+                no: nextNo, evidence: '', waktu: '09:00', foto_url: '', keterangan: ''
+            });
+        },
+        removeMsEvidenceRow(idx) {
+            if (this.reportFormData.ms_evidence && this.reportFormData.ms_evidence.length > 1) {
+                this.reportFormData.ms_evidence.splice(idx, 1);
+            }
+        },
+
+        async handleMsEvidenceUpload(e, idx) {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const compressed = await this.compressImage(file, 1000, 0.72);
+                if (compressed && this.reportFormData.ms_evidence[idx]) {
+                    this.reportFormData.ms_evidence[idx].foto_url = compressed;
+                }
+            } catch (err) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    if (this.reportFormData.ms_evidence[idx]) {
+                        this.reportFormData.ms_evidence[idx].foto_url = ev.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        },
+
+        // ═══ HELP DESK ROW HELPERS ═══
+        addHdKondisiRow() {
+            if (!Array.isArray(this.reportFormData.hd_kondisi_awal)) this.reportFormData.hd_kondisi_awal = [];
+            const nextNo = this.reportFormData.hd_kondisi_awal.length + 1;
+            this.reportFormData.hd_kondisi_awal.push({
+                no: nextNo, item_service: '', kondisi_awal: 'Normal', alarm_issue: 'Clear', status: 'OK', keterangan: ''
+            });
+        },
+        removeHdKondisiRow(idx) {
+            if (this.reportFormData.hd_kondisi_awal && this.reportFormData.hd_kondisi_awal.length > 1) {
+                this.reportFormData.hd_kondisi_awal.splice(idx, 1);
+            }
+        },
+
+        addHdActRow() {
+            if (!Array.isArray(this.reportFormData.hd_aktivitas)) this.reportFormData.hd_aktivitas = [];
+            const nextNo = this.reportFormData.hd_aktivitas.length + 1;
+            this.reportFormData.hd_aktivitas.push({
+                no: nextNo, waktu: '09:00', aktivitas: '', ticket_wo: '', lokasi_device: '', hasil: '', status: 'Done'
+            });
+        },
+        removeHdActRow(idx) {
+            if (this.reportFormData.hd_aktivitas && this.reportFormData.hd_aktivitas.length > 1) {
+                this.reportFormData.hd_aktivitas.splice(idx, 1);
+            }
+        },
+
+        addHdTicketRow() {
+            if (!Array.isArray(this.reportFormData.hd_ticket_incident)) this.reportFormData.hd_ticket_incident = [];
+            const nextNo = this.reportFormData.hd_ticket_incident.length + 1;
+            this.reportFormData.hd_ticket_incident.push({
+                no: nextNo, ticket: '', jenis: '', priority: 'Medium', start: '', restore: '', close_status: 'Closed', keterangan: ''
+            });
+        },
+        removeHdTicketRow(idx) {
+            if (this.reportFormData.hd_ticket_incident && this.reportFormData.hd_ticket_incident.length > 1) {
+                this.reportFormData.hd_ticket_incident.splice(idx, 1);
+            }
+        },
+
+        addHdMonitoringRow() {
+            if (!Array.isArray(this.reportFormData.hd_monitoring_status)) this.reportFormData.hd_monitoring_status = [];
+            const nextNo = this.reportFormData.hd_monitoring_status.length + 1;
+            this.reportFormData.hd_monitoring_status.push({
+                no: nextNo, service_device: '', status: 'Up', alarm: 'None', performance: '', action: '', keterangan: ''
+            });
+        },
+        removeHdMonitoringRow(idx) {
+            if (this.reportFormData.hd_monitoring_status && this.reportFormData.hd_monitoring_status.length > 1) {
+                this.reportFormData.hd_monitoring_status.splice(idx, 1);
+            }
+        },
+
+        addHdFieldRow() {
+            if (!Array.isArray(this.reportFormData.hd_pekerjaan_field)) this.reportFormData.hd_pekerjaan_field = [];
+            const nextNo = this.reportFormData.hd_pekerjaan_field.length + 1;
+            this.reportFormData.hd_pekerjaan_field.push({
+                no: nextNo, lokasi: '', pekerjaan: '', engineer: '{{ auth()->user()?->name ?? 'Engineer' }}', hasil: '', foto_evidence: '', status: 'Done'
+            });
+        },
+        removeHdFieldRow(idx) {
+            if (this.reportFormData.hd_pekerjaan_field && this.reportFormData.hd_pekerjaan_field.length > 1) {
+                this.reportFormData.hd_pekerjaan_field.splice(idx, 1);
+            }
+        },
+
+        addHdKendalaRow() {
+            if (!Array.isArray(this.reportFormData.hd_kendala_escalation)) this.reportFormData.hd_kendala_escalation = [];
+            const nextNo = this.reportFormData.hd_kendala_escalation.length + 1;
+            this.reportFormData.hd_kendala_escalation.push({
+                no: nextNo, kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: 'Normal', next_action: ''
+            });
+        },
+        removeHdKendalaRow(idx) {
+            if (this.reportFormData.hd_kendala_escalation && this.reportFormData.hd_kendala_escalation.length > 1) {
+                this.reportFormData.hd_kendala_escalation.splice(idx, 1);
+            }
+        },
+
+        addHdHandoverRow() {
+            if (!Array.isArray(this.reportFormData.hd_handover)) this.reportFormData.hd_handover = [];
+            const nextNo = this.reportFormData.hd_handover.length + 1;
+            this.reportFormData.hd_handover.push({
+                no: nextNo, outstanding_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', pic: '', due_time: '', catatan: ''
+            });
+        },
+        removeHdHandoverRow(idx) {
+            if (this.reportFormData.hd_handover && this.reportFormData.hd_handover.length > 1) {
+                this.reportFormData.hd_handover.splice(idx, 1);
+            }
+        },
+
         openSignaturePad(roleType, roleLabel) {
             this.signatureRoleType = roleType;
             this.signatureRoleLabel = roleLabel;
@@ -1548,6 +1922,9 @@ function engineerActivityManager() {
             } else {
                 const currentParams = new URLSearchParams(window.location.search);
                 currentParams.forEach((val, key) => params.set(key, val));
+            }
+            if (this.reportFormData && this.reportFormData.category) {
+                params.set('category', this.reportFormData.category);
             }
             if (extraParams && typeof extraParams === 'object') {
                 Object.entries(extraParams).forEach(([k, v]) => params.set(k, v));

@@ -1743,20 +1743,53 @@ class DashboardController extends Controller
                 $rawReport = is_string($request->report_data) ? json_decode($request->report_data, true) : $request->report_data;
             }
 
-            // Kumpulkan list activities dari $request->activities atau dari $rawReport['rincian_aktivitas']
+            // Kumpulkan list activities dari $request->activities atau dari $rawReport rincian aktivitas
             $activitiesList = $hasActivities ? $request->activities : [];
-            if (empty($activitiesList) && is_array($rawReport) && !empty($rawReport['rincian_aktivitas'])) {
-                foreach ($rawReport['rincian_aktivitas'] as $ra) {
-                    $activitiesList[] = [
-                        'subject'       => $ra['aktivitas'] ?? '',
-                        'activity_date' => $rawReport['identitas']['hari_tanggal_raw'] ?? ($rawReport['identitas']['hari_tanggal'] ?? date('Y-m-d')),
-                        'time_str'      => $ra['waktu'] ?? '',
-                        'client_pic'    => $rawReport['identitas']['pic_customer'] ?? '',
-                        'ipnet_pic'     => $rawReport['identitas']['nama_engineer'] ?? '',
-                        'notes'         => !empty($ra['tindak_lanjut']) && $ra['tindak_lanjut'] !== '-' ? $ra['tindak_lanjut'] : ($ra['hasil'] ?? ''),
-                        'activity_type' => !empty($rawReport['identitas']['kategori_managed_service']) ? 'Maintenance' : 'Troubleshooting',
-                        'status'        => !empty($ra['status']) ? $ra['status'] : 'Selesai',
-                    ];
+            $reportCat = is_array($rawReport) ? ($rawReport['category'] ?? ($rawReport['report_type'] ?? 'project')) : 'project';
+
+            if (empty($activitiesList) && is_array($rawReport)) {
+                if ($reportCat === 'managed_service' && !empty($rawReport['ms_aktivitas'])) {
+                    foreach ($rawReport['ms_aktivitas'] as $ra) {
+                        if (empty(trim($ra['aktivitas'] ?? ''))) continue;
+                        $activitiesList[] = [
+                            'subject'       => $ra['aktivitas'],
+                            'activity_date' => $rawReport['ms_identitas']['tanggal'] ?? date('Y-m-d'),
+                            'time_str'      => $ra['waktu'] ?? '',
+                            'client_pic'    => $rawReport['ms_identitas']['customer'] ?? '',
+                            'ipnet_pic'     => $rawReport['ms_identitas']['engineer_pic'] ?? '',
+                            'notes'         => (!empty($ra['ticket_alarm']) ? "Ticket/Alarm: {$ra['ticket_alarm']} | " : '') . (!empty($ra['follow_up']) ? "Follow-up: {$ra['follow_up']} | " : '') . ($ra['hasil'] ?? ''),
+                            'activity_type' => 'Maintenance',
+                            'status'        => !empty($ra['status']) ? $ra['status'] : 'Selesai',
+                        ];
+                    }
+                } elseif ($reportCat === 'help_desk' && !empty($rawReport['hd_aktivitas'])) {
+                    foreach ($rawReport['hd_aktivitas'] as $ra) {
+                        if (empty(trim($ra['aktivitas'] ?? ''))) continue;
+                        $activitiesList[] = [
+                            'subject'       => $ra['aktivitas'],
+                            'activity_date' => $rawReport['hd_identitas']['tanggal'] ?? date('Y-m-d'),
+                            'time_str'      => $ra['waktu'] ?? '',
+                            'client_pic'    => $rawReport['hd_identitas']['customer_service'] ?? '',
+                            'ipnet_pic'     => $rawReport['hd_identitas']['nama_engineer'] ?? '',
+                            'notes'         => (!empty($ra['ticket_wo']) ? "Ticket/WO: {$ra['ticket_wo']} | " : '') . ($ra['hasil'] ?? ''),
+                            'activity_type' => 'Field Support',
+                            'status'        => !empty($ra['status']) ? $ra['status'] : 'Selesai',
+                        ];
+                    }
+                } elseif (!empty($rawReport['rincian_aktivitas'])) {
+                    foreach ($rawReport['rincian_aktivitas'] as $ra) {
+                        if (empty(trim($ra['aktivitas'] ?? ''))) continue;
+                        $activitiesList[] = [
+                            'subject'       => $ra['aktivitas'],
+                            'activity_date' => $rawReport['identitas']['hari_tanggal_raw'] ?? ($rawReport['identitas']['hari_tanggal'] ?? date('Y-m-d')),
+                            'time_str'      => $ra['waktu'] ?? '',
+                            'client_pic'    => $rawReport['identitas']['pic_customer'] ?? '',
+                            'ipnet_pic'     => $rawReport['identitas']['nama_engineer'] ?? '',
+                            'notes'         => !empty($ra['tindak_lanjut']) && $ra['tindak_lanjut'] !== '-' ? $ra['tindak_lanjut'] : ($ra['hasil'] ?? ''),
+                            'activity_type' => !empty($rawReport['identitas']['kategori_managed_service']) ? 'Maintenance' : 'Troubleshooting',
+                            'status'        => !empty($ra['status']) ? $ra['status'] : 'Selesai',
+                        ];
+                    }
                 }
             }
 
@@ -1817,17 +1850,34 @@ class DashboardController extends Controller
 
             // Jika belum ada teks di baris rincian aktivitas, buatkan 1 baris otomatis agar dokumen tersimpan & tidak mental
             if ($itemsCreated === 0 && !empty($rawReport)) {
-                $defaultSubject = $activityTitle ?: (!empty($rawReport['ruang_lingkup']['target_hari_ini']) ? $rawReport['ruang_lingkup']['target_hari_ini'] : 'Laporan Aktivitas Harian Project');
-                $rawDate        = $rawReport['identitas']['hari_tanggal_raw'] ?? ($rawReport['identitas']['hari_tanggal'] ?? date('Y-m-d'));
+                if ($reportCat === 'managed_service') {
+                    $defaultSubject = $activityTitle ?: (!empty($rawReport['ms_identitas']['service_device']) ? 'Managed Service: ' . $rawReport['ms_identitas']['service_device'] : 'Laporan Aktivitas Managed Service');
+                    $rawDate        = $rawReport['ms_identitas']['tanggal'] ?? date('Y-m-d');
+                    $time           = $rawReport['ms_identitas']['jam_mulai'] ?? null;
+                    $clientPic      = $rawReport['ms_identitas']['customer'] ?? '';
+                    $ipnetPic       = $rawReport['ms_identitas']['engineer_pic'] ?? '';
+                    $actType        = 'Maintenance';
+                } elseif ($reportCat === 'help_desk') {
+                    $defaultSubject = $activityTitle ?: (!empty($rawReport['hd_identitas']['customer_service']) ? 'Operasional Help Desk: ' . $rawReport['hd_identitas']['customer_service'] : 'Laporan Operasional Help Desk');
+                    $rawDate        = $rawReport['hd_identitas']['tanggal'] ?? date('Y-m-d');
+                    $time           = $rawReport['hd_identitas']['jam_shift'] ?? null;
+                    $clientPic      = $rawReport['hd_identitas']['customer_service'] ?? '';
+                    $ipnetPic       = $rawReport['hd_identitas']['nama_engineer'] ?? '';
+                    $actType        = 'Field Support';
+                } else {
+                    $defaultSubject = $activityTitle ?: (!empty($rawReport['ruang_lingkup']['target_hari_ini']) ? $rawReport['ruang_lingkup']['target_hari_ini'] : 'Laporan Aktivitas Harian Project');
+                    $rawDate        = $rawReport['identitas']['hari_tanggal_raw'] ?? ($rawReport['identitas']['hari_tanggal'] ?? date('Y-m-d'));
+                    $time           = $rawReport['identitas']['jam_mulai'] ?? null;
+                    $clientPic      = $rawReport['identitas']['pic_customer'] ?? '';
+                    $ipnetPic       = $rawReport['identitas']['nama_engineer'] ?? '';
+                    $actType        = !empty($rawReport['identitas']['kategori_managed_service']) ? 'Maintenance' : 'Troubleshooting';
+                }
+
                 try {
                     $date = \Carbon\Carbon::parse($rawDate)->format('Y-m-d');
                 } catch (\Throwable $e) {
                     $date = date('Y-m-d');
                 }
-                $time           = $rawReport['identitas']['jam_mulai'] ?? null;
-                $clientPic      = $rawReport['identitas']['pic_customer'] ?? '';
-                $ipnetPic       = $rawReport['identitas']['nama_engineer'] ?? '';
-                $actType        = !empty($rawReport['identitas']['kategori_managed_service']) ? 'Maintenance' : 'Troubleshooting';
 
                 EngineerActivityLog::create([
                     'user_id'       => auth()->id(),
@@ -2172,6 +2222,7 @@ class DashboardController extends Controller
         $qrData          = $this->generateQrData($verifyUrl);
 
         $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', [
+            'reportCategory'    => $request->get('category') ?? ($documentSignature?->report_data['category'] ?? ($documentSignature?->report_data['report_type'] ?? null)),
             'parsedActivities'  => $parsedActivities->values()->toArray(),
             'activities'        => $activities,
             'projectName'       => $projectName,
@@ -2288,6 +2339,7 @@ class DashboardController extends Controller
         $qrData    = $this->generateQrData($verifyUrl);
 
         $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', [
+            'reportCategory'    => $documentSignature?->report_data['category'] ?? ($documentSignature?->report_data['report_type'] ?? null),
             'parsedActivities'  => $parsedActivities,
             'activities'        => $activities,
             'projectName'       => $projectName,
