@@ -45,6 +45,7 @@
             ['key' => 'cro_concerns',      'label' => 'Concerns & Issues',     'route' => 'cro.concerns.index'],
             ['key' => 'cro_retention',     'label' => 'Account Retention',     'route' => 'cro.retention.index'],
             ['key' => 'cro_opportunities', 'label' => 'Expansion Leads',       'route' => 'cro.opportunities.index'],
+            ['key' => 'digital_signatures','label' => 'Digital Signature',     'route' => 'digital_signatures.index'],
             ['key' => 'clients',           'label' => 'Client Database',       'route' => 'clients.index'],
             ['key' => 'timesheets',        'label' => 'Timesheet',             'route' => 'timesheets.index'],
         ];
@@ -78,38 +79,42 @@
         ];
     } elseif ($isArchitect) {
         $navItems = [
-            ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.architect'],
-            ['key' => 'projects',   'label' => 'Projects',           'route' => 'sales.pipeline.index'],
-            ['key' => 'clients',    'label' => 'Clients',            'route' => 'clients.index'],
-            ['key' => 'schedules',  'label' => 'Work Schedule',      'route' => 'schedules.index'],
-            ['key' => 'timesheets', 'label' => 'Timesheet',           'route' => 'timesheets.index'],
+            ['key' => 'dashboard',          'label' => 'Dashboard',          'route' => 'dashboard.architect'],
+            ['key' => 'projects',           'label' => 'Projects',           'route' => 'sales.pipeline.index'],
+            ['key' => 'digital_signatures', 'label' => 'Digital Signature',  'route' => 'digital_signatures.index'],
+            ['key' => 'clients',            'label' => 'Clients',            'route' => 'clients.index'],
+            ['key' => 'schedules',          'label' => 'Work Schedule',      'route' => 'schedules.index'],
+            ['key' => 'timesheets',         'label' => 'Timesheet',          'route' => 'timesheets.index'],
         ];
     } elseif ($isBdm) {
         $navItems = [
-            ['key' => 'dashboard',  'label' => 'Dashboard',     'route' => 'dashboard.bdm'],
-            ['key' => 'projects',   'label' => 'Projects',      'route' => 'sales.pipeline.index'],
-            ['key' => 'clients',    'label' => 'Clients',       'route' => 'clients.index'],
-            ['key' => 'schedules',  'label' => 'Work Schedule', 'route' => 'schedules.index'],
-            ['key' => 'timesheets', 'label' => 'Timesheet',     'route' => 'timesheets.index'],
+            ['key' => 'dashboard',          'label' => 'Dashboard',     'route' => 'dashboard.bdm'],
+            ['key' => 'projects',           'label' => 'Projects',      'route' => 'sales.pipeline.index'],
+            ['key' => 'digital_signatures', 'label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
+            ['key' => 'clients',            'label' => 'Clients',       'route' => 'clients.index'],
+            ['key' => 'schedules',          'label' => 'Work Schedule', 'route' => 'schedules.index'],
+            ['key' => 'timesheets',         'label' => 'Timesheet',     'route' => 'timesheets.index'],
         ];
     } elseif ($isPresales) {
         $navItems = [
-            ['key' => 'dashboard',  'label' => 'Dashboard',          'route' => 'dashboard.presales'],
-            ['key' => 'projects',   'label' => 'Projects',           'route' => 'sales.pipeline.index'],
-            ['key' => 'clients',    'label' => 'Clients',            'route' => 'clients.index'],
-            ['key' => 'schedules',  'label' => 'Work Schedule',      'route' => 'schedules.index'],
-            ['key' => 'timesheets', 'label' => 'Timesheet',           'route' => 'timesheets.index'],
+            ['key' => 'dashboard',          'label' => 'Dashboard',          'route' => 'dashboard.presales'],
+            ['key' => 'projects',           'label' => 'Projects',           'route' => 'sales.pipeline.index'],
+            ['key' => 'digital_signatures', 'label' => 'Digital Signature',  'route' => 'digital_signatures.index'],
+            ['key' => 'clients',            'label' => 'Clients',            'route' => 'clients.index'],
+            ['key' => 'schedules',          'label' => 'Work Schedule',      'route' => 'schedules.index'],
+            ['key' => 'timesheets',         'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];
     } elseif ($isSales) {
         $navItems = [
-            ['key' => 'dashboard',  'label' => 'Dashboard',           'route' => 'dashboard.sales'],
-            ['key' => 'projects',   'label' => 'Projects',            'route' => 'sales.pipeline.index'],
-            ['key' => 'activities', 'label' => 'Activity Log',        'route' => 'sales.activities.index'],
-            ['key' => 'clients',    'label' => 'Clients',             'route' => 'clients.index'],
-            ['key' => 'inventory',  'label' => 'Inventory',           'route' => 'inventory.index'],
-            ['key' => 'vendors',    'label' => 'Vendors',             'route' => 'vendors.index'],
-            ['key' => 'schedules',  'label' => 'Work Schedule',       'route' => 'schedules.index'],
-            ['key' => 'timesheets', 'label' => 'Timesheet',            'route' => 'timesheets.index'],
+            ['key' => 'dashboard',          'label' => 'Dashboard',           'route' => 'dashboard.sales'],
+            ['key' => 'projects',           'label' => 'Projects',            'route' => 'sales.pipeline.index'],
+            ['key' => 'activities',         'label' => 'Activity Log',        'route' => 'sales.activities.index'],
+            ['key' => 'digital_signatures', 'label' => 'Digital Signature',   'route' => 'digital_signatures.index'],
+            ['key' => 'clients',            'label' => 'Clients',             'route' => 'clients.index'],
+            ['key' => 'inventory',          'label' => 'Inventory',           'route' => 'inventory.index'],
+            ['key' => 'vendors',            'label' => 'Vendors',             'route' => 'vendors.index'],
+            ['key' => 'schedules',          'label' => 'Work Schedule',       'route' => 'schedules.index'],
+            ['key' => 'timesheets',         'label' => 'Timesheet',            'route' => 'timesheets.index'],
         ];
     } elseif (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
         $navItems = [
@@ -327,7 +332,9 @@
                 if (isset($itemParams['status'])) {
                     $isActive = ($currentRoute === $item['route']) && (request('status') === $itemParams['status']);
                 } else {
-                    $isActive = (($currentRoute === $item['route']) || ($item['key'] === 'projects' && in_array($currentRoute, ['sales.pipeline.index', 'sales.pipeline.show', 'sales.pipeline.create', 'projects.show', 'projects.index', 'sales.projects.show']))) && (!request()->has('status') || request('status') === '');
+                    $isActive = (($currentRoute === $item['route']) || 
+                                 ($item['key'] === 'projects' && in_array($currentRoute, ['sales.pipeline.index', 'sales.pipeline.show', 'sales.pipeline.create', 'projects.show', 'projects.index', 'sales.projects.show'])) ||
+                                 ($item['key'] === 'digital_signatures' && str_starts_with($currentRoute, 'digital_signatures.'))) && (!request()->has('status') || request('status') === '');
                 }
             @endphp
             <a href="{{ $itemUrl }}"
