@@ -303,25 +303,36 @@ class Project extends Model
             return $item['id'] ?? strtolower($item['nama']);
         })->values();
 
-        // 5. Khusus proyek Angkasa Pura Support atau proyek dengan PIC Syaiful Amin:
-        // Sertakan rekan tim Raihan Ghiffary jika belum ada di list
-        $hasSyaiful = $uniqueList->contains(fn($item) => stripos($item['nama'], 'Syaiful') !== false);
+        // 5. Khusus proyek Angkasa Pura Support atau proyek dengan Syaiful Amin:
+        // Pastikan kedua personel utama (Syaiful Amin sebagai PIC dan Raihan Ghiffary sebagai Personel) selalu terikat
         $isAngkasa  = stripos($this->name, 'Angkasa Pura') !== false;
+        $hasSyaiful = $uniqueList->contains(fn($item) => stripos($item['nama'], 'Syaiful') !== false);
         if ($isAngkasa || $hasSyaiful) {
+            if (!$hasSyaiful) {
+                try {
+                    $syaiful = \App\Models\User::where('name', 'like', '%Syaiful%')->with('division')->first();
+                } catch (\Throwable $e) { $syaiful = null; }
+                $uniqueList->prepend([
+                    'id'         => $syaiful?->id,
+                    'nama'       => $syaiful?->name ?? 'Syaiful Amin',
+                    'unit_kerja' => $syaiful?->division?->name ?? 'Divisi Network',
+                    'jabatan'    => $syaiful?->position ?: 'L2 Network Engineer',
+                    'keterangan' => 'PIC Project',
+                ]);
+            }
+
             $hasRaihan = $uniqueList->contains(fn($item) => stripos($item['nama'], 'Raihan') !== false);
             if (!$hasRaihan) {
                 try {
                     $raihan = \App\Models\User::where('name', 'like', '%Raihan%')->with('division')->first();
-                    if ($raihan) {
-                        $uniqueList->push([
-                            'id'         => $raihan->id,
-                            'nama'       => $raihan->name,
-                            'unit_kerja' => $raihan->division?->name ?? 'Network Engineering',
-                            'jabatan'    => $raihan->position ?: 'L2 Engineer',
-                            'keterangan' => 'Personel Lapangan',
-                        ]);
-                    }
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) { $raihan = null; }
+                $uniqueList->push([
+                    'id'         => $raihan?->id,
+                    'nama'       => $raihan?->name ?? 'Raihan Ghiffary',
+                    'unit_kerja' => $raihan?->division?->name ?? 'Divisi Network',
+                    'jabatan'    => $raihan?->position ?: 'L2 Engineer',
+                    'keterangan' => 'Personel Lapangan',
+                ]);
             }
         }
 

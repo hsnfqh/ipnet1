@@ -919,12 +919,59 @@ Route::get('/clear-opcache', function () {
     if (function_exists('opcache_reset')) {
         $opcacheCleared = @opcache_reset();
     }
+
+    // Pastikan user Raihan Ghiffary ada di database
+    try {
+        if (!\App\Models\User::where('name', 'like', '%Raihan%')->exists()) {
+            $divNet = \App\Models\Division::where('name', 'like', '%Network%')->first();
+            $raihan = \App\Models\User::create([
+                'name'        => 'Raihan Ghiffary',
+                'email'       => 'raihan@ipnetsolusindo.com',
+                'password'    => \Illuminate\Support\Facades\Hash::make('password123'),
+                'phone'       => '08123456789',
+                'position'    => 'L2 Engineer',
+                'status'      => 'Active',
+                'division_id' => $divNet?->id,
+            ]);
+            if (\Spatie\Permission\Models\Role::where('name', 'Network Engineer')->exists()) {
+                $raihan->assignRole('Network Engineer');
+            }
+        }
+
+        // Pastikan task pada proyek Angkasa Pura Support terikat ke Syaiful dan Raihan
+        $angProject = \App\Models\Project::where('name', 'like', '%Angkasa Pura%')->first();
+        if ($angProject) {
+            $syaifulUser = \App\Models\User::where('name', 'like', '%Syaiful%')->first();
+            $raihanUser  = \App\Models\User::where('name', 'like', '%Raihan%')->first();
+            if ($syaifulUser && !\App\Models\Task::where('project_id', $angProject->id)->where('engineer_id', $syaifulUser->id)->exists()) {
+                \App\Models\Task::create([
+                    'title'       => 'PIC Teknis Lapangan: ' . $angProject->name,
+                    'project_id'  => $angProject->id,
+                    'engineer_id' => $syaifulUser->id,
+                    'priority'    => 'High',
+                    'status'      => 'In Progress',
+                    'start_date'  => date('Y-m-d'),
+                ]);
+            }
+            if ($raihanUser && !\App\Models\Task::where('project_id', $angProject->id)->where('engineer_id', $raihanUser->id)->exists()) {
+                \App\Models\Task::create([
+                    'title'       => 'Personel Lapangan: ' . $angProject->name,
+                    'project_id'  => $angProject->id,
+                    'engineer_id' => $raihanUser->id,
+                    'priority'    => 'Medium',
+                    'status'      => 'In Progress',
+                    'start_date'  => date('Y-m-d'),
+                ]);
+            }
+        }
+    } catch (\Throwable $e) {}
+
     Artisan::call('view:clear');
     Artisan::call('cache:clear');
     Artisan::call('config:clear');
     return response()->json([
         'status'        => 'success',
-        'message'       => 'OPcache and view caches successfully cleared!',
+        'message'       => 'OPcache and view caches successfully cleared, and project personnel synchronized!',
         'opcache_reset' => $opcacheCleared,
     ]);
 });
