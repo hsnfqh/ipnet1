@@ -361,6 +361,7 @@
                             'engineer_name' => $allEngineerNames ?: ($firstAct->engineer->name ?? '-'),
                             'creator_name'  => $creatorName,
                             'total'         => $totalInGroup,
+                            'category'      => $matchedSig?->report_data['category'] ?? ($matchedSig?->report_data['report_type'] ?? (!empty($matchedSig?->report_data['ms_identitas']) ? 'managed_service' : (!empty($matchedSig?->report_data['hd_identitas']) ? 'help_desk' : 'project'))),
                             'items'         => $groupActivities->map(function($a, $idx) use ($creatorName) {
                                 $rawNotes  = $a->notes ?? '';
                                 $clientPic = '';
@@ -924,6 +925,9 @@ function engineerActivityManager() {
             this.initDefaultReportData();
             if (this.sigInfo?.report_data) {
                 this.loadReportData(this.sigInfo.report_data);
+            }
+            if (groupData && groupData.category) {
+                this.reportFormData.category = groupData.category;
             }
             this.isDetailModalOpen = true;
             if (groupData && groupData.scope_key) {

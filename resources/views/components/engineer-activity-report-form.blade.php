@@ -15,23 +15,9 @@
     <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-[#CBD5E1] shadow-xs !mt-0">
         <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-[#475569] uppercase tracking-wider">Kategori Laporan:</span>
-            <div class="inline-flex rounded-xl p-1 bg-[#F1F5F9] border border-[#CBD5E1]">
-                <button type="button" @click="setDetailDocCategory('project')"
-                        :class="(reportFormData?.category || 'project') === 'project' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">
-                    Project
-                </button>
-                <button type="button" @click="setDetailDocCategory('managed_service')"
-                        :class="(reportFormData?.category || 'project') === 'managed_service' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">
-                    Managed Service
-                </button>
-                <button type="button" @click="setDetailDocCategory('help_desk')"
-                        :class="(reportFormData?.category || 'project') === 'help_desk' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">
-                    Help Desk
-                </button>
-            </div>
+            <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold tracking-wide uppercase shadow-2xs"
+                  x-text="(reportFormData?.category || 'project') === 'managed_service' ? 'Managed Service' : ((reportFormData?.category || 'project') === 'help_desk' ? 'Help Desk' : 'Project')">
+            </span>
         </div>
 
         <div class="flex items-center gap-2">
