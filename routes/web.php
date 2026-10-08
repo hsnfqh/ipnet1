@@ -67,6 +67,7 @@ Route::match(['GET', 'POST'], '/verify/inspect', [\App\Http\Controllers\PublicDo
 
 // Public Client Digital Signature Portal & Verification (Tanpa Perlu Login)
 Route::get('/sign/{token}', [DigitalSignatureController::class, 'clientSignShow'])->name('client.digital_signature.show');
+Route::get('/sign/{token}', [DigitalSignatureController::class, 'clientSignShow'])->name('digital_signatures.client_sign');
 Route::post('/sign/{token}', [DigitalSignatureController::class, 'clientSignSubmit'])->name('client.digital_signature.submit');
 Route::get('/verify-document-sign/{hash}', [DigitalSignatureController::class, 'verifyPublic'])->name('public.digital_signature.verify');
 
