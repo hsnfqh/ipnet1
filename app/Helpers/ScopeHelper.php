@@ -173,8 +173,8 @@ class ScopeHelper
     {
         if (!$user) return [];
 
-        // 1. Head / Executive / Super Admin / Group Leader -> Akses penuh (bisa lihat dua-duanya / seluruh kategori)
-        if (self::isExecutive($user) || self::isGroupLeader($user) || $user->hasAnyRole(['Super Admin', 'Superadmin', 'Admin'])) {
+        // 1. Head / Executive / Super Admin / Group Leader / Lead Engineer / Team Leader -> Akses penuh (bisa lihat semua kategori)
+        if (self::isExecutive($user) || self::isGroupLeader($user) || self::isTeamLeader($user) || $user->hasAnyRole(['Super Admin', 'Superadmin', 'Admin', 'Lead Engineer', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi', 'Lead Maintenance'])) {
             return ['project', 'managed_service', 'help_desk'];
         }
 

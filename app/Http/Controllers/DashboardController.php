@@ -2866,7 +2866,7 @@ class DashboardController extends Controller
         }
 
         // Fallback aman jika class ScopeHelper di OPcache hosting belum mereload method baru
-        if (\App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::isGroupLeader($user) || $user->hasAnyRole(['Super Admin', 'Superadmin', 'Admin'])) {
+        if (\App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::isGroupLeader($user) || \App\Helpers\ScopeHelper::isTeamLeader($user) || $user->hasAnyRole(['Super Admin', 'Superadmin', 'Admin', 'Lead Engineer', 'Team Leader Engineering', 'Team Leader', 'Lead Divisi', 'Lead Maintenance'])) {
             return ['project', 'managed_service', 'help_desk'];
         }
 

@@ -624,27 +624,21 @@
                     <div class="flex items-center gap-2">
                         <span class="text-xs font-bold text-[#475569] uppercase tracking-wider">Kategori Laporan:</span>
                         <div class="inline-flex rounded-xl p-1 bg-[#F1F5F9] border border-[#CBD5E1] shadow-xs">
-                            @if(in_array('project', $modalAllowedCats))
                             <button type="button" @click="selectedCategory = 'project'"
                                     :class="selectedCategory === 'project' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
                                     class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
                                 <span>Project</span>
                             </button>
-                            @endif
-                            @if(in_array('managed_service', $modalAllowedCats))
                             <button type="button" @click="selectedCategory = 'managed_service'"
                                     :class="selectedCategory === 'managed_service' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
                                     class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
                                 <span>Managed Service</span>
                             </button>
-                            @endif
-                            @if(in_array('help_desk', $modalAllowedCats))
                             <button type="button" @click="selectedCategory = 'help_desk'"
                                     :class="selectedCategory === 'help_desk' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
                                     class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
                                 <span>Help Desk</span>
                             </button>
-                            @endif
                         </div>
                     </div>
                     <div class="text-xs text-gray-500 font-medium hidden sm:block">
