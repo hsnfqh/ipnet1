@@ -37,7 +37,23 @@
         }
     }
     $defaultModalCat = $modalAllowedCats[0] ?? 'project';
-    $projectsLookup = $modalProjects->keyBy('id');
+    $projectsLookup = $modalProjects->mapWithKeys(function($p) {
+        $personnel = method_exists($p, 'getAssignedPersonnel') ? $p->getAssignedPersonnel() : ($p->personnel ?? []);
+        return [
+            $p->id => [
+                'id'                     => $p->id,
+                'name'                   => $p->name,
+                'client'                 => $p->client,
+                'location'               => $p->location,
+                'po_number'              => $p->po_number,
+                'customer_pic_technical' => $p->customer_pic_technical,
+                'description'            => $p->description,
+                'progress'               => $p->progress,
+                'pic_name'               => $personnel[0]['nama'] ?? null,
+                'personnel'              => $personnel,
+            ]
+        ];
+    });
 @endphp
 
 <div x-data="{
@@ -72,9 +88,9 @@
         manpower: [
             {
                 nama: '{{ auth()->user()?->name ?? 'Engineer' }}',
-                unit_kerja: '',
+                unit_kerja: '{{ auth()->user()?->division?->name ?? 'Engineering' }}',
                 jabatan: '{{ auth()->user()?->position ?: 'Field Engineer' }}',
-                keterangan: ''
+                keterangan: 'PIC Project'
             }
         ],
         total_tenaga_kerja: 1,
@@ -232,11 +248,38 @@
             this.reportFormData.identitas.no_so_spk = p.po_number || '';
             this.reportFormData.identitas.pic_customer = p.customer_pic_technical || '';
             if (p.progress) this.reportFormData.hasil_akhir.progress_percent = p.progress;
-                        this.reportFormData.ms_identitas.customer = p.client || '';
+            this.reportFormData.ms_identitas.customer = p.client || '';
             this.reportFormData.ms_identitas.site_lokasi = p.location || '';
             this.reportFormData.ms_identitas.no_contract = p.po_number || '';
             this.reportFormData.hd_identitas.customer_service = (p.client || '') + ' / ' + (p.name || '');
             this.reportFormData.hd_identitas.area_site = p.location || '';
+
+            // Otomatis binding seluruh personel/tenaga kerja yang terikat pada proyek ini ke B. KOMPOSISI TENAGA KERJA
+            if (p.personnel && p.personnel.length > 0) {
+                this.reportFormData.manpower = p.personnel.map((m, idx) => ({
+                    nama: m.nama || '',
+                    unit_kerja: m.unit_kerja || 'Engineering',
+                    jabatan: m.jabatan || 'Engineer',
+                    keterangan: m.keterangan || (idx === 0 ? 'PIC Project' : 'Personel Lapangan')
+                }));
+            } else {
+                this.reportFormData.manpower = [
+                    {
+                        nama: '{{ auth()->user()?->name ?? 'Engineer' }}',
+                        unit_kerja: '{{ auth()->user()?->division?->name ?? 'Engineering' }}',
+                        jabatan: '{{ auth()->user()?->position ?: 'Field Engineer' }}',
+                        keterangan: 'PIC Project'
+                    }
+                ];
+            }
+            this.reportFormData.total_tenaga_kerja = this.reportFormData.manpower.length;
+
+            // PIC di identitas laporan
+            if (p.pic_name) {
+                this.reportFormData.identitas.nama_engineer = p.pic_name;
+                this.reportFormData.ms_identitas.engineer_pic = p.pic_name;
+                this.reportFormData.hd_identitas.pic_ipnet = p.pic_name;
+            }
 
             if ((p.name || '').toLowerCase().includes('maintenance') || (p.name || '').toLowerCase().includes('managed')) {
                 this.reportFormData.identitas.kategori_managed_service = true;

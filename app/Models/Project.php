@@ -184,6 +184,119 @@ class Project extends Model
         )->distinct();
     }
 
+    /**
+     * Dapatkan daftar seluruh personel/tenaga kerja yang terikat pada proyek ini
+     * (Project Manager, Task Engineers, Schedule Engineers, Pivot Users).
+     */
+    public function getAssignedPersonnel(): array
+    {
+        $personnelList = collect();
+
+        // 1. Project Manager / PIC Utama
+        try {
+            $pm = $this->relationLoaded('pm') ? $this->pm : $this->pm()->with('division')->first();
+            if ($pm) {
+                $personnelList->push([
+                    'id'         => $pm->id,
+                    'nama'       => $pm->name,
+                    'unit_kerja' => $pm->division?->name ?? 'Project Management',
+                    'jabatan'    => $pm->position ?: 'Project Manager',
+                    'keterangan' => 'Project Manager / PIC',
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
+        // 2. Engineer dari Tasks
+        try {
+            $tasks = $this->relationLoaded('tasks') ? $this->tasks : $this->tasks()->with(['engineer.division', 'engineers.division'])->get();
+            foreach ($tasks as $t) {
+                if ($t->engineer) {
+                    $personnelList->push([
+                        'id'         => $t->engineer->id,
+                        'nama'       => $t->engineer->name,
+                        'unit_kerja' => $t->engineer->division?->name ?? 'Engineering',
+                        'jabatan'    => $t->engineer->position ?: 'Engineer Pelaksana',
+                        'keterangan' => 'Engineer Pelaksana',
+                    ]);
+                }
+                if ($t->engineers) {
+                    foreach ($t->engineers as $eng) {
+                        $personnelList->push([
+                            'id'         => $eng->id,
+                            'nama'       => $eng->name,
+                            'unit_kerja' => $eng->division?->name ?? 'Engineering',
+                            'jabatan'    => $eng->position ?: 'Engineer Pelaksana',
+                            'keterangan' => 'Personel Lapangan',
+                        ]);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 3. Engineer dari Schedules
+        try {
+            $schedules = $this->relationLoaded('schedules') ? $this->schedules : $this->schedules()->with(['engineer.division', 'engineers.division'])->get();
+            foreach ($schedules as $s) {
+                if ($s->engineer) {
+                    $personnelList->push([
+                        'id'         => $s->engineer->id,
+                        'nama'       => $s->engineer->name,
+                        'unit_kerja' => $s->engineer->division?->name ?? 'Engineering',
+                        'jabatan'    => $s->engineer->position ?: 'Engineer Lapangan',
+                        'keterangan' => 'Personel Lapangan',
+                    ]);
+                }
+                if ($s->engineers) {
+                    foreach ($s->engineers as $seng) {
+                        $personnelList->push([
+                            'id'         => $seng->id,
+                            'nama'       => $seng->name,
+                            'unit_kerja' => $seng->division?->name ?? 'Engineering',
+                            'jabatan'    => $seng->position ?: 'Engineer Lapangan',
+                            'keterangan' => 'Personel Lapangan',
+                        ]);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 4. Log Aktivitas yang pernah mencatat di proyek ini
+        try {
+            $pastLogs = \App\Models\EngineerActivityLog::where('project_id', $this->id)
+                ->with(['engineer.division'])
+                ->get();
+            foreach ($pastLogs as $pl) {
+                if ($pl->engineer) {
+                    $personnelList->push([
+                        'id'         => $pl->engineer->id,
+                        'nama'       => $pl->engineer->name,
+                        'unit_kerja' => $pl->engineer->division?->name ?? 'Engineering',
+                        'jabatan'    => $pl->engineer->position ?: 'Field Engineer',
+                        'keterangan' => 'Personel Lapangan',
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        $uniqueList = $personnelList->unique(function ($item) {
+            return $item['id'] ?? strtolower($item['nama']);
+        })->values();
+
+        // 5. Fallback ke auth user jika daftar masih kosong
+        if ($uniqueList->isEmpty() && auth()->check()) {
+            $u = auth()->user();
+            $uniqueList->push([
+                'id'         => $u->id,
+                'nama'       => $u->name,
+                'unit_kerja' => $u->division?->name ?? 'Engineering',
+                'jabatan'    => $u->position ?: 'Field Engineer',
+                'keterangan' => 'PIC Project',
+            ]);
+        }
+
+        return $uniqueList->toArray();
+    }
+
     // Scopes
     public function scopeStatus($query, $status)
     {

@@ -1655,8 +1655,28 @@ class DashboardController extends Controller
             });
         }
 
+        $projectFields = [
+            'id', 'name', 'client', 'location', 'po_number',
+            'customer_pic_technical', 'description', 'progress',
+            'pm_id', 'created_by', 'division_id'
+        ];
+
+        $projectsQuery->with([
+            'division:id,name',
+            'pm:id,name,position,division_id',
+            'pm.division:id,name',
+            'tasks' => function ($tq) {
+                $tq->select('id', 'project_id', 'engineer_id')
+                   ->with(['engineer:id,name,position,division_id', 'engineer.division:id,name', 'engineers:id,name,position,division_id', 'engineers.division:id,name']);
+            },
+            'schedules' => function ($sq) {
+                $sq->select('id', 'project_id', 'engineer_id')
+                   ->with(['engineer:id,name,position,division_id', 'engineer.division:id,name', 'engineers:id,name,position,division_id', 'engineers.division:id,name']);
+            }
+        ]);
+
         if ($isLead) {
-            $projects = $projectsQuery->orderBy('name')->get(['id', 'name', 'client']);
+            $projects = $projectsQuery->orderBy('name')->get($projectFields);
         } else {
             $projects = $projectsQuery->where(function ($q) use ($authUser, $linkedProjectIds, $hasTaskUser, $hasScheduleUser) {
                     if ($linkedProjectIds->isNotEmpty()) {
@@ -1677,7 +1697,7 @@ class DashboardController extends Controller
                     ->orWhere('created_by', $authUser->id);
                 })
                 ->orderBy('name')
-                ->get(['id', 'name', 'client']);
+                ->get($projectFields);
         }
 
         $engineers = collect();
