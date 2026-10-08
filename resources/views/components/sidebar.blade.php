@@ -15,25 +15,27 @@
 
     if ($isExecutiveOrGl) {
         $navItems = [
-            ['key' => 'dashboard',       'label' => 'Dashboard',         'route' => 'dashboard.lead'],
-            ['key' => 'projects',        'label' => 'Projects',          'route' => 'sales.pipeline.index'],
-            ['key' => 'activities',      'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
-            ['key' => 'clients',         'label' => 'Clients',           'route' => 'clients.index'],
-            ['key' => 'inventory',       'label' => 'Inventory',         'route' => 'inventory.index'],
-            ['key' => 'vendors',         'label' => 'Vendors',           'route' => 'vendors.index'],
-            ['key' => 'schedules',       'label' => 'Work Schedule',     'route' => 'schedules.index'],
-            ['key' => 'timesheets',      'label' => 'Timesheet',         'route' => 'timesheets.index'],
+            ['key' => 'dashboard',          'label' => 'Dashboard',         'route' => 'dashboard.lead'],
+            ['key' => 'projects',           'label' => 'Projects',          'route' => 'sales.pipeline.index'],
+            ['key' => 'activities',         'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
+            ['key' => 'digital_signatures', 'label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
+            ['key' => 'clients',            'label' => 'Clients',           'route' => 'clients.index'],
+            ['key' => 'inventory',          'label' => 'Inventory',         'route' => 'inventory.index'],
+            ['key' => 'vendors',            'label' => 'Vendors',           'route' => 'vendors.index'],
+            ['key' => 'schedules',          'label' => 'Work Schedule',     'route' => 'schedules.index'],
+            ['key' => 'timesheets',         'label' => 'Timesheet',         'route' => 'timesheets.index'],
         ];
     } elseif ($isAdminSupport) {
         $navItems = [
-            ['key' => 'admin_dashboard',  'label' => 'Dashboard',             'route' => 'admin_support.dashboard'],
-            ['key' => 'admin_documents',  'label' => 'Document Register',     'route' => 'admin_support.documents.index'],
-            ['key' => 'admin_checklists', 'label' => 'Document Checklists',   'route' => 'admin_support.checklists.index'],
-            ['key' => 'admin_logistics',  'label' => 'Logistics & DO',        'route' => 'admin_support.logistics.index'],
-            ['key' => 'admin_inventory',  'label' => 'Serial Number Master',  'route' => 'admin_support.inventory.index'],
-            ['key' => 'admin_assets',     'label' => 'Assets & Work Tools',   'route' => 'admin_support.assets.index'],
-            ['key' => 'admin_handovers',  'label' => 'Archives & Handover',   'route' => 'admin_support.handovers.index'],
-            ['key' => 'timesheets',       'label' => 'Timesheet',             'route' => 'timesheets.index'],
+            ['key' => 'admin_dashboard',    'label' => 'Dashboard',             'route' => 'admin_support.dashboard'],
+            ['key' => 'admin_documents',    'label' => 'Document Register',     'route' => 'admin_support.documents.index'],
+            ['key' => 'digital_signatures', 'label' => 'Digital Signature',     'route' => 'digital_signatures.index'],
+            ['key' => 'admin_checklists',   'label' => 'Document Checklists',   'route' => 'admin_support.checklists.index'],
+            ['key' => 'admin_logistics',    'label' => 'Logistics & DO',        'route' => 'admin_support.logistics.index'],
+            ['key' => 'admin_inventory',    'label' => 'Serial Number Master',  'route' => 'admin_support.inventory.index'],
+            ['key' => 'admin_assets',       'label' => 'Assets & Work Tools',   'route' => 'admin_support.assets.index'],
+            ['key' => 'admin_handovers',    'label' => 'Archives & Handover',   'route' => 'admin_support.handovers.index'],
+            ['key' => 'timesheets',         'label' => 'Timesheet',             'route' => 'timesheets.index'],
         ];
     } elseif ($isCro) {
         $navItems = [
@@ -49,13 +51,14 @@
     } elseif ($isMaintenance) {
         // Dedicated Managed Service & Maintenance Portal (Doris, Mario, Eris)
         $navItems = [
-            ['key' => 'ms_dashboard', 'label' => 'Dashboard',         'route' => 'ms.dashboard'],
-            ['key' => 'ms_tickets',   'label' => 'Tickets & SLA',     'route' => 'ms.tickets.index'],
-            ['key' => 'ms_assets',    'label' => 'Assets & Devices',  'route' => 'ms.assets.index'],
-            ['key' => 'tasks',        'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
-            ['key' => 'activities',   'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
-            ['key' => 'schedules',    'label' => 'Work Schedule',     'route' => 'schedules.index'],
-            ['key' => 'timesheets',   'label' => 'Timesheet',         'route' => 'timesheets.index'],
+            ['key' => 'ms_dashboard',      'label' => 'Dashboard',         'route' => 'ms.dashboard'],
+            ['key' => 'ms_tickets',        'label' => 'Tickets & SLA',     'route' => 'ms.tickets.index'],
+            ['key' => 'ms_assets',         'label' => 'Assets & Devices',  'route' => 'ms.assets.index'],
+            ['key' => 'tasks',             'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
+            ['key' => 'activities',        'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
+            ['key' => 'digital_signatures','label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
+            ['key' => 'schedules',         'label' => 'Work Schedule',     'route' => 'schedules.index'],
+            ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
             // ['key' => 'attendance',   'label' => 'Attendance',        'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
         ];
         if (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
@@ -69,6 +72,7 @@
             ['key' => 'projects',            'label' => 'Projects',          'route' => 'projects.index'],
             ['key' => 'tasks',               'label' => 'Team Tasks',        'route' => 'tasks.index'],
             ['key' => 'activities',          'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
+            ['key' => 'digital_signatures',  'label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
             ['key' => 'schedules',           'label' => 'Work Schedule',     'route' => 'schedules.index'],
             ['key' => 'timesheets',          'label' => 'Timesheet',         'route' => 'timesheets.index'],
         ];
@@ -109,22 +113,24 @@
         ];
     } elseif (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
         $navItems = [
-            ['key' => 'dashboard',   'label' => 'Dashboard',         'route' => 'dashboard.lead'],
-            ['key' => 'projects',    'label' => 'Projects',          'route' => 'projects.index'],
-            ['key' => 'tasks',       'label' => 'Team Tasks',        'route' => 'tasks.index'],
-            ['key' => 'activities',  'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
-            ['key' => 'schedules',   'label' => 'Work Schedule',     'route' => 'schedules.index'],
-            ['key' => 'timesheets',  'label' => 'Timesheet',         'route' => 'timesheets.index'],
+            ['key' => 'dashboard',         'label' => 'Dashboard',         'route' => 'dashboard.lead'],
+            ['key' => 'projects',          'label' => 'Projects',          'route' => 'projects.index'],
+            ['key' => 'tasks',             'label' => 'Team Tasks',        'route' => 'tasks.index'],
+            ['key' => 'activities',        'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
+            ['key' => 'digital_signatures','label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
+            ['key' => 'schedules',         'label' => 'Work Schedule',     'route' => 'schedules.index'],
+            ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
             // ['key' => 'attendance',  'label' => 'Attendance',        'route' => 'attendance.recap'],
-            ['key' => 'users',       'label' => 'Users',             'route' => 'users.index'],
+            ['key' => 'users',             'label' => 'Users',             'route' => 'users.index'],
         ];
     } else {
         $navItems = [
-            ['key' => 'dashboard',   'label' => 'Dashboard',          'route' => 'dashboard.engineer'],
-            ['key' => 'tasks',       'label' => 'My Tasks',           'route' => 'tasks.index'],
-            ['key' => 'activities',  'label' => 'Activity Log',       'route' => 'engineer.activity_log.index'],
-            ['key' => 'schedules',   'label' => 'Work Schedule',      'route' => 'schedules.index'],
-            ['key' => 'timesheets',  'label' => 'Timesheet',          'route' => 'timesheets.index'],
+            ['key' => 'dashboard',          'label' => 'Dashboard',          'route' => 'dashboard.engineer'],
+            ['key' => 'tasks',              'label' => 'My Tasks',           'route' => 'tasks.index'],
+            ['key' => 'activities',         'label' => 'Activity Log',       'route' => 'engineer.activity_log.index'],
+            ['key' => 'digital_signatures', 'label' => 'Digital Signature',  'route' => 'digital_signatures.index'],
+            ['key' => 'schedules',          'label' => 'Work Schedule',      'route' => 'schedules.index'],
+            ['key' => 'timesheets',         'label' => 'Timesheet',          'route' => 'timesheets.index'],
             // ['key' => 'attendance',  'label' => 'Attendance',         'route' => 'attendance.index'],
         ];
     }
@@ -346,6 +352,11 @@
                     @case('activities')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    </svg>
+                    @break
+                    @case('digital_signatures')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
                     @break
                     @case('handover')

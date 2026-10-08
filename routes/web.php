@@ -27,6 +27,7 @@ use App\Http\Controllers\BdmController;
 use App\Http\Controllers\CroController;
 use App\Http\Controllers\AdminSupportController;
 use App\Http\Controllers\ActivitySignatureController;
+use App\Http\Controllers\DigitalSignatureController;
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
@@ -57,6 +58,11 @@ if (!class_exists(\App\Http\Controllers\PublicDocumentVerificationController::cl
 
 Route::get('/verify', [\App\Http\Controllers\PublicDocumentVerificationController::class, 'index'])->name('public.verify.index');
 Route::match(['GET', 'POST'], '/verify/inspect', [\App\Http\Controllers\PublicDocumentVerificationController::class, 'inspect'])->name('public.verify.inspect');
+
+// Public Client Digital Signature Portal & Verification (Tanpa Perlu Login)
+Route::get('/sign/{token}', [DigitalSignatureController::class, 'clientSignShow'])->name('client.digital_signature.show');
+Route::post('/sign/{token}', [DigitalSignatureController::class, 'clientSignSubmit'])->name('client.digital_signature.submit');
+Route::get('/verify-document-sign/{hash}', [DigitalSignatureController::class, 'verifyPublic'])->name('public.digital_signature.verify');
 
 // Public Document Verification (Target QR Code Scan - Langsung Membuka Halaman PDF Resmi di Layar HP / Browser)
 Route::get('/verify-document/{documentNumber}', function ($documentNumber) {
@@ -382,6 +388,18 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/dashboard/engineer/activity-log', [DashboardController::class, 'storeActivityLog'])
         ->name('engineer.activity_log.store_legacy')
         ->middleware('role:Network Engineer|Security Engineer|Field Support (EOS)|Field Support|Managed Service|Engineer|Engineer L1|Engineer L2|Maintenance|Lead Engineer|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Divisi|Director|Direktur|Division Head|Group Leader|Group Leader Delivery & Operation');
+
+    // MENU BARU: DIGITAL SIGNATURE (DOKUMEN ELEKTRONIK & PENGESAHAN PIC KLIEN)
+    Route::prefix('digital-signatures')->name('digital_signatures.')->group(function () {
+        Route::get('/', [DigitalSignatureController::class, 'index'])->name('index');
+        Route::get('/create', [DigitalSignatureController::class, 'create'])->name('create');
+        Route::post('/', [DigitalSignatureController::class, 'store'])->name('store');
+        Route::get('/{id}', [DigitalSignatureController::class, 'show'])->name('show');
+        Route::post('/{id}/sign-internal', [DigitalSignatureController::class, 'signInternal'])->name('sign_internal');
+        Route::get('/{id}/download-pdf', [DigitalSignatureController::class, 'downloadPdf'])->name('download_pdf');
+        Route::get('/{id}/download-original', [DigitalSignatureController::class, 'downloadOriginalFile'])->name('download_original');
+        Route::delete('/{id}', [DigitalSignatureController::class, 'destroy'])->name('destroy');
+    });
 
     // BDM & Business Development (Dashboard + Dedicated Sub-Menus)
     Route::prefix('bdm')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Commercial & Solution|BusDev|BDM|Business Development|Sales|Account Manager|Presales|Pre-Sales|Solution Architect')->group(function () {
@@ -990,6 +1008,9 @@ Route::get('/clear-opcache', function () {
                 $bSig->save();
             }
         }
+
+        // Pastikan tabel digital_signature_documents dibuat
+        \App\Models\DigitalSignatureDocument::ensureSchemaReady();
     } catch (\Throwable $e) {}
 
     Artisan::call('view:clear');
