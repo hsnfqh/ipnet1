@@ -1,7 +1,7 @@
-﻿{{-- FORM LAPORAN AKTIVITAS ENGINEER ΓÇô PROJECT (INTERAKTIF SESUAI TEMPLATE RESMI PDF) --}}
+﻿{}
 <div class="space-y-6">
 
-    {{-- Alert Sukses Simpan --}}
+    {}
     <div x-show="reportFormSavedSuccess" x-cloak
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 -translate-y-2"
@@ -14,7 +14,7 @@
         <button type="button" @click="reportFormSavedSuccess = false" class="text-emerald-500 hover:text-emerald-800 font-bold px-2">Γ£ò</button>
     </div>
 
-    {{-- Category Switcher Tabs di Detail Modal & Quick Actions --}}
+    {}
     <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-[#CBD5E1] shadow-xs">
         <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-[#475569] uppercase tracking-wider">Kategori Laporan:</span>
@@ -37,7 +37,7 @@
             </div>
         </div>
 
-        {{-- Quick Actions: Simpan & Download PDF --}}
+        {}
         <div class="flex items-center gap-2">
             <button type="button" @click="saveReportForm()" :disabled="reportFormSaving"
                     class="px-4 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
@@ -61,13 +61,10 @@
         </div>
     </div>
 
-    {-- ══════════════════════════════════════════════════════════════════ --}
-    {-- ══════════════ 1. DETAIL TEMPLATE: PROJECT ════════════════════════ --}
-    {-- ══════════════════════════════════════════════════════════════════ --}
     <div x-show="(reportFormData?.category || 'project') === 'project'" class="space-y-5">
         <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-md space-y-5 text-[#0F172A] font-sans">
 
-        {{-- Header Form Dokumen --}}
+        {}
         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
                 <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
@@ -81,7 +78,7 @@
                 </div>
             </div>
 
-            {{-- Action Quick Buttons di Atas Form --}}
+            {}
             <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
                 <button type="button" @click="saveReportForm()" :disabled="reportFormSaving"
                         class="px-4 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
@@ -108,7 +105,7 @@
         <template x-if="reportFormData">
             <div class="space-y-6">
 
-                {{-- ΓòÉΓòÉΓòÉ A. IDENTITAS PEKERJAAN ΓòÉΓòÉΓòÉ --}}
+                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS PEKERJAAN</h3>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -198,7 +195,7 @@
                     </div>
                 </div>
 
-                {{-- ΓòÉΓòÉΓòÉ B. KOMPOSISI TENAGA KERJA ΓòÉΓòÉΓòÉ --}}
+                {}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. KOMPOSISI TENAGA KERJA</h3>
@@ -240,7 +237,7 @@
                     </div>
                 </div>
 
-                {{-- ΓòÉΓòÉΓòÉ C. RUANG LINGKUP / TARGET PEKERJAAN ΓòÉΓòÉΓòÉ --}}
+                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. RUANG LINGKUP / TARGET PEKERJAAN</h3>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -271,7 +268,7 @@
                     </div>
                 </div>
 
-                {{-- ΓòÉΓòÉΓòÉ D. RINCIAN AKTIVITAS ENGINEER ΓòÉΓòÉΓòÉ --}}
+                {}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. RINCIAN AKTIVITAS ENGINEER</h3>
@@ -324,7 +321,7 @@
                     </div>
                 </div>
 
-                {{-- ΓòÉΓòÉΓòÉ E. MATERIAL, PERALATAN & SPARE PART ΓòÉΓòÉΓòÉ --}}
+                {}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. MATERIAL, PERALATAN &amp; SPARE PART</h3>
@@ -367,7 +364,7 @@
                     </div>
                 </div>
 
-                {{-- ΓòÉΓòÉΓòÉ F. HASIL PENGUJIAN / PENGUKURAN ΓòÉΓòÉΓòÉ --}}
+                {}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. HASIL PENGUJIAN / PENGUKURAN</h3>
@@ -410,7 +407,7 @@
                     </div>
                 </div>
 
-                {{-- ΓòÉΓòÉΓòÉ G. KENDALA / INCIDENT / DEVIASI ΓòÉΓòÉΓòÉ --}}
+                {}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. KENDALA / INCIDENT / DEVIASI</h3>
@@ -451,7 +448,7 @@
                     </div>
                 </div>
 
-                {{-- ΓòÉΓòÉΓòÉ H. HASIL AKHIR PEKERJAAN ΓòÉΓòÉΓòÉ --}}
+                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. HASIL AKHIR PEKERJAAN</h3>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -504,7 +501,7 @@
                     </div>
                 </div>
 
-                {{-- ΓòÉΓòÉΓòÉ I. REKAP DOKUMENTASI FOTO ΓòÉΓòÉΓòÉ --}}
+                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">I. REKAP DOKUMENTASI FOTO</h3>
                     <p class="text-[11px] text-[#475569]">
@@ -522,7 +519,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- 1. BEFORE --}}
+                                {}
                                 <tr class="border-b border-[#1E293B]">
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B]">1</td>
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">BEFORE</td>
@@ -553,7 +550,7 @@
                                     </td>
                                 </tr>
 
-                                {{-- 2. PROGRESS --}}
+                                {}
                                 <tr class="border-b border-[#1E293B]">
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B]">2</td>
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">PROGRESS</td>
@@ -584,7 +581,7 @@
                                     </td>
                                 </tr>
 
-                                {{-- 3. AFTER --}}
+                                {}
                                 <tr>
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B]">3</td>
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">AFTER</td>
@@ -619,7 +616,7 @@
                     </div>
                 </div>
 
-                {{-- ΓòÉΓòÉΓòÉ J. VERIFIKASI & PENGESAHAN ΓòÉΓòÉΓòÉ --}}
+                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">J. VERIFIKASI &amp; PENGESAHAN</h3>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -633,7 +630,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- Engineer --}}
+                                {}
                                 <tr class="border-b border-[#1E293B]">
                                     <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Engineer</td>
                                     <td class="py-1 px-2 border-r border-[#1E293B] align-middle">
@@ -642,7 +639,7 @@
                                     <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.pic?.signed ? sigInfo?.pic?.signed_at : '{{ date('d/m/Y') }}'"></td>
                                     <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                 </tr>
-                                {{-- Project Manager / Team Leader --}}
+                                {}
                                 <tr class="border-b border-[#1E293B]">
                                     <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Project Manager / Team Leader</td>
                                     <td class="py-1 px-2 border-r border-[#1E293B] align-middle">
@@ -651,7 +648,7 @@
                                     <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.lead?.signed ? sigInfo?.lead?.signed_at : '{{ date('d/m/Y') }}'"></td>
                                     <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                 </tr>
-                                {{-- Customer / Site Representative --}}
+                                {}
                                 <tr>
                                     <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Customer / Site Representative</td>
                                     <td class="py-1 px-2 border-r border-[#1E293B] align-middle">
@@ -665,7 +662,7 @@
                     </div>
                 </div>
 
-                {{-- ΓòÉΓòÉΓòÉ K. CATATAN ADMINISTRASI DOKUMEN ΓòÉΓòÉΓòÉ --}}
+                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">K. CATATAN ADMINISTRASI DOKUMEN</h3>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -702,13 +699,9 @@
     </div>
     </div>
 
-                    {-- ══════════════════════════════════════════════════════════════════ --}
-                    {-- ════════════ 2. DETAIL TEMPLATE: MANAGED SERVICE ══════════════════ --}
-                    {-- ══════════════════════════════════════════════════════════════════ --}
-                    <div x-show="(reportFormData.category || 'project') === 'managed_service'"
+                    <div x-show="(reportFormData?.category || 'project') === 'managed_service'"
                          class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
-                        {-- Kop Surat Dokumen --}
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
                                 <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
@@ -728,7 +721,6 @@
                             </div>
                         </div>
 
-                        {-- A. IDENTITAS SERVICE --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS SERVICE</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -824,7 +816,6 @@
                             </div>
                         </div>
 
-                        {-- B. SLA TRACKING --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. SLA TRACKING</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -868,7 +859,6 @@
                             </div>
                         </div>
 
-                        {-- C. KONDISI SERVICE / PERANGKAT --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. KONDISI SERVICE / PERANGKAT</h3>
@@ -923,7 +913,6 @@
                             </div>
                         </div>
 
-                        {-- D. RINCIAN AKTIVITAS ENGINEER --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -989,7 +978,6 @@
                             </div>
                         </div>
 
-                        {-- E. INCIDENT / ROOT CAUSE / ESCALATION --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. INCIDENT / ROOT CAUSE / ESCALATION</h3>
@@ -1032,7 +1020,6 @@
                             </div>
                         </div>
 
-                        {-- F. PREVENTIVE MAINTENANCE / CHECKLIST --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. PREVENTIVE MAINTENANCE / CHECKLIST</h3>
@@ -1075,7 +1062,6 @@
                             </div>
                         </div>
 
-                        {-- G. MATERIAL / SPARE PART --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. MATERIAL / SPARE PART</h3>
@@ -1118,7 +1104,6 @@
                             </div>
                         </div>
 
-                        {-- H. DOKUMENTASI & EVIDENCE --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. DOKUMENTASI &amp; EVIDENCE</h3>
@@ -1171,7 +1156,6 @@
                             <p class="text-[10.5px] text-[#475569] italic pt-0.5">Evidence dapat berupa foto onsite, screenshot monitoring, log, hasil check, atau bukti pengujian.</p>
                         </div>
 
-                        {-- I. SERVICE CLOSURE --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">I. SERVICE CLOSURE</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1228,7 +1212,6 @@
                             </div>
                         </div>
 
-                        {-- J. VERIFIKASI --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">J. VERIFIKASI</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1275,13 +1258,9 @@
                     </div>
 
 
-                    {-- ══════════════════════════════════════════════════════════════════ --}
-                    {-- ════════════ 3. DETAIL TEMPLATE: HELP DESK ════════════════════════ --}
-                    {-- ══════════════════════════════════════════════════════════════════ --}
-                    <div x-show="(reportFormData.category || 'project') === 'help_desk'"
+                    <div x-show="(reportFormData?.category || 'project') === 'help_desk'"
                          class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
-                        {-- Kop Surat Dokumen --}
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
                                 <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
@@ -1301,7 +1280,6 @@
                             </div>
                         </div>
 
-                        {-- A. IDENTITAS SHIFT --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS SHIFT</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1365,7 +1343,6 @@
                             </div>
                         </div>
 
-                        {-- B. KONDISI AWAL SHIFT --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. KONDISI AWAL SHIFT</h3>
@@ -1406,7 +1383,6 @@
                             </div>
                         </div>
 
-                        {-- C. REKAP AKTIVITAS SHIFT --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -1468,7 +1444,6 @@
                             </div>
                         </div>
 
-                        {-- D. REKAP TICKET / INCIDENT --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. REKAP TICKET / INCIDENT</h3>
@@ -1513,7 +1488,6 @@
                             </div>
                         </div>
 
-                        {-- E. MONITORING & SERVICE STATUS --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. MONITORING &amp; SERVICE STATUS</h3>
@@ -1556,7 +1530,6 @@
                             </div>
                         </div>
 
-                        {-- F. PEKERJAAN ONSITE / FIELD --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. PEKERJAAN ONSITE / FIELD</h3>
@@ -1597,7 +1570,6 @@
                             </div>
                         </div>
 
-                        {-- G. KENDALA & ESCALATION --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. KENDALA &amp; ESCALATION</h3>
@@ -1640,7 +1612,6 @@
                             </div>
                         </div>
 
-                        {-- H. HANDOVER KE SHIFT BERIKUTNYA --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. HANDOVER KE SHIFT BERIKUTNYA</h3>
@@ -1683,7 +1654,6 @@
                             </div>
                         </div>
 
-                        {-- I. REKAP SHIFT --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">I. REKAP SHIFT</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1723,7 +1693,6 @@
                             </div>
                         </div>
 
-                        {-- J. VERIFIKASI (HD) --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">J. VERIFIKASI</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">

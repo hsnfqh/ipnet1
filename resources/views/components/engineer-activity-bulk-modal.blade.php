@@ -1,4 +1,4 @@
-﻿{{-- MODAL INPUT FORM LAPORAN AKTIVITAS ENGINEER ΓÇô PROJECT --}}
+﻿{}
 @php
     $modalProjects = $projects ?? $myProjects ?? null;
     if ($modalProjects === null) {
@@ -580,7 +580,7 @@
 @open-engineer-activity-modal.window="isBulkModalOpen = true"
 @keydown.escape.window="isBulkModalOpen = false">
 
-    {{-- Backdrop & Container Modal --}}
+    {}
     <div x-show="isBulkModalOpen"
          x-cloak
          class="fixed inset-0 z-50 bg-[#0F172A]/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
@@ -589,7 +589,7 @@
 
         <div class="bg-white rounded-2xl max-w-7xl w-full shadow-2xl border border-[#CBD5E1] max-h-[94vh] flex flex-col overflow-hidden">
             
-            {{-- Header Modal --}}
+            {}
             <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
                 <div class="flex items-center gap-2.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
@@ -605,12 +605,12 @@
                 </button>
             </div>
 
-            {{-- Form Submit --}}
-                        {{-- Form Submit --}}
+            {}
+                        {}
             <form action="{{ route('engineer.activity_log.store') }}" method="POST" @submit="submitBulkForm($event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                 @csrf
 
-                {{-- Category Switcher Tabs --}}
+                {}
                 <div class="px-4 sm:px-6 py-3 bg-white border-b border-[#CBD5E1] flex flex-wrap items-center justify-between gap-3 shrink-0">
                     <div class="flex items-center gap-2">
                         <span class="text-xs font-bold text-[#475569] uppercase tracking-wider">Kategori Laporan:</span>
@@ -637,7 +637,7 @@
                     </div>
                 </div>
 
-                {{-- Bar Pilihan Proyek & Topik --}}
+                {}
                 <div class="p-4 sm:p-5 bg-[#F8FAFC] border-b border-[#CBD5E1] shrink-0">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                         <div class="md:col-span-2">
@@ -667,11 +667,11 @@
                     </div>
                 </div>
 
-                {{-- Hidden Inputs untuk Menyimpan ke EngineerActivityLog & ActivityDocumentSignature --}}
+                {}
                 <input type="hidden" name="report_category" :value="selectedCategory">
                 <input type="hidden" name="report_data" x-ref="reportDataInput" :value="JSON.stringify(reportFormData)">
 
-                {{-- 1. Sync jika Project --}}
+                {}
                 <template x-if="selectedCategory === 'project'">
                     <div>
                         <template x-for="(act, idx) in reportFormData.rincian_aktivitas" :key="'p-' + idx">
@@ -688,7 +688,7 @@
                     </div>
                 </template>
 
-                {{-- 2. Sync jika Managed Service --}}
+                {}
                 <template x-if="selectedCategory === 'managed_service'">
                     <div>
                         <template x-for="(act, idx) in reportFormData.ms_aktivitas" :key="'ms-' + idx">
@@ -705,7 +705,7 @@
                     </div>
                 </template>
 
-                {{-- 3. Sync jika Help Desk --}}
+                {}
                 <template x-if="selectedCategory === 'help_desk'">
                     <div>
                         <template x-for="(act, idx) in reportFormData.hd_aktivitas" :key="'hd-' + idx">
@@ -722,16 +722,13 @@
                     </div>
                 </template>
 
-                {{-- Scrollable Form Dokumen Resmi (Paper Format) --}}
+                {}
                 <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F1F5F9]/70 space-y-5">
 
-                    {-- ══════════════════════════════════════════════════════════════════ --}
-                    {-- ══════════════ 1. DETAIL TEMPLATE: PROJECT ════════════════════════ --}
-                    {-- ══════════════════════════════════════════════════════════════════ --}
                     <div x-show="selectedCategory === 'project'" class="space-y-5">
                         <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
-                        {{-- Kop Surat Dokumen --}}
+                        {}
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
                                 <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
@@ -751,7 +748,7 @@
                             </div>
                         </div>
 
-                        {{-- ΓòÉΓòÉΓòÉ A. IDENTITAS PEKERJAAN ΓòÉΓòÉΓòÉ --}}
+                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS PEKERJAAN</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -841,7 +838,7 @@
                             </div>
                         </div>
 
-                        {{-- ΓòÉΓòÉΓòÉ B. KOMPOSISI TENAGA KERJA ΓòÉΓòÉΓòÉ --}}
+                        {}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. KOMPOSISI TENAGA KERJA</h3>
@@ -883,7 +880,7 @@
                             </div>
                         </div>
 
-                        {{-- ΓòÉΓòÉΓòÉ C. RUANG LINGKUP / TARGET PEKERJAAN ΓòÉΓòÉΓòÉ --}}
+                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. RUANG LINGKUP / TARGET PEKERJAAN</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -914,7 +911,7 @@
                             </div>
                         </div>
 
-                        {{-- ΓòÉΓòÉΓòÉ D. RINCIAN AKTIVITAS ENGINEER (AKTIVITAS UTAMA) ΓòÉΓòÉΓòÉ --}}
+                        {}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -982,7 +979,7 @@
                             </div>
                         </div>
 
-                        {{-- ΓòÉΓòÉΓòÉ E. MATERIAL, PERALATAN & SPARE PART ΓòÉΓòÉΓòÉ --}}
+                        {}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. MATERIAL, PERALATAN &amp; SPARE PART</h3>
@@ -1025,7 +1022,7 @@
                             </div>
                         </div>
 
-                        {{-- ΓòÉΓòÉΓòÉ F. HASIL PENGUJIAN / PENGUKURAN ΓòÉΓòÉΓòÉ --}}
+                        {}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. HASIL PENGUJIAN / PENGUKURAN</h3>
@@ -1068,7 +1065,7 @@
                             </div>
                         </div>
 
-                        {{-- ΓòÉΓòÉΓòÉ G. KENDALA / INCIDENT / DEVIASI ΓòÉΓòÉΓòÉ --}}
+                        {}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. KENDALA / INCIDENT / DEVIASI</h3>
@@ -1111,7 +1108,7 @@
                             </div>
                         </div>
 
-                        {{-- ΓòÉΓòÉΓòÉ H. HASIL AKHIR PEKERJAAN ΓòÉΓòÉΓòÉ --}}
+                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. HASIL AKHIR PEKERJAAN</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1164,7 +1161,7 @@
                             </div>
                         </div>
 
-                        {{-- ΓòÉΓòÉΓòÉ I. REKAP DOKUMENTASI FOTO ΓòÉΓòÉΓòÉ --}}
+                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">I. REKAP DOKUMENTASI FOTO</h3>
                             <p class="text-[11px] text-[#475569]">
@@ -1182,7 +1179,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {{-- 1. BEFORE --}}
+                                        {}
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B]">1</td>
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">BEFORE</td>
@@ -1211,7 +1208,7 @@
                                             </td>
                                         </tr>
 
-                                        {{-- 2. PROGRESS --}}
+                                        {}
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B]">2</td>
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">PROGRESS</td>
@@ -1240,7 +1237,7 @@
                                             </td>
                                         </tr>
 
-                                        {{-- 3. AFTER --}}
+                                        {}
                                         <tr>
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B]">3</td>
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">AFTER</td>
@@ -1273,7 +1270,7 @@
                             </div>
                         </div>
 
-                        {{-- ΓòÉΓòÉΓòÉ J. VERIFIKASI & PENGESAHAN ΓòÉΓòÉΓòÉ --}}
+                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">J. VERIFIKASI &amp; PENGESAHAN</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1316,7 +1313,7 @@
                             </div>
                         </div>
 
-                        {{-- ΓòÉΓòÉΓòÉ K. CATATAN ADMINISTRASI DOKUMEN ΓòÉΓòÉΓòÉ --}}
+                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">K. CATATAN ADMINISTRASI DOKUMEN</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1350,13 +1347,9 @@
                     </div>
                     </div>
 
-                    {-- ══════════════════════════════════════════════════════════════════ --}
-                    {-- ════════════ 2. DETAIL TEMPLATE: MANAGED SERVICE ══════════════════ --}
-                    {-- ══════════════════════════════════════════════════════════════════ --}
                     <div x-show="selectedCategory === 'managed_service'"
                          class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
-                        {-- Kop Surat Dokumen --}
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
                                 <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
@@ -1376,7 +1369,6 @@
                             </div>
                         </div>
 
-                        {-- A. IDENTITAS SERVICE --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS SERVICE</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1472,7 +1464,6 @@
                             </div>
                         </div>
 
-                        {-- B. SLA TRACKING --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. SLA TRACKING</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1516,7 +1507,6 @@
                             </div>
                         </div>
 
-                        {-- C. KONDISI SERVICE / PERANGKAT --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. KONDISI SERVICE / PERANGKAT</h3>
@@ -1571,7 +1561,6 @@
                             </div>
                         </div>
 
-                        {-- D. RINCIAN AKTIVITAS ENGINEER --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -1637,7 +1626,6 @@
                             </div>
                         </div>
 
-                        {-- E. INCIDENT / ROOT CAUSE / ESCALATION --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. INCIDENT / ROOT CAUSE / ESCALATION</h3>
@@ -1680,7 +1668,6 @@
                             </div>
                         </div>
 
-                        {-- F. PREVENTIVE MAINTENANCE / CHECKLIST --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. PREVENTIVE MAINTENANCE / CHECKLIST</h3>
@@ -1723,7 +1710,6 @@
                             </div>
                         </div>
 
-                        {-- G. MATERIAL / SPARE PART --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. MATERIAL / SPARE PART</h3>
@@ -1766,7 +1752,6 @@
                             </div>
                         </div>
 
-                        {-- H. DOKUMENTASI & EVIDENCE --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. DOKUMENTASI &amp; EVIDENCE</h3>
@@ -1819,7 +1804,6 @@
                             <p class="text-[10.5px] text-[#475569] italic pt-0.5">Evidence dapat berupa foto onsite, screenshot monitoring, log, hasil check, atau bukti pengujian.</p>
                         </div>
 
-                        {-- I. SERVICE CLOSURE --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">I. SERVICE CLOSURE</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1876,7 +1860,6 @@
                             </div>
                         </div>
 
-                        {-- J. VERIFIKASI --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">J. VERIFIKASI</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1923,13 +1906,9 @@
                     </div>
 
 
-                    {-- ══════════════════════════════════════════════════════════════════ --}
-                    {-- ════════════ 3. DETAIL TEMPLATE: HELP DESK ════════════════════════ --}
-                    {-- ══════════════════════════════════════════════════════════════════ --}
                     <div x-show="selectedCategory === 'help_desk'"
                          class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
-                        {-- Kop Surat Dokumen --}
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
                                 <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
@@ -1949,7 +1928,6 @@
                             </div>
                         </div>
 
-                        {-- A. IDENTITAS SHIFT --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS SHIFT</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -2013,7 +1991,6 @@
                             </div>
                         </div>
 
-                        {-- B. KONDISI AWAL SHIFT --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. KONDISI AWAL SHIFT</h3>
@@ -2054,7 +2031,6 @@
                             </div>
                         </div>
 
-                        {-- C. REKAP AKTIVITAS SHIFT --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -2116,7 +2092,6 @@
                             </div>
                         </div>
 
-                        {-- D. REKAP TICKET / INCIDENT --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. REKAP TICKET / INCIDENT</h3>
@@ -2161,7 +2136,6 @@
                             </div>
                         </div>
 
-                        {-- E. MONITORING & SERVICE STATUS --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. MONITORING &amp; SERVICE STATUS</h3>
@@ -2204,7 +2178,6 @@
                             </div>
                         </div>
 
-                        {-- F. PEKERJAAN ONSITE / FIELD --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. PEKERJAAN ONSITE / FIELD</h3>
@@ -2245,7 +2218,6 @@
                             </div>
                         </div>
 
-                        {-- G. KENDALA & ESCALATION --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. KENDALA &amp; ESCALATION</h3>
@@ -2288,7 +2260,6 @@
                             </div>
                         </div>
 
-                        {-- H. HANDOVER KE SHIFT BERIKUTNYA --}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. HANDOVER KE SHIFT BERIKUTNYA</h3>
@@ -2331,7 +2302,6 @@
                             </div>
                         </div>
 
-                        {-- I. REKAP SHIFT --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">I. REKAP SHIFT</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -2371,7 +2341,6 @@
                             </div>
                         </div>
 
-                        {-- J. VERIFIKASI (HD) --}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">J. VERIFIKASI</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -2409,7 +2378,7 @@
 
                 </div>
 
-                {{-- Sticky Footer Simpan --}}
+                {}
                 <div class="px-6 py-4 bg-white border-t border-[#CBD5E1] flex items-center justify-between shrink-0 shadow-sm">
                     <button type="button" @click="isBulkModalOpen = false"
                             class="px-5 py-2.5 bg-white text-[#334155] border border-[#CBD5E1] hover:bg-gray-50 font-bold text-xs rounded-xl transition cursor-pointer">
