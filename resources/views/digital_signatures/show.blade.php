@@ -56,12 +56,12 @@
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">
-                        <a href="{{ route('digital_signatures.index') }}" class="hover:text-[#8F0A0D] font-medium">Digital Signature</a>
+                        <a href="{{ route('digital_signatures.index') }}" class="hover:text-[#8F0A0D] font-semibold transition">Digital Signature</a>
                         <span>/</span>
                         <span class="font-mono text-slate-700 font-bold">{{ $document->document_number }}</span>
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
-                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{{ $document->title }}</h2>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">{{ $document->title }}</h2>
                         @if($document->status === 'completed')
                             <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold inline-flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
@@ -109,7 +109,7 @@
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
                                 <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
-                                <h3 class="text-sm font-black text-blue-950 uppercase tracking-wider">
+                                <h3 class="text-sm font-bold text-blue-950 uppercase tracking-wider">
                                     {{ $document->status === 'completed' ? 'Tautan Verifikasi & TTD Klien' : 'Tautan TTD Siap Dikirim ke Klien' }}
                                 </h3>
                             </div>
@@ -149,7 +149,7 @@
                         <div class="flex items-center gap-2.5">
                             <div class="w-8 h-8 rounded-xl bg-[#8F0A0D] text-white flex items-center justify-center font-bold text-sm">✍️</div>
                             <div>
-                                <h3 class="text-sm font-black text-slate-900">Giliran Anda Menandatangani Dokumen</h3>
+                                <h3 class="text-sm font-bold text-slate-900">Giliran Anda Menandatangani Dokumen</h3>
                                 <p class="text-xs text-slate-600">Sebagai <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->position ?: 'Engineer Pelaksana' }}).</p>
                             </div>
                         </div>
@@ -186,7 +186,7 @@
                     {{-- 1. Penandatangan Internal IPNET --}}
                     <div class="ipnet-card p-5 space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
                                 Penandatangan Internal IPNET
                             </h3>
@@ -237,7 +237,7 @@
                     {{-- 2. Penandatangan PIC Klien --}}
                     <div class="ipnet-card p-5 space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-blue-600"></span>
                                 Penandatangan PIC Klien (Eksternal)
                             </h3>
@@ -287,7 +287,7 @@
                 <div class="space-y-6">
 
                     <div class="ipnet-card p-5 space-y-3.5">
-                        <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2.5">
+                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2.5">
                             Informasi Dokumen
                         </h3>
                         <dl class="space-y-2 text-xs">

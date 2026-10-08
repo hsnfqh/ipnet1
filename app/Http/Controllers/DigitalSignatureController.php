@@ -111,7 +111,7 @@ class DigitalSignatureController extends Controller
 
         $request->validate([
             'title'            => 'required|string|max:255',
-            'category'         => 'required|string|max:100',
+            'category'         => 'nullable|string|max:100',
             'project_id'       => 'nullable|exists:projects,id',
             'document_file'    => 'required|file|mimes:pdf|max:25600', // max 25MB
             'workflow_type'    => 'required|in:sequential,parallel',
@@ -166,7 +166,7 @@ class DigitalSignatureController extends Controller
         $doc = DigitalSignatureDocument::create([
             'document_number'         => $docNumber,
             'title'                   => $request->title,
-            'category'                => $request->category,
+            'category'                => $request->category ?: 'BAST',
             'project_id'              => $request->project_id,
             'project_name'            => $projectName,
             'file_path'               => $storedPath,
