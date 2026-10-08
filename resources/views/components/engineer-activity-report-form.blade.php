@@ -9,7 +9,7 @@
             <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
             <span>Formulir Laporan Aktivitas berhasil disimpan! Data akan otomatis tercetak pada PDF.</span>
         </div>
-        <button type="button" @click="reportFormSavedSuccess = false" class="text-emerald-500 hover:text-emerald-800 font-bold px-2">Γ£ò</button>
+        <button type="button" @click="reportFormSavedSuccess = false" class="text-emerald-500 hover:text-emerald-800 font-bold px-2">&times;</button>
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-[#CBD5E1] shadow-xs">
@@ -57,15 +57,15 @@
         </div>
     </div>
 
-    <div x-show="(reportFormData?.category || 'project') === 'project'" class="space-y-5">
-        <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-md space-y-5 text-[#0F172A] font-sans">
+    <div x-show="(reportFormData?.category || 'project') === 'project'"
+         class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
 
         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
                 <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
                 <div>
                     <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
-                        FORM LAPORAN AKTIVITAS ENGINEER ΓÇô PROJECT
+                        FORM LAPORAN AKTIVITAS ENGINEER – PROJECT
                     </h2>
                     <p class="text-[11px] text-[#475569] mt-0.5">
                         Dokumen ini digunakan sebagai laporan aktivitas engineer di lokasi pekerjaan dan sebagai bukti pelaksanaan pekerjaan lapangan.
@@ -515,7 +515,7 @@
                                             <template x-if="reportFormData.foto_dokumentasi.before.url">
                                                 <div class="relative group">
                                                     <img :src="reportFormData.foto_dokumentasi.before.url" class="h-20 w-auto max-w-full rounded object-contain border">
-                                                    <button type="button" @click="removePhoto('before')" class="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold" title="Hapus Foto">Γ£ò</button>
+                                                    <button type="button" @click="removePhoto('before')" class="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold" title="Hapus Foto">&times;</button>
                                                 </div>
                                             </template>
                                             <template x-if="!reportFormData.foto_dokumentasi.before.url">
@@ -545,7 +545,7 @@
                                             <template x-if="reportFormData.foto_dokumentasi.progress.url">
                                                 <div class="relative group">
                                                     <img :src="reportFormData.foto_dokumentasi.progress.url" class="h-20 w-auto max-w-full rounded object-contain border">
-                                                    <button type="button" @click="removePhoto('progress')" class="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold" title="Hapus Foto">Γ£ò</button>
+                                                    <button type="button" @click="removePhoto('progress')" class="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold" title="Hapus Foto">&times;</button>
                                                 </div>
                                             </template>
                                             <template x-if="!reportFormData.foto_dokumentasi.progress.url">
@@ -575,7 +575,7 @@
                                             <template x-if="reportFormData.foto_dokumentasi.after.url">
                                                 <div class="relative group">
                                                     <img :src="reportFormData.foto_dokumentasi.after.url" class="h-20 w-auto max-w-full rounded object-contain border">
-                                                    <button type="button" @click="removePhoto('after')" class="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold" title="Hapus Foto">Γ£ò</button>
+                                                    <button type="button" @click="removePhoto('after')" class="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold" title="Hapus Foto">&times;</button>
                                                 </div>
                                             </template>
                                             <template x-if="!reportFormData.foto_dokumentasi.after.url">
@@ -673,7 +673,6 @@
             </div>
         </template>
 
-    </div>
     </div>
 
                     <div x-show="(reportFormData?.category || 'project') === 'managed_service'"
@@ -1207,24 +1206,24 @@
                                             <td class="p-1 border-r border-[#1E293B]">
                                                 <input type="text" x-model="reportFormData.ms_identitas.engineer_pic" placeholder="Nama Engineer" class="w-full p-1 text-xs font-bold bg-transparent border-0">
                                             </td>
-                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{ date('d/m/Y') }</td>
-                                            <td class="p-2 text-center text-xs font-bold text-emerald-700">Digital Signature Ready</td>
+                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
+                                            <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Team Leader / Service Manager</td>
                                             <td class="p-1 border-r border-[#1E293B]">
                                                 <input type="text" x-model="reportFormData.ms_verifikasi.lead_name" placeholder="Nama Team Leader / Service Manager" class="w-full p-1 text-xs font-bold bg-transparent border-0">
                                             </td>
-                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{ date('d/m/Y') }</td>
-                                            <td class="p-2 text-center text-xs font-bold text-slate-600">Verifikasi Service Manager</td>
+                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
+                                            <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                         </tr>
                                         <tr>
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Customer / Authorized Representative</td>
                                             <td class="p-1 border-r border-[#1E293B]">
                                                 <input type="text" x-model="reportFormData.ms_verifikasi.customer_name" placeholder="Nama Customer / Authorized PIC" class="w-full p-1 text-xs font-bold bg-transparent border-0">
                                             </td>
-                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{ date('d/m/Y') }</td>
-                                            <td class="p-2 text-center text-xs font-bold text-slate-500">PIC Customer Verified</td>
+                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
+                                            <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1678,19 +1677,19 @@
                                         <tr>
                                             <th class="py-1.5 px-3 w-1/3 border-r border-[#1E293B] text-left">Pihak</th>
                                             <th class="py-1.5 px-3 w-1/3 border-r border-[#1E293B] text-left">Nama</th>
-                                            <th class="py-1.5 px-3 w-1/3 text-center">Status / Tanda Tangan</th>
+                                            <th class="py-1.5 px-3 w-1/3 text-center">Tanda Tangan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Engineer / Shift PIC</td>
                                             <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="reportFormData.hd_identitas.nama_engineer" class="w-full p-1 text-xs font-bold bg-transparent border-0"></td>
-                                            <td class="p-2 text-center text-xs font-bold text-emerald-700">Digital Signature Ready</td>
+                                            <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Team Leader</td>
                                             <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="reportFormData.hd_identitas.team_leader" class="w-full p-1 text-xs font-bold bg-transparent border-0"></td>
-                                            <td class="p-2 text-center text-xs font-bold text-slate-600">Verifikasi Lead</td>
+                                            <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                         </tr>
                                         <tr>
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Engineer Shift Berikutnya / Handover</td>

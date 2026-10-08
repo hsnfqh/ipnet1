@@ -28,7 +28,7 @@
             page-break-after: always;
         }
 
-        /* ΓöÇΓöÇ Header Dokumen ΓöÇΓöÇ */
+        /* ── Header Dokumen ── */
         .doc-header-table {
             width: 100%;
             border-collapse: collapse;
@@ -57,7 +57,7 @@
             line-height: 1.25;
         }
 
-        /* ΓöÇΓöÇ Judul Section ΓöÇΓöÇ */
+        /* ── Judul Section ── */
         .section-title {
             font-size: 8.4pt;
             font-weight: bold;
@@ -68,7 +68,7 @@
             letter-spacing: 0.2px;
         }
 
-        /* ΓöÇΓöÇ Tabel Standar ΓöÇΓöÇ */
+        /* ── Tabel Standar ── */
         .report-table {
             width: 100%;
             border-collapse: collapse;
@@ -104,7 +104,7 @@
         .text-right { text-align: right; }
         .align-top { vertical-align: top !important; }
 
-        /* ΓöÇΓöÇ Checkbox Resmi ΓöÇΓöÇ */
+        /* ── Checkbox Resmi ── */
         .check-box {
             display: inline-block;
             font-family: 'DejaVu Sans', sans-serif;
@@ -120,7 +120,7 @@
             margin-bottom: 1px;
         }
 
-        /* ΓöÇΓöÇ Footer Dokumen ΓöÇΓöÇ */
+        /* ── Footer Dokumen ── */
         .doc-footer {
             position: absolute;
             bottom: 0;
@@ -144,7 +144,7 @@
             line-height: 1.2;
         }
 
-        /* ΓöÇΓöÇ Kotak Foto Dokumentasi ΓöÇΓöÇ */
+        /* ── Kotak Foto Dokumentasi ── */
         .photo-placeholder {
             width: 100%;
             height: 82px;
@@ -167,7 +167,7 @@
             margin: 0 auto;
         }
 
-        /* ΓöÇΓöÇ Kotak Tanda Tangan ΓöÇΓöÇ */
+        /* ── Kotak Tanda Tangan ── */
         .sig-container {
             height: 48px;
             text-align: center;
@@ -433,9 +433,9 @@
 
 
 @if($category === 'managed_service')
-    {{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
-    {{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ DOKUMEN: MANAGED SERVICE (3 HALAMAN) ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
-    {{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
+    {{-- ══════════════════════════════════════════════════════════════════ --}}
+    {{-- ══════════════ DOKUMEN: MANAGED SERVICE (3 HALAMAN) ═══════════════ --}}
+    {{-- ══════════════════════════════════════════════════════════════════ --}}
     @php
         $msId = $rData['ms_identitas'] ?? [];
         $msTanggal   = $msId['tanggal'] ?? ($hariTanggal ?? date('d/m/Y'));
@@ -525,7 +525,7 @@
         $msClosureSla = $msClosure['sla'] ?? [];
     @endphp
 
-    {{-- ΓöÇΓöÇ HALAMAN 1 (MANAGED SERVICE) ΓöÇΓöÇ --}}
+    {{-- ── HALAMAN 1 (MANAGED SERVICE) ── --}}
     <div class="page-container page-break">
         <table class="doc-header-table">
             <tr>
@@ -535,7 +535,7 @@
                     @endif
                 </td>
                 <td style="width: 85%; text-align: center; vertical-align: middle;">
-                    <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER ΓÇô MANAGED SERVICE</div>
+                    <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER – MANAGED SERVICE</div>
                 </td>
             </tr>
         </table>
@@ -701,7 +701,7 @@
         </div>
     </div>
 
-    {{-- ΓöÇΓöÇ HALAMAN 2 (MANAGED SERVICE) ΓöÇΓöÇ --}}
+    {{-- ── HALAMAN 2 (MANAGED SERVICE) ── --}}
     <div class="page-container page-break">
         <table class="doc-header-table">
             <tr>
@@ -711,7 +711,7 @@
                     @endif
                 </td>
                 <td style="width: 85%; text-align: center; vertical-align: middle;">
-                    <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER ΓÇô MANAGED SERVICE</div>
+                    <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER – MANAGED SERVICE</div>
                 </td>
             </tr>
         </table>
@@ -884,7 +884,7 @@
         </div>
     </div>
 
-    {{-- ΓöÇΓöÇ HALAMAN 3 (MANAGED SERVICE) ΓöÇΓöÇ --}}
+    {{-- ── HALAMAN 3 (MANAGED SERVICE) ── --}}
     <div class="page-container">
         <table class="doc-header-table">
             <tr>
@@ -894,7 +894,7 @@
                     @endif
                 </td>
                 <td style="width: 85%; text-align: center; vertical-align: middle;">
-                    <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER ΓÇô MANAGED SERVICE</div>
+                    <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER – MANAGED SERVICE</div>
                 </td>
             </tr>
         </table>
@@ -973,9 +973,9 @@
     </div>
 
 @elseif($category === 'help_desk')
-    {{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
-    {{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ DOKUMEN: HELP DESK (2 HALAMAN) ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
-    {{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
+    {{-- ══════════════════════════════════════════════════════════════════ --}}
+    {{-- ════════════════ DOKUMEN: HELP DESK (2 HALAMAN) ══════════════════ --}}
+    {{-- ══════════════════════════════════════════════════════════════════ --}}
     @php
         $hdId = $rData['hd_identitas'] ?? [];
         $hdTanggal   = $hdId['tanggal'] ?? ($hariTanggal ?? date('d/m/Y'));
@@ -1059,7 +1059,7 @@
         $hdRekap = $rData['hd_rekap_shift'] ?? [];
     @endphp
 
-    {{-- ΓöÇΓöÇ HALAMAN 1 (HELP DESK) ΓöÇΓöÇ --}}
+    {{-- ── HALAMAN 1 (HELP DESK) ── --}}
     <div class="page-container page-break">
         <table class="doc-header-table">
             <tr>
@@ -1069,7 +1069,7 @@
                     @endif
                 </td>
                 <td style="width: 85%; text-align: center; vertical-align: middle;">
-                    <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER ΓÇô HELP DESK</div>
+                    <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER – HELP DESK</div>
                 </td>
             </tr>
         </table>
@@ -1249,7 +1249,7 @@
         </div>
     </div>
 
-    {{-- ΓöÇΓöÇ HALAMAN 2 (HELP DESK) ΓöÇΓöÇ --}}
+    {{-- ── HALAMAN 2 (HELP DESK) ── --}}
     <div class="page-container">
         <table class="doc-header-table">
             <tr>
@@ -1259,7 +1259,7 @@
                     @endif
                 </td>
                 <td style="width: 85%; text-align: center; vertical-align: middle;">
-                    <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER ΓÇô HELP DESK</div>
+                    <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER – HELP DESK</div>
                 </td>
             </tr>
         </table>
@@ -1451,9 +1451,9 @@
     </div>
 
 @else
-{{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
-{{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ HALAMAN 1 ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
-{{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+{{-- ═════════════════════════ HALAMAN 1 ════════════════════════════ --}}
+{{-- ══════════════════════════════════════════════════════════════════ --}}
 <div class="page-container page-break">
 
     {{-- KOP SURAT / HEADER --}}
@@ -1465,7 +1465,7 @@
                 @endif
             </td>
             <td style="width: 85%; text-align: center; vertical-align: middle;">
-                <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER ΓÇô PROJECT</div>
+                <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER – PROJECT</div>
             </td>
         </tr>
     </table>
@@ -1768,9 +1768,9 @@
 
 </div>
 
-{{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
-{{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ HALAMAN 2 ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
-{{-- ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ --}}
+{{-- ══════════════════════════════════════════════════════════════════ --}}
+{{-- ═════════════════════════ HALAMAN 2 ════════════════════════════ --}}
+{{-- ══════════════════════════════════════════════════════════════════ --}}
 <div class="page-container">
 
     {{-- KOP SURAT / HEADER HALAMAN 2 --}}
@@ -1782,7 +1782,7 @@
                 @endif
             </td>
             <td style="width: 85%; text-align: center; vertical-align: middle;">
-                <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER ΓÇô PROJECT</div>
+                <div class="doc-title">FORM LAPORAN AKTIVITAS ENGINEER – PROJECT</div>
             </td>
         </tr>
     </table>
