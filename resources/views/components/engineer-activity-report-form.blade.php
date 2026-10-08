@@ -1,7 +1,5 @@
-﻿{}
 <div class="space-y-6">
 
-    {}
     <div x-show="reportFormSavedSuccess" x-cloak
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 -translate-y-2"
@@ -14,7 +12,6 @@
         <button type="button" @click="reportFormSavedSuccess = false" class="text-emerald-500 hover:text-emerald-800 font-bold px-2">Γ£ò</button>
     </div>
 
-    {}
     <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-[#CBD5E1] shadow-xs">
         <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-[#475569] uppercase tracking-wider">Kategori Laporan:</span>
@@ -37,7 +34,6 @@
             </div>
         </div>
 
-        {}
         <div class="flex items-center gap-2">
             <button type="button" @click="saveReportForm()" :disabled="reportFormSaving"
                     class="px-4 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
@@ -64,7 +60,6 @@
     <div x-show="(reportFormData?.category || 'project') === 'project'" class="space-y-5">
         <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-md space-y-5 text-[#0F172A] font-sans">
 
-        {}
         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
                 <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
@@ -78,7 +73,6 @@
                 </div>
             </div>
 
-            {}
             <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
                 <button type="button" @click="saveReportForm()" :disabled="reportFormSaving"
                         class="px-4 py-2 bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50">
@@ -105,7 +99,6 @@
         <template x-if="reportFormData">
             <div class="space-y-6">
 
-                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS PEKERJAAN</h3>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -195,7 +188,6 @@
                     </div>
                 </div>
 
-                {}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. KOMPOSISI TENAGA KERJA</h3>
@@ -237,7 +229,6 @@
                     </div>
                 </div>
 
-                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. RUANG LINGKUP / TARGET PEKERJAAN</h3>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -268,7 +259,6 @@
                     </div>
                 </div>
 
-                {}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. RINCIAN AKTIVITAS ENGINEER</h3>
@@ -321,7 +311,6 @@
                     </div>
                 </div>
 
-                {}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. MATERIAL, PERALATAN &amp; SPARE PART</h3>
@@ -364,7 +353,6 @@
                     </div>
                 </div>
 
-                {}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. HASIL PENGUJIAN / PENGUKURAN</h3>
@@ -407,7 +395,6 @@
                     </div>
                 </div>
 
-                {}
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. KENDALA / INCIDENT / DEVIASI</h3>
@@ -448,7 +435,6 @@
                     </div>
                 </div>
 
-                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. HASIL AKHIR PEKERJAAN</h3>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -501,7 +487,6 @@
                     </div>
                 </div>
 
-                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">I. REKAP DOKUMENTASI FOTO</h3>
                     <p class="text-[11px] text-[#475569]">
@@ -519,7 +504,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {}
                                 <tr class="border-b border-[#1E293B]">
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B]">1</td>
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">BEFORE</td>
@@ -550,7 +534,6 @@
                                     </td>
                                 </tr>
 
-                                {}
                                 <tr class="border-b border-[#1E293B]">
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B]">2</td>
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">PROGRESS</td>
@@ -581,7 +564,6 @@
                                     </td>
                                 </tr>
 
-                                {}
                                 <tr>
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B]">3</td>
                                     <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">AFTER</td>
@@ -616,7 +598,6 @@
                     </div>
                 </div>
 
-                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">J. VERIFIKASI &amp; PENGESAHAN</h3>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -630,7 +611,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {}
                                 <tr class="border-b border-[#1E293B]">
                                     <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Engineer</td>
                                     <td class="py-1 px-2 border-r border-[#1E293B] align-middle">
@@ -639,7 +619,6 @@
                                     <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.pic?.signed ? sigInfo?.pic?.signed_at : '{{ date('d/m/Y') }}'"></td>
                                     <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                 </tr>
-                                {}
                                 <tr class="border-b border-[#1E293B]">
                                     <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Project Manager / Team Leader</td>
                                     <td class="py-1 px-2 border-r border-[#1E293B] align-middle">
@@ -648,7 +627,6 @@
                                     <td class="py-2.5 px-3 text-center border-r border-[#1E293B] align-middle" x-text="sigInfo?.lead?.signed ? sigInfo?.lead?.signed_at : '{{ date('d/m/Y') }}'"></td>
                                     <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                 </tr>
-                                {}
                                 <tr>
                                     <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Customer / Site Representative</td>
                                     <td class="py-1 px-2 border-r border-[#1E293B] align-middle">
@@ -662,7 +640,6 @@
                     </div>
                 </div>
 
-                {}
                 <div class="space-y-1.5">
                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">K. CATATAN ADMINISTRASI DOKUMEN</h3>
                     <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">

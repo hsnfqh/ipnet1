@@ -1,4 +1,3 @@
-﻿{}
 @php
     $modalProjects = $projects ?? $myProjects ?? null;
     if ($modalProjects === null) {
@@ -580,7 +579,6 @@
 @open-engineer-activity-modal.window="isBulkModalOpen = true"
 @keydown.escape.window="isBulkModalOpen = false">
 
-    {}
     <div x-show="isBulkModalOpen"
          x-cloak
          class="fixed inset-0 z-50 bg-[#0F172A]/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
@@ -589,7 +587,6 @@
 
         <div class="bg-white rounded-2xl max-w-7xl w-full shadow-2xl border border-[#CBD5E1] max-h-[94vh] flex flex-col overflow-hidden">
             
-            {}
             <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
                 <div class="flex items-center gap-2.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
@@ -605,12 +602,9 @@
                 </button>
             </div>
 
-            {}
-                        {}
             <form action="{{ route('engineer.activity_log.store') }}" method="POST" @submit="submitBulkForm($event)" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                 @csrf
 
-                {}
                 <div class="px-4 sm:px-6 py-3 bg-white border-b border-[#CBD5E1] flex flex-wrap items-center justify-between gap-3 shrink-0">
                     <div class="flex items-center gap-2">
                         <span class="text-xs font-bold text-[#475569] uppercase tracking-wider">Kategori Laporan:</span>
@@ -637,7 +631,6 @@
                     </div>
                 </div>
 
-                {}
                 <div class="p-4 sm:p-5 bg-[#F8FAFC] border-b border-[#CBD5E1] shrink-0">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                         <div class="md:col-span-2">
@@ -667,11 +660,9 @@
                     </div>
                 </div>
 
-                {}
                 <input type="hidden" name="report_category" :value="selectedCategory">
                 <input type="hidden" name="report_data" x-ref="reportDataInput" :value="JSON.stringify(reportFormData)">
 
-                {}
                 <template x-if="selectedCategory === 'project'">
                     <div>
                         <template x-for="(act, idx) in reportFormData.rincian_aktivitas" :key="'p-' + idx">
@@ -688,7 +679,6 @@
                     </div>
                 </template>
 
-                {}
                 <template x-if="selectedCategory === 'managed_service'">
                     <div>
                         <template x-for="(act, idx) in reportFormData.ms_aktivitas" :key="'ms-' + idx">
@@ -705,7 +695,6 @@
                     </div>
                 </template>
 
-                {}
                 <template x-if="selectedCategory === 'help_desk'">
                     <div>
                         <template x-for="(act, idx) in reportFormData.hd_aktivitas" :key="'hd-' + idx">
@@ -722,13 +711,11 @@
                     </div>
                 </template>
 
-                {}
                 <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F1F5F9]/70 space-y-5">
 
                     <div x-show="selectedCategory === 'project'" class="space-y-5">
                         <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
-                        {}
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
                                 <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
@@ -748,7 +735,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS PEKERJAAN</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -838,7 +824,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. KOMPOSISI TENAGA KERJA</h3>
@@ -880,7 +865,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. RUANG LINGKUP / TARGET PEKERJAAN</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -911,7 +895,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -979,7 +962,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. MATERIAL, PERALATAN &amp; SPARE PART</h3>
@@ -1022,7 +1004,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. HASIL PENGUJIAN / PENGUKURAN</h3>
@@ -1065,7 +1046,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. KENDALA / INCIDENT / DEVIASI</h3>
@@ -1108,7 +1088,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. HASIL AKHIR PEKERJAAN</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1161,7 +1140,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">I. REKAP DOKUMENTASI FOTO</h3>
                             <p class="text-[11px] text-[#475569]">
@@ -1179,7 +1157,6 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {}
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B]">1</td>
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">BEFORE</td>
@@ -1208,7 +1185,6 @@
                                             </td>
                                         </tr>
 
-                                        {}
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B]">2</td>
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">PROGRESS</td>
@@ -1237,7 +1213,6 @@
                                             </td>
                                         </tr>
 
-                                        {}
                                         <tr>
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B]">3</td>
                                             <td class="text-center font-bold py-2 border-r border-[#1E293B] bg-slate-50">AFTER</td>
@@ -1270,7 +1245,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">J. VERIFIKASI &amp; PENGESAHAN</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1313,7 +1287,6 @@
                             </div>
                         </div>
 
-                        {}
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">K. CATATAN ADMINISTRASI DOKUMEN</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -2378,7 +2351,6 @@
 
                 </div>
 
-                {}
                 <div class="px-6 py-4 bg-white border-t border-[#CBD5E1] flex items-center justify-between shrink-0 shadow-sm">
                     <button type="button" @click="isBulkModalOpen = false"
                             class="px-5 py-2.5 bg-white text-[#334155] border border-[#CBD5E1] hover:bg-gray-50 font-bold text-xs rounded-xl transition cursor-pointer">
