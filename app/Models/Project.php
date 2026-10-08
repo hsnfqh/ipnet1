@@ -278,11 +278,54 @@ class Project extends Model
             }
         } catch (\Throwable $e) {}
 
+        // 4b. Data formulir dokumen laporan/signature yang pernah disimpan sebelumnya
+        try {
+            $sigDoc = \App\Models\ActivityDocumentSignature::where('scope_key', 'proj_' . $this->id)
+                ->orWhere('project_id', $this->id)
+                ->first();
+            if ($sigDoc && !empty($sigDoc->report_data['manpower']) && is_array($sigDoc->report_data['manpower'])) {
+                foreach ($sigDoc->report_data['manpower'] as $smp) {
+                    $mpNama = trim($smp['nama'] ?? '');
+                    if ($mpNama !== '') {
+                        $personnelList->push([
+                            'id'         => null,
+                            'nama'       => $mpNama,
+                            'unit_kerja' => $smp['unit_kerja'] ?: 'Engineering',
+                            'jabatan'    => $smp['jabatan'] ?: 'Field Engineer',
+                            'keterangan' => $smp['keterangan'] ?: 'Personel Lapangan',
+                        ]);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
         $uniqueList = $personnelList->unique(function ($item) {
             return $item['id'] ?? strtolower($item['nama']);
         })->values();
 
-        // 5. Fallback ke auth user jika daftar masih kosong
+        // 5. Khusus proyek Angkasa Pura Support atau proyek dengan PIC Syaiful Amin:
+        // Sertakan rekan tim Raihan Ghiffary jika belum ada di list
+        $hasSyaiful = $uniqueList->contains(fn($item) => stripos($item['nama'], 'Syaiful') !== false);
+        $isAngkasa  = stripos($this->name, 'Angkasa Pura') !== false;
+        if ($isAngkasa || $hasSyaiful) {
+            $hasRaihan = $uniqueList->contains(fn($item) => stripos($item['nama'], 'Raihan') !== false);
+            if (!$hasRaihan) {
+                try {
+                    $raihan = \App\Models\User::where('name', 'like', '%Raihan%')->with('division')->first();
+                    if ($raihan) {
+                        $uniqueList->push([
+                            'id'         => $raihan->id,
+                            'nama'       => $raihan->name,
+                            'unit_kerja' => $raihan->division?->name ?? 'Network Engineering',
+                            'jabatan'    => $raihan->position ?: 'L2 Engineer',
+                            'keterangan' => 'Personel Lapangan',
+                        ]);
+                    }
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        // 6. Fallback ke auth user jika daftar masih kosong
         if ($uniqueList->isEmpty() && auth()->check()) {
             $u = auth()->user();
             $uniqueList->push([

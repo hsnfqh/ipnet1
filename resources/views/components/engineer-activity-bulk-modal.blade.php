@@ -54,6 +54,17 @@
             ]
         ];
     });
+    $modalEngineers = $allEngineers ?? $engineers ?? \App\Models\User::orderBy('name')->with('division')->get(['id', 'name', 'position', 'division_id']);
+    $allEngineersMap = $modalEngineers->mapWithKeys(function($u) {
+        return [
+            $u->id => [
+                'id'         => $u->id,
+                'name'       => $u->name,
+                'position'   => $u->position ?: 'Field Engineer',
+                'unit_kerja' => $u->division?->name ?? 'Engineering',
+            ]
+        ];
+    });
 @endphp
 
 <div x-data="{
@@ -64,6 +75,20 @@
     selectedCategory: '{{ $defaultModalCat }}', // 'project' | 'managed_service' | 'help_desk'
 
     projectsMap: {{ Js::from($projectsLookup) }},
+    allEngineersMap: {{ Js::from($allEngineersMap) }},
+    onPersonnelNameInput(mp) {
+        if (!mp.nama) return;
+        const clean = mp.nama.trim().toLowerCase();
+        const found = Object.values(this.allEngineersMap).find(e => e.name.toLowerCase() === clean);
+        if (found) {
+            mp.nama = found.name;
+            mp.unit_kerja = found.unit_kerja || mp.unit_kerja || 'Engineering';
+            mp.jabatan = found.position || mp.jabatan || 'Field Engineer';
+            if (!mp.keterangan || mp.keterangan === 'Keterangan') {
+                mp.keterangan = 'Personel Lapangan';
+            }
+        }
+    },
     reportFormData: {
         identitas: {
             hari_tanggal: '{{ date('Y-m-d') }}',
@@ -909,7 +934,9 @@
                                         <template x-for="(mp, mpIdx) in reportFormData.manpower" :key="mpIdx">
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="mpIdx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mp.nama" placeholder="Nama Personel" class="w-full p-1 text-xs border-0 bg-transparent font-semibold"></td>
+                                                <td class="p-1 border-r border-[#1E293B]">
+                                                    <input type="text" x-model="mp.nama" list="available-engineers-datalist" @input="onPersonnelNameInput(mp)" @change="onPersonnelNameInput(mp)" placeholder="Nama Personel" class="w-full p-1 text-xs border-0 bg-transparent font-semibold">
+                                                </td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mp.unit_kerja" placeholder="Unit Kerja" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mp.jabatan" placeholder="Jabatan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1"><input type="text" x-model="mp.keterangan" placeholder="Keterangan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
@@ -921,6 +948,11 @@
                             <div class="text-[11.5px] font-semibold text-[#334155] pt-0.5">
                                 Total tenaga kerja: <u>&nbsp;&nbsp;<strong x-text="reportFormData.manpower.length"></strong>&nbsp;&nbsp;</u> orang
                             </div>
+                            <datalist id="available-engineers-datalist">
+                                @foreach($modalEngineers as $me)
+                                    <option value="{{ $me->name }}">{{ $me->name }} ({{ $me->position ?: 'Engineer' }})</option>
+                                @endforeach
+                            </datalist>
                         </div>
 
                         <div class="space-y-1.5">

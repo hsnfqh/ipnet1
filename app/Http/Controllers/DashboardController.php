@@ -1700,11 +1700,15 @@ class DashboardController extends Controller
                 ->get($projectFields);
         }
 
+        $allEngineers = User::orderBy('name')
+            ->with('division:id,name')
+            ->get(['id', 'name', 'email', 'position', 'division_id']);
+
         $engineers = collect();
         if ($isLead) {
             $engineers = \App\Helpers\ScopeHelper::getAssignableEngineers($authUser);
             if ($engineers->isEmpty()) {
-                $engineers = User::orderBy('name')->get(['id', 'name', 'email']);
+                $engineers = $allEngineers;
             }
         }
 
@@ -1730,6 +1734,7 @@ class DashboardController extends Controller
             'activeEngineersCount',
             'projects',
             'engineers',
+            'allEngineers',
             'activityTypes',
             'linkedProjectIds',
             'allowedCategories'
@@ -1980,6 +1985,32 @@ class DashboardController extends Controller
 
                     $sig->report_data = $rawReport;
                     $sig->save();
+
+                    // Otomatis ikat personel di tabel manpower ke project jika belum terikat
+                    if (!empty($rawReport['manpower']) && is_array($rawReport['manpower'])) {
+                        foreach ($rawReport['manpower'] as $mpRow) {
+                            $mpName = trim($mpRow['nama'] ?? '');
+                            if ($mpName !== '') {
+                                $targetEng = User::where('name', 'like', "%{$mpName}%")->first();
+                                if ($targetEng) {
+                                    $hasTask = Task::where('project_id', $projectId)
+                                        ->where('engineer_id', $targetEng->id)
+                                        ->exists();
+                                    if (!$hasTask) {
+                                        Task::create([
+                                            'title'       => 'Pelaksanaan Teknis: ' . ($sig->project_name ?? 'Proyek'),
+                                            'project_id'  => $projectId,
+                                            'engineer_id' => $targetEng->id,
+                                            'priority'    => 'Medium',
+                                            'status'      => 'In Progress',
+                                            'start_date'  => date('Y-m-d'),
+                                            'created_by'  => $authUser->id,
+                                        ]);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 } catch (\Throwable $e) {
                     \Illuminate\Support\Facades\Log::error('Save signature report error: ' . $e->getMessage());
                 }
