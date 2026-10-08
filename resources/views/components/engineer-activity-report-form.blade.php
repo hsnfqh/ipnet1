@@ -1,10 +1,10 @@
-<div class="space-y-6">
+<div>
 
     <div x-show="reportFormSavedSuccess" x-cloak
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 -translate-y-2"
          x-transition:enter-end="opacity-100 translate-y-0"
-         class="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-between shadow-xs">
+         class="mb-3.5 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-between shadow-xs">
         <div class="flex items-center gap-2">
             <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
             <span>Formulir Laporan Aktivitas berhasil disimpan! Data akan otomatis tercetak pada PDF.</span>
@@ -12,7 +12,7 @@
         <button type="button" @click="reportFormSavedSuccess = false" class="text-emerald-500 hover:text-emerald-800 font-bold px-2">&times;</button>
     </div>
 
-    <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-[#CBD5E1] shadow-xs">
+    <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-[#CBD5E1] shadow-xs !mt-0">
         <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-[#475569] uppercase tracking-wider">Kategori Laporan:</span>
             <div class="inline-flex rounded-xl p-1 bg-[#F1F5F9] border border-[#CBD5E1]">
@@ -881,10 +881,10 @@
                                     <p class="text-[10.5px] text-gray-500">Rincian aktivitas operasi, penanganan tiket, alarm monitoring atau preventive maintenance.</p>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <button type="button" @click="addMsActRow()" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                                    <button type="button" @click="addMsActRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
                                         <span>+ Tambah Baris</span>
                                     </button>
-                                    <button type="button" @click="removeMsActRow()" x-show="reportFormData.ms_aktivitas.length > 1" class="text-xs font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                    <button type="button" @click="removeMsActRow()" x-show="reportFormData.ms_aktivitas.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
                                         <span>- Hapus Baris</span>
                                     </button>
                                 </div>
@@ -1351,10 +1351,10 @@
                                     <p class="text-[10.5px] text-gray-500">Rincian aktivitas tiket, WO, troubleshooting perangkat, atau penanganan gangguan.</p>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <button type="button" @click="addHdActRow()" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                                    <button type="button" @click="addHdActRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
                                         <span>+ Tambah Baris</span>
                                     </button>
-                                    <button type="button" @click="removeHdActRow()" x-show="reportFormData.hd_aktivitas.length > 1" class="text-xs font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                    <button type="button" @click="removeHdActRow()" x-show="reportFormData.hd_aktivitas.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
                                         <span>- Hapus Baris</span>
                                     </button>
                                 </div>

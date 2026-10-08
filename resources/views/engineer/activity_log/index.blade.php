@@ -629,7 +629,7 @@
                 </div>
 
                 {{-- Form Laporan Resmi (Sesuai PDF) --}}
-                <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F8FAFC]">
+                <div class="flex-1 overflow-y-auto px-4 pt-3.5 pb-6 sm:px-6 sm:pt-4 sm:pb-6 bg-[#F8FAFC]">
                     @include('components.engineer-activity-report-form')
                 </div>
 
