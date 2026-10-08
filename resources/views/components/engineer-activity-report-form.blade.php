@@ -19,17 +19,17 @@
                 <button type="button" @click="setDetailDocCategory('project')"
                         :class="(reportFormData?.category || 'project') === 'project' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
                         class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">
-                    💼 Project
+                    Project
                 </button>
                 <button type="button" @click="setDetailDocCategory('managed_service')"
                         :class="(reportFormData?.category || 'project') === 'managed_service' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
                         class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">
-                    ⚙️ Managed Service
+                    Managed Service
                 </button>
                 <button type="button" @click="setDetailDocCategory('help_desk')"
                         :class="(reportFormData?.category || 'project') === 'help_desk' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
                         class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer">
-                    🎧 Help Desk
+                    Help Desk
                 </button>
             </div>
         </div>
@@ -58,7 +58,7 @@
     </div>
 
     <div x-show="(reportFormData?.category || 'project') === 'project'"
-         class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
+         class="!mt-3.5 bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
 
         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
@@ -676,7 +676,7 @@
     </div>
 
                     <div x-show="(reportFormData?.category || 'project') === 'managed_service'"
-                         class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
+                         class="!mt-3.5 bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
@@ -1236,7 +1236,7 @@
 
 
                     <div x-show="(reportFormData?.category || 'project') === 'help_desk'"
-                         class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
+                         class="!mt-3.5 bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">

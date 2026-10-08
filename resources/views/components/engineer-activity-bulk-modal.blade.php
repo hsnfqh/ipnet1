@@ -609,17 +609,17 @@
                             <button type="button" @click="selectedCategory = 'project'"
                                     :class="selectedCategory === 'project' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
                                     class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
-                                <span>💼 Project</span>
+                                <span>Project</span>
                             </button>
                             <button type="button" @click="selectedCategory = 'managed_service'"
                                     :class="selectedCategory === 'managed_service' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
                                     class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
-                                <span>⚙️ Managed Service</span>
+                                <span>Managed Service</span>
                             </button>
                             <button type="button" @click="selectedCategory = 'help_desk'"
                                     :class="selectedCategory === 'help_desk' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
                                     class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
-                                <span>🎧 Help Desk</span>
+                                <span>Help Desk</span>
                             </button>
                         </div>
                     </div>
@@ -628,7 +628,7 @@
                     </div>
                 </div>
 
-                <div class="p-4 sm:p-5 bg-[#F8FAFC] border-b border-[#CBD5E1] shrink-0">
+                <div class="px-4 py-3 sm:px-6 sm:py-3.5 bg-[#F8FAFC] border-b border-[#CBD5E1] shrink-0">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                         <div class="md:col-span-2">
                             <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
@@ -708,10 +708,10 @@
                     </div>
                 </template>
 
-                <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F1F5F9]/70 space-y-5">
+                <div class="flex-1 overflow-y-auto px-4 pt-3.5 pb-6 sm:px-6 sm:pt-4 sm:pb-6 bg-[#F1F5F9]/70">
 
                     <div x-show="selectedCategory === 'project'"
-                         class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
+                         class="!mt-0 bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
@@ -1317,7 +1317,7 @@
                     </div>
 
                     <div x-show="selectedCategory === 'managed_service'"
-                         class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
+                         class="!mt-0 bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
@@ -1877,7 +1877,7 @@
 
 
                     <div x-show="selectedCategory === 'help_desk'"
-                         class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
+                         class="!mt-0 bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
