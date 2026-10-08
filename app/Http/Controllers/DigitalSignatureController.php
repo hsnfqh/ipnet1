@@ -113,7 +113,27 @@ class DigitalSignatureController extends Controller
             'title'            => 'required|string|max:255',
             'category'         => 'nullable|string|max:100',
             'project_id'       => 'nullable|exists:projects,id',
-            'document_file'    => 'required|file|mimes:pdf|max:25600', // max 25MB
+            'document_file'    => [
+                'required',
+                'file',
+                'max:25600', // max 25MB
+                function ($attribute, $value, $fail) {
+                    $ext = strtolower($value->getClientOriginalExtension());
+                    $realPath = $value->getRealPath();
+                    $isPdfHeader = false;
+                    if ($realPath && file_exists($realPath)) {
+                        $handle = @fopen($realPath, 'rb');
+                        if ($handle) {
+                            $header = fread($handle, 5);
+                            fclose($handle);
+                            $isPdfHeader = ($header === '%PDF-');
+                        }
+                    }
+                    if ($ext !== 'pdf' && !$isPdfHeader) {
+                        $fail('Berkas yang diunggah harus berupa berkas dokumen PDF (.pdf).');
+                    }
+                },
+            ],
             'workflow_type'    => 'required|in:sequential,parallel',
             'client_name'      => 'required|string|max:255',
             'client_position'  => 'nullable|string|max:255',
@@ -122,6 +142,12 @@ class DigitalSignatureController extends Controller
             'client_email'     => 'nullable|email|max:255',
             'description'      => 'nullable|string',
             'internal_signers' => 'required|array|min:1',
+        ], [
+            'document_file.required' => 'Silakan pilih berkas dokumen PDF terlebih dahulu.',
+            'document_file.max'      => 'Ukuran berkas PDF tidak boleh melebihi 25MB.',
+            'title.required'          => 'Judul dokumen wajib diisi.',
+            'client_name.required'    => 'Nama lengkap PIC klien wajib diisi.',
+            'internal_signers.required' => 'Setidaknya satu penandatangan internal tim IPNET harus dipilih.',
         ]);
 
         $file = $request->file('document_file');

@@ -371,7 +371,13 @@ function documentCreator() {
                 const file = dt.files[0];
                 if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
                     const input = document.getElementById('document_file');
-                    input.files = dt.files;
+                    try {
+                        const container = new DataTransfer();
+                        container.items.add(file);
+                        input.files = container.files;
+                    } catch (err) {
+                        input.files = dt.files;
+                    }
                     this.selectedFileName = file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
                 } else {
                     alert('Mohon pilih berkas dengan format .PDF saja.');
