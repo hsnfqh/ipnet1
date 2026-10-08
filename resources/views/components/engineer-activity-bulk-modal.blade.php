@@ -280,8 +280,14 @@
             this.reportFormData.hd_identitas.area_site = p.location || '';
 
             // Otomatis binding seluruh personel/tenaga kerja yang terikat pada proyek ini ke B. KOMPOSISI TENAGA KERJA
-            if (p.personnel && p.personnel.length > 0) {
-                this.reportFormData.manpower = p.personnel.map((m, idx) => ({
+            const rawPersonnel = (p.personnel && Array.isArray(p.personnel)) ? p.personnel : [];
+            const validPersonnel = rawPersonnel.filter(m => {
+                const n = (m.nama || '').trim();
+                return n !== '' && !n.includes(',') && !n.toLowerCase().includes(' dan ') && !n.includes('&') && !n.includes('/') && n.length <= 35;
+            });
+
+            if (validPersonnel.length > 0) {
+                this.reportFormData.manpower = validPersonnel.map((m, idx) => ({
                     nama: m.nama || '',
                     unit_kerja: m.unit_kerja || 'Engineering',
                     jabatan: m.jabatan || 'Engineer',

@@ -188,46 +188,86 @@ class Project extends Model
      * Dapatkan daftar seluruh personel/tenaga kerja yang terikat pada proyek ini
      * (Project Manager, Task Engineers, Schedule Engineers, Pivot Users).
      */
+    /**
+     * Helper untuk validasi dan penambahan personel yang valid & bersih.
+     */
+    protected function pushCleanPersonnel(\Illuminate\Support\Collection $list, ?User $user, string $defaultKeterangan = 'Personel Lapangan'): void
+    {
+        if (!$user || empty($user->name)) {
+            return;
+        }
+
+        $name = trim($user->name);
+        // Validasi ketat: nama personel tidak boleh string gabungan atau lebih dari 35 karakter
+        if (
+            str_contains($name, ',') ||
+            stripos($name, ' dan ') !== false ||
+            str_contains($name, '&') ||
+            str_contains($name, '/') ||
+            mb_strlen($name) > 35
+        ) {
+            return;
+        }
+
+        $list->push([
+            'id'         => $user->id,
+            'nama'       => $name,
+            'unit_kerja' => $user->division?->name ?? 'Engineering',
+            'jabatan'    => $user->position ?: 'Field Engineer',
+            'keterangan' => $defaultKeterangan,
+        ]);
+    }
+
+    /**
+     * Dapatkan daftar seluruh personel/tenaga kerja yang terikat pada proyek ini.
+     * (Khusus Angkasa Pura Support: Syaiful Amin sebagai PIC dan Raihan Ghiffary sebagai Personel).
+     */
     public function getAssignedPersonnel(): array
     {
-        $personnelList = collect();
+        // 1. Khusus proyek Angkasa Pura Support:
+        // Selalu terikat secara eksklusif ke 2 personel resmi:
+        // - Syaiful Amin (PIC Project / Engineer Pelaksana)
+        // - Raihan Ghiffary (Personel Lapangan)
+        if (stripos($this->name, 'Angkasa Pura') !== false) {
+            $syaiful = null;
+            $raihan  = null;
+            try {
+                $syaiful = User::where('name', 'like', '%Syaiful%')->with('division')->first();
+            } catch (\Throwable $e) {}
+            try {
+                $raihan  = User::where('name', 'like', '%Raihan%')->with('division')->first();
+            } catch (\Throwable $e) {}
 
-        // 1. Project Manager / PIC Utama
-        try {
-            $pm = $this->relationLoaded('pm') ? $this->pm : $this->pm()->with('division')->first();
-            if ($pm) {
-                $personnelList->push([
-                    'id'         => $pm->id,
-                    'nama'       => $pm->name,
-                    'unit_kerja' => $pm->division?->name ?? 'Project Management',
-                    'jabatan'    => $pm->position ?: 'Project Manager',
-                    'keterangan' => 'Project Manager / PIC',
-                ]);
-            }
-        } catch (\Throwable $e) {}
+            return [
+                [
+                    'id'         => $syaiful?->id,
+                    'nama'       => $syaiful?->name ?? 'Syaiful Amin',
+                    'unit_kerja' => $syaiful?->division?->name ?? 'Divisi Network',
+                    'jabatan'    => $syaiful?->position ?: 'L2 Network Engineer',
+                    'keterangan' => 'Engineer Pelaksana',
+                ],
+                [
+                    'id'         => $raihan?->id,
+                    'nama'       => $raihan?->name ?? 'Raihan Ghiffary',
+                    'unit_kerja' => $raihan?->division?->name ?? 'Divisi Network',
+                    'jabatan'    => $raihan?->position ?: 'L2 Engineer',
+                    'keterangan' => 'Personel Lapangan',
+                ],
+            ];
+        }
+
+        $personnelList = collect();
 
         // 2. Engineer dari Tasks
         try {
             $tasks = $this->relationLoaded('tasks') ? $this->tasks : $this->tasks()->with(['engineer.division', 'engineers.division'])->get();
             foreach ($tasks as $t) {
                 if ($t->engineer) {
-                    $personnelList->push([
-                        'id'         => $t->engineer->id,
-                        'nama'       => $t->engineer->name,
-                        'unit_kerja' => $t->engineer->division?->name ?? 'Engineering',
-                        'jabatan'    => $t->engineer->position ?: 'Engineer Pelaksana',
-                        'keterangan' => 'Engineer Pelaksana',
-                    ]);
+                    $this->pushCleanPersonnel($personnelList, $t->engineer, 'Engineer Pelaksana');
                 }
                 if ($t->engineers) {
                     foreach ($t->engineers as $eng) {
-                        $personnelList->push([
-                            'id'         => $eng->id,
-                            'nama'       => $eng->name,
-                            'unit_kerja' => $eng->division?->name ?? 'Engineering',
-                            'jabatan'    => $eng->position ?: 'Engineer Pelaksana',
-                            'keterangan' => 'Personel Lapangan',
-                        ]);
+                        $this->pushCleanPersonnel($personnelList, $eng, 'Personel Lapangan');
                     }
                 }
             }
@@ -238,23 +278,11 @@ class Project extends Model
             $schedules = $this->relationLoaded('schedules') ? $this->schedules : $this->schedules()->with(['engineer.division', 'engineers.division'])->get();
             foreach ($schedules as $s) {
                 if ($s->engineer) {
-                    $personnelList->push([
-                        'id'         => $s->engineer->id,
-                        'nama'       => $s->engineer->name,
-                        'unit_kerja' => $s->engineer->division?->name ?? 'Engineering',
-                        'jabatan'    => $s->engineer->position ?: 'Engineer Lapangan',
-                        'keterangan' => 'Personel Lapangan',
-                    ]);
+                    $this->pushCleanPersonnel($personnelList, $s->engineer, 'Personel Lapangan');
                 }
                 if ($s->engineers) {
                     foreach ($s->engineers as $seng) {
-                        $personnelList->push([
-                            'id'         => $seng->id,
-                            'nama'       => $seng->name,
-                            'unit_kerja' => $seng->division?->name ?? 'Engineering',
-                            'jabatan'    => $seng->position ?: 'Engineer Lapangan',
-                            'keterangan' => 'Personel Lapangan',
-                        ]);
+                        $this->pushCleanPersonnel($personnelList, $seng, 'Personel Lapangan');
                     }
                 }
             }
@@ -267,85 +295,30 @@ class Project extends Model
                 ->get();
             foreach ($pastLogs as $pl) {
                 if ($pl->engineer) {
-                    $personnelList->push([
-                        'id'         => $pl->engineer->id,
-                        'nama'       => $pl->engineer->name,
-                        'unit_kerja' => $pl->engineer->division?->name ?? 'Engineering',
-                        'jabatan'    => $pl->engineer->position ?: 'Field Engineer',
-                        'keterangan' => 'Personel Lapangan',
-                    ]);
+                    $this->pushCleanPersonnel($personnelList, $pl->engineer, 'Personel Lapangan');
                 }
             }
         } catch (\Throwable $e) {}
 
-        // 4b. Data formulir dokumen laporan/signature yang pernah disimpan sebelumnya
-        try {
-            $sigDoc = \App\Models\ActivityDocumentSignature::where('scope_key', 'proj_' . $this->id)
-                ->orWhere('project_id', $this->id)
-                ->first();
-            if ($sigDoc && !empty($sigDoc->report_data['manpower']) && is_array($sigDoc->report_data['manpower'])) {
-                foreach ($sigDoc->report_data['manpower'] as $smp) {
-                    $mpNama = trim($smp['nama'] ?? '');
-                    if ($mpNama !== '') {
-                        $personnelList->push([
-                            'id'         => null,
-                            'nama'       => $mpNama,
-                            'unit_kerja' => $smp['unit_kerja'] ?: 'Engineering',
-                            'jabatan'    => $smp['jabatan'] ?: 'Field Engineer',
-                            'keterangan' => $smp['keterangan'] ?: 'Personel Lapangan',
-                        ]);
-                    }
+        // 5. Fallback ke PM hanya jika tidak ada engineer sama sekali di tasks/schedules
+        if ($personnelList->isEmpty()) {
+            try {
+                $pm = $this->relationLoaded('pm') ? $this->pm : $this->pm()->with('division')->first();
+                if ($pm) {
+                    $this->pushCleanPersonnel($personnelList, $pm, 'Project Manager / PIC');
                 }
-            }
-        } catch (\Throwable $e) {}
-
-        $uniqueList = $personnelList->unique(function ($item) {
-            return $item['id'] ?? strtolower($item['nama']);
-        })->values();
-
-        // 5. Khusus proyek Angkasa Pura Support atau proyek dengan Syaiful Amin:
-        // Pastikan kedua personel utama (Syaiful Amin sebagai PIC dan Raihan Ghiffary sebagai Personel) selalu terikat
-        $isAngkasa  = stripos($this->name, 'Angkasa Pura') !== false;
-        $hasSyaiful = $uniqueList->contains(fn($item) => stripos($item['nama'], 'Syaiful') !== false);
-        if ($isAngkasa || $hasSyaiful) {
-            if (!$hasSyaiful) {
-                try {
-                    $syaiful = \App\Models\User::where('name', 'like', '%Syaiful%')->with('division')->first();
-                } catch (\Throwable $e) { $syaiful = null; }
-                $uniqueList->prepend([
-                    'id'         => $syaiful?->id,
-                    'nama'       => $syaiful?->name ?? 'Syaiful Amin',
-                    'unit_kerja' => $syaiful?->division?->name ?? 'Divisi Network',
-                    'jabatan'    => $syaiful?->position ?: 'L2 Network Engineer',
-                    'keterangan' => 'PIC Project',
-                ]);
-            }
-
-            $hasRaihan = $uniqueList->contains(fn($item) => stripos($item['nama'], 'Raihan') !== false);
-            if (!$hasRaihan) {
-                try {
-                    $raihan = \App\Models\User::where('name', 'like', '%Raihan%')->with('division')->first();
-                } catch (\Throwable $e) { $raihan = null; }
-                $uniqueList->push([
-                    'id'         => $raihan?->id,
-                    'nama'       => $raihan?->name ?? 'Raihan Ghiffary',
-                    'unit_kerja' => $raihan?->division?->name ?? 'Divisi Network',
-                    'jabatan'    => $raihan?->position ?: 'L2 Engineer',
-                    'keterangan' => 'Personel Lapangan',
-                ]);
-            }
+            } catch (\Throwable $e) {}
         }
 
-        // 6. Fallback ke auth user jika daftar masih kosong
+        // 6. Deduplikasi berdasarkan ID atau nama
+        $uniqueList = $personnelList->unique(function ($item) {
+            return $item['id'] ? 'id_' . $item['id'] : 'name_' . strtolower(trim($item['nama']));
+        })->values();
+
+        // 7. Fallback ke auth user jika daftar masih kosong
         if ($uniqueList->isEmpty() && auth()->check()) {
             $u = auth()->user();
-            $uniqueList->push([
-                'id'         => $u->id,
-                'nama'       => $u->name,
-                'unit_kerja' => $u->division?->name ?? 'Engineering',
-                'jabatan'    => $u->position ?: 'Field Engineer',
-                'keterangan' => 'PIC Project',
-            ]);
+            $this->pushCleanPersonnel($uniqueList, $u, 'PIC Project');
         }
 
         return $uniqueList->toArray();

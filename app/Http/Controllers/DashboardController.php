@@ -1983,6 +1983,18 @@ class DashboardController extends Controller
                         $sig->scope_key = $scopeKey;
                     }
 
+                    if (!empty($rawReport['manpower']) && is_array($rawReport['manpower'])) {
+                        $rawReport['manpower'] = array_values(array_filter($rawReport['manpower'], function($mp) {
+                            $n = trim($mp['nama'] ?? '');
+                            return $n !== '' &&
+                                !str_contains($n, ',') &&
+                                stripos($n, ' dan ') === false &&
+                                !str_contains($n, '&') &&
+                                !str_contains($n, '/') &&
+                                mb_strlen($n) <= 35;
+                        }));
+                    }
+
                     $sig->report_data = $rawReport;
                     $sig->save();
 
@@ -1990,7 +2002,14 @@ class DashboardController extends Controller
                     if (!empty($rawReport['manpower']) && is_array($rawReport['manpower'])) {
                         foreach ($rawReport['manpower'] as $mpRow) {
                             $mpName = trim($mpRow['nama'] ?? '');
-                            if ($mpName !== '') {
+                            if (
+                                $mpName !== '' &&
+                                !str_contains($mpName, ',') &&
+                                stripos($mpName, ' dan ') === false &&
+                                !str_contains($mpName, '&') &&
+                                !str_contains($mpName, '/') &&
+                                mb_strlen($mpName) <= 35
+                            ) {
                                 $targetEng = User::where('name', 'like', "%{$mpName}%")->first();
                                 if ($targetEng) {
                                     $hasTask = Task::where('project_id', $projectId)

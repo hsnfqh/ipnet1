@@ -964,6 +964,32 @@ Route::get('/clear-opcache', function () {
                 ]);
             }
         }
+
+        // Bersihkan data formulir lama di tabel activity_document_signatures yang tercemar string gabungan
+        $allSigs = \App\Models\ActivityDocumentSignature::all();
+        foreach ($allSigs as $bSig) {
+            if (!empty($bSig->report_data['manpower']) && is_array($bSig->report_data['manpower'])) {
+                $cleanedManpower = [];
+                foreach ($bSig->report_data['manpower'] as $mp) {
+                    $nm = trim($mp['nama'] ?? '');
+                    if (
+                        $nm === '' ||
+                        str_contains($nm, ',') ||
+                        stripos($nm, ' dan ') !== false ||
+                        str_contains($nm, '&') ||
+                        str_contains($nm, '/') ||
+                        mb_strlen($nm) > 35
+                    ) {
+                        continue;
+                    }
+                    $cleanedManpower[] = $mp;
+                }
+                $rd = $bSig->report_data;
+                $rd['manpower'] = $cleanedManpower;
+                $bSig->report_data = $rd;
+                $bSig->save();
+            }
+        }
     } catch (\Throwable $e) {}
 
     Artisan::call('view:clear');
