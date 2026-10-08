@@ -420,7 +420,7 @@
 
     // Data TTD / Verifikasi Bagian J
     $picSignerName  = !empty($rData['identitas']['nama_engineer']) ? $rData['identitas']['nama_engineer'] : ($docSig?->pic_name ?? $namaEngineer);
-    $leadSignerName = !empty($rData['identitas']['nama_leader']) ? $rData['identitas']['nama_leader'] : ($docSig?->lead_name ?? ($docSig?->leadUser?->name ?? 'Nugraha Pratama'));
+    $leadSignerName = !empty($rData['identitas']['nama_leader']) ? $rData['identitas']['nama_leader'] : ($docSig?->lead_name ?? ($docSig?->leadUser?->name ?? '-'));
     $custSignerName = (!empty($rData['identitas']['pic_customer']) && $rData['identitas']['pic_customer'] !== '-') ? $rData['identitas']['pic_customer'] : ($picCustomer !== '-' ? $picCustomer : 'PIC Site / Representative');
 
     $picSignedAt  = $docSig?->pic_signed_at ? $docSig->pic_signed_at->format('d/m/Y') : ($hariTanggal ? date('d/m/Y') : '-');
@@ -925,7 +925,7 @@
                 </tr>
                 <tr>
                     <td class="label-cell">Team Leader / Service Manager</td>
-                    <td><strong>{{ $docSig?->lead_name ?? ($docSig?->leadUser?->name ?? 'Nugraha Pratama') }}</strong></td>
+                    <td><strong>{{ !empty($rData['ms_verifikasi']['lead_name']) ? $rData['ms_verifikasi']['lead_name'] : (!empty($rData['ms_identitas']['team_leader']) ? $rData['ms_identitas']['team_leader'] : ($docSig?->lead_name ?? ($docSig?->leadUser?->name ?? '-'))) }}</strong></td>
                     <td class="text-center">{{ $leadSignedAt }}</td>
                     <td class="sig-container">
                         @if(!empty($docSig?->lead_signature))
@@ -981,7 +981,7 @@
         $hdTanggal   = $hdId['tanggal'] ?? ($hariTanggal ?? date('d/m/Y'));
         $hdShifts    = $hdId['shift'] ?? [];
         $hdEngineer  = $hdId['nama_engineer'] ?? ($namaEngineer ?? '-');
-        $hdLeader    = $hdId['team_leader'] ?? ($docSig?->lead_name ?? ($docSig?->leadUser?->name ?? 'Nugraha Pratama'));
+        $hdLeader    = !empty($hdId['team_leader']) ? $hdId['team_leader'] : ($docSig?->lead_name ?? ($docSig?->leadUser?->name ?? '-'));
         $hdArea      = $hdId['area_site'] ?? ($lokasiSite !== '-' ? $lokasiSite : 'NOC / Central Office');
         $hdCustServ  = $hdId['customer_service'] ?? ($customer !== '-' ? $customer : ($namaProject ?? '-'));
         $hdJamShift  = $hdId['jam_shift'] ?? '08:00 - 16:00 WIB';

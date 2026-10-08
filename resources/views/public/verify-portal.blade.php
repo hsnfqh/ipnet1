@@ -368,7 +368,7 @@
 
                                     <div class="bg-white rounded-xl p-2.5 text-center border border-emerald-200 shadow-xs">
                                         <div class="text-[12px] font-bold text-[#1E293B] truncate">
-                                            {{ $result['document']->leadUser?->name ?? 'Nugraha Pratama' }}
+                                            {{ $result['document']->lead_name ?? ($result['document']->leadUser?->name ?? 'Lead Engineer') }}
                                         </div>
                                         <div class="text-[10px] text-[#64748B]">Lead Engineer</div>
                                         <span class="inline-block mt-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">

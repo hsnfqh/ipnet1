@@ -1128,8 +1128,8 @@ function engineerActivityManager() {
                     no_so_spk: '',
                     lokasi_site: '',
                     work_order: '',
-                    nama_engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Nugraha Pratama' }}',
-                    nama_leader: this.sigInfo?.lead?.name || 'Nugraha Pratama',
+                    nama_engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? '' }}',
+                    nama_leader: this.sigInfo?.lead?.name || '',
                     customer: detail?.client_name || '',
                     jenis_pekerjaan: '',
                     pic_customer: firstItem.client_pic && firstItem.client_pic !== '-' ? firstItem.client_pic : '',
@@ -1260,7 +1260,7 @@ function engineerActivityManager() {
                 },
                 ms_verifikasi: {
                     engineer_name: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
-                    lead_name: this.sigInfo?.lead?.name || 'Nugraha Pratama',
+                    lead_name: this.sigInfo?.lead?.name || '',
                     customer_name: ''
                 },
 
@@ -1269,7 +1269,7 @@ function engineerActivityManager() {
                     tanggal: firstDateRaw,
                     shift: { pagi: false, siang: false, malam: false },
                     nama_engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
-                    team_leader: this.sigInfo?.lead?.name || 'Nugraha Pratama',
+                    team_leader: this.sigInfo?.lead?.name || '',
                     area_site: '',
                     customer_service: detail?.client_name || '',
                     jam_shift: '',
@@ -1314,7 +1314,7 @@ function engineerActivityManager() {
                 },
                 hd_verifikasi: {
                     engineer_name: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
-                    team_leader_name: 'Nugraha Pratama',
+                    team_leader_name: this.sigInfo?.lead?.name || '',
                     next_engineer_name: ''
                 }
             };

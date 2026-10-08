@@ -40,7 +40,7 @@
             lokasi_site: '',
             work_order: '',
             nama_engineer: '{{ auth()->user()?->name ?? 'Engineer' }}',
-            nama_leader: 'Nugraha Pratama',
+            nama_leader: '',
             customer: '',
             jenis_pekerjaan: '',
             pic_customer: '',
@@ -153,7 +153,7 @@
         },
         ms_verifikasi: {
             engineer_name: '{{ auth()->user()?->name ?? 'Engineer' }}',
-            lead_name: 'Nugraha Pratama',
+            lead_name: '',
             customer_name: ''
         },
 
@@ -162,7 +162,7 @@
             tanggal: '{{ date('Y-m-d') }}',
             shift: { pagi: false, siang: false, malam: false },
             nama_engineer: '{{ auth()->user()?->name ?? 'Engineer' }}',
-            team_leader: 'Nugraha Pratama',
+            team_leader: '',
             area_site: '',
             customer_service: '',
             jam_shift: '',
@@ -199,7 +199,7 @@
         },
         hd_verifikasi: {
             engineer_name: '{{ auth()->user()?->name ?? 'Engineer' }}',
-            team_leader_name: 'Nugraha Pratama',
+            team_leader_name: '',
             next_engineer_name: ''
         }
     },
