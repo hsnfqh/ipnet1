@@ -1541,7 +1541,7 @@ class DashboardController extends Controller
         $authUser = auth()->user();
         $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
         $linkedProjectIds = $this->getLinkedProjectIds($authUser);
-        $allowedCategories = \App\Helpers\ScopeHelper::getAllowedActivityCategories($authUser);
+        $allowedCategories = $this->resolveAllowedActivityCategories($authUser);
 
         $query = EngineerActivityLog::with([
             'engineer',
@@ -1778,7 +1778,7 @@ class DashboardController extends Controller
             $reportCat = is_array($rawReport) ? ($rawReport['category'] ?? ($rawReport['report_type'] ?? 'project')) : ($request->input('category') ?: 'project');
 
             // Validasi wewenang kategori user
-            $allowedCategories = \App\Helpers\ScopeHelper::getAllowedActivityCategories($authUser);
+            $allowedCategories = $this->resolveAllowedActivityCategories($authUser);
             if (!in_array($reportCat, $allowedCategories)) {
                 return redirect()->back()->with('error', 'Akses ditolak: Anda tidak memiliki hak akses untuk mencatat aktivitas kategori ' . strtoupper(str_replace('_', ' ', $reportCat)) . '.');
             }
@@ -1976,7 +1976,7 @@ class DashboardController extends Controller
             'status'        => 'required|string',
         ]);
 
-        $allowedCategories = \App\Helpers\ScopeHelper::getAllowedActivityCategories($authUser);
+        $allowedCategories = $this->resolveAllowedActivityCategories($authUser);
         $singleCat = $request->input('category');
         if (!$singleCat || !in_array($singleCat, $allowedCategories)) {
             $singleCat = $allowedCategories[0] ?? 'project';
@@ -2268,7 +2268,7 @@ class DashboardController extends Controller
 
         $reportCategory = $request->get('category') ?? ($documentSignature?->report_data['category'] ?? ($documentSignature?->report_data['report_type'] ?? ($activities->first()?->category ?? 'project')));
 
-        if (!\App\Helpers\ScopeHelper::canAccessActivityCategory($authUser, $reportCategory)) {
+        if (!$this->checkCanAccessCategory($authUser, $reportCategory)) {
             abort(403, 'Akses ditolak: Anda tidak memiliki izin untuk melihat atau mengunduh laporan kategori ' . strtoupper(str_replace('_', ' ', $reportCategory)) . '.');
         }
 
@@ -2424,7 +2424,7 @@ class DashboardController extends Controller
         $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
         $linkedProjectIds = $this->getLinkedProjectIds($authUser);
 
-        $allowedCategories = \App\Helpers\ScopeHelper::getAllowedActivityCategories($authUser);
+        $allowedCategories = $this->resolveAllowedActivityCategories($authUser);
 
         $query = EngineerActivityLog::with(['engineer', 'project']);
 
@@ -2853,5 +2853,47 @@ class DashboardController extends Controller
             'qrCodeBase64' => $qrSvgBase64,
             'qrSvgBase64'  => $qrSvgBase64,
         ];
+    }
+
+    /**
+     * Resolusi kategori aktivitas engineer yang diizinkan untuk user secara aman (resilient terhadap OPcache lag).
+     */
+    protected function resolveAllowedActivityCategories($user): array
+    {
+        if (!$user) return [];
+        if (method_exists(\App\Helpers\ScopeHelper::class, 'getAllowedActivityCategories')) {
+            return \App\Helpers\ScopeHelper::getAllowedActivityCategories($user);
+        }
+
+        // Fallback aman jika class ScopeHelper di OPcache hosting belum mereload method baru
+        if (\App\Helpers\ScopeHelper::isExecutive($user) || \App\Helpers\ScopeHelper::isGroupLeader($user) || $user->hasAnyRole(['Super Admin', 'Superadmin', 'Admin'])) {
+            return ['project', 'managed_service', 'help_desk'];
+        }
+
+        $cats = [];
+        if (\App\Helpers\ScopeHelper::isPmo($user)) {
+            $cats[] = 'project';
+        }
+        if (\App\Helpers\ScopeHelper::isMaintenance($user)) {
+            $cats[] = 'managed_service';
+            $cats[] = 'help_desk';
+        }
+        if (empty($cats)) {
+            $cats[] = 'project';
+        }
+        return array_values(array_unique($cats));
+    }
+
+    /**
+     * Cek apakah user boleh mengakses kategori tertentu secara aman.
+     */
+    protected function checkCanAccessCategory($user, ?string $category): bool
+    {
+        if (!$category) return true;
+        if (method_exists(\App\Helpers\ScopeHelper::class, 'canAccessActivityCategory')) {
+            return \App\Helpers\ScopeHelper::canAccessActivityCategory($user, $category);
+        }
+        $allowed = $this->resolveAllowedActivityCategories($user);
+        return in_array($category, $allowed);
     }
 }

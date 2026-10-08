@@ -892,6 +892,9 @@ Route::get('/fix-storage', function () {
 // Utility route AMAN untuk menjalankan migrasi database saja di hosting tanpa menghapus data
 Route::get('/migrate-db', function () {
     try {
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
         Artisan::call('migrate', ['--force' => true]);
         Artisan::call('config:clear');
         Artisan::call('cache:clear');
@@ -899,7 +902,7 @@ Route::get('/migrate-db', function () {
         Artisan::call('route:clear');
         return response()->json([
             'status'  => 'success',
-            'message' => 'Migrasi tabel database berhasil dijalankan di hosting!',
+            'message' => 'Migrasi tabel database berhasil dijalankan di hosting dan cache/OPcache dibersihkan!',
             'output'  => trim(Artisan::output()) ?: 'Database sudah up-to-date.',
         ]);
     } catch (\Exception $e) {
@@ -908,6 +911,22 @@ Route::get('/migrate-db', function () {
             'message' => 'Gagal menjalankan migrasi: ' . $e->getMessage(),
         ], 500);
     }
+});
+
+// Utility route untuk mereset bytecode OPcache dan view cache secara instan
+Route::get('/clear-opcache', function () {
+    $opcacheCleared = false;
+    if (function_exists('opcache_reset')) {
+        $opcacheCleared = @opcache_reset();
+    }
+    Artisan::call('view:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:clear');
+    return response()->json([
+        'status'        => 'success',
+        'message'       => 'OPcache and view caches successfully cleared!',
+        'opcache_reset' => $opcacheCleared,
+    ]);
 });
 
 // Utility route untuk menghapus seluruh data dummy (Project, Task, Schedule, Timesheet, Attendance, Notifikasi)

@@ -19,7 +19,23 @@
                 ->get(['id', 'name', 'client', 'location', 'po_number', 'customer_pic_technical', 'description', 'progress']);
         }
     }
-    $modalAllowedCats = \App\Helpers\ScopeHelper::getAllowedActivityCategories(auth()->user());
+    $modalUser = auth()->user();
+    if (!empty($allowedCategories) && is_array($allowedCategories)) {
+        $modalAllowedCats = $allowedCategories;
+    } elseif (method_exists(\App\Helpers\ScopeHelper::class, 'getAllowedActivityCategories')) {
+        $modalAllowedCats = \App\Helpers\ScopeHelper::getAllowedActivityCategories($modalUser);
+    } else {
+        $isExec = method_exists(\App\Helpers\ScopeHelper::class, 'isExecutive') && \App\Helpers\ScopeHelper::isExecutive($modalUser);
+        $isGl   = method_exists(\App\Helpers\ScopeHelper::class, 'isGroupLeader') && \App\Helpers\ScopeHelper::isGroupLeader($modalUser);
+        $isMaint = method_exists(\App\Helpers\ScopeHelper::class, 'isMaintenance') && \App\Helpers\ScopeHelper::isMaintenance($modalUser);
+        if ($isExec || $isGl || ($modalUser && $modalUser->hasAnyRole(['Super Admin', 'Superadmin', 'Admin']))) {
+            $modalAllowedCats = ['project', 'managed_service', 'help_desk'];
+        } elseif ($isMaint) {
+            $modalAllowedCats = ['managed_service', 'help_desk'];
+        } else {
+            $modalAllowedCats = ['project'];
+        }
+    }
     $defaultModalCat = $modalAllowedCats[0] ?? 'project';
     $projectsLookup = $modalProjects->keyBy('id');
 @endphp
