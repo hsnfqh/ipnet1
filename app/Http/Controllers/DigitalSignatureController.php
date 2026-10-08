@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+if (!class_exists(\App\Models\DigitalSignatureDocument::class)) {
+    @require_once app_path('Models/DigitalSignatureDocument.php');
+}
+
 use App\Models\DigitalSignatureDocument;
 use App\Models\Project;
 use App\Models\User;

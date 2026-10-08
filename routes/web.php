@@ -55,6 +55,12 @@ if (!class_exists(\App\Services\DocumentDiscrepancyService::class)) {
 if (!class_exists(\App\Http\Controllers\PublicDocumentVerificationController::class)) {
     @require_once app_path('Http/Controllers/PublicDocumentVerificationController.php');
 }
+if (!class_exists(\App\Models\DigitalSignatureDocument::class)) {
+    @require_once app_path('Models/DigitalSignatureDocument.php');
+}
+if (!class_exists(\App\Http\Controllers\DigitalSignatureController::class)) {
+    @require_once app_path('Http/Controllers/DigitalSignatureController.php');
+}
 
 Route::get('/verify', [\App\Http\Controllers\PublicDocumentVerificationController::class, 'index'])->name('public.verify.index');
 Route::match(['GET', 'POST'], '/verify/inspect', [\App\Http\Controllers\PublicDocumentVerificationController::class, 'inspect'])->name('public.verify.inspect');

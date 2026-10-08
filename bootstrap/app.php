@@ -3,6 +3,21 @@
 
 require_once __DIR__ . '/../app/Helpers/FinfoPolyfill.php';
 
+// PSR-4 Autoload Fallback: Pastikan seluruh class App\... selalu ter-load otomatis di remote cPanel
+spl_autoload_register(function ($class) {
+    $prefix = 'App\\';
+    $baseDir = __DIR__ . '/../app/';
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
+    }
+    $relativeClass = substr($class, $len);
+    $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
+
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->validateCsrfTokens(except: [
             'verify/inspect',
+            'sign/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
