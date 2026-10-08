@@ -1535,14 +1535,34 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {}
         }
 
+        // Pastikan kolom category tersedia & data tersinkron
+        EngineerActivityLog::ensureCategoryColumnExists();
+
         $authUser = auth()->user();
         $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
         $linkedProjectIds = $this->getLinkedProjectIds($authUser);
+        $allowedCategories = \App\Helpers\ScopeHelper::getAllowedActivityCategories($authUser);
 
         $query = EngineerActivityLog::with([
             'engineer',
             'project',
         ]);
+
+        // Pembatasan hak akses kategori:
+        // - PMO/PM: hanya 'project'
+        // - Managed Service: 'managed_service' & 'help_desk'
+        // - Lead Engineer: sesuai divisinya masing-masing (Network/Security -> project, Maintenance/MS -> ms & hd)
+        // - Head: bisa melihat seluruh kategori (keduanya/semuanya)
+        if ($request->filled('category') && in_array($request->category, $allowedCategories)) {
+            $query->where('category', $request->category);
+        } else {
+            $query->where(function ($q) use ($allowedCategories) {
+                $q->whereIn('category', $allowedCategories);
+                if (in_array('project', $allowedCategories)) {
+                    $q->orWhereNull('category');
+                }
+            });
+        }
 
         // Jika bukan managerial/lead, batasi log milik sendiri dan log pada proyek yang terhubung (tim/shared)
         if (!$isLead) {
@@ -1598,7 +1618,7 @@ class DashboardController extends Controller
             $query->whereDate('activity_date', $request->date);
         }
 
-        // Hitung ringkasan metrics
+        // Hitung ringkasan metrics sesuai filter & hak akses
         $metricsQuery = clone $query;
         $totalActivities = $metricsQuery->count();
         $totalCompleted  = (clone $metricsQuery)->where('status', 'Selesai')->count();
@@ -1616,13 +1636,29 @@ class DashboardController extends Controller
         $hasTaskUser = \Illuminate\Support\Facades\Schema::hasTable('task_user');
         $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
 
+        $projectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+
+        // Filter daftar project dropdown sesuai wewenang divisi
+        if (in_array('project', $allowedCategories) && !in_array('managed_service', $allowedCategories)) {
+            // Khusus Project / PMO
+            $projectsQuery->where(function ($pq) {
+                $pq->whereNull('handover_target')
+                   ->orWhere('handover_target', '!=', 'managed_service')
+                   ->orWhere('handover_target', 'both');
+            });
+        } elseif (in_array('managed_service', $allowedCategories) && !in_array('project', $allowedCategories)) {
+            // Khusus Managed Service & Helpdesk
+            $projectsQuery->where(function ($pq) {
+                $pq->where('handover_target', 'managed_service')
+                   ->orWhere('handover_target', 'both')
+                   ->orWhereHas('managedServiceAssets');
+            });
+        }
+
         if ($isLead) {
-            $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-                ->orderBy('name')
-                ->get(['id', 'name', 'client']);
+            $projects = $projectsQuery->orderBy('name')->get(['id', 'name', 'client']);
         } else {
-            $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-                ->where(function ($q) use ($authUser, $linkedProjectIds, $hasTaskUser, $hasScheduleUser) {
+            $projects = $projectsQuery->where(function ($q) use ($authUser, $linkedProjectIds, $hasTaskUser, $hasScheduleUser) {
                     if ($linkedProjectIds->isNotEmpty()) {
                         $q->whereIn('id', $linkedProjectIds);
                     }
@@ -1646,14 +1682,7 @@ class DashboardController extends Controller
 
         $engineers = collect();
         if ($isLead) {
-            $engineers = User::whereHas('roles', function ($q) {
-                $q->whereIn('name', [
-                    'Network Engineer', 'Security Engineer', 'Field Support (EOS)', 'Field Support',
-                    'Managed Service', 'Engineer', 'Engineer L1', 'Engineer L2', 'Maintenance',
-                    'Lead Engineer', 'Team Leader Engineering', 'Team Leader', 'Lead Maintenance'
-                ]);
-            })->orderBy('name')->get(['id', 'name', 'email']);
-
+            $engineers = \App\Helpers\ScopeHelper::getAssignableEngineers($authUser);
             if ($engineers->isEmpty()) {
                 $engineers = User::orderBy('name')->get(['id', 'name', 'email']);
             }
@@ -1682,7 +1711,8 @@ class DashboardController extends Controller
             'projects',
             'engineers',
             'activityTypes',
-            'linkedProjectIds'
+            'linkedProjectIds',
+            'allowedCategories'
         ));
     }
 
@@ -1745,7 +1775,13 @@ class DashboardController extends Controller
 
             // Kumpulkan list activities dari $request->activities atau dari $rawReport rincian aktivitas
             $activitiesList = $hasActivities ? $request->activities : [];
-            $reportCat = is_array($rawReport) ? ($rawReport['category'] ?? ($rawReport['report_type'] ?? 'project')) : 'project';
+            $reportCat = is_array($rawReport) ? ($rawReport['category'] ?? ($rawReport['report_type'] ?? 'project')) : ($request->input('category') ?: 'project');
+
+            // Validasi wewenang kategori user
+            $allowedCategories = \App\Helpers\ScopeHelper::getAllowedActivityCategories($authUser);
+            if (!in_array($reportCat, $allowedCategories)) {
+                return redirect()->back()->with('error', 'Akses ditolak: Anda tidak memiliki hak akses untuk mencatat aktivitas kategori ' . strtoupper(str_replace('_', ' ', $reportCat)) . '.');
+            }
 
             if (empty($activitiesList) && is_array($rawReport)) {
                 if ($reportCat === 'managed_service' && !empty($rawReport['ms_aktivitas'])) {
@@ -1835,6 +1871,7 @@ class DashboardController extends Controller
                 EngineerActivityLog::create([
                     'user_id'       => auth()->id(),
                     'project_id'    => $projectId,
+                    'category'      => $reportCat,
                     'activity_type' => $actType,
                     'description'   => $description,
                     'location'      => $location,
@@ -1882,6 +1919,7 @@ class DashboardController extends Controller
                 EngineerActivityLog::create([
                     'user_id'       => auth()->id(),
                     'project_id'    => $projectId,
+                    'category'      => $reportCat,
                     'activity_type' => $actType,
                     'description'   => $defaultSubject,
                     'location'      => $clientPic ? "Client Site ({$clientPic})" : null,
@@ -1938,9 +1976,16 @@ class DashboardController extends Controller
             'status'        => 'required|string',
         ]);
 
+        $allowedCategories = \App\Helpers\ScopeHelper::getAllowedActivityCategories($authUser);
+        $singleCat = $request->input('category');
+        if (!$singleCat || !in_array($singleCat, $allowedCategories)) {
+            $singleCat = $allowedCategories[0] ?? 'project';
+        }
+
         EngineerActivityLog::create([
             'user_id'       => auth()->id(),
             'project_id'    => $request->project_id ?: null,
+            'category'      => $singleCat,
             'activity_type' => $request->activity_type,
             'description'   => $request->description,
             'location'      => $request->location,
@@ -2221,8 +2266,14 @@ class DashboardController extends Controller
         $verifyUrl       = url('/verify-document/' . $verifyDocNumber);
         $qrData          = $this->generateQrData($verifyUrl);
 
+        $reportCategory = $request->get('category') ?? ($documentSignature?->report_data['category'] ?? ($documentSignature?->report_data['report_type'] ?? ($activities->first()?->category ?? 'project')));
+
+        if (!\App\Helpers\ScopeHelper::canAccessActivityCategory($authUser, $reportCategory)) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki izin untuk melihat atau mengunduh laporan kategori ' . strtoupper(str_replace('_', ' ', $reportCategory)) . '.');
+        }
+
         $pdf = Pdf::loadView('exports.engineer-activity-report-pdf', [
-            'reportCategory'    => $request->get('category') ?? ($documentSignature?->report_data['category'] ?? ($documentSignature?->report_data['report_type'] ?? null)),
+            'reportCategory'    => $reportCategory,
             'parsedActivities'  => $parsedActivities->values()->toArray(),
             'activities'        => $activities,
             'projectName'       => $projectName,
@@ -2373,7 +2424,20 @@ class DashboardController extends Controller
         $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
         $linkedProjectIds = $this->getLinkedProjectIds($authUser);
 
+        $allowedCategories = \App\Helpers\ScopeHelper::getAllowedActivityCategories($authUser);
+
         $query = EngineerActivityLog::with(['engineer', 'project']);
+
+        if ($request->filled('category') && in_array($request->category, $allowedCategories)) {
+            $query->where('category', $request->category);
+        } else {
+            $query->where(function ($q) use ($allowedCategories) {
+                $q->whereIn('category', $allowedCategories);
+                if (in_array('project', $allowedCategories)) {
+                    $q->orWhereNull('category');
+                }
+            });
+        }
 
         if (!$isLead) {
             $query->where(function ($q) use ($authUser, $linkedProjectIds) {

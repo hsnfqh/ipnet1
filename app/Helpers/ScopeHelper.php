@@ -157,6 +157,60 @@ class ScopeHelper
     }
 
     /**
+     * Dapatkan daftar kategori aktivitas engineer yang diizinkan untuk dilihat / dikelola oleh user:
+     * - Head / Executive (Director, Division Head, Group Leader, Super Admin): Bisa melihat SEMUA ('project', 'managed_service', 'help_desk')
+     * - PMO / Project Manager: Hanya bisa melihat 'project'
+     * - Managed Service & Helpdesk (Maintenance, Field Support): Bisa melihat 'managed_service' dan 'help_desk'
+     * - Lead Engineer: Sesuai divisinya masing-masing:
+     *     - Divisi Maintenance/Helpdesk: 'managed_service' dan 'help_desk'
+     *     - Divisi Network/Security: 'project'
+     * - Field Engineer lainnya: Sesuai divisinya masing-masing.
+     *
+     * @param \App\Models\User|null $user
+     * @return array<string>
+     */
+    public static function getAllowedActivityCategories($user): array
+    {
+        if (!$user) return [];
+
+        // 1. Head / Executive / Super Admin / Group Leader -> Akses penuh (bisa lihat dua-duanya / seluruh kategori)
+        if (self::isExecutive($user) || self::isGroupLeader($user) || $user->hasAnyRole(['Super Admin', 'Superadmin', 'Admin'])) {
+            return ['project', 'managed_service', 'help_desk'];
+        }
+
+        $categories = [];
+
+        // 2. PMO / Project Manager -> Khusus 'project'
+        if (self::isPmo($user)) {
+            $categories[] = 'project';
+        }
+
+        // 3. Managed Service & Maintenance (Lead Maintenance, Managed Service, Field Support) -> 'managed_service' & 'help_desk'
+        if (self::isMaintenance($user)) {
+            $categories[] = 'managed_service';
+            $categories[] = 'help_desk';
+        }
+
+        // 4. Lead Engineer / Field Engineer divisi Network atau Security
+        if (empty($categories)) {
+            // Default teknis lapangan Network & Security adalah 'project'
+            $categories[] = 'project';
+        }
+
+        return array_values(array_unique($categories));
+    }
+
+    /**
+     * Periksa apakah user memiliki hak akses untuk kategori aktivitas tertentu.
+     */
+    public static function canAccessActivityCategory($user, ?string $category): bool
+    {
+        if (!$category) return true;
+        $allowed = self::getAllowedActivityCategories($user);
+        return in_array($category, $allowed);
+    }
+
+    /**
      * Apakah user memiliki wewenang operasional untuk membuat project baru?
      */
     public static function canCreateProjects($user): bool

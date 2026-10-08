@@ -206,7 +206,23 @@
                         @endforeach
                     </select>
 
-                    @if(request('search') || request('user_id') || request('status') || request('project_id') || request('date'))
+                    @if(isset($allowedCategories) && count($allowedCategories) > 1)
+                    <select name="category" onchange="this.form.submit()"
+                            class="w-full sm:w-44 px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D] transition-all cursor-pointer shadow-xs truncate">
+                        <option value="">Semua Kategori ({{ count($allowedCategories) }})</option>
+                        @if(in_array('project', $allowedCategories))
+                            <option value="project" {{ request('category') === 'project' ? 'selected' : '' }}>Project</option>
+                        @endif
+                        @if(in_array('managed_service', $allowedCategories))
+                            <option value="managed_service" {{ request('category') === 'managed_service' ? 'selected' : '' }}>Managed Service</option>
+                        @endif
+                        @if(in_array('help_desk', $allowedCategories))
+                            <option value="help_desk" {{ request('category') === 'help_desk' ? 'selected' : '' }}>Help Desk</option>
+                        @endif
+                    </select>
+                    @endif
+
+                    @if(request('search') || request('user_id') || request('status') || request('project_id') || request('date') || request('category'))
                         <a href="{{ route('engineer.activity_log.index') }}" class="px-3 py-2 text-xs font-bold text-gray-500 hover:text-gray-800 self-center">Reset Filter</a>
                     @endif
                 </form>
@@ -351,6 +367,8 @@
                             'report_data'     => $matchedSig->report_data,
                         ] : null;
 
+                        $groupCategory = $matchedSig?->report_data['category'] ?? ($matchedSig?->report_data['report_type'] ?? (!empty($matchedSig?->report_data['ms_identitas']) ? 'managed_service' : (!empty($matchedSig?->report_data['hd_identitas']) ? 'help_desk' : ($firstAct->category ?? 'project'))));
+
                         // Build full modal data
                         $groupJson = json_encode([
                             'scope_key'     => $groupKey,
@@ -361,7 +379,7 @@
                             'engineer_name' => $allEngineerNames ?: ($firstAct->engineer->name ?? '-'),
                             'creator_name'  => $creatorName,
                             'total'         => $totalInGroup,
-                            'category'      => $matchedSig?->report_data['category'] ?? ($matchedSig?->report_data['report_type'] ?? (!empty($matchedSig?->report_data['ms_identitas']) ? 'managed_service' : (!empty($matchedSig?->report_data['hd_identitas']) ? 'help_desk' : 'project'))),
+                            'category'      => $groupCategory,
                             'items'         => $groupActivities->map(function($a, $idx) use ($creatorName) {
                                 $rawNotes  = $a->notes ?? '';
                                 $clientPic = '';
@@ -456,6 +474,21 @@
                                     <span class="agenda-badge">
                                         <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                         {{ $totalInGroup }} Agenda
+                                    </span>
+                                    @php
+                                        $catBadgeLabel = match($groupCategory) {
+                                            'managed_service' => 'Managed Service',
+                                            'help_desk'       => 'Help Desk',
+                                            default           => 'Project',
+                                        };
+                                        $catBadgeStyle = match($groupCategory) {
+                                            'managed_service' => 'bg-purple-50 text-purple-700 border-purple-200',
+                                            'help_desk'       => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                            default           => 'bg-blue-50 text-blue-700 border-blue-200',
+                                        };
+                                    @endphp
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold border {{ $catBadgeStyle }}">
+                                        {{ $catBadgeLabel }}
                                     </span>
                                 </div>
                                 <span class="text-[11px] font-semibold text-gray-400 tabular-nums">
