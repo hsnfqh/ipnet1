@@ -71,10 +71,10 @@
             { no: 1, waktu: '', aktivitas: '', perangkat: '', hasil: '', status: '', kendala: '', tindak_lanjut: '' }
         ],
         materials: [
-            { nama: '', spesifikasi: '', qty: 1, satuan: 'Pcs', kondisi: 'Baik', keterangan: '' }
+            { nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: 'Baik', keterangan: '' }
         ],
         test_results: [
-            { parameter: '', sebelum: 0, sesudah: 0, satuan: 'ms', metode: '', keterangan: '' }
+            { parameter: '', sebelum: '', sesudah: '', satuan: 'ms', metode: '', keterangan: '' }
         ],
         incidents: [
             { waktu: '', kendala: '', dampak: '', tindakan: '', status: 'Closed' }
@@ -108,9 +108,9 @@
             site_lokasi: '',
             ticket_incident_no: '',
             engineer_pic: '{{ auth()->user()?->name ?? 'Engineer' }}',
-            shift: 'Pagi / Regular',
+            shift: '',
             jenis_aktivitas: {
-                monitoring: true,
+                monitoring: false,
                 pm: false,
                 cm: false,
                 incident: false,
@@ -118,41 +118,38 @@
                 visit: false,
             },
             service_device: '',
-            jam_mulai: '08:00',
-            jam_selesai: '17:00',
+            jam_mulai: '',
+            jam_selesai: '',
         },
         ms_sla: [
-            { parameter: 'Ticket Received', waktu: '08:00', target_sla: '< 15 Menit', aktual: '5 Menit', status: 'Met', keterangan: 'Normal' },
-            { parameter: 'Engineer Response', waktu: '08:05', target_sla: '< 30 Menit', aktual: '10 Menit', status: 'Met', keterangan: 'Respon cepat' },
-            { parameter: 'Service Restore', waktu: '09:30', target_sla: '< 4 Jam', aktual: '1.5 Jam', status: 'Met', keterangan: 'Layanan pulih' },
-            { parameter: 'Resolution / Close', waktu: '10:00', target_sla: '< 8 Jam', aktual: '2 Jam', status: 'Met', keterangan: 'Resolved' }
+            { parameter: 'Ticket Received', waktu: '', target_sla: '', aktual: '', status: '', keterangan: '' },
+            { parameter: 'Engineer Response', waktu: '', target_sla: '', aktual: '', status: '', keterangan: '' },
+            { parameter: 'Service Restore', waktu: '', target_sla: '', aktual: '', status: '', keterangan: '' },
+            { parameter: 'Resolution / Close', waktu: '', target_sla: '', aktual: '', status: '', keterangan: '' }
         ],
         ms_kondisi_perangkat: [
-            { no: 1, service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: '' },
-            { no: 2, service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: '' },
-            { no: 3, service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: '' }
+            { no: 1, service_device: '', parameter: '', before: '', after: '', status: '', keterangan: '' }
         ],
         ms_aktivitas: [
-            { no: 1, waktu: '08:30', aktivitas: '', ticket_alarm: '', hasil: '', status: 'Done', kendala: '', follow_up: '' },
-            { no: 2, waktu: '09:30', aktivitas: '', ticket_alarm: '', hasil: '', status: 'Done', kendala: '', follow_up: '' }
+            { no: 1, waktu: '', aktivitas: '', ticket_alarm: '', hasil: '', status: '', kendala: '', follow_up: '' }
         ],
         ms_incident_escalation: [
-            { no: 1, incident: '', impact: '', root_cause: '', corrective_action: '', escalation: '', status: 'Closed' }
+            { no: 1, incident: '', impact: '', root_cause: '', corrective_action: '', escalation: '', status: '' }
         ],
         ms_pm_checklist: [
-            { no: 1, item_pemeriksaan: '', kondisi: 'Baik', hasil: 'Normal', temuan: '', tindakan: '', status: 'OK' }
+            { no: 1, item_pemeriksaan: '', kondisi: '', hasil: '', temuan: '', tindakan: '', status: '' }
         ],
         ms_materials: [
             { no: 1, item: '', type: '', qty: '', used_replaced: '', old_new: '', keterangan: '' }
         ],
         ms_evidence: [
-            { no: 1, evidence: '', waktu: '09:00', foto_url: '', keterangan: '' }
+            { no: 1, evidence: '', waktu: '', foto_url: '', keterangan: '' }
         ],
         ms_closure: {
-            service_status: { resolved: true, monitoring: false, escalated: false, closed: false },
-            sla: { met: true, breach: false },
-            customer_confirmation: 'Layanan berjalan normal',
-            outstanding: '-'
+            service_status: { resolved: false, monitoring: false, escalated: false, closed: false },
+            sla: { met: false, breach: false },
+            customer_confirmation: '',
+            outstanding: ''
         },
         ms_verifikasi: {
             engineer_name: '{{ auth()->user()?->name ?? 'Engineer' }}',
@@ -163,41 +160,41 @@
         // 3. HELP DESK DEFAULT DATA
         hd_identitas: {
             tanggal: '{{ date('Y-m-d') }}',
-            shift: { pagi: true, siang: false, malam: false },
+            shift: { pagi: false, siang: false, malam: false },
             nama_engineer: '{{ auth()->user()?->name ?? 'Engineer' }}',
             team_leader: 'Nugraha Pratama',
             area_site: '',
             customer_service: '',
-            jam_shift: '08:00 - 16:00 WIB',
-            jumlah_engineer: 1
+            jam_shift: '',
+            jumlah_engineer: ''
         },
         hd_kondisi_awal: [
-            { no: 1, item_service: '', kondisi_awal: 'Normal', alarm_issue: 'Clear', status: 'OK', keterangan: '' }
+            { no: 1, item_service: '', kondisi_awal: '', alarm_issue: '', status: '', keterangan: '' }
         ],
         hd_aktivitas: [
-            { no: 1, waktu: '08:30', aktivitas: '', ticket_wo: '', lokasi_device: '', hasil: '', status: 'Done' }
+            { no: 1, waktu: '', aktivitas: '', ticket_wo: '', lokasi_device: '', hasil: '', status: '' }
         ],
         hd_ticket_incident: [
-            { no: 1, ticket: '', jenis: '', priority: 'Medium', start: '', restore: '', close_status: 'Closed', keterangan: '' }
+            { no: 1, ticket: '', jenis: '', priority: '', start: '', restore: '', close_status: '', keterangan: '' }
         ],
         hd_monitoring_status: [
-            { no: 1, service_device: '', status: 'Up', alarm: 'None', performance: '', action: '', keterangan: '' }
+            { no: 1, service_device: '', status: '', alarm: '', performance: '', action: '', keterangan: '' }
         ],
         hd_pekerjaan_field: [
-            { no: 1, lokasi: '', pekerjaan: '', engineer: '{{ auth()->user()?->name ?? 'Engineer' }}', hasil: '', foto_evidence: '', status: 'Done' }
+            { no: 1, lokasi: '', pekerjaan: '', engineer: '{{ auth()->user()?->name ?? 'Engineer' }}', hasil: '', foto_evidence: '', status: '' }
         ],
         hd_kendala_escalation: [
-            { no: 1, kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: 'Normal', next_action: '' }
+            { no: 1, kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: '', next_action: '' }
         ],
         hd_handover: [
             { no: 1, outstanding_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', pic: '', due_time: '', catatan: '' }
         ],
         hd_rekap_shift: {
-            total_ticket_diterima: 0,
-            total_ticket_closed: 0,
-            total_incident: 0,
-            outstanding: 0,
-            service_kritis: '0',
+            total_ticket_diterima: '',
+            total_ticket_closed: '',
+            total_incident: '',
+            outstanding: '',
+            service_kritis: '',
             handover_diperlukan: false
         },
         hd_verifikasi: {
@@ -276,7 +273,7 @@
     },
 
     addMaterialRow() {
-        this.reportFormData.materials.push({ nama: '', spesifikasi: '', qty: 1, satuan: 'Pcs', kondisi: 'Baik', keterangan: '' });
+        this.reportFormData.materials.push({ nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: 'Baik', keterangan: '' });
     },
     removeMaterialRow(idx) {
         if (this.reportFormData.materials.length > 1) {
@@ -289,7 +286,7 @@
     },
 
     addTestResultRow() {
-        this.reportFormData.test_results.push({ parameter: '', sebelum: 0, sesudah: 0, satuan: 'ms', metode: '', keterangan: '' });
+        this.reportFormData.test_results.push({ parameter: '', sebelum: '', sesudah: '', satuan: 'ms', metode: '', keterangan: '' });
     },
     removeTestResultRow(idx) {
         if (this.reportFormData.test_results.length > 1) {
@@ -536,7 +533,7 @@
         if (!Array.isArray(this.reportFormData.hd_kendala_escalation)) this.reportFormData.hd_kendala_escalation = [];
         this.reportFormData.hd_kendala_escalation.push({
             no: this.reportFormData.hd_kendala_escalation.length + 1,
-            kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: 'Normal', next_action: ''
+            kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: '', next_action: ''
         });
     },
     removeHdKendalaRow(idx) {
@@ -995,7 +992,7 @@
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mat.spesifikasi" placeholder="Spesifikasi" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="number" min="1" x-model.number="mat.qty" placeholder="1" class="w-full p-1 text-center text-xs border-0 bg-transparent font-semibold"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.satuan" placeholder="Pcs" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.kondisi" placeholder="Baik" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.kondisi" placeholder="" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1"><input type="text" x-model="mat.keterangan" placeholder="Keterangan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
@@ -1038,7 +1035,7 @@
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="number" step="any" x-model.number="test.sesudah" placeholder="0" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="test.satuan" placeholder="ms / Mbps" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="test.metode" placeholder="Ping / Speedtest" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1"><input type="text" x-model="test.keterangan" placeholder="OK" class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1"><input type="text" x-model="test.keterangan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -1080,7 +1077,7 @@
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.kendala" placeholder="Kendala" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.dampak" placeholder="Dampak" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.tindakan" placeholder="Tindakan" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 text-center"><input type="text" x-model="inc.status" placeholder="Closed" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 text-center"><input type="text" x-model="inc.status" placeholder="" class="w-full p-1 text-center text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -1465,6 +1462,7 @@
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center">
                                                     <select x-model="sla.status" class="w-full p-1 text-xs border-0 bg-transparent font-bold text-center text-[#8F0A0D] cursor-pointer">
+                                                        <option value="">-</option>
                                                         <option value="Met">Met</option>
                                                         <option value="Breach">Breach</option>
                                                     </select>
@@ -1509,22 +1507,22 @@
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
                                                 <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="text" x-model="k.service_device" placeholder="Contoh: Core Switch / Firewall" class="w-full p-1 text-xs border-0 bg-transparent font-semibold">
+                                                    <input type="text" x-model="k.service_device" placeholder="Nama Service / Device" class="w-full p-1 text-xs border-0 bg-transparent font-semibold">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="text" x-model="k.parameter" placeholder="CPU / RAM / Latency" class="w-full p-1 text-xs border-0 bg-transparent">
+                                                    <input type="text" x-model="k.parameter" placeholder="Parameter" class="w-full p-1 text-xs border-0 bg-transparent">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="text" x-model="k.before" placeholder="30%" class="w-full p-1 text-xs border-0 bg-transparent text-center">
+                                                    <input type="text" x-model="k.before" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="text" x-model="k.after" placeholder="25%" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold">
+                                                    <input type="text" x-model="k.after" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="text" x-model="k.status" placeholder="Good" class="w-full p-1 text-xs border-0 bg-transparent text-center">
+                                                    <input type="text" x-model="k.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center">
                                                 </td>
                                                 <td class="p-1">
-                                                    <input type="text" x-model="k.keterangan" placeholder="Normal" class="w-full p-1 text-xs border-0 bg-transparent">
+                                                    <input type="text" x-model="k.keterangan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent">
                                                 </td>
                                             </tr>
                                         </template>
@@ -1632,7 +1630,7 @@
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.root_cause" placeholder="Penyebab..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.corrective_action" placeholder="Tindakan perbaikan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.escalation" placeholder="Eskalasi ke..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 text-center font-semibold"><input type="text" x-model="inc.status" placeholder="Closed" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold"></td>
+                                                <td class="p-1 text-center font-semibold"><input type="text" x-model="inc.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -1670,11 +1668,11 @@
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="pm.item_pemeriksaan" placeholder="Item pemeriksaan..." class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="pm.kondisi" placeholder="Baik" class="w-full p-1 text-xs border-0 bg-transparent text-center"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="pm.hasil" placeholder="Normal" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="pm.kondisi" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="pm.hasil" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="pm.temuan" placeholder="Temuan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="pm.tindakan" placeholder="Tindakan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 text-center font-bold"><input type="text" x-model="pm.status" placeholder="OK" class="w-full p-1 text-xs border-0 bg-transparent text-center text-[#8F0A0D]"></td>
+                                                <td class="p-1 text-center font-bold"><input type="text" x-model="pm.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center text-[#8F0A0D]"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -1992,9 +1990,9 @@
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="k.item_service" placeholder="Item / service..." class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="k.kondisi_awal" placeholder="Normal" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="k.alarm_issue" placeholder="Clear" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="k.status" placeholder="OK" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold text-[#8F0A0D]"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="k.kondisi_awal" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="k.alarm_issue" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="k.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold text-[#8F0A0D]"></td>
                                                 <td class="p-1"><input type="text" x-model="k.keterangan" placeholder="Keterangan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
@@ -2096,10 +2094,10 @@
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="tk.ticket" placeholder="TICK-xxx" class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="tk.jenis" placeholder="Incident / Request" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="tk.priority" placeholder="Medium" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="tk.priority" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="time" x-model="tk.start" class="w-full p-1 text-xs border-0 bg-transparent text-center font-medium cursor-pointer"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="time" x-model="tk.restore" class="w-full p-1 text-xs border-0 bg-transparent text-center font-medium cursor-pointer"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="tk.close_status" placeholder="Closed" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold text-[#8F0A0D]"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="tk.close_status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold text-[#8F0A0D]"></td>
                                                 <td class="p-1"><input type="text" x-model="tk.keterangan" placeholder="Keterangan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
@@ -2138,11 +2136,11 @@
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="m.service_device" placeholder="Service / Device..." class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="m.status" placeholder="Up" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold text-emerald-700"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="m.alarm" placeholder="None" class="w-full p-1 text-xs border-0 bg-transparent text-center"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="m.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold text-emerald-700"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="m.alarm" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="m.performance" placeholder="CPU 15%, RAM 40%" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="m.action" placeholder="Monitoring rutin" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1"><input type="text" x-model="m.keterangan" placeholder="Normal" class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1"><input type="text" x-model="m.keterangan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -2182,7 +2180,7 @@
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="f.pekerjaan" placeholder="Uraian pekerjaan onsite..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="f.engineer" placeholder="Nama engineer" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="f.hasil" placeholder="Hasil pekerjaan..." class="w-full p-1 text-xs border-0 bg-transparent font-semibold"></td>
-                                                <td class="p-1 text-center font-bold"><input type="text" x-model="f.status" placeholder="Done" class="w-full p-1 text-xs border-0 bg-transparent text-center text-[#8F0A0D]"></td>
+                                                <td class="p-1 text-center font-bold"><input type="text" x-model="f.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center text-[#8F0A0D]"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -2223,7 +2221,7 @@
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="kd.dampak" placeholder="Dampak..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="kd.tindakan" placeholder="Tindakan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="kd.escalated_to" placeholder="Eskalasi..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center font-bold"><input type="text" x-model="kd.status" placeholder="Closed" class="w-full p-1 text-xs border-0 bg-transparent text-center"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center font-bold"><input type="text" x-model="kd.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center"></td>
                                                 <td class="p-1"><input type="text" x-model="kd.next_action" placeholder="Next action..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
@@ -2293,7 +2291,7 @@
                                         </tr>
                                         <tr>
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Service kritis / alert</td>
-                                            <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="reportFormData.hd_rekap_shift.service_kritis" placeholder="0 / Nihil" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
+                                            <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="reportFormData.hd_rekap_shift.service_kritis" placeholder="Nihil / -" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Handover diperlukan</td>
                                             <td class="p-2">
                                                 <div class="flex items-center gap-5 text-xs font-semibold">

@@ -1165,10 +1165,10 @@ function engineerActivityManager() {
                     { no: 1, waktu: '', aktivitas: '', perangkat: '', hasil: '', status: '', kendala: '', tindak_lanjut: '' }
                 ],
                 materials: [
-                    { nama: '', spesifikasi: '', qty: 1, satuan: 'Pcs', kondisi: 'Baik', keterangan: '' }
+                    { nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: 'Baik', keterangan: '' }
                 ],
                 test_results: [
-                    { parameter: '', sebelum: 0, sesudah: 0, satuan: 'ms', metode: '', keterangan: '' }
+                    { parameter: '', sebelum: '', sesudah: '', satuan: 'ms', metode: '', keterangan: '' }
                 ],
                 incidents: [
                     { waktu: '', kendala: '', dampak: '', tindakan: '', status: 'Closed' }
@@ -1202,9 +1202,9 @@ function engineerActivityManager() {
                     site_lokasi: '',
                     ticket_incident_no: '',
                     engineer_pic: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
-                    shift: 'Pagi / Regular',
+                    shift: '',
                     jenis_aktivitas: {
-                        monitoring: true,
+                        monitoring: false,
                         pm: false,
                         cm: false,
                         incident: false,
@@ -1212,37 +1212,35 @@ function engineerActivityManager() {
                         visit: false,
                     },
                     service_device: '',
-                    jam_mulai: jamMulai || '08:00',
-                    jam_selesai: jamSelesai || '17:00',
+                    jam_mulai: '',
+                    jam_selesai: '',
                 },
                 ms_sla: [
-                    { parameter: 'Ticket Received', waktu: '08:00', target_sla: '< 15 Menit', aktual: '5 Menit', status: 'Met', keterangan: 'Normal' },
-                    { parameter: 'Engineer Response', waktu: '08:05', target_sla: '< 30 Menit', aktual: '10 Menit', status: 'Met', keterangan: 'Respon cepat' },
-                    { parameter: 'Service Restore', waktu: '09:30', target_sla: '< 4 Jam', aktual: '1.5 Jam', status: 'Met', keterangan: 'Layanan pulih' },
-                    { parameter: 'Resolution / Close', waktu: '10:00', target_sla: '< 8 Jam', aktual: '2 Jam', status: 'Met', keterangan: 'Resolved' }
+                    { parameter: 'Ticket Received', waktu: '', target_sla: '', aktual: '', status: '', keterangan: '' },
+                    { parameter: 'Engineer Response', waktu: '', target_sla: '', aktual: '', status: '', keterangan: '' },
+                    { parameter: 'Service Restore', waktu: '', target_sla: '', aktual: '', status: '', keterangan: '' },
+                    { parameter: 'Resolution / Close', waktu: '', target_sla: '', aktual: '', status: '', keterangan: '' }
                 ],
                 ms_kondisi_perangkat: [
-                    { no: 1, service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: '' },
-                    { no: 2, service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: '' },
-                    { no: 3, service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: '' }
+                    { no: 1, service_device: '', parameter: '', before: '', after: '', status: '', keterangan: '' }
                 ],
                 ms_aktivitas: items.length > 0 ? items.map((it, idx) => ({
                     no: idx + 1,
-                    waktu: extractTime(it.time_str || it.start_time, '09:00'),
+                    waktu: extractTime(it.time_str || it.start_time, ''),
                     aktivitas: it.subject || '',
                     ticket_alarm: '',
                     hasil: '',
-                    status: it.status || 'Done',
+                    status: it.status || '',
                     kendala: '',
                     follow_up: it.notes && it.notes !== '-' ? it.notes : ''
                 })) : [
-                    { no: 1, waktu: '08:30', aktivitas: '', ticket_alarm: '', hasil: '', status: 'Done', kendala: '', follow_up: '' }
+                    { no: 1, waktu: '', aktivitas: '', ticket_alarm: '', hasil: '', status: '', kendala: '', follow_up: '' }
                 ],
                 ms_incident_escalation: [
-                    { no: 1, incident: '', impact: '', root_cause: '', corrective_action: '', escalation: '', status: 'Closed' }
+                    { no: 1, incident: '', impact: '', root_cause: '', corrective_action: '', escalation: '', status: '' }
                 ],
                 ms_pm_checklist: [
-                    { no: 1, item_pemeriksaan: '', kondisi: 'Baik', hasil: 'Normal', temuan: '', tindakan: '', status: 'OK' }
+                    { no: 1, item_pemeriksaan: '', kondisi: '', hasil: '', temuan: '', tindakan: '', status: '' }
                 ],
                 ms_materials: [
                     { no: 1, item: '', type: '', qty: '', used_replaced: '', old_new: '', keterangan: '' }
@@ -1251,10 +1249,10 @@ function engineerActivityManager() {
                     { no: 1, evidence: '', waktu: '', foto_url: '', keterangan: '' }
                 ],
                 ms_closure: {
-                    service_status: { resolved: true, monitoring: false, escalated: false, closed: false },
-                    sla: { met: true, breach: false },
-                    customer_confirmation: 'Layanan berjalan normal',
-                    outstanding: '-'
+                    service_status: { resolved: false, monitoring: false, escalated: false, closed: false },
+                    sla: { met: false, breach: false },
+                    customer_confirmation: '',
+                    outstanding: ''
                 },
                 ms_verifikasi: {
                     engineer_name: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
@@ -1265,54 +1263,54 @@ function engineerActivityManager() {
                 // 3. HELP DESK DEFAULT DATA
                 hd_identitas: {
                     tanggal: firstDateRaw,
-                    shift: { pagi: true, siang: false, malam: false },
+                    shift: { pagi: false, siang: false, malam: false },
                     nama_engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
                     team_leader: this.sigInfo?.lead?.name || 'Nugraha Pratama',
                     area_site: '',
                     customer_service: detail?.client_name || '',
-                    jam_shift: '08:00 - 16:00 WIB',
-                    jumlah_engineer: 1
+                    jam_shift: '',
+                    jumlah_engineer: ''
                 },
                 hd_kondisi_awal: [
-                    { no: 1, item_service: '', kondisi_awal: 'Normal', alarm_issue: 'Clear', status: 'OK', keterangan: '' }
+                    { no: 1, item_service: '', kondisi_awal: '', alarm_issue: '', status: '', keterangan: '' }
                 ],
                 hd_aktivitas: items.length > 0 ? items.map((it, idx) => ({
                     no: idx + 1,
-                    waktu: extractTime(it.time_str || it.start_time, '09:00'),
+                    waktu: extractTime(it.time_str || it.start_time, ''),
                     aktivitas: it.subject || '',
                     ticket_wo: '',
                     lokasi_device: '',
                     hasil: '',
-                    status: it.status || 'Done'
+                    status: it.status || ''
                 })) : [
-                    { no: 1, waktu: '08:30', aktivitas: '', ticket_wo: '', lokasi_device: '', hasil: '', status: 'Done' }
+                    { no: 1, waktu: '', aktivitas: '', ticket_wo: '', lokasi_device: '', hasil: '', status: '' }
                 ],
                 hd_ticket_incident: [
-                    { no: 1, ticket: '', jenis: '', priority: 'Medium', start: '', restore: '', close_status: 'Closed', keterangan: '' }
+                    { no: 1, ticket: '', jenis: '', priority: '', start: '', restore: '', close_status: '', keterangan: '' }
                 ],
                 hd_monitoring_status: [
-                    { no: 1, service_device: '', status: 'Up', alarm: 'None', performance: '', action: '', keterangan: '' }
+                    { no: 1, service_device: '', status: '', alarm: '', performance: '', action: '', keterangan: '' }
                 ],
                 hd_pekerjaan_field: [
-                    { no: 1, lokasi: '', pekerjaan: '', engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}', hasil: '', foto_evidence: '', status: 'Done' }
+                    { no: 1, lokasi: '', pekerjaan: '', engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}', hasil: '', foto_evidence: '', status: '' }
                 ],
                 hd_kendala_escalation: [
-                    { no: 1, kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: 'Normal', next_action: '' }
+                    { no: 1, kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: '', next_action: '' }
                 ],
                 hd_handover: [
                     { no: 1, outstanding_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', pic: '', due_time: '', catatan: '' }
                 ],
                 hd_rekap_shift: {
-                    total_ticket_diterima: 0,
-                    total_ticket_closed: 0,
-                    total_incident: 0,
-                    outstanding: 0,
-                    service_kritis: '0',
+                    total_ticket_diterima: '',
+                    total_ticket_closed: '',
+                    total_incident: '',
+                    outstanding: '',
+                    service_kritis: '',
                     handover_diperlukan: false
                 },
                 hd_verifikasi: {
                     engineer_name: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
-                    team_leader_name: this.sigInfo?.lead?.name || 'Nugraha Pratama',
+                    team_leader_name: 'Nugraha Pratama',
                     next_engineer_name: ''
                 }
             };
@@ -1537,7 +1535,7 @@ function engineerActivityManager() {
         },
 
         addMaterialRow() {
-            this.reportFormData.materials.push({ nama: '', spesifikasi: '', qty: 1, satuan: 'Pcs', kondisi: 'Baik', keterangan: '' });
+            this.reportFormData.materials.push({ nama: '', spesifikasi: '', qty: '', satuan: '', kondisi: 'Baik', keterangan: '' });
         },
         removeMaterialRow(idx) {
             if (this.reportFormData.materials.length > 1) {
@@ -1550,7 +1548,7 @@ function engineerActivityManager() {
         },
 
         addTestResultRow() {
-            this.reportFormData.test_results.push({ parameter: '', sebelum: 0, sesudah: 0, satuan: 'ms', metode: '', keterangan: '' });
+            this.reportFormData.test_results.push({ parameter: '', sebelum: '', sesudah: '', satuan: 'ms', metode: '', keterangan: '' });
         },
         removeTestResultRow(idx) {
             if (this.reportFormData.test_results.length > 1) {
@@ -1794,7 +1792,7 @@ function engineerActivityManager() {
             if (!Array.isArray(this.reportFormData.hd_kendala_escalation)) this.reportFormData.hd_kendala_escalation = [];
             const nextNo = this.reportFormData.hd_kendala_escalation.length + 1;
             this.reportFormData.hd_kendala_escalation.push({
-                no: nextNo, kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: 'Normal', next_action: ''
+                no: nextNo, kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: '', next_action: ''
             });
         },
         removeHdKendalaRow(idx) {
