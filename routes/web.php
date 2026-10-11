@@ -411,6 +411,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}/download-original', [DigitalSignatureController::class, 'downloadOriginalFile'])->name('download_original');
         Route::get('/{id}/stream-pdf', [DigitalSignatureController::class, 'streamPdf'])->name('stream_pdf');
         Route::delete('/{id}', [DigitalSignatureController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/delete', [DigitalSignatureController::class, 'destroy'])->name('destroy_post');
     });
 
     // BDM & Business Development (Dashboard + Dedicated Sub-Menus)

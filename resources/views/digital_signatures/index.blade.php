@@ -398,12 +398,8 @@
 
                             <button type="button" 
                                     @click="executeDeleteDoc()" 
-                                    :disabled="isDeleting"
-                                    class="flex-1 min-h-[40px] bg-[#8F0A0D] hover:bg-[#73080A] text-white shadow-md px-4 py-2 rounded-xl font-bold text-[12.5px] transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-75">
-                                <template x-if="isDeleting">
-                                    <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                </template>
-                                <span x-text="isDeleting ? 'Menghapus...' : 'Ya, Hapus'"></span>
+                                    class="flex-1 min-h-[40px] bg-[#8F0A0D] hover:bg-[#73080A] text-white shadow-md px-4 py-2 rounded-xl font-bold text-[12.5px] transition cursor-pointer flex items-center justify-center gap-2">
+                                <span>Ya, Hapus</span>
                             </button>
                         </div>
 
@@ -432,26 +428,53 @@ function digitalSignatureIndexManager() {
 
         async executeDeleteDoc() {
             if (!this.deleteDocData) return;
-            this.isDeleting = true;
+            const docId = this.deleteDocData.id;
+
+            // Tutup modal konfirmasi
+            this.isDeleteModalOpen = false;
+
+            // Buka popup SweetAlert loading "Menghapus Dokumen..."
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'Menghapus Dokumen...',
+                    text: 'Mohon tunggu sebentar, sedang memproses penghapusan.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
 
             try {
                 const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
-                const res = await fetch(`/digital-signatures/${this.deleteDocData.id}`, {
+                const formData = new FormData();
+                formData.append('_token', token);
+                formData.append('_method', 'DELETE');
+
+                const res = await fetch(`{{ url('/digital-signatures') }}/${docId}/delete`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': token,
-                        'X-HTTP-Method-Override': 'DELETE',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': token
                     },
-                    body: JSON.stringify({ _method: 'DELETE' })
+                    body: formData
                 });
 
                 const data = await res.json().catch(() => ({}));
                 if (res.ok && data.success) {
+                    if (window.Swal) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil Dihapus',
+                            text: data.message || 'Dokumen berhasil dihapus dari sistem.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }
                     window.location.reload();
                 } else {
-                    this.isDeleting = false;
                     if (window.Swal) {
                         Swal.fire({
                             icon: 'error',
@@ -464,16 +487,16 @@ function digitalSignatureIndexManager() {
                     }
                 }
             } catch (err) {
-                // Fallback submission
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/digital-signatures/${this.deleteDocData.id}`;
-                form.innerHTML = `
-                    <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'}">
-                    <input type="hidden" name="_method" value="DELETE">
-                `;
-                document.body.appendChild(form);
-                form.submit();
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Menghapus',
+                        text: err.message || 'Terjadi kesalahan koneksi ke server.',
+                        confirmButtonColor: '#8F0A0D'
+                    });
+                } else {
+                    alert('Gagal menghapus dokumen: ' + (err.message || 'Error'));
+                }
             }
         }
     };

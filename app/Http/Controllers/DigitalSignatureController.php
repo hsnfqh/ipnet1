@@ -632,32 +632,53 @@ class DigitalSignatureController extends Controller
      */
     public function destroy($id)
     {
+        DigitalSignatureDocument::ensureSchemaReady();
+
         $document = DigitalSignatureDocument::findOrFail($id);
         $user = auth()->user();
 
-        if ($document->created_by !== $user->id && !$user->hasAnyRole(['Super Admin', 'Superadmin', 'Admin'])) {
+        $isCreator = ((int)$document->created_by === (int)$user->id);
+        $isAdmin = $user->hasAnyRole(['Super Admin', 'Superadmin', 'Admin', 'Director', 'Direktur', 'HD / Direktur', 'Division Head']);
+
+        if (!$isCreator && !$isAdmin) {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki hak akses untuk menghapus dokumen ini.'
+                ], 403);
+            }
             return back()->with('error', 'Anda tidak memiliki hak untuk menghapus dokumen ini.');
         }
 
-        if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
-            Storage::disk('public')->delete($document->file_path);
+        try {
+            if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
+                Storage::disk('public')->delete($document->file_path);
+            }
+
+            if ($document->signed_file_path && Storage::disk('public')->exists($document->signed_file_path)) {
+                Storage::disk('public')->delete($document->signed_file_path);
+            }
+
+            $document->delete();
+
+            if (request()->wantsJson() || request()->ajax()) {
+                session()->flash('success', 'Dokumen berhasil dihapus.');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Dokumen berhasil dihapus.'
+                ]);
+            }
+
+            return redirect()->route('digital_signatures.index')->with('success', 'Dokumen berhasil dihapus.');
+        } catch (\Throwable $e) {
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus dokumen: ' . $e->getMessage()
+                ], 500);
+            }
+            return back()->with('error', 'Gagal menghapus dokumen: ' . $e->getMessage());
         }
-
-        if ($document->signed_file_path && Storage::disk('public')->exists($document->signed_file_path)) {
-            Storage::disk('public')->delete($document->signed_file_path);
-        }
-
-        $document->delete();
-
-        if (request()->wantsJson() || request()->ajax()) {
-            session()->flash('success', 'Dokumen berhasil dihapus.');
-            return response()->json([
-                'success' => true,
-                'message' => 'Dokumen berhasil dihapus.'
-            ]);
-        }
-
-        return redirect()->route('digital_signatures.index')->with('success', 'Dokumen berhasil dihapus.');
     }
 
     /**
