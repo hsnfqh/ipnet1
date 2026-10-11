@@ -429,14 +429,18 @@
     <!-- SCRIPT CLIENT WORKSPACE LOGIC -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Setup Worker PDF.js
+        // Setup Worker PDF.js dengan fallback yang aman
         if (window.pdfjsLib) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('vendor/pdfjs/pdf.worker.min.js') }}";
+            try {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('vendor/pdfjs/pdf.worker.min.js') }}";
+            } catch (e) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+            }
         }
 
         const pdfUrl = @json($pdfUrl);
         const submitUrl = @json(route('client.digital_signature.submit', $document->client_signing_token));
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
         // State PDF
         let pdfDoc = null;
@@ -564,23 +568,32 @@
         // Muat Berkas PDF
         async function loadPdf() {
             try {
-                loadingState.classList.remove('hidden');
+                if (loadingState) {
+                    loadingState.style.display = 'flex';
+                    loadingState.classList.remove('hidden');
+                }
                 if (!window.pdfjsLib) {
                     throw new Error("Library PDF.js belum selesai dimuat.");
                 }
                 const loadingTask = pdfjsLib.getDocument({ url: pdfUrl });
                 pdfDoc = await loadingTask.promise;
                 totalPages = pdfDoc.numPages;
-                totalPagesNumEl.textContent = totalPages;
+                if (totalPagesNumEl) totalPagesNumEl.textContent = totalPages;
                 
                 await renderPage(currentPageNum);
-                loadingState.classList.add('hidden');
+                if (loadingState) {
+                    loadingState.style.display = 'none';
+                    loadingState.classList.add('hidden');
+                }
             } catch (err) {
                 console.error("Gagal memuat dokumen PDF:", err);
-                loadingState.innerHTML = `
-                    <div class="text-rose-600 font-bold text-sm mb-2">Gagal Membuka Berkas PDF</div>
-                    <div class="text-xs text-slate-500 max-w-sm text-center mb-4">${err.message || 'Berkas tidak dapat diakses atau format tidak valid.'}</div>
-                `;
+                if (loadingState) {
+                    loadingState.style.display = 'flex';
+                    loadingState.innerHTML = `
+                        <div class="text-rose-600 font-bold text-sm mb-2">Gagal Membuka Berkas PDF</div>
+                        <div class="text-xs text-slate-500 max-w-sm text-center mb-4">${err.message || 'Berkas tidak dapat diakses atau format tidak valid.'}</div>
+                    `;
+                }
             }
         }
 
@@ -609,56 +622,58 @@
             }).promise;
 
             currentPageNum = num;
-            currentPageNumEl.textContent = currentPageNum;
+            if (currentPageNumEl) currentPageNumEl.textContent = currentPageNum;
             updateSignatureBoxVisibility();
         }
 
         // Update Kotak Penempatan Tanda Tangan
         function updateSignatureBoxVisibility() {
             if (!placedSignature) {
-                placedBox.classList.add('hidden');
-                btnToolbarDeleteSignature.disabled = true;
-                unplacedNoticeBox.classList.remove('hidden');
-                placedNoticeBox.classList.add('hidden');
+                if (placedBox) placedBox.classList.add('hidden');
+                if (btnToolbarDeleteSignature) btnToolbarDeleteSignature.disabled = true;
+                if (unplacedNoticeBox) unplacedNoticeBox.classList.remove('hidden');
+                if (placedNoticeBox) placedNoticeBox.classList.add('hidden');
                 return;
             }
 
-            unplacedNoticeBox.classList.add('hidden');
-            placedNoticeBox.classList.remove('hidden');
-            placedPageBadge.textContent = 'Halaman ' + placedSignature.page;
-            btnToolbarDeleteSignature.disabled = false;
+            if (unplacedNoticeBox) unplacedNoticeBox.classList.add('hidden');
+            if (placedNoticeBox) placedNoticeBox.classList.remove('hidden');
+            if (placedPageBadge) placedPageBadge.textContent = 'Halaman ' + placedSignature.page;
+            if (btnToolbarDeleteSignature) btnToolbarDeleteSignature.disabled = false;
 
             if (placedSignature.page === currentPageNum) {
-                placedBox.classList.remove('hidden');
-                
-                const currentWidth = parseFloat(pdfCanvas.style.width);
-                const currentHeight = parseFloat(pdfCanvas.style.height);
+                if (placedBox) {
+                    placedBox.classList.remove('hidden');
+                    
+                    const currentWidth = parseFloat(pdfCanvas.style.width);
+                    const currentHeight = parseFloat(pdfCanvas.style.height);
 
-                const leftPx = (placedSignature.xPercent / 100) * currentWidth;
-                const topPx = (placedSignature.yPercent / 100) * currentHeight;
-                const widthPx = (placedSignature.widthPercent / 100) * currentWidth;
-                const heightPx = (placedSignature.heightPercent / 100) * currentHeight;
+                    const leftPx = (placedSignature.xPercent / 100) * currentWidth;
+                    const topPx = (placedSignature.yPercent / 100) * currentHeight;
+                    const widthPx = (placedSignature.widthPercent / 100) * currentWidth;
+                    const heightPx = (placedSignature.heightPercent / 100) * currentHeight;
 
-                placedBox.style.left = leftPx + 'px';
-                placedBox.style.top = topPx + 'px';
-                placedBox.style.width = widthPx + 'px';
-                placedBox.style.height = heightPx + 'px';
+                    placedBox.style.left = leftPx + 'px';
+                    placedBox.style.top = topPx + 'px';
+                    placedBox.style.width = widthPx + 'px';
+                    placedBox.style.height = heightPx + 'px';
+                }
             } else {
-                placedBox.classList.add('hidden');
+                if (placedBox) placedBox.classList.add('hidden');
             }
         }
 
         // Navigasi Halaman
-        document.getElementById('btnFirstPage').addEventListener('click', () => {
+        document.getElementById('btnFirstPage')?.addEventListener('click', () => {
             if (currentPageNum > 1) renderPage(1);
         });
-        document.getElementById('btnPrevPage').addEventListener('click', () => {
+        document.getElementById('btnPrevPage')?.addEventListener('click', () => {
             if (currentPageNum > 1) renderPage(currentPageNum - 1);
         });
-        document.getElementById('btnNextPage').addEventListener('click', () => {
+        document.getElementById('btnNextPage')?.addEventListener('click', () => {
             if (currentPageNum < totalPages) renderPage(currentPageNum + 1);
         });
-        document.getElementById('btnLastPage').addEventListener('click', () => {
+        document.getElementById('btnLastPage')?.addEventListener('click', () => {
             if (currentPageNum < totalPages) renderPage(totalPages);
         });
 
@@ -667,13 +682,13 @@
             if (newScale < 0.4) newScale = 0.4;
             if (newScale > 2.5) newScale = 2.5;
             currentScale = newScale;
-            zoomPercentLabel.textContent = Math.round(currentScale * 100) + '%';
+            if (zoomPercentLabel) zoomPercentLabel.textContent = Math.round(currentScale * 100) + '%';
             renderPage(currentPageNum);
         }
 
-        document.getElementById('btnZoomIn').addEventListener('click', () => setZoom(currentScale + 0.15));
-        document.getElementById('btnZoomOut').addEventListener('click', () => setZoom(currentScale - 0.15));
-        document.getElementById('btnZoomReset').addEventListener('click', () => setZoom(1.0));
+        document.getElementById('btnZoomIn')?.addEventListener('click', () => setZoom(currentScale + 0.15));
+        document.getElementById('btnZoomOut')?.addEventListener('click', () => setZoom(currentScale - 0.15));
+        document.getElementById('btnZoomReset')?.addEventListener('click', () => setZoom(1.0));
 
         // Drawing Pad Handlers
         function initDrawingPad() {
@@ -687,20 +702,22 @@
             modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
             hasDrawnStroke = false;
         }
-        document.getElementById('btnClearPad').addEventListener('click', clearModalPad);
+        document.getElementById('btnClearPad')?.addEventListener('click', clearModalPad);
 
         function openSignatureModal() {
-            modalSignerNameDisplay.textContent = clientNameInput.value.trim() || 'PIC Klien';
-            modal.classList.remove('hidden');
+            if (modalSignerNameDisplay && clientNameInput) {
+                modalSignerNameDisplay.textContent = clientNameInput.value.trim() || 'PIC Klien';
+            }
+            if (modal) modal.classList.remove('hidden');
             initDrawingPad();
         }
 
         function closeSignatureModal() {
-            modal.classList.add('hidden');
+            if (modal) modal.classList.add('hidden');
         }
 
-        document.getElementById('btnCloseModal').addEventListener('click', closeSignatureModal);
-        document.getElementById('btnCancelModal').addEventListener('click', closeSignatureModal);
+        document.getElementById('btnCloseModal')?.addEventListener('click', closeSignatureModal);
+        document.getElementById('btnCancelModal')?.addEventListener('click', closeSignatureModal);
 
         function getMousePos(canvas, evt) {
             const rect = canvas.getBoundingClientRect();
@@ -742,15 +759,21 @@
         window.addEventListener('touchend', stopDrawing);
 
         // Buka modal tanda tangan dari tombol toolbar & sidebar
-        btnToolbarOpenSignature.addEventListener('click', () => {
-            if (userSignatureDataUrl) {
-                placeSignatureOnCurrentPage();
-            } else {
-                openSignatureModal();
-            }
-        });
-        btnSidebarOpenSignature.addEventListener('click', openSignatureModal);
-        btnSidebarRecreateSig.addEventListener('click', openSignatureModal);
+        if (btnToolbarOpenSignature) {
+            btnToolbarOpenSignature.addEventListener('click', () => {
+                if (userSignatureDataUrl) {
+                    placeSignatureOnCurrentPage();
+                } else {
+                    openSignatureModal();
+                }
+            });
+        }
+        if (btnSidebarOpenSignature) {
+            btnSidebarOpenSignature.addEventListener('click', openSignatureModal);
+        }
+        if (btnSidebarRecreateSig) {
+            btnSidebarRecreateSig.addEventListener('click', openSignatureModal);
+        }
 
         // Terapkan tanda tangan dari modal
         document.getElementById('btnApplyModalSignature').addEventListener('click', () => {
@@ -827,8 +850,12 @@
                 }
             }
         }
-        btnToolbarDeleteSignature.addEventListener('click', deletePlacement);
-        btnSidebarDeleteSig.addEventListener('click', deletePlacement);
+        if (btnToolbarDeleteSignature) {
+            btnToolbarDeleteSignature.addEventListener('click', deletePlacement);
+        }
+        if (btnSidebarDeleteSig) {
+            btnSidebarDeleteSig.addEventListener('click', deletePlacement);
+        }
 
         // DRAG & RESIZE KOTAK TANDA TANGAN
         placedBox.addEventListener('mousedown', (e) => {

@@ -657,15 +657,26 @@ class DigitalSignatureController extends Controller
         $document = DigitalSignatureDocument::findOrFail($id);
         $path = $document->getActiveFilePath();
 
-        if (!Storage::disk('public')->exists($path)) {
+        $fullPath = null;
+        if (Storage::disk('public')->exists($path)) {
+            $fullPath = Storage::disk('public')->path($path);
+        } elseif (file_exists(storage_path('app/public/' . $path))) {
+            $fullPath = storage_path('app/public/' . $path);
+        } elseif (file_exists(public_path('storage/' . $path))) {
+            $fullPath = public_path('storage/' . $path);
+        } elseif (file_exists($path)) {
+            $fullPath = $path;
+        }
+
+        if (!$fullPath || !file_exists($fullPath)) {
             abort(404, 'Berkas dokumen tidak ditemukan di server.');
         }
 
-        $fullPath = Storage::disk('public')->path($path);
         return response()->file($fullPath, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . basename($path) . '"',
             'Access-Control-Allow-Origin' => '*',
+            'Cache-Control' => 'no-cache, private',
         ]);
     }
 
@@ -678,15 +689,26 @@ class DigitalSignatureController extends Controller
         $document = DigitalSignatureDocument::where('client_signing_token', $token)->firstOrFail();
         $path = $document->getActiveFilePath();
 
-        if (!Storage::disk('public')->exists($path)) {
+        $fullPath = null;
+        if (Storage::disk('public')->exists($path)) {
+            $fullPath = Storage::disk('public')->path($path);
+        } elseif (file_exists(storage_path('app/public/' . $path))) {
+            $fullPath = storage_path('app/public/' . $path);
+        } elseif (file_exists(public_path('storage/' . $path))) {
+            $fullPath = public_path('storage/' . $path);
+        } elseif (file_exists($path)) {
+            $fullPath = $path;
+        }
+
+        if (!$fullPath || !file_exists($fullPath)) {
             abort(404, 'Berkas dokumen tidak ditemukan di server.');
         }
 
-        $fullPath = Storage::disk('public')->path($path);
         return response()->file($fullPath, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . basename($path) . '"',
             'Access-Control-Allow-Origin' => '*',
+            'Cache-Control' => 'no-cache, private',
         ]);
     }
 }
