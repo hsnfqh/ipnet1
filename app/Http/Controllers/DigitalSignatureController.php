@@ -21,6 +21,7 @@ class DigitalSignatureController extends Controller
      */
     public function index(Request $request)
     {
+        if (function_exists('opcache_reset')) { @opcache_reset(); }
         DigitalSignatureDocument::ensureSchemaReady();
 
         $user = auth()->user();
@@ -484,7 +485,7 @@ class DigitalSignatureController extends Controller
         }
 
         // Prioritas 1: Jika sudah ada berkas PDF yang tertempel tanda tangan di tempatnya
-        if ($document->hasSignedPdf()) {
+        if (!empty($document->signed_file_path) && Storage::disk('public')->exists($document->signed_file_path)) {
             $safeTitle = Str::slug($document->title ?: 'Dokumen') . '-' . $document->document_number . '-Signed.pdf';
             return Storage::disk('public')->download($document->signed_file_path, $safeTitle);
         }

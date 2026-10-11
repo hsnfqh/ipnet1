@@ -99,7 +99,7 @@
                     @endif
                     <a href="{{ route('digital_signatures.download_pdf', $document->id) }}" class="px-3 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 flex items-center gap-1.5 shadow-xs transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        <span>{{ $document->hasSignedPdf() ? 'Unduh Dokumen Ber-TTD (PDF)' : 'Unduh PDF' }}</span>
+                        <span>{{ !empty($document->signed_file_path) ? 'Unduh Dokumen Ber-TTD (PDF)' : 'Unduh PDF' }}</span>
                     </a>
                     <a href="{{ route('digital_signatures.download_certificate', $document->id) }}" class="px-3 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 flex items-center gap-1.5 transition-all" title="Unduh Lembar Pengesahan Resmi">
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>

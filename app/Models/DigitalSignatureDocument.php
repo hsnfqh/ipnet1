@@ -203,6 +203,7 @@ class DigitalSignatureDocument extends Model
      */
     public static function ensureSchemaReady(): void
     {
+        if (function_exists('opcache_reset')) { @opcache_reset(); }
         try {
             if (!Schema::hasTable('digital_signature_documents')) {
                 Schema::create('digital_signature_documents', function (Blueprint $table) {

@@ -290,7 +290,7 @@
                                                 </button>
                                             @endif
                                             <a href="{{ route('digital_signatures.download_pdf', $doc->id) }}"
-                                               title="{{ $doc->hasSignedPdf() ? 'Unduh Dokumen Ber-TTD (PDF)' : 'Unduh Dokumen PDF' }}"
+                                               title="{{ !empty($doc->signed_file_path) ? 'Unduh Dokumen Ber-TTD (PDF)' : 'Unduh Dokumen PDF' }}"
                                                class="p-2 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569] hover:bg-[#1E293B] hover:text-white hover:border-[#1E293B] transition-all">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             </a>
