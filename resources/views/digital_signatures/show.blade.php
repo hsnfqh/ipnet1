@@ -331,18 +331,6 @@
                         @endif
                     </div>
 
-                    {{-- Hapus Dokumen --}}
-                    @if($document->created_by === auth()->id() || auth()->user()->hasAnyRole(['Super Admin', 'Superadmin', 'Admin']))
-                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-                            <form action="{{ route('digital_signatures.destroy', $document->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus dokumen ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-xs font-bold text-slate-400 hover:text-rose-600 transition-colors">
-                                    &times; Hapus Dokumen Ini
-                                </button>
-                            </form>
-                        </div>
-                    @endif
 
                 </div>
 
