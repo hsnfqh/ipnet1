@@ -44,8 +44,8 @@
         }
         .client-signature-box {
             position: absolute;
-            border: 2px dashed #0D9488;
-            background-color: rgba(20, 184, 166, 0.14);
+            border: 2px dashed #8F0A0D;
+            background-color: rgba(143, 10, 13, 0.12);
             cursor: move;
             touch-action: none;
             user-select: none;
@@ -53,19 +53,33 @@
             transition: border-color 0.15s ease, background-color 0.15s ease;
         }
         .client-signature-box:hover, .client-signature-box.active {
-            border-color: #0F766E;
-            background-color: rgba(20, 184, 166, 0.24);
+            border-color: #B91C1C;
+            background-color: rgba(185, 28, 28, 0.22);
         }
         .client-signature-box .resize-handle {
             position: absolute;
             width: 14px;
             height: 14px;
-            background-color: #0F766E;
+            background-color: #8F0A0D;
             border: 2px solid #FFFFFF;
             border-radius: 50%;
             bottom: -7px;
             right: -7px;
             cursor: nwse-resize;
+        }
+        aside::-webkit-scrollbar {
+            width: 5px;
+        }
+        aside::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 4px;
+        }
+        aside::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+        aside::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
         }
         /* Custom SweetAlert2 Theme */
         .swal2-popup {
@@ -139,10 +153,10 @@
         </main>
     @else
         <!-- WORKSPACE UTAMA: PANEL KONTROL KIRI + VIEWER PDF KANAN (SIMETRIS & PROFESIONAL) -->
-        <main class="flex-1 max-w-[1600px] w-full mx-auto p-3 sm:p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <main class="flex-1 max-w-[1600px] w-full mx-auto p-3 sm:p-4 lg:p-6 lg:h-[calc(100vh-65px)] lg:overflow-hidden grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-            <!-- SIDEBAR KIRI: FORM IDENTITAS PIC KLIEN & KONTROL (4 KOLOM) -->
-            <aside class="lg:col-span-4 space-y-4 order-2 lg:order-1">
+            <!-- SIDEBAR KIRI: FORM IDENTITAS PIC KLIEN & KONTROL (4 KOLOM - DAPAT DI-SCROLL MANDIRI) -->
+            <aside class="lg:col-span-4 lg:h-full lg:overflow-y-auto space-y-4 order-2 lg:order-1 pr-0 lg:pr-2">
                 
                 <!-- CARD INFO DOKUMEN -->
                 <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-2.5">
@@ -210,33 +224,29 @@
                             Tanda Tangan Pada Dokumen <span class="text-rose-500">*</span>
                         </label>
 
-                        <!-- Box jika belum ada tanda tangan -->
-                        <div id="unplacedNoticeBox" class="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-300 text-center space-y-2.5">
-                            <p class="text-xs text-slate-600">
-                                Anda belum membubuhkan tanda tangan pada lembar dokumen.
-                            </p>
-                            <button type="button" id="btnSidebarOpenSignature" 
-                                    class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-95 cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                                <span>Goreskan & Tempatkan Tanda Tangan</span>
-                            </button>
+                        <!-- Box jika belum ada tanda tangan (Dibuat ringkas, tombol redundant di sidebar dihapus) -->
+                        <div id="unplacedNoticeBox" class="p-3.5 rounded-xl bg-red-50/40 border border-red-200/60 text-xs text-slate-600 flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-[#8F0A0D] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div class="leading-relaxed">
+                                Klik tombol <strong class="text-[#8F0A0D]">"Tanda Tangan"</strong> pada bilah dokumen di sebelah kanan untuk membubuhkan dan menempatkan tanda tangan Anda.
+                            </div>
                         </div>
 
                         <!-- Box jika sudah menempatkan tanda tangan -->
-                        <div id="placedNoticeBox" class="hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2.5">
+                        <div id="placedNoticeBox" class="hidden p-3.5 rounded-xl bg-red-50/30 border border-red-200 space-y-2.5">
                             <div class="flex items-center justify-between text-xs">
-                                <span class="font-bold text-emerald-800 flex items-center gap-1.5">
-                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span class="font-bold text-[#8F0A0D] flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                     Tanda Tangan Siap Ditempatkan
                                 </span>
-                                <span id="placedPageBadge" class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold">Halaman 1</span>
+                                <span id="placedPageBadge" class="px-2 py-0.5 rounded bg-red-100 text-[#8F0A0D] font-mono text-[10px] font-bold">Halaman 1</span>
                             </div>
-                            <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-emerald-100">
+                            <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-red-100">
                                 <div class="w-16 h-10 bg-slate-50 border border-slate-200 rounded flex items-center justify-center overflow-hidden p-0.5 shrink-0">
                                     <img id="sidebarSignatureThumbnail" class="max-w-full max-h-full object-contain" alt="Tanda Tangan">
                                 </div>
                                 <div class="text-[11px] text-slate-600 leading-snug">
-                                    Geser (drag) kotak tanda tangan pada lembar dokumen di sebelah kanan ke kolom penandatangan Anda.
+                                    Geser (drag) kotak tanda tangan pada lembar dokumen di sebelah kanan ke posisi tanda tangan yang Anda inginkan.
                                 </div>
                             </div>
                             <div class="flex items-center justify-end gap-2 pt-1">
@@ -271,21 +281,21 @@
                 </div>
             </aside>
 
-            <!-- AREA DOKUMEN PDF (8 KOLOM) (LIGHT THEME) -->
-            <section class="lg:col-span-8 flex flex-col order-1 lg:order-2 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs min-h-[600px] lg:min-h-[820px]">
+            <!-- AREA DOKUMEN PDF (8 KOLOM - LIGHT THEME) -->
+            <section class="lg:col-span-8 lg:h-full flex flex-col order-1 lg:order-2 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs min-h-[500px]">
                 
                 <!-- TOOLBAR DOKUMEN -->
                 <div class="bg-slate-50 px-4 py-2.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
                     
-                    <!-- Sisi Kiri: Tombol Tanda Tangan & Hapus -->
+                    <!-- Sisi Kiri: Tombol Tanda Tangan (Merah Gradien IPNET) & Hapus -->
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnToolbarOpenSignature" 
-                                class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
+                                class="btn-ipnet-primary px-3.5 py-1.5 rounded-lg text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                             <span>Tanda Tangan</span>
                         </button>
                         <button type="button" id="btnToolbarDeleteSignature" 
-                                class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                                class="px-3 py-1.5 rounded-lg bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                 disabled>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             <span>Hapus</span>

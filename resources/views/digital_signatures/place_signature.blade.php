@@ -32,8 +32,8 @@
         }
         .signature-box {
             position: absolute;
-            border: 2px dashed #0D9488;
-            background-color: rgba(20, 184, 166, 0.14);
+            border: 2px dashed #8F0A0D;
+            background-color: rgba(143, 10, 13, 0.12);
             cursor: move;
             touch-action: none;
             user-select: none;
@@ -41,14 +41,14 @@
             transition: border-color 0.15s ease;
         }
         .signature-box:hover, .signature-box.active {
-            border-color: #0F766E;
-            background-color: rgba(20, 184, 166, 0.24);
+            border-color: #B91C1C;
+            background-color: rgba(185, 28, 28, 0.22);
         }
         .signature-box .resize-handle {
             position: absolute;
             width: 14px;
             height: 14px;
-            background-color: #0F766E;
+            background-color: #8F0A0D;
             border: 2px solid #FFFFFF;
             border-radius: 50%;
             bottom: -7px;
@@ -112,16 +112,16 @@
         <!-- Tengah: Tombol Aksi Tanda Tangan & Zoom & Halaman -->
         <div class="flex items-center gap-2 flex-wrap">
             
-            <!-- Tombol Tanda Tangan (Hijau) -->
+            <!-- Tombol Tanda Tangan (Merah Gradien IPNET) -->
             <button type="button" id="btnPlaceSignature" 
-                    class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
+                    class="btn-ipnet-primary px-3.5 py-1.5 rounded-lg text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                 <span>Tanda Tangan</span>
             </button>
 
-            <!-- Tombol Hapus (Merah) -->
+            <!-- Tombol Hapus (Rose Border) -->
             <button type="button" id="btnDeleteSignature" 
-                    class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    class="px-3 py-1.5 rounded-lg bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-bold text-xs flex items-center gap-1.5 shadow-2xs transition active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     disabled>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 <span>Hapus</span>
@@ -181,10 +181,10 @@
     <main class="flex-1 overflow-auto pdf-viewport-container p-4 sm:p-8 flex items-start justify-center relative" id="pdfScrollContainer">
         
         <!-- Loading Spinner -->
-        <div id="pdfLoadingState" class="absolute inset-0 flex flex-col items-center justify-center bg-[#525659] z-20">
-            <div class="w-10 h-10 border-4 border-slate-400 border-t-white rounded-full animate-spin mb-3"></div>
-            <div class="text-xs font-bold text-white tracking-wide">Memuat Berkas PDF Dokumen...</div>
-            <div class="text-[11px] text-slate-400 mt-1">Menyiapkan halaman interaktif</div>
+        <div id="pdfLoadingState" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-100/90 z-20">
+            <div class="w-10 h-10 border-4 border-slate-300 border-t-[#8F0A0D] rounded-full animate-spin mb-3"></div>
+            <div class="text-xs font-bold text-slate-800 tracking-wide">Memuat Berkas PDF Dokumen...</div>
+            <div class="text-[11px] text-slate-500 mt-1">Menyiapkan halaman interaktif</div>
         </div>
 
         <!-- Page Wrapper: Tempat Canvas & Draggable Signature Box -->

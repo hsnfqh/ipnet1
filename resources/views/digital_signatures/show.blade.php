@@ -147,26 +147,29 @@
             @endif
 
             {{-- KARTU TANDA TANGAN INTERNAL SAYA (JIKA GILIRAN USER INI) --}}
+            {{-- KARTU PERMINTAAN PENANDATANGANAN DOKUMEN (FORMAL & KONSISTEN IPNET) --}}
             @if($canSign)
-                <div class="ipnet-card p-5 border-blue-200 bg-gradient-to-r from-blue-50/70 via-white to-blue-50/30">
+                <div class="ipnet-card p-5 border-red-200 bg-gradient-to-r from-red-50/70 via-white to-red-50/30">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">✍️</div>
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#B91C1C] to-[#8F0A0D] text-white flex items-center justify-center shadow-xs shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            </div>
                             <div>
-                                <h3 class="text-sm font-extrabold text-slate-900">Giliran Anda Menandatangani Dokumen</h3>
-                                <p class="text-xs text-slate-500">Sebagai <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->position ?: 'Engineer Pelaksana' }}).</p>
+                                <h3 class="text-sm font-extrabold text-slate-900">Permintaan Penandatanganan Dokumen</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Dokumen ini memerlukan tanda tangan dan persetujuan resmi Anda sebagai <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->position ?: 'Pihak Berwenang IPNET' }}).</p>
                             </div>
                         </div>
 
-                        <!-- DUA TOMBOL SIMPEL & PROFESIONAL SESUAI GAMBAR 4: TANDA TANGANI & TOLAK -->
+                        <!-- DUA TOMBOL AKSI: TANDA TANGANI (MERAH GRADIENT IPNET) & TOLAK (ROSE BORDER) -->
                         <div class="flex items-center gap-2.5 shrink-0">
                             <a href="{{ route('digital_signatures.place_signature', $document->id) }}"
-                               class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95">
+                               class="btn-ipnet-primary px-5 py-2.5 rounded-xl text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                 <span>Tanda Tangani</span>
                             </a>
                             <button type="button" onclick="rejectDocumentInternal({{ $document->id }})"
-                                    class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer">
+                                    class="px-4 py-2.5 rounded-xl bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-bold text-xs flex items-center gap-2 shadow-2xs transition-all active:scale-95 cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 <span>Tolak</span>
                             </button>
@@ -198,17 +201,21 @@
                                 @php
                                     $isSigned = ($s['status'] ?? '') === 'signed';
                                 @endphp
-                                <div class="p-4 rounded-xl border {{ $isSigned ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200 bg-white' }} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="p-4 rounded-xl border {{ $isSigned ? 'border-red-200 bg-red-50/15' : 'border-slate-200 bg-white' }} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 {{ $isSigned ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500' }}">
-                                            {{ $isSigned ? '✓' : ($idx + 1) }}
+                                        <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 {{ $isSigned ? 'bg-gradient-to-br from-[#B91C1C] to-[#8F0A0D] text-white shadow-xs' : 'bg-slate-100 text-slate-500' }}">
+                                            @if($isSigned)
+                                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            @else
+                                                {{ $idx + 1 }}
+                                            @endif
                                         </div>
                                         <div>
                                             <div class="font-bold text-xs text-slate-900">{{ $s['name'] }}</div>
                                             <div class="text-[11px] text-slate-500">{{ $s['role_title'] }} &bull; {{ $s['email'] }}</div>
                                             @if($isSigned)
-                                                <div class="text-[10px] text-emerald-700 font-semibold mt-0.5">
-                                                    Ditandatangani pada {{ \Carbon\Carbon::parse($s['signed_at'])->format('d/m/Y H:i') }} WIB
+                                                <div class="text-[10.5px] text-[#8F0A0D] font-bold mt-0.5 flex items-center gap-1">
+                                                    <span>Ditandatangani pada {{ \Carbon\Carbon::parse($s['signed_at'])->format('d/m/Y H:i') }} WIB</span>
                                                 </div>
                                             @else
                                                 <div class="text-[10px] text-amber-600 font-semibold mt-0.5">
@@ -236,20 +243,24 @@
                     <div class="ipnet-card p-5 space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                             <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
                                 Penandatangan PIC Klien (Eksternal)
                             </h3>
                             @if($document->client_signed_at)
-                                <span class="text-[11px] font-bold text-emerald-600">✓ Selesai Ditandatangani</span>
+                                <span class="text-[11px] font-bold text-[#8F0A0D]">✓ Selesai Ditandatangani</span>
                             @else
                                 <span class="text-[11px] font-bold text-amber-600">⌛ Menunggu Tanda Tangan Klien</span>
                             @endif
                         </div>
 
-                        <div class="p-4 rounded-xl border {{ $document->client_signed_at ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200 bg-white' }} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="p-4 rounded-xl border {{ $document->client_signed_at ? 'border-red-200 bg-red-50/15' : 'border-slate-200 bg-white' }} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 {{ $document->client_signed_at ? 'bg-emerald-600 text-white' : 'bg-blue-100 text-blue-700' }}">
-                                    {{ $document->client_signed_at ? '✓' : 'K' }}
+                                <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 {{ $document->client_signed_at ? 'bg-gradient-to-br from-[#B91C1C] to-[#8F0A0D] text-white shadow-xs' : 'bg-slate-100 text-slate-700 font-bold' }}">
+                                    @if($document->client_signed_at)
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    @else
+                                        K
+                                    @endif
                                 </div>
                                 <div>
                                     <div class="font-bold text-xs text-slate-900">{{ $document->client_name ?: 'PIC Klien' }}</div>
@@ -260,7 +271,7 @@
                                         <div class="text-[10.5px] text-slate-400">WhatsApp/HP: {{ $document->client_phone }}</div>
                                     @endif
                                     @if($document->client_signed_at)
-                                        <div class="text-[10px] text-emerald-700 font-semibold mt-0.5">
+                                        <div class="text-[10.5px] text-[#8F0A0D] font-bold mt-0.5">
                                             Ditandatangani pada {{ $document->client_signed_at->format('d/m/Y H:i') }} WIB (IP: {{ $document->client_ip }})
                                         </div>
                                     @endif

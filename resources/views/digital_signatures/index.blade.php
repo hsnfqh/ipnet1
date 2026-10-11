@@ -166,6 +166,14 @@
 
             {{-- DOCUMENT TABLE CARD --}}
             <div class="ipnet-card overflow-hidden">
+                {{-- Header Card Tabel Sesuai Gambar 4 --}}
+                <div class="p-4 sm:p-5 border-b border-[#E2E8F0] bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-[#1E293B]">Daftar Dokumen Digital Signature</h3>
+                        <p class="text-[12px] text-[#64748B] mt-0.5">Berikut ini daftar berkas dokumen yang memerlukan tanda tangan dan persetujuan resmi.</p>
+                    </div>
+                </div>
+
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[900px] border-collapse text-[13px] text-left">
                         <thead>
@@ -219,7 +227,7 @@
                                         </div>
                                         <div class="text-[11px] text-[#64748B] mt-1">
                                             @foreach(array_slice($signers, 0, 2) as $s)
-                                                <span class="{{ ($s['status'] ?? '') === 'signed' ? 'text-emerald-700 font-semibold' : 'text-[#64748B]' }}">
+                                                <span class="{{ ($s['status'] ?? '') === 'signed' ? 'text-[#8F0A0D] font-bold' : 'text-[#64748B]' }}">
                                                     {{ Str::limit($s['name'], 15) }} {{ ($s['status'] ?? '') === 'signed' ? '✓' : '⌛' }}
                                                 </span>@if(!$loop->last), @endif
                                             @endforeach
@@ -240,8 +248,8 @@
                                     {{-- Status --}}
                                     <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                         @if($doc->status === 'completed')
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-50 text-[#8F0A0D] border border-red-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
                                                 Selesai & Sah
                                             </span>
                                         @elseif($doc->status === 'ready_for_client')
@@ -268,27 +276,27 @@
                                             $canUserSignDoc = $currUser ? $doc->canUserSign($currUser->id) : false;
                                         @endphp
                                         <div class="inline-flex items-center gap-2 justify-end">
-                                            {{-- Tombol Detail (Sesuai Gambar 5: Tombol Biru Terlihat Jelas) --}}
+                                            {{-- Tombol Detail (Biru Profesional IPNET) --}}
                                             <a href="{{ route('digital_signatures.show', $doc->id) }}"
                                                title="Detail & Pratinjau Dokumen"
-                                               class="px-2.5 py-1.5 rounded-md bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs inline-flex items-center gap-1 shadow-xs transition-all active:scale-95">
+                                               class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-2xs transition-all active:scale-95">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                                 <span>Detail</span>
                                             </a>
 
-                                            {{-- Tombol Tanda Tangani & Tolak (Sesuai Gambar 4 & 5) --}}
+                                            {{-- Tombol Tanda Tangani (Merah Gradien IPNET) & Tolak (Rose Border) --}}
                                             @if($canUserSignDoc)
                                                 <div class="inline-flex flex-col gap-1 items-stretch">
                                                     <a href="{{ route('digital_signatures.place_signature', $doc->id) }}"
                                                        title="Tempatkan Tanda Tangan Sekarang"
-                                                       class="px-2.5 py-1 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] inline-flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95">
+                                                       class="px-2.5 py-1 rounded-md bg-gradient-to-r from-[#B91C1C] via-[#8F0A0D] to-[#750608] hover:from-[#C52222] hover:to-[#83080A] text-white font-bold text-[11px] inline-flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                                         <span>Tanda Tangani</span>
                                                     </a>
                                                     <button type="button"
                                                             onclick="rejectDocumentTable({{ $doc->id }})"
                                                             title="Tolak Dokumen Ini"
-                                                            class="px-2.5 py-1 rounded-md bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] inline-flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95 cursor-pointer">
+                                                            class="px-2.5 py-1 rounded-md bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-bold text-[11px] inline-flex items-center justify-center gap-1 shadow-2xs transition-all active:scale-95 cursor-pointer">
                                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                                                         <span>Tolak</span>
                                                     </button>
