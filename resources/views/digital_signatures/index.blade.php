@@ -52,7 +52,7 @@
     <div class="flex-1 min-w-0 overflow-y-auto">
         @include('components.topbar', ['title' => 'Digital Signature'])
 
-        <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto anim-fade-up">
+        <div x-data="digitalSignatureIndexManager()" class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto anim-fade-up">
 
             {{-- ALERT MESSAGES --}}
             @if(session('success'))
@@ -319,16 +319,12 @@
 
                                             {{-- Tombol Hapus Dokumen --}}
                                             @if($doc->created_by === auth()->id() || auth()->user()->hasAnyRole(['Super Admin', 'Superadmin', 'Admin']))
-                                                <form action="{{ route('digital_signatures.destroy', $doc->id) }}" method="POST" class="inline"
-                                                      onsubmit="return confirmDeleteDoc(event, this, '{{ addslashes($doc->document_number) }}')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
-                                                            title="Hapus Dokumen"
-                                                            class="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all cursor-pointer">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                    </button>
-                                                </form>
+                                                <button type="button"
+                                                        @click="openDeleteModal({ id: {{ $doc->id }}, title: '{{ addslashes($doc->title) }}', number: '{{ addslashes($doc->document_number) }}', client: '{{ addslashes($doc->client_company ?: $doc->client_name) }}' })"
+                                                        title="Hapus Dokumen"
+                                                        class="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all cursor-pointer">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
                                             @endif
                                         </div>
                                     </td>
@@ -357,36 +353,130 @@
                 @endif
             </div>
 
+            {{-- MODAL KONFIRMASI HAPUS DOKUMEN (STANDAR POPUP APLIKASI IPNET) --}}
+            <template x-teleport="body">
+                <div x-show="isDeleteModalOpen" 
+                     x-cloak 
+                     class="fixed inset-0 z-[99999] bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4"
+                     @click.self="if(!isDeleting) isDeleteModalOpen = false"
+                     @keydown.escape.window="if(!isDeleting) isDeleteModalOpen = false">
+                    
+                    <div class="bg-white rounded-2xl w-[440px] max-w-full p-6 text-center shadow-2xl border border-[#E2E8F0] my-auto anim-fade-up">
+                        
+                        <div class="w-14 h-14 rounded-full bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center mx-auto mb-4 text-[#8F0A0D]">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </div>
+
+                        <h3 class="text-[17px] font-bold text-[#1E293B]">Hapus Dokumen?</h3>
+                        <p class="text-[12.5px] text-[#64748B] mt-1.5 leading-relaxed">
+                            Apakah Anda yakin ingin menghapus dokumen <strong class="text-[#1E293B] font-bold" x-text="deleteDocData ? deleteDocData.title : ''"></strong>? Dokumen dan riwayat penandatanganan akan dihapus secara permanen.
+                        </p>
+
+                        <template x-if="deleteDocData">
+                            <div class="mt-4 p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] text-left text-[12px] space-y-1.5 text-[#64748B]">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[#64748B] font-medium">Nomor Dokumen:</span>
+                                    <span class="font-mono font-bold text-[#1E293B]" x-text="deleteDocData.number"></span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[#64748B] font-medium">Klien / Instansi:</span>
+                                    <span class="font-semibold text-[#1E293B]" x-text="deleteDocData.client || '-'"></span>
+                                </div>
+                            </div>
+                        </template>
+
+                        {{-- Action Buttons with Loading State --}}
+                        <div class="flex items-center justify-end gap-3 pt-5">
+                            <button type="button" 
+                                    @click="isDeleteModalOpen = false" 
+                                    :disabled="isDeleting"
+                                    class="flex-1 min-h-[40px] bg-white hover:bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1] shadow-2xs px-4 py-2 rounded-xl font-bold text-[12.5px] transition cursor-pointer disabled:opacity-50">
+                                Batal
+                            </button>
+
+                            <button type="button" 
+                                    @click="executeDeleteDoc()" 
+                                    :disabled="isDeleting"
+                                    class="flex-1 min-h-[40px] bg-[#8F0A0D] hover:bg-[#73080A] text-white shadow-md px-4 py-2 rounded-xl font-bold text-[12.5px] transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-75">
+                                <template x-if="isDeleting">
+                                    <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                </template>
+                                <span x-text="isDeleting ? 'Menghapus...' : 'Ya, Hapus'"></span>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </template>
+
         </div>
     </div>
 </div>
 
 @push('scripts')
+<script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}" onerror="this.src='https://cdn.jsdelivr.net/npm/sweetalert2@11'"></script>
 <script>
-function confirmDeleteDoc(e, form, docNumber) {
-    e.preventDefault();
-    if (window.Swal) {
-        Swal.fire({
-            title: 'Hapus Dokumen?',
-            text: `Apakah Anda yakin ingin menghapus dokumen "${docNumber}" secara permanen?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Ya, Hapus',
-            cancelButtonText: 'Batal',
-            confirmButtonColor: '#DC2626',
-            cancelButtonColor: '#64748B',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
+function digitalSignatureIndexManager() {
+    return {
+        isDeleteModalOpen: false,
+        isDeleting: false,
+        deleteDocData: null,
+
+        openDeleteModal(data) {
+            this.deleteDocData = data;
+            this.isDeleting = false;
+            this.isDeleteModalOpen = true;
+        },
+
+        async executeDeleteDoc() {
+            if (!this.deleteDocData) return;
+            this.isDeleting = true;
+
+            try {
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+                const res = await fetch(`/digital-signatures/${this.deleteDocData.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'X-HTTP-Method-Override': 'DELETE',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ _method: 'DELETE' })
+                });
+
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
+                    window.location.reload();
+                } else {
+                    this.isDeleting = false;
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal Menghapus',
+                            text: data.message || 'Terjadi kesalahan saat menghapus dokumen.',
+                            confirmButtonColor: '#8F0A0D'
+                        });
+                    } else {
+                        alert(data.message || 'Gagal menghapus dokumen.');
+                    }
+                }
+            } catch (err) {
+                // Fallback submission
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/digital-signatures/${this.deleteDocData.id}`;
+                form.innerHTML = `
+                    <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'}">
+                    <input type="hidden" name="_method" value="DELETE">
+                `;
+                document.body.appendChild(form);
                 form.submit();
             }
-        });
-        return false;
-    }
-    if (confirm(`Apakah Anda yakin ingin menghapus dokumen "${docNumber}" secara permanen?`)) {
-        form.submit();
-    }
-    return false;
+        }
+    };
 }
 
 function copyClientLink(url) {
