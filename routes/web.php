@@ -405,6 +405,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}', [DigitalSignatureController::class, 'show'])->name('show');
         Route::get('/{id}/place-signature', [DigitalSignatureController::class, 'placeSignatureShow'])->name('place_signature');
         Route::post('/{id}/sign-internal', [DigitalSignatureController::class, 'signInternal'])->name('sign_internal');
+        Route::post('/{id}/reject-internal', [DigitalSignatureController::class, 'rejectInternal'])->name('reject_internal');
         Route::get('/{id}/download-pdf', [DigitalSignatureController::class, 'downloadPdf'])->name('download_pdf');
         Route::get('/{id}/download-certificate', [DigitalSignatureController::class, 'downloadCertificateSheet'])->name('download_certificate');
         Route::get('/{id}/download-original', [DigitalSignatureController::class, 'downloadOriginalFile'])->name('download_original');

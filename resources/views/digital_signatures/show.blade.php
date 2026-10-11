@@ -91,12 +91,6 @@
                 </div>
 
                 <div class="flex items-center gap-2 flex-wrap">
-                    @if($canSign)
-                        <a href="{{ route('digital_signatures.place_signature', $document->id) }}" class="btn-ipnet-primary px-3.5 py-2 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all animate-pulse">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                            <span>Tempatkan Tanda Tangan</span>
-                        </a>
-                    @endif
                     <a href="{{ route('digital_signatures.download_pdf', $document->id) }}" class="px-3 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 flex items-center gap-1.5 shadow-xs transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         <span>{{ !empty($document->signed_file_path) ? 'Unduh Dokumen Ber-TTD (PDF)' : 'Unduh PDF' }}</span>
@@ -154,28 +148,28 @@
 
             {{-- KARTU TANDA TANGAN INTERNAL SAYA (JIKA GILIRAN USER INI) --}}
             @if($canSign)
-                <div class="ipnet-card p-6 border-red-200 bg-gradient-to-br from-red-50/50 via-white to-red-50/20 space-y-4">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl bg-[#8F0A0D] text-white flex items-center justify-center font-bold text-sm shadow-sm">✍️</div>
+                <div class="ipnet-card p-5 border-blue-200 bg-gradient-to-r from-blue-50/70 via-white to-blue-50/30">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">✍️</div>
                             <div>
-                                <h3 class="text-sm font-bold text-slate-900">Giliran Anda Menandatangani Dokumen</h3>
-                                <p class="text-xs text-slate-600">Sebagai <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->position ?: 'Engineer Pelaksana' }}).</p>
+                                <h3 class="text-sm font-extrabold text-slate-900">Giliran Anda Menandatangani Dokumen</h3>
+                                <p class="text-xs text-slate-500">Sebagai <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->position ?: 'Engineer Pelaksana' }}).</p>
                             </div>
                         </div>
 
-                        <!-- TOMBOL UTAMA: TEMPATKAN DI PDF (IPB DISIGN STYLE) -->
-                        <a href="{{ route('digital_signatures.place_signature', $document->id) }}"
-                           class="btn-ipnet-primary px-4 py-2.5 rounded-xl text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all active:scale-95 shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                            <span>Buka Layar Tempatkan Tanda Tangan (Canvas PDF) &rarr;</span>
-                        </a>
-                    </div>
-
-                    <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
-                        <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <div>
-                            Klik tombol <strong>"Buka Layar Tempatkan Tanda Tangan"</strong> di atas untuk melihat dokumen secara utuh dan menempatkan tanda tangan Anda secara presisi pada posisi yang diinginkan.
+                        <!-- DUA TOMBOL SIMPEL & PROFESIONAL SESUAI GAMBAR 4: TANDA TANGANI & TOLAK -->
+                        <div class="flex items-center gap-2.5 shrink-0">
+                            <a href="{{ route('digital_signatures.place_signature', $document->id) }}"
+                               class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                <span>Tanda Tangani</span>
+                            </a>
+                            <button type="button" onclick="rejectDocumentInternal({{ $document->id }})"
+                                    class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                <span>Tolak</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -343,11 +337,73 @@
 
             </div>
 
+            {{-- PRATINJAU DOKUMEN LANGSUNG (INTEGRATED PDF VIEWER) --}}
+            <div class="ipnet-card p-5 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-red-50 text-[#8F0A0D] flex items-center justify-center font-bold text-xs border border-red-100 shadow-2xs">
+                            PDF
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-extrabold text-slate-900">Pratinjau Dokumen Langsung</h3>
+                            <p class="text-xs text-slate-500">Tinjau seluruh isi berkas dokumen tanpa perlu mengunduh terlebih dahulu.</p>
+                        </div>
+                    </div>
+
+                    <!-- Toolbar PDF Preview -->
+                    <div class="flex items-center gap-2 flex-wrap text-xs">
+                        <!-- Navigasi Halaman -->
+                        <div class="flex items-center bg-slate-50 rounded-xl p-0.5 border border-slate-200">
+                            <button type="button" id="prevDetailPdfPage" class="p-1 hover:bg-white rounded-lg text-slate-700 font-bold transition" title="Halaman Sebelumnya">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <span class="px-2 text-slate-800 font-bold font-mono text-[11px]">
+                                Hal <span id="currentDetailPdfPage">1</span> / <span id="totalDetailPdfPages">1</span>
+                            </span>
+                            <button type="button" id="nextDetailPdfPage" class="p-1 hover:bg-white rounded-lg text-slate-700 font-bold transition" title="Halaman Berikutnya">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Zoom -->
+                        <div class="flex items-center bg-slate-50 rounded-xl p-0.5 border border-slate-200">
+                            <button type="button" id="zoomOutDetailPdf" class="px-2 py-0.5 hover:bg-white rounded-lg text-slate-700 font-bold transition" title="Zoom Out">-</button>
+                            <span id="zoomDetailPdfLabel" class="px-1.5 text-slate-700 font-mono font-bold text-[11px]">100%</span>
+                            <button type="button" id="zoomInDetailPdf" class="px-2 py-0.5 hover:bg-white rounded-lg text-slate-700 font-bold transition" title="Zoom In">+</button>
+                        </div>
+
+                        <!-- Buka Tab Baru & Download -->
+                        <a href="{{ route('digital_signatures.stream_pdf', $document->id) }}" target="_blank"
+                           class="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-1.5 border border-slate-200 transition"
+                           title="Buka Berkas di Tab Baru">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            <span>Tab Baru</span>
+                        </a>
+                        <a href="{{ route('digital_signatures.download_pdf', $document->id) }}"
+                           class="btn-ipnet-primary px-3.5 py-1.5 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 shadow-xs">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <span>Unduh PDF</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Canvas Preview Container -->
+                <div class="bg-slate-100/80 rounded-2xl p-4 sm:p-6 flex items-center justify-center overflow-auto min-h-[450px] max-h-[850px] relative border border-slate-200">
+                    <div id="detailPdfLoading" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-2xs z-10">
+                        <div class="w-9 h-9 border-3 border-[#8F0A0D] border-t-transparent rounded-full animate-spin mb-2.5"></div>
+                        <span class="text-xs font-bold text-slate-800">Memuat berkas PDF...</span>
+                    </div>
+                    <canvas id="detailPdfCanvas" class="bg-white rounded-xs shadow-md block max-w-full"></canvas>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
 @push('scripts')
+<script src="{{ asset('vendor/pdfjs/pdf.min.js') }}" onerror="this.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'"></script>
+<script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}" onerror="this.src='https://cdn.jsdelivr.net/npm/sweetalert2@11'"></script>
 <script>
 function documentDetailManager() {
     return {
@@ -365,6 +421,167 @@ function documentDetailManager() {
         }
     };
 }
+
+// Handler Tolak Dokumen Internal dengan SweetAlert2
+async function rejectDocumentInternal(docId) {
+    if (!window.Swal) {
+        const reason = prompt('Masukkan alasan penolakan dokumen:');
+        if (!reason) return;
+        submitReject(docId, reason);
+        return;
+    }
+
+    const { value: reason } = await Swal.fire({
+        title: 'Tolak Menandatangani Dokumen?',
+        text: 'Mohon tuliskan catatan atau alasan mengapa dokumen ini ditolak.',
+        input: 'textarea',
+        inputPlaceholder: 'Tuliskan alasan penolakan di sini...',
+        inputAttributes: {
+            'aria-label': 'Alasan penolakan'
+        },
+        showCancelButton: true,
+        confirmButtonColor: '#E11D48',
+        cancelButtonColor: '#64748B',
+        confirmButtonText: 'Ya, Tolak Dokumen',
+        cancelButtonText: 'Batal',
+        inputValidator: (value) => {
+            if (!value || !value.trim()) {
+                return 'Alasan penolakan harus diisi!';
+            }
+        }
+    });
+
+    if (reason) {
+        submitReject(docId, reason.trim());
+    }
+}
+
+async function submitReject(docId, reason) {
+    if (window.Swal) {
+        Swal.fire({
+            title: 'Memproses Penolakan...',
+            text: 'Mohon tunggu sebentar...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+    }
+
+    try {
+        const res = await fetch(`{{ url('/digital-signatures') }}/${docId}/reject-internal`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ reason: reason })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            if (window.Swal) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Dokumen Ditolak',
+                    text: 'Penolakan dokumen telah dicatat dalam riwayat dokumen.',
+                    confirmButtonColor: '#8F0A0D'
+                });
+            } else {
+                alert('Dokumen berhasil ditolak.');
+            }
+            window.location.reload();
+        } else {
+            if (window.Swal) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: data.message || 'Terjadi kesalahan.', confirmButtonColor: '#8F0A0D' });
+            } else {
+                alert('Gagal: ' + (data.message || 'Terjadi kesalahan'));
+            }
+        }
+    } catch (e) {
+        if (window.Swal) {
+            Swal.fire({ icon: 'error', title: 'Koneksi Gagal', text: 'Gagal menghubungi server.', confirmButtonColor: '#8F0A0D' });
+        } else {
+            alert('Gagal menghubungi server.');
+        }
+    }
+}
+
+// Inisialisasi PDF.js Viewer Langsung pada Halaman Detail
+document.addEventListener('DOMContentLoaded', function() {
+    const pdfUrl = @json(route('digital_signatures.stream_pdf', $document->id));
+    const canvas = document.getElementById('detailPdfCanvas');
+    if (!canvas) return;
+
+    if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('vendor/pdfjs/pdf.worker.min.js') }}";
+    }
+
+    const ctx = canvas.getContext('2d');
+    const loadingEl = document.getElementById('detailPdfLoading');
+    const curPageEl = document.getElementById('currentDetailPdfPage');
+    const totPagesEl = document.getElementById('totalDetailPdfPages');
+    const zoomLabel = document.getElementById('zoomDetailPdfLabel');
+
+    let pdfDoc = null;
+    let pageNum = 1;
+    let totalPages = 1;
+    let scale = 1.0;
+
+    async function loadPdf() {
+        try {
+            if (!window.pdfjsLib) return;
+            const loadingTask = pdfjsLib.getDocument({ url: pdfUrl });
+            pdfDoc = await loadingTask.promise;
+            totalPages = pdfDoc.numPages;
+            totPagesEl.textContent = totalPages;
+            await renderPage(1);
+            if (loadingEl) loadingEl.classList.add('hidden');
+        } catch (e) {
+            console.error('PDF detail render error:', e);
+            if (loadingEl) {
+                loadingEl.innerHTML = '<span class="text-xs text-rose-600 font-bold">Gagal memuat pratinjau PDF.</span>';
+            }
+        }
+    }
+
+    async function renderPage(num) {
+        if (!pdfDoc) return;
+        const page = await pdfDoc.getPage(num);
+        const viewport = page.getViewport({ scale: scale });
+        const outputScale = window.devicePixelRatio || 1;
+
+        canvas.width = Math.floor(viewport.width * outputScale);
+        canvas.height = Math.floor(viewport.height * outputScale);
+        canvas.style.width = Math.floor(viewport.width) + "px";
+        canvas.style.height = Math.floor(viewport.height) + "px";
+
+        const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+        await page.render({ canvasContext: ctx, transform: transform, viewport: viewport }).promise;
+
+        pageNum = num;
+        curPageEl.textContent = pageNum;
+    }
+
+    document.getElementById('prevDetailPdfPage')?.addEventListener('click', () => {
+        if (pageNum > 1) renderPage(pageNum - 1);
+    });
+    document.getElementById('nextDetailPdfPage')?.addEventListener('click', () => {
+        if (pageNum < totalPages) renderPage(pageNum + 1);
+    });
+
+    document.getElementById('zoomInDetailPdf')?.addEventListener('click', () => {
+        scale = Math.min(2.2, scale + 0.15);
+        zoomLabel.textContent = Math.round(scale * 100) + '%';
+        renderPage(pageNum);
+    });
+    document.getElementById('zoomOutDetailPdf')?.addEventListener('click', () => {
+        scale = Math.max(0.5, scale - 0.15);
+        zoomLabel.textContent = Math.round(scale * 100) + '%';
+        renderPage(pageNum);
+    });
+
+    loadPdf();
+});
 </script>
 @endpush
 @endsection

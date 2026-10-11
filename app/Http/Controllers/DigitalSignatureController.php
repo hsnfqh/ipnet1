@@ -365,6 +365,53 @@ class DigitalSignatureController extends Controller
     }
 
     /**
+     * Tolak penandatanganan dokumen oleh penandatangan internal
+     */
+    public function rejectInternal(Request $request, $id)
+    {
+        DigitalSignatureDocument::ensureSchemaReady();
+
+        $document = DigitalSignatureDocument::findOrFail($id);
+        $user = auth()->user();
+
+        if (!$document->canUserSign($user->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki wewenang untuk menolak dokumen ini.',
+            ], 403);
+        }
+
+        $reason = trim($request->input('reason', 'Dokumen ditolak oleh penandatangan internal.'));
+
+        $signers = $document->internal_signers ?? [];
+        $updated = false;
+
+        foreach ($signers as &$s) {
+            if ((int)($s['user_id'] ?? 0) === $user->id && ($s['status'] ?? 'pending') !== 'signed') {
+                $s['status']        = 'rejected';
+                $s['rejected_at']   = now()->format('Y-m-d H:i:s');
+                $s['reject_reason'] = $reason;
+                $updated = true;
+                break;
+            }
+        }
+        unset($s);
+
+        if ($updated) {
+            $document->internal_signers = $signers;
+            $document->status = 'rejected';
+            $document->notes = ($document->notes ? $document->notes . "\n" : '') . '[' . now()->format('d/m/Y H:i') . '] Ditolak oleh ' . $user->name . ': ' . $reason;
+            $document->save();
+        }
+
+        return response()->json([
+            'success'      => true,
+            'message'      => 'Dokumen berhasil ditolak.',
+            'redirect_url' => route('digital_signatures.show', $document->id),
+        ]);
+    }
+
+    /**
      * Halaman Publik untuk PIC Klien menandatangani dokumen via Link
      */
     public function clientSignShow($token)

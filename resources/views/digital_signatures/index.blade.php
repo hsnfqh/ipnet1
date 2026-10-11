@@ -267,32 +267,46 @@
                                             $currUser = auth()->user();
                                             $canUserSignDoc = $currUser ? $doc->canUserSign($currUser->id) : false;
                                         @endphp
-                                        <div class="inline-flex items-center gap-1.5 justify-end">
-                                            @if($canUserSignDoc)
-                                                <a href="{{ route('digital_signatures.place_signature', $doc->id) }}"
-                                                   title="Tempatkan Tanda Tangan Sekarang"
-                                                   class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] inline-flex items-center gap-1.5 shadow-sm transition-all active:scale-95">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                                    <span>Tanda Tangani</span>
-                                                </a>
-                                            @endif
+                                        <div class="inline-flex items-center gap-2 justify-end">
+                                            {{-- Tombol Detail (Sesuai Gambar 5: Tombol Biru Terlihat Jelas) --}}
                                             <a href="{{ route('digital_signatures.show', $doc->id) }}"
-                                               title="Detail & Informasi Dokumen"
-                                               class="p-2 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569] hover:text-[#8F0A0D] hover:bg-[#FEF2F2] hover:border-[#FECACA] transition-all">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                               title="Detail & Pratinjau Dokumen"
+                                               class="px-2.5 py-1.5 rounded-md bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs inline-flex items-center gap-1 shadow-xs transition-all active:scale-95">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                                <span>Detail</span>
                                             </a>
+
+                                            {{-- Tombol Tanda Tangani & Tolak (Sesuai Gambar 4 & 5) --}}
+                                            @if($canUserSignDoc)
+                                                <div class="inline-flex flex-col gap-1 items-stretch">
+                                                    <a href="{{ route('digital_signatures.place_signature', $doc->id) }}"
+                                                       title="Tempatkan Tanda Tangan Sekarang"
+                                                       class="px-2.5 py-1 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] inline-flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                        <span>Tanda Tangani</span>
+                                                    </a>
+                                                    <button type="button"
+                                                            onclick="rejectDocumentTable({{ $doc->id }})"
+                                                            title="Tolak Dokumen Ini"
+                                                            class="px-2.5 py-1 rounded-md bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] inline-flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95 cursor-pointer">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                        <span>Tolak</span>
+                                                    </button>
+                                                </div>
+                                            @endif
+
                                             @if($doc->status === 'ready_for_client' || $doc->status === 'completed')
                                                 <button type="button"
                                                         onclick="copyClientLink('{{ url('/sign/' . $doc->client_signing_token) }}')"
                                                         title="Salin Link Penandatanganan Klien"
-                                                        class="p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white transition-all cursor-pointer">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                                                        class="p-1.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-600 hover:text-white transition-all cursor-pointer">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
                                                 </button>
                                             @endif
                                             <a href="{{ route('digital_signatures.download_pdf', $doc->id) }}"
                                                title="{{ !empty($doc->signed_file_path) ? 'Unduh Dokumen Ber-TTD (PDF)' : 'Unduh Dokumen PDF' }}"
-                                               class="p-2 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569] hover:bg-[#1E293B] hover:text-white hover:border-[#1E293B] transition-all">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                               class="p-1.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569] hover:bg-[#1E293B] hover:text-white hover:border-[#1E293B] transition-all">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             </a>
                                         </div>
                                     </td>
@@ -330,10 +344,92 @@
 function copyClientLink(url) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(url).then(() => {
-            alert('Tautan tanda tangan PIC Klien berhasil disalin ke clipboard:\n' + url);
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Tautan Tersalin!',
+                    text: 'Tautan tanda tangan PIC Klien berhasil disalin ke clipboard.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                alert('Tautan tanda tangan PIC Klien berhasil disalin ke clipboard:\n' + url);
+            }
         });
     } else {
         prompt('Salin tautan ini untuk dikirimkan ke PIC Klien:', url);
+    }
+}
+
+async function rejectDocumentTable(docId) {
+    let reason = '';
+    if (window.Swal) {
+        const { value: text, isConfirmed } = await Swal.fire({
+            title: 'Tolak Dokumen Ini?',
+            text: 'Masukkan alasan penolakan dokumen:',
+            input: 'textarea',
+            inputPlaceholder: 'Tuliskan alasan penolakan di sini...',
+            inputAttributes: {
+                'aria-label': 'Alasan penolakan'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Tolak Dokumen',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#E11D48',
+            cancelButtonColor: '#64748B',
+            inputValidator: (value) => {
+                if (!value || !value.trim()) {
+                    return 'Alasan penolakan wajib diisi!';
+                }
+            }
+        });
+        if (!isConfirmed) return;
+        reason = text;
+    } else {
+        reason = prompt('Masukkan alasan penolakan dokumen:');
+        if (!reason || !reason.trim()) {
+            alert('Alasan penolakan wajib diisi!');
+            return;
+        }
+    }
+
+    try {
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        const res = await fetch(`/digital-signatures/${docId}/reject-internal`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ reason: reason })
+        });
+        const data = await res.json();
+        if (data.success) {
+            if (window.Swal) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Dokumen Ditolak',
+                    text: 'Penolakan dokumen telah dicatat.',
+                    confirmButtonColor: '#8F0A0D'
+                });
+            } else {
+                alert('Dokumen berhasil ditolak.');
+            }
+            window.location.reload();
+        } else {
+            if (window.Swal) {
+                Swal.fire({ icon: 'error', title: 'Gagal', text: data.message || 'Terjadi kesalahan.', confirmButtonColor: '#8F0A0D' });
+            } else {
+                alert('Gagal: ' + (data.message || 'Terjadi kesalahan'));
+            }
+        }
+    } catch (e) {
+        if (window.Swal) {
+            Swal.fire({ icon: 'error', title: 'Koneksi Gagal', text: 'Gagal menghubungi server.', confirmButtonColor: '#8F0A0D' });
+        } else {
+            alert('Gagal menghubungi server.');
+        }
     }
 }
 </script>

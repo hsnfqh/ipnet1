@@ -21,29 +21,31 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0F172A;
+            background-color: #F8FAFC;
+            color: #1E293B;
         }
         .btn-ipnet-primary {
             background: linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%) !important;
             color: #FFFFFF !important;
-            box-shadow: 0 4px 14px rgba(143, 10, 13, 0.3) !important;
+            box-shadow: 0 4px 14px rgba(143, 10, 13, 0.25) !important;
             transition: all 0.2s ease;
         }
         .btn-ipnet-primary:hover {
             background: linear-gradient(135deg, #C52222 0%, #9C0C0F 60%, #83080A 100%) !important;
             transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(143, 10, 13, 0.35) !important;
         }
         .pdf-viewport-container {
-            background-color: #334155;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.4);
+            background-color: #E2E8F0;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.06);
         }
         .pdf-page-canvas {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
         .client-signature-box {
             position: absolute;
             border: 2px dashed #0D9488;
-            background-color: rgba(20, 184, 166, 0.12);
+            background-color: rgba(20, 184, 166, 0.14);
             cursor: move;
             touch-action: none;
             user-select: none;
@@ -52,7 +54,7 @@
         }
         .client-signature-box:hover, .client-signature-box.active {
             border-color: #0F766E;
-            background-color: rgba(20, 184, 166, 0.22);
+            background-color: rgba(20, 184, 166, 0.24);
         }
         .client-signature-box .resize-handle {
             position: absolute;
@@ -88,24 +90,24 @@
         }
     </style>
 </head>
-<body class="min-h-screen text-slate-100 flex flex-col justify-between overflow-x-hidden">
+<body class="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col justify-between overflow-x-hidden antialiased">
 
-    <!-- TOP HEADER BRANDING -->
-    <header class="bg-[#1E293B] border-b border-slate-700 sticky top-0 z-40 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+    <!-- TOP HEADER BRANDING (PUTIH BERSIH ELEGAN) -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <img src="{{ asset('images/ipnet1.png') }}" alt="IPNET Logo" class="h-8 object-contain" onerror="this.src='{{ asset('images/ipnet.png') }}'">
                 <div>
-                    <div class="font-extrabold text-sm text-white leading-tight">PT IP Network Solusindo</div>
-                    <div class="text-[10px] font-bold text-red-400 tracking-wider uppercase">Portal Penandatanganan Dokumen Resmi</div>
+                    <div class="font-black text-sm text-slate-900 leading-tight">PT IP Network Solusindo</div>
+                    <div class="text-[10px] font-bold text-[#8F0A0D] tracking-wider uppercase">Portal Penandatanganan Dokumen Resmi</div>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-300 text-xs font-bold border border-emerald-700/60">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span class="hidden sm:inline">Dokumen Sah &bull;</span> Terverifikasi UU ITE
                 </span>
-                <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px] font-bold border border-slate-700">
+                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-mono text-[11px] font-bold border border-slate-200 hidden sm:inline">
                     {{ $document->document_number }}
                 </span>
             </div>
@@ -113,10 +115,10 @@
     </header>
 
     @if($document->status === 'completed')
-        <!-- TAMPILAN JIKA DOKUMEN SUDAH SELESAI DITANDATANGANI -->
-        <main class="max-w-3xl mx-auto px-4 py-12 w-full flex-1">
-            <div class="bg-white text-slate-800 border border-slate-200 rounded-3xl p-8 text-center space-y-4 shadow-xl">
-                <div class="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto text-3xl font-black shadow-lg">
+        <!-- TAMPILAN JIKA DOKUMEN SUDAH SELESAI DITANDATANGANI (LIGHT THEME) -->
+        <main class="max-w-3xl mx-auto px-4 py-16 w-full flex-1 flex items-center justify-center">
+            <div class="bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 text-center space-y-4 shadow-xl w-full">
+                <div class="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto text-3xl font-black shadow-lg shadow-emerald-500/20">
                     ✓
                 </div>
                 <h1 class="text-2xl font-black text-slate-900">Dokumen Telah Resmi Ditandatangani</h1>
@@ -136,113 +138,113 @@
             </div>
         </main>
     @else
-        <!-- WORKSPACE UTAMA: PANEL KONTROL KIRI + VIEWER PDF KANAN -->
+        <!-- WORKSPACE UTAMA: PANEL KONTROL KIRI + VIEWER PDF KANAN (SIMETRIS & PROFESIONAL) -->
         <main class="flex-1 max-w-[1600px] w-full mx-auto p-3 sm:p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
 
             <!-- SIDEBAR KIRI: FORM IDENTITAS PIC KLIEN & KONTROL (4 KOLOM) -->
             <aside class="lg:col-span-4 space-y-4 order-2 lg:order-1">
                 
                 <!-- CARD INFO DOKUMEN -->
-                <div class="bg-[#1E293B] border border-slate-700 rounded-2xl p-4 shadow-sm space-y-2.5">
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-2.5">
                     <div class="flex items-start justify-between gap-2">
                         <div>
-                            <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block">{{ $document->category }}</span>
-                            <h2 class="text-sm font-extrabold text-white leading-snug line-clamp-2">{{ $document->title }}</h2>
+                            <span class="text-[10px] font-bold text-[#8F0A0D] uppercase tracking-wider block">{{ $document->category }}</span>
+                            <h2 class="text-sm font-extrabold text-slate-900 leading-snug line-clamp-2">{{ $document->title }}</h2>
                         </div>
                         <a href="{{ route('digital_signatures.download_original', $document->id) }}" 
-                           class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-semibold border border-slate-700 shrink-0" 
+                           class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-[11px] font-semibold border border-slate-200 shrink-0 transition" 
                            title="Unduh Berkas Asli">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         </a>
                     </div>
-                    <div class="text-[11px] text-slate-400 space-y-1 border-t border-slate-700/60 pt-2">
+                    <div class="text-[11px] text-slate-500 space-y-1 border-t border-slate-100 pt-2.5">
                         @if($document->project_name)
-                            <div>Proyek: <strong class="text-slate-200">{{ $document->project_name }}</strong></div>
+                            <div>Proyek: <strong class="text-slate-800">{{ $document->project_name }}</strong></div>
                         @endif
-                        <div>Dibuat oleh: <strong class="text-slate-200">{{ $document->creator?->name }} (PT IP Network Solusindo)</strong></div>
+                        <div>Dibuat oleh: <strong class="text-slate-800">{{ $document->creator?->name }} (PT IP Network Solusindo)</strong></div>
                     </div>
                 </div>
 
                 <!-- CARD FORMULIR PIC KLIEN -->
-                <div class="bg-[#1E293B] border border-slate-700 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
                     <div>
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
                             Konfirmasi Identitas PIC Klien
                         </h3>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Lengkapi identitas penandatangan yang mewakili instansi Anda.</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Lengkapi identitas penandatangan yang sah mewakili instansi Anda.</p>
                     </div>
 
                     <div class="space-y-3">
                         <div>
-                            <label class="block text-[11.5px] font-bold text-slate-300 mb-1">
-                                Nama Lengkap Anda <span class="text-red-400">*</span>
+                            <label class="block text-[11.5px] font-bold text-slate-700 mb-1">
+                                Nama Lengkap Anda <span class="text-rose-500">*</span>
                             </label>
                             <input type="text" id="clientNameInput" value="{{ $document->client_name }}" required
-                                   class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                   class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition"
                                    placeholder="Contoh: Budi Santoso">
                         </div>
 
                         <div>
-                            <label class="block text-[11.5px] font-bold text-slate-300 mb-1">
-                                Jabatan / Posisi <span class="text-red-400">*</span>
+                            <label class="block text-[11.5px] font-bold text-slate-700 mb-1">
+                                Jabatan / Posisi <span class="text-rose-500">*</span>
                             </label>
                             <input type="text" id="clientPositionInput" value="{{ $document->client_position }}" required
-                                   class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                   class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition"
                                    placeholder="Contoh: IT Manager / Site Lead / Project Manager">
                         </div>
 
                         <div>
-                            <label class="block text-[11.5px] font-bold text-slate-300 mb-1">
+                            <label class="block text-[11.5px] font-bold text-slate-700 mb-1">
                                 Perusahaan / Instansi Klien
                             </label>
                             <input type="text" id="clientCompanyInput" value="{{ $document->client_company }}"
-                                   class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                                   placeholder="Contoh: PT Mitra Telekomunikasi">
+                                   class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition"
+                                   placeholder="Contoh: PT Angkasa Pura Support">
                         </div>
                     </div>
 
                     <!-- STATUS & KONTROL PENEMPATAN TANDA TANGAN -->
-                    <div class="border-t border-slate-700/60 pt-4 space-y-3">
-                        <label class="block text-[11.5px] font-bold text-slate-300">
-                            Tanda Tangan Pada Dokumen <span class="text-red-400">*</span>
+                    <div class="border-t border-slate-100 pt-4 space-y-3">
+                        <label class="block text-[11.5px] font-bold text-slate-700">
+                            Tanda Tangan Pada Dokumen <span class="text-rose-500">*</span>
                         </label>
 
                         <!-- Box jika belum ada tanda tangan -->
-                        <div id="unplacedNoticeBox" class="p-3.5 rounded-xl bg-slate-900 border border-dashed border-slate-600 text-center space-y-2">
-                            <p class="text-xs text-slate-400">
+                        <div id="unplacedNoticeBox" class="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-300 text-center space-y-2.5">
+                            <p class="text-xs text-slate-600">
                                 Anda belum membubuhkan tanda tangan pada lembar dokumen.
                             </p>
                             <button type="button" id="btnSidebarOpenSignature" 
-                                    class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-95">
+                                    class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-95 cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                                 <span>Goreskan & Tempatkan Tanda Tangan</span>
                             </button>
                         </div>
 
                         <!-- Box jika sudah menempatkan tanda tangan -->
-                        <div id="placedNoticeBox" class="hidden p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-700/60 space-y-2.5">
+                        <div id="placedNoticeBox" class="hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2.5">
                             <div class="flex items-center justify-between text-xs">
-                                <span class="font-bold text-emerald-400 flex items-center gap-1.5">
-                                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span class="font-bold text-emerald-800 flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                     Tanda Tangan Siap Ditempatkan
                                 </span>
-                                <span id="placedPageBadge" class="px-2 py-0.5 rounded bg-emerald-900 text-emerald-300 font-mono text-[10px] font-bold">Halaman 1</span>
+                                <span id="placedPageBadge" class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold">Halaman 1</span>
                             </div>
-                            <div class="flex items-center gap-3 bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                                <div class="w-16 h-10 bg-white rounded flex items-center justify-center overflow-hidden p-0.5 shrink-0">
+                            <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-emerald-100">
+                                <div class="w-16 h-10 bg-slate-50 border border-slate-200 rounded flex items-center justify-center overflow-hidden p-0.5 shrink-0">
                                     <img id="sidebarSignatureThumbnail" class="max-w-full max-h-full object-contain" alt="Tanda Tangan">
                                 </div>
-                                <div class="text-[11px] text-slate-400 leading-snug">
-                                    Geser (drag) kotak tanda tangan pada lembar dokumen di sebelah kanan ke posisi yang diinginkan.
+                                <div class="text-[11px] text-slate-600 leading-snug">
+                                    Geser (drag) kotak tanda tangan pada lembar dokumen di sebelah kanan ke kolom penandatangan Anda.
                                 </div>
                             </div>
                             <div class="flex items-center justify-end gap-2 pt-1">
-                                <button type="button" id="btnSidebarRecreateSig" class="text-[11px] font-bold text-slate-400 hover:text-white underline">
+                                <button type="button" id="btnSidebarRecreateSig" class="text-[11px] font-bold text-slate-600 hover:text-slate-900 underline">
                                     Ganti Goresan
                                 </button>
-                                <span class="text-slate-600">&bull;</span>
-                                <button type="button" id="btnSidebarDeleteSig" class="text-[11px] font-bold text-rose-400 hover:text-rose-300">
+                                <span class="text-slate-300">&bull;</span>
+                                <button type="button" id="btnSidebarDeleteSig" class="text-[11px] font-bold text-rose-600 hover:text-rose-700">
                                     Hapus
                                 </button>
                             </div>
@@ -250,10 +252,10 @@
                     </div>
 
                     <!-- CHECKBOX PERNYATAAN HUKUM ITE -->
-                    <div class="border-t border-slate-700/60 pt-3">
-                        <label class="flex items-start gap-2.5 cursor-pointer text-[11px] text-slate-300 leading-relaxed select-none">
+                    <div class="border-t border-slate-100 pt-3">
+                        <label class="flex items-start gap-2.5 cursor-pointer text-[11px] text-slate-600 leading-relaxed select-none">
                             <input type="checkbox" id="agreementCheckbox" required 
-                                   class="mt-0.5 rounded bg-slate-900 border-slate-700 text-red-600 focus:ring-red-600">
+                                   class="mt-0.5 rounded border-slate-300 text-[#8F0A0D] focus:ring-[#8F0A0D]">
                             <span>
                                 Saya menyatakan dengan sebenarnya bahwa saya sah mewakili pihak klien dan menyetujui seluruh isi dokumen serta tanda tangan digital ini memiliki kekuatan hukum yang sah.
                             </span>
@@ -262,20 +264,20 @@
 
                     <!-- TOMBOL SUBMIT FINAL -->
                     <button type="button" id="btnSubmitClientSign" 
-                            class="btn-ipnet-primary w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition active:scale-95">
+                            class="btn-ipnet-primary w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition active:scale-95 cursor-pointer">
                         <span id="btnSubmitClientText">Setujui & Sahkan Dokumen Resmi</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </button>
                 </div>
             </aside>
 
-            <!-- AREA DOKUMEN PDF (8 KOLOM) -->
-            <section class="lg:col-span-8 flex flex-col order-1 lg:order-2 bg-[#1E293B] border border-slate-700 rounded-2xl overflow-hidden shadow-xl min-h-[600px] lg:min-h-[820px]">
+            <!-- AREA DOKUMEN PDF (8 KOLOM) (LIGHT THEME) -->
+            <section class="lg:col-span-8 flex flex-col order-1 lg:order-2 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs min-h-[600px] lg:min-h-[820px]">
                 
                 <!-- TOOLBAR DOKUMEN -->
-                <div class="bg-slate-900 px-4 py-2.5 border-b border-slate-700 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+                <div class="bg-slate-50 px-4 py-2.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
                     
-                    <!-- Sisi Kiri: Tombol + Tanda Tangan & Hapus -->
+                    <!-- Sisi Kiri: Tombol Tanda Tangan & Hapus -->
                     <div class="flex items-center gap-2">
                         <button type="button" id="btnToolbarOpenSignature" 
                                 class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
@@ -294,34 +296,34 @@
                     <div class="flex items-center gap-2 flex-wrap">
                         
                         <!-- Zoom -->
-                        <div class="flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-xs">
-                            <span id="zoomPercentLabel" class="px-2 text-slate-300 font-mono font-bold text-[11px]">100%</span>
-                            <button type="button" id="btnZoomOut" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Zoom Out (-)">
+                        <div class="flex items-center bg-white rounded-lg p-0.5 border border-slate-200 text-xs shadow-2xs">
+                            <span id="zoomPercentLabel" class="px-2 text-slate-700 font-mono font-bold text-[11px]">100%</span>
+                            <button type="button" id="btnZoomOut" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Zoom Out (-)">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
                             </button>
-                            <button type="button" id="btnZoomIn" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Zoom In (+)">
+                            <button type="button" id="btnZoomIn" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Zoom In (+)">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             </button>
-                            <button type="button" id="btnZoomReset" class="px-2 py-0.5 hover:bg-slate-700 rounded text-[11px] font-bold text-slate-300" title="Reset Zoom">
+                            <button type="button" id="btnZoomReset" class="px-2 py-0.5 hover:bg-slate-100 rounded text-[11px] font-bold text-slate-600" title="Reset Zoom">
                                 Reset
                             </button>
                         </div>
 
                         <!-- Halaman -->
-                        <div class="flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-xs">
-                            <button type="button" id="btnFirstPage" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Halaman Pertama">
+                        <div class="flex items-center bg-white rounded-lg p-0.5 border border-slate-200 text-xs shadow-2xs">
+                            <button type="button" id="btnFirstPage" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Halaman Pertama">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
                             </button>
-                            <button type="button" id="btnPrevPage" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Halaman Sebelumnya">
+                            <button type="button" id="btnPrevPage" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Halaman Sebelumnya">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                             </button>
-                            <div class="px-2 text-slate-200 font-bold font-mono text-[11px] flex items-center gap-1">
+                            <div class="px-2 text-slate-800 font-bold font-mono text-[11px] flex items-center gap-1">
                                 <span id="currentPageNum">1</span> / <span id="totalPagesNum">1</span>
                             </div>
-                            <button type="button" id="btnNextPage" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Halaman Selanjutnya">
+                            <button type="button" id="btnNextPage" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Halaman Selanjutnya">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </button>
-                            <button type="button" id="btnLastPage" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Halaman Terakhir">
+                            <button type="button" id="btnLastPage" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Halaman Terakhir">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
                             </button>
                         </div>
@@ -329,26 +331,26 @@
                 </div>
 
                 <!-- PETUNJUK INTERAKTIF -->
-                <div class="bg-slate-800/80 px-4 py-2 border-b border-slate-700 text-[11px] text-slate-300 flex items-center justify-between">
-                    <span>💡 <strong>Petunjuk:</strong> Klik tombol <strong>"Tanda Tangan"</strong> lalu geser (drag & drop) tanda tangan langsung ke kolom tanda tangan Anda.</span>
-                    <span class="text-slate-400 hidden md:inline">Resolusi Asli Berkas PDF</span>
+                <div class="bg-amber-50/70 px-4 py-2 border-b border-amber-100 text-[11px] text-amber-900 flex items-center justify-between">
+                    <span>💡 <strong>Petunjuk:</strong> Klik tombol <strong>"Tanda Tangan"</strong> lalu geser (drag & drop) kotak tanda tangan ke lokasi kolom tanda tangan Anda di lembar dokumen.</span>
+                    <span class="text-amber-700/80 hidden md:inline">Resolusi Asli Berkas PDF</span>
                 </div>
 
                 <!-- CANVAS VIEWPORT CONTAINER -->
                 <div class="pdf-viewport-container flex-1 overflow-auto flex items-center justify-center p-4 sm:p-8 relative min-h-[500px]">
                     
                     <!-- Loading Indicator -->
-                    <div id="pdfLoadingState" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 z-30">
-                        <div class="w-10 h-10 border-3 border-red-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-                        <div class="text-sm font-bold text-white">Memuat Dokumen PDF...</div>
-                        <div class="text-xs text-slate-400 mt-1">Mengambil berkas resolusi tinggi dari server</div>
+                    <div id="pdfLoadingState" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-2xs z-30">
+                        <div class="w-10 h-10 border-3 border-[#8F0A0D] border-t-transparent rounded-full animate-spin mb-3"></div>
+                        <div class="text-sm font-bold text-slate-900">Memuat Dokumen PDF...</div>
+                        <div class="text-xs text-slate-500 mt-1">Mengambil berkas resolusi tinggi dari server</div>
                     </div>
 
                     <!-- Page Wrapper (Menjaga relasi koordinat 1:1 antara Canvas dan Kotak Tanda Tangan) -->
                     <div id="pageWrapper" class="relative inline-block transition-all duration-75">
                         
                         <!-- PDF Canvas -->
-                        <canvas id="pdfCanvas" class="pdf-page-canvas block bg-white"></canvas>
+                        <canvas id="pdfCanvas" class="pdf-page-canvas block bg-white rounded-xs"></canvas>
 
                         <!-- Draggable & Resizable Signature Box -->
                         <div id="placedSignatureBox" class="client-signature-box hidden">
@@ -366,15 +368,15 @@
         </main>
     @endif
 
-    <!-- MODAL GORESKAN TANDA TANGAN -->
-    <div id="signatureModal" class="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
+    <!-- MODAL GORESKAN TANDA TANGAN (LIGHT THEME) -->
+    <div id="signatureModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-3xl max-w-lg w-full text-slate-900 overflow-hidden shadow-2xl border border-slate-200 animate-in fade-in zoom-in duration-150">
             <div class="p-5 border-b border-slate-100 flex items-center justify-between">
                 <div>
                     <h3 class="text-sm font-extrabold text-slate-900">Bubuhkan Goresan Tanda Tangan Anda</h3>
                     <p class="text-xs text-slate-500">Goreskan tanda tangan menggunakan mouse, touchpad, atau jari pada layar sentuh.</p>
                 </div>
-                <button type="button" id="btnCloseModal" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none">&times;</button>
+                <button type="button" id="btnCloseModal" class="text-slate-400 hover:text-slate-700 text-2xl font-bold leading-none cursor-pointer">&times;</button>
             </div>
 
             <div class="p-5 space-y-4">
@@ -384,33 +386,33 @@
                         Tanda tangan di area ini &bull; Mouse / Sentuhan Layar
                     </div>
                     <button type="button" id="btnClearPad" 
-                            class="absolute bottom-2 right-2 px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold shadow-xs">
+                            class="absolute bottom-2 right-2 px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold shadow-xs cursor-pointer">
                         Bersihkan
                     </button>
                 </div>
 
-                <div class="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between">
-                    <span>Penandatangan: <strong id="modalSignerNameDisplay" class="text-slate-800">{{ $document->client_name ?: 'PIC Klien' }}</strong></span>
-                    <span class="text-emerald-600 font-bold">✓ Pihak Klien</span>
+                <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/80 flex items-center justify-between">
+                    <span>Penandatangan: <strong id="modalSignerNameDisplay" class="text-slate-900">{{ $document->client_name ?: 'PIC Klien' }}</strong></span>
+                    <span class="text-emerald-700 font-bold">✓ Pihak Klien</span>
                 </div>
             </div>
 
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                <button type="button" id="btnCancelModal" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100">
+                <button type="button" id="btnCancelModal" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 cursor-pointer">
                     Batal
                 </button>
-                <button type="button" id="btnApplyModalSignature" class="btn-ipnet-primary px-5 py-2 rounded-xl text-white font-bold text-xs shadow-md">
+                <button type="button" id="btnApplyModalSignature" class="btn-ipnet-primary px-5 py-2 rounded-xl text-white font-bold text-xs shadow-md cursor-pointer">
                     Gunakan & Tempatkan di Dokumen &rarr;
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- FOOTER RESMI -->
-    <footer class="py-4 border-t border-slate-800 bg-[#0B1120] text-center text-xs text-slate-400">
+    <!-- FOOTER RESMI (LIGHT THEME) -->
+    <footer class="py-4 border-t border-slate-200 bg-white text-center text-xs text-slate-500">
         <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
             <div>&copy; {{ date('Y') }} PT IP Network Solusindo. All rights reserved.</div>
-            <div class="text-[11px] text-slate-500">Sistem Pengesahan Tanda Tangan Elektronik Terverifikasi UU ITE</div>
+            <div class="text-[11px] text-slate-400">Sistem Pengesahan Tanda Tangan Elektronik Terverifikasi UU ITE</div>
         </div>
     </footer>
 
@@ -566,8 +568,8 @@
             } catch (err) {
                 console.error("Gagal memuat dokumen PDF:", err);
                 loadingState.innerHTML = `
-                    <div class="text-rose-400 font-bold text-sm mb-2">Gagal Membuka Berkas PDF</div>
-                    <div class="text-xs text-slate-300 max-w-sm text-center mb-4">${err.message || 'Berkas tidak dapat diakses atau format tidak valid.'}</div>
+                    <div class="text-rose-600 font-bold text-sm mb-2">Gagal Membuka Berkas PDF</div>
+                    <div class="text-xs text-slate-500 max-w-sm text-center mb-4">${err.message || 'Berkas tidak dapat diakses atau format tidak valid.'}</div>
                 `;
             }
         }
@@ -967,7 +969,7 @@
             if (window.Swal) {
                 const confirmRes = await Swal.fire({
                     title: 'Sahkan Dokumen Resmi?',
-                    html: `Anda akan membubuhkan tanda tangan resmi atas nama <strong>${clientName}</strong> (${clientPosition}) pada <strong>Halaman ${placedSignature.page}</strong> berkas dokumen ini.<br><small class="text-slate-400 mt-2 block">Tanda tangan akan dicap secara permanen dan sah demi hukum.</small>`,
+                    html: `Anda akan membubuhkan tanda tangan resmi atas nama <strong>${clientName}</strong> (${clientPosition}) pada <strong>Halaman ${placedSignature.page}</strong> berkas dokumen ini.<br><small class="text-slate-500 mt-2 block">Tanda tangan akan dicap secara permanen dan sah demi hukum.</small>`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#8F0A0D',
@@ -986,7 +988,7 @@
             if (window.Swal) {
                 Swal.fire({
                     title: 'Memproses Dokumen Resmi...',
-                    html: 'Sedang menempelkan tanda tangan resmi ke berkas PDF.<br><span class="text-xs text-slate-400">Mohon tunggu sebentar...</span>',
+                    html: 'Sedang menempelkan tanda tangan resmi ke berkas PDF.<br><span class="text-xs text-slate-500">Mohon tunggu sebentar...</span>',
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     didOpen: () => { Swal.showLoading(); }

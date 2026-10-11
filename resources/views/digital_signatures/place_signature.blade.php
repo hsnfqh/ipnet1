@@ -21,19 +21,19 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #383D41;
+            background-color: #F8FAFC;
         }
         .pdf-viewport-container {
-            background-color: #525659;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+            background-color: #E2E8F0;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.06);
         }
         .pdf-page-canvas {
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
         .signature-box {
             position: absolute;
             border: 2px dashed #0D9488;
-            background-color: rgba(20, 184, 166, 0.12);
+            background-color: rgba(20, 184, 166, 0.14);
             cursor: move;
             touch-action: none;
             user-select: none;
@@ -42,7 +42,7 @@
         }
         .signature-box:hover, .signature-box.active {
             border-color: #0F766E;
-            background-color: rgba(20, 184, 166, 0.2);
+            background-color: rgba(20, 184, 166, 0.24);
         }
         .signature-box .resize-handle {
             position: absolute;
@@ -86,30 +86,30 @@
         }
     </style>
 </head>
-<body class="h-screen flex flex-col text-slate-100 overflow-hidden select-none">
+<body class="h-screen flex flex-col text-slate-800 bg-[#F8FAFC] overflow-hidden select-none">
 
-    <!-- TOP CONTROL BAR (SESUAI GAMBAR 4: IPB DiSign) -->
-    <header class="bg-[#1E293B] border-b border-slate-700 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 z-30 shadow-md">
+    <!-- TOP CONTROL BAR (LIGHT THEME ELEGAN) -->
+    <header class="bg-white border-b border-slate-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 z-30 shadow-xs">
         
         <!-- Sisi Kiri: Kembali & Info Dokumen -->
         <div class="flex items-center gap-3">
             <a href="{{ route('digital_signatures.show', $document->id) }}" 
-               class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1.5 text-xs font-semibold"
+               class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1.5 text-xs font-bold"
                title="Kembali ke Detail Dokumen">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 <span class="hidden sm:inline">Kembali</span>
             </a>
-            <div class="h-5 w-px bg-slate-700"></div>
+            <div class="h-5 w-px bg-slate-200"></div>
             <div>
-                <h1 class="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                <h1 class="text-sm font-black text-slate-900 tracking-tight flex items-center gap-2">
                     <span>Tempatkan Tanda Tangan</span>
-                    <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px] font-semibold hidden md:inline">{{ $document->document_number }}</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[11px] font-bold hidden md:inline border border-slate-200">{{ $document->document_number }}</span>
                 </h1>
-                <p class="text-[11px] text-slate-400 truncate max-w-xs sm:max-w-md">{{ $document->title }}</p>
+                <p class="text-[11px] text-slate-500 truncate max-w-xs sm:max-w-md">{{ $document->title }}</p>
             </div>
         </div>
 
-        <!-- Tengah: Tombol Aksi Tanda Tangan & Zoom & Halaman (Persis Toolbar Gambar 4) -->
+        <!-- Tengah: Tombol Aksi Tanda Tangan & Zoom & Halaman -->
         <div class="flex items-center gap-2 flex-wrap">
             
             <!-- Tombol Tanda Tangan (Hijau) -->
@@ -127,41 +127,41 @@
                 <span>Hapus</span>
             </button>
 
-            <div class="h-5 w-px bg-slate-700 mx-1"></div>
+            <div class="h-5 w-px bg-slate-200 mx-1"></div>
 
             <!-- Kontrol Zoom -->
-            <div class="flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-xs">
-                <span id="zoomPercentLabel" class="px-2 text-slate-300 font-mono font-bold text-[11px]">100%</span>
-                <button type="button" id="btnZoomOut" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Zoom Out (-)">
+            <div class="flex items-center bg-white rounded-lg p-0.5 border border-slate-200 text-xs shadow-2xs">
+                <span id="zoomPercentLabel" class="px-2 text-slate-700 font-mono font-bold text-[11px]">100%</span>
+                <button type="button" id="btnZoomOut" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Zoom Out (-)">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
                 </button>
-                <button type="button" id="btnZoomIn" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Zoom In (+)">
+                <button type="button" id="btnZoomIn" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Zoom In (+)">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 </button>
-                <button type="button" id="btnZoomReset" class="px-2 py-0.5 hover:bg-slate-700 rounded text-[11px] font-bold text-slate-300" title="Reset Zoom">
+                <button type="button" id="btnZoomReset" class="px-2 py-0.5 hover:bg-slate-100 rounded text-[11px] font-bold text-slate-600" title="Reset Zoom">
                     Reset
                 </button>
             </div>
 
-            <div class="h-5 w-px bg-slate-700 mx-1"></div>
+            <div class="h-5 w-px bg-slate-200 mx-1"></div>
 
             <!-- Navigasi Halaman -->
-            <div class="flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-xs">
-                <button type="button" id="btnFirstPage" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Halaman Pertama">
+            <div class="flex items-center bg-white rounded-lg p-0.5 border border-slate-200 text-xs shadow-2xs">
+                <button type="button" id="btnFirstPage" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Halaman Pertama">
                     &laquo;
                 </button>
-                <button type="button" id="btnPrevPage" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Halaman Sebelumnya">
+                <button type="button" id="btnPrevPage" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Halaman Sebelumnya">
                     &lsaquo;
                 </button>
                 <div class="px-2 flex items-center gap-1 font-mono text-[11px] font-bold">
-                    <span id="currentPageNum" class="text-white">1</span>
-                    <span class="text-slate-500">/</span>
-                    <span id="totalPagesNum" class="text-slate-400">1</span>
+                    <span id="currentPageNum" class="text-slate-900">1</span>
+                    <span class="text-slate-400">/</span>
+                    <span id="totalPagesNum" class="text-slate-600">1</span>
                 </div>
-                <button type="button" id="btnNextPage" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Halaman Berikutnya">
+                <button type="button" id="btnNextPage" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Halaman Berikutnya">
                     &rsaquo;
                 </button>
-                <button type="button" id="btnLastPage" class="p-1 hover:bg-slate-700 rounded text-slate-300" title="Halaman Terakhir">
+                <button type="button" id="btnLastPage" class="p-1 hover:bg-slate-100 rounded text-slate-600" title="Halaman Terakhir">
                     &raquo;
                 </button>
             </div>
