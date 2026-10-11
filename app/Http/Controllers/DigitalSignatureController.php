@@ -639,8 +639,12 @@ class DigitalSignatureController extends Controller
             return back()->with('error', 'Anda tidak memiliki hak untuk menghapus dokumen ini.');
         }
 
-        if (Storage::disk('public')->exists($document->file_path)) {
+        if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
             Storage::disk('public')->delete($document->file_path);
+        }
+
+        if ($document->signed_file_path && Storage::disk('public')->exists($document->signed_file_path)) {
+            Storage::disk('public')->delete($document->signed_file_path);
         }
 
         $document->delete();

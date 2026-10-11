@@ -223,7 +223,7 @@
                                             <div class="w-18 bg-[#F1F5F9] border border-[#E2E8F0] rounded-full h-2 overflow-hidden">
                                                 <div class="bg-gradient-to-r from-[#8F0A0D] to-[#D62E3C] h-2 rounded-full transition-all" style="width: {{ $totalSigners > 0 ? ($signedCount / $totalSigners) * 100 : 0 }}%"></div>
                                             </div>
-                                            <span class="text-[11.5px] font-semibold text-[#1E293B]">{{ $signedCount }}/{{ $totalSigners }} TTD</span>
+                                            <span class="text-[11.5px] font-semibold text-[#1E293B]">{{ $signedCount }}/{{ $totalSigners }} Tanda Tangan</span>
                                         </div>
                                         <div class="text-[11px] text-[#64748B] mt-1">
                                             @foreach(array_slice($signers, 0, 2) as $s)
@@ -316,6 +316,20 @@
                                                class="p-1.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569] hover:bg-[#1E293B] hover:text-white hover:border-[#1E293B] transition-all">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             </a>
+
+                                            {{-- Tombol Hapus Dokumen --}}
+                                            @if($doc->created_by === auth()->id() || auth()->user()->hasAnyRole(['Super Admin', 'Superadmin', 'Admin']))
+                                                <form action="{{ route('digital_signatures.destroy', $doc->id) }}" method="POST" class="inline"
+                                                      onsubmit="return confirmDeleteDoc(event, this, '{{ addslashes($doc->document_number) }}')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                            title="Hapus Dokumen"
+                                                            class="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all cursor-pointer">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -349,6 +363,32 @@
 
 @push('scripts')
 <script>
+function confirmDeleteDoc(e, form, docNumber) {
+    e.preventDefault();
+    if (window.Swal) {
+        Swal.fire({
+            title: 'Hapus Dokumen?',
+            text: `Apakah Anda yakin ingin menghapus dokumen "${docNumber}" secara permanen?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#DC2626',
+            cancelButtonColor: '#64748B',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+        return false;
+    }
+    if (confirm(`Apakah Anda yakin ingin menghapus dokumen "${docNumber}" secara permanen?`)) {
+        form.submit();
+    }
+    return false;
+}
+
 function copyClientLink(url) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(url).then(() => {
