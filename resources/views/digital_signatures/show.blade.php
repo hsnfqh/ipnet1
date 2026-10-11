@@ -91,17 +91,9 @@
                 </div>
 
                 <div class="flex items-center gap-2 flex-wrap">
-                    <a href="{{ route('digital_signatures.download_pdf', $document->id) }}" class="px-3.5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 flex items-center gap-1.5 shadow-xs transition-all">
+                    <a href="{{ route('digital_signatures.download_pdf', $document->id) }}" class="btn-ipnet-primary px-4 py-2 rounded-xl text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all active:scale-95">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         <span>Unduh Dokumen PDF</span>
-                    </a>
-                    <a href="{{ route('digital_signatures.download_certificate', $document->id) }}" class="px-3 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 flex items-center gap-1.5 transition-all" title="Unduh Lembar Pengesahan Resmi">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <span>Lembar Pengesahan</span>
-                    </a>
-                    <a href="{{ route('digital_signatures.download_original', $document->id) }}" class="px-3 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 flex items-center gap-1.5 transition-all">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <span>Berkas Asli</span>
                     </a>
                 </div>
             </div>
@@ -371,17 +363,12 @@
                             <button type="button" id="zoomInDetailPdf" class="px-2 py-0.5 hover:bg-white rounded-lg text-slate-700 font-bold transition" title="Zoom In">+</button>
                         </div>
 
-                        <!-- Buka Tab Baru & Download -->
+                        <!-- Buka Tab Baru -->
                         <a href="{{ route('digital_signatures.stream_pdf', $document->id) }}" target="_blank"
                            class="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center gap-1.5 border border-slate-200 transition"
                            title="Buka Berkas di Tab Baru">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                             <span>Tab Baru</span>
-                        </a>
-                        <a href="{{ route('digital_signatures.download_pdf', $document->id) }}"
-                           class="btn-ipnet-primary px-3.5 py-1.5 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 shadow-xs">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            <span>Unduh PDF</span>
                         </a>
                     </div>
                 </div>
