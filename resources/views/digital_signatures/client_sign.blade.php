@@ -6,8 +6,9 @@
     <title>Tanda Tangan Dokumen: {{ $document->title }} - PT IP Network Solusindo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.9/dist/pdf-lib.min.js"></script>
+    <script src="{{ asset('vendor/pdfjs/pdf.min.js') }}" onerror="this.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'"></script>
+    <script src="{{ asset('vendor/pdf-lib/pdf-lib.min.js') }}" onerror="this.src='https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'"></script>
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}" onerror="this.src='https://cdn.jsdelivr.net/npm/sweetalert2@11'"></script>
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -492,19 +493,23 @@
             const agree = document.getElementById('agreementCheckbox')?.checked;
 
             if (!name) {
-                alert('Silakan isi Nama Lengkap Anda.');
+                if (window.Swal) Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap', text: 'Silakan isi Nama Lengkap Anda.', confirmButtonColor: '#8F0A0D' });
+                else alert('Silakan isi Nama Lengkap Anda.');
                 return;
             }
             if (!position) {
-                alert('Silakan isi Jabatan Anda.');
+                if (window.Swal) Swal.fire({ icon: 'warning', title: 'Data Belum Lengkap', text: 'Silakan isi Jabatan Anda.', confirmButtonColor: '#8F0A0D' });
+                else alert('Silakan isi Jabatan Anda.');
                 return;
             }
             if (!agree) {
-                alert('Silakan centang persetujuan dokumen terlebih dahulu.');
+                if (window.Swal) Swal.fire({ icon: 'warning', title: 'Persetujuan Dokumen', text: 'Silakan centang persetujuan dokumen terlebih dahulu.', confirmButtonColor: '#8F0A0D' });
+                else alert('Silakan centang persetujuan dokumen terlebih dahulu.');
                 return;
             }
             if (!hasDrawn) {
-                alert('Silakan bubuhkan tanda tangan Anda terlebih dahulu pada kotak!');
+                if (window.Swal) Swal.fire({ icon: 'warning', title: 'Tanda Tangan Belum Ada', text: 'Silakan bubuhkan tanda tangan Anda terlebih dahulu pada kotak!', confirmButtonColor: '#8F0A0D' });
+                else alert('Silakan bubuhkan tanda tangan Anda terlebih dahulu pada kotak!');
                 return;
             }
 
@@ -512,6 +517,16 @@
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.innerHTML = 'Memproses Pengesahan & PDF...';
+
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'Memproses Pengesahan Dokumen...',
+                    html: 'Sedang memverifikasi tanda tangan resmi dan memproses berkas PDF.<br><small class="text-slate-400">Mohon tunggu sebentar...</small>',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+            }
 
             try {
                 const formData = new FormData();
@@ -522,10 +537,11 @@
                 formData.append('agreement', '1');
 
                 // Jika user menempatkan posisi tanda tangan secara interaktif, stamp langsung via pdf-lib!
-                if (cPlacedPlacement && window.PDFLib) {
+                const PDFLibInstance = window.PDFLib || (typeof PDFLib !== 'undefined' ? PDFLib : null);
+                if (cPlacedPlacement && PDFLibInstance && PDFLibInstance.PDFDocument) {
                     try {
                         const pdfBytes = await fetch(pdfUrl).then(r => r.arrayBuffer());
-                        const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+                        const pdfDoc = await PDFLibInstance.PDFDocument.load(pdfBytes);
                         const page = pdfDoc.getPage(cPlacedPlacement.page - 1);
                         const { width: pW, height: pH } = page.getSize();
                         const sigImg = await pdfDoc.embedPng(signatureBase64);
@@ -555,20 +571,37 @@
 
                 const data = await res.json();
                 if (data.success) {
-                    alert('Terima kasih! Dokumen resmi berhasil ditandatangani dan diverifikasi.');
+                    if (window.Swal) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil Ditandatangani!',
+                            text: 'Terima kasih, dokumen resmi telah berhasil disahkan dan diverifikasi.',
+                            confirmButtonColor: '#8F0A0D'
+                        });
+                    } else {
+                        alert('Terima kasih! Dokumen resmi berhasil ditandatangani dan diverifikasi.');
+                    }
                     if (data.redirect) {
                         window.location.href = data.redirect;
                     } else {
                         window.location.reload();
                     }
                 } else {
-                    alert('Gagal: ' + (data.message || 'Terjadi kesalahan'));
+                    if (window.Swal) {
+                        Swal.fire({ icon: 'error', title: 'Gagal Menyimpan', text: data.message || 'Terjadi kesalahan', confirmButtonColor: '#8F0A0D' });
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan'));
+                    }
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Setujui & Tanda Tangani Dokumen';
                 }
             } catch (err) {
                 console.error(err);
-                alert('Gagal mengirim data ke server. Mohon periksa koneksi internet Anda.');
+                if (window.Swal) {
+                    Swal.fire({ icon: 'error', title: 'Koneksi Terputus', text: 'Gagal mengirim data ke server. Mohon periksa koneksi internet Anda.', confirmButtonColor: '#8F0A0D' });
+                } else {
+                    alert('Gagal mengirim data ke server. Mohon periksa koneksi internet Anda.');
+                }
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Setujui & Tanda Tangani Dokumen';
             }

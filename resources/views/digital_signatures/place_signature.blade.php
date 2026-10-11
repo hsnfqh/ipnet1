@@ -13,9 +13,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- PDF.js & pdf-lib -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.9/dist/pdf-lib.min.js"></script>
+    <!-- Local Vendor Assets with CDN Fallback -->
+    <script src="{{ asset('vendor/pdfjs/pdf.min.js') }}" onerror="this.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'"></script>
+    <script src="{{ asset('vendor/pdf-lib/pdf-lib.min.js') }}" onerror="this.src='https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'"></script>
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}" onerror="this.src='https://cdn.jsdelivr.net/npm/sweetalert2@11'"></script>
 
     <style>
         body {
@@ -45,13 +46,13 @@
         }
         .signature-box .resize-handle {
             position: absolute;
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             background-color: #0F766E;
             border: 2px solid #FFFFFF;
             border-radius: 50%;
-            bottom: -6px;
-            right: -6px;
+            bottom: -7px;
+            right: -7px;
             cursor: nwse-resize;
         }
         .btn-ipnet-primary {
@@ -61,6 +62,27 @@
         }
         .btn-ipnet-primary:hover {
             background: linear-gradient(135deg, #C52222 0%, #9C0C0F 60%, #83080A 100%) !important;
+        }
+        /* Custom SweetAlert2 Styling */
+        .swal2-popup {
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            border-radius: 20px !important;
+            padding: 1.5rem !important;
+        }
+        .swal2-title {
+            font-size: 1.15rem !important;
+            font-weight: 800 !important;
+            color: #0F172A !important;
+        }
+        .swal2-html-container {
+            font-size: 0.85rem !important;
+            color: #475569 !important;
+        }
+        .swal2-confirm, .swal2-cancel {
+            border-radius: 12px !important;
+            font-weight: 700 !important;
+            font-size: 0.825rem !important;
+            padding: 0.65rem 1.25rem !important;
         }
     </style>
 </head>
@@ -226,13 +248,31 @@
 
     <!-- JAVASCRIPT LOGIC (PDF RENDERING, DRAGGING, RESIZING, DAN EMBEDDING PDF) -->
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        // Setup PDF.js Worker
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = "{{ asset('vendor/pdfjs/pdf.worker.min.js') }}";
+        }
 
         const pdfUrl = @json($pdfUrl);
         const docId = @json($document->id);
         const submitUrl = @json(route('digital_signatures.sign_internal', $document->id));
         const redirectUrl = @json(route('digital_signatures.show', $document->id));
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // Helper notifikasi SweetAlert2 profesional
+        function showNotification(type, title, text) {
+            if (window.Swal) {
+                return Swal.fire({
+                    icon: type,
+                    title: title,
+                    text: text,
+                    confirmButtonColor: '#8F0A0D'
+                });
+            } else {
+                alert(title + "\n" + text);
+                return Promise.resolve();
+            }
+        }
 
         // State PDF
         let pdfDoc = null;
@@ -244,7 +284,7 @@
 
         // State Tanda Tangan
         let userSignatureDataUrl = null; // Base64 transparent PNG
-        let placedSignature = null; // { page, x, y, width, height } in percentage relative to page
+        let placedSignature = null; // { page, xPercent, yPercent, widthPercent, heightPercent }
         let isDragging = false;
         let isResizing = false;
         let dragStartX = 0;
@@ -283,6 +323,9 @@
         async function loadPdf() {
             try {
                 loadingState.classList.remove('hidden');
+                if (!window.pdfjsLib) {
+                    throw new Error("Library PDF.js belum selesai dimuat.");
+                }
                 const loadingTask = pdfjsLib.getDocument({ url: pdfUrl });
                 pdfDoc = await loadingTask.promise;
                 totalPages = pdfDoc.numPages;
@@ -365,7 +408,7 @@
                 placedBox.style.height = heightPx + 'px';
             } else {
                 placedBox.classList.add('hidden');
-                btnDeleteSignature.disabled = false; // Tetap aktif agar bisa dihapus jika diinginkan
+                btnDeleteSignature.disabled = false;
             }
         }
 
@@ -399,7 +442,6 @@
         // Buka Modal Pembuatan Tanda Tangan
         btnPlaceSignature.addEventListener('click', () => {
             if (userSignatureDataUrl) {
-                // Langsung tempatkan jika sudah pernah tanda tangan di sesi ini
                 placeSignatureOnCurrentPage();
             } else {
                 openSignatureModal();
@@ -474,7 +516,7 @@
         // Terapkan tanda tangan dari modal
         document.getElementById('btnApplyModalSignature').addEventListener('click', () => {
             if (!hasDrawnStroke) {
-                alert('Silakan goreskan tanda tangan Anda terlebih dahulu!');
+                showNotification('warning', 'Tanda Tangan Belum Ada', 'Silakan goreskan tanda tangan Anda pada kanvas terlebih dahulu.');
                 return;
             }
 
@@ -490,9 +532,9 @@
             const currentWidth = parseFloat(pdfCanvas.style.width);
             const currentHeight = parseFloat(pdfCanvas.style.height);
 
-            // Default posisi: 55% dari kiri, 75% dari atas (biasanya posisi TTD kanan bawah)
-            const defaultWidthPercent = 25; // 25% lebar halaman
-            const defaultHeightPercent = 10; // 10% tinggi halaman
+            // Default posisi: 55% dari kiri, 75% dari atas (kanan bawah)
+            const defaultWidthPercent = 25;
+            const defaultHeightPercent = 10;
             const defaultXPercent = 55;
             const defaultYPercent = 75;
 
@@ -508,16 +550,33 @@
         }
 
         // Hapus Tanda Tangan
-        btnDeleteSignature.addEventListener('click', () => {
-            if (confirm('Hapus penempatan tanda tangan dari dokumen?')) {
-                placedSignature = null;
-                updateSignatureBoxVisibility();
+        btnDeleteSignature.addEventListener('click', async () => {
+            if (window.Swal) {
+                const res = await Swal.fire({
+                    title: 'Hapus Penempatan?',
+                    text: 'Kotak tanda tangan akan dihapus dari halaman dokumen.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#E11D48',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal'
+                });
+                if (res.isConfirmed) {
+                    placedSignature = null;
+                    updateSignatureBoxVisibility();
+                }
+            } else {
+                if (confirm('Hapus penempatan tanda tangan dari dokumen?')) {
+                    placedSignature = null;
+                    updateSignatureBoxVisibility();
+                }
             }
         });
 
         // DRAG & DROP LOGIC UNTUK KOTAK TANDA TANGAN
         placedBox.addEventListener('mousedown', (e) => {
-            if (e.target.classList.contains('resize-handle')) return; // ignore jika sedang resize
+            if (e.target.classList.contains('resize-handle')) return;
             e.preventDefault();
             isDragging = true;
             dragStartX = e.clientX;
@@ -593,7 +652,6 @@
                 placedBox.style.left = newLeft + 'px';
                 placedBox.style.top = newTop + 'px';
 
-                // Update percentage
                 if (placedSignature) {
                     placedSignature.xPercent = (newLeft / currentWidth) * 100;
                     placedSignature.yPercent = (newTop / currentHeight) * 100;
@@ -637,23 +695,57 @@
         // SUBMIT & STAMP TANDA TANGAN KE PDF
         btnSubmitFinal.addEventListener('click', async () => {
             if (!placedSignature || !userSignatureDataUrl) {
-                alert('Silakan klik tombol "+ Tanda Tangan" dan tempatkan tanda tangan Anda pada dokumen terlebih dahulu!');
+                showNotification('warning', 'Tanda Tangan Belum Ditempatkan', 'Silakan klik tombol "+ Tanda Tangan" dan tempatkan tanda tangan Anda pada dokumen terlebih dahulu.');
                 return;
             }
 
-            if (!confirm(`Konfirmasi: Anda akan membubuhkan tanda tangan resmi pada Halaman ${placedSignature.page} dari dokumen ini?`)) {
-                return;
+            // Modal Konfirmasi Profesional SweetAlert2
+            if (window.Swal) {
+                const confirmRes = await Swal.fire({
+                    title: 'Konfirmasi Tanda Tangan Resmi',
+                    html: `Anda akan membubuhkan tanda tangan resmi pada <strong>Halaman ${placedSignature.page}</strong> dari berkas dokumen ini.<br><small class="text-slate-400 mt-2 block">Tanda tangan akan dicap secara permanen ke dokumen PDF.</small>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#8F0A0D',
+                    cancelButtonColor: '#64748B',
+                    confirmButtonText: 'Ya, Bubuhkan & Simpan',
+                    cancelButtonText: 'Periksa Kembali'
+                });
+                if (!confirmRes.isConfirmed) return;
+            } else {
+                if (!confirm(`Konfirmasi: Anda akan membubuhkan tanda tangan resmi pada Halaman ${placedSignature.page} dari dokumen ini?`)) {
+                    return;
+                }
             }
 
             btnSubmitFinal.disabled = true;
             btnSubmitText.textContent = 'Memproses PDF...';
 
+            // Loading state modal SweetAlert2
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'Memproses Dokumen...',
+                    html: 'Sedang menempelkan tanda tangan resmi ke berkas PDF.<br><span class="text-xs text-slate-400">Mohon tunggu sebentar...</span>',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
+
             try {
+                // Pastikan PDFLib tersedia
+                const PDFLibInstance = window.PDFLib || (typeof PDFLib !== 'undefined' ? PDFLib : null);
+                if (!PDFLibInstance || !PDFLibInstance.PDFDocument) {
+                    throw new Error("Library PDFLib belum siap. Silakan muat ulang halaman (F5) dan coba lagi.");
+                }
+
                 // 1. Ambil file PDF asli dalam bentuk ArrayBuffer
                 const pdfBytes = await fetch(pdfUrl).then(res => res.arrayBuffer());
 
                 // 2. Load PDF menggunakan pdf-lib
-                const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
+                const pdfLibDoc = await PDFLibInstance.PDFDocument.load(pdfBytes);
                 
                 // Ambil halaman target (0-indexed)
                 const pageIndex = placedSignature.page - 1;
@@ -712,17 +804,27 @@
                 const result = await response.json();
 
                 if (response.ok && result.success) {
-                    alert('Berhasil! Tanda tangan telah resmi ditempatkan dan dokumen telah diperbarui.');
+                    if (window.Swal) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Dokumen Berhasil Ditandatangani!',
+                            text: 'Tanda tangan resmi telah tertempel dan dokumen telah diperbarui.',
+                            confirmButtonColor: '#8F0A0D',
+                            confirmButtonText: 'Lihat Dokumen'
+                        });
+                    } else {
+                        alert('Berhasil! Tanda tangan telah resmi ditempatkan dan dokumen telah diperbarui.');
+                    }
                     window.location.href = result.redirect_url || redirectUrl;
                 } else {
-                    alert('Gagal menyimpan: ' + (result.message || 'Terjadi kesalahan pada server.'));
+                    showNotification('error', 'Gagal Menyimpan', result.message || 'Terjadi kesalahan pada server saat menyimpan dokumen.');
                     btnSubmitFinal.disabled = false;
                     btnSubmitText.textContent = 'Simpan & Tanda Tangani';
                 }
 
             } catch (err) {
                 console.error("Error embedding signature:", err);
-                alert('Terjadi kesalahan saat memproses penempelan tanda tangan: ' + err.message);
+                showNotification('error', 'Terjadi Kendala', err.message || 'Gagal memproses penempelan tanda tangan.');
                 btnSubmitFinal.disabled = false;
                 btnSubmitText.textContent = 'Simpan & Tanda Tangani';
             }
