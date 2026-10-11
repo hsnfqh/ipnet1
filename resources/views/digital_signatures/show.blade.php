@@ -65,17 +65,17 @@
                         @if($document->status === 'completed')
                             <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold inline-flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-                                Selesai & Sah (Verified)
+                                Selesai & Sah
                             </span>
                         @elseif($document->status === 'ready_for_client')
                             <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold inline-flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                                Internal Selesai &bull; Siap Kirim ke Klien
+                                Menunggu TTD Klien
                             </span>
                         @elseif($document->status === 'internal_in_progress')
                             <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold inline-flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full bg-amber-600"></span>
-                                Proses Tanda Tangan Internal
+                                Proses TTD Internal
                             </span>
                         @else
                             <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">Draft</span>
@@ -91,9 +91,9 @@
                 </div>
 
                 <div class="flex items-center gap-2 flex-wrap">
-                    <a href="{{ route('digital_signatures.download_pdf', $document->id) }}" class="px-3 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 flex items-center gap-1.5 shadow-xs transition-all">
+                    <a href="{{ route('digital_signatures.download_pdf', $document->id) }}" class="px-3.5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 flex items-center gap-1.5 shadow-xs transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        <span>{{ !empty($document->signed_file_path) ? 'Unduh Dokumen Ber-TTD (PDF)' : 'Unduh PDF' }}</span>
+                        <span>Unduh Dokumen PDF</span>
                     </a>
                     <a href="{{ route('digital_signatures.download_certificate', $document->id) }}" class="px-3 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 flex items-center gap-1.5 transition-all" title="Unduh Lembar Pengesahan Resmi">
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -106,7 +106,7 @@
                 </div>
             </div>
 
-            {{-- PROMINENT BANNER: BAGIKAN LINK KE KLIEN --}}
+            {{-- PROMINENT BANNER: BAGIKAN LINK KE KLIEN (SINGKAT & PROFESIONAL) --}}
             @if($isAllInternalSigned)
                 <div class="ipnet-card p-5 border-blue-200 bg-gradient-to-r from-blue-50/80 via-white to-blue-50/40">
                     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -114,14 +114,14 @@
                             <div class="flex items-center gap-2">
                                 <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
                                 <h3 class="text-sm font-bold text-blue-950 uppercase tracking-wider">
-                                    {{ $document->status === 'completed' ? 'Tautan Verifikasi & TTD Klien' : 'Tautan TTD Siap Dikirim ke Klien' }}
+                                    {{ $document->status === 'completed' ? 'Tautan Verifikasi Dokumen Klien' : 'Tautan Tanda Tangan Klien' }}
                                 </h3>
                             </div>
-                            <p class="text-xs text-blue-800">
+                            <p class="text-xs text-blue-900">
                                 @if($document->status === 'completed')
-                                    PIC Klien (<strong>{{ $document->client_name }}</strong>) telah menandatangani dokumen ini pada {{ $document->client_signed_at?->format('d/m/Y H:i') }} WIB.
+                                    Dokumen telah resmi disahkan oleh <strong>{{ $document->client_name }}</strong> pada {{ $document->client_signed_at?->format('d/m/Y H:i') }} WIB.
                                 @else
-                                    Seluruh pihak internal telah menandatangani! Silakan salin link di bawah atau kirim langsung ke WhatsApp PIC Klien (<strong>{{ $document->client_name }}</strong>).
+                                    Tanda tangan internal lengkap. Bagikan tautan ini ke PIC Klien (<strong>{{ $document->client_name }}</strong>) untuk pengesahan dokumen.
                                 @endif
                             </p>
                         </div>
@@ -131,7 +131,7 @@
                                 <input type="text" readonly value="{{ $clientSigningUrl }}" id="clientUrlInput"
                                        class="w-full pl-3 pr-20 py-2 text-xs rounded-xl border border-blue-200 bg-white font-mono text-slate-700 select-all">
                                 <button type="button" @click="copyLink()"
-                                        class="absolute right-1 top-1 bottom-1 px-3 rounded-lg bg-blue-600 text-white font-bold text-[11px] hover:bg-blue-700 transition-all">
+                                        class="absolute right-1 top-1 bottom-1 px-3 rounded-lg bg-blue-600 text-white font-bold text-[11px] hover:bg-blue-700 transition-all cursor-pointer">
                                     <span x-text="copied ? 'Tersalin!' : 'Salin'">Salin</span>
                                 </button>
                             </div>
