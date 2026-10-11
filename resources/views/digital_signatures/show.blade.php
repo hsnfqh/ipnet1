@@ -90,10 +90,20 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                    @if($canSign)
+                        <a href="{{ route('digital_signatures.place_signature', $document->id) }}" class="btn-ipnet-primary px-3.5 py-2 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all animate-pulse">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            <span>Tempatkan Tanda Tangan</span>
+                        </a>
+                    @endif
                     <a href="{{ route('digital_signatures.download_pdf', $document->id) }}" class="px-3 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 flex items-center gap-1.5 shadow-xs transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        <span>Lembar Pengesahan PDF</span>
+                        <span>{{ $document->hasSignedPdf() ? 'Unduh Dokumen Ber-TTD (PDF)' : 'Unduh PDF' }}</span>
+                    </a>
+                    <a href="{{ route('digital_signatures.download_certificate', $document->id) }}" class="px-3 py-2 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-100 flex items-center gap-1.5 transition-all" title="Unduh Lembar Pengesahan Resmi">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>Lembar Pengesahan</span>
                     </a>
                     <a href="{{ route('digital_signatures.download_original', $document->id) }}" class="px-3 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 flex items-center gap-1.5 transition-all">
                         <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -144,36 +154,53 @@
 
             {{-- KARTU TANDA TANGAN INTERNAL SAYA (JIKA GILIRAN USER INI) --}}
             @if($canSign)
-                <div class="ipnet-card p-6 border-[#8F0A0D]/30 bg-gradient-to-br from-red-50/40 via-white to-red-50/20 space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="ipnet-card p-6 border-red-200 bg-gradient-to-br from-red-50/50 via-white to-red-50/20 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-xl bg-[#8F0A0D] text-white flex items-center justify-center font-bold text-sm">✍️</div>
+                            <div class="w-9 h-9 rounded-xl bg-[#8F0A0D] text-white flex items-center justify-center font-bold text-sm shadow-sm">✍️</div>
                             <div>
                                 <h3 class="text-sm font-bold text-slate-900">Giliran Anda Menandatangani Dokumen</h3>
                                 <p class="text-xs text-slate-600">Sebagai <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->position ?: 'Engineer Pelaksana' }}).</p>
                             </div>
                         </div>
+
+                        <!-- TOMBOL UTAMA: TEMPATKAN DI PDF (IPB DISIGN STYLE) -->
+                        <a href="{{ route('digital_signatures.place_signature', $document->id) }}"
+                           class="btn-ipnet-primary px-4 py-2.5 rounded-xl text-white font-bold text-xs flex items-center gap-2 shadow-md transition-all active:scale-95 shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            <span>Buka Layar Tempatkan Tanda Tangan (Canvas PDF) &rarr;</span>
+                        </a>
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="block text-xs font-bold text-slate-700">Goreskan Tanda Tangan Anda pada Kotak di Bawah:</label>
-                        <div class="border-2 border-slate-300 rounded-2xl overflow-hidden bg-white shadow-inner relative">
-                            <canvas id="internalSignaturePad" width="700" height="180" class="w-full h-44 cursor-crosshair touch-none"></canvas>
-                            <div class="absolute bottom-2 right-2 flex items-center gap-2">
-                                <button type="button" @click="clearPad()" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-semibold">
-                                    Bersihkan
+                    <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div>
+                            <strong>Direkomendasikan:</strong> Gunakan tombol <strong>"Buka Layar Tempatkan Tanda Tangan"</strong> di atas untuk melihat dokumen secara utuh dan menggeser (drag & drop) tanda tangan bebas ke posisi kolom tanda tangan yang tepat di halaman yang Anda pilih.
+                        </div>
+                    </div>
+
+                    <details class="text-xs text-slate-600 cursor-pointer pt-1">
+                        <summary class="font-bold text-slate-700 hover:text-[#8F0A0D]">Atau tanda tangani cepat secara langsung di sini</summary>
+                        <div class="mt-3 space-y-2 border-t border-slate-100 pt-3">
+                            <label class="block text-xs font-bold text-slate-700">Goreskan Tanda Tangan Cepat:</label>
+                            <div class="border-2 border-slate-300 rounded-2xl overflow-hidden bg-white shadow-inner relative">
+                                <canvas id="internalSignaturePad" width="700" height="180" class="w-full h-44 cursor-crosshair touch-none"></canvas>
+                                <div class="absolute bottom-2 right-2 flex items-center gap-2">
+                                    <button type="button" @click="clearPad()" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-semibold">
+                                        Bersihkan
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between pt-1">
+                                <span class="text-[11px] text-slate-400">Gunakan mouse atau goreskan jari pada layar sentuh.</span>
+                                <button type="button" @click="submitInternalSign()" :disabled="submittingSign"
+                                        class="btn-ipnet-primary px-5 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-2">
+                                    <span x-show="!submittingSign">Simpan Tanda Tangan Cepat &rarr;</span>
+                                    <span x-show="submittingSign">Menyimpan...</span>
                                 </button>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between pt-1">
-                            <span class="text-[11px] text-slate-400">Gunakan mouse pada laptop atau goreskan jari pada layar sentuh/HP.</span>
-                            <button type="button" @click="submitInternalSign()" :disabled="submittingSign"
-                                    class="btn-ipnet-primary px-5 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-2">
-                                <span x-show="!submittingSign">Simpan Tanda Tangan &rarr;</span>
-                                <span x-show="submittingSign">Menyimpan...</span>
-                            </button>
-                        </div>
-                    </div>
+                    </details>
                 </div>
             @endif
 

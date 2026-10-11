@@ -6,6 +6,8 @@
     <title>Tanda Tangan Dokumen: {{ $document->title }} - PT IP Network Solusindo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.9/dist/pdf-lib.min.js"></script>
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -175,6 +177,50 @@
                         <p class="text-[11px] text-slate-400">Gunakan jari Anda pada layar HP/tablet atau mouse pada komputer untuk membubuhkan tanda tangan.</p>
                     </div>
 
+                    <!-- OPSIONAL / INTERAKTIF: TEMPATKAN DI HALAMAN PDF SEPERTI IPB DISIGN -->
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
+                        <div class="p-3.5 bg-slate-100/70 border-b border-slate-200 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-teal-600"></span>
+                                <span class="text-xs font-bold text-slate-800">Posisi Tanda Tangan pada Berkas PDF (Interaktif)</span>
+                            </div>
+                            <button type="button" id="btnTogglePdfPlacement" class="text-xs font-bold text-teal-700 hover:text-teal-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                                Buka Viewer Dokumen &rarr;
+                            </button>
+                        </div>
+                        
+                        <div id="pdfPlacementSection" class="hidden p-4 space-y-3">
+                            <p class="text-[11.5px] text-slate-600">
+                                Pilih halaman dan geser (drag & drop) kotak tanda tangan ke lokasi yang Anda inginkan (misal di kolom Pihak Kedua / PIC Klien).
+                            </p>
+
+                            <!-- Mini Toolbar -->
+                            <div class="flex items-center justify-between bg-slate-800 text-white p-2 rounded-xl text-xs gap-2 flex-wrap">
+                                <button type="button" id="btnPlaceClientSig" class="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-500 font-bold text-[11px] flex items-center gap-1">
+                                    + Taruh di Halaman Ini
+                                </button>
+                                <div class="flex items-center gap-1 text-[11px]">
+                                    <button type="button" id="cPrevPage" class="px-2 py-0.5 bg-slate-700 hover:bg-slate-600 rounded font-bold">&lsaquo;</button>
+                                    <span>Hal <strong id="cPageNum">1</strong> / <span id="cTotalPages">1</span></span>
+                                    <button type="button" id="cNextPage" class="px-2 py-0.5 bg-slate-700 hover:bg-slate-600 rounded font-bold">&rsaquo;</button>
+                                </div>
+                            </div>
+
+                            <!-- PDF Canvas Area -->
+                            <div class="bg-slate-700 p-2 sm:p-4 rounded-xl flex items-center justify-center overflow-auto max-h-[500px] relative">
+                                <div id="cPageWrapper" class="relative inline-block">
+                                    <canvas id="cCanvas" class="shadow-lg bg-white block rounded-xs max-w-full"></canvas>
+                                    <div id="cPlacedBox" class="absolute border-2 border-dashed border-teal-500 bg-teal-500/20 rounded shadow hidden cursor-move select-none" style="width: 140px; height: 70px;">
+                                        <div class="absolute -top-5 left-0 bg-teal-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-t">
+                                            TTD Anda
+                                        </div>
+                                        <img id="cPlacedImg" src="" class="w-full h-full object-contain pointer-events-none p-1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- CHECKBOX PERNYATAAN -->
                     <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                         <label class="flex items-start gap-2.5 cursor-pointer text-xs text-slate-700 select-none">
@@ -209,6 +255,7 @@
     <!-- SCRIPT TANDA TANGAN KLIEN -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const pdfUrl = @json($pdfUrl);
         const canvas = document.getElementById('clientCanvas');
         if (!canvas) return;
 
@@ -221,6 +268,7 @@
         let isDrawing = false;
         let lastX = 0;
         let lastY = 0;
+        let hasDrawn = false;
 
         function getCoords(e) {
             const rect = canvas.getBoundingClientRect();
@@ -251,6 +299,7 @@
             ctx.stroke();
             lastX = coords.x;
             lastY = coords.y;
+            hasDrawn = true;
         }
 
         function stop() {
@@ -267,7 +316,173 @@
 
         document.getElementById('clearBtn')?.addEventListener('click', function() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hasDrawn = false;
+            if (cPlacedBox) cPlacedBox.classList.add('hidden');
         });
+
+        // INTERACTIVE PDF PLACEMENT FOR CLIENT
+        let cPdfDoc = null;
+        let cCurPage = 1;
+        let cTotal = 1;
+        let cPlacedPlacement = null; // { page, xPercent, yPercent, widthPercent, heightPercent }
+        const cCanvas = document.getElementById('cCanvas');
+        const cCtx = cCanvas ? cCanvas.getContext('2d') : null;
+        const cPlacedBox = document.getElementById('cPlacedBox');
+        const cPlacedImg = document.getElementById('cPlacedImg');
+
+        const btnTogglePdfPlacement = document.getElementById('btnTogglePdfPlacement');
+        const pdfPlacementSection = document.getElementById('pdfPlacementSection');
+
+        btnTogglePdfPlacement?.addEventListener('click', async function() {
+            if (pdfPlacementSection.classList.contains('hidden')) {
+                pdfPlacementSection.classList.remove('hidden');
+                btnTogglePdfPlacement.textContent = 'Tutup Viewer';
+                if (!cPdfDoc) {
+                    await initClientPdf();
+                }
+            } else {
+                pdfPlacementSection.classList.add('hidden');
+                btnTogglePdfPlacement.textContent = 'Buka Viewer Dokumen →';
+            }
+        });
+
+        async function initClientPdf() {
+            try {
+                if (window.pdfjsLib) {
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    const loading = pdfjsLib.getDocument({ url: pdfUrl });
+                    cPdfDoc = await loading.promise;
+                    cTotal = cPdfDoc.numPages;
+                    document.getElementById('cTotalPages').textContent = cTotal;
+                    await renderClientPage(1);
+                }
+            } catch (err) {
+                console.warn('PDF load warning:', err);
+            }
+        }
+
+        async function renderClientPage(num) {
+            if (!cPdfDoc) return;
+            const page = await cPdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale: 1.0 });
+            
+            cCanvas.width = viewport.width;
+            cCanvas.height = viewport.height;
+            cCanvas.style.width = viewport.width + 'px';
+            cCanvas.style.height = viewport.height + 'px';
+
+            await page.render({ canvasContext: cCtx, viewport: viewport }).promise;
+            cCurPage = num;
+            document.getElementById('cPageNum').textContent = num;
+            updateClientBox();
+        }
+
+        document.getElementById('cPrevPage')?.addEventListener('click', () => {
+            if (cCurPage > 1) renderClientPage(cCurPage - 1);
+        });
+        document.getElementById('cNextPage')?.addEventListener('click', () => {
+            if (cCurPage < cTotal) renderClientPage(cCurPage + 1);
+        });
+
+        document.getElementById('btnPlaceClientSig')?.addEventListener('click', () => {
+            if (!hasDrawn) {
+                alert('Silakan goreskan tanda tangan Anda pada kotak di atas terlebih dahulu!');
+                return;
+            }
+            cPlacedImg.src = canvas.toDataURL('image/png');
+            cPlacedBox.classList.remove('hidden');
+            
+            const w = parseFloat(cCanvas.style.width) || cCanvas.width;
+            const h = parseFloat(cCanvas.style.height) || cCanvas.height;
+
+            const boxW = 150;
+            const boxH = 75;
+            const left = Math.max(0, w - boxW - 50);
+            const top = Math.max(0, h - boxH - 60);
+
+            cPlacedBox.style.left = left + 'px';
+            cPlacedBox.style.top = top + 'px';
+            cPlacedBox.style.width = boxW + 'px';
+            cPlacedBox.style.height = boxH + 'px';
+
+            cPlacedPlacement = {
+                page: cCurPage,
+                xPercent: (left / w) * 100,
+                yPercent: (top / h) * 100,
+                widthPercent: (boxW / w) * 100,
+                heightPercent: (boxH / h) * 100
+            };
+        });
+
+        function updateClientBox() {
+            if (!cPlacedPlacement || cPlacedPlacement.page !== cCurPage) {
+                cPlacedBox.classList.add('hidden');
+            } else {
+                cPlacedBox.classList.remove('hidden');
+                const w = parseFloat(cCanvas.style.width) || cCanvas.width;
+                const h = parseFloat(cCanvas.style.height) || cCanvas.height;
+                cPlacedBox.style.left = ((cPlacedPlacement.xPercent / 100) * w) + 'px';
+                cPlacedBox.style.top = ((cPlacedPlacement.yPercent / 100) * h) + 'px';
+            }
+        }
+
+        // Draggable box for client
+        let cDragging = false;
+        let cStartDragX = 0, cStartDragY = 0, cInitLeft = 0, cInitTop = 0;
+
+        cPlacedBox?.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            cDragging = true;
+            cStartDragX = e.clientX;
+            cStartDragY = e.clientY;
+            cInitLeft = parseFloat(cPlacedBox.style.left) || 0;
+            cInitTop = parseFloat(cPlacedBox.style.top) || 0;
+        });
+
+        cPlacedBox?.addEventListener('touchstart', (e) => {
+            cDragging = true;
+            const t = e.touches[0];
+            cStartDragX = t.clientX;
+            cStartDragY = t.clientY;
+            cInitLeft = parseFloat(cPlacedBox.style.left) || 0;
+            cInitTop = parseFloat(cPlacedBox.style.top) || 0;
+        }, { passive: false });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!cDragging) return;
+            const deltaX = e.clientX - cStartDragX;
+            const deltaY = e.clientY - cStartDragY;
+            const w = parseFloat(cCanvas.style.width) || cCanvas.width;
+            const h = parseFloat(cCanvas.style.height) || cCanvas.height;
+            const newL = Math.max(0, Math.min(w - 140, cInitLeft + deltaX));
+            const newT = Math.max(0, Math.min(h - 70, cInitTop + deltaY));
+            cPlacedBox.style.left = newL + 'px';
+            cPlacedBox.style.top = newT + 'px';
+            if (cPlacedPlacement) {
+                cPlacedPlacement.xPercent = (newL / w) * 100;
+                cPlacedPlacement.yPercent = (newT / h) * 100;
+            }
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!cDragging) return;
+            const t = e.touches[0];
+            const deltaX = t.clientX - cStartDragX;
+            const deltaY = t.clientY - cStartDragY;
+            const w = parseFloat(cCanvas.style.width) || cCanvas.width;
+            const h = parseFloat(cCanvas.style.height) || cCanvas.height;
+            const newL = Math.max(0, Math.min(w - 140, cInitLeft + deltaX));
+            const newT = Math.max(0, Math.min(h - 70, cInitTop + deltaY));
+            cPlacedBox.style.left = newL + 'px';
+            cPlacedBox.style.top = newT + 'px';
+            if (cPlacedPlacement) {
+                cPlacedPlacement.xPercent = (newL / w) * 100;
+                cPlacedPlacement.yPercent = (newT / h) * 100;
+            }
+        }, { passive: false });
+
+        window.addEventListener('mouseup', () => { cDragging = false; });
+        window.addEventListener('touchend', () => { cDragging = false; });
 
         // Submit Handler
         document.getElementById('submitBtn')?.addEventListener('click', async function() {
@@ -288,12 +503,7 @@
                 alert('Silakan centang persetujuan dokumen terlebih dahulu.');
                 return;
             }
-
-            // Pastikan canvas tidak kosong
-            const blank = document.createElement('canvas');
-            blank.width = canvas.width;
-            blank.height = canvas.height;
-            if (canvas.toDataURL() === blank.toDataURL()) {
+            if (!hasDrawn) {
                 alert('Silakan bubuhkan tanda tangan Anda terlebih dahulu pada kotak!');
                 return;
             }
@@ -301,27 +511,51 @@
             const signatureBase64 = canvas.toDataURL('image/png');
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = 'Memproses Pengesahan...';
+            submitBtn.innerHTML = 'Memproses Pengesahan & PDF...';
 
             try {
+                const formData = new FormData();
+                formData.append('client_name', name);
+                formData.append('client_position', position);
+                formData.append('client_company', company || '');
+                formData.append('signature', signatureBase64);
+                formData.append('agreement', '1');
+
+                // Jika user menempatkan posisi tanda tangan secara interaktif, stamp langsung via pdf-lib!
+                if (cPlacedPlacement && window.PDFLib) {
+                    try {
+                        const pdfBytes = await fetch(pdfUrl).then(r => r.arrayBuffer());
+                        const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+                        const page = pdfDoc.getPage(cPlacedPlacement.page - 1);
+                        const { width: pW, height: pH } = page.getSize();
+                        const sigImg = await pdfDoc.embedPng(signatureBase64);
+                        
+                        const x = (cPlacedPlacement.xPercent / 100) * pW;
+                        const w = (cPlacedPlacement.widthPercent / 100) * pW;
+                        const h = (cPlacedPlacement.heightPercent / 100) * pH;
+                        const y = pH - ((cPlacedPlacement.yPercent / 100) * pH) - h;
+
+                        page.drawImage(sigImg, { x, y, width: w, height: h });
+                        const modifiedBytes = await pdfDoc.save();
+                        formData.append('signed_pdf', new Blob([modifiedBytes], { type: 'application/pdf' }), 'client_signed.pdf');
+                        formData.append('placement', JSON.stringify(cPlacedPlacement));
+                    } catch (stampErr) {
+                        console.warn('Stamping warning:', stampErr);
+                    }
+                }
+
                 const res = await fetch('{{ route("client.digital_signature.submit", $document->client_signing_token) }}', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
                     },
-                    body: JSON.stringify({
-                        client_name: name,
-                        client_position: position,
-                        client_company: company,
-                        signature: signatureBase64,
-                        agreement: true
-                    })
+                    body: formData
                 });
 
                 const data = await res.json();
                 if (data.success) {
-                    alert('Terima kasih! Dokumen berhasil ditandatangani dan diverifikasi.');
+                    alert('Terima kasih! Dokumen resmi berhasil ditandatangani dan diverifikasi.');
                     if (data.redirect) {
                         window.location.href = data.redirect;
                     } else {
@@ -333,6 +567,7 @@
                     submitBtn.innerHTML = 'Setujui & Tanda Tangani Dokumen';
                 }
             } catch (err) {
+                console.error(err);
                 alert('Gagal mengirim data ke server. Mohon periksa koneksi internet Anda.');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Setujui & Tanda Tangani Dokumen';

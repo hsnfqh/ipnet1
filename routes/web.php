@@ -68,6 +68,7 @@ Route::match(['GET', 'POST'], '/verify/inspect', [\App\Http\Controllers\PublicDo
 // Public Client Digital Signature Portal & Verification (Tanpa Perlu Login)
 Route::get('/sign/{token}', [DigitalSignatureController::class, 'clientSignShow'])->name('client.digital_signature.show');
 Route::get('/sign/{token}', [DigitalSignatureController::class, 'clientSignShow'])->name('digital_signatures.client_sign');
+Route::get('/sign/{token}/stream-pdf', [DigitalSignatureController::class, 'clientStreamPdf'])->name('client.digital_signature.stream_pdf');
 Route::post('/sign/{token}', [DigitalSignatureController::class, 'clientSignSubmit'])->name('client.digital_signature.submit');
 Route::get('/verify-document-sign/{hash}', [DigitalSignatureController::class, 'verifyPublic'])->name('public.digital_signature.verify');
 
@@ -402,9 +403,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/create', [DigitalSignatureController::class, 'create'])->name('create');
         Route::post('/', [DigitalSignatureController::class, 'store'])->name('store');
         Route::get('/{id}', [DigitalSignatureController::class, 'show'])->name('show');
+        Route::get('/{id}/place-signature', [DigitalSignatureController::class, 'placeSignatureShow'])->name('place_signature');
         Route::post('/{id}/sign-internal', [DigitalSignatureController::class, 'signInternal'])->name('sign_internal');
         Route::get('/{id}/download-pdf', [DigitalSignatureController::class, 'downloadPdf'])->name('download_pdf');
+        Route::get('/{id}/download-certificate', [DigitalSignatureController::class, 'downloadCertificateSheet'])->name('download_certificate');
         Route::get('/{id}/download-original', [DigitalSignatureController::class, 'downloadOriginalFile'])->name('download_original');
+        Route::get('/{id}/stream-pdf', [DigitalSignatureController::class, 'streamPdf'])->name('stream_pdf');
         Route::delete('/{id}', [DigitalSignatureController::class, 'destroy'])->name('destroy');
     });
 

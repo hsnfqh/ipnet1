@@ -263,9 +263,21 @@
 
                                     {{-- Aksi --}}
                                     <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                                        @php
+                                            $currUser = auth()->user();
+                                            $canUserSignDoc = $currUser ? $doc->canUserSign($currUser->id) : false;
+                                        @endphp
                                         <div class="inline-flex items-center gap-1.5 justify-end">
+                                            @if($canUserSignDoc)
+                                                <a href="{{ route('digital_signatures.place_signature', $doc->id) }}"
+                                                   title="Tempatkan Tanda Tangan Sekarang"
+                                                   class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] inline-flex items-center gap-1.5 shadow-sm transition-all active:scale-95">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                    <span>Tanda Tangani</span>
+                                                </a>
+                                            @endif
                                             <a href="{{ route('digital_signatures.show', $doc->id) }}"
-                                               title="Detail & Tanda Tangan"
+                                               title="Detail & Informasi Dokumen"
                                                class="p-2 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569] hover:text-[#8F0A0D] hover:bg-[#FEF2F2] hover:border-[#FECACA] transition-all">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             </a>
@@ -278,7 +290,7 @@
                                                 </button>
                                             @endif
                                             <a href="{{ route('digital_signatures.download_pdf', $doc->id) }}"
-                                               title="Download Lembar Pengesahan PDF"
+                                               title="{{ $doc->hasSignedPdf() ? 'Unduh Dokumen Ber-TTD (PDF)' : 'Unduh Dokumen PDF' }}"
                                                class="p-2 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569] hover:bg-[#1E293B] hover:text-white hover:border-[#1E293B] transition-all">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             </a>

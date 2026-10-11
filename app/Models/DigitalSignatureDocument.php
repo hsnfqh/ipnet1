@@ -20,6 +20,7 @@ class DigitalSignatureDocument extends Model
         'project_id',
         'project_name',
         'file_path',
+        'signed_file_path',
         'file_name',
         'file_size',
         'description',
@@ -27,6 +28,7 @@ class DigitalSignatureDocument extends Model
         'status',
         'created_by',
         'internal_signers',
+        'placed_signatures',
         'client_name',
         'client_position',
         'client_company',
@@ -43,6 +45,7 @@ class DigitalSignatureDocument extends Model
 
     protected $casts = [
         'internal_signers'        => 'array',
+        'placed_signatures'       => 'array',
         'client_signed_at'        => 'datetime',
         'client_token_expires_at' => 'datetime',
     ];
@@ -169,6 +172,33 @@ class DigitalSignatureDocument extends Model
     }
 
     /**
+     * Dapatkan path berkas PDF yang paling mutakhir (berkas tertandatangani jika ada, atau berkas asli)
+     */
+    public function getActiveFilePath(): string
+    {
+        if ($this->signed_file_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->signed_file_path)) {
+            return $this->signed_file_path;
+        }
+        return $this->file_path;
+    }
+
+    /**
+     * Dapatkan URL berkas PDF yang paling mutakhir
+     */
+    public function getActiveFileUrl(): string
+    {
+        return asset('storage/' . $this->getActiveFilePath());
+    }
+
+    /**
+     * Cek apakah sudah memiliki berkas tertandatangani
+     */
+    public function hasSignedPdf(): bool
+    {
+        return !empty($this->signed_file_path) && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->signed_file_path);
+    }
+
+    /**
      * Pastikan tabel digital_signature_documents selalu ada & siap di database remote
      */
     public static function ensureSchemaReady(): void
@@ -183,6 +213,7 @@ class DigitalSignatureDocument extends Model
                     $table->foreignId('project_id')->nullable()->constrained('projects')->nullOnDelete();
                     $table->string('project_name')->nullable();
                     $table->string('file_path');
+                    $table->string('signed_file_path')->nullable();
                     $table->string('file_name');
                     $table->bigInteger('file_size')->nullable();
                     $table->text('description')->nullable();
@@ -190,6 +221,7 @@ class DigitalSignatureDocument extends Model
                     $table->string('status')->default('draft'); // draft | internal_in_progress | ready_for_client | completed | declined
                     $table->foreignId('created_by')->constrained('users');
                     $table->longText('internal_signers')->nullable();
+                    $table->longText('placed_signatures')->nullable();
                     $table->string('client_name')->nullable();
                     $table->string('client_position')->nullable();
                     $table->string('client_company')->nullable();
@@ -204,6 +236,18 @@ class DigitalSignatureDocument extends Model
                     $table->text('notes')->nullable();
                     $table->timestamps();
                 });
+            } else {
+                // Ensure columns exist on already created table
+                if (!Schema::hasColumn('digital_signature_documents', 'signed_file_path')) {
+                    Schema::table('digital_signature_documents', function (Blueprint $table) {
+                        $table->string('signed_file_path')->nullable()->after('file_path');
+                    });
+                }
+                if (!Schema::hasColumn('digital_signature_documents', 'placed_signatures')) {
+                    Schema::table('digital_signature_documents', function (Blueprint $table) {
+                        $table->longText('placed_signatures')->nullable()->after('internal_signers');
+                    });
+                }
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('ensureSchemaReady digital_signature_documents error: ' . $e->getMessage());

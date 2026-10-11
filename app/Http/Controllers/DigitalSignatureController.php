@@ -251,6 +251,26 @@ class DigitalSignatureController extends Controller
     }
 
     /**
+     * Halaman Interaktif "Tempatkan Tanda Tangan" (Canvas PDF Placement seperti IPB DiSign)
+     */
+    public function placeSignatureShow($id)
+    {
+        DigitalSignatureDocument::ensureSchemaReady();
+
+        $document = DigitalSignatureDocument::with(['creator', 'project'])->findOrFail($id);
+        $user = auth()->user();
+
+        if (!$document->canUserSign($user->id)) {
+            return redirect()->route('digital_signatures.show', $document->id)
+                ->with('error', 'Anda tidak memiliki hak akses atau belum giliran Anda menandatangani dokumen ini.');
+        }
+
+        $pdfUrl = route('digital_signatures.stream_pdf', $document->id);
+
+        return view('digital_signatures.place_signature', compact('document', 'user', 'pdfUrl'));
+    }
+
+    /**
      * Proses tanda tangan internal oleh user yang sedang login
      */
     public function signInternal(Request $request, $id)
@@ -267,6 +287,41 @@ class DigitalSignatureController extends Controller
                 'success' => false,
                 'message' => 'Anda tidak memiliki wewenang untuk menandatangani dokumen ini pada tahap ini.',
             ], 403);
+        }
+
+        // Simpan file PDF yang telah distamp/ditempel tanda tangan
+        if ($request->hasFile('signed_pdf')) {
+            $signedFile = $request->file('signed_pdf');
+            $filename = 'digital_signatures/signed/' . Str::slug($document->document_number) . '-user' . $user->id . '-' . time() . '.pdf';
+            $path = $signedFile->storeAs('digital_signatures/signed', basename($filename), 'public');
+            $document->signed_file_path = $path;
+        } elseif ($request->filled('signed_pdf_base64')) {
+            $b64 = $request->signed_pdf_base64;
+            if (str_contains($b64, 'base64,')) {
+                $b64 = explode('base64,', $b64)[1];
+            }
+            $binary = base64_decode($b64);
+            if ($binary) {
+                $filename = 'digital_signatures/signed/' . Str::slug($document->document_number) . '-user' . $user->id . '-' . time() . '.pdf';
+                Storage::disk('public')->put($filename, $binary);
+                $document->signed_file_path = $filename;
+            }
+        }
+
+        // Rekam koordinat penempatan tanda tangan jika ada
+        if ($request->filled('placement')) {
+            $placementData = is_array($request->placement) ? $request->placement : json_decode($request->placement, true);
+            if ($placementData) {
+                $placed = $document->placed_signatures ?? [];
+                $placed[] = array_merge($placementData, [
+                    'signer_type' => 'internal',
+                    'user_id'     => $user->id,
+                    'user_name'   => $user->name,
+                    'role_title'  => $user->position ?: 'Engineer Pelaksana',
+                    'signed_at'   => now()->format('Y-m-d H:i:s'),
+                ]);
+                $document->placed_signatures = $placed;
+            }
         }
 
         $signers = $document->internal_signers ?? [];
@@ -301,9 +356,10 @@ class DigitalSignatureController extends Controller
         $document->save();
 
         return response()->json([
-            'success' => true,
-            'message' => 'Tanda tangan internal berhasil disimpan!',
-            'status'  => $document->status,
+            'success'      => true,
+            'message'      => 'Tanda tangan berhasil ditempatkan dan dokumen berhasil ditandatangani!',
+            'status'       => $document->status,
+            'redirect_url' => route('digital_signatures.show', $document->id),
         ]);
     }
 
@@ -315,8 +371,9 @@ class DigitalSignatureController extends Controller
         DigitalSignatureDocument::ensureSchemaReady();
 
         $document = DigitalSignatureDocument::where('client_signing_token', $token)->firstOrFail();
+        $pdfUrl = route('client.digital_signature.stream_pdf', $document->client_signing_token);
 
-        return view('digital_signatures.client_sign', compact('document'));
+        return view('digital_signatures.client_sign', compact('document', 'pdfUrl'));
     }
 
     /**
@@ -342,6 +399,41 @@ class DigitalSignatureController extends Controller
                 'success' => false,
                 'message' => 'Dokumen ini telah selesai ditandatangani sebelumnya.',
             ], 400);
+        }
+
+        // Simpan file PDF yang telah distamp/ditempel tanda tangan klien
+        if ($request->hasFile('signed_pdf')) {
+            $signedFile = $request->file('signed_pdf');
+            $filename = 'digital_signatures/signed/' . Str::slug($document->document_number) . '-client-' . time() . '.pdf';
+            $path = $signedFile->storeAs('digital_signatures/signed', basename($filename), 'public');
+            $document->signed_file_path = $path;
+        } elseif ($request->filled('signed_pdf_base64')) {
+            $b64 = $request->signed_pdf_base64;
+            if (str_contains($b64, 'base64,')) {
+                $b64 = explode('base64,', $b64)[1];
+            }
+            $binary = base64_decode($b64);
+            if ($binary) {
+                $filename = 'digital_signatures/signed/' . Str::slug($document->document_number) . '-client-' . time() . '.pdf';
+                Storage::disk('public')->put($filename, $binary);
+                $document->signed_file_path = $filename;
+            }
+        }
+
+        // Rekam koordinat penempatan tanda tangan klien jika ada
+        if ($request->filled('placement')) {
+            $placementData = is_array($request->placement) ? $request->placement : json_decode($request->placement, true);
+            if ($placementData) {
+                $placed = $document->placed_signatures ?? [];
+                $placed[] = array_merge($placementData, [
+                    'signer_type' => 'client',
+                    'user_name'   => trim($request->client_name),
+                    'role_title'  => trim($request->client_position),
+                    'company'     => trim($request->client_company ?? ''),
+                    'signed_at'   => now()->format('Y-m-d H:i:s'),
+                ]);
+                $document->placed_signatures = $placed;
+            }
         }
 
         $document->client_name     = trim($request->client_name);
@@ -378,9 +470,38 @@ class DigitalSignatureController extends Controller
     }
 
     /**
-     * Download Berkas PDF Asli atau Lembar Pengesahan Resmi (Certificate Sheet)
+     * Download Berkas PDF yang telah ditandatangani di posisinya (atau lembar pengesahan)
      */
-    public function downloadPdf($id)
+    public function downloadPdf($id, Request $request)
+    {
+        DigitalSignatureDocument::ensureSchemaReady();
+
+        $document = DigitalSignatureDocument::findOrFail($id);
+
+        // Jika user secara spesifik meminta Lembar Pengesahan (format=certificate)
+        if ($request->get('format') === 'certificate') {
+            return $this->downloadCertificateSheet($id);
+        }
+
+        // Prioritas 1: Jika sudah ada berkas PDF yang tertempel tanda tangan di tempatnya
+        if ($document->hasSignedPdf()) {
+            $safeTitle = Str::slug($document->title ?: 'Dokumen') . '-' . $document->document_number . '-Signed.pdf';
+            return Storage::disk('public')->download($document->signed_file_path, $safeTitle);
+        }
+
+        // Prioritas 2: Jika dokumen sudah completed tapi belum ada file stamp, buat lembar pengesahan
+        if ($document->status === 'completed') {
+            return $this->downloadCertificateSheet($id);
+        }
+
+        // Prioritas 3: Download berkas PDF asli
+        return $this->downloadOriginalFile($id);
+    }
+
+    /**
+     * Download Lembar Pengesahan Resmi (Certificate Sheet) DomPDF
+     */
+    public function downloadCertificateSheet($id)
     {
         DigitalSignatureDocument::ensureSchemaReady();
 
@@ -441,7 +562,7 @@ class DigitalSignatureController extends Controller
                 'defaultFont'          => 'sans-serif',
             ]);
 
-        $safeTitle = Str::slug($document->title ?: 'Dokumen') . '-' . $document->document_number . '.pdf';
+        $safeTitle = Str::slug($document->title ?: 'Dokumen') . '-' . $document->document_number . '-Pengesahan.pdf';
         return $pdf->download($safeTitle);
     }
 
@@ -477,5 +598,47 @@ class DigitalSignatureController extends Controller
         $document->delete();
 
         return redirect()->route('digital_signatures.index')->with('success', 'Dokumen berhasil dihapus.');
+    }
+
+    /**
+     * Stream berkas PDF langsung secara aman untuk PDF.js canvas viewer
+     */
+    public function streamPdf($id)
+    {
+        DigitalSignatureDocument::ensureSchemaReady();
+        $document = DigitalSignatureDocument::findOrFail($id);
+        $path = $document->getActiveFilePath();
+
+        if (!Storage::disk('public')->exists($path)) {
+            abort(404, 'Berkas dokumen tidak ditemukan di server.');
+        }
+
+        $fullPath = Storage::disk('public')->path($path);
+        return response()->file($fullPath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . basename($path) . '"',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
+    }
+
+    /**
+     * Stream berkas PDF untuk portal publik klien
+     */
+    public function clientStreamPdf($token)
+    {
+        DigitalSignatureDocument::ensureSchemaReady();
+        $document = DigitalSignatureDocument::where('client_signing_token', $token)->firstOrFail();
+        $path = $document->getActiveFilePath();
+
+        if (!Storage::disk('public')->exists($path)) {
+            abort(404, 'Berkas dokumen tidak ditemukan di server.');
+        }
+
+        $fullPath = Storage::disk('public')->path($path);
+        return response()->file($fullPath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . basename($path) . '"',
+            'Access-Control-Allow-Origin' => '*',
+        ]);
     }
 }
