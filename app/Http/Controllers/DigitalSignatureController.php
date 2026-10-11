@@ -634,9 +634,21 @@ class DigitalSignatureController extends Controller
     {
         DigitalSignatureDocument::ensureSchemaReady();
 
-        $document = DigitalSignatureDocument::findOrFail($id);
-        $user = auth()->user();
+        $document = DigitalSignatureDocument::find($id);
 
+        // Jika dokumen sudah tidak ada di database (sudah terhapus)
+        if (!$document) {
+            if (request()->wantsJson() || request()->ajax()) {
+                session()->flash('success', 'Dokumen berhasil dihapus.');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Dokumen berhasil dihapus.'
+                ]);
+            }
+            return redirect()->route('digital_signatures.index')->with('success', 'Dokumen berhasil dihapus.');
+        }
+
+        $user = auth()->user();
         $isCreator = ((int)$document->created_by === (int)$user->id);
         $isAdmin = $user->hasAnyRole(['Super Admin', 'Superadmin', 'Admin', 'Director', 'Direktur', 'HD / Direktur', 'Division Head']);
 

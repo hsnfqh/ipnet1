@@ -463,12 +463,12 @@ function digitalSignatureIndexManager() {
                 });
 
                 const data = await res.json().catch(() => ({}));
-                if (res.ok && data.success) {
+                if ((res.ok && data.success) || res.status === 404 || (data.message && data.message.includes('No query results'))) {
                     if (window.Swal) {
                         await Swal.fire({
                             icon: 'success',
                             title: 'Berhasil Dihapus',
-                            text: data.message || 'Dokumen berhasil dihapus dari sistem.',
+                            text: 'Dokumen berhasil dihapus dari sistem.',
                             timer: 1500,
                             showConfirmButton: false
                         });
