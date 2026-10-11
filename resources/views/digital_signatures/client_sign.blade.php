@@ -218,22 +218,8 @@
                         </div>
                     </div>
 
-                    <!-- STATUS & KONTROL PENEMPATAN TANDA TANGAN -->
-                    <div class="border-t border-slate-100 pt-4 space-y-3">
-                        <label class="block text-[11.5px] font-bold text-slate-700">
-                            Tanda Tangan Pada Dokumen <span class="text-rose-500">*</span>
-                        </label>
-
-                        <!-- Box jika belum ada tanda tangan (Dibuat ringkas, tombol redundant di sidebar dihapus) -->
-                        <div id="unplacedNoticeBox" class="p-3.5 rounded-xl bg-red-50/40 border border-red-200/60 text-xs text-slate-600 flex items-start gap-2.5">
-                            <svg class="w-4 h-4 text-[#8F0A0D] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <div class="leading-relaxed">
-                                Klik tombol <strong class="text-[#8F0A0D]">"Tanda Tangan"</strong> pada bilah dokumen di sebelah kanan untuk membubuhkan dan menempatkan tanda tangan Anda.
-                            </div>
-                        </div>
-
-                        <!-- Box jika sudah menempatkan tanda tangan -->
-                        <div id="placedNoticeBox" class="hidden p-3.5 rounded-xl bg-red-50/30 border border-red-200 space-y-2.5">
+                    <!-- STATUS PENEMPATAN TANDA TANGAN (HANYA MUNCUL JIKA TANDA TANGAN SUDAH DITEMPATKAN) -->
+                    <div id="placedNoticeBox" class="hidden p-3.5 rounded-xl bg-red-50/30 border border-red-200 space-y-2.5">
                             <div class="flex items-center justify-between text-xs">
                                 <span class="font-bold text-[#8F0A0D] flex items-center gap-1.5">
                                     <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
