@@ -112,11 +112,11 @@
         <!-- Tengah: Tombol Aksi Tanda Tangan & Zoom & Halaman (Persis Toolbar Gambar 4) -->
         <div class="flex items-center gap-2 flex-wrap">
             
-            <!-- Tombol + Tanda Tangan (Hijau) -->
+            <!-- Tombol Tanda Tangan (Hijau) -->
             <button type="button" id="btnPlaceSignature" 
                     class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span>+ Tanda Tangan</span>
+                <span>Tanda Tangan</span>
             </button>
 
             <!-- Tombol Hapus (Merah) -->
@@ -284,6 +284,7 @@
 
         // State Tanda Tangan
         let userSignatureDataUrl = null; // Base64 transparent PNG
+        let userSignatureAspectRatio = 2.2; // Rasio aspek goresan tanda tangan
         let placedSignature = null; // { page, xPercent, yPercent, widthPercent, heightPercent }
         let isDragging = false;
         let isResizing = false;
@@ -293,6 +294,56 @@
         let initialBoxTop = 0;
         let initialBoxWidth = 0;
         let initialBoxHeight = 0;
+
+        // Auto-Crop White Space transparan agar batas kotak 100% presisi dengan tinta tanda tangan
+        function cropSignatureCanvas(sourceCanvas) {
+            const sCtx = sourceCanvas.getContext('2d');
+            const w = sourceCanvas.width;
+            const h = sourceCanvas.height;
+            const imgData = sCtx.getImageData(0, 0, w, h);
+            const data = imgData.data;
+
+            let minX = w, minY = h, maxX = -1, maxY = -1;
+
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const alpha = data[(y * w + x) * 4 + 3];
+                    if (alpha > 15) {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
+
+            if (maxX === -1) {
+                return { dataUrl: null, width: 0, height: 0, ratio: 2.2 };
+            }
+
+            // Margin pengaman 4px di sekeliling goresan tinta
+            const pad = 4;
+            minX = Math.max(0, minX - pad);
+            minY = Math.max(0, minY - pad);
+            maxX = Math.min(w - 1, maxX + pad);
+            maxY = Math.min(h - 1, maxY + pad);
+
+            const cropW = Math.max(10, maxX - minX + 1);
+            const cropH = Math.max(10, maxY - minY + 1);
+
+            const cropCanvas = document.createElement('canvas');
+            cropCanvas.width = cropW;
+            cropCanvas.height = cropH;
+            const cropCtx = cropCanvas.getContext('2d');
+            cropCtx.drawImage(sourceCanvas, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+
+            return {
+                dataUrl: cropCanvas.toDataURL('image/png'),
+                width: cropW,
+                height: cropH,
+                ratio: cropW / cropH
+            };
+        }
 
         // DOM Elements
         const pdfCanvas = document.getElementById('pdfCanvas');
@@ -520,7 +571,14 @@
                 return;
             }
 
-            userSignatureDataUrl = modalCanvas.toDataURL('image/png');
+            const cropped = cropSignatureCanvas(modalCanvas);
+            if (!cropped.dataUrl) {
+                showNotification('warning', 'Tanda Tangan Belum Ada', 'Silakan goreskan tanda tangan Anda pada kanvas terlebih dahulu.');
+                return;
+            }
+
+            userSignatureDataUrl = cropped.dataUrl;
+            userSignatureAspectRatio = cropped.ratio;
             closeSignatureModal();
             placeSignatureOnCurrentPage();
         });
@@ -532,18 +590,25 @@
             const currentWidth = parseFloat(pdfCanvas.style.width);
             const currentHeight = parseFloat(pdfCanvas.style.height);
 
-            // Default posisi: 55% dari kiri, 75% dari atas (kanan bawah)
-            const defaultWidthPercent = 25;
-            const defaultHeightPercent = 10;
-            const defaultXPercent = 55;
-            const defaultYPercent = 75;
+            // Hitung lebar kotak proporsional dan pertahankan rasio aspek goresan tanda tangan
+            const targetPixelWidth = Math.min(180, currentWidth * 0.28);
+            const targetPixelHeight = targetPixelWidth / (userSignatureAspectRatio || 2.2);
+
+            const widthPercent = (targetPixelWidth / currentWidth) * 100;
+            const heightPercent = (targetPixelHeight / currentHeight) * 100;
+
+            // Default posisi: 55% dari kiri, 68% dari atas
+            let defaultXPercent = 55;
+            let defaultYPercent = 68;
+            if (defaultXPercent + widthPercent > 98) defaultXPercent = 98 - widthPercent;
+            if (defaultYPercent + heightPercent > 96) defaultYPercent = 96 - heightPercent;
 
             placedSignature = {
                 page: currentPageNum,
                 xPercent: defaultXPercent,
                 yPercent: defaultYPercent,
-                widthPercent: defaultWidthPercent,
-                heightPercent: defaultHeightPercent
+                widthPercent: widthPercent,
+                heightPercent: heightPercent
             };
 
             updateSignatureBoxVisibility();
@@ -658,19 +723,22 @@
                 }
             } else if (isResizing) {
                 const deltaX = clientX - dragStartX;
-                const deltaY = clientY - dragStartY;
 
                 let newW = initialBoxWidth + deltaX;
-                let newH = initialBoxHeight + deltaY;
-
-                if (newW < 60) newW = 60;
-                if (newH < 30) newH = 30;
+                if (newW < 45) newW = 45;
 
                 const left = parseFloat(placedBox.style.left);
                 const top = parseFloat(placedBox.style.top);
 
                 if (left + newW > currentWidth) newW = currentWidth - left;
-                if (top + newH > currentHeight) newH = currentHeight - top;
+
+                // Kunci aspek rasio agar tanda tangan proporsional dan tidak terdistorsi
+                const ratio = userSignatureAspectRatio || (initialBoxWidth / initialBoxHeight) || 2.2;
+                let newH = newW / ratio;
+                if (top + newH > currentHeight) {
+                    newH = currentHeight - top;
+                    newW = newH * ratio;
+                }
 
                 placedBox.style.width = newW + 'px';
                 placedBox.style.height = newH + 'px';
@@ -695,7 +763,7 @@
         // SUBMIT & STAMP TANDA TANGAN KE PDF
         btnSubmitFinal.addEventListener('click', async () => {
             if (!placedSignature || !userSignatureDataUrl) {
-                showNotification('warning', 'Tanda Tangan Belum Ditempatkan', 'Silakan klik tombol "+ Tanda Tangan" dan tempatkan tanda tangan Anda pada dokumen terlebih dahulu.');
+                showNotification('warning', 'Tanda Tangan Belum Ditempatkan', 'Silakan klik tombol "Tanda Tangan" dan tempatkan tanda tangan Anda pada dokumen terlebih dahulu.');
                 return;
             }
 
@@ -752,15 +820,19 @@
                 const targetPage = pdfLibDoc.getPage(pageIndex);
                 const { width: pagePdfWidth, height: pagePdfHeight } = targetPage.getSize();
 
-                // 3. Embed gambar tanda tangan PNG ke PDF
+                // Origin offset jika PDF memiliki MediaBox/CropBox origin selain 0
+                const originX = (typeof targetPage.getX === 'function') ? targetPage.getX() : 0;
+                const originY = (typeof targetPage.getY === 'function') ? targetPage.getY() : 0;
+
+                // 3. Embed gambar tanda tangan PNG hasil crop presisi ke PDF
                 const signatureImage = await pdfLibDoc.embedPng(userSignatureDataUrl);
 
                 // 4. Konversi koordinat UI (%) ke PDF points (PDF origin ada di kiri-bawah!)
-                const xInPdf = (placedSignature.xPercent / 100) * pagePdfWidth;
+                const xInPdf = originX + ((placedSignature.xPercent / 100) * pagePdfWidth);
                 const widthInPdf = (placedSignature.widthPercent / 100) * pagePdfWidth;
                 const heightInPdf = (placedSignature.heightPercent / 100) * pagePdfHeight;
                 // Invert Y coordinate untuk PDF
-                const yInPdf = pagePdfHeight - ((placedSignature.yPercent / 100) * pagePdfHeight) - heightInPdf;
+                const yInPdf = originY + (pagePdfHeight - ((placedSignature.yPercent / 100) * pagePdfHeight) - heightInPdf);
 
                 // 5. Gambar tanda tangan langsung ke halaman PDF!
                 targetPage.drawImage(signatureImage, {

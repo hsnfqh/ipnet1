@@ -175,32 +175,9 @@
                     <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
                         <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <div>
-                            <strong>Direkomendasikan:</strong> Gunakan tombol <strong>"Buka Layar Tempatkan Tanda Tangan"</strong> di atas untuk melihat dokumen secara utuh dan menggeser (drag & drop) tanda tangan bebas ke posisi kolom tanda tangan yang tepat di halaman yang Anda pilih.
+                            Klik tombol <strong>"Buka Layar Tempatkan Tanda Tangan"</strong> di atas untuk melihat dokumen secara utuh dan menempatkan tanda tangan Anda secara presisi pada posisi yang diinginkan.
                         </div>
                     </div>
-
-                    <details class="text-xs text-slate-600 cursor-pointer pt-1">
-                        <summary class="font-bold text-slate-700 hover:text-[#8F0A0D]">Atau tanda tangani cepat secara langsung di sini</summary>
-                        <div class="mt-3 space-y-2 border-t border-slate-100 pt-3">
-                            <label class="block text-xs font-bold text-slate-700">Goreskan Tanda Tangan Cepat:</label>
-                            <div class="border-2 border-slate-300 rounded-2xl overflow-hidden bg-white shadow-inner relative">
-                                <canvas id="internalSignaturePad" width="700" height="180" class="w-full h-44 cursor-crosshair touch-none"></canvas>
-                                <div class="absolute bottom-2 right-2 flex items-center gap-2">
-                                    <button type="button" @click="clearPad()" class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-semibold">
-                                        Bersihkan
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between pt-1">
-                                <span class="text-[11px] text-slate-400">Gunakan mouse atau goreskan jari pada layar sentuh.</span>
-                                <button type="button" @click="submitInternalSign()" :disabled="submittingSign"
-                                        class="btn-ipnet-primary px-5 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-2">
-                                    <span x-show="!submittingSign">Simpan Tanda Tangan Cepat &rarr;</span>
-                                    <span x-show="submittingSign">Menyimpan...</span>
-                                </button>
-                            </div>
-                        </div>
-                    </details>
                 </div>
             @endif
 
@@ -385,114 +362,9 @@ function documentDetailManager() {
                     setTimeout(() => this.copied = false, 2500);
                 });
             }
-        },
-        clearPad() {
-            const canvas = document.getElementById('internalSignaturePad');
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
-        },
-        async submitInternalSign() {
-            const canvas = document.getElementById('internalSignaturePad');
-            if (!canvas) return;
-
-            // Pastikan canvas tidak kosong
-            const blank = document.createElement('canvas');
-            blank.width = canvas.width;
-            blank.height = canvas.height;
-            if (canvas.toDataURL() === blank.toDataURL()) {
-                alert('Silakan goreskan tanda tangan Anda terlebih dahulu pada kotak!');
-                return;
-            }
-
-            const dataUrl = canvas.toDataURL('image/png');
-            this.submittingSign = true;
-
-            try {
-                const res = await fetch('{{ route("digital_signatures.sign_internal", $document->id) }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({ signature: dataUrl })
-                });
-
-                const data = await res.json();
-                if (data.success) {
-                    alert('Tanda tangan internal Anda berhasil disimpan!');
-                    window.location.reload();
-                } else {
-                    alert('Gagal: ' + (data.message || 'Terjadi kesalahan'));
-                }
-            } catch (e) {
-                alert('Gagal menghubungi server.');
-            } finally {
-                this.submittingSign = false;
-            }
         }
     };
 }
-
-// Inisialisasi Canvas Signature Drawing
-document.addEventListener('DOMContentLoaded', function() {
-    const canvas = document.getElementById('internalSignaturePad');
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    ctx.strokeStyle = '#1E293B';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    let isDrawing = false;
-    let lastX = 0;
-    let lastY = 0;
-
-    function getCoords(e) {
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        return {
-            x: (clientX - rect.left) * scaleX,
-            y: (clientY - rect.top) * scaleY
-        };
-    }
-
-    function start(e) {
-        isDrawing = true;
-        const coords = getCoords(e);
-        lastX = coords.x;
-        lastY = coords.y;
-    }
-
-    function draw(e) {
-        if (!isDrawing) return;
-        e.preventDefault();
-        const coords = getCoords(e);
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(coords.x, coords.y);
-        ctx.stroke();
-        lastX = coords.x;
-        lastY = coords.y;
-    }
-
-    function stop() {
-        isDrawing = false;
-    }
-
-    canvas.addEventListener('mousedown', start);
-    canvas.addEventListener('mousemove', draw);
-    window.addEventListener('mouseup', stop);
-
-    canvas.addEventListener('touchstart', start, { passive: false });
-    canvas.addEventListener('touchmove', draw, { passive: false });
-    window.addEventListener('touchend', stop);
-});
 </script>
 @endpush
 @endsection
