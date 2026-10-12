@@ -188,7 +188,7 @@
             </div>
 
             {{-- Title & Subtitle --}}
-            <h1 class="font-display font-black text-[28px] sm:text-[36px] text-white tracking-tight leading-tight drop-shadow-sm anim-fade-up anim-delay-1">
+            <h1 class="font-display font-extrabold text-[28px] sm:text-[36px] text-white tracking-tight leading-tight drop-shadow-sm anim-fade-up anim-delay-1">
                 IP Network Solusindo
             </h1>
             <div class="inline-flex items-center gap-2 mt-2 mb-4 anim-fade-up anim-delay-2">
