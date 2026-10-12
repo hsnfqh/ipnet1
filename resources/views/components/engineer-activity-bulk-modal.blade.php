@@ -1,19 +1,34 @@
 @php
-    $modalProjects = $projects ?? $myProjects ?? null;
+    // Modal input aktivitas hanya menampilkan proyek di mana engineer ditugaskan (tasks / schedules / pm)
+    $modalProjects = $myProjects ?? null;
     if ($modalProjects === null) {
         $authUser = auth()->user();
-        $isLead   = \App\Helpers\ScopeHelper::isManagerial($authUser);
-        if ($isLead) {
-            $modalProjects = \App\Models\Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+        $isAdmin  = $authUser && $authUser->hasAnyRole(['Super Admin', 'Superadmin', 'Admin']);
+        $hasTaskUser = \Illuminate\Support\Facades\Schema::hasTable('task_user');
+        $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
+        $baseModalQuery = \App\Models\Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+
+        if ($isAdmin) {
+            $modalProjects = $baseModalQuery
                 ->orderBy('name')
                 ->get(['id', 'name', 'client', 'location', 'po_number', 'customer_pic_technical', 'description', 'progress']);
         } else {
-            $modalProjects = \App\Models\Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
-                ->where(function($q) use ($authUser) {
-                    $uid = $authUser->id;
-                    $q->where('created_by', $uid)
-                      ->orWhereHas('tasks', fn($tq) => $tq->where('engineer_id', $uid))
-                      ->orWhereHas('schedules', fn($sq) => $sq->where('engineer_id', $uid));
+            $uid = $authUser ? $authUser->id : 0;
+            $modalProjects = $baseModalQuery
+                ->where(function($q) use ($uid, $hasTaskUser, $hasScheduleUser) {
+                    $q->whereHas('tasks', function($tq) use ($uid, $hasTaskUser) {
+                        $tq->where('engineer_id', $uid);
+                        if ($hasTaskUser) {
+                            $tq->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $uid));
+                        }
+                    })
+                    ->orWhereHas('schedules', function($sq) use ($uid, $hasScheduleUser) {
+                        $sq->where('engineer_id', $uid);
+                        if ($hasScheduleUser) {
+                            $sq->orWhereHas('engineers', fn($esq) => $esq->where('users.id', $uid));
+                        }
+                    })
+                    ->orWhere('pm_id', $uid);
                 })
                 ->orderBy('name')
                 ->get(['id', 'name', 'client', 'location', 'po_number', 'customer_pic_technical', 'description', 'progress']);

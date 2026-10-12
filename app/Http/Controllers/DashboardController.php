@@ -1712,6 +1712,60 @@ class DashboardController extends Controller
             }
         }
 
+        // Proyek yang dapat dipilih oleh engineer pada form input laporan (hanya proyek di mana engineer ditugaskan)
+        $isAdmin = $authUser && $authUser->hasAnyRole(['Super Admin', 'Superadmin', 'Admin']);
+        $myProjectsQuery = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti']);
+
+        if (in_array('project', $allowedCategories) && !in_array('managed_service', $allowedCategories)) {
+            $myProjectsQuery->where(function ($pq) {
+                $pq->whereNull('handover_target')
+                   ->orWhere('handover_target', '!=', 'managed_service')
+                   ->orWhere('handover_target', 'both');
+            });
+        } elseif (in_array('managed_service', $allowedCategories) && !in_array('project', $allowedCategories)) {
+            $myProjectsQuery->where(function ($pq) {
+                $pq->where('handover_target', 'managed_service')
+                   ->orWhere('handover_target', 'both')
+                   ->orWhereHas('managedServiceAssets');
+            });
+        }
+
+        $myProjectsQuery->with([
+            'division:id,name',
+            'pm:id,name,position,division_id',
+            'tasks' => function ($tq) {
+                $tq->select('id', 'project_id', 'engineer_id')
+                   ->with(['engineer:id,name,position,division_id', 'engineers:id,name,position,division_id']);
+            },
+            'schedules' => function ($sq) {
+                $sq->select('id', 'project_id', 'engineer_id')
+                   ->with(['engineer:id,name,position,division_id', 'engineers:id,name,position,division_id']);
+            }
+        ]);
+
+        if ($isAdmin) {
+            $myProjects = $myProjectsQuery->orderBy('name')->get($projectFields);
+        } else {
+            $uid = $authUser->id;
+            $myProjects = $myProjectsQuery->where(function ($q) use ($uid, $hasTaskUser, $hasScheduleUser) {
+                $q->whereHas('tasks', function ($tq) use ($uid, $hasTaskUser) {
+                    $tq->where('engineer_id', $uid);
+                    if ($hasTaskUser) {
+                        $tq->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $uid));
+                    }
+                })
+                ->orWhereHas('schedules', function ($sq) use ($uid, $hasScheduleUser) {
+                    $sq->where('engineer_id', $uid);
+                    if ($hasScheduleUser) {
+                        $sq->orWhereHas('engineers', fn($esq) => $esq->where('users.id', $uid));
+                    }
+                })
+                ->orWhere('pm_id', $uid);
+            })
+            ->orderBy('name')
+            ->get($projectFields);
+        }
+
         $activityTypes = [
             'Instalasi / Penarikan Kabel',
             'Konfigurasi Router/Switch/Firewall',
@@ -1733,6 +1787,7 @@ class DashboardController extends Controller
             'totalDelayed',
             'activeEngineersCount',
             'projects',
+            'myProjects',
             'engineers',
             'allEngineers',
             'activityTypes',
@@ -1760,32 +1815,35 @@ class DashboardController extends Controller
         if ($hasReportData || $hasActivities) {
             $projectId = $request->project_id ?: null;
 
-            // Validasi hak akses proyek untuk engineer non-lead
-            if (!$isLead && $projectId) {
+            // Validasi hak akses proyek: harus ditugaskan pada proyek (tasks/schedules/pm), kecuali Super Admin/Admin
+            $isAdmin = $authUser->hasAnyRole(['Super Admin', 'Superadmin', 'Admin']);
+            if (!$isAdmin && $projectId) {
                 $hasTaskUser = \Illuminate\Support\Facades\Schema::hasTable('task_user');
                 $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
-                $linkedProjectIds = $this->getLinkedProjectIds($authUser);
+                $uid = $authUser->id;
 
-                $hasAccess = $linkedProjectIds->contains($projectId)
-                    || Project::where('id', $projectId)
-                        ->where(function ($q) use ($authUser, $hasTaskUser, $hasScheduleUser) {
-                            $q->where('created_by', $authUser->id)
-                              ->orWhereHas('tasks', function ($tq) use ($authUser, $hasTaskUser) {
-                                  $tq->where('engineer_id', $authUser->id);
-                                  if ($hasTaskUser) {
-                                      $tq->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $authUser->id));
-                                  }
-                              })
-                              ->orWhereHas('schedules', function ($sq) use ($authUser, $hasScheduleUser) {
-                                  $sq->where('engineer_id', $authUser->id);
-                                  if ($hasScheduleUser) {
-                                      $sq->orWhereHas('engineers', fn($esq) => $esq->where('users.id', $authUser->id));
-                                  }
-                              });
-                        })->exists();
+                $hasAccess = Project::where('id', $projectId)
+                    ->where(function ($q) use ($uid, $hasTaskUser, $hasScheduleUser) {
+                        $q->whereHas('tasks', function ($tq) use ($uid, $hasTaskUser) {
+                            $tq->where('engineer_id', $uid);
+                            if ($hasTaskUser) {
+                                $tq->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $uid));
+                            }
+                        })
+                        ->orWhereHas('schedules', function ($sq) use ($uid, $hasScheduleUser) {
+                            $sq->where('engineer_id', $uid);
+                            if ($hasScheduleUser) {
+                                $sq->orWhereHas('engineers', fn($esq) => $esq->where('users.id', $uid));
+                            }
+                        })
+                        ->orWhere('pm_id', $uid);
+                    })
+                    ->exists();
 
                 if (!$hasAccess) {
-                    return redirect()->back()->with('error', 'Anda tidak memiliki hak akses penugasan untuk mencatat aktivitas pada proyek ini.');
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', 'Akses ditolak: Anda tidak ditugaskan pada proyek ini.');
                 }
             }
 
@@ -2052,6 +2110,38 @@ class DashboardController extends Controller
         $singleCat = $request->input('category');
         if (!$singleCat || !in_array($singleCat, $allowedCategories)) {
             $singleCat = $allowedCategories[0] ?? 'project';
+        }
+
+        $singleProjectId = $request->project_id ?: null;
+        $isAdmin = $authUser->hasAnyRole(['Super Admin', 'Superadmin', 'Admin']);
+        if (!$isAdmin && $singleProjectId) {
+            $hasTaskUser = \Illuminate\Support\Facades\Schema::hasTable('task_user');
+            $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
+            $uid = $authUser->id;
+
+            $hasAccess = Project::where('id', $singleProjectId)
+                ->where(function ($q) use ($uid, $hasTaskUser, $hasScheduleUser) {
+                    $q->whereHas('tasks', function ($tq) use ($uid, $hasTaskUser) {
+                        $tq->where('engineer_id', $uid);
+                        if ($hasTaskUser) {
+                            $tq->orWhereHas('engineers', fn($sq) => $sq->where('users.id', $uid));
+                        }
+                    })
+                    ->orWhereHas('schedules', function ($sq) use ($uid, $hasScheduleUser) {
+                        $sq->where('engineer_id', $uid);
+                        if ($hasScheduleUser) {
+                            $sq->orWhereHas('engineers', fn($esq) => $esq->where('users.id', $uid));
+                        }
+                    })
+                    ->orWhere('pm_id', $uid);
+                })
+                ->exists();
+
+            if (!$hasAccess) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Akses ditolak: Anda tidak ditugaskan pada proyek ini.');
+            }
         }
 
         EngineerActivityLog::create([
