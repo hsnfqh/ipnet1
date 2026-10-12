@@ -104,7 +104,7 @@
     @include('components.sidebar')
 
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Activity Log & Monitoring Engineer'])
+        @include('components.topbar', ['title' => 'Activity Log'])
 
         <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1680px] mx-auto animate-fade-in">
 
@@ -152,7 +152,7 @@
                             </span>
                         </div>
                         <h1 class="text-[20px] font-bold text-[#0F172A] leading-snug">
-                            Activity Log &amp; Monitoring Engineer
+                            Activity Log
                         </h1>
                         <p class="text-[12.5px] text-[#64748B] mt-1">
                             {{ $isLead ? 'Pantau dan kelola seluruh aktivitas harian engineer secara terpusat' : 'Kelola dan pantau aktivitas penugasan proyek Anda dan tim secara terhubung' }}
