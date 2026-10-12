@@ -907,7 +907,7 @@
     </template>
 
     {{-- MODAL INPUT AKTIVITAS --}}
-    @include('components.engineer-activity-bulk-modal', ['myProjects' => $myProjects])
+    @include('components.engineer-activity-bulk-modal', ['myProjects' => $myProjects ?? null])
 </div>
 
 @push('scripts')
