@@ -1800,7 +1800,9 @@ class DashboardController extends Controller
 
             // Kumpulkan list activities dari $request->activities atau dari $rawReport rincian aktivitas
             $activitiesList = $hasActivities ? $request->activities : [];
-            $reportCat = is_array($rawReport) ? ($rawReport['category'] ?? ($rawReport['report_type'] ?? 'project')) : ($request->input('category') ?: 'project');
+            $reportCat = $request->input('category')
+                ?: ($request->input('report_category')
+                ?: (is_array($rawReport) ? ($rawReport['category'] ?? ($rawReport['report_type'] ?? 'project')) : 'project'));
 
             // Validasi wewenang kategori user
             $allowedCategories = $this->resolveAllowedActivityCategories($authUser);
@@ -1927,7 +1929,7 @@ class DashboardController extends Controller
                     $ipnetPic       = $rawReport['hd_identitas']['nama_engineer'] ?? '';
                     $actType        = 'Field Support';
                 } else {
-                    $defaultSubject = $activityTitle ?: (!empty($rawReport['ruang_lingkup']['target_hari_ini']) ? $rawReport['ruang_lingkup']['target_hari_ini'] : 'Laporan Aktivitas Harian Project');
+                    $defaultSubject = $activityTitle ?: (!empty($rawReport['ruang_lingkup']['target_hari_ini']) ? $rawReport['ruang_lingkup']['target_hari_ini'] : (!empty($rawReport['identitas']['jenis_pekerjaan']) ? $rawReport['identitas']['jenis_pekerjaan'] : 'Laporan Aktivitas Harian Project'));
                     $rawDate        = $rawReport['identitas']['hari_tanggal_raw'] ?? ($rawReport['identitas']['hari_tanggal'] ?? date('Y-m-d'));
                     $time           = $rawReport['identitas']['jam_mulai'] ?? null;
                     $clientPic      = $rawReport['identitas']['pic_customer'] ?? '';

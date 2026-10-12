@@ -71,6 +71,7 @@
     isBulkModalOpen: false,
     bulkProjectId: '',
     activityTitle: '',
+    isSubmitting: false,
 
     selectedCategory: '{{ $defaultModalCat }}', // 'project' | 'managed_service' | 'help_desk'
 
@@ -654,8 +655,17 @@
             e.preventDefault();
             return;
         }
+        if (this.isSubmitting) {
+            e.preventDefault();
+            return;
+        }
+        this.isSubmitting = true;
         try {
             const rawPayload = typeof Alpine !== 'undefined' && Alpine.raw ? Alpine.raw(this.reportFormData) : this.reportFormData;
+            if (rawPayload && typeof rawPayload === 'object') {
+                rawPayload.category = this.selectedCategory;
+                rawPayload.report_type = this.selectedCategory;
+            }
             const serialized = JSON.stringify(rawPayload);
             if (this.$refs.reportDataInput) {
                 this.$refs.reportDataInput.value = serialized;
@@ -749,6 +759,7 @@
                     </div>
                 </div>
 
+                <input type="hidden" name="category" :value="selectedCategory">
                 <input type="hidden" name="report_category" :value="selectedCategory">
                 <input type="hidden" name="report_data" x-ref="reportDataInput" :value="JSON.stringify(reportFormData)">
 
@@ -2453,11 +2464,21 @@
                         Batal
                     </button>
                     <button type="submit"
-                            class="px-6 py-2.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        <span>Simpan Laporan Aktivitas</span>
+                            :disabled="isSubmitting"
+                            :class="isSubmitting ? 'opacity-75 cursor-not-allowed bg-[#73080A]' : 'bg-[#8F0A0D] hover:bg-[#73080A] cursor-pointer'"
+                            class="px-6 py-2.5 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2">
+                        <template x-if="!isSubmitting">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </template>
+                        <template x-if="isSubmitting">
+                            <svg class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+                        </template>
+                        <span x-text="isSubmitting ? 'Menyimpan Laporan...' : 'Simpan Laporan Aktivitas'">Simpan Laporan Aktivitas</span>
                     </button>
                 </div>
 
