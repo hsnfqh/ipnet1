@@ -34,7 +34,7 @@
             border-collapse: collapse;
             border: none;
             margin-top: 2px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .doc-header-table td {
             border: none;
@@ -52,9 +52,17 @@
         .doc-intro {
             font-size: 7pt;
             color: #1E293B;
-            margin-top: 3px;
-            margin-bottom: 6px;
+            margin-top: 2px;
+            margin-bottom: 4px;
             line-height: 1.2;
+        }
+        .doc-header-line {
+            width: 100%;
+            height: 0;
+            border-bottom: 1px solid #000000;
+            margin-top: 2px;
+            margin-bottom: 5px;
+            clear: both;
         }
 
         /* ── Judul Section ── */
@@ -549,6 +557,7 @@
         <div class="doc-intro">
             Laporan aktivitas operasi managed service: monitoring, preventive maintenance, corrective maintenance, incident, request, dan onsite support.
         </div>
+        <div class="doc-header-line"></div>
 
         {{-- A. IDENTITAS SERVICE --}}
         <div class="section-title">A. . IDENTITAS SERVICE</div>
@@ -721,6 +730,7 @@
                 </td>
             </tr>
         </table>
+        <div class="doc-header-line"></div>
 
         {{-- E. INCIDENT / ROOT CAUSE / ESCALATION --}}
         <div class="section-title">E. INCIDENT / ROOT CAUSE / ESCALATION</div>
@@ -904,6 +914,7 @@
                 </td>
             </tr>
         </table>
+        <div class="doc-header-line"></div>
 
         {{-- J. VERIFIKASI --}}
         <div class="section-title" style="margin-top: 15px;">J. VERIFIKASI</div>
@@ -1083,6 +1094,7 @@
         <div class="doc-intro">
             Laporan operasional harian/shift (Help Desk) untuk merekap kondisi layanan, aktivitas, ticket, pekerjaan, dan handover engineer.
         </div>
+        <div class="doc-header-line"></div>
 
         {{-- A. IDENTITAS SHIFT --}}
         <div class="section-title">A. IDENTITAS SHIFT</div>
@@ -1269,6 +1281,7 @@
                 </td>
             </tr>
         </table>
+        <div class="doc-header-line"></div>
 
         {{-- F. PEKERJAAN ONSITE / FIELD --}}
         <div class="section-title">F. PEKERJAAN ONSITE / FIELD</div>
@@ -1382,6 +1395,7 @@
                 </td>
             </tr>
         </table>
+        <div class="doc-header-line"></div>
 
         {{-- J. VERIFIKASI --}}
         <div class="section-title">J. VERIFIKASI</div>
@@ -1479,6 +1493,7 @@
     <div class="doc-intro">
         Dokumen ini digunakan sebagai laporan aktivitas engineer di lokasi pekerjaan dan sebagai bukti pelaksanaan pekerjaan lapangan.
     </div>
+    <div class="doc-header-line"></div>
 
     {{-- A. IDENTITAS PEKERJAAN --}}
     <div class="section-title">A. IDENTITAS PEKERJAAN</div>
@@ -1802,7 +1817,7 @@
 <div class="page-container">
 
     {{-- KOP SURAT / HEADER HALAMAN 2 --}}
-    <table class="doc-header-table" style="margin-top: 2px; margin-bottom: 8px;">
+    <table class="doc-header-table" style="margin-top: 2px; margin-bottom: 4px;">
         <tr>
             <td style="width: 15%; text-align: left; vertical-align: middle;">
                 @if(!empty($logoBase64))
@@ -1814,6 +1829,7 @@
             </td>
         </tr>
     </table>
+    <div class="doc-header-line"></div>
 
     {{-- I. REKAP DOKUMENTASI FOTO --}}
     <div class="section-title">I. REKAP DOKUMENTASI FOTO</div>
