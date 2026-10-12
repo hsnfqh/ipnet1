@@ -50,21 +50,21 @@
             text-align: center;
         }
         .doc-intro {
-            font-size: 7.2pt;
+            font-size: 7pt;
             color: #1E293B;
-            margin-top: 5px;
-            margin-bottom: 14px;
-            line-height: 1.25;
+            margin-top: 3px;
+            margin-bottom: 6px;
+            line-height: 1.2;
         }
 
         /* ── Judul Section ── */
         .section-title {
-            font-size: 8.4pt;
+            font-size: 8pt;
             font-weight: bold;
             color: #000000;
             text-transform: uppercase;
-            margin-top: 8px;
-            margin-bottom: 3px;
+            margin-top: 5px;
+            margin-bottom: 2px;
             letter-spacing: 0.2px;
         }
 
@@ -72,28 +72,28 @@
         .report-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             table-layout: fixed;
         }
         .report-table th {
             background-color: #EBF3FB;
             color: #000000;
             font-weight: bold;
-            font-size: 7.2pt;
-            padding: 3.5px 3.5px;
+            font-size: 6.8pt;
+            padding: 2.2px 3px;
             border: 1px solid #000000;
             text-align: center;
             vertical-align: middle;
         }
         .report-table td {
-            font-size: 7.2pt;
-            padding: 3.2px 4.2px;
+            font-size: 6.8pt;
+            padding: 2px 3.5px;
             border: 1px solid #000000;
             vertical-align: middle;
             color: #000000;
             word-wrap: break-word;
             overflow-wrap: break-word;
-            line-height: 1.25;
+            line-height: 1.2;
         }
         .report-table td.label-cell {
             font-weight: bold;
@@ -103,6 +103,12 @@
         .text-left { text-align: left; }
         .text-right { text-align: right; }
         .align-top { vertical-align: top !important; }
+        .report-table tr {
+            page-break-inside: avoid;
+        }
+        .keep-together {
+            page-break-inside: avoid;
+        }
 
         /* ── Checkbox Resmi ── */
         .check-box {
@@ -1602,7 +1608,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach(array_slice($dActivities, 0, 7) as $act)
+            @foreach($dActivities as $act)
                 <tr>
                     <td class="text-center">{{ $act['no'] ?? $loop->iteration }}</td>
                     <td class="text-center">{{ $act['waktu'] ?? '-' }}</td>
@@ -1731,20 +1737,42 @@
         </tbody>
     </table>
 
-    {{-- H. HASIL AKHIR PEKERJAAN (Baris Status pada Halaman 1) --}}
-    <div class="section-title">H. HASIL AKHIR PEKERJAAN</div>
-    <table class="report-table">
-        <tr>
-            <td class="label-cell" style="width: 30%;">Status pekerjaan</td>
-            <td style="width: 70%;">
-                <span class="check-box">{!! in_array($statusPekerjaan, ['selesai', 'closed', 'done']) ? '&#10003;' : '' !!}</span> Selesai
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <span class="check-box">{!! in_array($statusPekerjaan, ['selesai sebagian', 'partial']) ? '&#10003;' : '' !!}</span> Selesai Sebagian
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <span class="check-box">{!! in_array($statusPekerjaan, ['belum selesai', 'pending', 'open']) ? '&#10003;' : '' !!}</span> Belum Selesai
-            </td>
-        </tr>
-    </table>
+    {{-- H. HASIL AKHIR PEKERJAAN --}}
+    <div class="keep-together">
+        <div class="section-title">H. HASIL AKHIR PEKERJAAN</div>
+        <table class="report-table">
+            <tr>
+                <td class="label-cell" style="width: 38%;">Status pekerjaan</td>
+                <td style="width: 62%;">
+                    <span class="check-box">{!! in_array($statusPekerjaan, ['selesai', 'closed', 'done']) ? '&#10003;' : '' !!}</span> Selesai
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="check-box">{!! in_array($statusPekerjaan, ['selesai sebagian', 'partial']) ? '&#10003;' : '' !!}</span> Selesai Sebagian
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="check-box">{!! in_array($statusPekerjaan, ['belum selesai', 'pending', 'open']) ? '&#10003;' : '' !!}</span> Belum Selesai
+                </td>
+            </tr>
+            <tr>
+                <td class="label-cell">Persentase progress</td>
+                <td><u>&nbsp;&nbsp;<strong>{{ $progressPercent }}</strong>&nbsp;&nbsp;</u> %</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Kondisi sistem/perangkat setelah pekerjaan</td>
+                <td>{{ $kondisiSistem }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Outstanding / pekerjaan tersisa</td>
+                <td>{{ $outstanding }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Rekomendasi / kebutuhan tindak lanjut</td>
+                <td>{{ $rekomendasi }}</td>
+            </tr>
+            <tr>
+                <td class="label-cell">Dilakukan Eskalasi pekerjaan (PIC)</td>
+                <td>{{ $eskalasiPic }}</td>
+            </tr>
+        </table>
+    </div>
 
     {{-- FOOTER HALAMAN 1 --}}
     <div class="doc-footer">
@@ -1774,7 +1802,7 @@
 <div class="page-container">
 
     {{-- KOP SURAT / HEADER HALAMAN 2 --}}
-    <table class="doc-header-table" style="margin-top: 2px; margin-bottom: 10px;">
+    <table class="doc-header-table" style="margin-top: 2px; margin-bottom: 8px;">
         <tr>
             <td style="width: 15%; text-align: left; vertical-align: middle;">
                 @if(!empty($logoBase64))
@@ -1787,32 +1815,8 @@
         </tr>
     </table>
 
-    {{-- KELANJUTAN BAGIAN H --}}
-    <table class="report-table" style="margin-top: 4px;">
-        <tr>
-            <td class="label-cell" style="width: 42%;">Persentase progress</td>
-            <td style="width: 58%;"><u>&nbsp;&nbsp;<strong>{{ $progressPercent }}</strong>&nbsp;&nbsp;</u> %</td>
-        </tr>
-        <tr>
-            <td class="label-cell">Kondisi sistem/perangkat setelah pekerjaan</td>
-            <td>{{ $kondisiSistem }}</td>
-        </tr>
-        <tr>
-            <td class="label-cell">Outstanding / pekerjaan tersisa</td>
-            <td>{{ $outstanding }}</td>
-        </tr>
-        <tr>
-            <td class="label-cell">Rekomendasi / kebutuhan tindak lanjut</td>
-            <td>{{ $rekomendasi }}</td>
-        </tr>
-        <tr>
-            <td class="label-cell">Dilakukan Eskalasi pekerjaan (PIC)</td>
-            <td>{{ $eskalasiPic }}</td>
-        </tr>
-    </table>
-
     {{-- I. REKAP DOKUMENTASI FOTO --}}
-    <div class="section-title" style="margin-top: 7px;">I. REKAP DOKUMENTASI FOTO</div>
+    <div class="section-title">I. REKAP DOKUMENTASI FOTO</div>
     <div style="font-size: 6.8pt; color: #1E293B; margin-bottom: 3px;">
         Lampirkan foto yang menunjukkan kondisi aktual. Minimal: Before, Progress (bila ada), dan After. Cantumkan waktu/lokasi singkat pada caption.
     </div>
