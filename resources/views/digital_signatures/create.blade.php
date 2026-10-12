@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Buat Dokumen Digital Signature - PT IP Network Solusindo')
+@section('title', 'Upload Dokumen Digital Signature - PT IP Network Solusindo')
 
 @push('styles')
 <style>
@@ -60,7 +60,7 @@
     @include('components.sidebar')
 
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Buat Dokumen Digital Signature'])
+        @include('components.topbar', ['title' => 'Upload Dokumen Digital Signature'])
 
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto anim-fade-up">
 
@@ -71,7 +71,7 @@
                         <div class="flex items-center gap-2 text-[12px] text-[#64748B] mb-1">
                             <a href="{{ route('digital_signatures.index') }}" class="hover:text-[#8F0A0D] font-semibold transition">Digital Signature</a>
                             <span>/</span>
-                            <span class="text-[#1E293B] font-bold">Buat Dokumen Baru</span>
+                            <span class="text-[#1E293B] font-bold">Upload Dokumen Baru</span>
                         </div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                             <span class="ipnet-badge-dot"></span> FORMULIR DIGITAL SIGNATURE
