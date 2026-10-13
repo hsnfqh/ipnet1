@@ -102,20 +102,20 @@
                     <div class="text-[26px] font-bold text-[#1E293B] mt-1">{{ number_format($totalDocs) }}</div>
                     <div class="text-[12px] text-[#64748B] mt-0.5">Seluruh berkas dokumen</div>
                 </div>
-                <div class="ipnet-card p-5 border-amber-200/80 bg-amber-50/20">
-                    <div class="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">Proses Internal</div>
-                    <div class="text-[26px] font-bold text-amber-700 mt-1">{{ number_format($internalPendingCount) }}</div>
-                    <div class="text-[12px] text-amber-700/80 mt-0.5">Menunggu TTD tim IPNET</div>
+                <div class="ipnet-card p-5">
+                    <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Proses Internal</div>
+                    <div class="text-[26px] font-bold text-[#1E293B] mt-1">{{ number_format($internalPendingCount) }}</div>
+                    <div class="text-[12px] text-[#64748B] mt-0.5">Menunggu TTD tim IPNET</div>
                 </div>
-                <div class="ipnet-card p-5 border-blue-200/80 bg-blue-50/20">
-                    <div class="text-[11px] font-semibold text-blue-700 uppercase tracking-wider">Siap Kirim ke Klien</div>
-                    <div class="text-[26px] font-bold text-blue-700 mt-1">{{ number_format($readyForClientCount) }}</div>
-                    <div class="text-[12px] text-blue-700/80 mt-0.5">Internal selesai, link aktif</div>
+                <div class="ipnet-card p-5">
+                    <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Siap Kirim ke Klien</div>
+                    <div class="text-[26px] font-bold text-[#1E293B] mt-1">{{ number_format($readyForClientCount) }}</div>
+                    <div class="text-[12px] text-[#64748B] mt-0.5">Internal selesai, link aktif</div>
                 </div>
-                <div class="ipnet-card p-5 border-emerald-200/80 bg-emerald-50/20">
-                    <div class="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">Selesai & Sah</div>
-                    <div class="text-[26px] font-bold text-emerald-700 mt-1">{{ number_format($completedCount) }}</div>
-                    <div class="text-[12px] text-emerald-700/80 mt-0.5">Lengkap & QR Code valid</div>
+                <div class="ipnet-card p-5">
+                    <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Selesai & Sah</div>
+                    <div class="text-[26px] font-bold text-[#1E293B] mt-1">{{ number_format($completedCount) }}</div>
+                    <div class="text-[12px] text-[#64748B] mt-0.5">Lengkap & QR Code valid</div>
                 </div>
             </div>
 
