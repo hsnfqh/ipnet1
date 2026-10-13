@@ -13,6 +13,10 @@
         box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    .ipnet-card:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
     .ipnet-badge-dot {
         width: 8px;
         height: 8px;
@@ -97,26 +101,30 @@
 
             {{-- STATS CARDS --}}
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="ipnet-card p-5">
-                    <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Total Dokumen</div>
-                    <div class="text-[26px] font-bold text-[#1E293B] mt-1">{{ number_format($totalDocs) }}</div>
+                <a href="{{ route('digital_signatures.index', array_merge(request()->except('status', 'page'), [])) }}"
+                   class="ipnet-card p-5 block group transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer {{ empty($status) ? 'ring-2 ring-slate-400/20 border-slate-300' : '' }}">
+                    <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider group-hover:text-slate-800 transition-colors">Total Dokumen</div>
+                    <div class="text-[26px] font-bold text-[#1E293B] mt-1 group-hover:text-slate-900 transition-colors">{{ number_format($totalDocs) }}</div>
                     <div class="text-[12px] text-[#64748B] mt-0.5">Seluruh berkas dokumen</div>
-                </div>
-                <div class="ipnet-card p-5">
-                    <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Proses Internal</div>
-                    <div class="text-[26px] font-bold text-[#1E293B] mt-1">{{ number_format($internalPendingCount) }}</div>
-                    <div class="text-[12px] text-[#64748B] mt-0.5">Menunggu TTD tim IPNET</div>
-                </div>
-                <div class="ipnet-card p-5">
-                    <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Siap Kirim ke Klien</div>
-                    <div class="text-[26px] font-bold text-[#1E293B] mt-1">{{ number_format($readyForClientCount) }}</div>
-                    <div class="text-[12px] text-[#64748B] mt-0.5">Internal selesai, link aktif</div>
-                </div>
-                <div class="ipnet-card p-5">
-                    <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Selesai & Sah</div>
-                    <div class="text-[26px] font-bold text-[#1E293B] mt-1">{{ number_format($completedCount) }}</div>
-                    <div class="text-[12px] text-[#64748B] mt-0.5">Lengkap & QR Code valid</div>
-                </div>
+                </a>
+                <a href="{{ route('digital_signatures.index', array_merge(request()->except('page'), ['status' => 'internal_in_progress'])) }}"
+                   class="ipnet-card p-5 block group transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-amber-300 hover:bg-amber-50/20 cursor-pointer {{ $status === 'internal_in_progress' ? 'ring-2 ring-amber-400/30 border-amber-300 bg-amber-50/15' : '' }}">
+                    <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider group-hover:text-amber-700 transition-colors {{ $status === 'internal_in_progress' ? 'text-amber-700' : '' }}">Proses Internal</div>
+                    <div class="text-[26px] font-bold text-[#1E293B] mt-1 group-hover:text-amber-700 transition-colors {{ $status === 'internal_in_progress' ? 'text-amber-700' : '' }}">{{ number_format($internalPendingCount) }}</div>
+                    <div class="text-[12px] text-[#64748B] mt-0.5 group-hover:text-amber-700/80 transition-colors {{ $status === 'internal_in_progress' ? 'text-amber-700/80' : '' }}">Menunggu TTD tim IPNET</div>
+                </a>
+                <a href="{{ route('digital_signatures.index', array_merge(request()->except('page'), ['status' => 'ready_for_client'])) }}"
+                   class="ipnet-card p-5 block group transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-blue-300 hover:bg-blue-50/20 cursor-pointer {{ $status === 'ready_for_client' ? 'ring-2 ring-blue-400/30 border-blue-300 bg-blue-50/15' : '' }}">
+                    <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider group-hover:text-blue-700 transition-colors {{ $status === 'ready_for_client' ? 'text-blue-700' : '' }}">Siap Kirim ke Klien</div>
+                    <div class="text-[26px] font-bold text-[#1E293B] mt-1 group-hover:text-blue-700 transition-colors {{ $status === 'ready_for_client' ? 'text-blue-700' : '' }}">{{ number_format($readyForClientCount) }}</div>
+                    <div class="text-[12px] text-[#64748B] mt-0.5 group-hover:text-blue-700/80 transition-colors {{ $status === 'ready_for_client' ? 'text-blue-700/80' : '' }}">Internal selesai, link aktif</div>
+                </a>
+                <a href="{{ route('digital_signatures.index', array_merge(request()->except('page'), ['status' => 'completed'])) }}"
+                   class="ipnet-card p-5 block group transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-emerald-300 hover:bg-emerald-50/20 cursor-pointer {{ $status === 'completed' ? 'ring-2 ring-emerald-400/30 border-emerald-300 bg-emerald-50/15' : '' }}">
+                    <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider group-hover:text-emerald-700 transition-colors {{ $status === 'completed' ? 'text-emerald-700' : '' }}">Selesai & Sah</div>
+                    <div class="text-[26px] font-bold text-[#1E293B] mt-1 group-hover:text-emerald-700 transition-colors {{ $status === 'completed' ? 'text-emerald-700' : '' }}">{{ number_format($completedCount) }}</div>
+                    <div class="text-[12px] text-[#64748B] mt-0.5 group-hover:text-emerald-700/80 transition-colors {{ $status === 'completed' ? 'text-emerald-700/80' : '' }}">Lengkap & QR Code valid</div>
+                </a>
             </div>
 
             {{-- FILTER & SEARCH TOOLBAR --}}
