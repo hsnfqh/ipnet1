@@ -98,6 +98,71 @@ class DigitalSignatureDocument extends Model
     }
 
     /**
+     * Scope query dokumen digital signature khusus untuk user yang sedang aktif.
+     * Sifat Privasi:
+     * - Hanya melihat dokumen yang dibuat/diajukan oleh diri sendiri (created_by)
+     * - ATAU dokumen di mana user ditunjuk sebagai salah satu penandatangan internal (internal_signers)
+     * - Kecuali Super Admin sistem yang memiliki akses audit pemeliharaan
+     */
+    public function scopeForUser($query, $user)
+    {
+        if (!$user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        // Super Admin sistem dapat melihat seluruh dokumen untuk tujuan audit sistem
+        if (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['Super Admin', 'Superadmin'])) {
+            return $query;
+        }
+
+        $userId = (int) $user->id;
+
+        return $query->where(function ($q) use ($userId) {
+            $q->where('created_by', $userId)
+              ->orWhere('internal_signers', 'like', '%"user_id":' . $userId . ',%')
+              ->orWhere('internal_signers', 'like', '%"user_id": ' . $userId . ',%')
+              ->orWhere('internal_signers', 'like', '%"user_id":' . $userId . '}%')
+              ->orWhere('internal_signers', 'like', '%"user_id": ' . $userId . '}%')
+              ->orWhere('internal_signers', 'like', '%"user_id":"' . $userId . '"%')
+              ->orWhere('internal_signers', 'like', '%"user_id": "' . $userId . '"%');
+        });
+    }
+
+    /**
+     * Cek apakah user adalah penandatangan internal di dokumen ini
+     */
+    public function isUserSigner(int $userId): bool
+    {
+        $signers = $this->internal_signers ?? [];
+        if (!is_array($signers)) {
+            return false;
+        }
+        foreach ($signers as $s) {
+            if ((int)($s['user_id'] ?? 0) === (int)$userId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Cek apakah user berhak melihat dokumen ini (privasi)
+     */
+    public function canUserView($user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+        if (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['Super Admin', 'Superadmin'])) {
+            return true;
+        }
+        if ((int)$this->created_by === (int)$user->id) {
+            return true;
+        }
+        return $this->isUserSigner((int)$user->id);
+    }
+
+    /**
      * Check if all internal signers have signed
      */
     public function isAllInternalSigned(): bool

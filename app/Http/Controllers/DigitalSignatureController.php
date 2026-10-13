@@ -18,6 +18,11 @@ class DigitalSignatureController extends Controller
 {
     /**
      * Tampilkan daftar seluruh dokumen digital signature
+     * Dokumen bersifat PRIVAT:
+     * - Hanya melihat dokumen yang dibuat/diajukan oleh user sendiri (created_by)
+     * - KECUALI jika user ditunjuk sebagai salah satu penandatangan internal (internal_signers),
+     *   maka dokumen tersebut juga muncul di dashboard/list penandatangan tersebut.
+     * - Super Admin dapat melihat audit seluruh dokumen.
      */
     public function index(Request $request)
     {
@@ -25,11 +30,23 @@ class DigitalSignatureController extends Controller
         DigitalSignatureDocument::ensureSchemaReady();
 
         $user = auth()->user();
-        $query = DigitalSignatureDocument::with(['creator', 'project'])
-            ->orderByDesc('id');
+
+        // Base query yang dibatasi ketat per user (privat)
+        $baseQuery = DigitalSignatureDocument::forUser($user);
 
         // Filter status
         $status = $request->get('status');
+
+        // Hitung statistik SPESIFIK untuk dokumen milik & terkait user ini saja (bukan count global perusahaan)
+        $totalDocs = (clone $baseQuery)->count();
+        $internalPendingCount = (clone $baseQuery)->where('status', 'internal_in_progress')->count();
+        $readyForClientCount = (clone $baseQuery)->where('status', 'ready_for_client')->count();
+        $completedCount = (clone $baseQuery)->where('status', 'completed')->count();
+
+        $query = (clone $baseQuery)
+            ->with(['creator', 'project'])
+            ->orderByDesc('id');
+
         if ($status && in_array($status, ['draft', 'internal_in_progress', 'ready_for_client', 'completed'])) {
             $query->where('status', $status);
         }
@@ -52,31 +69,7 @@ class DigitalSignatureController extends Controller
             $query->where('category', $category);
         }
 
-        // Pembatasan hak akses:
-        // Admin, Executive, PMO, Team Leader dapat melihat semua
-        // Engineer biasa melihat dokumen yang dibuatnya atau di mana ia menjadi penandatangan internal
-        $isExecutiveOrGl = $user && $user->hasAnyRole([
-            'Director', 'Direktur', 'HD / Direktur', 'Division Head', 
-            'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation',
-            'Super Admin', 'Superadmin', 'Admin'
-        ]);
-        $isPmoOrLead = $user && ($user->hasAnyRole(['PMO', 'Project Manager', 'Lead Engineer', 'Team Leader Engineering', 'Team Leader', 'Lead Maintenance', 'Lead Divisi']) || \App\Helpers\ScopeHelper::isTeamLeader($user));
-
-        if (!$isExecutiveOrGl && !$isPmoOrLead) {
-            $query->where(function ($w) use ($user) {
-                $w->where('created_by', $user->id)
-                  ->orWhere('internal_signers', 'like', '%"user_id":' . $user->id . '%')
-                  ->orWhere('internal_signers', 'like', '%"user_id": ' . $user->id . '%');
-            });
-        }
-
         $documents = $query->paginate(15)->withQueryString();
-
-        // Hitung statistik
-        $totalDocs = DigitalSignatureDocument::count();
-        $internalPendingCount = DigitalSignatureDocument::where('status', 'internal_in_progress')->count();
-        $readyForClientCount = DigitalSignatureDocument::where('status', 'ready_for_client')->count();
-        $completedCount = DigitalSignatureDocument::where('status', 'completed')->count();
 
         return view('digital_signatures.index', compact(
             'documents',
@@ -222,10 +215,16 @@ class DigitalSignatureController extends Controller
      */
     public function show($id)
     {
+        if (function_exists('opcache_reset')) { @opcache_reset(); }
         DigitalSignatureDocument::ensureSchemaReady();
 
         $document = DigitalSignatureDocument::with(['creator', 'project'])->findOrFail($id);
         $user = auth()->user();
+
+        // Validasi hak akses privasi dokumen
+        if ($user && !$document->canUserView($user)) {
+            abort(403, 'Akses Ditolak: Dokumen ini bersifat privat dan hanya dapat diakses oleh pembuat dokumen atau personil yang ditunjuk sebagai penandatangan.');
+        }
 
         $canSign = $document->canUserSign($user->id);
         $isAllInternalSigned = $document->isAllInternalSigned();
@@ -261,6 +260,10 @@ class DigitalSignatureController extends Controller
         $document = DigitalSignatureDocument::with(['creator', 'project'])->findOrFail($id);
         $user = auth()->user();
 
+        if ($user && !$document->canUserView($user)) {
+            abort(403, 'Akses Ditolak: Dokumen ini bersifat privat.');
+        }
+
         if (!$document->canUserSign($user->id)) {
             return redirect()->route('digital_signatures.show', $document->id)
                 ->with('error', 'Anda tidak memiliki hak akses atau belum giliran Anda menandatangani dokumen ini.');
@@ -282,6 +285,13 @@ class DigitalSignatureController extends Controller
 
         $document = DigitalSignatureDocument::findOrFail($id);
         $user = auth()->user();
+
+        if ($user && !$document->canUserView($user)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses ke dokumen ini.',
+            ], 403);
+        }
 
         if (!$document->canUserSign($user->id)) {
             return response()->json([
@@ -525,6 +535,11 @@ class DigitalSignatureController extends Controller
         DigitalSignatureDocument::ensureSchemaReady();
 
         $document = DigitalSignatureDocument::findOrFail($id);
+        $user = auth()->user();
+
+        if ($user && !$document->canUserView($user)) {
+            abort(403, 'Akses Ditolak: Dokumen ini bersifat privat.');
+        }
 
         // Jika user secara spesifik meminta Lembar Pengesahan (format=certificate)
         if ($request->get('format') === 'certificate') {
@@ -554,6 +569,11 @@ class DigitalSignatureController extends Controller
         DigitalSignatureDocument::ensureSchemaReady();
 
         $document = DigitalSignatureDocument::findOrFail($id);
+        $user = auth()->user();
+
+        if ($user && !$document->canUserView($user)) {
+            abort(403, 'Akses Ditolak: Dokumen ini bersifat privat.');
+        }
 
         $verifyUrl = route('public.digital_signature.verify', $document->verification_hash ?: $document->document_number);
 
@@ -620,6 +640,12 @@ class DigitalSignatureController extends Controller
     public function downloadOriginalFile($id)
     {
         $document = DigitalSignatureDocument::findOrFail($id);
+        $user = auth()->user();
+
+        if ($user && !$document->canUserView($user)) {
+            abort(403, 'Akses Ditolak: Dokumen ini bersifat privat.');
+        }
+
         if (!Storage::disk('public')->exists($document->file_path)) {
             return back()->with('error', 'Berkas dokumen asli tidak ditemukan di server.');
         }
@@ -700,6 +726,12 @@ class DigitalSignatureController extends Controller
     {
         DigitalSignatureDocument::ensureSchemaReady();
         $document = DigitalSignatureDocument::findOrFail($id);
+        $user = auth()->user();
+
+        if ($user && !$document->canUserView($user)) {
+            abort(403, 'Akses Ditolak: Dokumen ini bersifat privat.');
+        }
+
         $path = $document->getActiveFilePath();
 
         $fullPath = null;
