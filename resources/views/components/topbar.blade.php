@@ -183,7 +183,7 @@
             <x-avatar :name="$user->name" size="34" tone="#C81E2C" />
             <div class="hidden sm:block">
                 <div class="text-[13px] font-semibold text-wms-ink-900 leading-tight">{{ $user->name }}</div>
-                <div class="text-[11.5px] text-wms-ink-500">{{ $user->role_label }}</div>
+                <div class="text-[11.5px] text-wms-ink-500">{{ $user->role_label === 'PMO' ? 'Project Manager' : $user->role_label }}</div>
             </div>
         </a>
     </div>

@@ -141,7 +141,11 @@ class User extends Authenticatable
 
     public function getRoleLabelAttribute()
     {
-        return $this->roles->first()?->name ?? 'User';
+        $roleName = $this->roles->first()?->name;
+        if ($roleName === 'PMO') {
+            return 'Project Manager';
+        }
+        return $roleName ?? 'User';
     }
 
     public function getIsActiveAttribute()
