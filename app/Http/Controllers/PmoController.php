@@ -477,15 +477,21 @@ class PmoController extends Controller
      */
     public function updateDocuments(Request $request, Project $project)
     {
-        $validated = $request->validate([
-            'documents_checklist' => 'required|array',
-            'special_notes'       => 'nullable|string',
-        ]);
+        $checklist = $request->input('documents_checklist', $request->input('checklist', []));
+        if (is_string($checklist)) {
+            $checklist = json_decode($checklist, true) ?: [];
+        }
+
+        if (!is_array($checklist)) {
+            $checklist = [];
+        }
+
+        $specialNotes = $request->input('special_notes', $project->special_notes);
 
         $project->update([
-            'handover_data'       => $validated['documents_checklist'],
-            'documents_checklist' => $validated['documents_checklist'],
-            'special_notes'       => $validated['special_notes'] ?? $project->special_notes,
+            'handover_data'       => $checklist,
+            'documents_checklist' => $checklist,
+            'special_notes'       => $specialNotes,
         ]);
 
         if ($request->wantsJson() || $request->ajax()) {

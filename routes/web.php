@@ -333,6 +333,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/implementations', [PmoController::class, 'implementations'])->name('pmo.implementations.index');
         Route::post('/projects/{project}/stage', [PmoController::class, 'updateStage'])->name('pmo.stage.update');
         Route::post('/projects/{project}/documents', [PmoController::class, 'updateDocuments'])->name('pmo.documents.update');
+        Route::post('/projects/{project}/update-documents', [PmoController::class, 'updateDocuments'])->name('pmo.documents.update_documents');
         Route::post('/projects/{project}/handover-approve', [PmoController::class, 'approveHandover'])->name('pmo.handover.approve');
         Route::post('/projects/{project}/handover-conditional', [PmoController::class, 'conditionalHandover'])->name('pmo.handover.conditional');
         Route::post('/projects/{project}/handover-to-ms', [PmoController::class, 'handoverToManagedService'])->name('pmo.handover.to_ms');

@@ -1334,7 +1334,10 @@
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
-                        body: JSON.stringify({ checklist: this.activeDocs })
+                        body: JSON.stringify({ 
+                            documents_checklist: this.activeDocs,
+                            checklist: this.activeDocs 
+                        })
                     });
 
                     const data = await response.json();
