@@ -70,12 +70,12 @@
                         @elseif($document->status === 'ready_for_client')
                             <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold inline-flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                                Menunggu TTD Klien
+                                Menunggu Tanda Tangan Klien
                             </span>
                         @elseif($document->status === 'internal_in_progress')
                             <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold inline-flex items-center gap-1.5">
                                 <span class="w-2 h-2 rounded-full bg-amber-600"></span>
-                                Proses TTD Internal
+                                Proses Tanda Tangan Internal
                             </span>
                         @else
                             <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">Draft</span>
@@ -276,7 +276,7 @@
                                         <img src="{{ $document->client_signature }}" alt="Client Signature" class="h-10 max-w-[130px] object-contain">
                                     </div>
                                 @else
-                                    <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">Belum TTD</span>
+                                    <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold">Belum Tanda Tangan</span>
                                 @endif
                             </div>
                         </div>

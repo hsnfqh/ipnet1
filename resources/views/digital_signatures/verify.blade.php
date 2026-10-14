@@ -112,7 +112,7 @@
                                         <img src="{{ $document->client_signature }}" alt="Client Signature" class="h-8 max-w-[110px] object-contain">
                                     </div>
                                 @else
-                                    <span class="text-slate-400 text-xs italic">Belum TTD</span>
+                                    <span class="text-slate-400 text-xs italic">Belum Ditandatangani</span>
                                 @endif
                             </div>
                         </div>

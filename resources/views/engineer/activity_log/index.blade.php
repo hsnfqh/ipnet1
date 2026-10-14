@@ -898,7 +898,7 @@
                                 class="px-5 py-2 text-xs font-bold text-white rounded-xl shadow-md transition flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                                 style="background: linear-gradient(135deg, #8F0A0D, #C41E2A);">
                             <svg x-show="signatureSaving" class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            <span x-text="signatureSaving ? 'Menyimpan...' : 'Simpan & Bubuhkan TTD'"></span>
+                            <span x-text="signatureSaving ? 'Menyimpan...' : 'Simpan & Bubuhkan Tanda Tangan'"></span>
                         </button>
                     </div>
                 </div>

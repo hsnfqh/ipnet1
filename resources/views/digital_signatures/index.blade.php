@@ -111,7 +111,7 @@
                    class="ipnet-card p-5 block group transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer">
                     <div class="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider group-hover:text-slate-800 transition-colors">Proses Internal</div>
                     <div class="text-[26px] font-bold text-[#1E293B] mt-1 group-hover:text-slate-900 transition-colors">{{ number_format($internalPendingCount) }}</div>
-                    <div class="text-[12px] text-[#64748B] mt-0.5">Menunggu TTD tim IPNET</div>
+                    <div class="text-[12px] text-[#64748B] mt-0.5">Menunggu tanda tangan internal</div>
                 </a>
                 <a href="{{ route('digital_signatures.index', array_merge(request()->except('page'), ['status' => 'ready_for_client'])) }}"
                    class="ipnet-card p-5 block group transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-slate-300 cursor-pointer">
@@ -268,7 +268,7 @@
                                         @elseif($doc->status === 'internal_in_progress')
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                                TTD Internal
+                                                Tanda Tangan Internal
                                             </span>
                                         @else
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
@@ -296,10 +296,10 @@
                                             @if($canUserSignDoc)
                                                 <div class="inline-flex flex-col gap-1 items-stretch">
                                                     <a href="{{ route('digital_signatures.place_signature', $doc->id) }}"
-                                                       title="Tempatkan Tanda Tangan Sekarang"
-                                                       class="px-2.5 py-1 rounded-md bg-gradient-to-r from-[#B91C1C] via-[#8F0A0D] to-[#750608] hover:from-[#C52222] hover:to-[#83080A] text-white font-bold text-[11px] inline-flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                                        <span>Tanda Tangani</span>
+                                                        title="Tempatkan Tanda Tangan Sekarang"
+                                                        class="px-2.5 py-1 rounded-md bg-gradient-to-r from-[#B91C1C] via-[#8F0A0D] to-[#750608] hover:from-[#C52222] hover:to-[#83080A] text-white font-bold text-[11px] inline-flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95">
+                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                         <span>Tanda Tangani</span>
                                                     </a>
                                                     <button type="button"
                                                             onclick="rejectDocumentTable({{ $doc->id }})"
@@ -320,7 +320,7 @@
                                                 </button>
                                             @endif
                                             <a href="{{ route('digital_signatures.download_pdf', $doc->id) }}"
-                                               title="{{ !empty($doc->signed_file_path) ? 'Unduh Dokumen Ber-TTD (PDF)' : 'Unduh Dokumen PDF' }}"
+                                               title="{{ !empty($doc->signed_file_path) ? 'Unduh Dokumen Bertanda Tangan (PDF)' : 'Unduh Dokumen PDF' }}"
                                                class="p-1.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569] hover:bg-[#1E293B] hover:text-white hover:border-[#1E293B] transition-all">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             </a>

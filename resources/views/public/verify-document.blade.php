@@ -510,9 +510,9 @@
                             <div class="signer-tier-badge">Tingkat 1 • Pembuat</div>
                             <div class="signer-signature-box">
                                 @if(!empty($document->pic_signature))
-                                    <img src="{{ $document->pic_signature }}" alt="TTD PIC" class="signer-signature-img">
+                                    <img src="{{ $document->pic_signature }}" alt="Tanda Tangan PIC" class="signer-signature-img">
                                 @else
-                                    <span class="signer-signature-placeholder">Belum TTD</span>
+                                    <span class="signer-signature-placeholder">Belum Ditandatangani</span>
                                 @endif
                             </div>
                             <div class="signer-name">{{ $document->pic_name ?? 'PIC Field Engineer' }}</div>
@@ -522,7 +522,7 @@
                                     Signed: {{ $document->pic_signed_at->format('d/m/Y H:i') }}
                                 </div>
                             @else
-                                <div class="signer-status-badge">Menunggu TTD</div>
+                                <div class="signer-status-badge">Menunggu Tanda Tangan</div>
                             @endif
                         </div>
 
@@ -531,9 +531,9 @@
                             <div class="signer-tier-badge">Tingkat 2 • Pemeriksa</div>
                             <div class="signer-signature-box">
                                 @if(!empty($document->lead_signature))
-                                    <img src="{{ $document->lead_signature }}" alt="TTD Lead" class="signer-signature-img">
+                                    <img src="{{ $document->lead_signature }}" alt="Tanda Tangan Lead" class="signer-signature-img">
                                 @else
-                                    <span class="signer-signature-placeholder">Belum TTD</span>
+                                    <span class="signer-signature-placeholder">Belum Ditandatangani</span>
                                 @endif
                             </div>
                             <div class="signer-name">{{ $document->lead_name ?? 'Lead Engineer' }}</div>
@@ -543,7 +543,7 @@
                                     Verified: {{ $document->lead_signed_at->format('d/m/Y H:i') }}
                                 </div>
                             @else
-                                <div class="signer-status-badge">Menunggu TTD</div>
+                                <div class="signer-status-badge">Menunggu Tanda Tangan</div>
                             @endif
                         </div>
 
@@ -552,9 +552,9 @@
                             <div class="signer-tier-badge">Tingkat 3 • Otorisasi</div>
                             <div class="signer-signature-box">
                                 @if(!empty($document->head_signature))
-                                    <img src="{{ $document->head_signature }}" alt="TTD Head" class="signer-signature-img">
+                                    <img src="{{ $document->head_signature }}" alt="Tanda Tangan Head" class="signer-signature-img">
                                 @else
-                                    <span class="signer-signature-placeholder">Belum TTD</span>
+                                    <span class="signer-signature-placeholder">Belum Ditandatangani</span>
                                 @endif
                             </div>
                             <div class="signer-name">{{ $document->head_name ?? 'Head of Division' }}</div>
@@ -564,7 +564,7 @@
                                     Approved: {{ $document->head_signed_at->format('d/m/Y H:i') }}
                                 </div>
                             @else
-                                <div class="signer-status-badge">Menunggu TTD</div>
+                                <div class="signer-status-badge">Menunggu Tanda Tangan</div>
                             @endif
                         </div>
                     </div>

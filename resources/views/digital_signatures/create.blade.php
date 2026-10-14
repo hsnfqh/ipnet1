@@ -337,7 +337,7 @@
                         </a>
                         <button type="submit" 
                                 class="btn-ipnet-gradient px-6 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md">
-                            <span>Simpan & Lanjut ke TTD</span>
+                            <span>Simpan & Lanjut ke Tanda Tangan</span>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </button>
                     </div>
