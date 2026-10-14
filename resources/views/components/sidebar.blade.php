@@ -23,7 +23,7 @@
             ['key' => 'inventory',          'label' => 'Inventory',         'route' => 'inventory.index'],
             ['key' => 'vendors',            'label' => 'Vendors',           'route' => 'vendors.index'],
             ['key' => 'schedules',          'label' => 'Work Schedule',     'route' => 'schedules.index'],
-            ['key' => 'timesheets',         'label' => 'Timesheet',         'route' => 'timesheets.index'],
+            // ['key' => 'timesheets',         'label' => 'Timesheet',         'route' => 'timesheets.index'],
         ];
     } elseif ($isAdminSupport) {
         $navItems = [
@@ -35,7 +35,7 @@
             ['key' => 'admin_inventory',    'label' => 'Serial Number Master',  'route' => 'admin_support.inventory.index'],
             ['key' => 'admin_assets',       'label' => 'Assets & Work Tools',   'route' => 'admin_support.assets.index'],
             ['key' => 'admin_handovers',    'label' => 'Archives & Handover',   'route' => 'admin_support.handovers.index'],
-            ['key' => 'timesheets',         'label' => 'Timesheet',             'route' => 'timesheets.index'],
+            // ['key' => 'timesheets',         'label' => 'Timesheet',             'route' => 'timesheets.index'],
         ];
     } elseif ($isCro) {
         $navItems = [
@@ -47,7 +47,7 @@
             ['key' => 'cro_opportunities', 'label' => 'Expansion Leads',       'route' => 'cro.opportunities.index'],
             ['key' => 'digital_signatures','label' => 'Digital Signature',     'route' => 'digital_signatures.index'],
             ['key' => 'clients',           'label' => 'Client Database',       'route' => 'clients.index'],
-            ['key' => 'timesheets',        'label' => 'Timesheet',             'route' => 'timesheets.index'],
+            // ['key' => 'timesheets',        'label' => 'Timesheet',             'route' => 'timesheets.index'],
         ];
     } elseif ($isMaintenance) {
         // Dedicated Managed Service & Maintenance Portal (Doris, Mario, Eris)
@@ -59,7 +59,7 @@
             ['key' => 'activities',        'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'digital_signatures','label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
             ['key' => 'schedules',         'label' => 'Work Schedule',     'route' => 'schedules.index'],
-            ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
+            // ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
             // ['key' => 'attendance',   'label' => 'Attendance',        'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
         ];
         if (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
@@ -75,7 +75,7 @@
             ['key' => 'activities',          'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'digital_signatures',  'label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
             ['key' => 'schedules',           'label' => 'Work Schedule',     'route' => 'schedules.index'],
-            ['key' => 'timesheets',          'label' => 'Timesheet',         'route' => 'timesheets.index'],
+            // ['key' => 'timesheets',          'label' => 'Timesheet',         'route' => 'timesheets.index'],
         ];
     } elseif ($isArchitect) {
         $navItems = [
@@ -84,7 +84,7 @@
             ['key' => 'digital_signatures', 'label' => 'Digital Signature',  'route' => 'digital_signatures.index'],
             ['key' => 'clients',            'label' => 'Clients',            'route' => 'clients.index'],
             ['key' => 'schedules',          'label' => 'Work Schedule',      'route' => 'schedules.index'],
-            ['key' => 'timesheets',         'label' => 'Timesheet',          'route' => 'timesheets.index'],
+            // ['key' => 'timesheets',         'label' => 'Timesheet',          'route' => 'timesheets.index'],
         ];
     } elseif ($isBdm) {
         $navItems = [
@@ -93,7 +93,7 @@
             ['key' => 'digital_signatures', 'label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
             ['key' => 'clients',            'label' => 'Clients',       'route' => 'clients.index'],
             ['key' => 'schedules',          'label' => 'Work Schedule', 'route' => 'schedules.index'],
-            ['key' => 'timesheets',         'label' => 'Timesheet',     'route' => 'timesheets.index'],
+            // ['key' => 'timesheets',         'label' => 'Timesheet',     'route' => 'timesheets.index'],
         ];
     } elseif ($isPresales) {
         $navItems = [
@@ -102,7 +102,7 @@
             ['key' => 'digital_signatures', 'label' => 'Digital Signature',  'route' => 'digital_signatures.index'],
             ['key' => 'clients',            'label' => 'Clients',            'route' => 'clients.index'],
             ['key' => 'schedules',          'label' => 'Work Schedule',      'route' => 'schedules.index'],
-            ['key' => 'timesheets',         'label' => 'Timesheet',           'route' => 'timesheets.index'],
+            // ['key' => 'timesheets',         'label' => 'Timesheet',           'route' => 'timesheets.index'],
         ];
     } elseif ($isSales) {
         $navItems = [
@@ -114,7 +114,7 @@
             ['key' => 'inventory',          'label' => 'Inventory',           'route' => 'inventory.index'],
             ['key' => 'vendors',            'label' => 'Vendors',             'route' => 'vendors.index'],
             ['key' => 'schedules',          'label' => 'Work Schedule',       'route' => 'schedules.index'],
-            ['key' => 'timesheets',         'label' => 'Timesheet',            'route' => 'timesheets.index'],
+            // ['key' => 'timesheets',         'label' => 'Timesheet',            'route' => 'timesheets.index'],
         ];
     } elseif (\App\Helpers\ScopeHelper::isTeamLeader($user)) {
         $navItems = [
@@ -124,7 +124,7 @@
             ['key' => 'activities',        'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'digital_signatures','label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
             ['key' => 'schedules',         'label' => 'Work Schedule',     'route' => 'schedules.index'],
-            ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
+            // ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
             // ['key' => 'attendance',  'label' => 'Attendance',        'route' => 'attendance.recap'],
             ['key' => 'users',             'label' => 'Users',             'route' => 'users.index'],
         ];
@@ -135,7 +135,7 @@
             ['key' => 'activities',         'label' => 'Activity Log',       'route' => 'engineer.activity_log.index'],
             ['key' => 'digital_signatures', 'label' => 'Digital Signature',  'route' => 'digital_signatures.index'],
             ['key' => 'schedules',          'label' => 'Work Schedule',      'route' => 'schedules.index'],
-            ['key' => 'timesheets',         'label' => 'Timesheet',          'route' => 'timesheets.index'],
+            // ['key' => 'timesheets',         'label' => 'Timesheet',          'route' => 'timesheets.index'],
             // ['key' => 'attendance',  'label' => 'Attendance',         'route' => 'attendance.index'],
         ];
     }
