@@ -33,12 +33,9 @@
     {{-- Header & Status --}}
     <div class="flex items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
         <div class="min-w-0 flex-1">
-            <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-0.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> 
-                TAHAP 1: PERENCANAAN LINGKUP &amp; REKOMENDASI SKEMA PROYEK (PRE-SALES)
-            </p>
-            <h3 class="text-sm sm:text-base font-bold text-slate-900">
-                Rekomendasi Ruang Lingkup &amp; Alokasi Divisi Teknis
+            <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
+                Alokasi Lingkup Kerja &amp; Divisi Teknis (Pre-Sales)
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">
                 @if($isBoth)
