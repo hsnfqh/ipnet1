@@ -273,16 +273,22 @@
         || str_contains(strtolower($authUser->name ?? ''), 'aris')
     ) && empty(array_intersect(['Sales', 'Account Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles));
 
-    // Hak otorisasi alokasi ruang lingkup (Sekarang wewenang tim Pre-Sales Specialist & Admin, bukan ranah Sales lagi)
-    $isAdmin = !empty(array_intersect(['Super Admin', 'Admin', 'Admin Support'], $userRoles));
+    // Hak otorisasi alokasi ruang lingkup (Wewenang tim Sales, Pre-Sales Specialist & Admin)
+    $isAdmin = !empty(array_intersect(['Super Admin', 'Admin', 'Admin Support', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution'], $userRoles));
     $isPresalesUser = $authUser && (
         (!empty($presalesAssignment['assigned_user_id']) && $authUser->id == $presalesAssignment['assigned_user_id'])
-        || !empty(array_intersect(['Presales', 'Pre-Sales'], $userRoles))
+        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect'], $userRoles))
         || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
         || str_contains(strtolower($authUser->email ?? ''), 'akbar')
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
     );
-    $canAssignScope = $authUser && ($isAdmin || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
+    $isSalesUser = $authUser && (
+        !empty(array_intersect(['Sales', 'Account Manager'], $userRoles))
+        || str_contains(strtolower($authUser->position ?? ''), 'sales')
+        || (!empty($project->sales_name) && strtolower($authUser->name) === strtolower($project->sales_name))
+        || (!empty($project->created_by) && $authUser->id == $project->created_by)
+    );
+    $canAssignScope = $authUser && ($isAdmin || $isPresalesUser || $isSalesUser);
 
     // Hak otorisasi Berkas Sales: Hanya Head Division, Sales itu sendiri (PIC Proyek), dan Direktur.
     // Pre-Sales, Solution Architect (SA), dan BD mutlak dilarang mengakses/melihat berkas ini.
