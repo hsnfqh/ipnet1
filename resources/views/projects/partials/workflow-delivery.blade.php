@@ -9,11 +9,11 @@
     $msHandover = $handoverData['ms_handover'] ?? [];
     $isMsHandedOver = !empty($msHandover['handed_over']);
 
-    // Otorisasi Alokasi Ruang Lingkup: Hak wewenang Sales, Pre-Sales Specialist & Admin
+    // Otorisasi Alokasi Ruang Lingkup: Hak wewenang Pre-Sales Specialist & Admin
     if (!isset($canAssignScope)) {
         $authUser = auth()->user();
         $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
-        $isAdmin = !empty(array_intersect(['Super Admin', 'Admin', 'Admin Support', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution'], $userRoles));
+        $isAdmin = !empty(array_intersect(['Super Admin', 'Admin', 'Admin Support', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation'], $userRoles));
         $technical = is_array($project->technical_solution) ? $project->technical_solution : (json_decode($project->technical_solution ?? '', true) ?: []);
         $presalesAssignedId = $technical['presales']['assigned_user_id'] ?? ($project->presales_id ?? null);
         $isPresalesUser = $authUser && (
@@ -23,18 +23,8 @@
             || str_contains(strtolower($authUser->email ?? ''), 'akbar')
             || str_contains(strtolower($authUser->name ?? ''), 'akbar')
         );
-        $isSalesUser = $authUser && (
-            !empty(array_intersect(['Sales', 'Account Manager'], $userRoles))
-            || str_contains(strtolower($authUser->position ?? ''), 'sales')
-            || (!empty($project->sales_name) && strtolower($authUser->name) === strtolower($project->sales_name))
-            || (!empty($project->created_by) && $authUser->id == $project->created_by)
-        );
-        $isPmoUser = $authUser && (
-            !empty(array_intersect(['PMO', 'Project Manager', 'Lead Maintenance', 'Managed Service'], $userRoles))
-            || (!empty($project->pm_id) && $authUser->id == $project->pm_id)
-        );
-        $canAssignScope = $authUser && ($isAdmin || $isPresalesUser || $isSalesUser || $isPmoUser);
-        $canAssignDivision = $authUser && ($isAdmin || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
+        $canAssignScope = $authUser && ($isAdmin || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
+        $canAssignDivision = $canAssignScope;
     } else {
         $canAssignDivision = $canAssignDivision ?? $canAssignScope;
     }
@@ -223,7 +213,7 @@
                                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     <span>Menunggu Penetapan Ruang Lingkup</span>
                                 </div>
-                                <div class="text-[10.5px] text-slate-400">Penetapan alur kerja &amp; serah terima PMO dilakukan oleh tim Sales atau Pre-Sales.</div>
+                                <div class="text-[10.5px] text-slate-400">Penetapan alur kerja &amp; serah terima PMO dilakukan oleh tim Pre-Sales.</div>
                             </div>
                         @endif
                     @endif
@@ -231,7 +221,7 @@
 
             </div>
 
-            {{-- Actions Footer: Wewenang Sales, Pre-Sales Specialist & Admin --}}
+            {{-- Actions Footer: Wewenang Pre-Sales Specialist & Admin --}}
             @if(!empty($canAssignScope))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isBdApproved)
@@ -253,10 +243,10 @@
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     <span class="inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Wewenang Sales &amp; Pre-Sales
+                        Wewenang Pre-Sales Specialist
                     </span>
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
-                        Sales / Pre-Sales
+                        Pre-Sales
                     </span>
                 </div>
             @endif

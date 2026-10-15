@@ -273,8 +273,8 @@
         || str_contains(strtolower($authUser->name ?? ''), 'aris')
     ) && empty(array_intersect(['Sales', 'Account Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles));
 
-    // Hak otorisasi alokasi ruang lingkup (Wewenang tim Sales, Pre-Sales Specialist & Admin)
-    $isAdmin = !empty(array_intersect(['Super Admin', 'Admin', 'Admin Support', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution'], $userRoles));
+    // Hak otorisasi alokasi ruang lingkup (Wewenang khusus tim Pre-Sales Specialist & Admin)
+    $isAdmin = !empty(array_intersect(['Super Admin', 'Admin', 'Admin Support', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation'], $userRoles));
     $isPresalesUser = $authUser && (
         (!empty($presalesAssignment['assigned_user_id']) && $authUser->id == $presalesAssignment['assigned_user_id'])
         || !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect'], $userRoles))
@@ -282,17 +282,7 @@
         || str_contains(strtolower($authUser->email ?? ''), 'akbar')
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
     );
-    $isSalesUser = $authUser && (
-        !empty(array_intersect(['Sales', 'Account Manager'], $userRoles))
-        || str_contains(strtolower($authUser->position ?? ''), 'sales')
-        || (!empty($project->sales_name) && strtolower($authUser->name) === strtolower($project->sales_name))
-        || (!empty($project->created_by) && $authUser->id == $project->created_by)
-    );
-    $isPmoUser = $authUser && (
-        !empty(array_intersect(['PMO', 'Project Manager', 'Lead Maintenance', 'Managed Service'], $userRoles))
-        || (!empty($project->pm_id) && $authUser->id == $project->pm_id)
-    );
-    $canAssignScope = $authUser && ($isAdmin || $isPresalesUser || $isSalesUser || $isPmoUser);
+    $canAssignScope = $authUser && ($isAdmin || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
 
     // Hak otorisasi Berkas Sales: Hanya Head Division, Sales itu sendiri (PIC Proyek), dan Direktur.
     // Pre-Sales, Solution Architect (SA), dan BD mutlak dilarang mengakses/melihat berkas ini.
@@ -1923,8 +1913,8 @@
             {{-- Header (Fixed / Non-Scrollable) --}}
             <div class="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6 shrink-0 bg-white">
                 <div>
-                    <h3 class="text-base sm:text-lg font-bold text-slate-900">Serah Terima &amp; Alokasi Kategori Proyek</h3>
-                    <p class="text-[12px] text-slate-500 mt-0.5">Penetapan legalitas kontrak PO, pemilihan alokasi tipe kategori proyek &amp; penugasan tim pelaksana.</p>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900">Alokasi Kategori &amp; Ruang Lingkup Proyek</h3>
+                    <p class="text-[12px] text-slate-500 mt-0.5">Penetapan karakteristik kategori proyek, penugasan tim pelaksana &amp; komitmen layanan teknis.</p>
                 </div>
                 <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="text-slate-400 hover:text-[#8F0A0D] text-xl font-bold p-1 cursor-pointer transition">✕</button>
             </div>
@@ -1978,80 +1968,31 @@
                         </div>
                     </div>
 
-                    {{-- 2. LEGALITAS KONTRAK & FINANSIAL --}}
-                    <div class="pt-3 border-t border-gray-100 space-y-3">
-                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
-                            2. Legalitas Kontrak &amp; Finansial
-                        </label>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <div>
-                                <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
-                                    Nomor PO / SPK / Kontrak <span class="text-[#8F0A0D]">*</span>
-                                </label>
-                                <input type="text" name="po_spk_number" value="{{ $project->po_spk_number }}" required
-                                       class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
-                            </div>
-
-                            <div>
-                                <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
-                                    Tanggal PO / SPK <span class="text-[#8F0A0D]">*</span>
-                                </label>
-                                <input type="date" name="po_spk_date" value="{{ $project->po_spk_date ? \Carbon\Carbon::parse($project->po_spk_date)->format('Y-m-d') : date('Y-m-d') }}" required
-                                       class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            {{-- Formatted Rupiah Input --}}
-                            <div x-data="{
-                                rawVal: '{{ $project->contract_value ? (int)$project->contract_value : '' }}',
-                                displayVal: '{{ $project->contract_value ? number_format((float)$project->contract_value, 0, ',', '.') : '' }}',
-                                formatRupiah(val) {
-                                    let num = val.replace(/[^0-9]/g, '');
-                                    this.rawVal = num;
-                                    this.displayVal = num ? new Intl.NumberFormat('id-ID').format(num) : '';
-                                }
-                            }">
-                                <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
-                                    Nilai Final Kontrak (Rp) <span class="text-[#8F0A0D]">*</span>
-                                </label>
-                                <div class="relative">
-                                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs pointer-events-none">Rp</span>
-                                    <input type="text" 
-                                           x-model="displayVal" 
-                                           @input="formatRupiah($event.target.value)" 
-                                           required
-                                           class="w-full pl-10 pr-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
-                                    <input type="hidden" name="contract_value" :value="rawVal">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
-                                    Upload PO / Kontrak (PDF/ZIP)
-                                </label>
-                                <input type="file" name="po_spk_file" accept=".pdf,.docx,.xlsx,.zip,.rar"
-                                       class="w-full px-3 py-1.5 bg-white border border-[#CBD5E1] rounded-xl text-[11px] text-[#64748B] hover:border-slate-400 focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-[#8F0A0D] file:text-white hover:file:bg-[#73080A] cursor-pointer transition">
-                                @if(!empty($project->po_spk_file))
-                                    <div class="text-[10px] text-emerald-600 mt-1 font-semibold">✓ Berkas PO tersimpan di sistem</div>
+                    {{-- PO & Kontrak Info (Read-Only dari Sales) --}}
+                    @if(!empty($project->po_spk_number) || !empty($project->contract_value) || !empty($project->po_spk_file))
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                <span class="text-slate-600 font-medium">Dokumen PO Terdaftar:</span>
+                                <strong class="text-slate-800">{{ $project->po_spk_number ?: 'PO Terlampir' }}</strong>
+                                @if(!empty($project->contract_value))
+                                    <span class="text-slate-400">•</span>
+                                    <span class="text-slate-700 font-bold">Rp {{ number_format((float)$project->contract_value, 0, ',', '.') }}</span>
                                 @endif
                             </div>
+                            @if(!empty($project->po_spk_file))
+                                <a href="{{ Storage::url($project->po_spk_file) }}" target="_blank" class="text-[#8F0A0D] font-bold hover:underline inline-flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span>Lihat File PO</span>
+                                </a>
+                            @endif
                         </div>
+                    @endif
 
-                        <div>
-                            <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
-                                Billing Terms (Termin &amp; Skema Pembayaran) <span class="text-[#8F0A0D]">*</span>
-                            </label>
-                            <textarea name="billing_terms" rows="2" required
-                                      class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none">{{ $project->billing_terms }}</textarea>
-                        </div>
-                    </div>
-
-                    {{-- 3. PENUGASAN & KOMITMEN SCOPE PROYEK --}}
+                    {{-- 2. PENUGASAN & KOMITMEN SCOPE PROYEK --}}
                     <div class="pt-3 border-t border-gray-100 space-y-3.5">
                         <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
-                            3. Penugasan &amp; Komitmen Layanan
+                            2. Penugasan &amp; Komitmen Layanan
                         </label>
 
                         {{-- User Selection --}}

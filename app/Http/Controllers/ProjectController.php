@@ -383,15 +383,8 @@ class ProjectController extends Controller
                 || str_contains(strtolower($authUser->email ?? ''), 'akbar')
                 || str_contains(strtolower($authUser->name ?? ''), 'akbar')
             );
-            $isSales = !empty(array_intersect(['sales', 'account manager'], $userRolesLower))
-                || str_contains($posLower, 'sales')
-                || ($project->sales_name && $authUser && strtolower($authUser->name) === strtolower($project->sales_name))
-                || ($project->created_by && $authUser && $authUser->id == $project->created_by);
-            $isPmo = !empty(array_intersect(['pmo', 'project manager', 'lead maintenance', 'managed service'], $userRolesLower))
-                || ($project->pm_id && $authUser && $authUser->id == $project->pm_id);
-
-            $canAssignScope = $authUser && ($isAdmin || $isPresales || $isSales || $isPmo);
-            abort_unless($canAssignScope, 403, 'Penetapan alokasi ruang lingkup proyek merupakan wewenang tim Sales, Pre-Sales, PMO, atau Admin.');
+            $canAssignScope = $authUser && ($isAdmin || ($isPresales && empty(array_intersect(['sales', 'account manager'], $userRolesLower))));
+            abort_unless($canAssignScope, 403, 'Penetapan alokasi ruang lingkup proyek merupakan wewenang tim Pre-Sales Specialist atau Admin.');
 
             $target = $validated['handover_target'] ?? ($project->handover_target ?: 'pmo');
             $updateFields = [
