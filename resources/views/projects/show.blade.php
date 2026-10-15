@@ -1556,34 +1556,24 @@
 
                             @if(!empty($headApproval['approved']))
                                 <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs flex items-center justify-center">
-                                        <div class="w-1 h-1 rounded-full bg-white"></div>
-                                    </div>
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
                                     <div class="font-normal text-slate-700">
                                         Disetujui oleh Head Divisi: <strong class="font-semibold text-slate-900">{{ $headApproval['assigned_to'] ?? 'Susanto Djaya' }}</strong>
                                     </div>
                                     <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        {{ $headApproval['date'] ?? 'Disetujui' }}
-                                        @if(!empty($headApproval['notes']))
-                                            <div class="text-slate-600 font-normal italic mt-0.5">"{{ $headApproval['notes'] }}"</div>
-                                        @endif
+                                        {{ $headApproval['date'] ?? 'Disetujui' }} (oleh {{ $headApproval['by'] ?? ($headApproval['assigned_to'] ?? 'Susanto Djaya') }})
                                     </div>
                                 </div>
                             @endif
 
                             @if(!empty($directorApproval['approved']))
                                 <div class="relative">
-                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs flex items-center justify-center">
-                                        <div class="w-1 h-1 rounded-full bg-white"></div>
-                                    </div>
+                                    <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
                                     <div class="font-normal text-slate-700">
                                         Disetujui oleh Direktur: <strong class="font-semibold text-slate-900">{{ $directorApproval['assigned_to'] ?? 'Hariyadi' }}</strong>
                                     </div>
                                     <div class="text-[11px] text-slate-400 mt-0.5 font-mono">
-                                        {{ $directorApproval['date'] ?? 'Disahkan' }}
-                                        @if(!empty($directorApproval['notes']))
-                                            <div class="text-slate-600 font-normal italic mt-0.5">"{{ $directorApproval['notes'] }}"</div>
-                                        @endif
+                                        {{ $directorApproval['date'] ?? 'Disahkan' }} (oleh {{ $directorApproval['by'] ?? ($directorApproval['assigned_to'] ?? 'Hariyadi') }})
                                     </div>
                                 </div>
                             @endif
