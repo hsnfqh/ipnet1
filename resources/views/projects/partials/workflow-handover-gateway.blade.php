@@ -26,28 +26,29 @@
 
 <div class="ipnet-card p-6 space-y-5 transition-all">
     
-    {{-- Header Bersih & Ringkas --}}
-    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
-        <div class="min-w-0 flex-1">
-            <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
-                Pengesahan Serah Terima Proyek
-            </h3>
+    {{-- Header Bersih & Ringkas (Konsisten dengan Kolaborasi Tim Solusi Teknis) --}}
+    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 flex-wrap">
+        <div class="min-w-0">
+            <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-0.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> SERAH TERIMA &amp; OPERASIONAL
+            </p>
+            <h3 class="text-sm sm:text-base font-bold text-slate-900">Pengesahan Serah Terima Proyek</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Alur verifikasi legalitas kontrak, penetapan ruang lingkup deliverable, dan serah terima ke tim delivery.</p>
         </div>
         
         <div class="shrink-0 flex items-center">
             @if($isHandoverApproved)
-                <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 shadow-2xs shrink-0 whitespace-nowrap">
                     <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                     <span>Resmi Diserahterimakan</span>
                 </span>
             @elseif($isClosedWon)
-                <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1.5 shadow-2xs shrink-0 whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
                     <span>Siap Serah Terima</span>
                 </span>
             @else
-                <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5 shadow-2xs shrink-0 whitespace-nowrap">
                     <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     <span>Menunggu Closed Won</span>
                 </span>
@@ -55,78 +56,143 @@
         </div>
     </div>
 
-    {{-- 3-Pilar Status Transisi --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs">
+    {{-- 3-Pilar Status Transisi (Konsisten dengan Card Tim Solusi Teknis) --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs items-stretch">
         
-        {{-- 1. Ruang Lingkup Teknis --}}
-        <div class="p-3.5 rounded-xl border {{ $project->handover_target ? 'bg-emerald-50/40 border-emerald-200' : 'bg-slate-50 border-slate-200' }} space-y-1.5">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold uppercase tracking-wider {{ $project->handover_target ? 'text-emerald-800' : 'text-slate-500' }}">
-                    1. Ruang Lingkup Teknis
-                </span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $project->handover_target ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600' }}">
-                    {{ $project->handover_target ? '✓ Siap' : 'Belum Ditentukan' }}
-                </span>
-            </div>
-            <div>
-                <div class="font-bold text-xs {{ $project->handover_target ? 'text-slate-900' : 'text-slate-500 italic' }}">
-                    @if($isBoth)
-                        Dual Scope: PMO &amp; Managed Service
-                    @elseif($isMs)
-                        Kontrak Managed Service (Opex)
-                    @elseif($project->handover_target === 'pmo')
-                        Proyek Implementasi (PMO Delivery)
-                    @else
-                        Menunggu Perumusan Pre-Sales
-                    @endif
+        {{-- ══ CARD 1: RUANG LINGKUP TEKNIS ══ --}}
+        <div class="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition overflow-hidden">
+            <div class="space-y-3">
+                <div class="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between items-start gap-1.5 pb-2 border-b border-slate-100 min-h-[50px] 2xl:min-h-0">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider self-start">
+                        RUANG LINGKUP TEKNIS
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border self-start 2xl:self-auto shrink-0 {{ $project->handover_target ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
+                        {{ $project->handover_target ? '✓ Siap' : 'Belum Ditentukan' }}
+                    </span>
                 </div>
-                <p class="text-[11px] text-slate-500 mt-0.5 truncate">
-                    Divisi: {{ $project->division ? $project->division->name : 'Belum didelegasikan' }}
-                </p>
+
+                {{-- Entity --}}
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="font-bold text-xs {{ $project->handover_target ? 'text-slate-900' : 'text-slate-400 italic' }} truncate">
+                            @if($isBoth)
+                                Dual Scope: PMO &amp; Managed Service
+                            @elseif($isMs)
+                                Kontrak Managed Service (Opex)
+                            @elseif($project->handover_target === 'pmo')
+                                Proyek Implementasi (PMO Delivery)
+                            @else
+                                Belum Ditentukan Pre-Sales
+                            @endif
+                        </h4>
+                        <p class="text-[10.5px] text-slate-500 truncate">
+                            Divisi: {{ $project->division ? $project->division->name : 'Belum didelegasikan' }}
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Details Box --}}
+                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1">
+                    <div class="font-bold text-slate-900 text-xs">Target Penyerahan Deliverable</div>
+                    <div class="text-[10.5px] text-slate-500 line-clamp-2">
+                        {{ $project->handover_target ? 'Ruang lingkup proyek dan deliverable teknis telah teridentifikasi.' : 'Menunggu perumusan lingkup kerja teknis dan deliverable.' }}
+                    </div>
+                </div>
             </div>
         </div>
 
-        {{-- 2. Legalitas Kontrak (PO/SPK) --}}
-        <div class="p-3.5 rounded-xl border {{ $isClosedWon ? 'bg-emerald-50/40 border-emerald-200' : 'bg-slate-50 border-slate-200' }} space-y-1.5">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold uppercase tracking-wider {{ $isClosedWon ? 'text-emerald-800' : 'text-slate-500' }}">
-                    2. Legalitas Kontrak (PO/SPK)
-                </span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $isClosedWon ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
-                    {{ $isClosedWon ? '✓ Closed Won' : $currentSalesStage }}
-                </span>
-            </div>
-            <div>
-                <div class="font-bold text-xs {{ $isClosedWon ? 'text-slate-900' : 'text-slate-600' }} truncate">
-                    {{ $project->po_spk_number ? 'No. PO: ' . $project->po_spk_number : ($isClosedWon ? 'PO/Kontrak Sah' : 'Menunggu Penerbitan PO') }}
+        {{-- ══ CARD 2: LEGALITAS KONTRAK (PO/SPK) ══ --}}
+        <div class="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition overflow-hidden">
+            <div class="space-y-3">
+                <div class="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between items-start gap-1.5 pb-2 border-b border-slate-100 min-h-[50px] 2xl:min-h-0">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider self-start">
+                        LEGALITAS KONTRAK (PO/SPK)
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border self-start 2xl:self-auto shrink-0 {{ $isClosedWon ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-300' }}">
+                        {{ $isClosedWon ? '✓ Closed Won' : $currentSalesStage }}
+                    </span>
                 </div>
-                <p class="text-[11px] text-slate-500 mt-0.5 truncate">
-                    @if(!empty($project->contract_value))
-                        Nilai: Rp {{ number_format((float)$project->contract_value, 0, ',', '.') }}
-                    @else
-                        Peluang: {{ $currentProb }}%
-                    @endif
-                </p>
+
+                {{-- Entity --}}
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="font-bold text-xs {{ $isClosedWon ? 'text-slate-900' : 'text-slate-600' }} truncate">
+                            {{ $project->po_spk_number ? 'No. PO: ' . $project->po_spk_number : ($isClosedWon ? 'PO/Kontrak Sah Terbit' : 'Menunggu Penerbitan PO') }}
+                        </h4>
+                        <p class="text-[10.5px] text-slate-500 truncate">
+                            @if(!empty($project->contract_value))
+                                Nilai: Rp {{ number_format((float)$project->contract_value, 0, ',', '.') }}
+                            @else
+                                Peluang: {{ $currentProb }}%
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Details Box --}}
+                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1">
+                    <div class="font-bold text-slate-900 text-xs">Penerbitan Kontrak &amp; PO</div>
+                    <div class="text-[10.5px] text-slate-500 line-clamp-2">
+                        {{ $isClosedWon ? 'PO/SPK resmi telah diterbitkan oleh pihak klien & terverifikasi.' : 'Menunggu penerbitan PO/SPK resmi atau kontrak bertandatangan.' }}
+                    </div>
+                </div>
             </div>
         </div>
 
-        {{-- 3. Kesiapan Eksekusi --}}
-        <div class="p-3.5 rounded-xl border {{ $isClosedWon && $project->handover_target ? 'bg-emerald-50/40 border-emerald-200' : 'bg-slate-50 border-slate-200' }} space-y-1.5">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold uppercase tracking-wider {{ $isClosedWon && $project->handover_target ? 'text-emerald-800' : 'text-slate-500' }}">
-                    3. Kesiapan Eksekusi
-                </span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $isHandoverApproved ? 'bg-emerald-100 text-emerald-800' : ($isClosedWon ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-600') }}">
-                    {{ $isHandoverApproved ? '✓ Berjalan' : ($isClosedWon ? 'Siap Sahkan' : 'Menunggu') }}
-                </span>
-            </div>
-            <div>
-                <div class="font-bold text-xs text-slate-900 truncate">
-                    Project Manager: {{ $project->pm ? $project->pm->name : 'Ditetapkan Saat Handover' }}
+        {{-- ══ CARD 3: KESIAPAN EKSEKUSI (PMO DELIVERY) ══ --}}
+        <div class="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition overflow-hidden">
+            <div class="space-y-3">
+                <div class="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between items-start gap-1.5 pb-2 border-b border-slate-100 min-h-[50px] 2xl:min-h-0">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider self-start">
+                        KESIAPAN EKSEKUSI
+                    </span>
+                    @php
+                        $execBadgeClass = $isHandoverApproved
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : ($isClosedWon ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-500 border-slate-200');
+                        $execBadgeLabel = $isHandoverApproved
+                            ? '✓ Berjalan'
+                            : ($isClosedWon ? 'Siap Sahkan' : 'Menunggu');
+                    @endphp
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border self-start 2xl:self-auto shrink-0 {{ $execBadgeClass }}">
+                        {{ $execBadgeLabel }}
+                    </span>
                 </div>
-                <p class="text-[11px] text-slate-500 mt-0.5 truncate">
-                    Dokumen teknis tersedia di Lampiran
-                </p>
+
+                {{-- Entity --}}
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="font-bold text-xs {{ $project->pm ? 'text-slate-900' : 'text-slate-400 italic' }} truncate">
+                            Project Manager: {{ $project->pm ? $project->pm->name : 'Ditetapkan Saat Handover' }}
+                        </h4>
+                        <p class="text-[10.5px] text-slate-500 truncate">
+                            Dokumen teknis tersedia di Lampiran
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Details Box --}}
+                <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1">
+                    <div class="font-bold text-slate-900 text-xs">Penetapan Tim Lapangan</div>
+                    <div class="text-[10.5px] text-slate-500 line-clamp-2">
+                        {{ $isHandoverApproved ? 'Handover tervalidasi dan penugasan tim operasional aktif.' : ($isClosedWon ? 'Pilih Project Manager di form bawah untuk mengesahkan.' : 'Handover dapat disahkan setelah status mencapai Closed Won.') }}
+                    </div>
+                </div>
             </div>
         </div>
 
