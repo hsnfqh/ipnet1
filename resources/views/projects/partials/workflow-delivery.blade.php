@@ -131,22 +131,21 @@
 
     {{-- Standardized Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs items-stretch">
-        
-        {{-- ══ CARD 1: TIM ENGINEER PELAKSANA (DIVISI PELAKSANA TEKNIS) ══ --}}
+               {{-- ══ CARD 1: TIM ENGINEER PELAKSANA (DIVISI PELAKSANA TEKNIS) ══ --}}
         <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
             <div class="space-y-3">
                 {{-- Header --}}
-                <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider whitespace-nowrap">
+                <div class="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-100 min-w-0">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider shrink min-w-0 truncate">
                         DIVISI PELAKSANA TEKNIS
                     </span>
                     @if(!empty($project->division_id) && !empty($project->division))
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
                             <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             <span>{{ $project->division->name }}</span>
                         </span>
                     @else
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-slate-100 text-slate-500 border-slate-200">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 whitespace-nowrap bg-slate-100 text-slate-500 border-slate-200">
                             Belum Ditugaskan
                         </span>
                     @endif
@@ -263,7 +262,7 @@
                                 @click.stop="openAssignDivisionModal()" 
                                 onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
                                 class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                             <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Perbarui Divisi Pelaksana' : 'Tetapkan Divisi Pelaksana' }}</span>
                         </button>
                     @endif
@@ -278,46 +277,63 @@
             @endif
         </div>
 
-        {{-- ══ CARD 2: REKOMENDASI SKEMA & RUANG LINGKUP (PRE-SALES) ══ --}}
+        {{-- ══ CARD 2: REKOMENDASI SKEMA & RUANG LINGKUP (SALES / ACCOUNT MANAGER) ══ --}}
         <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
             <div class="space-y-3">
                 
                 {{-- Header --}}
-                <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider whitespace-nowrap">
+                <div class="flex items-center justify-between gap-1.5 pb-2 border-b border-slate-100 min-w-0">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider shrink min-w-0 truncate">
                         SKEMA &amp; KARAKTERISTIK IMPLEMENTASI
                     </span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ !$isAnyApproved ? 'bg-amber-50 text-amber-800 border-amber-200' : ($project->handover_target ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isBdApproved ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200')) }}">
-                        {{ !$isAnyApproved ? 'Menunggu Persetujuan' : ($project->handover_target ? '✓ Skema Ditetapkan' : ($isBdApproved ? 'Menunggu Perumusan' : 'Terkunci')) }}
-                    </span>
+                    @if(!empty($project->pm))
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
+                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>Skema Ditetapkan</span>
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 whitespace-nowrap bg-slate-100 text-slate-500 border-slate-200">
+                            Belum Ditetapkan
+                        </span>
+                    @endif
                 </div>
 
                 {{-- Scheme Info --}}
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </div>
+                    @if(!empty($project->pm))
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                    @else
+                        <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 shadow-2xs" title="Belum Ditetapkan">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                    @endif
                     <div class="min-w-0 flex-1">
-                        <h4 class="font-bold text-xs {{ $project->handover_target ? 'text-slate-900' : 'text-slate-500 italic' }} truncate">
-                            @if($isBoth)
-                                Dual Scope (Implementasi &amp; MS)
-                            @elseif($isMs)
-                                Kontrak Managed Service (Operate)
-                            @elseif($project->handover_target === 'pmo')
-                                Proyek Implementasi
+                        <h4 class="font-bold text-xs {{ !empty($project->pm) ? 'text-slate-900' : 'text-slate-500 italic' }} truncate">
+                            @if(!empty($project->pm))
+                                @if($isBoth)
+                                    Dual Scope (Implementasi &amp; MS)
+                                @elseif($isMs)
+                                    Kontrak Managed Service (Operate)
+                                @else
+                                    Proyek Implementasi
+                                @endif
                             @else
                                 Belum Ditetapkan oleh Sales
                             @endif
                         </h4>
                         <p class="text-[10.5px] text-slate-500 truncate">
-                            @if($isBoth)
-                                Capex Deployment + Retainer Maintenance
-                            @elseif($isMs)
-                                Opex Maintenance &amp; SLA Commitment
-                            @elseif($project->handover_target === 'pmo')
-                                Capex Engineering &amp; Pengadaan Perangkat
+                            @if(!empty($project->pm))
+                                @if($isBoth)
+                                    Capex Deployment + Retainer Maintenance
+                                @elseif($isMs)
+                                    Opex Maintenance &amp; SLA Commitment
+                                @else
+                                    Capex Engineering &amp; Pengadaan Perangkat
+                                @endif
                             @else
-                                Karakteristik Proyek Komersial
+                                Karakteristik &amp; Penanggung Jawab Proyek
                             @endif
                         </p>
                     </div>
@@ -325,7 +341,7 @@
 
                 {{-- Status / Deliverable Box --}}
                 <div>
-                    @if($project->handover_target)
+                    @if(!empty($project->pm))
                         <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2">
                             <div class="flex items-center gap-2 min-w-0">
                                 <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
@@ -342,7 +358,7 @@
                                         @endif
                                     </div>
                                     <div class="text-[10.5px] text-slate-500 truncate">
-                                        PM / Lead Proyek: {{ $project->pm ? $project->pm->name : 'Ditetapkan pada Serah Terima Proyek' }}
+                                        Project Manager: {{ $project->pm->name }}
                                     </div>
                                 </div>
                             </div>
@@ -404,7 +420,7 @@
                     @if(!$isBdApproved)
                         <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu verifikasi solusi teknis disahkan oleh PIC BD">
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                            <span>{{ $project->handover_target ? 'Perbarui Skema Proyek' : 'Tetapkan Skema Proyek' }}</span>
+                            <span>{{ !empty($project->pm) ? 'Perbarui Skema Proyek' : 'Tetapkan Skema Proyek' }}</span>
                         </button>
                     @else
                         <button type="button" 
@@ -412,14 +428,14 @@
                                 onclick="event.stopPropagation(); (window.openHandoverModalCustom ? window.openHandoverModalCustom('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}') : window.openModal('modal-handover'))"
                                 class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>{{ $project->handover_target ? 'Perbarui Skema Proyek' : 'Tetapkan Skema Proyek' }}</span>
+                            <span>{{ !empty($project->pm) ? 'Perbarui Skema Proyek' : 'Tetapkan Skema Proyek' }}</span>
                         </button>
                     @endif
                 </div>
             @else
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     <span class="inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
-                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         Wewenang Sales / Account Manager
                     </span>
                 </div>
