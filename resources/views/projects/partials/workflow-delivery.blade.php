@@ -4,42 +4,48 @@
     $uniqueEngineers = $uniqueEngineers ?? collect();
     $isBoth = ($project->handover_target === 'both');
     $isMs = ($project->handover_target === 'managed_service' || ($project->stage === 'Operate' && !$isBoth));
+    $isAnyApproved = $isAnyApproved ?? (!empty($headApproval['approved']) || !empty($directorApproval['approved']));
     $isBdApproved = $isBdApproved ?? (!empty($bdVerification['status']) && $bdVerification['status'] === 'Approved');
     $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
     $msHandover = $handoverData['ms_handover'] ?? [];
     $isMsHandedOver = !empty($msHandover['handed_over']);
 
-    // Otorisasi Alokasi Ruang Lingkup: Hak wewenang Pre-Sales Specialist & Admin
-    if (!isset($canAssignScope)) {
-        $authUser = auth()->user();
-        $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
-        $isAdmin = !empty(array_intersect(['Super Admin', 'Admin', 'Admin Support', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation'], $userRoles));
-        $technical = is_array($project->technical_solution) ? $project->technical_solution : (json_decode($project->technical_solution ?? '', true) ?: []);
-        $presalesAssignedId = $technical['presales']['assigned_user_id'] ?? ($project->presales_id ?? null);
-        $isPresalesUser = $authUser && (
-            (!empty($presalesAssignedId) && $authUser->id == $presalesAssignedId)
-            || !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect'], $userRoles))
-            || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
-            || str_contains(strtolower($authUser->email ?? ''), 'akbar')
-            || str_contains(strtolower($authUser->name ?? ''), 'akbar')
-        );
-        $canAssignScope = $authUser && ($isAdmin || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
-        $canAssignDivision = $canAssignScope;
-    } else {
-        $canAssignDivision = $canAssignDivision ?? $canAssignScope;
-    }
+    // Otorisasi Alokasi Ruang Lingkup: Hak wewenang Pre-Sales Specialist & Super Admin murni (Bukan Eksekutif / Susanto / Direktur)
+    $authUser = auth()->user();
+    $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
+    $isExecutiveUser = $authUser && (
+        \App\Helpers\ScopeHelper::isExecutive($authUser)
+        || \App\Helpers\ScopeHelper::isGroupLeader($authUser)
+        || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution'], $userRoles))
+        || str_contains(strtolower($authUser->name ?? ''), 'susanto')
+        || str_contains(strtolower($authUser->email ?? ''), 'susanto')
+        || str_contains(strtolower($authUser->name ?? ''), 'hariyadi')
+        || str_contains(strtolower($authUser->email ?? ''), 'hariyadi')
+    );
+    $isAdminPure = !empty(array_intersect(['Super Admin', 'Admin'], $userRoles));
+    $technical = is_array($project->technical_solution) ? $project->technical_solution : (json_decode($project->technical_solution ?? '', true) ?: []);
+    $presalesAssignedId = $technical['presales']['assigned_user_id'] ?? ($project->presales_id ?? null);
+    $isPresalesUser = $authUser && (
+        (!empty($presalesAssignedId) && $authUser->id == $presalesAssignedId)
+        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect'], $userRoles))
+        || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
+        || str_contains(strtolower($authUser->email ?? ''), 'akbar')
+        || str_contains(strtolower($authUser->name ?? ''), 'akbar')
+    );
+    $canAssignScope = $authUser && !$isExecutiveUser && ($isAdminPure || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
+    $canAssignDivision = $canAssignScope;
 @endphp
 <div class="ipnet-card p-6 space-y-5">
-    {{-- Header & Status --}}
-    <div class="flex items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-        <div class="min-w-0 flex-1">
-            <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                <span class="w-2 h-4 rounded-full bg-[#8F0A0D]"></span>
-                Alokasi Lingkup Kerja &amp; Divisi Teknis (Pre-Sales)
-            </h3>
+    {{-- Header & Status (Konsisten dengan Kolaborasi Tim Solusi Teknis) --}}
+    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 flex-wrap">
+        <div class="min-w-0">
+            <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-0.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> ALOKASI &amp; PERENCANAAN TEKNIS
+            </p>
+            <h3 class="text-sm sm:text-base font-bold text-slate-900">Alokasi Lingkup Kerja &amp; Divisi Teknis (Pre-Sales)</h3>
             <p class="text-xs text-slate-500 mt-0.5">
                 @if($isBoth)
-                    Rekomendasi mencakup <strong>Dual Scope</strong>: Fase 1 Implementasi Capex (PMO) dilanjutkan Fase 2 Pemeliharaan Opex (Managed Service).
+                    Rekomendasi mencakup <strong>Dual Scope</strong>: Fase 1 Implementasi Capex dilanjutkan Fase 2 Pemeliharaan Opex (Managed Service).
                 @else
                     Penyusunan karakteristik lingkup implementasi (Capex / Opex), komitmen SLA &amp; batasan teknis (exclusions), serta alokasi divisi spesialis oleh Pre-Sales.
                 @endif
@@ -47,7 +53,12 @@
         </div>
         
         <div class="shrink-0 flex items-center">
-            @if($isBoth)
+            @if(!$isAnyApproved)
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
+                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Menunggu Persetujuan Pimpinan</span>
+                </span>
+            @elseif($isBoth)
                 <div class="flex items-center gap-2">
                     <span class="px-2.5 py-1 rounded-full text-[11px] font-bold {{ $isMsHandedOver ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-amber-50 text-amber-800 border border-amber-200' }} flex items-center gap-1.5 shadow-2xs">
                         <span class="w-2 h-2 rounded-full {{ $isMsHandedOver ? 'bg-purple-600' : 'bg-amber-500' }}"></span>
@@ -60,7 +71,7 @@
             @elseif($project->handover_target)
                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
                     <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                    <span>{{ $isMs ? 'Rekomendasi Managed Service' : 'Rekomendasi Implementasi PMO' }}</span>
+                    <span>{{ $isMs ? 'Rekomendasi Managed Service' : 'Rekomendasi Implementasi Proyek' }}</span>
                 </span>
             @elseif(!$isBdApproved)
                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
@@ -81,23 +92,22 @@
             <div class="space-y-1">
                 <div class="font-bold {{ $isMsHandedOver ? 'text-purple-900' : 'text-amber-900' }} flex items-center gap-2">
                     <svg class="w-4 h-4 {{ $isMsHandedOver ? 'text-purple-600' : 'text-amber-600' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>{{ $isMsHandedOver ? 'Fase 1 (Implementasi Teknis) Tuntas ✓ - Berjalan di Fase 2 (Managed Service)' : 'Tahap Saat Ini: Fase 1 (Implementasi Teknis & Delivery PMO)' }}</span>
+                    <span>{{ $isMsHandedOver ? 'Fase 1 (Implementasi Teknis) Tuntas ✓ - Berjalan di Fase 2 (Managed Service)' : 'Tahap Saat Ini: Fase 1 (Implementasi Teknis & Delivery Proyek)' }}</span>
                 </div>
                 <p class="text-[11.5px] {{ $isMsHandedOver ? 'text-purple-700' : 'text-amber-800' }}">
                     @if($isMsHandedOver)
                         Diserahterimakan ke Tim Managed Service pada {{ $msHandover['handed_over_at'] ?? '-' }} oleh {{ $msHandover['handed_over_by'] ?? 'PMO' }}. SLA: {{ $project->sla_tier ?: 'Gold (99.5%)' }}.
                     @else
-                        Setelah penggelaran &amp; instalasi teknis selesai, PMO akan melakukan serah terima resmi ke Tim Managed Service.
+                        Setelah penggelaran &amp; instalasi teknis selesai, tim delivery akan melakukan serah terima resmi ke Tim Managed Service.
                     @endif
                 </p>
             </div>
             
             @php
-                $canPmoHandover = $authUser && (
+                $canPmoHandover = $authUser && !$isExecutiveUser && (
                     \App\Helpers\ScopeHelper::isPmo($authUser)
                     || ($project->pm_id && $project->pm_id == $authUser->id)
-                    || ($isExecutive ?? false)
-                    || ($project->created_by == $authUser->id)
+                    || !empty(array_intersect(['PMO', 'Project Manager', 'Super Admin'], $userRoles))
                 );
             @endphp
             @if(!$isMsHandedOver && $canPmoHandover)
@@ -123,8 +133,8 @@
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider whitespace-nowrap">
                         SKEMA &amp; KARAKTERISTIK IMPLEMENTASI
                     </span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $project->handover_target ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isBdApproved ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
-                        {{ $project->handover_target ? '✓ Skema Ditetapkan' : ($isBdApproved ? 'Menunggu Perumusan' : 'Terkunci') }}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ !$isAnyApproved ? 'bg-amber-50 text-amber-800 border-amber-200' : ($project->handover_target ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isBdApproved ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200')) }}">
+                        {{ !$isAnyApproved ? 'Menunggu Persetujuan' : ($project->handover_target ? '✓ Skema Ditetapkan' : ($isBdApproved ? 'Menunggu Perumusan' : 'Terkunci')) }}
                     </span>
                 </div>
 
@@ -140,7 +150,7 @@
                             @elseif($isMs)
                                 Kontrak Managed Service (Operate)
                             @elseif($project->handover_target === 'pmo')
-                                Proyek Implementasi (PMO Delivery)
+                                Proyek Implementasi
                             @else
                                 Belum Dirumuskan oleh Pre-Sales
                             @endif
@@ -174,11 +184,11 @@
                                         @elseif($isMs)
                                             Skema: Kontrak Pemeliharaan Rutin (Managed Service)
                                         @else
-                                            Skema: Penggelaran Proyek (PMO Delivery)
+                                            Skema: Penggelaran Proyek (Implementasi Teknis)
                                         @endif
                                     </div>
                                     <div class="text-[10.5px] text-slate-500 truncate">
-                                        Usulan PM/Lead: {{ $project->pm ? $project->pm->name : 'Ditetapkan definitif pada Serah Terima PMO' }}
+                                        Usulan PM/Lead: {{ $project->pm ? $project->pm->name : 'Ditetapkan definitif pada Serah Terima Proyek' }}
                                     </div>
                                 </div>
                             </div>
@@ -209,14 +219,14 @@
                                  class="p-3 rounded-lg bg-amber-50/80 hover:bg-amber-100/80 border border-amber-200 text-amber-900 space-y-1.5 cursor-pointer transition shadow-2xs group">
                                 <div class="flex items-center gap-2 min-w-0">
                                     <div class="w-7 h-7 rounded-lg bg-amber-200/80 text-amber-900 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <svg class="w-3.5 h-3.5 fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="font-bold text-amber-900 text-xs flex items-center justify-between">
                                             <span>Rumuskan Rekomendasi Lingkup Proyek</span>
                                             <svg class="w-3.5 h-3.5 text-amber-700 opacity-60 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                         </div>
-                                        <div class="text-[10.5px] text-amber-800 truncate">Implementasi Capex (PMO), Managed Service (Opex), atau Dual Scope</div>
+                                        <div class="text-[10.5px] text-amber-800 truncate">Implementasi Capex (Proyek), Managed Service (Opex), atau Dual Scope</div>
                                     </div>
                                 </div>
                             </div>
@@ -228,7 +238,6 @@
                                 </div>
                                 <div class="text-[10.5px] text-slate-400">Perumusan ruang lingkup teknis dilakukan oleh tim Pre-Sales Engineer.</div>
                             </div>
-                        @endif
                     @endif
                 </div>
 

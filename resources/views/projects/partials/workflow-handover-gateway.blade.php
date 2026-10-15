@@ -66,8 +66,16 @@
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider self-start">
                         RUANG LINGKUP TEKNIS
                     </span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border self-start 2xl:self-auto shrink-0 {{ $project->handover_target ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
-                        {{ $project->handover_target ? '✓ Siap' : 'Belum Ditentukan' }}
+                    @php
+                        $scopeBadgeClass = ($isHandoverApproved || ($isClosedWon && $project->handover_target))
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : ($isClosedWon ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200');
+                        $scopeBadgeLabel = ($isHandoverApproved || ($isClosedWon && $project->handover_target))
+                            ? '✓ Siap'
+                            : ($isClosedWon ? 'Menunggu Perumusan' : 'Menunggu');
+                    @endphp
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border self-start 2xl:self-auto shrink-0 {{ $scopeBadgeClass }}">
+                        {{ $scopeBadgeLabel }}
                     </span>
                 </div>
 
@@ -81,11 +89,11 @@
                     <div class="min-w-0 flex-1">
                         <h4 class="font-bold text-xs {{ $project->handover_target ? 'text-slate-900' : 'text-slate-400 italic' }} truncate">
                             @if($isBoth)
-                                Dual Scope: PMO &amp; Managed Service
+                                Dual Scope: Proyek &amp; Managed Service
                             @elseif($isMs)
                                 Kontrak Managed Service (Opex)
                             @elseif($project->handover_target === 'pmo')
-                                Proyek Implementasi (PMO Delivery)
+                                Proyek Implementasi
                             @else
                                 Belum Ditentukan Pre-Sales
                             @endif
@@ -204,7 +212,7 @@
         <div class="p-4 rounded-xl bg-amber-50/80 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
             <div class="flex items-center gap-2 text-amber-900">
                 <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span>Proyek saat ini masih di tahap penawaran ({{ $currentSalesStage }}). Serah terima ke PMO dibuka setelah status mencapai Closed Won.</span>
+                <span>Proyek saat ini masih di tahap penawaran ({{ $currentSalesStage }}). Serah terima proyek dibuka setelah status mencapai Closed Won.</span>
             </div>
 
             @if(empty($isPresalesOrSaOnly) && ($canAssignSales ?? false))
@@ -309,8 +317,8 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-slate-700">
                 <div class="p-2.5 rounded-lg bg-white border border-emerald-100">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 block">PROJECT MANAGER (PMO)</span>
-                    <strong class="text-slate-900 text-xs">{{ $project->pm ? $project->pm->name : 'PMO Delivery' }}</strong>
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">PROJECT MANAGER</span>
+                    <strong class="text-slate-900 text-xs">{{ $project->pm ? $project->pm->name : 'Tim Delivery Proyek' }}</strong>
                 </div>
                 <div class="p-2.5 rounded-lg bg-white border border-emerald-100">
                     <span class="text-[10px] uppercase font-bold text-slate-400 block">NOMOR PO / SPK</span>

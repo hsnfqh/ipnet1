@@ -205,8 +205,8 @@
     // Hak otorisasi persetujuan pimpinan (Pak Susanto & Pak Hariyadi)
     $authUser = auth()->user();
     $userRoles = $authUser ? $authUser->roles->pluck('name')->toArray() : [];
-    $isSusanto = $authUser && (str_contains(strtolower($authUser->name), 'susanto') || !empty(array_intersect(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution', 'Lead Divisi'], $userRoles)));
-    $isHariyadi = $authUser && (str_contains(strtolower($authUser->name), 'hariyadi') || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur'], $userRoles)));
+    $isSusanto = $authUser && (str_contains(strtolower($authUser->name ?? ''), 'susanto') || str_contains(strtolower($authUser->email ?? ''), 'susanto') || !empty(array_intersect(['Division Head', 'Head Divisi', 'Group Leader', 'HD / Direktur', 'Group Leader Delivery & Operation', 'Group Leader Commercial & Solution', 'Lead Divisi'], $userRoles)));
+    $isHariyadi = $authUser && (str_contains(strtolower($authUser->name ?? ''), 'hariyadi') || str_contains(strtolower($authUser->email ?? ''), 'hariyadi') || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur'], $userRoles)));
     $isExecutive = $isSusanto || $isHariyadi || \App\Helpers\ScopeHelper::isExecutive($authUser);
 
     // Pimpinan tertinggi hanya menyetujui, assignment dilakukan oleh tim Sales/AM/Admin
@@ -273,8 +273,8 @@
         || str_contains(strtolower($authUser->name ?? ''), 'aris')
     ) && empty(array_intersect(['Sales', 'Account Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles));
 
-    // Hak otorisasi alokasi ruang lingkup (Wewenang khusus tim Pre-Sales Specialist & Admin)
-    $isAdmin = !empty(array_intersect(['Super Admin', 'Admin', 'Admin Support', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation'], $userRoles));
+    // Hak otorisasi alokasi ruang lingkup (Wewenang khusus tim Pre-Sales Specialist & Super Admin murni, BUKAN Eksekutif / Susanto / Direktur)
+    $isAdminPure = !empty(array_intersect(['Super Admin', 'Admin'], $userRoles));
     $isPresalesUser = $authUser && (
         (!empty($presalesAssignment['assigned_user_id']) && $authUser->id == $presalesAssignment['assigned_user_id'])
         || !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect'], $userRoles))
@@ -282,7 +282,8 @@
         || str_contains(strtolower($authUser->email ?? ''), 'akbar')
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
     );
-    $canAssignScope = $authUser && ($isAdmin || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
+    $canAssignScope = !$isExecutive && $authUser && ($isAdminPure || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
+    $canAssignDivision = $canAssignScope;
 
     // Hak otorisasi Berkas Sales: Hanya Head Division, Sales itu sendiri (PIC Proyek), dan Direktur.
     // Pre-Sales, Solution Architect (SA), dan BD mutlak dilarang mengakses/melihat berkas ini.
@@ -965,11 +966,11 @@
                             </div>
                             
                             @php
-                                $canAddMilestone = $authUser && (
+                                $canAddMilestone = $authUser && !$isExecutive && (
                                     $project->created_by === $authUser->id 
                                     || $project->sales_name === $authUser->name 
                                     || ($project->sales_id && $project->sales_id === $authUser->id)
-                                    || !empty(array_intersect(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager', 'Super Admin', 'Admin'], $userRoles))
+                                    || !empty(array_intersect(['PMO', 'Project Manager', 'Super Admin', 'Admin'], $userRoles))
                                 );
                             @endphp
                             @if($canAddMilestone)
@@ -978,7 +979,7 @@
                                     onclick="window.openModal('modal-add-milestone')"
                                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200 shadow-2xs">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span>+ Susun Timeline Proyek</span>
+                                <span>Susun Timeline Proyek</span>
                             </button>
                             @endif
                         </div>
