@@ -134,9 +134,9 @@ class BdmController extends Controller
                 'count' => 0,
                 'color' => '#8B5CF6', // Purple (Kanban Pending)
             ],
-            'Completed' => [
+            'Closed Won' => [
                 'count' => 0,
-                'color' => '#10B981', // Emerald (Kanban Completed)
+                'color' => '#10B981', // Emerald (Kanban Closed Won)
             ],
         ];
 
@@ -151,7 +151,7 @@ class BdmController extends Controller
             }
 
             if (in_array($st, ['completed', 'finished', 'delivered', 'done', 'closed won']) || $salesStage === 'closed won') {
-                $pipelineStages['Completed']['count']++;
+                $pipelineStages['Closed Won']['count']++;
             } elseif (in_array($st, ['pending', 'on hold', 'review', 'clarification'])) {
                 $pipelineStages['Pending']['count']++;
             } elseif (in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing'])) {

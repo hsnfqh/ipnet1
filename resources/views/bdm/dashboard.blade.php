@@ -572,7 +572,7 @@
 
         // 2. Chart Distribusi Status Proyek Pipeline (Sesuai Kanban Sales, Project Count, Exclude Draft)
         const stageCounts = {!! json_encode($stageCounts ?? [0, 0, 0, 0]) !!};
-        const stageLabels = {!! json_encode($stageLabels ?? ['Opportunity', 'In Progress', 'Pending', 'Completed']) !!};
+        const stageLabels = {!! json_encode($stageLabels ?? ['Opportunity', 'In Progress', 'Pending', 'Closed Won']) !!};
         const stageColors = {!! json_encode($stageColors ?? ['#3B82F6', '#F59E0B', '#8B5CF6', '#10B981']) !!};
         const ctxStage = document.getElementById('stageDoughnutChart');
 
