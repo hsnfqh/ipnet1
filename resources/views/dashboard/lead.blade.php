@@ -506,7 +506,7 @@
                                     {{ $winRate ?? 0 }}% Win Rate
                                 </span>
                             </div>
-                            <a href="{{ route('sales.pipeline') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
+                            <a href="{{ Route::has('sales.pipeline.index') ? route('sales.pipeline.index') : (Route::has('acquire.index') ? route('acquire.index') : url('/sales/pipeline')) }}" class="text-xs font-bold text-[#8F0A0D] hover:underline flex items-center gap-1">
                                 <span>Buka Pipeline Board</span>
                                 <span>&rarr;</span>
                             </a>
