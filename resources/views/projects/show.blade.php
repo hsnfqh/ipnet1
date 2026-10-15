@@ -2001,29 +2001,149 @@
 
                         {{-- User Selection (Opsional pada Pre-Sales) --}}
                         <div>
-                            <div class="flex items-center justify-between mb-1">
+                            <div class="mb-1">
                                 <label class="block font-semibold text-[#64748B] text-[11px]" 
                                        x-text="handoverTargetType === 'managed_service' ? 'LEAD MAINTENANCE / MANAGED SERVICE (OPSIONAL)' : 'PROJECT MANAGER (PMO) (OPSIONAL)'"></label>
-                                <span class="text-[10px] text-slate-400 font-normal">Dapat ditetapkan saat Serah Terima Resmi</span>
                             </div>
+                            @php
+                                $categorizedUsers = [
+                                    'pmo'             => collect(),
+                                    'managed_service' => collect(),
+                                    'leads'           => collect(),
+                                    'tech_solutions'  => collect(),
+                                    'management'      => collect(),
+                                    'engineers'       => collect(),
+                                    'sales'           => collect(),
+                                    'others'          => collect(),
+                                ];
+
+                                $getUserRoleBadge = function($u) {
+                                    if ($u->hasAnyRole(['PMO', 'Project Manager'])) {
+                                        return ['cat' => 'pmo', 'badge' => 'PMO'];
+                                    }
+                                    if ($u->hasAnyRole(['Lead Maintenance', 'Managed Service', 'Maintenance']) || ($u->division && str_contains(strtolower($u->division->name), 'maintenance'))) {
+                                        return ['cat' => 'managed_service', 'badge' => 'Managed Service'];
+                                    }
+                                    if ($u->hasAnyRole(['Lead Divisi', 'Lead Engineer', 'Team Leader Engineering', 'Team Leader'])) {
+                                        return ['cat' => 'leads', 'badge' => 'Team Leader'];
+                                    }
+                                    if ($u->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D'])) {
+                                        return ['cat' => 'tech_solutions', 'badge' => 'Solution Architect'];
+                                    }
+                                    if ($u->hasAnyRole(['Presales', 'Pre-Sales'])) {
+                                        return ['cat' => 'tech_solutions', 'badge' => 'Pre-Sales'];
+                                    }
+                                    if ($u->hasAnyRole(['BDM', 'BusDev', 'Business Development', 'Product Manager'])) {
+                                        return ['cat' => 'tech_solutions', 'badge' => 'BusDev'];
+                                    }
+                                    if ($u->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head'])) {
+                                        return ['cat' => 'management', 'badge' => 'Head / Direktur'];
+                                    }
+                                    if ($u->hasAnyRole(['Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation'])) {
+                                        return ['cat' => 'management', 'badge' => 'Group Leader'];
+                                    }
+                                    if ($u->hasAnyRole(['Sales', 'Account Manager'])) {
+                                        return ['cat' => 'sales', 'badge' => 'Sales'];
+                                    }
+                                    if ($u->hasAnyRole(['Network Engineer', 'Security Engineer', 'Engineer L1', 'Engineer L2', 'Field Support (EOS)', 'Field Support', 'Engineer'])) {
+                                        return ['cat' => 'engineers', 'badge' => 'Engineer'];
+                                    }
+                                    if (!empty($u->position)) {
+                                        return ['cat' => 'others', 'badge' => $u->position];
+                                    }
+                                    $firstRole = $u->roles->first();
+                                    return ['cat' => 'others', 'badge' => $firstRole ? $firstRole->name : 'Staff'];
+                                };
+
+                                $userCollection = ($allUsers ?? \App\Models\User::with('roles')->orderBy('name')->get());
+                                foreach ($userCollection as $u) {
+                                    $roleData = $getUserRoleBadge($u);
+                                    $u->resolved_badge = $roleData['badge'];
+                                    $categorizedUsers[$roleData['cat']]->push($u);
+                                }
+                            @endphp
                             <select name="user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-slate-900 hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer bg-white font-bold transition">
                                 <option value="">-- Tetapkan pada Serah Terima Resmi Proyek --</option>
-                                @foreach($pmoUsers as $pmo)
-                                    <option value="{{ $pmo->id }}" {{ ($project->pm_id == $pmo->id || (empty($project->pm_id) && str_contains(strtolower($pmo->name), 'rizki'))) ? 'selected' : '' }}>
-                                        (Lead) {{ $pmo->name }}
-                                    </option>
-                                @endforeach
-                                @php
-                                    $otherUsers = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $pmoUsers->pluck('id'));
-                                @endphp
-                                @foreach($otherUsers as $ou)
-                                    @php
-                                        $prefix = $ou->hasAnyRole(['Director', 'Direktur', 'Division Head']) ? '(Head)' : ($ou->hasAnyRole(['Sales']) ? '(Sales)' : '(Engineer)');
-                                    @endphp
-                                    <option value="{{ $ou->id }}" {{ $project->pm_id == $ou->id ? 'selected' : '' }}>
-                                        {{ $prefix }} {{ $ou->name }}
-                                    </option>
-                                @endforeach
+
+                                @if($categorizedUsers['pmo']->isNotEmpty())
+                                    <optgroup label="Project Management Office (PMO)">
+                                        @foreach($categorizedUsers['pmo'] as $u)
+                                            <option value="{{ $u->id }}" {{ $project->pm_id == $u->id ? 'selected' : '' }}>
+                                                ({{ $u->resolved_badge }}) {{ $u->name }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+
+                                @if($categorizedUsers['managed_service']->isNotEmpty())
+                                    <optgroup label="Managed Service &amp; Maintenance">
+                                        @foreach($categorizedUsers['managed_service'] as $u)
+                                            <option value="{{ $u->id }}" {{ $project->pm_id == $u->id ? 'selected' : '' }}>
+                                                ({{ $u->resolved_badge }}) {{ $u->name }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+
+                                @if($categorizedUsers['leads']->isNotEmpty())
+                                    <optgroup label="Team Leaders &amp; Lead Engineers">
+                                        @foreach($categorizedUsers['leads'] as $u)
+                                            <option value="{{ $u->id }}" {{ $project->pm_id == $u->id ? 'selected' : '' }}>
+                                                ({{ $u->resolved_badge }}) {{ $u->name }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+
+                                @if($categorizedUsers['tech_solutions']->isNotEmpty())
+                                    <optgroup label="Technical Solutions &amp; Presales">
+                                        @foreach($categorizedUsers['tech_solutions'] as $u)
+                                            <option value="{{ $u->id }}" {{ $project->pm_id == $u->id ? 'selected' : '' }}>
+                                                ({{ $u->resolved_badge }}) {{ $u->name }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+
+                                @if($categorizedUsers['management']->isNotEmpty())
+                                    <optgroup label="Management &amp; Group Leaders">
+                                        @foreach($categorizedUsers['management'] as $u)
+                                            <option value="{{ $u->id }}" {{ $project->pm_id == $u->id ? 'selected' : '' }}>
+                                                ({{ $u->resolved_badge }}) {{ $u->name }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+
+                                @if($categorizedUsers['engineers']->isNotEmpty())
+                                    <optgroup label="Engineering Team">
+                                        @foreach($categorizedUsers['engineers'] as $u)
+                                            <option value="{{ $u->id }}" {{ $project->pm_id == $u->id ? 'selected' : '' }}>
+                                                ({{ $u->resolved_badge }}) {{ $u->name }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+
+                                @if($categorizedUsers['sales']->isNotEmpty())
+                                    <optgroup label="Sales &amp; Account Management">
+                                        @foreach($categorizedUsers['sales'] as $u)
+                                            <option value="{{ $u->id }}" {{ $project->pm_id == $u->id ? 'selected' : '' }}>
+                                                ({{ $u->resolved_badge }}) {{ $u->name }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+
+                                @if($categorizedUsers['others']->isNotEmpty())
+                                    <optgroup label="Staff Lainnya">
+                                        @foreach($categorizedUsers['others'] as $u)
+                                            <option value="{{ $u->id }}" {{ $project->pm_id == $u->id ? 'selected' : '' }}>
+                                                ({{ $u->resolved_badge }}) {{ $u->name }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
                             </select>
                         </div>
 
