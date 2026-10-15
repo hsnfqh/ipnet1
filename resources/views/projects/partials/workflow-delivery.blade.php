@@ -31,9 +31,16 @@
         || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
         || str_contains(strtolower($authUser->email ?? ''), 'akbar')
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
+    $canAssignDivision = $authUser && !$isExecutiveUser && ($isAdminPure || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
+
+    $isSalesUser = $authUser && (
+        (!empty($project->sales_id) && $authUser->id == $project->sales_id)
+        || (!empty($project->created_by) && $authUser->id == $project->created_by)
+        || !empty(array_intersect(['Sales', 'Account Manager', 'BDM'], $userRoles))
+        || str_contains(strtolower($authUser->position ?? ''), 'sales')
+        || str_contains(strtolower($authUser->position ?? ''), 'account manager')
     );
-    $canAssignScope = $authUser && !$isExecutiveUser && ($isAdminPure || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
-    $canAssignDivision = $canAssignScope;
+    $canAssignScope = $authUser && !$isExecutiveUser && ($isAdminPure || $isSalesUser);
 @endphp
 <div class="ipnet-card p-6 space-y-5">
     {{-- Header & Status (Konsisten dengan Kolaborasi Tim Solusi Teknis) --}}
@@ -42,12 +49,12 @@
             <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-0.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> ALOKASI &amp; PERENCANAAN TEKNIS
             </p>
-            <h3 class="text-sm sm:text-base font-bold text-slate-900">Alokasi Lingkup Kerja &amp; Divisi Teknis (Pre-Sales)</h3>
+            <h3 class="text-sm sm:text-base font-bold text-slate-900">Alokasi Lingkup Kerja &amp; Divisi Teknis</h3>
             <p class="text-xs text-slate-500 mt-0.5">
                 @if($isBoth)
                     Rekomendasi mencakup <strong>Dual Scope</strong>: Fase 1 Implementasi Capex dilanjutkan Fase 2 Pemeliharaan Opex (Managed Service).
                 @else
-                    Penyusunan karakteristik lingkup implementasi (Capex / Opex), komitmen SLA &amp; batasan teknis (exclusions), serta alokasi divisi spesialis oleh Pre-Sales.
+                    Penyusunan karakteristik lingkup implementasi (Capex / Opex), komitmen SLA &amp; batasan teknis (exclusions) oleh Sales, serta alokasi divisi spesialis oleh Pre-Sales.
                 @endif
             </p>
         </div>
@@ -301,7 +308,7 @@
                             @elseif($project->handover_target === 'pmo')
                                 Proyek Implementasi
                             @else
-                                Belum Dirumuskan oleh Pre-Sales
+                                Belum Ditetapkan oleh Sales
                             @endif
                         </h4>
                         <p class="text-[10.5px] text-slate-500 truncate">
@@ -372,7 +379,7 @@
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="font-bold text-amber-900 text-xs flex items-center justify-between">
-                                            <span>Rumuskan Rekomendasi Lingkup Proyek</span>
+                                            <span>Tetapkan Skema &amp; Karakteristik Proyek</span>
                                             <svg class="w-3.5 h-3.5 text-amber-700 opacity-60 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                         </div>
                                         <div class="text-[10.5px] text-amber-800 truncate">Implementasi Capex (Proyek), Managed Service (Opex), atau Dual Scope</div>
@@ -383,9 +390,9 @@
                             <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 space-y-1">
                                 <div class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span>Menunggu Rekomendasi Pre-Sales</span>
+                                    <span>Menunggu Penetapan Sales</span>
                                 </div>
-                                <div class="text-[10.5px] text-slate-400">Perumusan ruang lingkup teknis dilakukan oleh tim Pre-Sales Engineer.</div>
+                                <div class="text-[10.5px] text-slate-400">Penetapan karakteristik &amp; skema proyek dilakukan oleh Sales / Account Manager.</div>
                             </div>
                         @endif
                     @endif
@@ -393,13 +400,13 @@
 
             </div>
 
-            {{-- Actions Footer: Wewenang Pre-Sales Specialist & Admin --}}
+            {{-- Actions Footer: Wewenang Sales / Account Manager & Admin --}}
             @if(!empty($canAssignScope))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isBdApproved)
                         <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu verifikasi solusi teknis disahkan oleh PIC BD">
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                            <span>{{ $project->handover_target ? 'Perbarui Rekomendasi' : 'Rumuskan Rekomendasi' }}</span>
+                            <span>{{ $project->handover_target ? 'Perbarui Skema Proyek' : 'Tetapkan Skema Proyek' }}</span>
                         </button>
                     @else
                         <button type="button" 
@@ -407,7 +414,7 @@
                                 onclick="event.stopPropagation(); (window.openHandoverModalCustom ? window.openHandoverModalCustom('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}') : window.openModal('modal-handover'))"
                                 class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>{{ $project->handover_target ? 'Perbarui Rekomendasi' : 'Rumuskan Rekomendasi' }}</span>
+                            <span>{{ $project->handover_target ? 'Perbarui Skema Proyek' : 'Tetapkan Skema Proyek' }}</span>
                         </button>
                     @endif
                 </div>
@@ -415,10 +422,10 @@
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     <span class="inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Wewenang Pre-Sales Specialist
+                        Wewenang Sales / Account Manager
                     </span>
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
-                        Pre-Sales
+                        Sales
                     </span>
                 </div>
             @endif

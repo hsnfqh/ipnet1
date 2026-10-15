@@ -281,9 +281,16 @@
         || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
         || str_contains(strtolower($authUser->email ?? ''), 'akbar')
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
+    $canAssignDivision = !$isExecutive && $authUser && ($isAdminPure || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
+
+    $isSalesUser = $authUser && (
+        (!empty($project->sales_id) && $authUser->id == $project->sales_id)
+        || (!empty($project->created_by) && $authUser->id == $project->created_by)
+        || !empty(array_intersect(['Sales', 'Account Manager', 'BDM'], $userRoles))
+        || str_contains(strtolower($authUser->position ?? ''), 'sales')
+        || str_contains(strtolower($authUser->position ?? ''), 'account manager')
     );
-    $canAssignScope = !$isExecutive && $authUser && ($isAdminPure || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
-    $canAssignDivision = $canAssignScope;
+    $canAssignScope = !$isExecutive && $authUser && ($isAdminPure || $isSalesUser);
 
     // Hak otorisasi Berkas Sales: Hanya Head Division, Sales itu sendiri (PIC Proyek), dan Direktur.
     // Pre-Sales, Solution Architect (SA), dan BD mutlak dilarang mengakses/melihat berkas ini.
@@ -1914,8 +1921,8 @@
             {{-- Header (Fixed / Non-Scrollable) --}}
             <div class="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6 shrink-0 bg-white">
                 <div>
-                    <h3 class="text-base sm:text-lg font-bold text-slate-900">Perencanaan &amp; Rekomendasi Ruang Lingkup Teknis</h3>
-                    <p class="text-[12px] text-slate-500 mt-0.5">Penyusunan karakteristik proyek, rekomendasi skema implementasi, komitmen SLA, dan batasan lingkup oleh Pre-Sales Engineer.</p>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900">Perencanaan Karakteristik &amp; Skema Proyek</h3>
+                    <p class="text-[12px] text-slate-500 mt-0.5">Penyusunan karakteristik proyek, skema implementasi, komitmen SLA, dan batasan lingkup oleh Sales / Account Manager.</p>
                 </div>
                 <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="text-slate-400 hover:text-[#8F0A0D] text-xl font-bold p-1 cursor-pointer transition">✕</button>
             </div>
