@@ -413,34 +413,15 @@
                 </div>
 
                 {{-- Chart 2: Distribusi Peluang per Tahapan Pipeline --}}
-                <div class="ipnet-card p-5 sm:p-6 space-y-4 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between border-b border-gray-100 pb-3 flex-wrap gap-2">
-                            <div>
-                                <h3 class="text-sm font-bold text-gray-800 tracking-tight">Distribusi Tahap Pipeline</h3>
-                                <p class="text-xs text-gray-400">Progres siklus penjualan &amp; peluang aktif</p>
-                            </div>
-                            <span class="text-xs font-semibold px-2.5 py-0.5 bg-red-50 text-[#8F0A0D] border border-red-100 rounded-md">
-                                {{ $totalProjectCount }} Proyek
-                            </span>
-                        </div>
-
-                        <div class="h-52 w-full flex items-center justify-center relative my-2">
-                            <canvas id="stageDoughnutChart"></canvas>
+                <div class="ipnet-card p-5 sm:p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-800 tracking-tight">Distribusi Tahap Pipeline</h3>
+                            <p class="text-xs text-gray-400">Penyebaran proyek per tahapan pipeline</p>
                         </div>
                     </div>
-
-                    {{-- Legend & Summary List --}}
-                    <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
-                        @foreach(($pipelineStages ?? []) as $stgName => $stgInfo)
-                            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
-                                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ $stgInfo['color'] }};"></span>
-                                <div class="min-w-0 flex-1 truncate">
-                                    <div class="text-[11px] font-bold text-slate-800 truncate">{{ $stgName }}</div>
-                                    <div class="text-[10px] text-slate-500 font-mono">{{ $stgInfo['count'] }} Proyek</div>
-                                </div>
-                            </div>
-                        @endforeach
+                    <div class="h-64 w-full flex items-center justify-center">
+                        <canvas id="stageDoughnutChart"></canvas>
                     </div>
                 </div>
 
@@ -617,22 +598,28 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '70%',
                     plugins: {
                         legend: {
-                            display: false
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                font: { size: 10.5, family: "'Inter', sans-serif" },
+                                color: '#4B5563',
+                                padding: 12
+                            }
                         },
                         tooltip: {
                             callbacks: {
                                 label: function(ctx) {
                                     if (isPlaceholder) return ' Belum ada data aktif';
-                                    const count = stageCounts[ctx.dataIndex] || 0;
                                     const val = stageData[ctx.dataIndex] || 0;
-                                    return ' ' + ctx.label + ': ' + count + ' Proyek (Rp ' + val.toLocaleString('id-ID') + ' Jt)';
+                                    return ' ' + ctx.label + ': Rp ' + val.toLocaleString('id-ID') + ' Jt';
                                 }
                             }
                         }
-                    }
+                    },
+                    cutout: '68%'
                 }
             });
         }
