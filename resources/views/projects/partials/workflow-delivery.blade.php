@@ -31,6 +31,7 @@
         || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
         || str_contains(strtolower($authUser->email ?? ''), 'akbar')
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
+    );
     $canAssignDivision = $authUser && !$isExecutiveUser && ($isAdminPure || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
 
     $isSalesUser = $authUser && (
