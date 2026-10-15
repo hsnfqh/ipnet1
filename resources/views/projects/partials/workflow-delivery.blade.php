@@ -27,7 +27,7 @@
     $presalesAssignedId = $technical['presales']['assigned_user_id'] ?? ($project->presales_id ?? null);
     $isPresalesUser = $authUser && (
         (!empty($presalesAssignedId) && $authUser->id == $presalesAssignedId)
-        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect'], $userRoles))
+        || !empty(array_intersect(['Presales', 'Pre-Sales'], $userRoles))
         || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
         || str_contains(strtolower($authUser->email ?? ''), 'akbar')
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
@@ -348,6 +348,14 @@
                                 </div>
                             </div>
                         </div>
+                    @elseif(!$isBdApproved)
+                        <div class="p-3 rounded-lg bg-slate-50 border border-dashed border-slate-200 text-slate-500 space-y-1">
+                            <div class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <span>Menunggu Solusi Teknis</span>
+                            </div>
+                            <div class="text-[10.5px] text-slate-400">Menunggu seluruh dokumen &amp; solusi teknis diverifikasi oleh PIC BD terlebih dahulu.</div>
+                        </div>
                     @else
                         @if(!empty($canAssignDivision))
                             <div @click.stop="openAssignDivisionModal()" 
@@ -383,13 +391,20 @@
             {{-- Actions Footer: Wewenang Pre-Sales Specialist & Admin (PM / PMO dikunci) --}}
             @if(!empty($canAssignDivision))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                    <button type="button" 
-                            @click.stop="openAssignDivisionModal()" 
-                            onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
-                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Perbarui Divisi Pelaksana' : 'Tetapkan Divisi Pelaksana' }}</span>
-                    </button>
+                    @if(!$isBdApproved)
+                        <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu verifikasi solusi teknis disahkan oleh PIC BD">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Perbarui Divisi Pelaksana' : 'Tetapkan Divisi Pelaksana' }}</span>
+                        </button>
+                    @else
+                        <button type="button" 
+                                @click.stop="openAssignDivisionModal()" 
+                                onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
+                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Perbarui Divisi Pelaksana' : 'Tetapkan Divisi Pelaksana' }}</span>
+                        </button>
+                    @endif
                 </div>
             @else
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">

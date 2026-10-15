@@ -277,7 +277,7 @@
     $isAdminPure = !empty(array_intersect(['Super Admin', 'Admin'], $userRoles));
     $isPresalesUser = $authUser && (
         (!empty($presalesAssignment['assigned_user_id']) && $authUser->id == $presalesAssignment['assigned_user_id'])
-        || !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect'], $userRoles))
+        || !empty(array_intersect(['Presales', 'Pre-Sales'], $userRoles))
         || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'pre sales'])
         || str_contains(strtolower($authUser->email ?? ''), 'akbar')
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
