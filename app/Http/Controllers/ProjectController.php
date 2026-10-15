@@ -380,6 +380,7 @@ class ProjectController extends Controller
                 || str_contains($posLower, 'presales')
                 || str_contains(strtolower($authUser->email ?? ''), 'akbar')
                 || str_contains(strtolower($authUser->name ?? ''), 'akbar')
+            );
             $isSales = $authUser && (
                 (!empty($project->sales_id) && $authUser->id == $project->sales_id)
                 || (!empty($project->created_by) && $authUser->id == $project->created_by)
