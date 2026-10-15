@@ -118,6 +118,19 @@
                 </div>
             @endif
 
+            @php
+                $totalNilaiProject = $totalNilaiProject ?? 0;
+                $totalProjectCount = $totalProjectCount ?? 0;
+                $totalNilaiOpportunity = $totalNilaiOpportunity ?? 0;
+                $totalOpportunityCount = $totalOpportunityCount ?? 0;
+                $totalHandoverCount = $totalHandoverCount ?? 0;
+                $conversionRate = $conversionRate ?? 0;
+                $totalWonValue = $totalWonValue ?? 0;
+                $totalWonCount = $totalWonCount ?? 0;
+                $pendingVerificationProjects = $pendingVerificationProjects ?? collect();
+                $pendingVerificationCount = $pendingVerificationCount ?? $pendingVerificationProjects->count();
+            @endphp
+
             {{-- ======================================================== --}}
             {{-- 1. EXECUTIVE HERO BANNER                                 --}}
             {{-- ======================================================== --}}
@@ -198,59 +211,92 @@
                             </div>
                         </form>
 
-                        <a href="{{ route('sales.pipeline.index') }}" class="px-3.5 py-2 rounded-xl bg-white text-[#8F0A0D] font-semibold text-xs hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        @if($pendingVerificationCount > 0)
+                            <a href="#verifikasi-solusi-bd" class="px-3.5 py-2 rounded-xl bg-white text-[#8F0A0D] font-bold text-xs hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                                <span>Verifikasi Dokumen</span>
+                                <span class="px-1.5 py-0.2 bg-[#8F0A0D] text-white text-[10px] rounded-full font-black ml-0.5">{{ $pendingVerificationCount }}</span>
+                            </a>
+                        @endif
+
+                        <a href="{{ route('sales.pipeline.index') }}" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 hover:scale-[1.02] border border-white/25 text-white font-semibold text-xs transition-all flex items-center gap-1.5 backdrop-blur-sm">
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                             </svg>
-                            <span>Buka Projects</span>
+                            <span>Buka Pipeline</span>
                         </a>
                     </div>
                 </div>
             </div>
 
-            @php
-                $totalNilaiProject = $totalNilaiProject ?? 0;
-                $totalProjectCount = $totalProjectCount ?? 0;
-                $totalNilaiOpportunity = $totalNilaiOpportunity ?? 0;
-                $totalOpportunityCount = $totalOpportunityCount ?? 0;
-                $totalHandoverCount = $totalHandoverCount ?? 0;
-                $conversionRate = $conversionRate ?? 0;
-                $totalWonValue = $totalWonValue ?? 0;
-                $totalWonCount = $totalWonCount ?? 0;
-                $pendingVerificationProjects = $pendingVerificationProjects ?? collect();
-                $pendingVerificationCount = $pendingVerificationCount ?? $pendingVerificationProjects->count();
-            @endphp
-
             {{-- ======================================================== --}}
-            {{-- NOTIFIKASI: VERIFIKASI DOKUMEN SOLUSI OLEH BD           --}}
+            {{-- VERIFIKASI DOKUMEN SOLUSI TEKNIS OLEH PIC BD (STYLE IDENTIK HEAD/DIREKTUR) --}}
             {{-- ======================================================== --}}
             @if($pendingVerificationCount > 0)
-                <div class="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-50/70 to-orange-50 border border-amber-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 anim-fade-up">
-                    <div class="flex items-start gap-3.5">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
+                <div id="verifikasi-solusi-bd" class="rounded-2xl p-5 border border-slate-200 bg-white shadow-2xs space-y-3.5 mb-6 anim-fade-up">
+                    <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
+                        <div class="flex items-center gap-2.5">
+                            <span class="relative flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#8F0A0D]"></span>
+                            </span>
+                            <h3 class="text-[14px] font-bold text-slate-900 flex items-center gap-2 flex-wrap">
+                                <span>Dokumen Solusi Teknis Perlu Verifikasi PIC BD</span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#8F0A0D] text-white shadow-xs">
+                                    {{ $pendingVerificationCount }} Menunggu Pengesahan Anda
+                                </span>
+                            </h3>
                         </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white uppercase tracking-wider">Perlu Tindakan BD</span>
-                                <span class="text-xs font-semibold text-amber-900">{{ $pendingVerificationCount }} Project Menunggu Pengesahan</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-gray-900 mt-1">Dokumen Solusi Teknis Perlu Verifikasi</h3>
-                            <p class="text-xs text-gray-600 mt-0.5">
-                                Berkas proposal spesifikasi BoQ / topologi telah diunggah oleh tim teknis dan membutuhkan verifikasi pengesahan PIC BD sebelum diserahkan ke Sales.
-                            </p>
-                        </div>
+                        <span class="text-xs text-slate-500 hidden sm:inline-block">
+                            Berkas proposal BoQ &amp; desain topologi siap ditelaah sebelum disahkan.
+                        </span>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        @if($pendingVerificationProjects->isNotEmpty())
-                            @php $firstProject = $pendingVerificationProjects->first(); @endphp
-                            <a href="{{ route('projects.show', $firstProject->id) }}" class="px-4 py-2 bg-[#8F0A0D] hover:bg-[#72080a] text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5">
-                                <span>Verifikasi Dokumen ({{ Str::limit($firstProject->name, 22) }})</span>
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                            </a>
-                        @endif
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
+                        @foreach($pendingVerificationProjects as $pProj)
+                            @php
+                                $hd = is_array($pProj->handover_data) ? $pProj->handover_data : (json_decode($pProj->handover_data ?? '', true) ?: []);
+                                $tech = $hd['technical_assignments'] ?? [];
+                                $hasPsDoc = !empty($tech['presales']['document_path']);
+                                $hasSaDoc = !empty($tech['architect']['document_path']);
+                                $salesName = $pProj->sales_name ?: ($pProj->creator ? $pProj->creator->name : 'Sales');
+                            @endphp
+                            <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-2xs hover:border-red-400 transition flex flex-col justify-between space-y-3">
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center justify-between gap-1">
+                                        <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                                            Verifikasi Dokumen Teknis
+                                        </span>
+                                        <span class="text-[10.5px] font-semibold text-gray-500 truncate max-w-[140px]" title="Sales: {{ $salesName }}">
+                                            Sales: {{ $salesName }}
+                                        </span>
+                                    </div>
+                                    <h4 class="text-[13.5px] font-extrabold text-gray-900 leading-snug line-clamp-1" title="{{ $pProj->name }}">{{ $pProj->name }}</h4>
+                                    <div class="text-[11.5px] text-gray-500 flex items-center gap-1.5">
+                                        <span>Klien:</span>
+                                        <span class="font-bold text-gray-800 truncate">{{ $pProj->client ?: '-' }}</span>
+                                    </div>
+                                    @if($pProj->contract_value)
+                                        <div class="text-[11.5px] text-[#8F0A0D] font-black">
+                                            {{ \App\Helpers\CurrencyHelper::formatRupiah($pProj->contract_value) }}
+                                        </div>
+                                    @endif
+
+                                    <div class="pt-1 flex items-center gap-1.5 text-[10.5px] flex-wrap">
+                                        <span class="px-2 py-0.5 rounded font-medium {{ $hasPsDoc ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-50 text-slate-400 border border-slate-200' }}">
+                                            {{ $hasPsDoc ? '✓ Proposal BoQ' : 'Menunggu BoQ' }}
+                                        </span>
+                                        <span class="px-2 py-0.5 rounded font-medium {{ $hasSaDoc ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-50 text-slate-400 border border-slate-200' }}">
+                                            {{ $hasSaDoc ? '✓ Desain Topologi' : 'Menunggu Topologi' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <a href="{{ route('projects.show', $pProj->id) }}" class="inline-flex items-center justify-center gap-1.5 w-full py-2 px-3.5 rounded-xl text-xs font-bold text-white btn-ipnet-primary transition shadow-2xs hover:scale-[1.01]">
+                                    <span>Verifikasi Dokumen Teknis</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             @endif
