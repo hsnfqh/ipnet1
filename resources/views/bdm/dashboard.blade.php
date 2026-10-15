@@ -533,7 +533,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // 1. Chart Tren Nilai Pipeline Bulanan
-        const monthlyData = @json($monthlyDataInMillions ?? []);
+        const monthlyData = {!! json_encode($monthlyDataInMillions ?? []) !!};
         const ctxTrend = document.getElementById('monthlyTrendChart').getContext('2d');
         
         const gradient = ctxTrend.createLinearGradient(0, 0, 0, 240);
@@ -590,10 +590,10 @@
         });
 
         // 2. Chart Distribusi Tahap Pipeline (IP-NET Theme)
-        const stageData = @json($stageDataInMillions ?? []);
-        const stageCounts = @json($stageCounts ?? []);
-        const stageLabels = @json($stageLabels ?? ['Draft & Inisiasi', 'Solusi & Proposal', 'Negosiasi & Review', 'Closing / Won']);
-        const stageColors = @json($stageColors ?? ['#64748B', '#8F0A0D', '#F59E0B', '#10B981']);
+        const stageData = {!! json_encode($stageDataInMillions ?? []) !!};
+        const stageCounts = {!! json_encode($stageCounts ?? []) !!};
+        const stageLabels = {!! json_encode($stageLabels ?? ['Draft & Inisiasi', 'Solusi & Proposal', 'Negosiasi & Review', 'Closing / Won']) !!};
+        const stageColors = {!! json_encode($stageColors ?? ['#64748B', '#8F0A0D', '#F59E0B', '#10B981']) !!};
         const ctxStage = document.getElementById('stageDoughnutChart');
 
         if (ctxStage) {
