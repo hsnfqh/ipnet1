@@ -334,10 +334,10 @@
                         </div>
                     </div>
 
-                    {{-- Card 2: Peluang Baru (Draft / Inisiasi) --}}
+                    {{-- Card 2: Peluang Aktif --}}
                     <div class="ipnet-metric-card flex flex-col justify-between space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Draft Inisiasi</span>
+                            <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Peluang Aktif</span>
                             <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
@@ -348,7 +348,7 @@
                             <div class="text-xl font-bold text-amber-800 tracking-tight">
                                 Rp {{ $totalNilaiOpportunity > 0 ? number_format($totalNilaiOpportunity / 1000000, 1, ',', '.') . 'Jt' : '0,0Jt' }}
                             </div>
-                            <p class="text-[11px] text-amber-600 font-medium mt-0.5">{{ $totalOpportunityCount }} Prospek Inisiasi</p>
+                            <p class="text-[11px] text-amber-600 font-medium mt-0.5">{{ $totalOpportunityCount }} Peluang Aktif</p>
                         </div>
                     </div>
 
