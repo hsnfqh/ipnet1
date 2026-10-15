@@ -188,7 +188,7 @@
                                         @endif
                                     </div>
                                     <div class="text-[10.5px] text-slate-500 truncate">
-                                        Usulan PM/Lead: {{ $project->pm ? $project->pm->name : 'Ditetapkan definitif pada Serah Terima Proyek' }}
+                                        PM / Lead Proyek: {{ $project->pm ? $project->pm->name : 'Ditetapkan pada Serah Terima Proyek' }}
                                     </div>
                                 </div>
                             </div>

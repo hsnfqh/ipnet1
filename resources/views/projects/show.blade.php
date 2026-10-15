@@ -1996,18 +1996,18 @@
                     {{-- 2. PENUGASAN & KOMITMEN SCOPE PROYEK --}}
                     <div class="pt-3 border-t border-gray-100 space-y-3.5">
                         <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
-                            2. Usulan Penanggung Jawab &amp; Komitmen Layanan
+                            2. Penanggung Jawab &amp; Komitmen Layanan
                         </label>
 
                         {{-- User Selection (Opsional pada Pre-Sales) --}}
                         <div>
                             <div class="flex items-center justify-between mb-1">
                                 <label class="block font-semibold text-[#64748B] text-[11px]" 
-                                       x-text="handoverTargetType === 'managed_service' ? 'USULAN LEAD MAINTENANCE / MANAGED SERVICE (OPSIONAL)' : 'USULAN PROJECT MANAGER (PMO) (OPSIONAL)'"></label>
-                                <span class="text-[10px] text-slate-400 font-normal">Dapat ditetapkan definitif saat Serah Terima Resmi</span>
+                                       x-text="handoverTargetType === 'managed_service' ? 'LEAD MAINTENANCE / MANAGED SERVICE (OPSIONAL)' : 'PROJECT MANAGER (PMO) (OPSIONAL)'"></label>
+                                <span class="text-[10px] text-slate-400 font-normal">Dapat ditetapkan saat Serah Terima Resmi</span>
                             </div>
                             <select name="user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-slate-900 hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer bg-white font-bold transition">
-                                <option value="">-- Tetapkan Nanti pada Serah Terima Resmi Proyek --</option>
+                                <option value="">-- Tetapkan pada Serah Terima Resmi Proyek --</option>
                                 @foreach($pmoUsers as $pmo)
                                     <option value="{{ $pmo->id }}" {{ ($project->pm_id == $pmo->id || (empty($project->pm_id) && str_contains(strtolower($pmo->name), 'rizki'))) ? 'selected' : '' }}>
                                         (Lead) {{ $pmo->name }}
