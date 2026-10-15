@@ -254,11 +254,10 @@
                             <h3 class="text-[14px] font-bold text-slate-900 flex items-center gap-2">
                                 <span>Permohonan Persetujuan Draft Proyek dari Sales</span>
                                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#8F0A0D] text-white shadow-xs">
-                                    {{ $pendingDraftApprovals->count() }} Menunggu Otorisasi Anda
+                                    {{ $pendingDraftApprovals->count() }} Menunggu Persetujuan Anda
                                 </span>
                             </h3>
                         </div>
-                        <span class="text-[11.5px] font-semibold text-slate-500">Otorisasi dan persetujuan komersial sebelum diserahkan ke PMO / Tim Teknis</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
@@ -274,7 +273,7 @@
                                 <div class="space-y-1.5">
                                     <div class="flex items-center justify-between gap-1">
                                         <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-md {{ $isHeadWaiting ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-red-50 text-[#8F0A0D] border border-red-200' }}">
-                                            {{ $isHeadWaiting ? 'Review Teknis (Head Divisi)' : 'Otorisasi Direktur' }}
+                                            {{ $isHeadWaiting ? 'Review Teknis (Head Divisi)' : 'Persetujuan Direktur' }}
                                         </span>
                                         <span class="text-[10.5px] font-semibold text-gray-500 truncate max-w-[140px]">
                                             Sales: {{ $pProj->sales_name ?: ($pProj->creator ? $pProj->creator->name : 'Sales') }}
@@ -349,11 +348,11 @@
                         </div>
 
                         {{-- 2. Total Opportunity Pipeline --}}
-                        <div class="ipnet-metric-card border-l-4 border-l-blue-500 flex flex-col justify-between">
+                        <div class="ipnet-metric-card border-l-4 border-l-[#8F0A0D] flex flex-col justify-between">
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Total Peluang</span>
-                                    <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                                    <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.516 0c.85.493 1.508 1.333 1.508 2.316V18"/>
                                         </svg>
@@ -365,16 +364,16 @@
                             </div>
                             <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
                                 <span>Pipeline Aktif</span>
-                                <span class="font-bold text-blue-600">{{ $totalOppCount ?? 0 }} <span class="text-[10px] font-normal text-slate-400">prospek</span></span>
+                                <span class="font-bold text-slate-800">{{ $totalOppCount ?? 0 }} <span class="text-[10px] font-normal text-slate-400">prospek</span></span>
                             </div>
                         </div>
 
                         {{-- 3. Total In Progress --}}
-                        <div class="ipnet-metric-card border-l-4 border-l-amber-500 flex flex-col justify-between">
+                        <div class="ipnet-metric-card border-l-4 border-l-[#8F0A0D] flex flex-col justify-between">
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">In Progress</span>
-                                    <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                                    <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
                                         </svg>
@@ -386,49 +385,49 @@
                             </div>
                             <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
                                 <span>Sedang Berjalan</span>
-                                <span class="font-bold text-amber-600">{{ $totalInProgressCount ?? 0 }} <span class="text-[10px] font-normal text-slate-400">deals</span></span>
+                                <span class="font-bold text-slate-800">{{ $totalInProgressCount ?? 0 }} <span class="text-[10px] font-normal text-slate-400">deals</span></span>
                             </div>
                         </div>
 
                         {{-- 4. Total Closed Won --}}
-                        <div class="ipnet-metric-card border-l-4 border-l-emerald-500 flex flex-col justify-between">
+                        <div class="ipnet-metric-card border-l-4 border-l-[#8F0A0D] flex flex-col justify-between">
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Closed Won</span>
-                                    <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                    <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
                                     </div>
                                 </div>
-                                <div class="text-[20px] xl:text-[22px] font-black text-emerald-600 tracking-tight truncate" title="{{ \App\Helpers\CurrencyHelper::formatRupiah($totalCompleteValue ?? 0) }}">
+                                <div class="text-[20px] xl:text-[22px] font-black text-[#1E293B] tracking-tight truncate" title="{{ \App\Helpers\CurrencyHelper::formatRupiah($totalCompleteValue ?? 0) }}">
                                     {{ \App\Helpers\CurrencyHelper::formatCompact($totalCompleteValue ?? 0) }}
                                 </div>
                             </div>
                             <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
                                 <span>Kontrak Terkunci</span>
-                                <span class="font-bold text-emerald-600">{{ $totalCompleteCount ?? 0 }} <span class="text-[10px] font-normal text-slate-400">deals</span></span>
+                                <span class="font-bold text-slate-800">{{ $totalCompleteCount ?? 0 }} <span class="text-[10px] font-normal text-slate-400">deals</span></span>
                             </div>
                         </div>
 
                         {{-- 5. Win Rate / Rasio Closing --}}
-                        <div class="ipnet-metric-card border-l-4 border-l-purple-500 flex flex-col justify-between">
+                        <div class="ipnet-metric-card border-l-4 border-l-[#8F0A0D] flex flex-col justify-between">
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Win Rate</span>
-                                    <div class="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                                    <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"/>
                                         </svg>
                                     </div>
                                 </div>
-                                <div class="text-[20px] xl:text-[22px] font-black text-purple-600 tracking-tight">
+                                <div class="text-[20px] xl:text-[22px] font-black text-[#1E293B] tracking-tight">
                                     {{ $winRate ?? 0 }}%
                                 </div>
                             </div>
                             <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
                                 <span>Efektivitas Sales</span>
-                                <span class="font-bold text-purple-600">Konversi Deals</span>
+                                <span class="font-bold text-slate-800">Konversi Deals</span>
                             </div>
                         </div>
 
