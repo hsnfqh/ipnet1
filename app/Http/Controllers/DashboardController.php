@@ -232,54 +232,6 @@ class DashboardController extends Controller
                 ];
             }
 
-            // Distribusi Portofolio per Divisi Teknis & Skema Proyek
-            $divisionDistribution = [
-                'Network' => [
-                    'label' => 'Divisi Network',
-                    'count' => 0,
-                    'value' => 0,
-                    'color' => '#8F0A0D',
-                ],
-                'Security' => [
-                    'label' => 'Divisi Security',
-                    'count' => 0,
-                    'value' => 0,
-                    'color' => '#0284C7',
-                ],
-                'Managed Service' => [
-                    'label' => 'Managed Service',
-                    'count' => 0,
-                    'value' => 0,
-                    'color' => '#7C3AED',
-                ],
-                'Lintas Divisi' => [
-                    'label' => 'Lintas Divisi / Umum',
-                    'count' => 0,
-                    'value' => 0,
-                    'color' => '#D97706',
-                ],
-            ];
-
-            foreach ($salesProjects as $p) {
-                $divName = strtolower($p->division ? $p->division->name : '');
-                $target = $p->handover_target ?? '';
-                $val = $valOf($p);
-
-                if ($target === 'managed_service' || str_contains($divName, 'managed')) {
-                    $divisionDistribution['Managed Service']['count']++;
-                    $divisionDistribution['Managed Service']['value'] += $val;
-                } elseif (str_contains($divName, 'sec') && !str_contains($divName, 'net')) {
-                    $divisionDistribution['Security']['count']++;
-                    $divisionDistribution['Security']['value'] += $val;
-                } elseif (str_contains($divName, 'net') && !str_contains($divName, 'sec')) {
-                    $divisionDistribution['Network']['count']++;
-                    $divisionDistribution['Network']['value'] += $val;
-                } else {
-                    $divisionDistribution['Lintas Divisi']['count']++;
-                    $divisionDistribution['Lintas Divisi']['value'] += $val;
-                }
-            }
-
             // Priority Deals & Projects list
             $priorityDeals = (clone $salesProjectsQuery)
                 ->latest('updated_at')
@@ -310,7 +262,6 @@ class DashboardController extends Controller
                 'winRate'               => $winRate,
                 'recentActivities'      => $recentActivities,
                 'stageFunnel'           => $stageFunnel,
-                'divisionDistribution'  => $divisionDistribution,
                 'priorityDeals'         => $priorityDeals,
             ]);
         }
