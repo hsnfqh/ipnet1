@@ -120,28 +120,60 @@ class BdmController extends Controller
             return round($val / 1000000, 2);
         }, array_values($monthlyValues));
 
-        // Sektor Klien / Market Breakdown
-        $sectorCounts = [
-            'Government / Kementerian' => 0,
-            'Banking & Financial'       => 0,
-            'BUMN & Enterprise'         => 0,
-            'Healthcare & Lainnya'      => 0,
+        // Distribusi Tahap Pipeline Prospek (Data Riil CRM)
+        $pipelineStages = [
+            'Draft & Inisiasi' => [
+                'count' => 0,
+                'value' => 0,
+                'color' => '#64748B', // Neutral Slate
+                'badge' => 'bg-slate-50 text-slate-700 border-slate-200'
+            ],
+            'Solusi & Proposal' => [
+                'count' => 0,
+                'value' => 0,
+                'color' => '#8F0A0D', // IP-NET Signature Red
+                'badge' => 'bg-red-50 text-[#8F0A0D] border-red-200'
+            ],
+            'Negosiasi & Review' => [
+                'count' => 0,
+                'value' => 0,
+                'color' => '#F59E0B', // Amber
+                'badge' => 'bg-amber-50 text-amber-700 border-amber-200'
+            ],
+            'Closing / Won' => [
+                'count' => 0,
+                'value' => 0,
+                'color' => '#10B981', // Emerald
+                'badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            ],
         ];
+
         foreach ($projects as $p) {
-            $clientLower = strtolower($p->client ?? '');
-            if (str_contains($clientLower, 'kemenkeu') || str_contains($clientLower, 'kementerian') || str_contains($clientLower, 'dinas') || str_contains($clientLower, 'cukai') || str_contains($clientLower, 'pemerintah')) {
-                $sectorCounts['Government / Kementerian'] += ($p->contract_value ?: 1);
-            } elseif (str_contains($clientLower, 'bank') || str_contains($clientLower, 'btpn') || str_contains($clientLower, 'bca') || str_contains($clientLower, 'mandiri') || str_contains($clientLower, 'adira') || str_contains($clientLower, 'finance')) {
-                $sectorCounts['Banking & Financial'] += ($p->contract_value ?: 1);
-            } elseif (str_contains($clientLower, 'shopee') || str_contains($clientLower, 'lazada') || str_contains($clientLower, 'angkasa pura') || str_contains($clientLower, 'pln') || str_contains($clientLower, 'telkom') || str_contains($clientLower, 'indosat')) {
-                $sectorCounts['BUMN & Enterprise'] += ($p->contract_value ?: 1);
+            $st = strtolower($p->status ?? '');
+            $salesStage = strtolower($p->sales_stage ?? '');
+            $val = (float) ($p->contract_value ?? 0);
+
+            if (in_array($st, ['completed', 'finished', 'delivered', 'done', 'closed won']) || $salesStage === 'closed won') {
+                $pipelineStages['Closing / Won']['count']++;
+                $pipelineStages['Closing / Won']['value'] += $val;
+            } elseif (in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing']) || in_array($salesStage, ['negotiation', 'approval', 'clarification'])) {
+                $pipelineStages['Negosiasi & Review']['count']++;
+                $pipelineStages['Negosiasi & Review']['value'] += $val;
+            } elseif ($st === 'opportunity' || $st === 'prospect' || in_array($salesStage, ['proposal request', 'quotation', 'qualified opportunity']) || !empty($p->proposal_file) || !empty($p->presales_id)) {
+                $pipelineStages['Solusi & Proposal']['count']++;
+                $pipelineStages['Solusi & Proposal']['value'] += $val;
             } else {
-                $sectorCounts['Healthcare & Lainnya'] += ($p->contract_value ?: 1);
+                $pipelineStages['Draft & Inisiasi']['count']++;
+                $pipelineStages['Draft & Inisiasi']['value'] += $val;
             }
         }
-        $sectorDataInMillions = array_map(function($val) {
-            return round($val / 1000000, 2);
-        }, array_values($sectorCounts));
+
+        $stageDataInMillions = array_map(function($item) {
+            return round($item['value'] / 1000000, 2);
+        }, array_values($pipelineStages));
+        $stageCounts = array_column($pipelineStages, 'count');
+        $stageLabels = array_keys($pipelineStages);
+        $stageColors = array_column($pipelineStages, 'color');
 
         // 4. Proyek yang Memerlukan Verifikasi Dokumen oleh PIC BD/BDM
         $pendingVerificationProjects = $projects->filter(function($p) {
@@ -177,8 +209,11 @@ class BdmController extends Controller
             'pendingVerificationProjects',
             'pendingVerificationCount',
             'monthlyDataInMillions',
-            'sectorDataInMillions',
-            'sectorCounts',
+            'stageDataInMillions',
+            'stageCounts',
+            'stageLabels',
+            'stageColors',
+            'pipelineStages',
             'recentOpportunities'
         ));
     }
