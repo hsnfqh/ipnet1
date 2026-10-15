@@ -3031,9 +3031,6 @@
                             </option>
                         @endforeach
                     </select>
-                    <span class="text-[10.5px] text-slate-500 leading-relaxed block">
-                        PIC Business Development yang ditugaskan akan menerima notifikasi dan bertanggung jawab menelaah kelayakan teknis sebelum proyek berlanjut ke alokasi eksekusi.
-                    </span>
                 </div>
 
                 {{-- Pilihan Pre-Sales --}}
