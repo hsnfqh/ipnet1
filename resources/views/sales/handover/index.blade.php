@@ -502,20 +502,6 @@
 
                                 <div>
                                     <label class="block font-semibold text-gray-700 text-[11px] mb-1">
-                                        Coverage Support Hours
-                                    </label>
-                                    <select name="sla_coverage_hours" x-model="formSlaCoverage"
-                                            class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-gray-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
-                                        <option value="24x7">24x7 (24 Jam 7 Hari - Termasuk Hari Libur)</option>
-                                        <option value="8x5">8x5 (Jam Kerja Senin - Jumat 08:00 - 17:00)</option>
-                                        <option value="12x7">12x7 (08:00 - 20:00 Setiap Hari)</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                                <div>
-                                    <label class="block font-semibold text-gray-700 text-[11px] mb-1">
                                         Frekuensi Preventive Maint.
                                     </label>
                                     <select name="maintenance_frequency" x-model="formMaintFreq"

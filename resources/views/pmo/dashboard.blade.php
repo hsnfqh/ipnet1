@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard PMO - Pusat Kendali & Pengawasan Implementasi')
+@section('title', 'Dashboard - Pusat Kendali & Pengawasan Implementasi')
 
 @push('styles')
 <style>
@@ -39,7 +39,7 @@
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto bg-[#F8FAFC]">
-        @include('components.topbar', ['title' => 'Dashboard PMO'])
+        @include('components.topbar', ['title' => 'Dashboard'])
         
         <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1680px] mx-auto">
             

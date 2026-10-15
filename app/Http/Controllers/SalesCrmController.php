@@ -1011,8 +1011,14 @@ class SalesCrmController extends Controller
         if ($isManagedService) {
             $updateData['stage']                 = 'Operate';
             $updateData['status']                = 'Active';
-            $updateData['sla_tier']              = $validated['sla_tier'] ?? 'Gold';
-            $updateData['sla_coverage_hours']    = $validated['sla_coverage_hours'] ?? '24x7';
+            $slaTier                             = $validated['sla_tier'] ?? 'Gold';
+            $defaultCoverage                     = match($slaTier) {
+                'Platinum' => '24x7',
+                'Gold', 'Silver' => '8x5',
+                default => '24x7',
+            };
+            $updateData['sla_tier']              = $slaTier;
+            $updateData['sla_coverage_hours']    = $validated['sla_coverage_hours'] ?? $defaultCoverage;
             $updateData['maintenance_frequency'] = $validated['maintenance_frequency'] ?? 'Monthly';
             $updateData['service_start_date']    = $validated['service_start_date'] ?? $validated['po_spk_date'];
             $updateData['service_end_date']      = $validated['service_end_date'] ?? null;

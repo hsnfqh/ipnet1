@@ -452,7 +452,15 @@ class ProjectController extends Controller
 
             if (in_array($target, ['managed_service', 'both'])) {
                 if ($request->filled('sla_tier')) {
-                    $updateFields['sla_tier'] = $request->input('sla_tier');
+                    $tierVal = $request->input('sla_tier');
+                    $updateFields['sla_tier'] = $tierVal;
+                    if (!$request->filled('sla_coverage_hours')) {
+                        $updateFields['sla_coverage_hours'] = match($tierVal) {
+                            'Platinum' => '24x7',
+                            'Gold', 'Silver' => '8x5',
+                            default => '24x7',
+                        };
+                    }
                 }
                 if ($request->filled('sla_coverage_hours')) {
                     $updateFields['sla_coverage_hours'] = $request->input('sla_coverage_hours');
