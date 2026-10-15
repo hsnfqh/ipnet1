@@ -134,6 +134,11 @@ class Project extends Model
         return $this->belongsTo(User::class, 'commercial_handover_by');
     }
 
+    public function commercialHandoverUser()
+    {
+        return $this->belongsTo(User::class, 'commercial_handover_by');
+    }
+
     public function msAcceptedBy()
     {
         return $this->belongsTo(User::class, 'ms_accepted_by');

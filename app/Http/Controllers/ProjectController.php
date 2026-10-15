@@ -340,7 +340,7 @@ class ProjectController extends Controller
 
         $validated = $request->validate([
             'role_type'             => 'required|in:pm,engineer',
-            'user_id'               => 'required|exists:users,id',
+            'user_id'               => $request->input('role_type') === 'engineer' ? 'required|exists:users,id' : 'nullable|exists:users,id',
             'task_title'            => 'nullable|string|max:255',
             'deadline'              => 'nullable|date',
             'handover_target'       => 'nullable|string|in:pmo,managed_service,both',
@@ -360,7 +360,7 @@ class ProjectController extends Controller
             'service_end_date'      => 'nullable|date',
         ]);
 
-        $user = User::findOrFail($validated['user_id']);
+        $user = !empty($validated['user_id']) ? User::find($validated['user_id']) : null;
 
         if ($validated['role_type'] === 'pm') {
             $authUser = auth()->user();
@@ -388,9 +388,11 @@ class ProjectController extends Controller
 
             $target = $validated['handover_target'] ?? ($project->handover_target ?: 'pmo');
             $updateFields = [
-                'pm_id'           => $user->id,
                 'handover_target' => $target,
             ];
+            if ($user) {
+                $updateFields['pm_id'] = $user->id;
+            }
 
             if ($request->filled('po_spk_number')) {
                 $updateFields['po_spk_number'] = $request->input('po_spk_number');
@@ -449,12 +451,6 @@ class ProjectController extends Controller
                 }
             }
 
-            if ($target === 'managed_service') {
-                $updateFields['stage'] = 'Operate';
-            } else {
-                $updateFields['stage'] = 'Deliver';
-            }
-
             if (in_array($target, ['managed_service', 'both'])) {
                 if ($request->filled('sla_tier')) {
                     $tierVal = $request->input('sla_tier');
@@ -481,18 +477,31 @@ class ProjectController extends Controller
                 }
             }
 
-            if (in_array($project->status, ['Draft', 'Planning', 'Opportunity'])) {
-                $updateFields['status'] = 'In Progress';
-            }
+            $isClosedWon = ($project->sales_stage === 'Closed Won');
 
-            $updateFields['commercial_handover_status'] = 'Approved';
-            $updateFields['commercial_handover_at'] = now();
-            $updateFields['commercial_handover_by'] = auth()->id();
+            if ($isClosedWon) {
+                if ($target === 'managed_service') {
+                    $updateFields['stage'] = 'Operate';
+                } else {
+                    $updateFields['stage'] = 'Deliver';
+                }
+
+                if (in_array($project->status, ['Draft', 'Planning', 'Opportunity'])) {
+                    $updateFields['status'] = 'In Progress';
+                }
+
+                $updateFields['commercial_handover_status'] = 'Approved';
+                $updateFields['commercial_handover_at'] = now();
+                $updateFields['commercial_handover_by'] = auth()->id();
+            } else {
+                // Status tetap pada pipeline awal (Pre-Sales / Proposal / Negotiation)
+                $updateFields['commercial_handover_status'] = 'Draft';
+            }
 
             $project->update($updateFields);
 
-            // Send notification
-            if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            // Send notification jika Closed Won dan user terpilih
+            if ($isClosedWon && $user && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
                 \App\Models\Notification::create([
                     'user_id' => $user->id,
                     'title'   => $target === 'managed_service' ? "Penugasan Lead Managed Service: {$project->name}" : "Penugasan Project Manager: {$project->name}",
@@ -502,9 +511,11 @@ class ProjectController extends Controller
                 ]);
             }
 
-            $msg = $target === 'managed_service' 
-                ? "Serah terima berhasil & User '{$user->name}' ditugaskan sebagai Lead Managed Service!" 
-                : "Serah terima berhasil & User '{$user->name}' ditugaskan sebagai Project Manager (PMO)!";
+            $msg = $isClosedWon
+                ? ($target === 'managed_service' 
+                    ? "Serah terima berhasil & User '" . ($user ? $user->name : 'PM') . "' ditugaskan sebagai Lead Managed Service!" 
+                    : "Serah terima berhasil & User '" . ($user ? $user->name : 'PM') . "' ditugaskan sebagai Project Manager (PMO)!")
+                : "Perencanaan ruang lingkup & rekomendasi skema proyek berhasil disimpan.";
         } else {
             $taskTitle = $validated['task_title'] ?: ('Implementasi Teknis: ' . $project->name);
             $task = Task::create([
@@ -616,10 +627,15 @@ class ProjectController extends Controller
             $project->special_notes = $request->input('special_notes');
         }
 
-        $project->handover_status = 'Approved';
-        $project->stage = 'Deliver';
-        if (in_array($project->status, ['Draft', 'Planning', 'Opportunity'])) {
-            $project->status = 'In Progress';
+        $isClosedWon = ($project->sales_stage === 'Closed Won');
+        if ($isClosedWon) {
+            $project->handover_status = 'Approved';
+            $project->stage = 'Deliver';
+            if (in_array($project->status, ['Draft', 'Planning', 'Opportunity'])) {
+                $project->status = 'In Progress';
+            }
+        } else {
+            $project->handover_status = 'Draft';
         }
         $project->save();
 
@@ -1694,6 +1710,67 @@ class ProjectController extends Controller
         }
 
         return back()->with('success', $msg);
+    }
+
+    /**
+     * Pengesahan Serah Terima Resmi Proyek ke PMO & Tim Operasional (Gerbang Handover Gateway)
+     * Hanya dapat dijalankan setelah Sales mencapai tahap 'Closed Won'.
+     */
+    public function confirmHandoverPmo(Request $request, Project $project)
+    {
+        $authUser = auth()->user();
+        $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
+        $canConfirm = $authUser && (
+            \App\Helpers\ScopeHelper::isPmo($authUser)
+            || \App\Helpers\ScopeHelper::isExecutive($authUser)
+            || ($project->sales_id && $project->sales_id == $authUser->id)
+            || ($project->created_by == $authUser->id)
+            || !empty(array_intersect(['Super Admin', 'Admin', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Delivery & Operation', 'PMO', 'Project Manager'], $userRoles))
+        );
+        abort_unless($canConfirm, 403, 'Pengesahan Serah Terima Proyek resmi hanya dapat dilakukan oleh PMO, Sales terkait, atau Manajemen.');
+
+        abort_unless($project->sales_stage === 'Closed Won', 422, 'Serah terima resmi ke PMO hanya dapat disahkan setelah proyek mencapai tahap Closed Won (Deal).');
+
+        $validated = $request->validate([
+            'pm_id'          => 'nullable|exists:users,id',
+            'handover_notes' => 'nullable|string|max:1000',
+        ]);
+
+        $updateData = [
+            'commercial_handover_status' => 'Approved',
+            'commercial_handover_at'     => now(),
+            'commercial_handover_by'     => $authUser->id,
+            'status'                     => 'In Progress',
+            'stage'                      => ($project->handover_target === 'managed_service') ? 'Operate' : 'Deliver',
+        ];
+
+        if (!empty($validated['pm_id'])) {
+            $updateData['pm_id'] = $validated['pm_id'];
+        }
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $handoverData['pmo_handover'] = [
+            'confirmed'    => true,
+            'confirmed_at' => now()->format('d M Y H:i'),
+            'confirmed_by' => $authUser->name,
+            'notes'        => $validated['handover_notes'] ?? 'Proyek resmi diserahterimakan ke PMO untuk pelaksanaan delivery & operasional lapangan.',
+        ];
+        $updateData['handover_data'] = $handoverData;
+
+        $project->update($updateData);
+
+        // Notifikasi ke Project Manager jika terdaftar
+        if ($project->pm_id && \Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            \App\Models\Notification::create([
+                'user_id' => $project->pm_id,
+                'title'   => \Illuminate\Support\Str::limit("Pengesahan Serah Terima Proyek: {$project->name}", 240),
+                'message' => \Illuminate\Support\Str::limit("Proyek '{$project->name}' (Klien: " . ($project->client ?: '-') . ") telah resmi disahkan untuk dieksekusi oleh PMO. Anda bertindak sebagai Project Manager.", 240),
+                'url'     => route('projects.show', $project->id),
+                'is_read' => false,
+            ]);
+        }
+
+        return back()->with('success', 'Pengesahan serah terima resmi ke PMO berhasil dilakukan. Proyek kini aktif berjalan di fase Delivery / Operasional.');
     }
 
     /**

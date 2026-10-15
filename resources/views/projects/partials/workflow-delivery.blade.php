@@ -35,16 +35,16 @@
         <div class="min-w-0 flex-1">
             <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-0.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> 
-                ALOKASI RUANG LINGKUP &amp; EKSEKUSI PROYEK
+                TAHAP 1: PERENCANAAN LINGKUP &amp; REKOMENDASI SKEMA PROYEK (PRE-SALES)
             </p>
             <h3 class="text-sm sm:text-base font-bold text-slate-900">
-                Alokasi Lingkup Kerja &amp; Tim Pelaksana Proyek
+                Rekomendasi Ruang Lingkup &amp; Alokasi Divisi Teknis
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">
                 @if($isBoth)
-                    Proyek mencakup 2 Tahap: <strong>Fase 1 Implementasi Teknis (PMO)</strong> dilanjutkan <strong>Fase 2 Pemeliharaan Sistem (Managed Service)</strong>.
+                    Rekomendasi mencakup <strong>Dual Scope</strong>: Fase 1 Implementasi Capex (PMO) dilanjutkan Fase 2 Pemeliharaan Opex (Managed Service).
                 @else
-                    Penetapan alur kerja implementasi atau kontrak managed service serta penunjukan divisi dan penanggung jawab lapangan.
+                    Penyusunan karakteristik lingkup implementasi (Capex / Opex), komitmen SLA &amp; batasan teknis (exclusions), serta alokasi divisi spesialis oleh Pre-Sales.
                 @endif
             </p>
         </div>
@@ -54,21 +54,25 @@
                 <div class="flex items-center gap-2">
                     <span class="px-2.5 py-1 rounded-full text-[11px] font-bold {{ $isMsHandedOver ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-amber-50 text-amber-800 border border-amber-200' }} flex items-center gap-1.5 shadow-2xs">
                         <span class="w-2 h-2 rounded-full {{ $isMsHandedOver ? 'bg-purple-600' : 'bg-amber-500' }}"></span>
-                        <span>{{ $isMsHandedOver ? 'Fase 2: Managed Service Aktif' : 'Fase 1: Implementasi PMO Berjalan' }}</span>
+                        <span>{{ $isMsHandedOver ? 'Fase 2: Managed Service Aktif' : 'Dual Scope Terdefinisi' }}</span>
                     </span>
                     <span class="px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
                         Dual Scope
                     </span>
                 </div>
-            @elseif($project->pm)
+            @elseif($project->handover_target)
                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
                     <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                    <span>{{ $isMs ? 'Managed Service Terkonfirmasi' : 'Implementasi PMO Terkonfirmasi' }}</span>
+                    <span>{{ $isMs ? 'Rekomendasi Managed Service' : 'Rekomendasi Implementasi PMO' }}</span>
                 </span>
             @elseif(!$isBdApproved)
                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
                     <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     <span>Menunggu Solusi Teknis</span>
+                </span>
+            @else
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
+                    <span>Draft / Belum Ditentukan</span>
                 </span>
             @endif
         </div>
@@ -113,42 +117,46 @@
     {{-- Standardized Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs items-stretch">
         
-        {{-- ══ CARD 1: LEAD PMO / RUANG LINGKUP PROYEK ══ --}}
+        {{-- ══ CARD 1: REKOMENDASI SKEMA & RUANG LINGKUP (PRE-SALES) ══ --}}
         <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
             <div class="space-y-3">
                 
                 {{-- Header --}}
                 <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider whitespace-nowrap">
-                        RUANG LINGKUP PROYEK
+                        SKEMA &amp; KARAKTERISTIK IMPLEMENTASI
                     </span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $project->pm ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isBdApproved ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
-                        {{ $project->pm ? '✓ Ditetapkan' : ($isBdApproved ? 'Menunggu Penetapan' : 'Terkunci') }}
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap {{ $project->handover_target ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isBdApproved ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200') }}">
+                        {{ $project->handover_target ? '✓ Skema Ditetapkan' : ($isBdApproved ? 'Menunggu Perumusan' : 'Terkunci') }}
                     </span>
                 </div>
 
-                {{-- Person --}}
+                {{-- Scheme Info --}}
                 <div class="flex items-center gap-2.5">
-                    @if($project->pm)
-                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                            {{ strtoupper(substr($project->pm->name, 0, 2)) }}
-                        </div>
-                    @else
-                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white flex items-center justify-center shrink-0 shadow-2xs" title="Belum Ditugaskan">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        </div>
-                    @endif
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </div>
                     <div class="min-w-0 flex-1">
-                        <h4 class="font-bold text-xs {{ $project->pm ? 'text-slate-900' : 'text-slate-500 italic' }} truncate" title="{{ $project->pm ? $project->pm->name : '' }}">
-                            {{ $project->pm ? $project->pm->name : 'Belum Ditugaskan' }}
+                        <h4 class="font-bold text-xs {{ $project->handover_target ? 'text-slate-900' : 'text-slate-500 italic' }} truncate">
+                            @if($isBoth)
+                                Dual Scope (Implementasi &amp; MS)
+                            @elseif($isMs)
+                                Kontrak Managed Service (Operate)
+                            @elseif($project->handover_target === 'pmo')
+                                Proyek Implementasi (PMO Delivery)
+                            @else
+                                Belum Dirumuskan oleh Pre-Sales
+                            @endif
                         </h4>
                         <p class="text-[10.5px] text-slate-500 truncate">
                             @if($isBoth)
-                                Project Manager (Fase 1 Delivery)
+                                Capex Deployment + Retainer Maintenance
                             @elseif($isMs)
-                                Penanggung Jawab Maintenance (SLA {{ $project->sla_tier ?: 'Gold' }})
+                                Opex Maintenance &amp; SLA Commitment
+                            @elseif($project->handover_target === 'pmo')
+                                Capex Engineering &amp; Pengadaan Perangkat
                             @else
-                                Project Manager (PMO)
+                                Karakteristik Proyek Komersial
                             @endif
                         </p>
                     </div>
@@ -156,7 +164,7 @@
 
                 {{-- Status / Deliverable Box --}}
                 <div>
-                    @if($project->pm)
+                    @if($project->handover_target)
                         <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2">
                             <div class="flex items-center gap-2 min-w-0">
                                 <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
@@ -165,19 +173,27 @@
                                 <div class="min-w-0 flex-1">
                                     <div class="font-bold text-slate-900 text-xs truncate">
                                         @if($isBoth)
-                                            Lingkup: Implementasi Teknis &amp; Managed Service (Dual Scope)
+                                            Skema: Implementasi Teknis &amp; Managed Service
                                         @elseif($isMs)
-                                            Lingkup: Kontrak Pemeliharaan (Managed Service)
+                                            Skema: Kontrak Pemeliharaan Rutin (Managed Service)
                                         @else
-                                            Lingkup: Implementasi Teknis Proyek (PMO)
+                                            Skema: Penggelaran Proyek (PMO Delivery)
                                         @endif
                                     </div>
-                                    <div class="text-[10.5px] text-slate-500 truncate">{{ $project->pm->email }}</div>
+                                    <div class="text-[10.5px] text-slate-500 truncate">
+                                        Usulan PM/Lead: {{ $project->pm ? $project->pm->name : 'Ditetapkan definitif pada Serah Terima PMO' }}
+                                    </div>
                                 </div>
                             </div>
                             @if($isMs || $isBoth)
-                                <div class="text-[10px] text-purple-700 font-bold pt-1.5 border-t border-slate-200/80 text-right">
-                                    SLA Tier: {{ $project->sla_tier ?: 'Gold (99.5%)' }}
+                                <div class="text-[10px] text-purple-700 font-bold pt-1.5 border-t border-slate-200/80 flex items-center justify-between">
+                                    <span>Komitmen SLA:</span>
+                                    <span>{{ $project->sla_tier ?: 'Gold (8x5 Uptime 99.5%)' }}</span>
+                                </div>
+                            @endif
+                            @if($project->exclusions)
+                                <div class="text-[10px] text-slate-600 pt-1 border-t border-slate-200/80 truncate" title="{{ $project->exclusions }}">
+                                    <strong class="text-slate-700">Exclusions:</strong> {{ $project->exclusions }}
                                 </div>
                             @endif
                         </div>
@@ -200,10 +216,10 @@
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="font-bold text-amber-900 text-xs flex items-center justify-between">
-                                            <span>Tetapkan Ruang Lingkup Proyek</span>
+                                            <span>Rumuskan Rekomendasi Lingkup Proyek</span>
                                             <svg class="w-3.5 h-3.5 text-amber-700 opacity-60 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                         </div>
-                                        <div class="text-[10.5px] text-amber-800 truncate">Implementasi PMO, Pemeliharaan Managed Service, atau Dual Scope</div>
+                                        <div class="text-[10.5px] text-amber-800 truncate">Implementasi Capex (PMO), Managed Service (Opex), atau Dual Scope</div>
                                     </div>
                                 </div>
                             </div>
@@ -211,9 +227,9 @@
                             <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 space-y-1">
                                 <div class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span>Menunggu Penetapan Ruang Lingkup</span>
+                                    <span>Menunggu Rekomendasi Pre-Sales</span>
                                 </div>
-                                <div class="text-[10.5px] text-slate-400">Penetapan alur kerja &amp; serah terima PMO dilakukan oleh tim Pre-Sales.</div>
+                                <div class="text-[10.5px] text-slate-400">Perumusan ruang lingkup teknis dilakukan oleh tim Pre-Sales Engineer.</div>
                             </div>
                         @endif
                     @endif
@@ -227,7 +243,7 @@
                     @if(!$isBdApproved)
                         <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu verifikasi solusi teknis disahkan oleh PIC BD">
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                            <span>{{ $project->pm ? 'Perbarui Ruang Lingkup' : 'Tetapkan Ruang Lingkup' }}</span>
+                            <span>{{ $project->handover_target ? 'Perbarui Rekomendasi' : 'Rumuskan Rekomendasi' }}</span>
                         </button>
                     @else
                         <button type="button" 
@@ -235,7 +251,7 @@
                                 onclick="event.stopPropagation(); (window.openHandoverModalCustom ? window.openHandoverModalCustom('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}') : window.openModal('modal-handover'))"
                                 class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>{{ $project->pm ? 'Perbarui Ruang Lingkup' : 'Tetapkan Ruang Lingkup' }}</span>
+                            <span>{{ $project->handover_target ? 'Perbarui Rekomendasi' : 'Rumuskan Rekomendasi' }}</span>
                         </button>
                     @endif
                 </div>

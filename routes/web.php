@@ -643,6 +643,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{project}/meta-update', [ProjectController::class, 'updateMeta'])->name('projects.meta_update');
         Route::post('/{project}/update-client', [ProjectController::class, 'updateClientInfo'])->name('projects.update_client');
         Route::post('/{project}/handover-to-ms', [ProjectController::class, 'handoverToMs'])->name('projects.handover_to_ms');
+        Route::post('/{project}/confirm-handover-pmo', [ProjectController::class, 'confirmHandoverPmo'])->name('projects.confirm_handover_pmo');
         Route::post('/{project}/assign-ms-engineer', [ProjectController::class, 'assignMsEngineer'])->name('projects.assign_ms_engineer');
         Route::post('/{project}/milestones/bulk', [ProjectController::class, 'bulkStoreMilestones'])->name('projects.milestones.bulk_store');
 

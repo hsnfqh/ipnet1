@@ -945,8 +945,11 @@
                     {{-- 3. Tim Solusi Teknis (PIC BD, Presales Akbar, SA Aris Sadewo) --}}
                     @include('projects.partials.workflow-technical-solution')
 
-                    {{-- 4. Serah Terima & Divisi Pelaksana (PMO Rizki & Lead Engineer Nugraha Pratama) --}}
+                    {{-- 4. Perencanaan Ruang Lingkup & Alokasi Divisi Teknis (Pre-Sales) --}}
                     @include('projects.partials.workflow-delivery')
+
+                    {{-- 5. Gerbang Serah Terima Resmi Proyek (Official Handover Gateway ke PMO & Operasional) --}}
+                    @include('projects.partials.workflow-handover-gateway')
 
                     {{-- MILESTONES / TIMELINE CARD --}}
                     <div class="ipnet-card p-6 space-y-4">
@@ -1913,8 +1916,8 @@
             {{-- Header (Fixed / Non-Scrollable) --}}
             <div class="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6 shrink-0 bg-white">
                 <div>
-                    <h3 class="text-base sm:text-lg font-bold text-slate-900">Alokasi Kategori &amp; Ruang Lingkup Proyek</h3>
-                    <p class="text-[12px] text-slate-500 mt-0.5">Penetapan karakteristik kategori proyek, penugasan tim pelaksana &amp; komitmen layanan teknis.</p>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900">Perencanaan &amp; Rekomendasi Ruang Lingkup Teknis</h3>
+                    <p class="text-[12px] text-slate-500 mt-0.5">Penyusunan karakteristik proyek, rekomendasi skema implementasi, komitmen SLA, dan batasan lingkup oleh Pre-Sales Engineer.</p>
                 </div>
                 <button type="button" @click="isHandoverModalOpen = false; window.closeModal('modal-handover')" onclick="window.closeModal('modal-handover')" class="text-slate-400 hover:text-[#8F0A0D] text-xl font-bold p-1 cursor-pointer transition">✕</button>
             </div>
@@ -1930,7 +1933,7 @@
                     {{-- 1. PILIHAN KARAKTERISTIK & TARGET SERAH TERIMA --}}
                     <div class="space-y-2">
                         <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
-                            1. Pilih Karakteristik &amp; Target Serah Terima <span class="text-[#8F0A0D]">*</span>
+                            1. Rekomendasi Karakteristik &amp; Skema Proyek <span class="text-[#8F0A0D]">*</span>
                         </label>
                         <input type="hidden" name="handover_target" :value="handoverTargetType">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1992,15 +1995,18 @@
                     {{-- 2. PENUGASAN & KOMITMEN SCOPE PROYEK --}}
                     <div class="pt-3 border-t border-gray-100 space-y-3.5">
                         <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
-                            2. Penugasan &amp; Komitmen Layanan
+                            2. Usulan Penanggung Jawab &amp; Komitmen Layanan
                         </label>
 
-                        {{-- User Selection --}}
+                        {{-- User Selection (Opsional pada Pre-Sales) --}}
                         <div>
-                            <label class="block font-semibold text-[#64748B] text-[11px] mb-1" 
-                                   x-text="handoverTargetType === 'managed_service' ? 'PILIH LEAD MAINTENANCE / MANAGED SERVICE *' : 'PILIH PROJECT MANAGER (PMO) *'"></label>
-                            <select name="user_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-slate-900 hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer bg-white font-bold transition">
-                                <option value="">-- Pilih Penanggung Jawab --</option>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block font-semibold text-[#64748B] text-[11px]" 
+                                       x-text="handoverTargetType === 'managed_service' ? 'USULAN LEAD MAINTENANCE / MANAGED SERVICE (OPSIONAL)' : 'USULAN PROJECT MANAGER (PMO) (OPSIONAL)'"></label>
+                                <span class="text-[10px] text-slate-400 font-normal">Dapat ditetapkan definitif saat Serah Terima Resmi</span>
+                            </div>
+                            <select name="user_id" class="w-full px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-slate-900 hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer bg-white font-bold transition">
+                                <option value="">-- Tetapkan Nanti pada Serah Terima Resmi Proyek --</option>
                                 @foreach($pmoUsers as $pmo)
                                     <option value="{{ $pmo->id }}" {{ ($project->pm_id == $pmo->id || (empty($project->pm_id) && str_contains(strtolower($pmo->name), 'rizki'))) ? 'selected' : '' }}>
                                         (Lead) {{ $pmo->name }}
@@ -2120,7 +2126,7 @@
                             Batal
                         </button>
                         <button type="submit" class="px-5 py-2 text-xs rounded-xl font-bold btn-ipnet-primary cursor-pointer transition shadow-sm">
-                            Simpan &amp; Serah Terimakan Proyek
+                            Simpan Rekomendasi Lingkup Teknis
                         </button>
                     </div>
                 </div>

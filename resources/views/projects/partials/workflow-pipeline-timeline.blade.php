@@ -1,8 +1,7 @@
 {{-- ═══ CHEVRON SALES PIPELINE STAGE TIMELINE (IPNET ENTERPRISE DESIGN SYSTEM) ═══ --}}
 @php
     $currentStatus = $currentStatus ?? ($project->status ?? 'Draft');
-    $currentSalesStage = $project->sales_stage ?: ($currentStatus === 'In Progress' ? 'Closed Won' : 'Qualification');
-    $currentProb = (int)($project->win_probability ?? ($currentSalesStage === 'Closed Won' || $currentStatus === 'In Progress' ? 100 : 10));
+    $currentSalesStage = $project->sales_stage ?: 'Qualification';
 
     $stageOrderMap = [
         'Qualification'      => 1,
@@ -17,9 +16,18 @@
         'Closed Lost'        => 5,
     ];
 
-    $currentStageIndex = $stageOrderMap[$currentSalesStage] ?? ($currentStatus === 'In Progress' ? 5 : 1);
+    $currentStageIndex = $stageOrderMap[$currentSalesStage] ?? 1;
     $isClosedLost = ($currentSalesStage === 'Closed Lost');
-    $isClosedWon = ($currentSalesStage === 'Closed Won' || $currentStatus === 'In Progress');
+    $isClosedWon = ($currentSalesStage === 'Closed Won');
+
+    $stageProbDefault = [
+        1 => 10,
+        2 => 25,
+        3 => 50,
+        4 => 75,
+        5 => $isClosedWon ? 100 : 0,
+    ];
+    $currentProb = (int)($project->win_probability ?? ($stageProbDefault[$currentStageIndex] ?? 10));
 
     $pipelineSteps = [
         [
