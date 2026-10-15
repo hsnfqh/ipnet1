@@ -53,8 +53,6 @@ class ProjectController extends Controller
                 ->where('name', 'not like', '%Meeting%')
                 ->where('name', 'not like', '%On Going Project%')
                 ->where('name', 'not like', '%Closed Project%')
-                ->where('name', 'not like', '%Pengadaaan%')
-                ->where('name', 'not like', '%Pengadaan%')
                 ->where(function($q) use ($validSalesNames) {
                     $q->whereIn('sales_name', $validSalesNames)
                       ->orWhere('sales_name', 'like', '%Raiza%')

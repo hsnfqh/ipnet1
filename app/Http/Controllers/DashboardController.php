@@ -74,8 +74,6 @@ class DashboardController extends Controller
                 ->where('name', 'not like', '%Meeting%')
                 ->where('name', 'not like', '%On Going Project%')
                 ->where('name', 'not like', '%Closed Project%')
-                ->where('name', 'not like', '%Pengadaaan%')
-                ->where('name', 'not like', '%Pengadaan%')
                 ->where(function($q) use ($validSalesNames) {
                     $q->whereIn('sales_name', $validSalesNames)
                       ->orWhere('sales_name', 'like', '%Raiza%')
@@ -138,9 +136,9 @@ class DashboardController extends Controller
                 $pName = strtolower($p->name ?? '');
                 $sName = strtolower($p->sales_name ?? '');
                 $cName = strtolower($p->creator->name ?? '');
-                $blacklisted = ['widodo', 'pengadaaan', 'pengadaan', 'donny', 'dony', 'antonius', 'nugraha', 'sales team', 'via', 'erie', 'hendry', 'nelvia', 'ribka', 'sabar'];
+                $blacklisted = ['widodo', 'donny', 'dony', 'antonius', 'nugraha', 'sales team', 'via', 'erie', 'hendry', 'nelvia', 'ribka', 'sabar'];
                 foreach ($blacklisted as $bl) {
-                    if (str_contains($sName, $bl) || str_contains($cName, $bl) || str_contains($pName, 'pengadaaan')) {
+                    if (str_contains($sName, $bl) || str_contains($cName, $bl)) {
                         return false;
                     }
                 }

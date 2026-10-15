@@ -435,46 +435,8 @@
                     </div>
                 </div>
 
-                {{-- PIPELINE STAGE FUNNEL BREAKDOWN --}}
-                <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-2">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5 pb-4 border-b border-[#E2E8F0]">
-                        <div>
-                            <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                                <span class="ipnet-badge-dot"></span> DISTRIBUSI TAHAPAN PROYEK
-                            </p>
-                            <h3 class="text-[18px] font-bold text-[#292929] tracking-tight">
-                                Sales Pipeline & Stage Conversion
-                            </h3>
-                            <p class="text-[12.5px] text-[#75727C] mt-0.5">
-                                Pantau sebaran nilai dan volume peluang di setiap tahapan siklus penjualan
-                            </p>
-                        </div>
-                        <a href="{{ route('acquire.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline inline-flex items-center gap-1">
-                            <span>Buka Kanban Pipeline</span>
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-                        </a>
-                    </div>
-
-                    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
-                        @foreach(($stageFunnel ?? []) as $sKey => $sData)
-                            <div class="p-3 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-white hover:border-slate-300 transition flex flex-col justify-between space-y-2">
-                                <div>
-                                    <div class="w-2.5 h-2.5 rounded-full mb-1.5" style="background-color: {{ $sData['color'] ?? '#8F0A0D' }};"></div>
-                                    <div class="text-[11px] font-bold text-slate-700 leading-snug line-clamp-2">{{ $sData['label'] }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-[14px] font-black text-slate-900">{{ $sData['count'] }} <span class="text-[10px] font-normal text-slate-400">deals</span></div>
-                                    <div class="text-[10.5px] font-semibold text-slate-500 truncate" title="{{ \App\Helpers\CurrencyHelper::formatRupiah($sData['value'] ?? 0) }}">
-                                        {{ \App\Helpers\CurrencyHelper::formatCompact($sData['value'] ?? 0) }}
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
                 {{-- PRIORITY DEALS & RECENT SALES CRM ACTIVITIES --}}
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 anim-fade-up anim-delay-3">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 anim-fade-up anim-delay-2">
                     
                     {{-- Proyek Komersial Terkini --}}
                     <div class="lg:col-span-2 ipnet-card p-5 sm:p-6 flex flex-col justify-between">
@@ -484,7 +446,7 @@
                                     <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                                         <span class="ipnet-badge-dot"></span> PORTOFOLIO SALES
                                     </p>
-                                    <h3 class="text-[16px] font-bold text-[#292929]">Proyek & Peluang Komersial Terkini</h3>
+                                    <h3 class="text-[16px] font-bold text-[#292929]">Proyek &amp; Peluang Komersial Terkini</h3>
                                 </div>
                                 <a href="{{ route('projects.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">Lihat Semua &rarr;</a>
                             </div>
@@ -493,7 +455,7 @@
                                 <table class="w-full text-left text-xs">
                                     <thead>
                                         <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                                            <th class="pb-2.5">Proyek & Klien</th>
+                                            <th class="pb-2.5">Proyek &amp; Klien</th>
                                             <th class="pb-2.5">PIC Sales</th>
                                             <th class="pb-2.5">Nilai Kontrak</th>
                                             <th class="pb-2.5">Status</th>
@@ -515,11 +477,13 @@
                                                 </td>
                                                 <td class="py-3 px-2 whitespace-nowrap">
                                                     @php
-                                                        $st = $deal->status ?: 'Draft';
-                                                        $isWon = in_array(strtolower($st), ['completed', 'finished', 'closed']);
-                                                        $isProg = in_array(strtolower($st), ['on progress', 'in progress']);
+                                                        $st = strtolower($deal->status ?: 'Draft');
+                                                        $sst = $deal->sales_stage ?? '';
+                                                        $isWon = ($sst === 'Closed Won') || in_array($st, ['completed', 'finished', 'closed', 'selesai']);
+                                                        $isLost = ($sst === 'Closed Lost') || in_array($st, ['cancelled', 'lost', 'batal']);
+                                                        $isProg = in_array($st, ['on progress', 'in progress']) || in_array($sst, ['Contract / PO / SPK', 'Negotiation']);
                                                     @endphp
-                                                    <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold {{ $isWon ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isProg ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-slate-100 text-slate-700 border border-slate-200') }}">
+                                                    <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold {{ $isWon ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($isLost ? 'bg-rose-50 text-rose-700 border border-rose-200' : ($isProg ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-slate-100 text-slate-700 border border-slate-200')) }}">
                                                         {{ $deal->sales_stage ?: $deal->status }}
                                                     </span>
                                                 </td>
@@ -555,14 +519,41 @@
 
                             <div class="space-y-3">
                                 @forelse(($recentActivities ?? []) as $act)
-                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                                    @php
+                                        $rawNotes = $act->notes ?: '';
+                                        $cleanNotes = $rawNotes;
+
+                                        // Parsing jika catatan berupa JSON (kronologi_batch atau format terstruktur)
+                                        if (is_string($rawNotes) && str_starts_with(trim($rawNotes), '{')) {
+                                            $decoded = json_decode($rawNotes, true);
+                                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                                if (!empty($decoded['items']) && is_array($decoded['items'])) {
+                                                    $itemSubs = array_column($decoded['items'], 'subject');
+                                                    $cleanNotes = implode(', ', array_filter($itemSubs));
+                                                }
+                                                if (empty($cleanNotes) && !empty($decoded['title'])) {
+                                                    $cleanNotes = $decoded['title'];
+                                                }
+                                            }
+                                        }
+
+                                        if (empty($cleanNotes) || $cleanNotes === '-') {
+                                            $cleanNotes = 'Catatan aktivitas komunikasi & update komersial.';
+                                        }
+
+                                        $subjectText = $act->subject;
+                                        if (empty($subjectText) || in_array(strtolower(trim($subjectText)), ['aaa', 'test', '-'])) {
+                                            $subjectText = $act->project ? $act->project->name : 'Aktivitas Sales & Klien';
+                                        }
+                                    @endphp
+                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1 hover:border-slate-300 transition">
                                         <div class="flex items-center justify-between gap-1 text-[11px]">
-                                            <span class="font-bold text-[#8F0A0D]">{{ $act->activity_type ?? 'Meeting' }}</span>
+                                            <span class="font-bold text-[#8F0A0D]">{{ $act->activity_type ?? 'Aktivitas Sales' }}</span>
                                             <span class="text-slate-400">{{ $act->activity_date ? \Carbon\Carbon::parse($act->activity_date)->format('d M Y') : '-' }}</span>
                                         </div>
-                                        <div class="font-bold text-slate-800 text-[12px] line-clamp-1">{{ $act->subject ?: ($act->project ? $act->project->name : 'Client Follow-up') }}</div>
-                                        <div class="text-[11px] text-slate-500 line-clamp-2">{{ $act->notes ?: '-' }}</div>
-                                        <div class="text-[10px] font-semibold text-slate-400 pt-1">Oleh: {{ $act->sales ? $act->sales->name : 'Sales' }}</div>
+                                        <div class="font-bold text-slate-800 text-[12px] line-clamp-1" title="{{ $subjectText }}">{{ $subjectText }}</div>
+                                        <div class="text-[11px] text-slate-600 line-clamp-2 leading-snug">{{ $cleanNotes }}</div>
+                                        <div class="text-[10px] font-semibold text-slate-400 pt-0.5">Oleh: {{ $act->sales ? $act->sales->name : 'Sales' }}</div>
                                     </div>
                                 @empty
                                     <div class="py-8 text-center text-slate-400 text-xs">
