@@ -238,6 +238,7 @@
                                 </div>
                                 <div class="text-[10.5px] text-slate-400">Perumusan ruang lingkup teknis dilakukan oleh tim Pre-Sales Engineer.</div>
                             </div>
+                        @endif
                     @endif
                 </div>
 
