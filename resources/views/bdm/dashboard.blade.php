@@ -416,8 +416,8 @@
                 <div class="ipnet-card p-5 sm:p-6 space-y-4">
                     <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                         <div>
-                            <h3 class="text-sm font-bold text-gray-800 tracking-tight">Distribusi Tahap Pipeline</h3>
-                            <p class="text-xs text-gray-400">Penyebaran proyek per tahapan pipeline</p>
+                            <h3 class="text-sm font-bold text-gray-800 tracking-tight">Status Peluang &amp; Proyek</h3>
+                            <p class="text-xs text-gray-400">Penyebaran proyek per tahapan kanban</p>
                         </div>
                     </div>
                     <div class="h-64 w-full flex items-center justify-center">
@@ -570,18 +570,16 @@
             }
         });
 
-        // 2. Chart Distribusi Tahap Pipeline (IP-NET Theme)
-        const stageData = {!! json_encode($stageDataInMillions ?? []) !!};
-        const stageCounts = {!! json_encode($stageCounts ?? []) !!};
-        const stageLabels = {!! json_encode($stageLabels ?? ['Draft & Inisiasi', 'Solusi & Proposal', 'Negosiasi & Review', 'Closing / Won']) !!};
-        const stageColors = {!! json_encode($stageColors ?? ['#64748B', '#8F0A0D', '#F59E0B', '#10B981']) !!};
+        // 2. Chart Distribusi Status Proyek Pipeline (Sesuai Kanban Sales, Project Count, Exclude Draft)
+        const stageCounts = {!! json_encode($stageCounts ?? [0, 0, 0, 0]) !!};
+        const stageLabels = {!! json_encode($stageLabels ?? ['Opportunity', 'In Progress', 'Pending', 'Completed']) !!};
+        const stageColors = {!! json_encode($stageColors ?? ['#3B82F6', '#F59E0B', '#8B5CF6', '#10B981']) !!};
         const ctxStage = document.getElementById('stageDoughnutChart');
 
         if (ctxStage) {
-            const totalVal = stageData.reduce((a, b) => a + b, 0);
             const totalCnt = stageCounts.reduce((a, b) => a + b, 0);
-            const chartData = totalVal > 0 ? stageData : (totalCnt > 0 ? stageCounts : [1, 1, 1, 1]);
-            const isPlaceholder = totalVal === 0 && totalCnt === 0;
+            const chartData = totalCnt > 0 ? stageCounts : [1, 1, 1, 1];
+            const isPlaceholder = totalCnt === 0;
 
             new Chart(ctxStage.getContext('2d'), {
                 type: 'doughnut',
@@ -589,7 +587,7 @@
                     labels: stageLabels,
                     datasets: [{
                         data: chartData,
-                        backgroundColor: isPlaceholder ? ['#E2E8F0', '#CBD5E1', '#94A3B8', '#CBD5E1'] : stageColors,
+                        backgroundColor: isPlaceholder ? ['#E2E8F0', '#CBD5E1', '#94A3B8', '#E2E8F0'] : stageColors,
                         borderWidth: 2,
                         borderColor: '#FFFFFF',
                         hoverOffset: 4
@@ -612,9 +610,9 @@
                         tooltip: {
                             callbacks: {
                                 label: function(ctx) {
-                                    if (isPlaceholder) return ' Belum ada data aktif';
-                                    const val = stageData[ctx.dataIndex] || 0;
-                                    return ' ' + ctx.label + ': Rp ' + val.toLocaleString('id-ID') + ' Jt';
+                                    if (isPlaceholder) return ' Belum ada data proyek aktif';
+                                    const count = stageCounts[ctx.dataIndex] || 0;
+                                    return ' ' + ctx.label + ': ' + count + ' Proyek';
                                 }
                             }
                         }

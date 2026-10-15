@@ -1299,60 +1299,51 @@ class DashboardController extends Controller
             return round($val / 1000000, 2);
         }, array_values($monthlyValues));
 
-        // Distribusi Tahap Pipeline Prospek (Data Riil CRM)
+        // Distribusi Status Peluang & Proyek (Sesuai Kanban Sales, Tanpa Draft)
         $pipelineStages = [
-            'Draft & Inisiasi' => [
+            'Opportunity' => [
                 'count' => 0,
-                'value' => 0,
-                'color' => '#64748B', // Neutral Slate
-                'badge' => 'bg-slate-50 text-slate-700 border-slate-200'
+                'color' => '#3B82F6', // Blue (Kanban Opportunity)
             ],
-            'Solusi & Proposal' => [
+            'In Progress' => [
                 'count' => 0,
-                'value' => 0,
-                'color' => '#8F0A0D', // IP-NET Signature Red
-                'badge' => 'bg-red-50 text-[#8F0A0D] border-red-200'
+                'color' => '#F59E0B', // Amber (Kanban In Progress)
             ],
-            'Negosiasi & Review' => [
+            'Pending' => [
                 'count' => 0,
-                'value' => 0,
-                'color' => '#F59E0B', // Amber
-                'badge' => 'bg-amber-50 text-amber-700 border-amber-200'
+                'color' => '#8B5CF6', // Purple (Kanban Pending)
             ],
-            'Closing / Won' => [
+            'Completed' => [
                 'count' => 0,
-                'value' => 0,
-                'color' => '#10B981', // Emerald
-                'badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                'color' => '#10B981', // Emerald (Kanban Completed)
             ],
         ];
 
         foreach ($projects as $p) {
             $st = strtolower($p->status ?? '');
+            $stage = strtolower($p->stage ?? '');
             $salesStage = strtolower($p->sales_stage ?? '');
-            $val = (float) ($p->contract_value ?? 0);
+
+            // Draft dikecualikan (ranah internal sales & approval head/direktur)
+            if ($st === 'draft' || $st === 'planning' || $st === 'qualification' || $salesStage === 'qualification') {
+                continue;
+            }
 
             if (in_array($st, ['completed', 'finished', 'delivered', 'done', 'closed won']) || $salesStage === 'closed won') {
-                $pipelineStages['Closing / Won']['count']++;
-                $pipelineStages['Closing / Won']['value'] += $val;
-            } elseif (in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing']) || in_array($salesStage, ['negotiation', 'approval', 'clarification'])) {
-                $pipelineStages['Negosiasi & Review']['count']++;
-                $pipelineStages['Negosiasi & Review']['value'] += $val;
-            } elseif ($st === 'opportunity' || $st === 'prospect' || in_array($salesStage, ['proposal request', 'quotation', 'qualified opportunity']) || !empty($p->proposal_file) || !empty($p->presales_id)) {
-                $pipelineStages['Solusi & Proposal']['count']++;
-                $pipelineStages['Solusi & Proposal']['value'] += $val;
+                $pipelineStages['Completed']['count']++;
+            } elseif (in_array($st, ['pending', 'on hold', 'review', 'clarification'])) {
+                $pipelineStages['Pending']['count']++;
+            } elseif (in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing'])) {
+                $pipelineStages['In Progress']['count']++;
             } else {
-                $pipelineStages['Draft & Inisiasi']['count']++;
-                $pipelineStages['Draft & Inisiasi']['value'] += $val;
+                $pipelineStages['Opportunity']['count']++;
             }
         }
 
-        $stageDataInMillions = array_map(function($item) {
-            return round($item['value'] / 1000000, 2);
-        }, array_values($pipelineStages));
         $stageCounts = array_column($pipelineStages, 'count');
         $stageLabels = array_keys($pipelineStages);
         $stageColors = array_column($pipelineStages, 'color');
+        $stageDataInMillions = [];
 
         // Lists
         $recentProjects        = $projects->sortByDesc('updated_at')->take(6)->values();
