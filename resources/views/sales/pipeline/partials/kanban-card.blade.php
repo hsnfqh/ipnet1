@@ -219,9 +219,12 @@
                 || ($project->sales_id && $project->sales_id === $authCardUser->id)
                 || !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Super Admin', 'Admin'], $authCardUserRoles))
             );
+            $isCompletedColumn = (($column ?? '') === 'Completed')
+                || in_array(strtolower($project->status ?? ''), ['completed', 'finished', 'delivered', 'done', 'closed won'])
+                || strtolower($project->sales_stage ?? '') === 'closed won';
         @endphp
 
-        @if($canMarkComplete && (($column ?? '') === 'In Progress' || $project->status === 'In Progress'))
+        @if($canMarkComplete && !$isCompletedColumn && (($column ?? '') === 'In Progress' || $project->status === 'In Progress'))
             <div class="pt-2 border-t border-[#F1F5F9]" onclick="event.stopPropagation();">
                 <button type="button" @click.stop="openCompleteProjectModal({{ $project->id }}, '{{ addslashes($project->name) }}')"
                         class="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-gradient-to-r from-[#8F0A0D] to-[#B81525] hover:from-[#7A080A] hover:to-[#A0121F] text-white text-[11px] font-bold transition shadow-2xs cursor-pointer">
