@@ -124,7 +124,156 @@
     {{-- Standardized Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs items-stretch">
         
-        {{-- ══ CARD 1: REKOMENDASI SKEMA & RUANG LINGKUP (PRE-SALES) ══ --}}
+        {{-- ══ CARD 1: TIM ENGINEER PELAKSANA (DIVISI PELAKSANA TEKNIS) ══ --}}
+        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
+            <div class="space-y-3">
+                {{-- Header --}}
+                <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider whitespace-nowrap">
+                        DIVISI PELAKSANA TEKNIS
+                    </span>
+                    @if(!empty($project->division_id) && !empty($project->division))
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
+                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>{{ $project->division->name }}</span>
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-slate-100 text-slate-500 border-slate-200">
+                            Belum Ditugaskan
+                        </span>
+                    @endif
+                </div>
+
+                {{-- Person / Lead --}}
+                <div class="flex items-center gap-2.5">
+                    @if(!empty($project->division_id) && !empty($project->division))
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                            {{ strtoupper(substr($project->division->name, 0, 2)) }}
+                        </div>
+                    @else
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white flex items-center justify-center shrink-0 shadow-2xs" title="Belum Ditugaskan">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        </div>
+                    @endif
+                    <div class="min-w-0 flex-1">
+                        <h4 class="font-bold text-xs {{ (!empty($project->division_id) && !empty($project->division)) ? 'text-slate-900' : 'text-slate-500 italic' }} truncate">
+                            @if(!empty($project->division_id) && !empty($project->division))
+                                @if(str_contains(strtolower($project->division->name), 'net') && !str_contains(strtolower($project->division->name), 'lintas') && !str_contains(strtolower($project->division->name), 'security'))
+                                    Nugraha Pratama (Lead Network)
+                                @elseif(str_contains(strtolower($project->division->name), 'sec') && !str_contains(strtolower($project->division->name), 'lintas') && !str_contains(strtolower($project->division->name), 'network'))
+                                    Ignatius Rizky (Lead Security)
+                                @else
+                                    Lead Network &amp; Lead Security
+                                @endif
+                            @else
+                                Belum Didelegasikan ke Divisi
+                            @endif
+                        </h4>
+                        <p class="text-[10.5px] text-slate-500 truncate">
+                            Koordinator &amp; Tim Operasional Lapangan
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Status / Information Box --}}
+                <div>
+                    @if(!empty($project->division_id) && !empty($project->division))
+                        <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1.5">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-bold text-slate-900 text-xs truncate">
+                                        {{ $project->division->name }}
+                                    </div>
+                                    <div class="text-[10.5px] text-slate-500 truncate">
+                                        @if($uniqueEngineers->count() > 0)
+                                            Teknisi Lapangan: {{ $uniqueEngineers->pluck('name')->join(', ') }}
+                                        @else
+                                            Divisi Pelaksana Teknis Proyek
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            @if(!empty($project->special_notes))
+                                <div class="text-[10px] text-slate-600 pt-1.5 border-t border-slate-200/80" title="{{ $project->special_notes }}">
+                                    <strong class="text-slate-700">Catatan:</strong> {{ $project->special_notes }}
+                                </div>
+                            @endif
+                        </div>
+                    @elseif(!$isBdApproved)
+                        <div class="p-3 rounded-lg bg-slate-50 border border-dashed border-slate-200 text-slate-500 space-y-1">
+                            <div class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <span>Menunggu Solusi Teknis</span>
+                            </div>
+                            <div class="text-[10.5px] text-slate-400">Menunggu seluruh dokumen &amp; solusi teknis diverifikasi oleh PIC BD terlebih dahulu.</div>
+                        </div>
+                    @else
+                        @if(!empty($canAssignDivision))
+                            <div @click.stop="openAssignDivisionModal()" 
+                                 onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
+                                 class="p-3 rounded-lg bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200 text-amber-900 space-y-1.5 cursor-pointer transition shadow-2xs group">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+                                        <svg class="w-3.5 h-3.5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="font-bold text-amber-900 text-xs flex items-center justify-between">
+                                            <span>Pilih Divisi Pelaksana</span>
+                                            <svg class="w-3.5 h-3.5 text-amber-700 opacity-60 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        </div>
+                                        <div class="text-[10.5px] text-amber-800 truncate">Delegasikan wewenang teknis ke Divisi Network, Security, atau Keduanya</div>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 space-y-1">
+                                <div class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Menunggu Penetapan Divisi</span>
+                                </div>
+                                <div class="text-[10.5px] text-slate-400">Penetapan divisi teknis pelaksana dilakukan oleh tim Pre-Sales.</div>
+                            </div>
+                        @endif
+                    @endif
+                </div>
+
+            </div>
+
+            {{-- Actions Footer: Wewenang Pre-Sales Specialist & Admin (PM / PMO dikunci) --}}
+            @if(!empty($canAssignDivision))
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    @if(!$isBdApproved)
+                        <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu verifikasi solusi teknis disahkan oleh PIC BD">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Perbarui Divisi Pelaksana' : 'Tetapkan Divisi Pelaksana' }}</span>
+                        </button>
+                    @else
+                        <button type="button" 
+                                @click.stop="openAssignDivisionModal()" 
+                                onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
+                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Perbarui Divisi Pelaksana' : 'Tetapkan Divisi Pelaksana' }}</span>
+                        </button>
+                    @endif
+                </div>
+            @else
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    <span class="inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
+                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Wewenang Pre-Sales Specialist
+                    </span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                        Pre-Sales
+                    </span>
+                </div>
+            @endif
+        </div>
+
+        {{-- ══ CARD 2: REKOMENDASI SKEMA & RUANG LINGKUP (PRE-SALES) ══ --}}
         <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
             <div class="space-y-3">
                 
@@ -266,150 +415,6 @@
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     <span class="inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Wewenang Pre-Sales Specialist
-                    </span>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
-                        Pre-Sales
-                    </span>
-                </div>
-            @endif
-        </div>
-
-        {{-- ══ CARD 2: TIM ENGINEER PELAKSANA (FASE 1 / PMO) ══ --}}
-        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition">
-            <div class="space-y-3">
-                {{-- Header --}}
-                <div class="flex items-center justify-between gap-1 pb-2 border-b border-slate-100">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider whitespace-nowrap">
-                        DIVISI PELAKSANA TEKNIS
-                    </span>
-                    @if(!empty($project->division_id) && !empty($project->division))
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1">
-                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>{{ $project->division->name }}</span>
-                        </span>
-                    @else
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap bg-slate-100 text-slate-500 border-slate-200">
-                            Belum Ditugaskan
-                        </span>
-                    @endif
-                </div>
-
-                {{-- Person / Lead --}}
-                <div class="flex items-center gap-2.5">
-                    @if(!empty($project->division_id) && !empty($project->division))
-                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                            {{ strtoupper(substr($project->division->name, 0, 2)) }}
-                        </div>
-                    @else
-                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] text-white flex items-center justify-center shrink-0 shadow-2xs" title="Belum Ditugaskan">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        </div>
-                    @endif
-                    <div class="min-w-0 flex-1">
-                        <h4 class="font-bold text-xs {{ (!empty($project->division_id) && !empty($project->division)) ? 'text-slate-900' : 'text-slate-500 italic' }} truncate">
-                            @if(!empty($project->division_id) && !empty($project->division))
-                                @if(str_contains(strtolower($project->division->name), 'net') && !str_contains(strtolower($project->division->name), 'lintas') && !str_contains(strtolower($project->division->name), 'security'))
-                                    Nugraha Pratama (Lead Network)
-                                @elseif(str_contains(strtolower($project->division->name), 'sec') && !str_contains(strtolower($project->division->name), 'lintas') && !str_contains(strtolower($project->division->name), 'network'))
-                                    Ignatius Rizky (Lead Security)
-                                @else
-                                    Lead Network &amp; Lead Security
-                                @endif
-                            @else
-                                Belum Didelegasikan ke Divisi
-                            @endif
-                        </h4>
-                        <p class="text-[10.5px] text-slate-500 truncate">
-                            Koordinator &amp; Tim Operasional Lapangan
-                        </p>
-                    </div>
-                </div>
-
-                {{-- Status / Information Box --}}
-                <div>
-                    @if(!empty($project->division_id) && !empty($project->division))
-                        <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1.5">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="font-bold text-slate-900 text-xs truncate">
-                                        {{ $project->division->name }}
-                                    </div>
-                                    <div class="text-[10.5px] text-slate-500 truncate">
-                                        @if($uniqueEngineers->count() > 0)
-                                            Teknisi Lapangan: {{ $uniqueEngineers->pluck('name')->join(', ') }}
-                                        @else
-                                            Divisi Pelaksana Teknis Proyek
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @elseif(!$isBdApproved)
-                        <div class="p-3 rounded-lg bg-slate-50 border border-dashed border-slate-200 text-slate-500 space-y-1">
-                            <div class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                <span>Menunggu Solusi Teknis</span>
-                            </div>
-                            <div class="text-[10.5px] text-slate-400">Menunggu seluruh dokumen &amp; solusi teknis diverifikasi oleh PIC BD terlebih dahulu.</div>
-                        </div>
-                    @else
-                        @if(!empty($canAssignDivision))
-                            <div @click.stop="openAssignDivisionModal()" 
-                                 onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
-                                 class="p-3 rounded-lg bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200 text-amber-900 space-y-1.5 cursor-pointer transition shadow-2xs group">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                                        <svg class="w-3.5 h-3.5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="font-bold text-amber-900 text-xs flex items-center justify-between">
-                                            <span>Pilih Divisi Pelaksana</span>
-                                            <svg class="w-3.5 h-3.5 text-amber-700 opacity-60 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                        </div>
-                                        <div class="text-[10.5px] text-amber-800 truncate">Delegasikan wewenang teknis ke Divisi Network, Security, atau Keduanya</div>
-                                    </div>
-                                </div>
-                            </div>
-                        @else
-                            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 space-y-1">
-                                <div class="font-bold text-slate-700 text-xs flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span>Menunggu Penetapan Divisi</span>
-                                </div>
-                                <div class="text-[10.5px] text-slate-400">Penetapan divisi teknis pelaksana dilakukan oleh tim Pre-Sales.</div>
-                            </div>
-                        @endif
-                    @endif
-                </div>
-
-            </div>
-
-            {{-- Actions Footer: Wewenang Pre-Sales Specialist & Admin (PM / PMO dikunci) --}}
-            @if(!empty($canAssignDivision))
-                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                    @if(!$isBdApproved)
-                        <button type="button" disabled class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed opacity-80 shadow-none" title="Terkunci: Menunggu verifikasi solusi teknis disahkan oleh PIC BD">
-                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                            <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Perbarui Divisi Pelaksana' : 'Tetapkan Divisi Pelaksana' }}</span>
-                        </button>
-                    @else
-                        <button type="button" 
-                                @click.stop="openAssignDivisionModal()" 
-                                onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
-                                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Perbarui Divisi Pelaksana' : 'Tetapkan Divisi Pelaksana' }}</span>
-                        </button>
-                    @endif
-                </div>
-            @else
-                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
-                    <span class="inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
-                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         Wewenang Pre-Sales Specialist
                     </span>
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
