@@ -27,8 +27,8 @@
 <div class="ipnet-card p-6 space-y-5 transition-all">
     
     {{-- Header Bersih & Ringkas (Konsisten dengan Kolaborasi Tim Solusi Teknis) --}}
-    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 flex-wrap">
-        <div class="min-w-0">
+    <div class="flex items-center justify-between gap-4 border-b border-slate-100 pb-3">
+        <div class="min-w-0 flex-1">
             <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-0.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> SERAH TERIMA &amp; OPERASIONAL
             </p>
