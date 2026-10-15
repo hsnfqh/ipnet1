@@ -370,7 +370,12 @@ class ProjectController extends Controller
             $technical = is_array($project->technical_solution) ? $project->technical_solution : (json_decode($project->technical_solution ?? '', true) ?: []);
             $presalesAssignedId = $technical['presales']['assigned_user_id'] ?? ($project->presales_id ?? null);
 
-            $isAdmin = !empty(array_intersect(['admin', 'super admin', 'admin support', 'director', 'direktur', 'hd / direktur', 'division head', 'head divisi', 'group leader commercial & solution'], $userRolesLower));
+            $isAdmin = !empty(array_intersect([
+                'admin', 'super admin', 'admin support',
+                'director', 'direktur', 'hd / direktur',
+                'division head', 'head divisi', 'group leader',
+                'group leader commercial & solution', 'group leader delivery & operation'
+            ], $userRolesLower));
             $isPresales = (
                 (!empty($presalesAssignedId) && $authUser && $authUser->id == $presalesAssignedId)
                 || !empty(array_intersect(['presales', 'pre-sales', 'solution architect', 'solutions architect', 'sa'], $userRolesLower))
@@ -382,9 +387,11 @@ class ProjectController extends Controller
                 || str_contains($posLower, 'sales')
                 || ($project->sales_name && $authUser && strtolower($authUser->name) === strtolower($project->sales_name))
                 || ($project->created_by && $authUser && $authUser->id == $project->created_by);
+            $isPmo = !empty(array_intersect(['pmo', 'project manager', 'lead maintenance', 'managed service'], $userRolesLower))
+                || ($project->pm_id && $authUser && $authUser->id == $project->pm_id);
 
-            $canAssignScope = $authUser && ($isAdmin || $isPresales || $isSales);
-            abort_unless($canAssignScope, 403, 'Penetapan alokasi ruang lingkup proyek merupakan wewenang tim Sales, Pre-Sales, atau Admin.');
+            $canAssignScope = $authUser && ($isAdmin || $isPresales || $isSales || $isPmo);
+            abort_unless($canAssignScope, 403, 'Penetapan alokasi ruang lingkup proyek merupakan wewenang tim Sales, Pre-Sales, PMO, atau Admin.');
 
             $target = $validated['handover_target'] ?? ($project->handover_target ?: 'pmo');
             $updateFields = [

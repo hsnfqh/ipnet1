@@ -287,8 +287,11 @@
         || str_contains(strtolower($authUser->position ?? ''), 'sales')
         || (!empty($project->sales_name) && strtolower($authUser->name) === strtolower($project->sales_name))
         || (!empty($project->created_by) && $authUser->id == $project->created_by)
+    $isPmoUser = $authUser && (
+        !empty(array_intersect(['PMO', 'Project Manager', 'Lead Maintenance', 'Managed Service'], $userRoles))
+        || (!empty($project->pm_id) && $authUser->id == $project->pm_id)
     );
-    $canAssignScope = $authUser && ($isAdmin || $isPresalesUser || $isSalesUser);
+    $canAssignScope = $authUser && ($isAdmin || $isPresalesUser || $isSalesUser || $isPmoUser);
 
     // Hak otorisasi Berkas Sales: Hanya Head Division, Sales itu sendiri (PIC Proyek), dan Direktur.
     // Pre-Sales, Solution Architect (SA), dan BD mutlak dilarang mengakses/melihat berkas ini.
