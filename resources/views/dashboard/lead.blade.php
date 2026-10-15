@@ -434,11 +434,11 @@
                     </div>
                 </div>
 
-                {{-- PRIORITY DEALS & RECENT SALES CRM ACTIVITIES --}}
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 anim-fade-up anim-delay-2">
+                {{-- PORTOFOLIO SALES: PROYEK & PELUANG KOMERSIAL TERKINI --}}
+                <div class="anim-fade-up anim-delay-2">
                     
                     {{-- Proyek Komersial Terkini --}}
-                    <div class="lg:col-span-2 ipnet-card p-5 sm:p-6 flex flex-col justify-between">
+                    <div class="ipnet-card p-5 sm:p-6 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0]">
                                 <div>
@@ -499,66 +499,6 @@
                                         @endforelse
                                     </tbody>
                                 </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Log Aktivitas Sales CRM Terbaru --}}
-                    <div class="ipnet-card p-5 sm:p-6 flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0]">
-                                <div>
-                                    <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                                        <span class="ipnet-badge-dot"></span> SALES ACTIVITY
-                                    </p>
-                                    <h3 class="text-[16px] font-bold text-[#292929]">Aktivitas CRM Terbaru</h3>
-                                </div>
-                                <span class="text-[11px] text-slate-400 font-semibold">{{ count($recentActivities ?? []) }} log</span>
-                            </div>
-
-                            <div class="space-y-3">
-                                @forelse(($recentActivities ?? []) as $act)
-                                    @php
-                                        $rawNotes = $act->notes ?: '';
-                                        $cleanNotes = $rawNotes;
-
-                                        // Parsing jika catatan berupa JSON (kronologi_batch atau format terstruktur)
-                                        if (is_string($rawNotes) && str_starts_with(trim($rawNotes), '{')) {
-                                            $decoded = json_decode($rawNotes, true);
-                                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                                                if (!empty($decoded['items']) && is_array($decoded['items'])) {
-                                                    $itemSubs = array_column($decoded['items'], 'subject');
-                                                    $cleanNotes = implode(', ', array_filter($itemSubs));
-                                                }
-                                                if (empty($cleanNotes) && !empty($decoded['title'])) {
-                                                    $cleanNotes = $decoded['title'];
-                                                }
-                                            }
-                                        }
-
-                                        if (empty($cleanNotes) || $cleanNotes === '-') {
-                                            $cleanNotes = 'Catatan aktivitas komunikasi & update komersial.';
-                                        }
-
-                                        $subjectText = $act->subject;
-                                        if (empty($subjectText) || in_array(strtolower(trim($subjectText)), ['aaa', 'test', '-'])) {
-                                            $subjectText = $act->project ? $act->project->name : 'Aktivitas Sales & Klien';
-                                        }
-                                    @endphp
-                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1 hover:border-slate-300 transition">
-                                        <div class="flex items-center justify-between gap-1 text-[11px]">
-                                            <span class="font-bold text-[#8F0A0D]">{{ $act->activity_type ?? 'Aktivitas Sales' }}</span>
-                                            <span class="text-slate-400">{{ $act->activity_date ? \Carbon\Carbon::parse($act->activity_date)->format('d M Y') : '-' }}</span>
-                                        </div>
-                                        <div class="font-bold text-slate-800 text-[12px] line-clamp-1" title="{{ $subjectText }}">{{ $subjectText }}</div>
-                                        <div class="text-[11px] text-slate-600 line-clamp-2 leading-snug">{{ $cleanNotes }}</div>
-                                        <div class="text-[10px] font-semibold text-slate-400 pt-0.5">Oleh: {{ $act->sales ? $act->sales->name : 'Sales' }}</div>
-                                    </div>
-                                @empty
-                                    <div class="py-8 text-center text-slate-400 text-xs">
-                                        Belum ada catatan aktivitas sales CRM bulan ini.
-                                    </div>
-                                @endforelse
                             </div>
                         </div>
                     </div>
