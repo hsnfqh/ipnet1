@@ -754,11 +754,13 @@ class SalesCrmController extends Controller
             'subject'          => $finalSubject,
             'activity_date'    => $firstDateTime,
             'notes'            => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            'next_action'      => $request->input('next_action'),
+            'next_action_date' => $request->input('next_action_date'),
             'status'           => 'Completed',
         ]);
 
         return redirect()->back()
-            ->with('success', "Berhasil mencatat 1 kronologi aktivitas ({$totalItems} rangkaian agenda) untuk proyek ini.");
+            ->with('success', "Dokumen resmi aktivitas sales ({$totalItems} rangkaian agenda) berhasil disimpan.");
     }
 
     /**

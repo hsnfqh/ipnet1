@@ -126,7 +126,7 @@
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
-                    <span>Input Kronologi</span>
+                    <span>Input Dokumen Resmi Sales</span>
                 </button>
                 @endif
             </div>
@@ -383,172 +383,261 @@
         </div>
     </template>
 
-    {{-- MODAL INPUT KRONOLOGI MASSAL (SPREADSHEET MODE) --}}
+    {{-- MODAL INPUT FORM LAPORAN RESMI AKTIVITAS SALES (LAYOUT RESMI ALA ENGINEER) --}}
     <template x-teleport="body">
         <div x-show="isBulkModalOpen" 
              x-cloak 
-             class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
+             class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-5"
              @click.self="isBulkModalOpen = false">
-            <div class="bg-white rounded-2xl max-w-7xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden anim-fade-up">
+            <div class="bg-white rounded-2xl max-w-7xl w-full shadow-2xl border border-[#CBD5E1] max-h-[94vh] flex flex-col overflow-hidden anim-fade-up">
                 
-                {{-- Fixed Standard White Header --}}
-                <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
-                    <div>
-                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">AKTIVITAS BARU</p>
-                        <h3 class="text-[16px] font-bold text-[#1E293B]">Input Kronologis Agenda &amp; Catatan Aktivitas</h3>
+                {{-- Kop Surat Resmi Header (Sesuai Standar Form Engineer) --}}
+                <div class="border-b-2 border-[#8F0A0D] p-5 sm:p-6 pb-4 shrink-0 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
+                        <div>
+                            <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
+                                FORM LAPORAN AKTIVITAS SALES &amp; CRM
+                            </h2>
+                            <p class="text-[11px] text-[#475569] mt-0.5">
+                                Dokumen resmi ini digunakan sebagai laporan aktivitas sales, notulensi koordinasi dengan klien, dan bukti pelaksanaan agenda bisnis lapangan.
+                            </p>
+                        </div>
                     </div>
-                    <button type="button" @click="isBulkModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
+
+                    <div class="flex items-center gap-2.5 self-end sm:self-center shrink-0">
+                        <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold uppercase tracking-wider shadow-2xs">
+                            Dokumen Resmi Sales
+                        </span>
+                        <button type="button" @click="isBulkModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer" title="Tutup">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
 
-                {{-- Form with Scrollable Table Body & Fixed Footer --}}
-                <form action="{{ route('sales.activities.bulk') }}" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                {{-- Form with Scrollable Document Body & Fixed Footer --}}
+                <form action="{{ route('sales.activities.bulk') }}" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden bg-[#F8FAFC]">
                     @csrf
                     
-                    {{-- Global Selection Bar (Single Clean Selector + Optional Custom Title) --}}
-                    <div class="p-4 sm:p-5 bg-[#F8FAFC] border-b border-[#E2E8F0] shrink-0">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                            <div class="md:col-span-2">
-                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                                    Pilih Prospek / Proyek Tujuan <span class="text-[#8F0A0D]">*</span>
-                                </label>
-                                <select name="project_id" x-model="bulkProjectId" required
-                                        class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer shadow-xs">
-                                    <option value="">-- Pilih Prospek / Proyek --</option>
-                                    @foreach($activeProjects as $p)
-                                        <option value="{{ $p->id }}" {{ ($filterProject == $p->id || (count($activeProjects) == 1 && $activeProjects[0]->id == $p->id)) ? 'selected' : '' }}>
-                                            {{ $p->name }} ({{ $p->client }}) - PIC: {{ $p->sales_name ?: 'Sales' }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                                    Judul / Topik Kronologi (Opsional)
-                                </label>
-                                <input type="text" name="activity_title" placeholder="Contoh: Troubleshooting Jaringan..." 
-                                       class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-xs">
-                            </div>
-                        </div>
-                    </div>
+                    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
 
-                    {{-- Table Spreadsheet Body --}}
-                    <div class="flex-1 overflow-x-auto overflow-y-auto p-4 sm:p-5 bg-[#F8FAFC]/50">
-                        <table class="w-full border-collapse bg-white rounded-xl shadow-xs border border-[#E2E8F0] text-left text-xs min-w-[1050px]">
-                            <thead class="bg-[#F8FAFC] text-[#475569] font-bold uppercase text-[10.5px] tracking-wider border-b border-[#E2E8F0]">
-                                <tr>
-                                    <th class="py-3 px-3 w-12 text-center">No</th>
-                                    <th class="py-3 px-3 w-80">Kronologis Agenda / Aktivitas <span class="text-[#8F0A0D]">*</span></th>
-                                    <th class="py-3 px-3 w-36">Tanggal</th>
-                                    <th class="py-3 px-3 w-32">Waktu (Jam)</th>
-                                    <th class="py-3 px-3 w-36">PIC Klien</th>
-                                    <th class="py-3 px-3 w-36">PIC IPNET</th>
-                                    <th class="py-3 px-3 min-w-[200px]">Catatan Aksi / Durasi</th>
-                                    <th class="py-3 px-2 w-12 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-[#E2E8F0]">
-                                <template x-for="(row, index) in bulkRows" :key="index">
-                                    <tr class="hover:bg-[#F8FAFC] transition-colors">
-                                        {{-- No --}}
-                                        <td class="py-2.5 px-3 text-center font-bold text-[#94A3B8] text-xs" x-text="index + 1"></td>
-                                        
-                                        {{-- Agenda / Subject --}}
-                                        <td class="py-2 px-2.5">
-                                            <input type="hidden" :name="'activities[' + index + '][activity_type]'" value="Troubleshooting">
-                                            <textarea :name="'activities[' + index + '][subject]'" 
-                                                      x-model="row.subject" 
-                                                      rows="2" 
-                                                      class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition resize-none"></textarea>
-                                        </td>
-
-                                        {{-- Tanggal --}}
-                                        <td class="py-2 px-2.5">
-                                            <input type="date" 
-                                                   :name="'activities[' + index + '][activity_date]'" 
-                                                   x-model="row.activity_date" 
-                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition cursor-pointer">
-                                        </td>
-
-                                        {{-- Waktu (Time Picker with AM/PM & 24h native support) --}}
-                                        <td class="py-2 px-2.5">
-                                            <input type="time" 
-                                                   :name="'activities[' + index + '][time_str]'" 
-                                                   x-model="row.time_str" 
-                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition cursor-pointer">
-                                        </td>
-
-                                        {{-- PIC Klien --}}
-                                        <td class="py-2 px-2.5">
-                                            <input type="text" 
-                                                   :name="'activities[' + index + '][client_pic]'" 
-                                                   x-model="row.client_pic" 
-                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition">
-                                        </td>
-
-                                        {{-- PIC IPNET --}}
-                                        <td class="py-2 px-2.5">
-                                            <input type="text" 
-                                                   :name="'activities[' + index + '][ipnet_pic]'" 
-                                                   x-model="row.ipnet_pic" 
-                                                   class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition">
-                                        </td>
-
-                                        {{-- Catatan Aksi --}}
-                                        <td class="py-2 px-2.5">
-                                            <textarea :name="'activities[' + index + '][notes]'" 
-                                                      x-model="row.notes" 
-                                                      rows="2" 
-                                                      class="w-full p-2 bg-[#F8FAFC] focus:bg-white border border-[#CBD5E1] rounded-lg text-xs text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D] transition resize-none"></textarea>
-                                        </td>
-
-                                        {{-- Hapus Baris --}}
-                                        <td class="py-2 px-2 text-center">
-                                            <button type="button" 
-                                                    @click="removeBulkRow(index)" 
-                                                    title="Hapus baris ini"
-                                                    class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition cursor-pointer">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-
-                        {{-- Quick Add Rows Controls --}}
-                        <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-                            <div class="flex items-center gap-2">
-                                <button type="button" 
-                                        @click="addBulkRow()" 
-                                        class="px-4 py-2 bg-white hover:bg-red-50 text-[#8F0A0D] border border-red-200 hover:border-red-300 font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                    <span>+ Tambah 1 Baris</span>
-                                </button>
-                                <button type="button" 
-                                        @click="addBulkMultiple(5)" 
-                                        class="px-3.5 py-2 bg-white hover:bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1] font-semibold rounded-xl text-xs transition cursor-pointer">
-                                    <span>+ Tambah 5 Baris Sekaligus</span>
-                                </button>
-                            </div>
-                            <div class="text-xs text-[#64748B] font-medium">
-                                Total Baris Terisi: <strong class="text-[#1E293B] font-bold" x-text="filledRowsCount"></strong> dari <strong class="text-[#1E293B]" x-text="bulkRows.length"></strong> baris
+                        {{-- Section A: Identitas Prospek & Pertemuan --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider flex items-center gap-1.5">
+                                <span>A. IDENTITAS PROSPEK &amp; PERTEMUAN</span>
+                            </h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs bg-white shadow-2xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <tbody>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="w-1/5 py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
+                                                Prospek / Proyek Tujuan <span class="text-[#8F0A0D]">*</span>
+                                            </td>
+                                            <td class="w-3/10 py-1 px-2 border-r border-[#1E293B]">
+                                                <select name="project_id" x-model="bulkProjectId" required 
+                                                        class="w-full p-1.5 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#8F0A0D] cursor-pointer">
+                                                    <option value="">-- Pilih Prospek / Proyek --</option>
+                                                    @foreach($activeProjects as $p)
+                                                        <option value="{{ $p->id }}" {{ ($filterProject == $p->id || (count($activeProjects) == 1 && $activeProjects[0]->id == $p->id)) ? 'selected' : '' }}>
+                                                            {{ $p->name }} ({{ $p->client }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td class="w-1/5 py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
+                                                No. Dokumen / Laporan
+                                            </td>
+                                            <td class="w-3/10 py-1 px-2 font-mono font-bold text-xs text-[#8F0A0D]">
+                                                SLS-REP/{{ date('Y') }}/DRAFT
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
+                                                Judul / Topik Pertemuan <span class="text-[#8F0A0D]">*</span>
+                                            </td>
+                                            <td class="py-1 px-2 border-r border-[#1E293B]">
+                                                <input type="text" name="activity_title" placeholder="Contoh: Diskusi Kebutuhan Switch &amp; Firewall Juniper" required 
+                                                       class="w-full p-1.5 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
+                                            </td>
+                                            <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
+                                                Tipe Aktivitas / Agenda
+                                            </td>
+                                            <td class="py-1 px-2">
+                                                <select name="activity_type" class="w-full p-1.5 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-semibold text-xs cursor-pointer">
+                                                    @foreach($activityTypes as $typeKey => $typeLabel)
+                                                        <option value="{{ $typeKey }}" {{ $typeKey === 'Meeting' ? 'selected' : '' }}>{{ $typeLabel }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
+                                                Sales Person (AE)
+                                            </td>
+                                            <td class="py-1 px-2.5 border-r border-[#1E293B] font-semibold text-xs text-[#0F172A]">
+                                                {{ auth()->user()->name }}
+                                            </td>
+                                            <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
+                                                Tanggal Dokumen
+                                            </td>
+                                            <td class="py-1 px-2.5 font-semibold text-xs text-slate-700">
+                                                {{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
+
+                        {{-- Section B: Rincian Kronologis Agenda & Aktivitas --}}
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
+                                    B. RINCIAN KRONOLOGIS AGENDA &amp; AKTIVITAS
+                                </h3>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" @click="addBulkRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>+ Tambah Baris</span>
+                                    </button>
+                                    <button type="button" @click="addBulkMultiple(5)" class="text-[11px] font-bold text-[#475569] hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>+ Tambah 5 Baris</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="border border-[#1E293B] rounded-sm overflow-x-auto text-xs bg-white shadow-2xs">
+                                <table class="w-full border-collapse border border-[#1E293B] min-w-[1050px]">
+                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
+                                        <tr>
+                                            <th class="py-2 px-2 w-10 text-center border-r border-[#1E293B]">No.</th>
+                                            <th class="py-2 px-2 w-72 border-r border-[#1E293B] text-left">Kronologis Agenda / Aktivitas <span class="text-[#8F0A0D]">*</span></th>
+                                            <th class="py-2 px-2 w-32 border-r border-[#1E293B] text-center">Tanggal</th>
+                                            <th class="py-2 px-2 w-28 border-r border-[#1E293B] text-center">Waktu (Jam)</th>
+                                            <th class="py-2 px-2 w-36 border-r border-[#1E293B] text-left">PIC Klien</th>
+                                            <th class="py-2 px-2 w-36 border-r border-[#1E293B] text-left">PIC IPNET</th>
+                                            <th class="py-2 px-2 min-w-[200px] border-r border-[#1E293B] text-left">Catatan Aksi / Detail</th>
+                                            <th class="py-2 px-1 w-12 text-center">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="(row, index) in bulkRows" :key="index">
+                                            <tr class="border-b border-[#1E293B] hover:bg-[#F8FAFC]">
+                                                {{-- No --}}
+                                                <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B] text-[#8F0A0D]" x-text="index + 1"></td>
+                                                
+                                                {{-- Agenda / Subject --}}
+                                                <td class="p-1 border-r border-[#1E293B]">
+                                                    <input type="hidden" :name="'activities[' + index + '][activity_type]'" value="Troubleshooting">
+                                                    <textarea :name="'activities[' + index + '][subject]'" 
+                                                              x-model="row.subject" 
+                                                              rows="2" 
+                                                              placeholder="Contoh: Pembahasan spesifikasi switch dan SLA..."
+                                                              class="w-full p-1 text-xs border-0 bg-transparent font-semibold focus:ring-1 focus:ring-[#8F0A0D] resize-none"></textarea>
+                                                </td>
+
+                                                {{-- Tanggal --}}
+                                                <td class="p-1 border-r border-[#1E293B] text-center">
+                                                    <input type="date" 
+                                                           :name="'activities[' + index + '][activity_date]'" 
+                                                           x-model="row.activity_date" 
+                                                           class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium cursor-pointer focus:ring-1 focus:ring-[#8F0A0D]">
+                                                </td>
+
+                                                {{-- Waktu --}}
+                                                <td class="p-1 border-r border-[#1E293B] text-center">
+                                                    <input type="time" 
+                                                           :name="'activities[' + index + '][time_str]'" 
+                                                           x-model="row.time_str" 
+                                                           class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium cursor-pointer focus:ring-1 focus:ring-[#8F0A0D]">
+                                                </td>
+
+                                                {{-- PIC Klien --}}
+                                                <td class="p-1 border-r border-[#1E293B]">
+                                                    <input type="text" 
+                                                           :name="'activities[' + index + '][client_pic]'" 
+                                                           x-model="row.client_pic" 
+                                                           placeholder="Nama PIC Klien"
+                                                           class="w-full p-1 text-xs border-0 bg-transparent focus:ring-1 focus:ring-[#8F0A0D]">
+                                                </td>
+
+                                                {{-- PIC IPNET --}}
+                                                <td class="p-1 border-r border-[#1E293B]">
+                                                    <input type="text" 
+                                                           :name="'activities[' + index + '][ipnet_pic]'" 
+                                                           x-model="row.ipnet_pic" 
+                                                           placeholder="Nama PIC IPNET"
+                                                           class="w-full p-1 text-xs border-0 bg-transparent focus:ring-1 focus:ring-[#8F0A0D]">
+                                                </td>
+
+                                                {{-- Catatan Aksi --}}
+                                                <td class="p-1 border-r border-[#1E293B]">
+                                                    <textarea :name="'activities[' + index + '][notes]'" 
+                                                              x-model="row.notes" 
+                                                              rows="2" 
+                                                              placeholder="Rangkuman hasil diskusi, durasi, dll..."
+                                                              class="w-full p-1 text-xs border-0 bg-transparent resize-none focus:ring-1 focus:ring-[#8F0A0D]"></textarea>
+                                                </td>
+
+                                                {{-- Hapus Baris --}}
+                                                <td class="p-1 text-center">
+                                                    <button type="button" 
+                                                            @click="removeBulkRow(index)" 
+                                                            title="Hapus baris ini"
+                                                            class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition cursor-pointer">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-[11.5px] font-semibold text-[#334155] pt-0.5 flex items-center justify-between">
+                                <span>Total agenda tercatat: <strong class="text-[#8F0A0D]" x-text="filledRowsCount"></strong> dari <strong x-text="bulkRows.length"></strong> baris</span>
+                            </div>
+                        </div>
+
+                        {{-- Section C: Kesepakatan & Tindak Lanjut Berikutnya (Next Action Plan) --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
+                                C. RENCANA TINDAK LANJUT BERIKUTNYA (NEXT ACTION PLAN)
+                            </h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs bg-white shadow-2xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <tbody>
+                                        <tr>
+                                            <td class="w-1/5 py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
+                                                Komitmen / Aksi Berikutnya
+                                            </td>
+                                            <td class="w-3/5 p-1 border-r border-[#1E293B]">
+                                                <input type="text" name="next_action" placeholder="Contoh: Mengirimkan surat penawaran harga (SPH) revisi dan spesifikasi teknis" 
+                                                       class="w-full p-1.5 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold text-[#0F172A]">
+                                            </td>
+                                            <td class="w-1/10 py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] text-center">
+                                                Target Selesai
+                                            </td>
+                                            <td class="w-1/10 p-1">
+                                                <input type="date" name="next_action_date" 
+                                                       class="w-full p-1.5 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
 
                     {{-- Fixed Footer --}}
                     <div class="flex items-center justify-between p-4 px-6 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
                         <button type="button" 
                                 @click="isBulkModalOpen = false" 
-                                class="px-4 py-2.5 text-xs font-bold text-[#475569] hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-xl transition cursor-pointer">
+                                class="px-5 py-2.5 text-xs font-bold text-[#475569] hover:bg-white border border-[#CBD5E1] rounded-xl transition cursor-pointer shadow-xs">
                             Batal
                         </button>
                         <button type="submit" 
-                                class="px-6 py-2.5 text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>Simpan Semua Kronologi Aktivitas</span>
+                                class="btn-ipnet-primary px-6 py-2.5 text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <span>Simpan Dokumen Resmi Aktivitas</span>
                         </button>
                     </div>
 
