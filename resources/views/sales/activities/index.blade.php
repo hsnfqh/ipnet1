@@ -71,6 +71,50 @@
     .anim-delay-2 { animation-delay: 0.12s !important; }
     .anim-delay-3 { animation-delay: 0.18s !important; }
     .anim-delay-4 { animation-delay: 0.24s !important; }
+
+    /* ── Activity Card (Identik Persis Engineer) ── */
+    .activity-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 2px 6px rgba(15, 23, 42, 0.02);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+    }
+
+    .activity-card:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 8px 20px rgba(143, 10, 13, 0.06), 0 3px 8px rgba(0, 0, 0, 0.04);
+        transform: translateY(-2px);
+    }
+
+    .activity-card-header { padding: 14px 16px 10px; }
+    .activity-card-body   { padding: 0 16px 12px; flex: 1; }
+    .activity-card-footer {
+        padding: 9px 16px;
+        background: #FAFBFD;
+        border-top: 1px solid #F1F5F9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .agenda-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4.5px;
+        padding: 2.5px 8.5px;
+        border-radius: 999px;
+        font-size: 10.5px;
+        font-weight: 700;
+        background: #FEF2F2;
+        color: #8F0A0D;
+        border: 1px solid #FECACA;
+    }
 </style>
 @endpush
 
@@ -150,8 +194,20 @@
                 @endif
             </div>
 
-            {{-- Activity Feed Grid --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 anim-fade-up anim-delay-2">
+            {{-- Activity Feed Grid (Identik Persis Layout Engineer) --}}
+            @php
+                $getInitials = function($name) {
+                    $trimmed = trim((string) $name);
+                    if (!$trimmed) return 'SL';
+                    $words = preg_split('/\s+/', $trimmed);
+                    if (count($words) >= 2) {
+                        return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+                    }
+                    return strtoupper(substr($trimmed, 0, 2));
+                };
+            @endphp
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 anim-fade-up anim-delay-2">
                 @forelse($activities as $act)
                     @php
                         $isBatch = false;
@@ -165,123 +221,128 @@
                         }
                     @endphp
 
-                    <div class="ipnet-card p-5 flex flex-col justify-between space-y-3.5 {{ $isBatch ? 'border-red-200/80 bg-gradient-to-b from-white to-red-50/20' : '' }}">
-                        <div class="space-y-2.5">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-bold {{ $isBatch ? 'bg-red-50 text-[#8F0A0D] border border-red-200' : 'bg-[#F8FAFC] border border-gray-200 text-gray-800' }}">
+                    @php
+                        $salesName = $act->sales->name ?? 'Sales';
+                        $salesInitial = $getInitials($salesName);
+                        $projectName = $act->project->name ?? 'Prospek';
+                        $clientName = $act->project->client ?? '-';
+                        $totalInBatch = $isBatch && !empty($batchData['items']) ? count($batchData['items']) : 1;
+                    @endphp
+
+                    <div class="activity-card group">
+
+                        {{-- Header Card --}}
+                        <div class="activity-card-header">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="agenda-badge">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                        {{ $totalInBatch }} Agenda
+                                    </span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold border bg-red-50 text-[#8F0A0D] border-red-200">
                                         {{ $act->activity_type }}
                                     </span>
-                                    @if($isBatch)
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                            {{ count($batchData['items'] ?? []) }} Rangkaian Agenda
-                                        </span>
-                                    @endif
                                 </div>
-                                <span class="text-xs font-bold text-gray-400">
-                                    {{ \Carbon\Carbon::parse($act->activity_date)->format('d M Y, H:i') }}
+                                <span class="text-[11px] font-semibold text-gray-400 tabular-nums">
+                                    {{ \Carbon\Carbon::parse($act->activity_date)->format('d M Y') }}
                                 </span>
                             </div>
 
-                            <h3 class="text-sm font-bold text-gray-900 leading-snug">
+                            <h3 class="text-[13.5px] font-bold text-gray-900 group-hover:text-[#8F0A0D] transition-colors leading-snug line-clamp-1" title="{{ $act->subject }}">
                                 {{ $act->subject }}
                             </h3>
 
-                            <div class="text-[11px] text-gray-500 flex items-center gap-1.5 flex-wrap">
-                                <span class="font-bold text-gray-900">{{ $act->project->name ?? 'Proyek' }}</span>
-                                <span>•</span>
-                                <span>{{ $act->project->client ?? 'Klien' }}</span>
+                            <div class="flex items-center flex-wrap gap-1.5 mt-2">
+                                {{-- Stacked Circular Avatars --}}
+                                <div class="flex items-center -space-x-1.5 shrink-0" title="{{ $salesName }}">
+                                    <div class="w-5 h-5 rounded-full bg-[#8F0A0D] text-white text-[9.5px] font-black flex items-center justify-center ring-1.5 ring-white uppercase shrink-0 shadow-xs">
+                                        {{ $salesInitial }}
+                                    </div>
+                                </div>
+
+                                {{-- Sales Name --}}
+                                <span class="text-[12px] font-bold text-[#1E293B] truncate max-w-[200px]" title="{{ $salesName }}">
+                                    {{ $salesName }}
+                                </span>
+
+                                {{-- Separator & Client Name --}}
+                                @if($clientName && $clientName !== '-')
+                                    <span class="text-gray-300 shrink-0">•</span>
+                                    <span class="text-[11px] text-gray-500 font-medium truncate max-w-[120px]" title="{{ $clientName }}">{{ $clientName }}</span>
+                                @endif
                             </div>
-
-                            {{-- Card Body Preview --}}
-                            @if($isBatch && !empty($batchData['items']))
-                                <div class="bg-[#F8FAFC] p-3.5 rounded-xl border border-gray-200/80 space-y-2.5">
-                                    <p class="text-[11px] font-bold text-gray-600 uppercase tracking-wider">
-                                        Rangkuman Kronologis Agenda:
-                                    </p>
-                                    <div class="space-y-1.5 text-xs text-gray-700">
-                                        @foreach(array_slice($batchData['items'], 0, 3) as $item)
-                                            <div class="flex items-start gap-2 text-[11.5px] leading-tight">
-                                                <span class="font-bold text-[#8F0A0D] shrink-0">{{ $item['time'] ?: '-' }}</span>
-                                                <span class="text-gray-400">|</span>
-                                                <span class="font-semibold text-gray-800 truncate flex-1">{{ $item['subject'] }}</span>
-                                                @if(!empty($item['client_pic']) || !empty($item['ipnet_pic']))
-                                                    <span class="text-[10.5px] text-gray-500 shrink-0">({{ $item['client_pic'] ?: '-' }})</span>
-                                                @endif
-                                            </div>
-                                        @endforeach
-                                        @if(count($batchData['items']) > 3)
-                                            <p class="text-[11px] font-semibold text-gray-400 italic pt-1">
-                                                + {{ count($batchData['items']) - 3 }} agenda kronologis lainnya...
-                                            </p>
-                                        @endif
-                                    </div>
-
-                                    <button type="button" 
-                                            @click="openDetailModal({{ json_encode($act) }}, {{ json_encode($batchData) }})"
-                                            class="w-full mt-2 py-2 px-3 bg-white hover:bg-red-50 text-[#8F0A0D] border border-red-200 hover:border-red-300 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs">
-                                        <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        <span>Lihat Detail Lengkap ({{ count($batchData['items']) }} Agenda)</span>
-                                    </button>
-                                </div>
-                            @elseif($act->notes)
-                                <p class="text-xs text-gray-700 bg-[#F8FAFC] p-3 rounded-xl border border-gray-100 leading-relaxed whitespace-pre-line font-medium">
-                                    {{ $act->notes }}
-                                </p>
-                            @endif
-
-                            @if($act->next_action)
-                                <div class="p-3 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 space-y-1">
-                                    <div class="flex items-center justify-between font-bold text-[11px]">
-                                        <span>Tindak Lanjut Berikutnya:</span>
-                                        @if($act->next_action_date)
-                                            <span>{{ \Carbon\Carbon::parse($act->next_action_date)->format('d M Y') }}</span>
-                                        @endif
-                                    </div>
-                                    <div class="text-amber-950 font-medium">{{ $act->next_action }}</div>
-                                </div>
-                            @endif
                         </div>
 
-                        <div class="flex items-center justify-between pt-3 border-t border-gray-100 text-[11px]">
-                            <div class="text-gray-400">
-                                <span>Dicatat oleh: <strong class="text-gray-800">{{ $act->sales->name ?? 'Sales' }}</strong></span>
+                        {{-- Body: Mini Rangkuman Agenda --}}
+                        <div class="activity-card-body">
+                            <div class="bg-[#F8FAFC] border border-[#EEF2F6] rounded-xl p-2.5 space-y-1.5">
+                                @if($isBatch && !empty($batchData['items']))
+                                    @foreach(array_slice($batchData['items'], 0, 3) as $item)
+                                        <div class="flex items-center gap-2 text-[11px]">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]/70 shrink-0"></span>
+                                            <span class="text-gray-400 font-medium text-[10px] shrink-0 tabular-nums">{{ $item['time'] ?: '-' }}</span>
+                                            <span class="text-gray-700 font-medium truncate flex-1">{{ $item['subject'] }}</span>
+                                        </div>
+                                    @endforeach
+                                    @if(count($batchData['items']) > 3)
+                                        <div class="text-[10.5px] text-[#8F0A0D] font-bold pl-3.5 pt-0.5">
+                                            + {{ count($batchData['items']) - 3 }} agenda lainnya...
+                                        </div>
+                                    @endif
+                                @else
+                                    <div class="flex items-center gap-2 text-[11px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]/70 shrink-0"></span>
+                                        <span class="text-gray-400 font-medium text-[10px] shrink-0 tabular-nums">{{ \Carbon\Carbon::parse($act->activity_date)->format('H:i') }}</span>
+                                        <span class="text-gray-700 font-medium truncate flex-1">{{ \Illuminate\Support\Str::limit($act->notes ?: $act->subject, 50) }}</span>
+                                    </div>
+                                    @if($act->next_action)
+                                        <div class="flex items-center gap-2 text-[10.5px] text-amber-800">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                                            <span class="text-amber-600 font-bold text-[10px] shrink-0">Next:</span>
+                                            <span class="text-amber-900 font-medium truncate flex-1">{{ $act->next_action }}</span>
+                                        </div>
+                                    @endif
+                                @endif
                             </div>
+                        </div>
 
-                            <div class="flex items-center gap-1.5">
-                                {{-- Cetak Dokumen Resmi PDF --}}
+                        {{-- Footer: Form Laporan Button + PDF + Action --}}
+                        <div class="activity-card-footer">
+                            <button type="button" @click="openDetailModal({{ json_encode($act) }}, {{ json_encode($batchData) }})"
+                                    class="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50/70 hover:bg-red-100/80 border border-red-200/80 hover:border-red-300 transition-all cursor-pointer">
+                                <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                <span>Form Laporan</span>
+                                <span class="px-1.5 py-0.2 rounded-full bg-white text-[#8F0A0D] text-[9.5px] font-black border border-red-200/60">{{ $totalInBatch }}</span>
+                            </button>
+
+                            <div class="flex items-center gap-1.5 shrink-0">
                                 <a href="{{ route('sales.activities.pdf', $act->id) }}" target="_blank"
-                                   class="px-2.5 py-1 bg-white hover:bg-red-50 text-[#8F0A0D] text-[11px] font-bold rounded-lg border border-red-200 shadow-xs transition inline-flex items-center gap-1"
+                                   class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
                                    title="Cetak Dokumen Resmi PDF">
-                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                    <span>PDF Resmi</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span>PDF</span>
                                 </a>
 
                                 @if(!$isExecutiveOrPimpinan)
-                                {{-- Action buttons: Edit & Hapus --}}
-                                @if(!$isBatch)
-                                <button type="button" 
-                                        @click="openEditModal({{ json_encode($act) }})" 
-                                        class="px-2.5 py-1 bg-white hover:bg-gray-50 text-gray-700 text-[11px] font-semibold rounded-lg border border-gray-200 shadow-xs transition inline-flex items-center gap-1">
-                                    <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                    <span>Edit</span>
-                                </button>
-                                @endif
-                                <button type="button" 
-                                        @click="confirmDelete({{ $act->id }}, '{{ addslashes($act->subject) }}')" 
-                                        class="px-2.5 py-1 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-semibold rounded-lg border border-red-200 shadow-xs transition inline-flex items-center gap-1">
-                                    <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    <span>Hapus</span>
-                                </button>
+                                    <button type="button" 
+                                            @click="confirmDelete({{ $act->id }}, '{{ addslashes($act->subject) }}')" 
+                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
+                                            title="Hapus Aktivitas">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <span>Hapus</span>
+                                    </button>
                                 @endif
                             </div>
                         </div>
+
                     </div>
                 @empty
-                    <div class="col-span-full ipnet-card p-12 text-center text-xs text-gray-400 space-y-2">
+                    <div class="col-span-full empty-state p-12 text-center text-xs text-gray-400 space-y-2 bg-white rounded-2xl border-1.5 border-dashed border-[#CBD5E1]">
                         <p class="font-bold text-gray-900">Belum ada aktivitas CRM yang tercatat.</p>
                         @if(!$isExecutiveOrPimpinan)
-                        <p>Klik tombol "Input Kronologi" di atas untuk mencatat interaksi dan runtutan agenda aktivitas.</p>
+                        <p>Klik tombol "Input Dokumen Resmi Sales" di atas untuk mencatat interaksi dan runtutan agenda aktivitas.</p>
                         @endif
                     </div>
                 @endforelse
@@ -380,6 +441,63 @@
                             </template>
                         </tbody>
                     </table>
+
+                    {{-- Lembar Pengesahan & Verifikasi (Tanda Tangan) di Modal Detail --}}
+                    <div class="mt-5 space-y-2">
+                        <h4 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
+                            LEMBAR PENGESAHAN &amp; VERIFIKASI RESMI (TANDA TANGAN)
+                        </h4>
+                        <div class="border border-[#CBD5E1] rounded-xl overflow-hidden text-xs">
+                            <table class="w-full border-collapse">
+                                <thead class="bg-[#F8FAFC] font-bold text-[#0F172A] border-b border-[#CBD5E1]">
+                                    <tr>
+                                        <th class="py-2 px-3 w-1/4 border-r border-[#CBD5E1] text-left">Pihak</th>
+                                        <th class="py-2 px-3 w-1/4 border-r border-[#CBD5E1] text-left">Nama</th>
+                                        <th class="py-2 px-3 w-1/6 border-r border-[#CBD5E1] text-center">Tanggal</th>
+                                        <th class="py-2 px-3 w-1/3 text-center">Tanda Tangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[#CBD5E1]">
+                                    <tr>
+                                        <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#CBD5E1] align-middle">Account Executive (Sales)</td>
+                                        <td class="p-2 border-r border-[#CBD5E1] font-bold text-[#0F172A] align-middle" x-text="selectedDetail?.activity?.sales?.name || '{{ auth()->user()->name }}'"></td>
+                                        <td class="p-2 border-r border-[#CBD5E1] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
+                                        <td class="py-2.5 px-3 text-center align-middle">
+                                            <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-emerald-50/80 border border-emerald-300 min-w-[150px]">
+                                                <span class="text-[10px] font-black text-emerald-800 tracking-wider">[ TANDA TANGAN DIGITAL ]</span>
+                                                <span class="text-[9px] text-emerald-600 font-semibold mt-0.5">Terverifikasi Digital CRM</span>
+                                                <span class="text-[9px] text-slate-500 font-mono" x-text="selectedDetail?.activity?.sales?.name || '{{ auth()->user()->name }}'"></span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#CBD5E1] align-middle">Division Head / Atasan Sales</td>
+                                        <td class="p-2 border-r border-[#CBD5E1] font-bold text-[#0F172A] align-middle">Susanto Djaya</td>
+                                        <td class="p-2 border-r border-[#CBD5E1] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
+                                        <td class="py-2.5 px-3 text-center align-middle">
+                                            <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-red-50/80 border border-red-300 min-w-[150px]">
+                                                <span class="text-[10px] font-black text-[#8F0A0D] tracking-wider">[ TANDA TANGAN ATASAN ]</span>
+                                                <span class="text-[9px] text-[#8F0A0D] font-semibold mt-0.5">Approved Division Head</span>
+                                                <span class="text-[9px] text-slate-500 font-mono">Susanto Djaya</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#CBD5E1] align-middle">Customer / PIC Klien</td>
+                                        <td class="p-2 border-r border-[#CBD5E1] font-semibold text-slate-700 align-middle" x-text="selectedDetail?.activity?.project?.client || 'PIC Customer Representative'"></td>
+                                        <td class="p-2 border-r border-[#CBD5E1] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
+                                        <td class="py-2.5 px-3 text-center align-middle">
+                                            <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-blue-50/80 border border-blue-300 min-w-[150px]">
+                                                <span class="text-[10px] font-black text-blue-800 tracking-wider">[ TANDA TANGAN KLIEN ]</span>
+                                                <span class="text-[9px] text-blue-600 font-semibold mt-0.5">Tervalidasi Pertemuan</span>
+                                                <span class="text-[9px] text-slate-500 font-mono">Customer Representative</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Footer --}}
@@ -843,41 +961,58 @@
                                 </div>
                             </div>
 
-                            {{-- G. LEMBAR PENGESAHAN & AUDIT TRAIL SISTEM --}}
+                            {{-- G. LEMBAR PENGESAHAN & VERIFIKASI (TANDA TANGAN) --}}
                             <div class="space-y-1.5">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
-                                    G. LEMBAR PENGESAHAN &amp; AUDIT TRAIL SISTEM
+                                    G. LEMBAR PENGESAHAN &amp; VERIFIKASI (TANDA TANGAN)
                                 </h3>
                                 <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                     <table class="w-full border-collapse border border-[#1E293B]">
                                         <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                             <tr>
-                                                <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Pihak Berwenang</th>
-                                                <th class="py-1.5 px-3 w-1/3 border-r border-[#1E293B] text-left">Nama Personel</th>
-                                                <th class="py-1.5 px-3 w-1/5 border-r border-[#1E293B] text-center">Tanggal Dibuat</th>
-                                                <th class="py-1.5 px-3 w-1/4 text-center">Status Verifikasi</th>
+                                                <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Pihak</th>
+                                                <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Nama</th>
+                                                <th class="py-1.5 px-3 w-1/6 border-r border-[#1E293B] text-center">Tanggal</th>
+                                                <th class="py-1.5 px-3 w-1/3 text-center">Tanda Tangan</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr class="border-b border-[#1E293B]">
-                                                <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Account Executive / Sales Reporter</td>
-                                                <td class="p-1 px-2 border-r border-[#1E293B] font-semibold text-[#0F172A]">{{ auth()->user()->name }}</td>
-                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center">{{ date('d/m/Y') }}</td>
-                                                <td class="p-1 text-center">
-                                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                                                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                        <span>Terverifikasi Digital</span>
-                                                    </span>
+                                                <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Account Executive (Sales)</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle">{{ auth()->user()->name }}</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center align-middle font-medium">{{ date('d/m/Y') }}</td>
+                                                <td class="py-2.5 px-3 text-center align-middle">
+                                                    <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-emerald-50/80 border border-emerald-300 min-w-[150px]">
+                                                        <span class="text-[10px] font-black text-emerald-800 tracking-wider">[ TANDA TANGAN DIGITAL ]</span>
+                                                        <span class="text-[9px] text-emerald-600 font-semibold mt-0.5">Terverifikasi Digital CRM</span>
+                                                        <span class="text-[9px] text-slate-500 font-mono">{{ auth()->user()->name }}</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Division Head / Atasan Sales</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle">Susanto Djaya</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center align-middle font-medium">{{ date('d/m/Y') }}</td>
+                                                <td class="py-2.5 px-3 text-center align-middle">
+                                                    <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-red-50/80 border border-red-300 min-w-[150px]">
+                                                        <span class="text-[10px] font-black text-[#8F0A0D] tracking-wider">[ TANDA TANGAN ATASAN ]</span>
+                                                        <span class="text-[9px] text-[#8F0A0D] font-semibold mt-0.5">Approved Division Head</span>
+                                                        <span class="text-[9px] text-slate-500 font-mono">Susanto Djaya</span>
+                                                    </div>
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Commercial &amp; Sales Management</td>
-                                                <td class="p-1 px-2 border-r border-[#1E293B] text-slate-600 font-medium">Head of Commercial / Sales Leader</td>
-                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center">{{ date('d/m/Y') }}</td>
-                                                <td class="p-1 text-center">
-                                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                                                        <span>Recorded in CRM Pipeline</span>
-                                                    </span>
+                                                <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Customer / PIC Klien</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] align-middle">
+                                                    <input type="text" name="customer_rep_name" placeholder="Nama PIC Customer / Klien..." class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
+                                                </td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center align-middle font-medium">{{ date('d/m/Y') }}</td>
+                                                <td class="py-2.5 px-3 text-center align-middle">
+                                                    <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-blue-50/80 border border-blue-300 min-w-[150px]">
+                                                        <span class="text-[10px] font-black text-blue-800 tracking-wider">[ TANDA TANGAN KLIEN ]</span>
+                                                        <span class="text-[9px] text-blue-600 font-semibold mt-0.5">Tervalidasi Pertemuan</span>
+                                                        <span class="text-[9px] text-slate-500 font-mono">Customer Representative</span>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -1054,37 +1189,41 @@
                             {{-- E. LEMBAR PENGESAHAN & REVIEW MANAGEMENT --}}
                             <div class="space-y-1.5">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
-                                    E. LEMBAR PENGESAHAN &amp; AUDIT TRAIL REVIEW
+                                    E. LEMBAR PENGESAHAN &amp; VERIFIKASI (TANDA TANGAN)
                                 </h3>
                                 <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                     <table class="w-full border-collapse border border-[#1E293B]">
                                         <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                             <tr>
                                                 <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Pihak Evaluator</th>
-                                                <th class="py-1.5 px-3 w-1/3 border-r border-[#1E293B] text-left">Nama Personel</th>
-                                                <th class="py-1.5 px-3 w-1/5 border-r border-[#1E293B] text-center">Tanggal Evaluasi</th>
-                                                <th class="py-1.5 px-3 w-1/4 text-center">Status Audit</th>
+                                                <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Nama Personel</th>
+                                                <th class="py-1.5 px-3 w-1/6 border-r border-[#1E293B] text-center">Tanggal</th>
+                                                <th class="py-1.5 px-3 w-1/3 text-center">Tanda Tangan</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr class="border-b border-[#1E293B]">
-                                                <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Account Executive / Sales In Charge</td>
-                                                <td class="p-1 px-2 border-r border-[#1E293B] font-semibold text-[#0F172A]">{{ auth()->user()->name }}</td>
-                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center">{{ date('d/m/Y') }}</td>
-                                                <td class="p-1 text-center">
-                                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                                                        <span>Evaluated &amp; Logged</span>
-                                                    </span>
+                                                <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Account Executive (Sales)</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle">{{ auth()->user()->name }}</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center align-middle font-medium">{{ date('d/m/Y') }}</td>
+                                                <td class="py-2.5 px-3 text-center align-middle">
+                                                    <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-emerald-50/80 border border-emerald-300 min-w-[150px]">
+                                                        <span class="text-[10px] font-black text-emerald-800 tracking-wider">[ TANDA TANGAN DIGITAL ]</span>
+                                                        <span class="text-[9px] text-emerald-600 font-semibold mt-0.5">Evaluated &amp; Logged</span>
+                                                        <span class="text-[9px] text-slate-500 font-mono">{{ auth()->user()->name }}</span>
+                                                    </div>
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Commercial &amp; Management Review</td>
-                                                <td class="p-1 px-2 border-r border-[#1E293B] text-slate-600 font-medium">Commercial Director / Sales Leader</td>
-                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center">{{ date('d/m/Y') }}</td>
-                                                <td class="p-1 text-center">
-                                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                                                        <span>Recorded in Intelligence</span>
-                                                    </span>
+                                                <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Division Head / Atasan Sales</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle">Susanto Djaya</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center align-middle font-medium">{{ date('d/m/Y') }}</td>
+                                                <td class="py-2.5 px-3 text-center align-middle">
+                                                    <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-red-50/80 border border-red-300 min-w-[150px]">
+                                                        <span class="text-[10px] font-black text-[#8F0A0D] tracking-wider">[ TANDA TANGAN ATASAN ]</span>
+                                                        <span class="text-[9px] text-[#8F0A0D] font-semibold mt-0.5">Reviewed &amp; Approved</span>
+                                                        <span class="text-[9px] text-slate-500 font-mono">Susanto Djaya</span>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </tbody>

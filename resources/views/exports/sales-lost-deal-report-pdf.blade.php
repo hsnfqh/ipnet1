@@ -333,11 +333,50 @@
         {!! nl2br(e($analysis['future_strategy'] ?: 'Tetap menjalin hubungan baik dengan PIC klien (courtesy call berkala) dan memetakan jadwal renewal / ekspansi kebutuhan fase berikutnya.')) !!}
     </div>
 
-    {{-- Footer Verifikasi Retrospektif Internal (Tanpa tanda tangan fisik) --}}
+    {{-- Section H: Lembar Pengesahan & Verifikasi (Tanda Tangan) --}}
+    <div class="section-title">H. LEMBAR PENGESAHAN &amp; VERIFIKASI EVALUASI (TANDA TANGAN)</div>
+    <table class="gap-table">
+        <thead>
+            <tr>
+                <th style="width: 28%;">Pihak Evaluator</th>
+                <th style="width: 26%;">Nama Personel</th>
+                <th style="width: 18%; text-align: center;">Tanggal</th>
+                <th style="width: 28%; text-align: center;">Tanda Tangan</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="font-weight: bold; background-color: #F8FAFC;">Account Executive (Sales)</td>
+                <td style="font-weight: bold;">{{ $project->sales_name ?: ($analysis['evaluated_by'] ?? 'Sales Person') }}</td>
+                <td style="text-align: center;">{{ !empty($analysis['evaluated_at']) ? \Carbon\Carbon::parse($analysis['evaluated_at'])->format('d/m/Y') : now()->format('d/m/Y') }}</td>
+                <td style="text-align: center; padding: 6px 4px;">
+                    <div style="border: 1px dashed #059669; background-color: #ECFDF5; border-radius: 4px; padding: 4px; display: inline-block; min-width: 120px;">
+                        <span style="font-size: 6.8pt; font-weight: bold; color: #065F46; display: block;">[ TANDA TANGAN DIGITAL ]</span>
+                        <span style="font-size: 6.2pt; color: #047857; display: block;">Evaluated &amp; Logged</span>
+                        <span style="font-size: 5.8pt; color: #64748B; font-family: monospace;">{{ $project->sales_name ?: ($analysis['evaluated_by'] ?? 'Sales Person') }}</span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; background-color: #F8FAFC;">Division Head / Atasan Sales</td>
+                <td style="font-weight: bold; color: #0F172A;">Susanto Djaya</td>
+                <td style="text-align: center;">{{ !empty($analysis['evaluated_at']) ? \Carbon\Carbon::parse($analysis['evaluated_at'])->format('d/m/Y') : now()->format('d/m/Y') }}</td>
+                <td style="text-align: center; padding: 6px 4px;">
+                    <div style="border: 1px dashed #8F0A0D; background-color: #FEF2F2; border-radius: 4px; padding: 4px; display: inline-block; min-width: 120px;">
+                        <span style="font-size: 6.8pt; font-weight: bold; color: #8F0A0D; display: block;">[ TANDA TANGAN ATASAN ]</span>
+                        <span style="font-size: 6.2pt; color: #991B1B; display: block;">Approved Division Head</span>
+                        <span style="font-size: 5.8pt; color: #64748B; font-family: monospace;">Susanto Djaya</span>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    {{-- Footer Verifikasi Retrospektif Internal --}}
     <div class="verification-box">
         <strong>CATATAN REVIEW RETROSPEKTIF INTERNAL:</strong><br>
         Dokumen ini diterbitkan oleh <strong>Sistem Manajemen Penjualan &amp; CRM PT IP Network Solusindo</strong> pada tanggal {{ now()->format('d/m/Y H:i:s') }}.<br>
-        Disusun oleh: <strong>{{ $analysis['evaluated_by'] ?? ($project->sales_name ?: 'Sales Team') }}</strong> untuk keperluan evaluasi internal, continuous improvement strategi komersial, dan transfer pembelajaran tanpa memerlukan tanda tangan basah.
+        Disusun oleh: <strong>{{ $project->sales_name ?: ($analysis['evaluated_by'] ?? 'Sales Team') }}</strong> dan disetujui oleh <strong>Susanto Djaya (Division Head)</strong> untuk keperluan evaluasi internal, continuous improvement strategi komersial, dan transfer pembelajaran.
     </div>
 
     <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #CBD5E1; font-size: 6.8pt; color: #475569; font-style: italic; line-height: 1.35;">

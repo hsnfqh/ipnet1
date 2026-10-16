@@ -447,29 +447,53 @@
         </table>
     @endif
 
-    {{-- Section G: Lembar Pengesahan & Audit Trail Sistem --}}
-    <div class="section-title">G. LEMBAR PENGESAHAN &amp; AUDIT TRAIL SISTEM</div>
+    {{-- Section G: Lembar Pengesahan & Verifikasi (Tanda Tangan) --}}
+    <div class="section-title">G. LEMBAR PENGESAHAN &amp; VERIFIKASI (TANDA TANGAN)</div>
     <table class="data-table">
         <thead>
             <tr>
-                <th style="width: 32%;">Pihak Berwenang</th>
-                <th style="width: 30%;">Nama Personel</th>
-                <th class="center" style="width: 18%;">Tanggal Dibuat</th>
-                <th class="center" style="width: 20%;">Status Verifikasi</th>
+                <th style="width: 28%;">Pihak</th>
+                <th style="width: 26%;">Nama</th>
+                <th class="center" style="width: 18%;">Tanggal</th>
+                <th class="center" style="width: 28%;">Tanda Tangan</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td style="font-weight: bold; background-color: #F8FAFC;">Account Executive / Sales Reporter</td>
+                <td style="font-weight: bold; background-color: #F8FAFC;">Account Executive (Sales)</td>
                 <td style="font-weight: bold;">{{ $activity->sales->name ?? 'Sales Team' }}</td>
-                <td class="center">{{ \Carbon\Carbon::parse($activity->created_at ?? now())->format('d/m/Y') }}</td>
-                <td class="center" style="color: #059669; font-weight: bold;">Terverifikasi Digital</td>
+                <td class="center">{{ \Carbon\Carbon::parse($activity->activity_date ?? now())->format('d/m/Y') }}</td>
+                <td class="center" style="padding: 6px 4px;">
+                    <div style="border: 1px dashed #059669; background-color: #ECFDF5; border-radius: 4px; padding: 4px; display: inline-block; min-width: 120px;">
+                        <span style="font-size: 6.8pt; font-weight: bold; color: #065F46; display: block;">[ TANDA TANGAN DIGITAL ]</span>
+                        <span style="font-size: 6.2pt; color: #047857; display: block;">Terverifikasi Digital CRM</span>
+                        <span style="font-size: 5.8pt; color: #64748B; font-family: monospace;">{{ $activity->sales->name ?? 'Sales Team' }}</span>
+                    </div>
+                </td>
             </tr>
             <tr>
-                <td style="font-weight: bold; background-color: #F8FAFC;">Commercial &amp; Sales Management</td>
-                <td>Head of Commercial / Sales Leader</td>
-                <td class="center">{{ \Carbon\Carbon::parse($activity->created_at ?? now())->format('d/m/Y') }}</td>
-                <td class="center" style="color: #1D4ED8; font-weight: bold;">Recorded in CRM</td>
+                <td style="font-weight: bold; background-color: #F8FAFC;">Division Head / Atasan Sales</td>
+                <td style="font-weight: bold; color: #0F172A;">Susanto Djaya</td>
+                <td class="center">{{ \Carbon\Carbon::parse($activity->activity_date ?? now())->format('d/m/Y') }}</td>
+                <td class="center" style="padding: 6px 4px;">
+                    <div style="border: 1px dashed #8F0A0D; background-color: #FEF2F2; border-radius: 4px; padding: 4px; display: inline-block; min-width: 120px;">
+                        <span style="font-size: 6.8pt; font-weight: bold; color: #8F0A0D; display: block;">[ TANDA TANGAN ATASAN ]</span>
+                        <span style="font-size: 6.2pt; color: #991B1B; display: block;">Approved Division Head</span>
+                        <span style="font-size: 5.8pt; color: #64748B; font-family: monospace;">Susanto Djaya</span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; background-color: #F8FAFC;">Customer / PIC Klien</td>
+                <td style="font-weight: bold; color: #334155;">{{ $clientPic ?? ($activity->project->client ?? 'PIC Customer Representative') }}</td>
+                <td class="center">{{ \Carbon\Carbon::parse($activity->activity_date ?? now())->format('d/m/Y') }}</td>
+                <td class="center" style="padding: 6px 4px;">
+                    <div style="border: 1px dashed #2563EB; background-color: #EFF6FF; border-radius: 4px; padding: 4px; display: inline-block; min-width: 120px;">
+                        <span style="font-size: 6.8pt; font-weight: bold; color: #1E40AF; display: block;">[ TANDA TANGAN KLIEN ]</span>
+                        <span style="font-size: 6.2pt; color: #1D4ED8; display: block;">Tervalidasi Pertemuan</span>
+                        <span style="font-size: 5.8pt; color: #64748B; font-family: monospace;">Customer Representative</span>
+                    </div>
+                </td>
             </tr>
         </tbody>
     </table>

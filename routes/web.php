@@ -407,6 +407,7 @@ Route::get('/seed-sales-official-dummies', function () {
             'win_probability'    => 80,
             'next_action'        => 'Penyusunan Surat Penawaran Harga (SPH) resmi dan dokumen BoQ Teknis komprehensif',
             'next_action_pic'    => 'Raiza (Account Executive)',
+            'division_head'      => 'Susanto Djaya',
             'total_items'        => 3,
             'items'              => [
                 [
@@ -467,6 +468,7 @@ Route::get('/seed-sales-official-dummies', function () {
             'lessons_learned'         => 'Deal registration ke prinsipal distributor harus dikunci sejak awal pertemuan prospek (fase Prospecting/Discovery) agar IPNET mendapatkan special price discount terbaik.',
             'future_strategy'         => 'Menjaga komunikasi berkala dengan PIC IT klien untuk peluang maintenance support tahunan dan ekspansi access point fase II tahun depan.',
             'evaluated_by'            => 'Raiza (Account Executive)',
+            'approved_by'             => 'Susanto Djaya (Division Head)',
             'evaluated_at'            => date('Y-m-d H:i:s'),
         ];
 
