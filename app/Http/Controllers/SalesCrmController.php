@@ -612,14 +612,9 @@ class SalesCrmController extends Controller
             });
         }
 
-        $selectCols = [
+        $activeProjects = $activeProjectsQuery->orderBy('name')->get([
             'id', 'name', 'client', 'sales_name', 'contract_value', 'sales_stage', 'status', 'lost_reason', 'lost_competitor'
-        ];
-        if (\Illuminate\Support\Facades\Schema::hasColumn('projects', 'lost_analysis')) {
-            $selectCols[] = 'lost_analysis';
-        }
-
-        $activeProjects = $activeProjectsQuery->orderBy('name')->get($selectCols)
+        ])
             ->filter(function($p) {
                 $pName = strtolower($p->name ?? '');
                 $sName = strtolower($p->sales_name ?? '');
