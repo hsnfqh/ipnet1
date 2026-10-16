@@ -214,14 +214,27 @@
                         $batchData = null;
                         if (!empty($act->notes) && is_string($act->notes) && str_starts_with(trim($act->notes), '{')) {
                             $decoded = json_decode($act->notes, true);
-                            if (is_array($decoded) && isset($decoded['type']) && $decoded['type'] === 'kronologi_batch') {
-                                $isBatch = true;
+                            if (is_array($decoded)) {
                                 $batchData = $decoded;
+                                if (isset($decoded['type']) && $decoded['type'] === 'kronologi_batch') {
+                                    $isBatch = true;
+                                }
                             }
                         }
-                    @endphp
 
-                    @php
+                        $isLessonLearned = ($act->activity_type === 'Lesson Learned') 
+                            || (is_array($batchData) && isset($batchData['type']) && $batchData['type'] === 'lesson_learned')
+                            || (is_array($batchData) && isset($batchData['primary_factor']));
+
+                        $lostAnalysis = null;
+                        if ($isLessonLearned) {
+                            if (is_array($batchData) && isset($batchData['analysis_data'])) {
+                                $lostAnalysis = $batchData['analysis_data'];
+                            } elseif (is_array($batchData) && isset($batchData['primary_factor'])) {
+                                $lostAnalysis = $batchData;
+                            }
+                        }
+
                         $salesName = $act->sales->name ?? 'Sales';
                         $salesInitial = $getInitials($salesName);
                         $projectName = $act->project->name ?? 'Prospek';
@@ -235,13 +248,23 @@
                         <div class="activity-card-header">
                             <div class="flex items-center justify-between gap-2 mb-2">
                                 <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="agenda-badge">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
-                                        {{ $totalInBatch }} Agenda
-                                    </span>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold border bg-red-50 text-[#8F0A0D] border-red-200">
-                                        {{ $act->activity_type }}
-                                    </span>
+                                    @if($isLessonLearned)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold bg-amber-50 text-amber-900 border border-amber-300">
+                                            <svg class="w-3 h-3 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            Lesson Learned
+                                        </span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold border bg-rose-50 text-rose-700 border-rose-200">
+                                            Closed Lost
+                                        </span>
+                                    @else
+                                        <span class="agenda-badge">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                            {{ $totalInBatch }} Agenda
+                                        </span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold border bg-red-50 text-[#8F0A0D] border-red-200">
+                                            {{ $act->activity_type }}
+                                        </span>
+                                    @endif
                                 </div>
                                 <span class="text-[11px] font-semibold text-gray-400 tabular-nums">
                                     {{ \Carbon\Carbon::parse($act->activity_date)->format('d M Y') }}
@@ -273,10 +296,31 @@
                             </div>
                         </div>
 
-                        {{-- Body: Mini Rangkuman Agenda --}}
+                        {{-- Body: Mini Rangkuman Agenda / Lesson Learned --}}
                         <div class="activity-card-body">
                             <div class="bg-[#F8FAFC] border border-[#EEF2F6] rounded-xl p-2.5 space-y-1.5">
-                                @if($isBatch && !empty($batchData['items']))
+                                @if($isLessonLearned)
+                                    <div class="flex items-start gap-2 text-[11px]">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-600 shrink-0 mt-1"></span>
+                                        <div class="flex-1 truncate">
+                                            <span class="text-slate-500 font-bold">Faktor:</span>
+                                            <span class="text-slate-800 font-semibold ml-1">{{ $lostAnalysis['primary_factor'] ?? 'Kalah Harga / Lead Time' }}</span>
+                                        </div>
+                                    </div>
+                                    @if(!empty($lostAnalysis['competitor_winner']) && $lostAnalysis['competitor_winner'] !== '-')
+                                        <div class="flex items-center gap-2 text-[11px]">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
+                                            <span class="text-slate-500 font-bold shrink-0">Pemenang:</span>
+                                            <span class="text-amber-800 font-semibold truncate flex-1">{{ $lostAnalysis['competitor_winner'] }}</span>
+                                        </div>
+                                    @endif
+                                    @if(!empty($lostAnalysis['lessons_learned']))
+                                        <div class="text-[10.5px] text-slate-700 bg-amber-50/70 border border-amber-200/60 p-2 rounded-lg">
+                                            <span class="font-bold text-amber-900 block mb-0.5">Pembelajaran Utama:</span>
+                                            <p class="text-slate-700 font-medium line-clamp-2 leading-relaxed">{{ $lostAnalysis['lessons_learned'] }}</p>
+                                        </div>
+                                    @endif
+                                @elseif($isBatch && !empty($batchData['items']))
                                     @foreach(array_slice($batchData['items'], 0, 3) as $item)
                                         <div class="flex items-center gap-2 text-[11px]">
                                             <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]/70 shrink-0"></span>
@@ -308,33 +352,62 @@
 
                         {{-- Footer: Form Laporan Button + PDF + Action --}}
                         <div class="activity-card-footer">
-                            <button type="button" @click="openDetailModal({{ json_encode($act) }}, {{ json_encode($batchData) }})"
-                                    class="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50/70 hover:bg-red-100/80 border border-red-200/80 hover:border-red-300 transition-all cursor-pointer">
-                                <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                                <span>Form Laporan</span>
-                                <span class="px-1.5 py-0.2 rounded-full bg-white text-[#8F0A0D] text-[9.5px] font-black border border-red-200/60">{{ $totalInBatch }}</span>
-                            </button>
-
-                            <div class="flex items-center gap-1.5 shrink-0">
-                                <a href="{{ route('sales.activities.pdf', $act->id) }}" target="_blank"
-                                   class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
-                                   title="Cetak Dokumen Resmi PDF">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                    <span>PDF</span>
+                            @if($isLessonLearned)
+                                <a href="{{ route('sales.pipeline.lost_analysis_pdf', $act->project_id) }}" target="_blank"
+                                   class="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-[11px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-all cursor-pointer no-underline">
+                                    <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span>Form Evaluasi</span>
                                 </a>
 
-                                @if(!$isExecutiveOrPimpinan)
-                                    <button type="button" 
-                                            @click="confirmDelete({{ $act->id }}, '{{ addslashes($act->subject) }}')" 
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
-                                            title="Hapus Aktivitas">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        <span>Hapus</span>
-                                    </button>
-                                @endif
-                            </div>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <a href="{{ route('sales.pipeline.lost_analysis_pdf', $act->project_id) }}" target="_blank"
+                                       class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-amber-50 text-amber-700 text-[11px] font-bold rounded-lg border border-amber-300 transition cursor-pointer"
+                                       title="Cetak Dokumen Resmi PDF Evaluasi">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        <span>PDF</span>
+                                    </a>
+
+                                    @if(!$isExecutiveOrPimpinan)
+                                        <button type="button" 
+                                                @click="confirmDelete({{ $act->id }}, '{{ addslashes($act->subject) }}')" 
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
+                                                title="Hapus Aktivitas">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <span>Hapus</span>
+                                        </button>
+                                    @endif
+                                </div>
+                            @else
+                                <button type="button" @click="openDetailModal({{ json_encode($act) }}, {{ json_encode($batchData) }})"
+                                        class="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50/70 hover:bg-red-100/80 border border-red-200/80 hover:border-red-300 transition-all cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span>Form Laporan</span>
+                                    <span class="px-1.5 py-0.2 rounded-full bg-white text-[#8F0A0D] text-[9.5px] font-black border border-red-200/60">{{ $totalInBatch }}</span>
+                                </button>
+
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <a href="{{ route('sales.activities.pdf', $act->id) }}" target="_blank"
+                                       class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
+                                       title="Cetak Dokumen Resmi PDF">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        <span>PDF</span>
+                                    </a>
+
+                                    @if(!$isExecutiveOrPimpinan)
+                                        <button type="button" 
+                                                @click="confirmDelete({{ $act->id }}, '{{ addslashes($act->subject) }}')" 
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
+                                                title="Hapus Aktivitas">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <span>Hapus</span>
+                                        </button>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
 
                     </div>
@@ -661,13 +734,11 @@
                                                 <td class="py-1 px-2.5 border-r border-[#1E293B] font-semibold text-xs text-slate-700">
                                                     {{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}
                                                 </td>
-                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Waktu / Durasi Pertemuan</td>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Durasi Pelaksanaan</td>
                                                 <td class="py-1 px-2">
                                                     <div class="flex items-center gap-1.5 text-xs">
-                                                        <input type="time" name="meeting_time_start" value="{{ date('H:i') }}" class="p-1 border border-gray-200 rounded text-xs">
-                                                        <span>s/d</span>
-                                                        <input type="time" name="meeting_time_end" class="p-1 border border-gray-200 rounded text-xs">
-                                                        <span class="text-slate-500 font-semibold">WIB</span>
+                                                        <input type="number" min="1" max="365" name="duration_days" value="1" placeholder="1" class="w-20 p-1 border border-gray-300 rounded text-xs font-bold text-center text-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]">
+                                                        <span class="font-bold text-[#0F172A]">Hari</span>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1442,15 +1513,15 @@
             bulkProjectId: '{{ $filterProject ?: ($activeProjects->first()->id ?? '') }}',
             projectsMap: {{ Js::from($projectsLookup) }},
             lostFormData: {
-                primary_factor: '',
-                competitor_winner: '',
-                competitor_price: '',
-                our_price: '',
-                turning_point: '',
-                gap_our_weakness: '',
-                gap_competitor_strength: '',
-                lessons_learned: '',
-                future_strategy: ''
+                primary_factor: 'Faktor Harga / Komersial & Lead Time Delivery Hardware',
+                competitor_winner: 'PT Mitra Solusi Datatama (Distributor Direct Tier-1)',
+                competitor_price: '450000000',
+                our_price: '520000000',
+                turning_point: 'Pada evaluasi komersial tahap akhir, pihak kompetitor memberikan potongan bundling lisensi 3 tahun sebesar 15% serta jaminan ketersediaan stok ready 2 minggu.',
+                gap_our_weakness: 'Struktur harga penawaran belum mendapatkan special project discount dari prinsipal, dan skema pembayaran mewajibkan DP 40%.',
+                gap_competitor_strength: 'Kompetitor merupakan partner titanium prinsipal dengan margin harga fleksibel dan opsi pembayaran TOP 60 hari.',
+                lessons_learned: 'Untuk peluang deal bernilai di atas 500 juta, tim sales wajib mengunci registrasi deal ke prinsipal lebih awal guna memperoleh harga proteksi khusus.',
+                future_strategy: 'Menjaga hubungan komunikasi berkala (courtesy call setiap 2 minggu) dengan PIC klien dan memantau kepuasan implementasi kompetitor untuk persiapan renewal lisensi tahun depan.'
             },
             get selectedProjectData() {
                 return this.projectsMap[this.bulkProjectId] || null;
@@ -1480,8 +1551,8 @@
             },
             bulkDefaultType: 'Troubleshooting',
             attendees: [
-                { pihak: 'Internal IPNET', nama: '{{ auth()->user()->name }}', jabatan: 'Account Executive', kontak: '', keterangan: 'Sales In Charge' },
-                { pihak: 'Klien', nama: '', jabatan: 'PIC Customer', kontak: '', keterangan: 'Perwakilan Klien' }
+                { pihak: 'Internal IPNET', nama: 'Syaiful', jabatan: 'Presales & Solution Specialist', kontak: '0812-9876-5432', keterangan: 'PIC Teknis IPNET' },
+                { pihak: 'Klien', nama: 'Hasan Faqih', jabatan: 'Head of IT Infrastructure', kontak: '0811-2345-6789', keterangan: 'PIC Representatif Klien' }
             ],
             addAttendeeRow() {
                 this.attendees.push({ pihak: 'Klien', nama: '', jabatan: '', kontak: '', keterangan: '' });
@@ -1496,11 +1567,46 @@
                 }
             },
             bulkRows: [
-                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
-                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
-                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
-                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
-                { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' }
+                { 
+                    subject: 'Kick-off koordinasi teknis kebutuhan bandwidth & arsitektur core switch', 
+                    activity_date: '{{ date('Y-m-d') }}', 
+                    time_str: '09:00', 
+                    client_pic: 'Hasan Faqih', 
+                    ipnet_pic: 'Syaiful', 
+                    notes: 'Pemaparan arsitektur high availability dan redundancy dual-uplink 10Gbps. Klien menyepakati skema topologi jaringan.' 
+                },
+                { 
+                    subject: 'Walkthrough survey denah data center & kesiapan rack server', 
+                    activity_date: '{{ date('Y-m-d') }}', 
+                    time_str: '11:00', 
+                    client_pic: 'Hasan Faqih', 
+                    ipnet_pic: 'Syaiful', 
+                    notes: 'Pengecekan ketersediaan slot 4U rack, alokasi daya PDU dual source, dan suhu ruangan server data center.' 
+                },
+                { 
+                    subject: 'Pembahasan BoQ hardware, modul SFP+ & kabel optical fiber', 
+                    activity_date: '{{ date('Y-m-d') }}', 
+                    time_str: '13:30', 
+                    client_pic: 'Hasan Faqih', 
+                    ipnet_pic: 'Syaiful', 
+                    notes: 'Verifikasi rincian kebutuhan 24 port SFP28 dan 48 port PoE+. Klien meminta rekomendasi switch enterprise tier-1.' 
+                },
+                { 
+                    subject: 'Peninjauan Service Level Agreement (SLA) & skema support teknis', 
+                    activity_date: '{{ date('Y-m-d') }}', 
+                    time_str: '15:00', 
+                    client_pic: 'Hasan Faqih', 
+                    ipnet_pic: 'Syaiful', 
+                    notes: 'Disepakati SLA uptime 99.8% dengan waktu respons onsite maksimal 4 jam untuk insiden critical severity 24x7.' 
+                },
+                { 
+                    subject: 'Finalisasi timeline pengiriman perangkat & persiapan penawaran resmi', 
+                    activity_date: '{{ date('Y-m-d') }}', 
+                    time_str: '16:30', 
+                    client_pic: 'Hasan Faqih', 
+                    ipnet_pic: 'Syaiful', 
+                    notes: 'Tim sales IPNET berkomitmen menerbitkan Surat Penawaran Harga (SPH) resmi dan garansi prinsipal maksimal 3 hari kerja.' 
+                }
             ],
 
             get filledRowsCount() {

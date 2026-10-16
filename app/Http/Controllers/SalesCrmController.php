@@ -756,6 +756,7 @@ class SalesCrmController extends Controller
             'type'               => 'kronologi_batch',
             'title'              => $finalSubject,
             'meeting_media'      => $request->input('meeting_media', 'Onsite Klien'),
+            'duration_days'      => $request->input('duration_days', 1),
             'meeting_time_start' => $request->input('meeting_time_start'),
             'meeting_time_end'   => $request->input('meeting_time_end'),
             'attendees'          => $request->input('attendees', []),
@@ -1169,6 +1170,22 @@ class SalesCrmController extends Controller
         $project->status = 'Cancelled';
         $project->win_probability = 0;
         $project->save();
+
+        // Record as independent SalesActivity card
+        SalesActivity::create([
+            'project_id'       => $project->id,
+            'sales_id'         => auth()->id() ?: ($project->created_by ?: 1),
+            'activity_type'    => 'Lesson Learned',
+            'subject'          => "Evaluasi & Lesson Learned (Lost Deal) - {$project->name}",
+            'activity_date'    => now(),
+            'notes'            => json_encode([
+                'type'          => 'lesson_learned',
+                'analysis_data' => $analysisData,
+            ], JSON_UNESCAPED_UNICODE),
+            'next_action'      => $validated['future_strategy'] ?? null,
+            'next_action_date' => now()->addDays(14),
+            'status'           => 'Completed',
+        ]);
 
         return redirect()->back()->with('success', "Evaluasi & Lesson Learned untuk prospek '{$project->name}' berhasil disimpan.");
     }

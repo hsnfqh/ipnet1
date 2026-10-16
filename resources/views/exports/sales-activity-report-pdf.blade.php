@@ -237,13 +237,9 @@
         <tr>
             <td class="info-label">Tanggal Pelaksanaan</td>
             <td class="info-value">{{ \Carbon\Carbon::parse($activity->activity_date)->isoFormat('dddd, D MMMM Y') }}</td>
-            <td class="info-label">Waktu / Durasi Pertemuan</td>
-            <td class="info-value">
-                @if(!empty($payload['meeting_time_start']))
-                    {{ $payload['meeting_time_start'] }} @if(!empty($payload['meeting_time_end'])) s/d {{ $payload['meeting_time_end'] }} @endif WIB
-                @else
-                    {{ \Carbon\Carbon::parse($activity->activity_date)->format('H:i') }} WIB
-                @endif
+            <td class="info-label">Durasi Pelaksanaan</td>
+            <td class="info-value" style="font-weight: bold; color: #8F0A0D;">
+                {{ $payload['duration_days'] ?? (!empty($payload['meeting_time_start']) ? ($payload['meeting_time_start'] . ' WIB') : '1 Hari') }}{{ !empty($payload['duration_days']) ? ' Hari' : '' }}
             </td>
         </tr>
     </table>
