@@ -232,6 +232,8 @@
                     <span>Tandai Selesai</span>
                 </button>
             </div>
+        @endif
+
         @if(strtolower($project->sales_stage ?? '') === 'closed lost' || $project->status === 'Cancelled')
             <div class="pt-2 border-t border-[#F1F5F9]" onclick="event.stopPropagation();">
                 <a href="{{ route('projects.lost_analysis_pdf', $project->id) }}" target="_blank"
