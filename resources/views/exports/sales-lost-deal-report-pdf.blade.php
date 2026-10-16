@@ -340,6 +340,10 @@
         Disusun oleh: <strong>{{ $analysis['evaluated_by'] ?? ($project->sales_name ?: 'Sales Team') }}</strong> untuk keperluan evaluasi internal, continuous improvement strategi komersial, dan transfer pembelajaran tanpa memerlukan tanda tangan basah.
     </div>
 
+    <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #CBD5E1; font-size: 6.8pt; color: #475569; font-style: italic; line-height: 1.35;">
+        <strong>Catatan Dokumen Resmi:</strong> Dokumen evaluasi ini diterbitkan secara sah melalui Sistem Terintegrasi CRM &amp; Pipeline PT IP Network Solusindo. Berfungsi sebagai materi evaluasi retrospektif internal dan dasar continuous improvement strategi penjualan tanpa memerlukan tanda tangan basah.
+    </div>
+
 </div>
 </body>
 </html>

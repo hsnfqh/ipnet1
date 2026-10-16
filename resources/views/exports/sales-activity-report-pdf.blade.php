@@ -30,7 +30,7 @@
             border-collapse: collapse;
             border-bottom: 2px solid #8F0A0D;
             padding-bottom: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .doc-header-table td {
             border: none;
@@ -66,25 +66,25 @@
 
         /* ── Section Titles ── */
         .section-title {
-            font-size: 8.5pt;
+            font-size: 8.2pt;
             font-weight: bold;
             color: #0F172A;
             text-transform: uppercase;
-            margin-top: 10px;
-            margin-bottom: 5px;
+            margin-top: 9px;
+            margin-bottom: 4px;
             letter-spacing: 0.3px;
         }
 
-        /* ── Tabel Identitas ── */
+        /* ── Tabel Identitas & Data ── */
         .info-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             border: 1px solid #1E293B;
         }
         .info-table td {
-            font-size: 7.5pt;
-            padding: 4px 7px;
+            font-size: 7.2pt;
+            padding: 3.5px 6px;
             border: 1px solid #1E293B;
             vertical-align: middle;
         }
@@ -92,26 +92,26 @@
             background-color: #F8FAFC;
             font-weight: bold;
             color: #1E293B;
-            width: 18%;
+            width: 20%;
         }
         .info-value {
             color: #0F172A;
-            width: 32%;
+            width: 30%;
         }
 
-        /* ── Tabel Rincian Kronologis ── */
+        /* ── Tabel Data & List ── */
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             border: 1px solid #1E293B;
         }
         .data-table th {
             background-color: #EBF3FB;
             color: #0F172A;
             font-weight: bold;
-            font-size: 7.5pt;
-            padding: 5px 6px;
+            font-size: 7.2pt;
+            padding: 4px 5px;
             border: 1px solid #1E293B;
             text-align: left;
             text-transform: uppercase;
@@ -120,8 +120,8 @@
             text-align: center;
         }
         .data-table td {
-            font-size: 7.5pt;
-            padding: 5px 6px;
+            font-size: 7.2pt;
+            padding: 4px 5px;
             border: 1px solid #1E293B;
             vertical-align: top;
         }
@@ -134,11 +134,11 @@
             background-color: #FFFBEB;
             border: 1px solid #FCD34D;
             border-radius: 4px;
-            padding: 8px 10px;
-            margin-bottom: 12px;
+            padding: 6px 8px;
+            margin-bottom: 8px;
         }
         .action-box-title {
-            font-size: 8pt;
+            font-size: 7.8pt;
             font-weight: bold;
             color: #92400E;
             margin-bottom: 3px;
@@ -150,14 +150,24 @@
             background-color: #F8FAFC;
             border: 1px solid #CBD5E1;
             border-radius: 4px;
-            padding: 8px 10px;
-            margin-top: 15px;
-            font-size: 7pt;
+            padding: 6px 8px;
+            margin-top: 8px;
+            font-size: 6.8pt;
             color: #475569;
-            line-height: 1.4;
+            line-height: 1.35;
         }
         .verification-box strong {
             color: #0F172A;
+        }
+
+        .footer-disclaimer {
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px dashed #CBD5E1;
+            font-size: 6.8pt;
+            color: #475569;
+            font-style: italic;
+            line-height: 1.35;
         }
     </style>
 </head>
@@ -169,7 +179,7 @@
         <tr>
             <td style="width: 20%; vertical-align: top;">
                 @if(!empty($logoBase64))
-                    <img src="{{ $logoBase64 }}" alt="Logo IPNET" style="max-height: 42px; max-width: 140px;">
+                    <img src="{{ $logoBase64 }}" alt="Logo IPNET" style="max-height: 40px; max-width: 135px;">
                 @else
                     <span style="font-size: 14pt; font-weight: bold; color: #8F0A0D;">IP-NET</span>
                 @endif
@@ -187,55 +197,162 @@
         </tr>
     </table>
 
-    {{-- Section A: Identitas Prospek & Klien --}}
-    <div class="section-title">A. IDENTITAS PROSPEK &amp; PERTEMUAN</div>
-    <table class="info-table">
-        <tr>
-            <td class="info-label">Nama Prospek / Proyek</td>
-            <td class="info-value" style="font-weight: bold; color: #8F0A0D;">{{ $activity->project->name ?? '-' }}</td>
-            <td class="info-label">Tanggal Pelaksanaan</td>
-            <td class="info-value">{{ \Carbon\Carbon::parse($activity->activity_date)->isoFormat('dddd, D MMMM Y') }}</td>
-        </tr>
-        <tr>
-            <td class="info-label">Nama Klien / Customer</td>
-            <td class="info-value">{{ $activity->project->client ?? '-' }}</td>
-            <td class="info-label">Waktu Pelaksanaan</td>
-            <td class="info-value">{{ \Carbon\Carbon::parse($activity->activity_date)->format('H:i') }} WIB</td>
-        </tr>
-        <tr>
-            <td class="info-label">Sales Person (AE)</td>
-            <td class="info-value">{{ $activity->sales->name ?? 'Sales Team' }}</td>
-            <td class="info-label">Tipe Interaksi / Aktivitas</td>
-            <td class="info-value" style="font-weight: bold;">{{ $activity->activity_type }}</td>
-        </tr>
-        <tr>
-            <td class="info-label">Topik Utama / Subjek</td>
-            <td class="info-value" colspan="3" style="font-weight: bold;">{{ $activity->subject }}</td>
-        </tr>
-    </table>
-
-    {{-- Section B: Rincian Kronologis Agenda / Aktivitas --}}
-    <div class="section-title">B. RINCIAN KRONOLOGIS AGENDA &amp; AKTIVITAS</div>
     @php
+        $payload = [];
         $items = [];
+        $attendees = [];
         if (!empty($activity->notes) && is_string($activity->notes) && str_starts_with(trim($activity->notes), '{')) {
             $decoded = json_decode($activity->notes, true);
-            if (is_array($decoded) && isset($decoded['items'])) {
-                $items = $decoded['items'];
+            if (is_array($decoded)) {
+                $payload = $decoded;
+                $items = $decoded['items'] ?? [];
+                $attendees = $decoded['attendees'] ?? [];
             }
         }
     @endphp
 
+    {{-- Section A: Identitas Prospek & Pertemuan --}}
+    <div class="section-title">A. IDENTITAS PROSPEK &amp; PERTEMUAN</div>
+    <table class="info-table">
+        <tr>
+            <td class="info-label">Prospek / Proyek Tujuan</td>
+            <td class="info-value" style="font-weight: bold; color: #8F0A0D;">{{ $activity->project->name ?? '-' }}</td>
+            <td class="info-label">No. Dokumen / Laporan</td>
+            <td class="info-value" style="font-weight: bold; font-family: monospace; color: #8F0A0D;">
+                SLS-ACT/{{ date('Y') }}/{{ str_pad($activity->id, 4, '0', STR_PAD_LEFT) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">Judul / Topik Pertemuan</td>
+            <td class="info-value" style="font-weight: bold;">{{ $payload['title'] ?? $activity->subject }}</td>
+            <td class="info-label">Tipe Aktivitas / Agenda</td>
+            <td class="info-value" style="font-weight: bold;">{{ $activity->activity_type }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Sales Person (AE)</td>
+            <td class="info-value">{{ $activity->sales->name ?? 'Sales Team' }}</td>
+            <td class="info-label">Media / Lokasi Pertemuan</td>
+            <td class="info-value">{{ $payload['meeting_media'] ?? 'Onsite di Lokasi Klien' }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Tanggal Pelaksanaan</td>
+            <td class="info-value">{{ \Carbon\Carbon::parse($activity->activity_date)->isoFormat('dddd, D MMMM Y') }}</td>
+            <td class="info-label">Waktu / Durasi Pertemuan</td>
+            <td class="info-value">
+                @if(!empty($payload['meeting_time_start']))
+                    {{ $payload['meeting_time_start'] }} @if(!empty($payload['meeting_time_end'])) s/d {{ $payload['meeting_time_end'] }} @endif WIB
+                @else
+                    {{ \Carbon\Carbon::parse($activity->activity_date)->format('H:i') }} WIB
+                @endif
+            </td>
+        </tr>
+    </table>
+
+    {{-- Section B: Komposisi Peserta Pertemuan (Attendees) --}}
+    <div class="section-title">B. KOMPOSISI PESERTA PERTEMUAN (ATTENDEES)</div>
+    @if(!empty($attendees) && count($attendees) > 0)
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th class="center" style="width: 28px;">No</th>
+                    <th style="width: 100px;">Pihak</th>
+                    <th style="width: 140px;">Nama Peserta</th>
+                    <th style="width: 120px;">Jabatan / Peran</th>
+                    <th style="width: 100px;">Kontak / No. HP</th>
+                    <th>Keterangan</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($attendees as $attIdx => $att)
+                    @if(!empty($att['nama']) || !empty($att['jabatan']))
+                        <tr>
+                            <td class="center" style="font-weight: bold; color: #8F0A0D;">{{ $attIdx + 1 }}</td>
+                            <td><strong>{{ $att['pihak'] ?? 'Klien' }}</strong></td>
+                            <td style="font-weight: bold;">{{ $att['nama'] ?: '-' }}</td>
+                            <td>{{ $att['jabatan'] ?: '-' }}</td>
+                            <td>{{ $att['kontak'] ?: '-' }}</td>
+                            <td>{{ $att['keterangan'] ?: '-' }}</td>
+                        </tr>
+                    @endif
+                @endforeach
+            </tbody>
+        </table>
+        <div style="font-size: 6.8pt; color: #475569; margin-top: -4px; margin-bottom: 6px;">
+            Total peserta terdata: <strong>{{ count($attendees) }} orang</strong>
+        </div>
+    @else
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th class="center" style="width: 28px;">No</th>
+                    <th style="width: 100px;">Pihak</th>
+                    <th style="width: 160px;">Nama Peserta</th>
+                    <th style="width: 130px;">Jabatan / Peran</th>
+                    <th>Keterangan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="center" style="font-weight: bold; color: #8F0A0D;">1</td>
+                    <td>Internal IPNET</td>
+                    <td style="font-weight: bold;">{{ $activity->sales->name ?? 'Sales In Charge' }}</td>
+                    <td>Account Executive</td>
+                    <td>Sales Person In Charge</td>
+                </tr>
+                <tr>
+                    <td class="center" style="font-weight: bold; color: #8F0A0D;">2</td>
+                    <td>Klien / Customer</td>
+                    <td style="font-weight: bold;">{{ $activity->project->client ?? 'PIC Klien' }}</td>
+                    <td>Perwakilan Manajemen / PIC</td>
+                    <td>Customer Attendee</td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
+
+    {{-- Section C: Ruang Lingkup Kebutuhan & Estimasi Nilai --}}
+    @if(!empty($payload['scope_category']) || !empty($payload['scope_description']) || !empty($payload['estimated_budget']))
+        <div class="section-title">C. RUANG LINGKUP KEBUTUHAN &amp; ESTIMASI NILAI (OPPORTUNITY SCOPE)</div>
+        <table class="info-table">
+            <tr>
+                <td class="info-label">Kategori Kebutuhan</td>
+                <td class="info-value" colspan="3" style="font-weight: bold;">
+                    {{ $payload['scope_category'] ?? '-' }}
+                </td>
+            </tr>
+            @if(!empty($payload['scope_description']))
+                <tr>
+                    <td class="info-label" style="vertical-align: top;">Ringkasan Kebutuhan &amp; Spesifikasi</td>
+                    <td class="info-value" colspan="3" style="white-space: pre-line;">
+                        {{ $payload['scope_description'] }}
+                    </td>
+                </tr>
+            @endif
+            <tr>
+                <td class="info-label">Estimasi Budget Customer</td>
+                <td class="info-value" style="font-weight: bold; color: #8F0A0D;">
+                    {{ !empty($payload['estimated_budget']) ? 'Rp ' . number_format((float)$payload['estimated_budget'], 0, ',', '.') : 'Dalam Proses Estimasi' }}
+                </td>
+                <td class="info-label">Target Tender / PO</td>
+                <td class="info-value" style="font-weight: bold;">
+                    {{ $payload['tender_timeline'] ?? '-' }}
+                </td>
+            </tr>
+        </table>
+    @endif
+
+    {{-- Section D: Rincian Kronologis Agenda & Notulensi Pembahasan --}}
+    <div class="section-title">D. RINCIAN KRONOLOGIS AGENDA &amp; NOTULENSI PEMBAHASAN</div>
     @if(!empty($items) && count($items) > 0)
         <table class="data-table">
             <thead>
                 <tr>
-                    <th class="center" style="width: 32px;">No</th>
-                    <th style="width: 90px;">Waktu &amp; Tanggal</th>
-                    <th>Kronologis Agenda / Aktivitas</th>
-                    <th style="width: 100px;">PIC Klien</th>
-                    <th style="width: 100px;">PIC IPNET</th>
-                    <th style="width: 160px;">Catatan Aksi / Detail</th>
+                    <th class="center" style="width: 28px;">No</th>
+                    <th style="width: 80px;">Waktu &amp; Tanggal</th>
+                    <th>Kronologis Agenda / Pembahasan</th>
+                    <th style="width: 90px;">PIC Klien</th>
+                    <th style="width: 90px;">PIC IPNET</th>
+                    <th style="width: 140px;">Catatan Notulensi / Hasil</th>
                 </tr>
             </thead>
             <tbody>
@@ -244,7 +361,7 @@
                         <td class="center" style="font-weight: bold; color: #8F0A0D;">{{ $item['no'] ?? ($idx + 1) }}</td>
                         <td>
                             <strong>{{ $item['time'] ?: '-' }}</strong><br>
-                            <span style="color: #64748B; font-size: 7pt;">{{ $item['date'] ?: '-' }}</span>
+                            <span style="color: #64748B; font-size: 6.8pt;">{{ $item['date'] ?: '-' }}</span>
                         </td>
                         <td>
                             <strong>{{ $item['subject'] }}</strong>
@@ -260,11 +377,11 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th class="center" style="width: 32px;">No</th>
-                    <th style="width: 100px;">Waktu</th>
+                    <th class="center" style="width: 28px;">No</th>
+                    <th style="width: 90px;">Waktu</th>
                     <th>Deskripsi Pembahasan / Catatan Aktivitas</th>
-                    <th style="width: 120px;">PIC Klien</th>
-                    <th style="width: 120px;">PIC IPNET</th>
+                    <th style="width: 110px;">PIC Klien</th>
+                    <th style="width: 110px;">PIC IPNET</th>
                 </tr>
             </thead>
             <tbody>
@@ -279,28 +396,87 @@
         </table>
     @endif
 
-    {{-- Section C: Tindak Lanjut / Next Action Plan --}}
-    @if(!empty($activity->next_action))
-        <div class="action-box">
-            <div class="action-box-title">C. RENCANA TINDAK LANJUT BERIKUTNYA (NEXT ACTION PLAN)</div>
-            <table style="width: 100%; border-collapse: collapse; font-size: 7.5pt;">
+    {{-- Section E: Identifikasi Kendala, Kompetitor & Potensi Risiko --}}
+    @if(!empty($payload['competitors']) || !empty($payload['challenges']) || !empty($payload['win_probability']))
+        <div class="section-title">E. IDENTIFIKASI KENDALA, KOMPETITOR &amp; POTENSI RISIKO</div>
+        <table class="info-table">
+            <tr>
+                <td class="info-label">Kompetitor / Brand Pesaing</td>
+                <td class="info-value" colspan="3" style="font-weight: bold; color: #8F0A0D;">
+                    {{ $payload['competitors'] ?? '-' }}
+                </td>
+            </tr>
+            @if(!empty($payload['challenges']))
                 <tr>
-                    <td style="width: 75%; vertical-align: top; color: #1E293B;">
-                        <strong>Aksi / Komitmen:</strong> {{ $activity->next_action }}
-                    </td>
-                    <td style="width: 25%; vertical-align: top; text-align: right; color: #92400E; font-weight: bold;">
-                        Target Due Date: {{ $activity->next_action_date ? \Carbon\Carbon::parse($activity->next_action_date)->format('d M Y') : 'Segera' }}
+                    <td class="info-label" style="vertical-align: top;">Kendala / Isu Kritis Customer</td>
+                    <td class="info-value" colspan="3" style="white-space: pre-line;">
+                        {{ $payload['challenges'] }}
                     </td>
                 </tr>
-            </table>
-        </div>
+            @endif
+            <tr>
+                <td class="info-label">Estimasi Win Probability</td>
+                <td class="info-value" colspan="3" style="font-weight: bold; color: #059669;">
+                    {{ $payload['win_probability'] ?? ($activity->project->win_probability ?? 50) }}% 
+                    <span style="font-size: 6.8pt; color: #64748B; font-weight: normal;">(Tercatat otomatis pada CRM Pipeline)</span>
+                </td>
+            </tr>
+        </table>
     @endif
 
-    {{-- Catatan Verifikasi & Legalitas Internal (Tanpa tanda tangan fisik sesuai kebutuhan sales) --}}
-    <div class="verification-box">
-        <strong>PENGESAHAN DOKUMEN INTERNAL &amp; AUDIT TRAIL:</strong><br>
-        Dokumen ini dibuat dan divalidasi secara digital melalui <strong>Sistem CRM &amp; Pipeline PT IP Network Solusindo</strong> pada tanggal {{ now()->format('d/m/Y H:i:s') }} oleh <strong>{{ $activity->sales->name ?? 'Sales Team' }}</strong>.<br>
-        Berlaku sebagai bukti sah pencatatan histori aktivitas penjualan, notulensi koordinasi, dan agenda interaksi klien tanpa memerlukan tanda tangan basah.
+    {{-- Section F: Rencana Tindak Lanjut Berikutnya --}}
+    @if(!empty($activity->next_action) || !empty($payload['next_action_pic']))
+        <div class="section-title">F. RENCANA TINDAK LANJUT BERIKUTNYA (NEXT ACTION PLAN &amp; COMMITMENT)</div>
+        <table class="info-table">
+            <tr>
+                <td class="info-label">Komitmen / Aksi Berikutnya</td>
+                <td class="info-value" style="font-weight: bold; color: #0F172A;">
+                    {{ $activity->next_action ?: '-' }}
+                </td>
+                <td class="info-label">PIC Pelaksana</td>
+                <td class="info-value" style="font-weight: bold;">
+                    {{ $payload['next_action_pic'] ?? ($activity->sales->name ?? 'Sales Team') }}
+                </td>
+            </tr>
+            <tr>
+                <td class="info-label">Target Due Date</td>
+                <td class="info-value" colspan="3" style="font-weight: bold; color: #92400E;">
+                    {{ $activity->next_action_date ? \Carbon\Carbon::parse($activity->next_action_date)->isoFormat('dddd, D MMMM Y') : 'Segera' }}
+                </td>
+            </tr>
+        </table>
+    @endif
+
+    {{-- Section G: Lembar Pengesahan & Audit Trail Sistem --}}
+    <div class="section-title">G. LEMBAR PENGESAHAN &amp; AUDIT TRAIL SISTEM</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 32%;">Pihak Berwenang</th>
+                <th style="width: 30%;">Nama Personel</th>
+                <th class="center" style="width: 18%;">Tanggal Dibuat</th>
+                <th class="center" style="width: 20%;">Status Verifikasi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="font-weight: bold; background-color: #F8FAFC;">Account Executive / Sales Reporter</td>
+                <td style="font-weight: bold;">{{ $activity->sales->name ?? 'Sales Team' }}</td>
+                <td class="center">{{ \Carbon\Carbon::parse($activity->created_at ?? now())->format('d/m/Y') }}</td>
+                <td class="center" style="color: #059669; font-weight: bold;">Terverifikasi Digital</td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; background-color: #F8FAFC;">Commercial &amp; Sales Management</td>
+                <td>Head of Commercial / Sales Leader</td>
+                <td class="center">{{ \Carbon\Carbon::parse($activity->created_at ?? now())->format('d/m/Y') }}</td>
+                <td class="center" style="color: #1D4ED8; font-weight: bold;">Recorded in CRM</td>
+            </tr>
+        </tbody>
+    </table>
+
+    {{-- Catatan Footer Dokumen Resmi --}}
+    <div class="footer-disclaimer">
+        <strong>Catatan Dokumen Resmi:</strong> Dokumen ini diterbitkan secara sah melalui Sistem Terintegrasi CRM &amp; Pipeline PT IP Network Solusindo. Berfungsi sebagai bukti otentik notulensi koordinasi bisnis, berita acara pertemuan komersial, dan rujukan audit operasional sales tanpa memerlukan tanda tangan basah.
     </div>
 
 </div>

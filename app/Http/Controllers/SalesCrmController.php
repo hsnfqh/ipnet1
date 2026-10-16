@@ -751,13 +751,32 @@ class SalesCrmController extends Controller
             $finalSubject = "Kronologi Aktivitas: {$firstItem['subject']} (+ " . ($totalItems - 1) . " agenda lainnya)";
         }
 
-        // Susun payload JSON terstruktur
+        // Susun payload JSON terstruktur komprehensif (Format Resmi Laporan Sales)
         $payload = [
-            'type'        => 'kronologi_batch',
-            'title'       => $finalSubject,
-            'total_items' => $totalItems,
-            'items'       => $items,
+            'type'               => 'kronologi_batch',
+            'title'              => $finalSubject,
+            'meeting_media'      => $request->input('meeting_media', 'Onsite Klien'),
+            'meeting_time_start' => $request->input('meeting_time_start'),
+            'meeting_time_end'   => $request->input('meeting_time_end'),
+            'attendees'          => $request->input('attendees', []),
+            'scope_category'     => $request->input('scope_category'),
+            'scope_description'  => $request->input('scope_description'),
+            'estimated_budget'   => $request->input('estimated_budget'),
+            'tender_timeline'    => $request->input('tender_timeline'),
+            'competitors'        => $request->input('competitors'),
+            'challenges'         => $request->input('challenges'),
+            'win_probability'    => $request->input('win_probability'),
+            'next_action_pic'    => $request->input('next_action_pic'),
+            'total_items'        => $totalItems,
+            'items'              => $items,
         ];
+
+        // Update probability prospek jika diisi
+        if ($request->filled('win_probability')) {
+            Project::where('id', $projectId)->update([
+                'win_probability' => min(100, max(0, (int) $request->input('win_probability')))
+            ]);
+        }
 
         SalesActivity::create([
             'project_id'       => $projectId,

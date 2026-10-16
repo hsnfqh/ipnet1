@@ -540,14 +540,35 @@
                                                     </select>
                                                 </td>
                                             </tr>
-                                            <tr>
+                                            <tr class="border-b border-[#1E293B]">
                                                 <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Sales Person (AE)</td>
                                                 <td class="py-1 px-2.5 border-r border-[#1E293B] font-semibold text-xs text-[#0F172A]">
                                                     <span x-text="selectedProjectData?.sales_name || '{{ auth()->user()->name }}'"></span>
                                                 </td>
-                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tanggal Dokumen</td>
-                                                <td class="py-1 px-2.5 font-semibold text-xs text-slate-700">
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Media / Lokasi Pertemuan</td>
+                                                <td class="py-1 px-2">
+                                                    <select name="meeting_media" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
+                                                        <option value="Onsite di Lokasi Klien">Onsite di Lokasi Klien / Customer Office</option>
+                                                        <option value="Kantor IP Network Solusindo">Kantor IP Network Solusindo</option>
+                                                        <option value="Virtual Video Conference (Zoom / Google Meet)">Virtual Video Conference (Zoom / Google Meet)</option>
+                                                        <option value="Phone Call / WhatsApp Coordination">Phone Call / WhatsApp Coordination</option>
+                                                        <option value="Business Lunch / Dinning">Business Lunch / Dinning</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tanggal Pelaksanaan</td>
+                                                <td class="py-1 px-2.5 border-r border-[#1E293B] font-semibold text-xs text-slate-700">
                                                     {{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}
+                                                </td>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Waktu / Durasi Pertemuan</td>
+                                                <td class="py-1 px-2">
+                                                    <div class="flex items-center gap-1.5 text-xs">
+                                                        <input type="time" name="meeting_time_start" value="{{ date('H:i') }}" class="p-1 border border-gray-200 rounded text-xs">
+                                                        <span>s/d</span>
+                                                        <input type="time" name="meeting_time_end" class="p-1 border border-gray-200 rounded text-xs">
+                                                        <span class="text-slate-500 font-semibold">WIB</span>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -555,11 +576,119 @@
                                 </div>
                             </div>
 
-                            {{-- B. RINCIAN KRONOLOGIS AGENDA & AKTIVITAS --}}
+                            {{-- B. KOMPOSISI PESERTA PERTEMUAN (ATTENDEES) --}}
                             <div class="space-y-1.5">
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
-                                        B. RINCIAN KRONOLOGIS AGENDA &amp; AKTIVITAS
+                                        B. KOMPOSISI PESERTA PERTEMUAN (ATTENDEES)
+                                    </h3>
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" @click="addAttendeeRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                            <span>+ Tambah Peserta</span>
+                                        </button>
+                                        <button type="button" @click="removeAttendeeRow()" x-show="attendees.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                            <span>- Hapus Peserta</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B]">
+                                        <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
+                                            <tr>
+                                                <th class="py-1.5 px-2 w-10 text-center border-r border-[#1E293B]">No.</th>
+                                                <th class="py-1.5 px-2 w-32 border-r border-[#1E293B] text-left">Pihak</th>
+                                                <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Nama Peserta</th>
+                                                <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Jabatan / Peran</th>
+                                                <th class="py-1.5 px-2 w-1/5 border-r border-[#1E293B] text-left">Kontak / No. HP</th>
+                                                <th class="py-1.5 px-2 text-left">Keterangan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(att, attIdx) in attendees" :key="attIdx">
+                                                <tr class="border-b border-[#1E293B]">
+                                                    <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="attIdx + 1"></td>
+                                                    <td class="p-1 border-r border-[#1E293B]">
+                                                        <select :name="'attendees[' + attIdx + '][pihak]'" x-model="att.pihak" class="w-full p-1 text-xs border-0 bg-transparent font-semibold cursor-pointer">
+                                                            <option value="Internal IPNET">Internal IPNET</option>
+                                                            <option value="Klien">Klien / Customer</option>
+                                                            <option value="Partner / Principal">Partner / Principal</option>
+                                                        </select>
+                                                    </td>
+                                                    <td class="p-1 border-r border-[#1E293B]">
+                                                        <input type="text" :name="'attendees[' + attIdx + '][nama]'" x-model="att.nama" placeholder="Nama Peserta" class="w-full p-1 text-xs border-0 bg-transparent font-semibold">
+                                                    </td>
+                                                    <td class="p-1 border-r border-[#1E293B]">
+                                                        <input type="text" :name="'attendees[' + attIdx + '][jabatan]'" x-model="att.jabatan" placeholder="Jabatan / Peran" class="w-full p-1 text-xs border-0 bg-transparent">
+                                                    </td>
+                                                    <td class="p-1 border-r border-[#1E293B]">
+                                                        <input type="text" :name="'attendees[' + attIdx + '][kontak]'" x-model="att.kontak" placeholder="No. HP / Email" class="w-full p-1 text-xs border-0 bg-transparent">
+                                                    </td>
+                                                    <td class="p-1">
+                                                        <input type="text" :name="'attendees[' + attIdx + '][keterangan]'" x-model="att.keterangan" placeholder="Keterangan kehadiran..." class="w-full p-1 text-xs border-0 bg-transparent">
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="text-[11.5px] font-semibold text-[#334155] pt-0.5">
+                                    Total peserta pertemuan: <u>&nbsp;&nbsp;<strong x-text="attendees.length"></strong>&nbsp;&nbsp;</u> orang
+                                </div>
+                            </div>
+
+                            {{-- C. RUANG LINGKUP KEBUTUHAN & ESTIMASI NILAI (OPPORTUNITY SCOPE) --}}
+                            <div class="space-y-1.5">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
+                                    C. RUANG LINGKUP KEBUTUHAN &amp; ESTIMASI NILAI (OPPORTUNITY SCOPE)
+                                </h3>
+                                <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B]">
+                                        <tbody>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Kategori Kebutuhan Prospek</td>
+                                                <td class="w-3/4 p-1">
+                                                    <select name="scope_category" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-semibold text-xs cursor-pointer">
+                                                        <option value="Hardware & Perangkat Jaringan (Switch/Router/Firewall/Server)">Hardware &amp; Perangkat Jaringan (Switch/Router/Firewall/Server)</option>
+                                                        <option value="Software, License & Cloud Subscription">Software, License &amp; Cloud Subscription</option>
+                                                        <option value="Managed Service & SLA Operasional">Managed Service &amp; SLA Operasional</option>
+                                                        <option value="Maintenance & Preventive Support">Maintenance &amp; Preventive Support</option>
+                                                        <option value="Infrastruktur Kabel & Passive Network">Infrastruktur Kabel &amp; Passive Network</option>
+                                                        <option value="Cyber Security & Perimeter Defense">Cyber Security &amp; Perimeter Defense</option>
+                                                        <option value="Custom IT Solution & Integration">Custom IT Solution &amp; Integration</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-top">Ringkasan Kebutuhan &amp; Spesifikasi</td>
+                                                <td class="p-1">
+                                                    <textarea name="scope_description" rows="2" placeholder="Rangkuman spesifikasi teknis atau ruang lingkup pekerjaan yang diminta customer..." class="w-full p-1 text-xs border-0 bg-transparent resize-none focus:ring-1 focus:ring-[#8F0A0D]"></textarea>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Estimasi Budget &amp; Target Timeline</td>
+                                                <td class="p-1">
+                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                        <div class="flex items-center gap-1.5">
+                                                            <span class="text-slate-500 font-bold shrink-0">Budget:</span>
+                                                            <input type="number" name="estimated_budget" placeholder="Estimasi IDR..." class="w-full p-1 text-xs border border-gray-200 rounded font-semibold text-[#8F0A0D]">
+                                                        </div>
+                                                        <div class="flex items-center gap-1.5">
+                                                            <span class="text-slate-500 font-bold shrink-0">Target Tender/PO:</span>
+                                                            <input type="text" name="tender_timeline" placeholder="Contoh: Q4 2026 / Bulan Depan" class="w-full p-1 text-xs border border-gray-200 rounded font-medium">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- D. RINCIAN KRONOLOGIS AGENDA & NOTULENSI PEMBAHASAN --}}
+                            <div class="space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
+                                        D. RINCIAN KRONOLOGIS AGENDA &amp; NOTULENSI PEMBAHASAN
                                     </h3>
                                     <div class="flex items-center gap-3">
                                         <button type="button" @click="addBulkRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
@@ -580,7 +709,7 @@
                                                 <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-center">Waktu (Jam)</th>
                                                 <th class="py-1.5 px-2 w-36 border-r border-[#1E293B] text-left">PIC Klien</th>
                                                 <th class="py-1.5 px-2 w-36 border-r border-[#1E293B] text-left">PIC IPNET</th>
-                                                <th class="py-1.5 px-2 min-w-[200px] border-r border-[#1E293B] text-left">Catatan Aksi / Detail</th>
+                                                <th class="py-1.5 px-2 min-w-[200px] border-r border-[#1E293B] text-left">Catatan Aksi / Detail Notulensi</th>
                                                 <th class="py-1.5 px-1 w-12 text-center">Aksi</th>
                                             </tr>
                                         </thead>
@@ -625,7 +754,7 @@
                                                         <textarea :name="'activities[' + index + '][notes]'" 
                                                                   x-model="row.notes" 
                                                                   rows="2" 
-                                                                  placeholder="Rangkuman hasil diskusi, durasi, dll..."
+                                                                  placeholder="Rangkuman hasil diskusi, durasi, kesepakatan notulensi..."
                                                                   class="w-full p-1 text-xs border-0 bg-transparent resize-none focus:ring-1 focus:ring-[#8F0A0D]"></textarea>
                                                     </td>
                                                     <td class="p-1 text-center">
@@ -646,10 +775,43 @@
                                 </div>
                             </div>
 
-                            {{-- C. RENCANA TINDAK LANJUT BERIKUTNYA --}}
+                            {{-- E. IDENTIFIKASI KENDALA, KOMPETITOR & POTENSI RISIKO --}}
                             <div class="space-y-1.5">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
-                                    C. RENCANA TINDAK LANJUT BERIKUTNYA (NEXT ACTION PLAN)
+                                    E. IDENTIFIKASI KENDALA, KOMPETITOR &amp; POTENSI RISIKO
+                                </h3>
+                                <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B]">
+                                        <tbody>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Kompetitor / Brand Pesaing</td>
+                                                <td class="w-3/4 p-1">
+                                                    <input type="text" name="competitors" placeholder="Nama kompetitor atau brand alternatif yang dipertimbangkan customer..." class="w-full p-1 text-xs border-0 bg-transparent">
+                                                </td>
+                                            </tr>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-top">Kendala / Isu Kritis Customer</td>
+                                                <td class="p-1">
+                                                    <textarea name="challenges" rows="2" placeholder="Tantangan procurement, batasan regulasi, atau masalah teknis customer..." class="w-full p-1 text-xs border-0 bg-transparent resize-none"></textarea>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Estimasi Win Probability Saat Ini</td>
+                                                <td class="p-1 flex items-center gap-2">
+                                                    <input type="number" min="0" max="100" name="win_probability" :value="selectedProjectData?.win_probability || 50" class="w-20 p-1 text-xs border border-gray-300 rounded font-bold text-center text-[#8F0A0D]">
+                                                    <span class="font-bold text-xs">%</span>
+                                                    <span class="text-[11px] text-slate-500 italic">(Otomatis memperbarui probabilitas kemenangan pada CRM Pipeline)</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- F. RENCANA TINDAK LANJUT BERIKUTNYA --}}
+                            <div class="space-y-1.5">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
+                                    F. RENCANA TINDAK LANJUT BERIKUTNYA (NEXT ACTION PLAN &amp; COMMITMENT)
                                 </h3>
                                 <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                     <table class="w-full border-collapse border border-[#1E293B]">
@@ -658,14 +820,20 @@
                                                 <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
                                                     Komitmen / Aksi Berikutnya
                                                 </td>
-                                                <td class="w-3/5 p-1 border-r border-[#1E293B]">
-                                                    <input type="text" name="next_action" placeholder="Contoh: Mengirimkan surat penawaran harga (SPH) revisi dan spesifikasi teknis" 
+                                                <td class="w-2/5 p-1 border-r border-[#1E293B]">
+                                                    <input type="text" name="next_action" placeholder="Contoh: Mengirimkan surat penawaran harga (SPH) revisi dan BoQ teknis" 
                                                            class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold text-[#0F172A]">
                                                 </td>
-                                                <td class="w-1/10 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B] text-center">
-                                                    Target Selesai
+                                                <td class="w-1/6 py-1.5 px-2 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
+                                                    PIC Pelaksana
                                                 </td>
-                                                <td class="w-1/10 p-1">
+                                                <td class="w-1/6 p-1 border-r border-[#1E293B]">
+                                                    <input type="text" name="next_action_pic" :value="selectedProjectData?.sales_name || '{{ auth()->user()->name }}'" placeholder="PIC Aksi" class="w-full p-1 text-xs border-0 bg-transparent font-medium">
+                                                </td>
+                                                <td class="w-1/12 py-1.5 px-2 font-bold bg-[#F8FAFC] border-r border-[#1E293B] text-center">
+                                                    Target
+                                                </td>
+                                                <td class="w-1/6 p-1">
                                                     <input type="date" name="next_action_date" 
                                                            class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
                                                 </td>
@@ -673,6 +841,53 @@
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+
+                            {{-- G. LEMBAR PENGESAHAN & AUDIT TRAIL SISTEM --}}
+                            <div class="space-y-1.5">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
+                                    G. LEMBAR PENGESAHAN &amp; AUDIT TRAIL SISTEM
+                                </h3>
+                                <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B]">
+                                        <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
+                                            <tr>
+                                                <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Pihak Berwenang</th>
+                                                <th class="py-1.5 px-3 w-1/3 border-r border-[#1E293B] text-left">Nama Personel</th>
+                                                <th class="py-1.5 px-3 w-1/5 border-r border-[#1E293B] text-center">Tanggal Dibuat</th>
+                                                <th class="py-1.5 px-3 w-1/4 text-center">Status Verifikasi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Account Executive / Sales Reporter</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] font-semibold text-[#0F172A]">{{ auth()->user()->name }}</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center">{{ date('d/m/Y') }}</td>
+                                                <td class="p-1 text-center">
+                                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                        <span>Terverifikasi Digital</span>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Commercial &amp; Sales Management</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] text-slate-600 font-medium">Head of Commercial / Sales Leader</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center">{{ date('d/m/Y') }}</td>
+                                                <td class="p-1 text-center">
+                                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                                                        <span>Recorded in CRM Pipeline</span>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Catatan Footer Resmi Dokumen --}}
+                            <div class="pt-2 text-[10.5px] text-[#475569] italic border-t border-dashed border-[#CBD5E1]">
+                                <p><strong>Catatan Dokumen Resmi:</strong> Dokumen ini diterbitkan secara sah melalui Sistem Terintegrasi CRM &amp; Pipeline PT IP Network Solusindo. Berfungsi sebagai bukti otentik notulensi koordinasi bisnis, berita acara pertemuan komersial, dan rujukan audit operasional sales tanpa memerlukan tanda tangan basah.</p>
                             </div>
 
                         </div>
@@ -834,6 +1049,52 @@
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+
+                            {{-- E. LEMBAR PENGESAHAN & REVIEW MANAGEMENT --}}
+                            <div class="space-y-1.5">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
+                                    E. LEMBAR PENGESAHAN &amp; AUDIT TRAIL REVIEW
+                                </h3>
+                                <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B]">
+                                        <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
+                                            <tr>
+                                                <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Pihak Evaluator</th>
+                                                <th class="py-1.5 px-3 w-1/3 border-r border-[#1E293B] text-left">Nama Personel</th>
+                                                <th class="py-1.5 px-3 w-1/5 border-r border-[#1E293B] text-center">Tanggal Evaluasi</th>
+                                                <th class="py-1.5 px-3 w-1/4 text-center">Status Audit</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Account Executive / Sales In Charge</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] font-semibold text-[#0F172A]">{{ auth()->user()->name }}</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center">{{ date('d/m/Y') }}</td>
+                                                <td class="p-1 text-center">
+                                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                                                        <span>Evaluated &amp; Logged</span>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Commercial &amp; Management Review</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] text-slate-600 font-medium">Commercial Director / Sales Leader</td>
+                                                <td class="p-1 px-2 border-r border-[#1E293B] text-center">{{ date('d/m/Y') }}</td>
+                                                <td class="p-1 text-center">
+                                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                                                        <span>Recorded in Intelligence</span>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Catatan Footer Resmi Dokumen --}}
+                            <div class="pt-2 text-[10.5px] text-[#475569] italic border-t border-dashed border-[#CBD5E1]">
+                                <p><strong>Catatan Dokumen Resmi:</strong> Dokumen Lesson Learned ini diterbitkan sebagai laporan evaluasi resmi komersial PT IP Network Solusindo untuk keperluan review manajemen, mitigasi risiko deal serupa, dan peningkatan win-rate tim penjualan di masa mendatang tanpa memerlukan tanda tangan basah.</p>
                             </div>
 
                         </div>
@@ -1127,6 +1388,22 @@
                 }
             },
             bulkDefaultType: 'Troubleshooting',
+            attendees: [
+                { pihak: 'Internal IPNET', nama: '{{ auth()->user()->name }}', jabatan: 'Account Executive', kontak: '', keterangan: 'Sales In Charge' },
+                { pihak: 'Klien', nama: '', jabatan: 'PIC Customer', kontak: '', keterangan: 'Perwakilan Klien' }
+            ],
+            addAttendeeRow() {
+                this.attendees.push({ pihak: 'Klien', nama: '', jabatan: '', kontak: '', keterangan: '' });
+            },
+            removeAttendeeRow(idx) {
+                if (this.attendees.length > 1) {
+                    if (typeof idx === 'number') {
+                        this.attendees.splice(idx, 1);
+                    } else {
+                        this.attendees.pop();
+                    }
+                }
+            },
             bulkRows: [
                 { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
                 { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
