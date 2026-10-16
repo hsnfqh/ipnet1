@@ -437,126 +437,463 @@
              x-cloak 
              class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
              @click.self="isDetailModalOpen = false">
-            <div class="bg-white rounded-2xl max-w-5xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden anim-fade-up">
+            <div class="bg-white rounded-2xl max-w-5xl w-full shadow-2xl border border-[#CBD5E1] max-h-[94vh] flex flex-col overflow-hidden anim-fade-up">
                 
-                {{-- Header --}}
-                <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
-                    <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">DETAIL KRONOLOGIS CRM</span>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200"
-                                  x-text="(selectedDetail?.batch?.items?.length || 0) + ' Rangkaian Agenda'"></span>
-                        </div>
-                        <h3 class="text-[17px] font-bold text-[#1E293B]" x-text="selectedDetail?.activity?.subject || 'Detail Aktivitas'"></h3>
+                {{-- Modal Header Bar --}}
+                <div class="flex items-center justify-between border-b border-[#E2E8F0] px-5 sm:px-6 py-3.5 shrink-0 bg-white">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider"
+                              x-text="(selectedDetail?.activity?.activity_type === 'Lesson Learned' || selectedDetail?.batch?.primary_factor) ? 'FORM EVALUASI & LESSON LEARNED PROSPEK' : 'FORM LAPORAN AKTIVITAS SALES'"></span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200"
+                              x-text="(selectedDetail?.batch?.items?.length || 1) + ' Agenda'"></span>
                     </div>
-                    <button type="button" @click="isDetailModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-
-                {{-- Meta Info Bar --}}
-                <div class="px-5 sm:px-6 py-3 bg-[#F8FAFC] border-b border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
-                    <div class="flex items-center gap-4 flex-wrap">
-                        <div>
-                            <span class="text-gray-400 font-medium">Prospek / Proyek:</span>
-                            <strong class="text-gray-800 ml-1" x-text="selectedDetail?.activity?.project?.name || '-'"></strong>
-                        </div>
-                        <span class="text-gray-300">•</span>
-                        <div>
-                            <span class="text-gray-400 font-medium">Klien:</span>
-                            <strong class="text-gray-800 ml-1" x-text="selectedDetail?.activity?.project?.client || '-'"></strong>
-                        </div>
-                        <span class="text-gray-300">•</span>
-                        <div>
-                            <span class="text-gray-400 font-medium">Tipe:</span>
-                            <span class="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-gray-800 font-bold ml-1" x-text="selectedDetail?.activity?.activity_type || 'Troubleshooting'"></span>
-                        </div>
-                    </div>
-                    <div class="text-gray-500 text-[11px]">
-                        Dicatat oleh: <strong class="text-gray-800" x-text="selectedDetail?.activity?.sales?.name || 'Sales'"></strong>
+                    <div class="flex items-center gap-2">
+                        <a :href="'/sales/activities/' + (selectedDetail?.activity?.id || '') + '/pdf'" 
+                           target="_blank"
+                           class="px-3.5 py-1.5 text-xs font-bold text-[#8F0A0D] bg-white hover:bg-red-50 border border-red-200 rounded-lg transition cursor-pointer shadow-xs inline-flex items-center gap-1.5 no-underline">
+                            <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Download PDF</span>
+                        </a>
+                        <button type="button" @click="isDetailModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer" title="Tutup">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
                     </div>
                 </div>
 
-                {{-- Table Content Body --}}
-                <div class="flex-1 overflow-y-auto overflow-x-auto p-5 sm:p-6 bg-white">
-                    <table class="w-full border-collapse rounded-xl border border-[#E2E8F0] text-left text-xs min-w-[750px]">
-                        <thead class="bg-[#F8FAFC] text-[#475569] font-bold uppercase text-[10.5px] tracking-wider border-b border-[#E2E8F0]">
-                            <tr>
-                                <th class="py-3 px-3.5 w-12 text-center">No</th>
-                                <th class="py-3 px-3.5 w-36">Waktu &amp; Tanggal</th>
-                                <th class="py-3 px-3.5 min-w-[220px]">Kronologis Agenda / Aktivitas</th>
-                                <th class="py-3 px-3.5 w-36">PIC Klien</th>
-                                <th class="py-3 px-3.5 w-36">PIC IPNET</th>
-                                <th class="py-3 px-3.5 min-w-[200px]">Catatan Aksi / Detail</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-[#E2E8F0]">
-                            <template x-for="(item, idx) in (selectedDetail?.batch?.items || [])" :key="idx">
-                                <tr class="hover:bg-[#F8FAFC]/80 transition-colors">
-                                    <td class="py-3 px-3.5 text-center font-bold text-[#8F0A0D]" x-text="item.no || (idx + 1)"></td>
-                                    <td class="py-3 px-3.5 whitespace-nowrap">
-                                        <div class="font-bold text-[#1E293B]" x-text="item.time || '-'"></div>
-                                        <div class="text-[11px] text-gray-500 font-medium" x-text="item.date || '-'"></div>
-                                    </td>
-                                    <td class="py-3 px-3.5">
-                                        <p class="font-bold text-[#1E293B] leading-relaxed" x-text="item.subject || '-'"></p>
-                                    </td>
-                                    <td class="py-3 px-3.5">
-                                        <span class="inline-block px-2.5 py-1 bg-[#F1F5F9] text-[#334155] rounded-md font-semibold text-[11px]" x-text="item.client_pic || '-'"></span>
-                                    </td>
-                                    <td class="py-3 px-3.5">
-                                        <span class="inline-block px-2.5 py-1 bg-red-50 text-[#8F0A0D] border border-red-100 rounded-md font-semibold text-[11px]" x-text="item.ipnet_pic || '-'"></span>
-                                    </td>
-                                    <td class="py-3 px-3.5">
-                                        <p class="text-gray-700 whitespace-pre-line leading-relaxed font-medium" x-text="item.notes || '-'"></p>
-                                    </td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
+                {{-- Scrollable Canvas Container (Identik Persis Engineer Paper Form) --}}
+                <div class="flex-1 overflow-y-auto px-4 pt-4 pb-8 sm:px-6 sm:pt-6 sm:pb-8 bg-[#F1F5F9]/80">
 
-                    {{-- Lembar Pengesahan & Verifikasi (Tanda Tangan) di Modal Detail --}}
-                    <div class="mt-5 space-y-2">
-                        <h4 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
-                            LEMBAR PENGESAHAN &amp; VERIFIKASI RESMI (TANDA TANGAN)
-                        </h4>
-                        <div class="border border-[#CBD5E1] rounded-xl overflow-hidden text-xs">
-                            <table class="w-full border-collapse">
-                                <thead class="bg-[#F8FAFC] font-bold text-[#0F172A] border-b border-[#CBD5E1]">
-                                    <tr>
-                                        <th class="py-2 px-3 w-1/4 border-r border-[#CBD5E1] text-left">Pihak</th>
-                                        <th class="py-2 px-3 w-1/4 border-r border-[#CBD5E1] text-left">Nama</th>
-                                        <th class="py-2 px-3 w-1/6 border-r border-[#CBD5E1] text-center">Tanggal</th>
-                                        <th class="py-2 px-3 w-1/3 text-center">Tanda Tangan</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-[#CBD5E1]">
-                                    <tr>
-                                        <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#CBD5E1] align-middle">Account Executive (Sales)</td>
-                                        <td class="p-2 border-r border-[#CBD5E1] font-bold text-[#0F172A] align-middle" x-text="selectedDetail?.activity?.sales?.name || '{{ auth()->user()->name }}'"></td>
-                                        <td class="p-2 border-r border-[#CBD5E1] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
-                                        <td class="h-14 p-2 text-center align-middle bg-white"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#CBD5E1] align-middle">Division Head / Atasan Sales</td>
-                                        <td class="p-2 border-r border-[#CBD5E1] font-bold text-[#0F172A] align-middle">Susanto Djaya</td>
-                                        <td class="p-2 border-r border-[#CBD5E1] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
-                                        <td class="h-14 p-2 text-center align-middle bg-white"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#CBD5E1] align-middle">Customer / PIC Klien</td>
-                                        <td class="p-2 border-r border-[#CBD5E1] font-semibold text-slate-700 align-middle" x-text="selectedDetail?.activity?.project?.client || 'PIC Customer Representative'"></td>
-                                        <td class="p-2 border-r border-[#CBD5E1] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
-                                        <td class="h-14 p-2 text-center align-middle bg-white"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    {{-- ── KANVAS LEMBAR KERTAS: FORM LAPORAN AKTIVITAS SALES ── --}}
+                    <div x-show="selectedDetail?.activity?.activity_type !== 'Lesson Learned' && !selectedDetail?.batch?.primary_factor"
+                         class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans max-w-4xl mx-auto">
+                        
+                        {{-- Kop Surat Resmi Standar Engineer --}}
+                        <div class="border-b-2 border-[#8F0A0D] pb-3 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
+                                <div>
+                                    <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
+                                        FORM LAPORAN AKTIVITAS SALES
+                                    </h2>
+                                    <p class="text-[11px] text-[#475569] mt-0.5">
+                                        Dokumen ini digunakan sebagai laporan aktivitas sales, notulensi koordinasi dengan klien, dan bukti pelaksanaan agenda bisnis.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                    Dokumen Resmi
+                                </span>
+                            </div>
                         </div>
+
+                        {{-- A. IDENTITAS PROSPEK & PERTEMUAN --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS PROSPEK &amp; PERTEMUAN</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <tbody>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Prospek / Proyek Tujuan</td>
+                                            <td class="w-3/10 py-1.5 px-2.5 border-r border-[#1E293B] font-bold text-[#8F0A0D]" x-text="selectedDetail?.activity?.project?.name || '-'"></td>
+                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">No. Dokumen / Laporan</td>
+                                            <td class="w-3/10 py-1.5 px-2.5 font-mono font-bold text-[#8F0A0D]" x-text="'SLS-ACT/' + new Date().getFullYear() + '/' + String(selectedDetail?.activity?.id || 1).padStart(4, '0')"></td>
+                                        </tr>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Judul / Topik Pertemuan</td>
+                                            <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-semibold text-[#0F172A]" x-text="selectedDetail?.batch?.title || selectedDetail?.activity?.subject || '-'"></td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tipe Aktivitas / Agenda</td>
+                                            <td class="py-1.5 px-2.5 font-semibold text-[#0F172A]" x-text="selectedDetail?.activity?.activity_type || 'Meeting'"></td>
+                                        </tr>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Sales Person (AE)</td>
+                                            <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-semibold text-[#0F172A]" x-text="selectedDetail?.activity?.sales?.name || 'Sales Team'"></td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Media / Lokasi Pertemuan</td>
+                                            <td class="py-1.5 px-2.5" x-text="selectedDetail?.batch?.meeting_media || 'Onsite di Lokasi Klien'"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tanggal Pelaksanaan</td>
+                                            <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-semibold text-slate-700" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '-'"></td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Durasi Pelaksanaan</td>
+                                            <td class="py-1.5 px-2.5 font-bold text-[#8F0A0D]" x-text="(selectedDetail?.batch?.duration_days ? selectedDetail.batch.duration_days + ' Hari' : '1 Hari')"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- B. KOMPOSISI PESERTA PERTEMUAN (ATTENDEES) --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. KOMPOSISI PESERTA PERTEMUAN (ATTENDEES)</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <thead class="bg-[#EBF3FB] text-[#0F172A] font-bold uppercase text-[10.5px]">
+                                        <tr>
+                                            <th class="py-1.5 px-2 border-r border-b border-[#1E293B] w-8 text-center">No</th>
+                                            <th class="py-1.5 px-2.5 border-r border-b border-[#1E293B] w-28 text-left">Pihak</th>
+                                            <th class="py-1.5 px-2.5 border-r border-b border-[#1E293B] text-left">Nama Peserta</th>
+                                            <th class="py-1.5 px-2.5 border-r border-b border-[#1E293B] text-left">Jabatan / Peran</th>
+                                            <th class="py-1.5 px-2.5 border-r border-b border-[#1E293B] text-left">Kontak / No. HP</th>
+                                            <th class="py-1.5 px-2.5 border-b border-[#1E293B] text-left">Keterangan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-[#1E293B]">
+                                        <template x-if="selectedDetail?.batch?.attendees && selectedDetail.batch.attendees.length > 0">
+                                            <template x-for="(att, aIdx) in selectedDetail.batch.attendees" :key="aIdx">
+                                                <tr>
+                                                    <td class="py-1.5 px-2 border-r border-[#1E293B] text-center font-bold text-[#8F0A0D]" x-text="aIdx + 1"></td>
+                                                    <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold" x-text="att.pihak || 'Klien'"></td>
+                                                    <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold" x-text="att.nama || '-'"></td>
+                                                    <td class="py-1.5 px-2.5 border-r border-[#1E293B]" x-text="att.jabatan || '-'"></td>
+                                                    <td class="py-1.5 px-2.5 border-r border-[#1E293B]" x-text="att.kontak || '-'"></td>
+                                                    <td class="py-1.5 px-2.5" x-text="att.keterangan || '-'"></td>
+                                                </tr>
+                                            </template>
+                                        </template>
+                                        <template x-if="!selectedDetail?.batch?.attendees || selectedDetail.batch.attendees.length === 0">
+                                            <tr>
+                                                <td class="py-1.5 px-2 border-r border-[#1E293B] text-center font-bold text-[#8F0A0D]">1</td>
+                                                <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold">Internal IPNET</td>
+                                                <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold" x-text="selectedDetail?.activity?.sales?.name || 'Sales In Charge'"></td>
+                                                <td class="py-1.5 px-2.5 border-r border-[#1E293B]">Account Executive</td>
+                                                <td class="py-1.5 px-2.5 border-r border-[#1E293B]">-</td>
+                                                <td class="py-1.5 px-2.5">Sales Person In Charge</td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- C. RUANG LINGKUP KEBUTUHAN & ESTIMASI NILAI (OPPORTUNITY SCOPE) --}}
+                        <div x-show="selectedDetail?.batch?.scope_category || selectedDetail?.batch?.scope_description || selectedDetail?.batch?.estimated_budget" class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. RUANG LINGKUP KEBUTUHAN &amp; ESTIMASI NILAI (OPPORTUNITY SCOPE)</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <tbody>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Kategori Kebutuhan</td>
+                                            <td class="py-1.5 px-2.5 font-bold text-[#0F172A]" colspan="3" x-text="selectedDetail?.batch?.scope_category || '-'"></td>
+                                        </tr>
+                                        <tr x-show="selectedDetail?.batch?.scope_description" class="border-b border-[#1E293B]">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-top">Ringkasan Kebutuhan</td>
+                                            <td class="py-1.5 px-2.5 whitespace-pre-line text-[#0F172A]" colspan="3" x-text="selectedDetail?.batch?.scope_description || '-'"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Estimasi Budget Customer</td>
+                                            <td class="w-3/10 py-1.5 px-2.5 border-r border-[#1E293B] font-bold text-[#8F0A0D]" x-text="selectedDetail?.batch?.estimated_budget ? 'Rp ' + Number(selectedDetail.batch.estimated_budget).toLocaleString('id-ID') : 'Dalam Proses Estimasi'"></td>
+                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Target Tender / PO</td>
+                                            <td class="w-3/10 py-1.5 px-2.5 font-semibold" x-text="selectedDetail?.batch?.tender_timeline || '-'"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- D. RINCIAN KRONOLOGIS AGENDA & NOTULENSI PEMBAHASAN --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. RINCIAN KRONOLOGIS AGENDA &amp; NOTULENSI PEMBAHASAN</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <thead class="bg-[#EBF3FB] text-[#0F172A] font-bold uppercase text-[10.5px]">
+                                        <tr>
+                                            <th class="py-1.5 px-2 border-r border-b border-[#1E293B] w-8 text-center">No</th>
+                                            <th class="py-1.5 px-2.5 border-r border-b border-[#1E293B] w-28 text-left">Waktu &amp; Tanggal</th>
+                                            <th class="py-1.5 px-2.5 border-r border-b border-[#1E293B] text-left">Kronologis Agenda / Aktivitas</th>
+                                            <th class="py-1.5 px-2.5 border-r border-b border-[#1E293B] w-28 text-left">PIC Klien</th>
+                                            <th class="py-1.5 px-2.5 border-r border-b border-[#1E293B] w-28 text-left">PIC IPNET</th>
+                                            <th class="py-1.5 px-2.5 border-b border-[#1E293B] text-left">Catatan Aksi / Detail</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-[#1E293B]">
+                                        <template x-if="selectedDetail?.batch?.items && selectedDetail.batch.items.length > 0">
+                                            <template x-for="(item, idx) in selectedDetail.batch.items" :key="idx">
+                                                <tr>
+                                                    <td class="py-2 px-2 border-r border-[#1E293B] text-center font-bold text-[#8F0A0D]" x-text="item.no || (idx + 1)"></td>
+                                                    <td class="py-2 px-2.5 border-r border-[#1E293B]">
+                                                        <div class="font-bold text-[#0F172A]" x-text="item.time || '-'"></div>
+                                                        <div class="text-[10px] text-gray-500" x-text="item.date || '-'"></div>
+                                                    </td>
+                                                    <td class="py-2 px-2.5 border-r border-[#1E293B] font-bold text-[#0F172A]" x-text="item.subject || '-'"></td>
+                                                    <td class="py-2 px-2.5 border-r border-[#1E293B]" x-text="item.client_pic || '-'"></td>
+                                                    <td class="py-2 px-2.5 border-r border-[#1E293B]" x-text="item.ipnet_pic || '-'"></td>
+                                                    <td class="py-2 px-2.5 whitespace-pre-line text-slate-700" x-text="item.notes || '-'"></td>
+                                                </tr>
+                                            </template>
+                                        </template>
+                                        <template x-if="!selectedDetail?.batch?.items || selectedDetail.batch.items.length === 0">
+                                            <tr>
+                                                <td class="py-2 px-2 border-r border-[#1E293B] text-center font-bold text-[#8F0A0D]">1</td>
+                                                <td class="py-2 px-2.5 border-r border-[#1E293B]">
+                                                    <div class="font-bold text-[#0F172A]" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'"></div>
+                                                    <div class="text-[10px] text-gray-500" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '-'"></div>
+                                                </td>
+                                                <td class="py-2 px-2.5 border-r border-[#1E293B] font-bold text-[#0F172A]" x-text="selectedDetail?.activity?.subject || '-'"></td>
+                                                <td class="py-2 px-2.5 border-r border-[#1E293B]">-</td>
+                                                <td class="py-2 px-2.5 border-r border-[#1E293B]" x-text="selectedDetail?.activity?.sales?.name || 'Sales'"></td>
+                                                <td class="py-2 px-2.5 whitespace-pre-line text-slate-700" x-text="selectedDetail?.activity?.notes || '-'"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- E. IDENTIFIKASI KENDALA, KOMPETITOR & POTENSI RISIKO --}}
+                        <div x-show="selectedDetail?.batch?.competitors || selectedDetail?.batch?.challenges || selectedDetail?.batch?.win_probability" class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. IDENTIFIKASI KENDALA, KOMPETITOR &amp; POTENSI RISIKO</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <tbody>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Kompetitor / Brand Pesaing</td>
+                                            <td class="py-1.5 px-2.5 font-bold text-[#8F0A0D]" colspan="3" x-text="selectedDetail?.batch?.competitors || '-'"></td>
+                                        </tr>
+                                        <tr x-show="selectedDetail?.batch?.challenges" class="border-b border-[#1E293B]">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-top">Kendala / Isu Kritis Customer</td>
+                                            <td class="py-1.5 px-2.5 whitespace-pre-line text-[#0F172A]" colspan="3" x-text="selectedDetail?.batch?.challenges || '-'"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Estimasi Win Probability</td>
+                                            <td class="py-1.5 px-2.5 font-bold text-[#0F172A]" colspan="3" x-text="(selectedDetail?.batch?.win_probability || selectedDetail?.activity?.project?.win_probability || 50) + '%'"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- F. RENCANA TINDAK LANJUT BERIKUTNYA --}}
+                        <div x-show="selectedDetail?.activity?.next_action || selectedDetail?.batch?.next_action_pic" class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. RENCANA TINDAK LANJUT BERIKUTNYA (NEXT ACTION PLAN &amp; COMMITMENT)</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <tbody>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Komitmen / Aksi Berikutnya</td>
+                                            <td class="w-1/4 py-1.5 px-2.5 border-r border-[#1E293B] font-bold text-[#0F172A]" x-text="selectedDetail?.activity?.next_action || '-'"></td>
+                                            <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">PIC Pelaksana</td>
+                                            <td class="w-1/4 py-1.5 px-2.5 font-bold text-[#0F172A]" x-text="selectedDetail?.batch?.next_action_pic || selectedDetail?.activity?.sales?.name || 'Sales Team'"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Target Due Date</td>
+                                            <td class="py-1.5 px-2.5 font-bold text-[#0F172A]" colspan="3" x-text="selectedDetail?.activity?.next_action_date ? new Date(selectedDetail.activity.next_action_date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Segera'"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- G. LEMBAR PENGESAHAN & VERIFIKASI RESMI (TANDA TANGAN) --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. LEMBAR PENGESAHAN &amp; VERIFIKASI (TANDA TANGAN)</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B] uppercase text-[10.5px]">
+                                        <tr>
+                                            <th class="py-2 px-3 w-1/4 border-r border-[#1E293B] text-left">Pihak</th>
+                                            <th class="py-2 px-3 w-1/4 border-r border-[#1E293B] text-left">Nama</th>
+                                            <th class="py-2 px-3 w-1/6 border-r border-[#1E293B] text-center">Tanggal</th>
+                                            <th class="py-2 px-3 w-1/3 text-center">Tanda Tangan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-[#1E293B]">
+                                        <tr>
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Account Executive (Sales)</td>
+                                            <td class="p-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle" x-text="selectedDetail?.activity?.sales?.name || '{{ auth()->user()->name }}'"></td>
+                                            <td class="p-2 border-r border-[#1E293B] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
+                                            <td class="h-14 p-2 text-center align-middle bg-white"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Division Head / Atasan Sales</td>
+                                            <td class="p-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle">Susanto Djaya</td>
+                                            <td class="p-2 border-r border-[#1E293B] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
+                                            <td class="h-14 p-2 text-center align-middle bg-white"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Customer / PIC Klien</td>
+                                            <td class="p-2 border-r border-[#1E293B] font-semibold text-slate-700 align-middle" x-text="selectedDetail?.activity?.project?.client || 'PIC Customer Representative'"></td>
+                                            <td class="p-2 border-r border-[#1E293B] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
+                                            <td class="h-14 p-2 text-center align-middle bg-white"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- Footer Dokumen Resmi --}}
+                        <div class="pt-3 border-t border-dashed border-[#CBD5E1] text-[10.5px] text-[#475569] space-y-1">
+                            <p><strong>Catatan Dokumen Resmi:</strong> Dokumen ini diterbitkan secara sah melalui Sistem Manajemen Penjualan PT IP Network Solusindo. Berfungsi sebagai bukti otentik notulensi koordinasi bisnis, berita acara pertemuan komersial, dan rujukan audit operasional sales.</p>
+                            <p class="text-[9.5px] text-[#64748B] pt-1 border-t border-gray-200 flex items-center justify-between">
+                                <span>Dokumen ini merupakan milik PT.IP Network Solusindo.</span>
+                                <span>&copy; PT.IP Network Solusindo, Seluruh Hak Dilindungi.</span>
+                            </p>
+                        </div>
+
                     </div>
+
+                    {{-- ── KANVAS LEMBAR KERTAS: FORM EVALUASI & LESSON LEARNED PROSPEK (LOST DEAL) ── --}}
+                    <div x-show="selectedDetail?.activity?.activity_type === 'Lesson Learned' || selectedDetail?.batch?.primary_factor"
+                         class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans max-w-4xl mx-auto">
+                        
+                        {{-- Kop Surat Resmi Standar Engineer --}}
+                        <div class="border-b-2 border-[#8F0A0D] pb-3 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
+                                <div>
+                                    <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
+                                        FORM LAPORAN EVALUASI &amp; LESSON LEARNED PROSPEK (LOST DEAL)
+                                    </h2>
+                                    <p class="text-[11px] text-[#475569] mt-0.5">
+                                        Dokumen ini digunakan sebagai evaluasi retrospektif internal dan dasar continuous improvement strategi komersial penjualan.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                    Dokumen Resmi
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- A. IDENTITAS PROSPEK / TENDER --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS PROSPEK / TENDER</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <tbody>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Nama Klien / Perusahaan</td>
+                                            <td class="w-1/4 py-1.5 px-2.5 border-r border-[#1E293B] font-bold text-[#0F172A]" x-text="selectedDetail?.activity?.project?.client || '-'"></td>
+                                            <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Nama Prospek / Proyek</td>
+                                            <td class="w-1/4 py-1.5 px-2.5 font-bold text-[#0F172A]" x-text="selectedDetail?.activity?.project?.name || '-'"></td>
+                                        </tr>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Sales Person (AE)</td>
+                                            <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-semibold text-[#0F172A]" x-text="selectedDetail?.activity?.sales?.name || 'Sales Team'"></td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Presales / Arsitek Solusi</td>
+                                            <td class="py-1.5 px-2.5 font-semibold text-[#0F172A]">Presales Team</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Nilai Penawaran IPNET</td>
+                                            <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold text-[#0F172A]" x-text="(selectedDetail?.batch?.our_price || selectedDetail?.activity?.project?.contract_value) ? 'Rp ' + Number(selectedDetail?.batch?.our_price || selectedDetail?.activity?.project?.contract_value).toLocaleString('id-ID') : 'Rp -'"></td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tanggal Evaluasi / Review</td>
+                                            <td class="py-1.5 px-2.5 font-semibold" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '{{ date('d M Y') }}'"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- B. FAKTOR UTAMA KEKALAHAN --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. FAKTOR UTAMA KEKALAHAN (PRIMARY LOSS DRIVER)</h3>
+                            <div class="border border-[#CBD5E1] rounded-sm p-3 bg-[#F8FAFC] text-xs">
+                                <p class="font-bold text-[#0F172A]" x-text="selectedDetail?.batch?.primary_factor || selectedDetail?.activity?.project?.lost_reason || 'Harga / Komersial'"></p>
+                            </div>
+                        </div>
+
+                        {{-- C. INFORMASI PEMENANG & PERBANDINGAN KOMERSIAL --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. INFORMASI PEMENANG &amp; PERBANDINGAN KOMERSIAL</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <tbody>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Vendor / Kompetitor Pemenang</td>
+                                            <td class="w-1/4 py-1.5 px-2.5 border-r border-[#1E293B] font-bold text-[#0F172A]" x-text="selectedDetail?.batch?.competitor_winner || selectedDetail?.activity?.project?.lost_competitor || '-'"></td>
+                                            <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Estimasi Harga Pemenang</td>
+                                            <td class="w-1/4 py-1.5 px-2.5 font-semibold" x-text="selectedDetail?.batch?.competitor_price ? 'Rp ' + Number(selectedDetail.batch.competitor_price).toLocaleString('id-ID') : '-'"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- D. KRONOLOGI & TITIK BALIK KEKALAHAN (TURNING POINT) --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. KRONOLOGI &amp; TITIK BALIK KEKALAHAN (TURNING POINT)</h3>
+                            <div class="border border-[#1E293B] rounded-sm p-3 bg-white text-xs whitespace-pre-line text-[#0F172A]" x-text="selectedDetail?.batch?.turning_point || 'Evaluasi perbandingan penawaran komersial dan lead time.'"></div>
+                        </div>
+
+                        {{-- E. ANALISIS GAP: KELEMAHAN INTERNAL VS KEUNGGULAN KOMPETITOR (TEKS HITAM) --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. ANALISIS GAP: KELEMAHAN INTERNAL VS KEUNGGULAN KOMPETITOR</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <thead class="bg-[#EBF3FB] font-bold text-[#000000] border-b border-[#1E293B] uppercase text-[10.5px]">
+                                        <tr>
+                                            <th class="py-2 px-3 w-1/2 border-r border-[#1E293B] text-left text-black">Faktor Kelemahan Penawaran IPNET</th>
+                                            <th class="py-2 px-3 w-1/2 text-left text-black">Keunggulan Penawaran Kompetitor Pemenang</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="p-3 border-r border-[#1E293B] whitespace-pre-line align-top text-[#0F172A]" x-text="selectedDetail?.batch?.gap_our_weakness || '-'"></td>
+                                            <td class="p-3 whitespace-pre-line align-top text-[#0F172A]" x-text="selectedDetail?.batch?.gap_competitor_strength || '-'"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- F. LESSON LEARNED & KEY TAKEAWAYS (NEUTRAL CARD) --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. LESSON LEARNED &amp; KEY TAKEAWAYS</h3>
+                            <div class="border border-[#1E293B] rounded-sm p-3 bg-white text-xs whitespace-pre-line text-[#0F172A]" x-text="selectedDetail?.batch?.lessons_learned || '-'"></div>
+                        </div>
+
+                        {{-- G. RENCANA PERBAIKAN & TINDAK LANJUT MASA DEPAN (NEUTRAL CARD) --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. RENCANA PERBAIKAN &amp; TINDAK LANJUT MASA DEPAN (RE-ENGAGEMENT PLAN)</h3>
+                            <div class="border border-[#1E293B] rounded-sm p-3 bg-white text-xs whitespace-pre-line text-[#0F172A]" x-text="selectedDetail?.batch?.future_strategy || 'Tetap menjalin komunikasi berkala dengan PIC klien untuk peluang periode berikutnya.'"></div>
+                        </div>
+
+                        {{-- H. LEMBAR PENGESAHAN & VERIFIKASI RESMI (TANDA TANGAN) --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. LEMBAR PENGESAHAN &amp; VERIFIKASI (TANDA TANGAN)</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B] uppercase text-[10.5px]">
+                                        <tr>
+                                            <th class="py-2 px-3 w-1/4 border-r border-[#1E293B] text-left">Pihak Evaluator</th>
+                                            <th class="py-2 px-3 w-1/4 border-r border-[#1E293B] text-left">Nama Personel</th>
+                                            <th class="py-2 px-3 w-1/6 border-r border-[#1E293B] text-center">Tanggal</th>
+                                            <th class="py-2 px-3 w-1/3 text-center">Tanda Tangan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-[#1E293B]">
+                                        <tr>
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Account Executive (Sales)</td>
+                                            <td class="p-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle" x-text="selectedDetail?.activity?.sales?.name || '{{ auth()->user()->name }}'"></td>
+                                            <td class="p-2 border-r border-[#1E293B] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
+                                            <td class="h-14 p-2 text-center align-middle bg-white"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Division Head / Atasan Sales</td>
+                                            <td class="p-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle">Susanto Djaya</td>
+                                            <td class="p-2 border-r border-[#1E293B] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
+                                            <td class="h-14 p-2 text-center align-middle bg-white"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- Footer Dokumen Resmi --}}
+                        <div class="pt-3 border-t border-dashed border-[#CBD5E1] text-[10.5px] text-[#475569] space-y-1">
+                            <p><strong>Catatan Dokumen Resmi:</strong> Dokumen evaluasi ini diterbitkan secara sah melalui Sistem Terintegrasi CRM &amp; Pipeline PT IP Network Solusindo.</p>
+                            <p class="text-[9.5px] text-[#64748B] pt-1 border-t border-gray-200 flex items-center justify-between">
+                                <span>Dokumen ini merupakan milik PT.IP Network Solusindo.</span>
+                                <span>&copy; PT.IP Network Solusindo, Seluruh Hak Dilindungi.</span>
+                            </p>
+                        </div>
+
+                    </div>
+
                 </div>
 
-                {{-- Footer --}}
-                <div class="flex items-center justify-between p-4 px-6 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
+                {{-- Modal Footer --}}
+                <div class="flex items-center justify-between p-4 px-6 border-t border-[#E2E8F0] bg-white shrink-0">
                     <a :href="'/sales/activities/' + (selectedDetail?.activity?.id || '') + '/pdf'" 
                        target="_blank"
                        class="px-4 py-2.5 text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl transition cursor-pointer shadow-xs inline-flex items-center gap-1.5 no-underline">

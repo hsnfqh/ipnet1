@@ -5,7 +5,7 @@
     <title>Laporan Evaluasi &amp; Lesson Learned Prospek (Lost Deal Report) - PT IP Network Solusindo</title>
     <style>
         @page {
-            margin: 10mm 12mm 10mm 12mm;
+            margin: 10mm 12mm 22mm 12mm;
             size: a4 portrait;
         }
         * {
@@ -24,13 +24,13 @@
             position: relative;
         }
 
-        /* ── Header Dokumen ── */
+        /* ── Header Dokumen (Standar Engineer) ── */
         .doc-header-table {
             width: 100%;
             border-collapse: collapse;
-            border-bottom: 2px solid #8F0A0D;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
+            border: none;
+            margin-top: 2px;
+            margin-bottom: 4px;
         }
         .doc-header-table td {
             border: none;
@@ -38,30 +38,27 @@
             vertical-align: middle;
         }
         .doc-title {
-            font-size: 13pt;
+            font-size: 13.5pt;
             font-weight: bold;
-            color: #0F172A;
+            color: #000000;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 0;
+            letter-spacing: 0.4px;
+            text-align: center;
         }
-        .doc-subtitle {
-            font-size: 8pt;
-            color: #64748B;
-            margin-top: 3px;
-            margin-bottom: 0;
+        .doc-intro {
+            font-size: 7pt;
+            color: #1E293B;
+            margin-top: 2px;
+            margin-bottom: 4px;
+            line-height: 1.2;
         }
-        .badge-lost {
-            display: inline-block;
-            background-color: #FEF2F2;
-            color: #8F0A0D;
-            border: 1px solid #FECACA;
-            border-radius: 4px;
-            font-size: 7.5pt;
-            font-weight: bold;
-            padding: 4px 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .doc-header-line {
+            width: 100%;
+            height: 0;
+            border-bottom: 1px solid #000000;
+            margin-top: 2px;
+            margin-bottom: 6px;
+            clear: both;
         }
 
         /* ── Section Titles ── */
@@ -127,9 +124,9 @@
             vertical-align: middle;
         }
         .factor-checkbox.active {
-            background-color: #8F0A0D;
+            background-color: #000000;
             color: #FFFFFF;
-            border-color: #8F0A0D;
+            border-color: #000000;
         }
 
         /* ── Content Card ── */
@@ -180,33 +177,77 @@
         .verification-box strong {
             color: #0F172A;
         }
+        /* ── Footer Dokumen (Fixed di Setiap Halaman) ── */
+        .doc-footer {
+            position: fixed;
+            bottom: -16mm;
+            left: 0;
+            right: 0;
+            height: 14mm;
+            border-top: 1px solid #000000;
+            padding-top: 3px;
+        }
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+        }
+        .footer-table td {
+            border: none;
+            padding: 0;
+            vertical-align: top;
+            font-size: 6pt;
+            color: #000000;
+            line-height: 1.2;
+        }
+        .page-num:before {
+            content: "Hal " counter(page);
+        }
     </style>
 </head>
 <body>
-<div class="page-container">
-
-    {{-- Header Dokumen --}}
-    <table class="doc-header-table">
+{{-- Footer Dokumen Resmi PT IP Network Solusindo (Fixed di Setiap Halaman) --}}
+<div class="doc-footer">
+    <table class="footer-table">
         <tr>
-            <td style="width: 20%; vertical-align: top;">
-                @if(!empty($logoBase64))
-                    <img src="{{ $logoBase64 }}" alt="Logo IPNET" style="max-height: 42px; max-width: 140px;">
-                @else
-                    <span style="font-size: 14pt; font-weight: bold; color: #8F0A0D;">IP-NET</span>
-                @endif
+            <td style="width: 65%;">
+                <div style="font-weight: bold; color: #000000; font-size: 6.2pt;">Dokumen ini merupakan milik PT.IP Network Solusindo</div>
+                <div style="color: #334155; margin-top: 1px;">
+                    Seluruh isi dokumen hanya dipergunakan untuk kepentingan penyelenggaraan tata kelola perusahaan dan tidak diperkenankan diperbanyak, disalin, dipublikasikan ataupun didistribusikan kepada pihak lain, baik sebagian maupun seluruhnya, tanpa persetujuan tertulis dari Direksi PT.IP Network Solusindo
+                </div>
             </td>
-            <td style="width: 58%; vertical-align: middle; padding-left: 10px;">
-                <h1 class="doc-title">PT IP NETWORK SOLUSINDO</h1>
-                <p class="doc-subtitle">LAPORAN EVALUASI &amp; LESSON LEARNED PROSPEK (LOST DEAL REPORT)</p>
-            </td>
-            <td style="width: 22%; text-align: right; vertical-align: middle;">
-                <div class="badge-lost">Closed Lost Review</div>
-                <div style="font-size: 6.8pt; color: #64748B; margin-top: 4px;">
-                    No: LLR-SLS/{{ date('Y') }}/{{ str_pad($project->id, 4, '0', STR_PAD_LEFT) }}
+            <td style="width: 35%; text-align: right; vertical-align: top;">
+                <div style="font-weight: bold; color: #000000; font-size: 6.2pt;">&copy;PT.IP Network Solusindo, Seluruh Hak Dilindungi.</div>
+                <div style="margin-top: 4px;">
+                    <strong style="font-size: 7.2pt; color: #000000;" class="page-num"></strong>
                 </div>
             </td>
         </tr>
     </table>
+</div>
+
+<div class="page-container">
+
+    {{-- Header Dokumen (Standar Engineer) --}}
+    <table class="doc-header-table">
+        <tr>
+            <td style="width: 15%; text-align: left; vertical-align: middle;">
+                @if(!empty($logoBase64))
+                    <img src="{{ $logoBase64 }}" alt="Logo IPNET" style="height: 38px; width: auto; max-width: 80px; display: block;">
+                @else
+                    <span style="font-size: 14pt; font-weight: bold; color: #000000;">IP-NET</span>
+                @endif
+            </td>
+            <td style="width: 85%; text-align: center; vertical-align: middle;">
+                <div class="doc-title">FORM LAPORAN EVALUASI &amp; LESSON LEARNED PROSPEK (LOST DEAL)</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="doc-intro">
+        Dokumen ini digunakan sebagai evaluasi retrospektif internal dan dasar continuous improvement strategi komersial penjualan.
+    </div>
+    <div class="doc-header-line"></div>
 
     @php
         $analysis = $project->parsed_lost_analysis;
@@ -266,7 +307,7 @@
             @php $isActive = str_contains(strtolower($primaryFactor), strtolower($fShort)) || str_contains(strtolower($primaryFactor), strtolower(explode(' ', $fShort)[0])); @endphp
             <div class="factor-item">
                 <span class="factor-checkbox {{ $isActive ? 'active' : '' }}">{!! $isActive ? '&#10003;' : '&nbsp;' !!}</span>
-                <span style="{{ $isActive ? 'font-weight: bold; color: #8F0A0D;' : 'color: #475569;' }}">{{ $fFull }}</span>
+                <span style="{{ $isActive ? 'font-weight: bold; color: #000000;' : 'color: #475569;' }}">{{ $fFull }}</span>
             </div>
         @endforeach
     </div>
@@ -309,8 +350,8 @@
     <table class="gap-table">
         <thead>
             <tr>
-                <th style="width: 50%; color: #8F0A0D;">Faktor Kelemahan Penawaran IPNET</th>
-                <th style="width: 50%; color: #1E3A8A;">Keunggulan Penawaran Kompetitor Pemenang</th>
+                <th style="width: 50%; color: #000000;">Faktor Kelemahan Penawaran IPNET</th>
+                <th style="width: 50%; color: #000000;">Keunggulan Penawaran Kompetitor Pemenang</th>
             </tr>
         </thead>
         <tbody>
@@ -323,13 +364,13 @@
 
     {{-- Section F: Pelajaran yang Didapat (Lesson Learned) --}}
     <div class="section-title">F. LESSON LEARNED &amp; KEY TAKEAWAYS</div>
-    <div class="content-card" style="border-left: 3px solid #8F0A0D;">
+    <div class="content-card">
         {!! nl2br(e($analysis['lessons_learned'] ?: ($project->lost_reason ?: 'Pentingnya validasi pagu anggaran klien di tahap awal dan penguncian registrasi deal ke pihak prinsipal distributor lebih dini.'))) !!}
     </div>
 
     {{-- Section G: Rencana Perbaikan & Tindak Lanjut Masa Depan --}}
     <div class="section-title">G. RENCANA PERBAIKAN &amp; TINDAK LANJUT MASA DEPAN (RE-ENGAGEMENT PLAN)</div>
-    <div class="content-card" style="border-left: 3px solid #059669;">
+    <div class="content-card">
         {!! nl2br(e($analysis['future_strategy'] ?: 'Tetap menjalin hubungan baik dengan PIC klien (courtesy call berkala) dan memetakan jadwal renewal / ekspansi kebutuhan fase berikutnya.')) !!}
     </div>
 
