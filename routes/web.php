@@ -316,6 +316,215 @@ Route::get('/seed-dummy-accounts-2026', function () {
     }
 });
 
+// Route Helper untuk membuat 2 dummy resmi: 1 Laporan Aktivitas Sales (A-G) & 1 Lesson Learned (Lost Deal)
+Route::get('/seed-sales-official-dummies', function () {
+    try {
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
+
+        // Run migration if pending
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        } catch (\Throwable $e) {}
+
+        // Find or create sales user Raiza
+        $raiza = \App\Models\User::where('email', 'raiza@ipnetsolusindo.com')
+            ->orWhere('name', 'like', '%Raiza%')
+            ->first();
+
+        if (!$raiza) {
+            $raiza = \App\Models\User::firstOrCreate(
+                ['email' => 'raiza@ipnetsolusindo.com'],
+                [
+                    'name'     => 'Raiza',
+                    'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                    'position' => 'Sales (Account Manager)',
+                    'status'   => 'Active',
+                ]
+            );
+        }
+
+        // 1. Proyek Aktif untuk Aktivitas Sales
+        $activeProject = \App\Models\Project::updateOrCreate(
+            ['name' => 'Pengadaan Core Switch & Next-Gen Firewall Bank Mandiri'],
+            [
+                'client'          => 'PT Bank Mandiri (Persero) Tbk',
+                'sales_name'      => 'Raiza',
+                'created_by'      => $raiza->id,
+                'contract_value'  => 485000000,
+                'sales_stage'     => 'Proposal & Quotation',
+                'status'          => 'In Progress',
+                'win_probability' => 80,
+                'start_date'      => date('Y-m-d'),
+                'end_date'        => date('Y-m-d', strtotime('+3 months')),
+            ]
+        );
+
+        // Dummy 1: Sales Activity Lengkap (Bagian A sampai G)
+        $actPayload = [
+            'type'               => 'kronologi_batch',
+            'title'              => 'Meeting Koordinasi Teknis Spesifikasi Core Switch & Next Gen Firewall',
+            'meeting_media'      => 'Onsite di Lokasi Klien / Customer Office',
+            'meeting_time_start' => '09:30',
+            'meeting_time_end'   => '11:45',
+            'attendees'          => [
+                [
+                    'pihak'      => 'Internal IPNET',
+                    'nama'       => 'Raiza',
+                    'jabatan'    => 'Account Executive',
+                    'kontak'     => '08111000025',
+                    'keterangan' => 'Lead Sales & Commercial PIC'
+                ],
+                [
+                    'pihak'      => 'Internal IPNET',
+                    'nama'       => 'Akbar',
+                    'jabatan'    => 'Presales Engineer',
+                    'kontak'     => '08111000010',
+                    'keterangan' => 'Technical Solution Specialist'
+                ],
+                [
+                    'pihak'      => 'Klien',
+                    'nama'       => 'Bpk. Hendra Gunawan',
+                    'jabatan'    => 'Head of IT Infrastructure',
+                    'kontak'     => '081298765432',
+                    'keterangan' => 'Decision Maker / Lead Klien'
+                ],
+                [
+                    'pihak'      => 'Klien',
+                    'nama'       => 'Ibu Maya Kartika',
+                    'jabatan'    => 'Procurement Manager',
+                    'kontak'     => '081387654321',
+                    'keterangan' => 'PIC Pengadaan & Legalitas'
+                ],
+            ],
+            'scope_category'     => 'Hardware & Perangkat Jaringan (Switch/Router/Firewall/Server)',
+            'scope_description'  => "Pengadaan 4 Unit Core Switch 10G L3 Managed, 2 Unit Perimeter Next-Gen Firewall High Availability, beserta jasa instalasi, konfigurasi VLAN, dan support maintenance 1 tahun 24/7.",
+            'estimated_budget'   => 485000000,
+            'tender_timeline'    => 'Q4 2026 / November 2026',
+            'competitors'        => 'Vendor Cisco Partner & Fortinet Platinum Reseller',
+            'challenges'         => 'Customer membutuhkan lead time pengiriman barang maksimal 4 minggu kalender dan garansi SLA penggantian hardware NBD (Next Business Day).',
+            'win_probability'    => 80,
+            'next_action'        => 'Penyusunan Surat Penawaran Harga (SPH) resmi dan dokumen BoQ Teknis komprehensif',
+            'next_action_pic'    => 'Raiza (Account Executive)',
+            'total_items'        => 3,
+            'items'              => [
+                [
+                    'no'         => 1,
+                    'subject'    => 'Pembukaan & Presentasi Portofolio PT IP Network Solusindo',
+                    'date'       => date('Y-m-d'),
+                    'time'       => '09:30',
+                    'client_pic' => 'Bpk. Hendra Gunawan',
+                    'ipnet_pic'  => 'Raiza',
+                    'notes'      => 'Klien menyambut baik portofolio implementasi enterprise IPNET di sektor perbankan & telco.'
+                ],
+                [
+                    'no'         => 2,
+                    'subject'    => 'Review Kebutuhan Teknis Core Switch & Perimeter Security',
+                    'date'       => date('Y-m-d'),
+                    'time'       => '10:15',
+                    'client_pic' => 'Bpk. Hendra Gunawan',
+                    'ipnet_pic'  => 'Akbar',
+                    'notes'      => 'Diskusi kebutuhan redundansi Dual PSU, 10G SFP+ Uplink, dan integrasi Active Directory pada firewall.'
+                ],
+                [
+                    'no'         => 3,
+                    'subject'    => 'Pembahasan Timeline Pengadaan & Mekanisme Tender',
+                    'date'       => date('Y-m-d'),
+                    'time'       => '11:00',
+                    'client_pic' => 'Ibu Maya Kartika',
+                    'ipnet_pic'  => 'Raiza',
+                    'notes'      => 'Pengadaan akan menggunakan sistem seleksi tertutup (beauty contest 3 vendor). Dokumen tender akan dirilis minggu depan.'
+                ],
+            ],
+        ];
+
+        $activity = \App\Models\SalesActivity::updateOrCreate(
+            [
+                'project_id' => $activeProject->id,
+                'subject'    => 'Meeting Koordinasi Teknis Spesifikasi Core Switch & Next Gen Firewall'
+            ],
+            [
+                'sales_id'         => $raiza->id,
+                'activity_type'    => 'Meeting',
+                'activity_date'    => now(),
+                'notes'            => json_encode($actPayload),
+                'next_action'      => 'Penyusunan Surat Penawaran Harga (SPH) resmi dan dokumen BoQ Teknis komprehensif',
+                'next_action_date' => date('Y-m-d', strtotime('+3 days')),
+                'status'           => 'Completed',
+            ]
+        );
+
+        // Dummy 2: Proyek Lost Deal dengan Evaluasi Lesson Learned Lengkap
+        $lostAnalysisData = [
+            'primary_factor'          => 'Harga / Komersial',
+            'competitor_winner'       => 'PT Solusi Jaringan Mandiri (Aruba Partner)',
+            'competitor_price'        => 275000000,
+            'our_price'               => 320000000,
+            'turning_point'           => 'Pada saat negosiasi BAFO (Best and Final Offer), kompetitor menurunkan harga secara agresif dengan subsidi prinsipal karena status Tier Platinum.',
+            'gap_our_weakness'        => 'Margin penawaran kita terkunci karena deal registration terlambat diajukan ke distributor utama.',
+            'gap_competitor_strength' => 'Kompetitor memegang status Platinum Partner dengan rebate harga 12% lebih murah serta ready stock lokal.',
+            'lessons_learned'         => 'Deal registration ke prinsipal distributor harus dikunci sejak awal pertemuan prospek (fase Prospecting/Discovery) agar IPNET mendapatkan special price discount terbaik.',
+            'future_strategy'         => 'Menjaga komunikasi berkala dengan PIC IT klien untuk peluang maintenance support tahunan dan ekspansi access point fase II tahun depan.',
+            'evaluated_by'            => 'Raiza (Account Executive)',
+            'evaluated_at'            => date('Y-m-d H:i:s'),
+        ];
+
+        $lostProject = \App\Models\Project::updateOrCreate(
+            ['name' => 'Pengadaan Wi-Fi 6 Enterprise Kampus UI'],
+            [
+                'client'          => 'Universitas Indonesia (Fakultas Teknik)',
+                'sales_name'      => 'Raiza',
+                'created_by'      => $raiza->id,
+                'contract_value'  => 320000000,
+                'sales_stage'     => 'Closed Lost',
+                'status'          => 'Cancelled',
+                'win_probability' => 0,
+                'lost_reason'     => json_encode($lostAnalysisData),
+                'lost_competitor' => 'PT Solusi Jaringan Mandiri (Aruba Partner)',
+                'start_date'      => date('Y-m-d', strtotime('-1 month')),
+                'end_date'        => date('Y-m-d'),
+            ]
+        );
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('projects', 'lost_analysis')) {
+            $lostProject->lost_analysis = $lostAnalysisData;
+            $lostProject->save();
+        }
+
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => '2 Data Dummy Resmi Sales (Aktivitas Sales & CRM + Lesson Learned Lost Deal) BERHASIL dibuat!',
+            'data'    => [
+                'activity_dummy' => [
+                    'id'           => $activity->id,
+                    'subject'      => $activity->subject,
+                    'project'      => $activeProject->name,
+                    'pdf_download' => url('/sales/activities/' . $activity->id . '/pdf'),
+                ],
+                'lost_deal_dummy' => [
+                    'project_id'   => $lostProject->id,
+                    'project_name' => $lostProject->name,
+                    'competitor'   => $lostProject->lost_competitor,
+                    'pdf_download' => url('/projects/' . $lostProject->id . '/lost-analysis/pdf'),
+                ],
+                'activity_index_url' => url('/sales/activities'),
+            ]
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => $e->getMessage(),
+            'trace'   => $e->getTraceAsString(),
+        ], 500);
+    }
+});
+
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     // Modul 1: ACQUIRE (Sales Pipeline & Handover 1 to Design)
