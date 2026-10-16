@@ -43,7 +43,7 @@
             color: #000000;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            text-align: center;
+            text-align: left;
         }
         .doc-intro {
             font-size: 7pt;
@@ -113,20 +113,23 @@
         }
         .factor-checkbox {
             display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 1px solid #475569;
+            font-family: 'DejaVu Sans', sans-serif;
+            width: 10px;
+            height: 10px;
+            border: 1px solid #000000;
             text-align: center;
-            line-height: 11px;
+            line-height: 9.5px;
             font-size: 8pt;
             font-weight: bold;
             margin-right: 4px;
             vertical-align: middle;
+            color: #000000;
+            background-color: #FFFFFF;
         }
         .factor-checkbox.active {
-            background-color: #000000;
-            color: #FFFFFF;
-            border-color: #000000;
+            border: 1.2px solid #000000;
+            color: #000000;
+            background-color: #FFFFFF;
         }
 
         /* ── Content Card ── */
@@ -231,14 +234,14 @@
     {{-- Header Dokumen (Standar Engineer) --}}
     <table class="doc-header-table">
         <tr>
-            <td style="width: 15%; text-align: left; vertical-align: middle;">
+            <td style="width: 50px; text-align: left; vertical-align: middle;">
                 @if(!empty($logoBase64))
                     <img src="{{ $logoBase64 }}" alt="Logo IPNET" style="height: 38px; width: auto; max-width: 80px; display: block;">
                 @else
                     <span style="font-size: 14pt; font-weight: bold; color: #000000;">IP-NET</span>
                 @endif
             </td>
-            <td style="width: 85%; text-align: center; vertical-align: middle;">
+            <td style="text-align: left; vertical-align: middle; padding-left: 12px;">
                 <div class="doc-title">FORM LAPORAN EVALUASI &amp; LESSON LEARNED PROSPEK (LOST DEAL)</div>
             </td>
         </tr>
@@ -250,7 +253,10 @@
     <div class="doc-header-line"></div>
 
     @php
-        $analysis = $project->parsed_lost_analysis;
+        $analysis = $project->parsed_lost_analysis ?? ($project->lost_analysis ?? []);
+        if (is_string($analysis)) {
+            $analysis = json_decode($analysis, true) ?: [];
+        }
         $primaryFactor = $analysis['primary_factor'] ?? ($project->lost_reason ?: 'Harga / Komersial');
         $competitorWinner = $analysis['competitor_winner'] ?? ($project->lost_competitor ?: '-');
         $competitorPrice = $analysis['competitor_price'] ?? null;
@@ -400,13 +406,6 @@
             </tr>
         </tbody>
     </table>
-
-    {{-- Footer Verifikasi Retrospektif Internal --}}
-    <div class="verification-box">
-        <strong>CATATAN REVIEW RETROSPEKTIF INTERNAL:</strong><br>
-        Dokumen ini diterbitkan oleh <strong>Sistem Manajemen Penjualan &amp; CRM PT IP Network Solusindo</strong> pada tanggal {{ now()->format('d/m/Y H:i:s') }}.<br>
-        Disusun oleh: <strong>{{ $project->sales_name ?: ($analysis['evaluated_by'] ?? 'Sales Team') }}</strong> dan disetujui oleh <strong>Susanto Djaya (Division Head)</strong> untuk keperluan evaluasi internal, continuous improvement strategi komersial, dan transfer pembelajaran.
-    </div>
 
     <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #CBD5E1; font-size: 6.8pt; color: #475569; font-style: italic; line-height: 1.35;">
         <strong>Catatan Dokumen Resmi:</strong> Dokumen evaluasi ini diterbitkan secara sah melalui Sistem Terintegrasi CRM &amp; Pipeline PT IP Network Solusindo. Berfungsi sebagai materi evaluasi retrospektif internal dan dasar continuous improvement strategi penjualan tanpa memerlukan tanda tangan basah.

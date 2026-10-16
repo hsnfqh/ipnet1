@@ -43,7 +43,7 @@
             color: #000000;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            text-align: center;
+            text-align: left;
         }
         .doc-intro {
             font-size: 7pt;
@@ -222,14 +222,14 @@
     {{-- Header Dokumen (Standar Engineer) --}}
     <table class="doc-header-table">
         <tr>
-            <td style="width: 15%; text-align: left; vertical-align: middle;">
+            <td style="width: 50px; text-align: left; vertical-align: middle;">
                 @if(!empty($logoBase64))
                     <img src="{{ $logoBase64 }}" alt="Logo IPNET" style="height: 38px; width: auto; max-width: 80px; display: block;">
                 @else
                     <span style="font-size: 14pt; font-weight: bold; color: #000000;">IP-NET</span>
                 @endif
             </td>
-            <td style="width: 85%; text-align: center; vertical-align: middle;">
+            <td style="text-align: left; vertical-align: middle; padding-left: 12px;">
                 <div class="doc-title">FORM LAPORAN AKTIVITAS SALES</div>
             </td>
         </tr>
