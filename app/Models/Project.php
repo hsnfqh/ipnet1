@@ -84,6 +84,7 @@ class Project extends Model
         'ms_accepted_by',
         'lost_reason',
         'lost_competitor',
+        'lost_analysis',
         'created_by',
         'pm_id',
         'division_id',
@@ -107,6 +108,7 @@ class Project extends Model
         'documents_checklist'           => 'array',
         'handover_data'                 => 'array',
         'stakeholders_data'             => 'array',
+        'lost_analysis'                 => 'array',
     ];
 
     protected $appends = [
@@ -121,6 +123,32 @@ class Project extends Model
         $value = (float) ($this->contract_value ?? $this->quotation_amount ?? 0);
         $prob = (int) ($this->win_probability ?? 10);
         return round($value * ($prob / 100), 2);
+    }
+
+    public function getParsedLostAnalysisAttribute()
+    {
+        if (!empty($this->lost_analysis) && is_array($this->lost_analysis)) {
+            return $this->lost_analysis;
+        }
+        if (!empty($this->lost_reason) && is_string($this->lost_reason) && str_starts_with(trim($this->lost_reason), '{')) {
+            $decoded = json_decode($this->lost_reason, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+        return [
+            'primary_factor'          => $this->lost_reason ?: 'Harga / Komersial',
+            'competitor_winner'       => $this->lost_competitor ?: '-',
+            'competitor_price'        => null,
+            'our_price'               => $this->contract_value,
+            'turning_point'           => null,
+            'gap_our_weakness'        => null,
+            'gap_competitor_strength' => null,
+            'lessons_learned'         => $this->lost_reason ?: null,
+            'future_strategy'         => null,
+            'evaluated_by'            => $this->sales_name ?: 'Sales Team',
+            'evaluated_at'            => null,
+        ];
     }
 
     // Relationships

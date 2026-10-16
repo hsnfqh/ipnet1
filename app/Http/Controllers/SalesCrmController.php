@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Helpers\FileUploadHelper;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SalesCrmController extends Controller
 {
@@ -1064,5 +1065,100 @@ class SalesCrmController extends Controller
             return redirect()->back()
                 ->with('success', "Berkas Commercial Handover untuk proyek '{$project->name}' berhasil dikirim ke Tim Delivery & PMO.");
         }
+    }
+
+    /**
+     * Export Dokumen Resmi Aktivitas & Kronologis Sales ke PDF
+     */
+    public function exportActivityPdf(SalesActivity $activity)
+    {
+        $activity->load(['project', 'sales']);
+
+        $logoPath = public_path('images/ipnet1.png');
+        if (!file_exists($logoPath)) {
+            $logoPath = public_path('images/ipnet.png');
+        }
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+
+        $pdf = Pdf::loadView('exports.sales-activity-report-pdf', [
+            'activity'   => $activity,
+            'logoBase64' => $logoBase64,
+        ]);
+
+        $pdf->setPaper('a4', 'portrait');
+
+        $cleanTitle = \Illuminate\Support\Str::slug($activity->subject ?: 'aktivitas-sales');
+        $fileName = "Dokumen-Resmi-Sales-{$cleanTitle}-" . date('Ymd') . ".pdf";
+
+        return $pdf->stream($fileName);
+    }
+
+    /**
+     * Simpan Formulir Lesson Learned & Evaluasi Kekalahan Prospek
+     */
+    public function saveLostAnalysis(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'primary_factor'          => 'required|string|max:255',
+            'competitor_winner'       => 'nullable|string|max:255',
+            'competitor_price'        => 'nullable|numeric|min:0',
+            'our_price'               => 'nullable|numeric|min:0',
+            'turning_point'           => 'nullable|string',
+            'gap_our_weakness'        => 'nullable|string',
+            'gap_competitor_strength' => 'nullable|string',
+            'lessons_learned'         => 'nullable|string',
+            'future_strategy'         => 'nullable|string',
+        ]);
+
+        $analysisData = [
+            'primary_factor'          => $validated['primary_factor'],
+            'competitor_winner'       => $validated['competitor_winner'] ?: '-',
+            'competitor_price'        => $validated['competitor_price'] ?? null,
+            'our_price'               => $validated['our_price'] ?? $project->contract_value,
+            'turning_point'           => $validated['turning_point'] ?? null,
+            'gap_our_weakness'        => $validated['gap_our_weakness'] ?? null,
+            'gap_competitor_strength' => $validated['gap_competitor_strength'] ?? null,
+            'lessons_learned'         => $validated['lessons_learned'] ?? null,
+            'future_strategy'         => $validated['future_strategy'] ?? null,
+            'evaluated_by'            => auth()->user()?->name ?: 'Sales Team',
+            'evaluated_at'            => now()->format('Y-m-d H:i:s'),
+        ];
+
+        // Store into project
+        $project->lost_reason = $validated['lessons_learned'] ?: $validated['primary_factor'];
+        $project->lost_competitor = $validated['competitor_winner'] ?? $project->lost_competitor;
+        $project->lost_analysis = $analysisData;
+        $project->sales_stage = 'Closed Lost';
+        $project->status = 'Cancelled';
+        $project->win_probability = 0;
+        $project->save();
+
+        return redirect()->back()->with('success', "Evaluasi & Lesson Learned untuk prospek '{$project->name}' berhasil disimpan.");
+    }
+
+    /**
+     * Export Laporan Evaluasi & Lesson Learned Prospek (Lost Deal Report) ke PDF
+     */
+    public function exportLostAnalysisPdf(Project $project)
+    {
+        $project->load(['creator']);
+
+        $logoPath = public_path('images/ipnet1.png');
+        if (!file_exists($logoPath)) {
+            $logoPath = public_path('images/ipnet.png');
+        }
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+
+        $pdf = Pdf::loadView('exports.sales-lost-deal-report-pdf', [
+            'project'    => $project,
+            'logoBase64' => $logoBase64,
+        ]);
+
+        $pdf->setPaper('a4', 'portrait');
+
+        $cleanTitle = \Illuminate\Support\Str::slug($project->name ?: 'lost-deal');
+        $fileName = "Laporan-Lesson-Learned-Sales-{$cleanTitle}-" . date('Ymd') . ".pdf";
+
+        return $pdf->stream($fileName);
     }
 }

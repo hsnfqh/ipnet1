@@ -458,15 +458,23 @@ Route::middleware(['auth'])->group(function () {
 
         // Dedicated Menu 2: Sales Activity Log (CRM)
         Route::get('/activities', [\App\Http\Controllers\SalesCrmController::class, 'activities'])->name('sales.activities.index');
+        Route::get('/activities/{activity}/pdf', [\App\Http\Controllers\SalesCrmController::class, 'exportActivityPdf'])->name('sales.activities.pdf');
         Route::post('/activities', [\App\Http\Controllers\SalesCrmController::class, 'storeActivity'])->name('sales.activities.store');
         Route::post('/activities/bulk', [\App\Http\Controllers\SalesCrmController::class, 'storeBulkActivities'])->name('sales.activities.bulk');
         Route::put('/activities/{activity}', [\App\Http\Controllers\SalesCrmController::class, 'updateActivity'])->name('sales.activities.update');
         Route::delete('/activities/{activity}', [\App\Http\Controllers\SalesCrmController::class, 'destroyActivity'])->name('sales.activities.destroy');
 
+        // Lost Deal & Lesson Learned Analysis
+        Route::post('/pipeline/{project}/lost-analysis', [\App\Http\Controllers\SalesCrmController::class, 'saveLostAnalysis'])->name('sales.pipeline.lost_analysis');
+        Route::get('/pipeline/{project}/lost-analysis/pdf', [\App\Http\Controllers\SalesCrmController::class, 'exportLostAnalysisPdf'])->name('sales.pipeline.lost_analysis_pdf');
+
         // Dedicated Menu 3: Commercial Handover to Delivery/PMO
         Route::get('/handover', [\App\Http\Controllers\SalesCrmController::class, 'commercialHandoverIndex'])->name('sales.handover.index');
         Route::post('/handover/{project}/submit', [\App\Http\Controllers\SalesCrmController::class, 'submitCommercialHandover'])->name('sales.handover.submit');
     });
+
+    // Public / Project-level Lost Analysis PDF
+    Route::get('/projects/{project}/lost-analysis/pdf', [\App\Http\Controllers\SalesCrmController::class, 'exportLostAnalysisPdf'])->name('projects.lost_analysis_pdf');
 
     // Dashboard Solution Architect & R&D (Dashboard 6)
     Route::get('/dashboard/solution-architect', [DashboardController::class, 'solutionArchitect'])

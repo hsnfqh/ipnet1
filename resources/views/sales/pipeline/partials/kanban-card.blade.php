@@ -232,6 +232,14 @@
                     <span>Tandai Selesai</span>
                 </button>
             </div>
+        @if(strtolower($project->sales_stage ?? '') === 'closed lost' || $project->status === 'Cancelled')
+            <div class="pt-2 border-t border-[#F1F5F9]" onclick="event.stopPropagation();">
+                <a href="{{ route('projects.lost_analysis_pdf', $project->id) }}" target="_blank"
+                   class="w-full inline-flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg border border-rose-200 text-[#8F0A0D] bg-rose-50 hover:bg-rose-100 text-[10.5px] font-bold transition shadow-2xs no-underline">
+                    <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Laporan Lesson Learned (PDF)</span>
+                </a>
+            </div>
         @endif
     </div>
 </div>

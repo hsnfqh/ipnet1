@@ -943,6 +943,79 @@
                         </div>
                     @endif
 
+                    {{-- KARTU KHUSUS EVALUASI & LESSON LEARNED JIKA PROYEK CLOSED LOST --}}
+                    @php
+                        $isProjectLost = ($project->sales_stage === 'Closed Lost' || $project->status === 'Cancelled');
+                        $lostData = $project->parsed_lost_analysis;
+                    @endphp
+
+                    @if($isProjectLost)
+                        <div class="ipnet-card p-5 sm:p-6 border-rose-200/90 bg-gradient-to-b from-white to-rose-50/25 space-y-4 shadow-sm">
+                            <div class="flex items-center justify-between pb-3 border-b border-rose-100 flex-wrap gap-2">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2.5 py-0.5 rounded-md text-[10.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200 uppercase tracking-wider">
+                                            Closed Lost Retrospective
+                                        </span>
+                                        <span class="text-xs font-bold text-slate-800">
+                                            {{ $lostData['primary_factor'] ?? 'Kalah Tender / Batal' }}
+                                        </span>
+                                    </div>
+                                    <h3 class="text-sm font-bold text-slate-900 mt-1">Laporan Evaluasi &amp; Lesson Learned Prospek (Lost Deal)</h3>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ route('projects.lost_analysis_pdf', $project->id) }}" target="_blank"
+                                       class="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] transition cursor-pointer shadow-xs inline-flex items-center gap-1.5 no-underline">
+                                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        <span>Cetak Dokumen Resmi (PDF)</span>
+                                    </a>
+
+                                    <button type="button" 
+                                            onclick="window.openModal('modal-edit-pipeline')"
+                                            class="px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition cursor-pointer shadow-2xs">
+                                        Edit Evaluasi
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
+                                <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 space-y-1.5 shadow-2xs">
+                                    <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Pemenang Tender &amp; Perbandingan Harga</span>
+                                    <div class="font-bold text-slate-900 text-[13px] text-[#8F0A0D]">
+                                        {{ $lostData['competitor_winner'] ?? ($project->lost_competitor ?: '-') }}
+                                    </div>
+                                    <div class="text-slate-600">
+                                        Estimasi Harga Pemenang: 
+                                        <strong>{{ !empty($lostData['competitor_price']) ? 'Rp ' . number_format((float)$lostData['competitor_price'], 0, ',', '.') : '-' }}</strong>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 space-y-1.5 shadow-2xs">
+                                    <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">Rencana Tindak Lanjut &amp; Re-engagement</span>
+                                    <div class="font-bold text-emerald-800 text-xs">
+                                        {{ $lostData['future_strategy'] ?? 'Jaga relasi berkala untuk peluang fase berikutnya.' }}
+                                    </div>
+                                    <div class="text-[11px] text-slate-400">
+                                        Reviewer: {{ $lostData['evaluated_by'] ?? ($project->sales_name ?: 'Sales Team') }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if(!empty($lostData['lessons_learned']) || !empty($project->lost_reason))
+                                <div class="bg-white p-3.5 rounded-xl border border-rose-100 text-xs space-y-1 shadow-2xs">
+                                    <span class="text-[10.5px] font-bold text-rose-800 uppercase tracking-wider flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                                        Poin Refleksi &amp; Lesson Learned:
+                                    </span>
+                                    <p class="text-slate-700 leading-relaxed font-medium">
+                                        {{ $lostData['lessons_learned'] ?: $project->lost_reason }}
+                                    </p>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
                     {{-- Otorisasi Pimpinan (Pak Susanto Djaya & Pak Hariyadi) --}}
                     @include('projects.partials.workflow-leadership')
 
@@ -3085,6 +3158,63 @@
                                class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 font-bold"
                                placeholder="0">
                         <input type="hidden" name="contract_value" :value="rawVal">
+                    </div>
+                </div>
+
+                {{-- Bagian Khusus Saat Status Closed Lost (Kalah Tender / Batal) --}}
+                <div x-show="stageVal === 'Closed Lost'" x-cloak class="p-3.5 bg-rose-50/70 border border-rose-200 rounded-xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-rose-800 uppercase tracking-wider flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Evaluasi &amp; Lesson Learned (Lost Deal)
+                        </span>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-700 mb-1 text-[10.5px]">FAKTOR UTAMA KEKALAHAN <span class="text-rose-600">*</span></label>
+                        <select name="primary_factor" class="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white">
+                            <option value="Harga / Komersial">1. Harga / Komersial (Kalah Murah / Termin)</option>
+                            <option value="Spesifikasi Teknis / Kepatuhan TOR">2. Spesifikasi Teknis / Kepatuhan TOR</option>
+                            <option value="Waktu / Ketersediaan (Lead Time)">3. Waktu Pengiriman / Lead Time Barang</option>
+                            <option value="Relasi / Incumbent">4. Relasi / Incumbent Vendor Pesaing</option>
+                            <option value="Dukungan Prinsipal / Distributor">5. Dukungan Prinsipal / Distributor</option>
+                            <option value="Legalitas / Dokumen Administrasi">6. Legalitas / Administrasi Tender</option>
+                            <option value="Lainnya">7. Lainnya</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block text-slate-700 mb-1 text-[10.5px]">VENDOR / KOMPETITOR PEMENANG</label>
+                            <input type="text" name="lost_competitor" placeholder="Contoh: PT Solusi Sejahtera"
+                                   value="{{ $project->lost_competitor ?? '' }}"
+                                   class="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-slate-700 mb-1 text-[10.5px]">ESTIMASI HARGA PEMENANG (RP)</label>
+                            <input type="number" step="any" name="competitor_price" placeholder="Contoh: 1500000000"
+                                   value="{{ $project->parsed_lost_analysis['competitor_price'] ?? '' }}"
+                                   class="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-700 mb-1 text-[10.5px]">TITIK BALIK &amp; KRONOLOGI KEKALAHAN</label>
+                        <textarea name="turning_point" rows="2" placeholder="Catatan kapan atau di tahap mana kita kalah dari kompetitor..."
+                                  class="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white resize-none">{{ $project->parsed_lost_analysis['turning_point'] ?? '' }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-700 mb-1 text-[10.5px]">PELAJARAN YANG DIDAPAT (LESSON LEARNED) <span class="text-rose-600">*</span></label>
+                        <textarea name="lost_reason" rows="2" placeholder="Apa evaluasi penting agar tidak terulang di prospek berikutnya..."
+                                  class="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white resize-none">{{ $project->lost_reason ?: ($project->parsed_lost_analysis['lessons_learned'] ?? '') }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-700 mb-1 text-[10.5px]">RENCANA PERBAIKAN &amp; RE-ENGAGEMENT</label>
+                        <input type="text" name="future_strategy" placeholder="Contoh: Follow up berkala untuk renewal Q2 tahun depan"
+                               value="{{ $project->parsed_lost_analysis['future_strategy'] ?? '' }}"
+                               class="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white">
                     </div>
                 </div>
 

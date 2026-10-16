@@ -538,11 +538,21 @@
                                         </span>
                                     </td>
                                     <td class="py-3.5 px-5 text-right whitespace-nowrap">
-                                        <a href="{{ route('projects.show', $p->id) }}" 
-                                           class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] text-[#1E293B] hover:bg-[#F8FAFC] text-[11px] font-bold inline-flex items-center gap-1 transition">
-                                            <span>Detail</span>
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                        </a>
+                                        <div class="inline-flex items-center gap-1.5">
+                                            @if($p->sales_stage === 'Closed Lost')
+                                                <a href="{{ route('projects.lost_analysis_pdf', $p->id) }}" target="_blank"
+                                                   class="px-2.5 py-1.5 rounded-lg border border-rose-200 text-[#8F0A0D] bg-rose-50 hover:bg-rose-100 text-[11px] font-bold inline-flex items-center gap-1 transition shadow-2xs"
+                                                   title="Cetak Laporan Evaluasi & Lesson Learned PDF">
+                                                    <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                    <span>PDF Lost</span>
+                                                </a>
+                                            @endif
+                                            <a href="{{ route('projects.show', $p->id) }}" 
+                                               class="px-3 py-1.5 rounded-lg border border-[#CBD5E1] text-[#1E293B] hover:bg-[#F8FAFC] text-[11px] font-bold inline-flex items-center gap-1 transition">
+                                                <span>Detail</span>
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

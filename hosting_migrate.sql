@@ -141,6 +141,7 @@ ALTER TABLE `projects` ADD COLUMN IF NOT EXISTS `win_probability` INT NULL DEFAU
 ALTER TABLE `projects` ADD COLUMN IF NOT EXISTS `expected_closing_date` DATE NULL;
 ALTER TABLE `projects` ADD COLUMN IF NOT EXISTS `lost_reason` TEXT NULL;
 ALTER TABLE `projects` ADD COLUMN IF NOT EXISTS `lost_competitor` VARCHAR(255) NULL;
+ALTER TABLE `projects` ADD COLUMN IF NOT EXISTS `lost_analysis` JSON NULL;
 ALTER TABLE `projects` ADD COLUMN IF NOT EXISTS `quotation_number` VARCHAR(100) NULL;
 ALTER TABLE `projects` ADD COLUMN IF NOT EXISTS `quotation_amount` DECIMAL(18,2) NULL;
 ALTER TABLE `projects` ADD COLUMN IF NOT EXISTS `quotation_file` VARCHAR(500) NULL;

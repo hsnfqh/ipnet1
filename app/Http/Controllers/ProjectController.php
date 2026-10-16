@@ -1479,6 +1479,28 @@ class ProjectController extends Controller
             $project->status = 'Cancelled';
             $project->sales_stage = 'Closed Lost';
             $project->win_probability = 0;
+
+            if ($request->filled('lost_reason')) {
+                $project->lost_reason = $request->input('lost_reason');
+            }
+            if ($request->filled('lost_competitor')) {
+                $project->lost_competitor = $request->input('lost_competitor');
+            }
+            if ($request->filled('primary_factor')) {
+                $project->lost_analysis = [
+                    'primary_factor'          => $request->input('primary_factor', 'Harga / Komersial'),
+                    'competitor_winner'       => $request->input('lost_competitor', '-') ?: '-',
+                    'competitor_price'        => $request->filled('competitor_price') ? (float)$request->input('competitor_price') : null,
+                    'our_price'               => $project->contract_value,
+                    'turning_point'           => $request->input('turning_point'),
+                    'gap_our_weakness'        => $request->input('gap_our_weakness'),
+                    'gap_competitor_strength' => $request->input('gap_competitor_strength'),
+                    'lessons_learned'         => $request->input('lost_reason') ?: $request->input('lessons_learned'),
+                    'future_strategy'         => $request->input('future_strategy'),
+                    'evaluated_by'            => auth()->user()?->name ?: 'Sales Team',
+                    'evaluated_at'            => now()->format('Y-m-d H:i:s'),
+                ];
+            }
         }
 
         $project->save();
