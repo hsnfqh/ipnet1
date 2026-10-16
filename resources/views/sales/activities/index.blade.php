@@ -15,7 +15,7 @@
                 'status'         => $p->status,
                 'lost_reason'    => $p->lost_reason,
                 'lost_competitor'=> $p->lost_competitor,
-                'lost_analysis'  => $p->lost_analysis,
+                'lost_analysis'  => $p->parsed_lost_analysis,
             ]
         ];
     });

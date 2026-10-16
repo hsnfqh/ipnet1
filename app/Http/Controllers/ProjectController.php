@@ -1487,7 +1487,7 @@ class ProjectController extends Controller
                 $project->lost_competitor = $request->input('lost_competitor');
             }
             if ($request->filled('primary_factor')) {
-                $project->lost_analysis = [
+                $analysisPayload = [
                     'primary_factor'          => $request->input('primary_factor', 'Harga / Komersial'),
                     'competitor_winner'       => $request->input('lost_competitor', '-') ?: '-',
                     'competitor_price'        => $request->filled('competitor_price') ? (float)$request->input('competitor_price') : null,
@@ -1500,6 +1500,11 @@ class ProjectController extends Controller
                     'evaluated_by'            => auth()->user()?->name ?: 'Sales Team',
                     'evaluated_at'            => now()->format('Y-m-d H:i:s'),
                 ];
+                if (\Illuminate\Support\Facades\Schema::hasColumn('projects', 'lost_analysis')) {
+                    $project->lost_analysis = $analysisPayload;
+                } else {
+                    $project->lost_reason = json_encode($analysisPayload);
+                }
             }
         }
 

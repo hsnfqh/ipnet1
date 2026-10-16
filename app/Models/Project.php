@@ -127,8 +127,13 @@ class Project extends Model
 
     public function getParsedLostAnalysisAttribute()
     {
-        if (!empty($this->lost_analysis) && is_array($this->lost_analysis)) {
-            return $this->lost_analysis;
+        if (isset($this->attributes['lost_analysis']) && !empty($this->attributes['lost_analysis'])) {
+            $la = is_array($this->attributes['lost_analysis']) 
+                ? $this->attributes['lost_analysis'] 
+                : json_decode($this->attributes['lost_analysis'], true);
+            if (is_array($la)) {
+                return $la;
+            }
         }
         if (!empty($this->lost_reason) && is_string($this->lost_reason) && str_starts_with(trim($this->lost_reason), '{')) {
             $decoded = json_decode($this->lost_reason, true);

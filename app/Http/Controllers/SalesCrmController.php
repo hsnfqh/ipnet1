@@ -612,9 +612,14 @@ class SalesCrmController extends Controller
             });
         }
 
-        $activeProjects = $activeProjectsQuery->orderBy('name')->get([
-            'id', 'name', 'client', 'sales_name', 'contract_value', 'sales_stage', 'status', 'lost_reason', 'lost_competitor', 'lost_analysis'
-        ])
+        $selectCols = [
+            'id', 'name', 'client', 'sales_name', 'contract_value', 'sales_stage', 'status', 'lost_reason', 'lost_competitor'
+        ];
+        if (\Illuminate\Support\Facades\Schema::hasColumn('projects', 'lost_analysis')) {
+            $selectCols[] = 'lost_analysis';
+        }
+
+        $activeProjects = $activeProjectsQuery->orderBy('name')->get($selectCols)
             ->filter(function($p) {
                 $pName = strtolower($p->name ?? '');
                 $sName = strtolower($p->sales_name ?? '');
@@ -1160,7 +1165,11 @@ class SalesCrmController extends Controller
         // Store into project
         $project->lost_reason = $validated['lessons_learned'] ?: $validated['primary_factor'];
         $project->lost_competitor = $validated['competitor_winner'] ?? $project->lost_competitor;
-        $project->lost_analysis = $analysisData;
+        if (\Illuminate\Support\Facades\Schema::hasColumn('projects', 'lost_analysis')) {
+            $project->lost_analysis = $analysisData;
+        } else {
+            $project->lost_reason = json_encode($analysisData);
+        }
         $project->sales_stage = 'Closed Lost';
         $project->status = 'Cancelled';
         $project->win_probability = 0;
