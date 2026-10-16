@@ -78,6 +78,7 @@
             border-collapse: collapse;
             margin-bottom: 8px;
             border: 1px solid #1E293B;
+            page-break-inside: avoid;
         }
         .info-table td {
             font-size: 7.2pt;
@@ -102,6 +103,7 @@
             border-collapse: collapse;
             margin-bottom: 8px;
             border: 1px solid #1E293B;
+            page-break-inside: avoid;
         }
         .data-table th {
             background-color: #EBF3FB;
@@ -303,7 +305,7 @@
                 @foreach($attendees as $attIdx => $att)
                     @if(!empty($att['nama']) || !empty($att['jabatan']))
                         <tr>
-                            <td class="center" style="font-weight: bold; color: #8F0A0D;">{{ $attIdx + 1 }}</td>
+                            <td class="center" style="font-weight: bold; color: #000000;">{{ $attIdx + 1 }}</td>
                             <td><strong>{{ $att['pihak'] ?? 'Klien' }}</strong></td>
                             <td style="font-weight: bold;">{{ $att['nama'] ?: '-' }}</td>
                             <td>{{ $att['jabatan'] ?: '-' }}</td>
@@ -330,14 +332,14 @@
             </thead>
             <tbody>
                 <tr>
-                    <td class="center" style="font-weight: bold; color: #8F0A0D;">1</td>
+                    <td class="center" style="font-weight: bold; color: #000000;">1</td>
                     <td>Internal IPNET</td>
                     <td style="font-weight: bold;">{{ $activity->sales->name ?? 'Sales In Charge' }}</td>
                     <td>Account Executive</td>
                     <td>Sales Person In Charge</td>
                 </tr>
                 <tr>
-                    <td class="center" style="font-weight: bold; color: #8F0A0D;">2</td>
+                    <td class="center" style="font-weight: bold; color: #000000;">2</td>
                     <td>Klien / Customer</td>
                     <td style="font-weight: bold;">{{ $activity->project->client ?? 'PIC Klien' }}</td>
                     <td>Perwakilan Manajemen / PIC</td>
@@ -395,7 +397,7 @@
             <tbody>
                 @foreach($items as $idx => $item)
                     <tr>
-                        <td class="center" style="font-weight: bold; color: #8F0A0D;">{{ $item['no'] ?? ($idx + 1) }}</td>
+                        <td class="center" style="font-weight: bold; color: #000000;">{{ $item['no'] ?? ($idx + 1) }}</td>
                         <td>
                             <strong>{{ $item['time'] ?: '-' }}</strong><br>
                             <span style="color: #64748B; font-size: 6.8pt;">{{ $item['date'] ?: '-' }}</span>
@@ -423,7 +425,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td class="center" style="font-weight: bold; color: #8F0A0D;">1</td>
+                    <td class="center" style="font-weight: bold; color: #000000;">1</td>
                     <td>{{ \Carbon\Carbon::parse($activity->activity_date)->format('H:i') }} WIB</td>
                     <td style="white-space: pre-line;">{{ $activity->notes ?: 'Tidak ada catatan detail.' }}</td>
                     <td>-</td>
@@ -462,6 +464,7 @@
 
     {{-- Section F: Rencana Tindak Lanjut Berikutnya --}}
     @if(!empty($activity->next_action) || !empty($payload['next_action_pic']))
+        <div style="page-break-before: always;"></div>
         <div class="section-title">F. RENCANA TINDAK LANJUT BERIKUTNYA (NEXT ACTION PLAN &amp; COMMITMENT)</div>
         <table class="info-table">
             <tr>

@@ -541,7 +541,7 @@
                                         <template x-if="selectedDetail?.batch?.attendees && selectedDetail.batch.attendees.length > 0">
                                             <template x-for="(att, aIdx) in selectedDetail.batch.attendees" :key="aIdx">
                                                 <tr>
-                                                    <td class="py-1.5 px-2 border-r border-[#1E293B] text-center font-bold text-[#8F0A0D]" x-text="aIdx + 1"></td>
+                                                    <td class="py-1.5 px-2 border-r border-[#1E293B] text-center font-bold text-[#0F172A]" x-text="aIdx + 1"></td>
                                                     <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold" x-text="att.pihak || 'Klien'"></td>
                                                     <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold" x-text="att.nama || '-'"></td>
                                                     <td class="py-1.5 px-2.5 border-r border-[#1E293B]" x-text="att.jabatan || '-'"></td>
@@ -552,7 +552,7 @@
                                         </template>
                                         <template x-if="!selectedDetail?.batch?.attendees || selectedDetail.batch.attendees.length === 0">
                                             <tr>
-                                                <td class="py-1.5 px-2 border-r border-[#1E293B] text-center font-bold text-[#8F0A0D]">1</td>
+                                                <td class="py-1.5 px-2 border-r border-[#1E293B] text-center font-bold text-[#0F172A]">1</td>
                                                 <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold">Internal IPNET</td>
                                                 <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold" x-text="selectedDetail?.activity?.sales?.name || 'Sales In Charge'"></td>
                                                 <td class="py-1.5 px-2.5 border-r border-[#1E293B]">Account Executive</td>
@@ -609,7 +609,7 @@
                                         <template x-if="selectedDetail?.batch?.items && selectedDetail.batch.items.length > 0">
                                             <template x-for="(item, idx) in selectedDetail.batch.items" :key="idx">
                                                 <tr>
-                                                    <td class="py-2 px-2 border-r border-[#1E293B] text-center font-bold text-[#8F0A0D]" x-text="item.no || (idx + 1)"></td>
+                                                    <td class="py-2 px-2 border-r border-[#1E293B] text-center font-bold text-[#0F172A]" x-text="item.no || (idx + 1)"></td>
                                                     <td class="py-2 px-2.5 border-r border-[#1E293B]">
                                                         <div class="font-bold text-[#0F172A]" x-text="item.time || '-'"></div>
                                                         <div class="text-[10px] text-gray-500" x-text="item.date || '-'"></div>
@@ -623,7 +623,7 @@
                                         </template>
                                         <template x-if="!selectedDetail?.batch?.items || selectedDetail.batch.items.length === 0">
                                             <tr>
-                                                <td class="py-2 px-2 border-r border-[#1E293B] text-center font-bold text-[#8F0A0D]">1</td>
+                                                <td class="py-2 px-2 border-r border-[#1E293B] text-center font-bold text-[#0F172A]">1</td>
                                                 <td class="py-2 px-2.5 border-r border-[#1E293B]">
                                                     <div class="font-bold text-[#0F172A]" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'"></div>
                                                     <div class="text-[10px] text-gray-500" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '-'"></div>
@@ -1224,7 +1224,7 @@
                                         <tbody>
                                             <template x-for="(row, index) in bulkRows" :key="index">
                                                 <tr class="border-b border-[#1E293B] hover:bg-[#F8FAFC]">
-                                                    <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B] text-[#8F0A0D]" x-text="index + 1"></td>
+                                                    <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B] text-[#0F172A]" x-text="index + 1"></td>
                                                     <td class="p-1 border-r border-[#1E293B]">
                                                         <textarea :name="'activities[' + index + '][subject]'" 
                                                                   x-model="row.subject" 
