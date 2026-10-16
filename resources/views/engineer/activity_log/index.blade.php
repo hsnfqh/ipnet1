@@ -568,29 +568,21 @@
                                 <button type="button" @click="openDetailModal({{ $groupJson }})"
                                         class="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50/70 hover:bg-red-100/80 border border-red-200/80 hover:border-red-300 transition-all cursor-pointer">
                                     <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
-                                    <span>Form Laporan</span>
+                                    <span>Edit Form Laporan</span>
                                     <span class="px-1.5 py-0.2 rounded-full bg-white text-[#8F0A0D] text-[9.5px] font-black border border-red-200/60">{{ $totalInGroup }}</span>
                                 </button>
 
-                                <div class="flex items-center gap-1.5 shrink-0">
-                                    <button type="button"
-                                            @click="openEditModal({{ $editJson }})"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 transition cursor-pointer">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                        Edit
-                                    </button>
-                                    @if($canDelete)
-                                    <button type="button"
-                                            @click="promptDeleteGroup('{{ route('engineer.activity_log.destroy', $firstAct) }}', '{{ addslashes($projectName) }}')"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
-                                            title="Hapus Seluruh Aktivitas Proyek Ini">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        <span>Hapus</span>
-                                    </button>
-                                    @endif
-                                </div>
+                                @if($canDelete)
+                                <button type="button"
+                                        @click="promptDeleteGroup('{{ route('engineer.activity_log.destroy', $firstAct) }}', '{{ addslashes($projectName) }}')"
+                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
+                                        title="Hapus Seluruh Aktivitas Proyek Ini">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    <span>Hapus</span>
+                                </button>
+                                @endif
                             @endif
                         </div>
                     </div>
@@ -680,123 +672,7 @@
         </div>
     </template>
 
-    {{-- == MODAL EDIT AKTIVITAS == --}}
-    <template x-teleport="body">
-        <div x-show="isEditModalOpen" x-cloak
-             class="fixed inset-0 z-[60] bg-[#0F172A]/65 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
-             @click.self="isEditModalOpen = false"
-             @keydown.escape.window="isEditModalOpen = false">
-            <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden">
 
-                <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] shrink-0">
-                    <div class="flex items-center gap-3">
-                        <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#8F0A0D,#C41E2A);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(143,10,13,.22);">
-                            <svg width="16" height="16" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-bold text-[#8F0A0D] uppercase tracking-widest mb-0.5">Edit Aktivitas</p>
-                            <h3 class="text-[14.5px] font-bold text-[#1E293B] leading-tight truncate max-w-xs" x-text="editGroupName"></h3>
-                        </div>
-                    </div>
-                    <button type="button" @click="isEditModalOpen = false"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg text-[#94A3B8] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition cursor-pointer shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-
-                <div class="px-6 py-2 border-b border-[#F0F4F8] bg-[#F8FAFC] flex items-center justify-between shrink-0">
-                    <p class="text-[11px] text-gray-500">
-                        Terdapat <span class="font-bold text-[#1E293B]" x-text="editRows.length"></span> agenda
-                    </p>
-                    <button type="button" @click="addEditRow()"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#8F0A0D]/25 bg-white hover:bg-red-50 text-[#8F0A0D] text-[11px] font-bold transition cursor-pointer">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                        Tambah Agenda
-                    </button>
-                </div>
-
-                <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-[#EEF2F7]">
-                    <template x-for="(row, idx) in editRows" :key="idx">
-                        <div class="bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden">
-                            <div class="flex items-center justify-between px-4 py-2.5"
-                                 :class="row.id ? 'border-b border-[#F1F5F9] bg-white' : 'border-b border-emerald-100 bg-emerald-50/60'">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10.5px] font-bold shrink-0"
-                                         :style="row.id ? 'background:#FEF2F2;border:1.5px solid #FECACA;color:#8F0A0D;' : 'background:#ECFDF5;border:1.5px solid #A7F3D0;color:#065F46;'"
-                                         x-text="idx + 1"></div>
-                                    <span class="text-[12.5px] font-bold"
-                                          :class="row.id ? 'text-[#1E293B]' : 'text-emerald-800'"
-                                          x-text="row.id ? 'Agenda #' + (idx + 1) : 'Agenda Baru'"></span>
-                                    <span x-show="!row.id"
-                                          class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 uppercase tracking-wide">baru</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <input type="date" x-model="row.date_raw"
-                                           class="px-2.5 py-1 border border-[#D1D5DB] rounded-lg text-[11px] text-[#374151] bg-[#F9FAFB] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                                    <button type="button" @click="promptDeleteRow(row, idx)" :disabled="editSaving"
-                                            class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white border border-red-200 transition cursor-pointer disabled:opacity-50"
-                                            title="Hapus Agenda Ini">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        <span>Hapus</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="px-4 pt-3.5 pb-4 space-y-3">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">Aktivitas <span class="text-red-500">*</span></label>
-                                    <textarea x-model="row.subject" rows="2"
-                                              class="w-full px-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/15 transition resize-none placeholder-gray-300"
-                                              placeholder="Rincian aktivitas teknis..."></textarea>
-                                </div>
-                                <div class="grid grid-cols-3 gap-3">
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">PIC Klien</label>
-                                        <input type="text" x-model="row.client_pic" placeholder="Nama PIC klien"
-                                               class="w-full px-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">PIC IPNET</label>
-                                        <input type="text" x-model="row.ipnet_pic" placeholder="Nama engineer"
-                                               class="w-full px-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">Notes</label>
-                                        <input type="text" x-model="row.notes" placeholder="Keterangan"
-                                               class="w-full px-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between pt-1">
-                                    <div class="text-[11px] text-gray-400 font-medium">
-                                        Dibuat oleh <strong class="text-gray-600 font-semibold" x-text="row.creator_name || '{{ auth()->user()?->name ?? 'Engineer' }}'"></strong>
-                                    </div>
-                                    <button type="button" @click="saveEditRow(row)" :disabled="editSaving"
-                                            class="inline-flex items-center gap-2 px-4 py-2 text-[12px] font-bold text-white rounded-lg transition cursor-pointer disabled:opacity-50 shadow-sm"
-                                            style="background:linear-gradient(135deg,#8F0A0D,#C41E2A);">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                        <span x-text="editSaving ? 'Menyimpan...' : (row.id ? 'Simpan Perubahan' : 'Simpan Agenda Baru')"></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    <div x-show="editRows.length === 0"
-                         class="bg-white rounded-xl border border-dashed border-[#CBD5E1] py-10 text-center">
-                        <p class="text-sm font-semibold text-gray-400">Belum ada agenda.</p>
-                        <p class="text-xs text-gray-300 mt-0.5">Klik "Tambah Agenda" di atas.</p>
-                    </div>
-                </div>
-
-                <div class="px-6 py-3 border-t border-[#E2E8F0] bg-white flex items-center justify-between shrink-0">
-                    <p class="text-[11px] text-gray-400">Simpan per agenda, tutup setelah selesai.</p>
-                    <button type="button" @click="isEditModalOpen = false"
-                            class="px-5 py-2 text-[12px] font-bold text-[#1E293B] bg-[#F1F5F9] hover:bg-[#E2E8F0] border border-[#CBD5E1] rounded-xl transition cursor-pointer">
-                        Tutup
-                    </button>
-                </div>
-            </div>
-        </div>
-    </template>
 
     {{-- ══ MODAL KONFIRMASI HAPUS (KONSISTEN DENGAN TIMESHEET) ══ --}}
     <template x-teleport="body">
@@ -922,15 +798,6 @@ function engineerActivityManager() {
         reportFormSaving: false,
         reportFormSavedSuccess: false,
 
-        // Edit modal
-        isEditModalOpen: false,
-        editRows: [],
-        editGroupName: '',
-        editProjectId: '',
-        editStoreUrl: '',
-        editActTitle: '',
-        editSaving: false,
-
         // Delete Confirmation Modal
         deleteConfirmOpen: false,
         deleteLoading: false,
@@ -968,81 +835,7 @@ function engineerActivityManager() {
             }
         },
 
-        openEditModal(rows) {
-            this.editRows = rows.map(r => ({ ...r }));
-            this.editGroupName = rows[0]?.project_name || 'Edit Aktivitas';
-            this.editProjectId = rows[0]?.project_id || '';
-            this.editStoreUrl  = '{{ route("engineer.activity_log.store") }}';
-            this.editActTitle  = rows[0]?.activity_title || '';
-            this.isEditModalOpen = true;
-        },
 
-        addEditRow() {
-            const today = new Date().toISOString().slice(0, 10);
-            this.editRows.push({
-                id:           null,
-                subject:      '',
-                activity_title: this.editActTitle,
-                date_raw:     today,
-                client_pic:   '',
-                ipnet_pic:    '',
-                notes:        '',
-                creator_name: '{{ auth()->user()?->name ?? 'Engineer' }}',
-                project_id:   this.editProjectId,
-                project_name: this.editGroupName,
-                update_url:   null,
-            });
-            // Scroll to bottom after adding
-            this.$nextTick(() => {
-                const container = this.$el.querySelector('.overflow-y-auto');
-                if (container) container.scrollTop = container.scrollHeight;
-            });
-        },
-
-        async saveEditRow(row) {
-            if (!row.subject || !row.subject.trim()) {
-                alert('Aktivitas tidak boleh kosong.');
-                return;
-            }
-            this.editSaving = true;
-            const token = document.querySelector('meta[name="csrf-token"]').content;
-            const formData = new FormData();
-            formData.append('_token', token);
-
-            try {
-                if (row.id) {
-                    // UPDATE existing row
-                    formData.append('_method', 'PUT');
-                    formData.append('subject', row.subject);
-                    formData.append('activity_date', row.date_raw);
-                    formData.append('client_pic', row.client_pic || '');
-                    formData.append('ipnet_pic', row.ipnet_pic || '');
-                    formData.append('notes', row.notes || '');
-                    formData.append('project_id', row.project_id || '');
-                    formData.append('activity_title', row.activity_title || '');
-                    const res = await fetch(row.update_url, { method: 'POST', body: formData });
-                    if (res.ok || res.redirected) { window.location.reload(); }
-                    else { alert('Gagal menyimpan. Coba lagi.'); }
-                } else {
-                    // CREATE new row via bulk store
-                    formData.append('project_id', row.project_id || '');
-                    formData.append('activity_title', row.activity_title || '');
-                    formData.append('activities[0][subject]', row.subject);
-                    formData.append('activities[0][activity_date]', row.date_raw);
-                    formData.append('activities[0][time_str]', '');
-                    formData.append('activities[0][client_pic]', row.client_pic || '');
-                    formData.append('activities[0][ipnet_pic]', row.ipnet_pic || '');
-                    formData.append('activities[0][notes]', row.notes || '');
-                    const res = await fetch(this.editStoreUrl, { method: 'POST', body: formData });
-                    if (res.ok || res.redirected) { window.location.reload(); }
-                    else { alert('Gagal menyimpan agenda baru. Coba lagi.'); }
-                }
-            } catch (e) {
-                alert('Terjadi kesalahan: ' + e.message);
-            } finally {
-                this.editSaving = false;
-            }
-        },
 
         promptDeleteGroup(url, projectName) {
             this.deleteActionType = 'group';
