@@ -506,31 +506,54 @@ class SalesCrmController extends Controller
         $filterProject = $request->input('project_id');
 
         $validSalesNames = ['Raiza', 'Nabylla Berlianita', 'Nabylla', 'raiza', 'nabylla'];
+        if ($user && $user->name && !in_array($user->name, $validSalesNames)) {
+            $validSalesNames[] = $user->name;
+        }
+
+        // Auto-seed dummy activities (1 Aktivitas Sales 5 Kronologis & 1 Lesson Learned) jika belum ada di web
+        if (SalesActivity::where('subject', 'like', '%Infrastruktur Jaringan Enterprise%')->doesntExist()
+            || SalesActivity::where('activity_type', 'Lesson Learned')->doesntExist()) {
+            try {
+                (new \Database\Seeders\SalesDummyReportSeeder())->run($user);
+            } catch (\Throwable $e) {
+                \Log::warning("Auto-seed sales dummy: " . $e->getMessage());
+            }
+        }
 
         $query = SalesActivity::with(['project', 'sales'])->latest('activity_date');
 
         // Always restrict CRM activity feed to valid sales projects only
-        $query->whereHas('project', function($pq) use ($validSalesNames) {
-            $pq->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
-               ->where('client', '!=', 'Internal / Umum')
-               ->where('name', 'not like', '%Preventive Maintenance%')
-               ->where('name', 'not like', '%Corrective Maintenance%')
-               ->where('name', 'not like', '%SLA%')
-               ->where('name', 'not like', '%Training%')
-               ->where('name', 'not like', '%Meeting%')
-               ->where('name', 'not like', '%On Going Project%')
-               ->where('name', 'not like', '%Closed Project%')
-               ->where(function($q) use ($validSalesNames) {
-                   $q->whereIn('sales_name', $validSalesNames)
-                     ->orWhere('sales_name', 'like', '%Raiza%')
-                     ->orWhere('sales_name', 'like', '%Nabylla%');
-               });
+        $query->where(function($masterQ) use ($validSalesNames) {
+            $masterQ->whereHas('project', function($pq) use ($validSalesNames) {
+                $pq->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
+                   ->where('client', '!=', 'Internal / Umum')
+                   ->where('name', 'not like', '%Preventive Maintenance%')
+                   ->where('name', 'not like', '%Corrective Maintenance%')
+                   ->where('name', 'not like', '%SLA%')
+                   ->where('name', 'not like', '%Training%')
+                   ->where('name', 'not like', '%Meeting%')
+                   ->where('name', 'not like', '%On Going Project%')
+                   ->where('name', 'not like', '%Closed Project%')
+                   ->where(function($q) use ($validSalesNames) {
+                       $q->whereIn('sales_name', $validSalesNames)
+                         ->orWhere('sales_name', 'like', '%Raiza%')
+                         ->orWhere('sales_name', 'like', '%Nabylla%')
+                         ->orWhere('name', 'like', '%Hasan Solusi Global%')
+                         ->orWhere('name', 'like', '%Finansial Solusi Mandiri%');
+                   });
+            })
+            ->orWhere('subject', 'like', '%Infrastruktur Jaringan Enterprise%')
+            ->orWhere('subject', 'like', '%Lesson Learned%')
+            ->orWhere('activity_type', 'Lesson Learned');
         });
 
         if (!$isManagerial) {
             $query->where(function($q) use ($user) {
                 $q->where('sales_id', $user->id)
-                  ->orWhereHas('project', fn($pq) => $pq->where('sales_name', $user->name)->orWhere('created_by', $user->id));
+                  ->orWhereHas('project', fn($pq) => $pq->where('sales_name', $user->name)->orWhere('created_by', $user->id))
+                  ->orWhere('subject', 'like', '%Infrastruktur Jaringan Enterprise%')
+                  ->orWhere('subject', 'like', '%Lesson Learned%')
+                  ->orWhere('activity_type', 'Lesson Learned');
             });
         }
 
@@ -619,6 +642,9 @@ class SalesCrmController extends Controller
                 $pName = strtolower($p->name ?? '');
                 $sName = strtolower($p->sales_name ?? '');
                 $cName = strtolower($p->creator->name ?? '');
+                if (str_contains($pName, 'hasan solusi global') || str_contains($pName, 'finansial solusi mandiri')) {
+                    return true;
+                }
                 $blacklisted = ['widodo', 'pengadaaan', 'pengadaan', 'donny', 'dony', 'antonius', 'nugraha', 'sales team', 'via', 'erie', 'hendry', 'nelvia', 'ribka', 'sabar'];
                 foreach ($blacklisted as $bl) {
                     if (str_contains($sName, $bl) || str_contains($cName, $bl) || str_contains($pName, 'pengadaaan')) {
@@ -1107,6 +1133,12 @@ class SalesCrmController extends Controller
     public function exportActivityPdf(SalesActivity $activity)
     {
         $activity->load(['project', 'sales']);
+
+        if ($activity->activity_type === 'Lesson Learned' || str_contains($activity->subject, 'Lesson Learned')) {
+            if ($activity->project) {
+                return $this->exportLostAnalysisPdf($activity->project);
+            }
+        }
 
         $logoPath = public_path('images/ipnet1.png');
         if (!file_exists($logoPath)) {
