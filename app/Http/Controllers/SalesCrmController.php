@@ -612,7 +612,9 @@ class SalesCrmController extends Controller
             });
         }
 
-        $activeProjects = $activeProjectsQuery->orderBy('name')->get(['id', 'name', 'client', 'sales_name'])
+        $activeProjects = $activeProjectsQuery->orderBy('name')->get([
+            'id', 'name', 'client', 'sales_name', 'contract_value', 'sales_stage', 'status', 'lost_reason', 'lost_competitor', 'lost_analysis'
+        ])
             ->filter(function($p) {
                 $pName = strtolower($p->name ?? '');
                 $sName = strtolower($p->sales_name ?? '');
@@ -676,6 +678,16 @@ class SalesCrmController extends Controller
      */
     public function storeBulkActivities(Request $request)
     {
+        $category = $request->input('category', $request->input('report_category', 'activity'));
+        if ($category === 'lesson_learned') {
+            $projectId = $request->input('project_id');
+            if (!$projectId) {
+                return redirect()->back()->with('error', 'Silakan pilih prospek / proyek tujuan terlebih dahulu.');
+            }
+            $project = Project::findOrFail($projectId);
+            return $this->saveLostAnalysis($request, $project);
+        }
+
         $validated = $request->validate([
             'project_id'                 => 'required|exists:projects,id',
             'activity_title'             => 'nullable|string|max:255',

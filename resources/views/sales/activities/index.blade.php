@@ -2,6 +2,25 @@
 
 @section('title', 'Aktivitas Sales & CRM - Sales Portal')
 
+@php
+    $projectsLookup = $activeProjects->mapWithKeys(function($p) {
+        return [
+            $p->id => [
+                'id'             => $p->id,
+                'name'           => $p->name,
+                'client'         => $p->client,
+                'sales_name'     => $p->sales_name,
+                'contract_value' => $p->contract_value,
+                'sales_stage'    => $p->sales_stage,
+                'status'         => $p->status,
+                'lost_reason'    => $p->lost_reason,
+                'lost_competitor'=> $p->lost_competitor,
+                'lost_analysis'  => $p->lost_analysis,
+            ]
+        ];
+    });
+@endphp
+
 @push('styles')
 <style>
     :root {
@@ -383,261 +402,466 @@
         </div>
     </template>
 
-    {{-- MODAL INPUT FORM LAPORAN RESMI AKTIVITAS SALES (LAYOUT RESMI ALA ENGINEER) --}}
+    {{-- MODAL INPUT FORM LAPORAN RESMI AKTIVITAS SALES (LAYOUT RESMI IDENTIK ENGINEER) --}}
     <template x-teleport="body">
         <div x-show="isBulkModalOpen" 
              x-cloak 
-             class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-5"
-             @click.self="isBulkModalOpen = false">
-            <div class="bg-white rounded-2xl max-w-7xl w-full shadow-2xl border border-[#CBD5E1] max-h-[94vh] flex flex-col overflow-hidden anim-fade-up">
+             class="fixed inset-0 z-50 bg-[#0F172A]/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6"
+             @click.self="isBulkModalOpen = false"
+             @keydown.escape.window="isBulkModalOpen = false">
+            <div class="bg-white rounded-2xl max-w-7xl w-full shadow-2xl border border-[#CBD5E1] max-h-[94vh] flex flex-col overflow-hidden">
                 
-                {{-- Kop Surat Resmi Header (Sesuai Standar Form Engineer) --}}
-                <div class="border-b-2 border-[#8F0A0D] p-5 sm:p-6 pb-4 shrink-0 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                        <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
+                {{-- Header Modal (Identik Persis Engineer) --}}
+                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
                         <div>
-                            <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
-                                FORM LAPORAN AKTIVITAS SALES &amp; CRM
-                            </h2>
-                            <p class="text-[11px] text-[#475569] mt-0.5">
-                                Dokumen resmi ini digunakan sebagai laporan aktivitas sales, notulensi koordinasi dengan klien, dan bukti pelaksanaan agenda bisnis lapangan.
-                            </p>
+                            <h3 class="text-[16px] font-bold text-[#0F172A]">Input Form Laporan Aktivitas Sales</h3>
+                            <p class="text-[11px] text-[#64748B]">Isi formulir laporan kerja resmi di bawah ini sesuai acuan template PT IP Network Solusindo.</p>
                         </div>
                     </div>
-
-                    <div class="flex items-center gap-2.5 self-end sm:self-center shrink-0">
-                        <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold uppercase tracking-wider shadow-2xs">
-                            Dokumen Resmi Sales
-                        </span>
-                        <button type="button" @click="isBulkModalOpen = false" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer" title="Tutup">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
+                    <button type="button" @click="isBulkModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
 
-                {{-- Form with Scrollable Document Body & Fixed Footer --}}
-                <form action="{{ route('sales.activities.bulk') }}" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden bg-[#F8FAFC]">
+                <form action="{{ route('sales.activities.bulk') }}" method="POST" @submit="isSubmitting = true" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
-                    
-                    <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
 
-                        {{-- Section A: Identitas Prospek & Pertemuan --}}
-                        <div class="space-y-1.5">
-                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider flex items-center gap-1.5">
-                                <span>A. IDENTITAS PROSPEK &amp; PERTEMUAN</span>
-                            </h3>
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs bg-white shadow-2xs">
-                                <table class="w-full border-collapse border border-[#1E293B]">
-                                    <tbody>
-                                        <tr class="border-b border-[#1E293B]">
-                                            <td class="w-1/5 py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
-                                                Prospek / Proyek Tujuan <span class="text-[#8F0A0D]">*</span>
-                                            </td>
-                                            <td class="w-3/10 py-1 px-2 border-r border-[#1E293B]">
-                                                <select name="project_id" x-model="bulkProjectId" required 
-                                                        class="w-full p-1.5 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#8F0A0D] cursor-pointer">
-                                                    <option value="">-- Pilih Prospek / Proyek --</option>
-                                                    @foreach($activeProjects as $p)
-                                                        <option value="{{ $p->id }}" {{ ($filterProject == $p->id || (count($activeProjects) == 1 && $activeProjects[0]->id == $p->id)) ? 'selected' : '' }}>
-                                                            {{ $p->name }} ({{ $p->client }})
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </td>
-                                            <td class="w-1/5 py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
-                                                No. Dokumen / Laporan
-                                            </td>
-                                            <td class="w-3/10 py-1 px-2 font-mono font-bold text-xs text-[#8F0A0D]">
-                                                SLS-REP/{{ date('Y') }}/DRAFT
-                                            </td>
-                                        </tr>
-                                        <tr class="border-b border-[#1E293B]">
-                                            <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
-                                                Judul / Topik Pertemuan <span class="text-[#8F0A0D]">*</span>
-                                            </td>
-                                            <td class="py-1 px-2 border-r border-[#1E293B]">
-                                                <input type="text" name="activity_title" placeholder="Contoh: Diskusi Kebutuhan Switch &amp; Firewall Juniper" required 
-                                                       class="w-full p-1.5 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
-                                            </td>
-                                            <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
-                                                Tipe Aktivitas / Agenda
-                                            </td>
-                                            <td class="py-1 px-2">
-                                                <select name="activity_type" class="w-full p-1.5 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-semibold text-xs cursor-pointer">
-                                                    @foreach($activityTypes as $typeKey => $typeLabel)
-                                                        <option value="{{ $typeKey }}" {{ $typeKey === 'Meeting' ? 'selected' : '' }}>{{ $typeLabel }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
-                                                Sales Person (AE)
-                                            </td>
-                                            <td class="py-1 px-2.5 border-r border-[#1E293B] font-semibold text-xs text-[#0F172A]">
-                                                {{ auth()->user()->name }}
-                                            </td>
-                                            <td class="py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
-                                                Tanggal Dokumen
-                                            </td>
-                                            <td class="py-1 px-2.5 font-semibold text-xs text-slate-700">
-                                                {{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                    {{-- Kategori Bar (Identik Persis Engineer: 2 Kategori Sales & CRM) --}}
+                    <div class="px-4 sm:px-6 py-3 bg-white border-b border-[#CBD5E1] flex flex-wrap items-center justify-between gap-3 shrink-0">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-[#475569] uppercase tracking-wider">Kategori Laporan:</span>
+                            <div class="inline-flex rounded-xl p-1 bg-[#F1F5F9] border border-[#CBD5E1] shadow-xs">
+                                <button type="button" @click="selectedCategory = 'activity'"
+                                        :class="selectedCategory === 'activity' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
+                                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
+                                    <span>Aktivitas Sales</span>
+                                </button>
+                                <button type="button" @click="selectedCategory = 'lesson_learned'"
+                                        :class="selectedCategory === 'lesson_learned' ? 'bg-[#8F0A0D] text-white shadow-xs' : 'text-[#334155] hover:text-[#0F172A]'"
+                                        class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
+                                    <span>Lesson Learned</span>
+                                </button>
                             </div>
                         </div>
+                        <div class="text-xs text-gray-500 font-medium hidden sm:block">
+                            Format resmi PT IP Network Solusindo
+                        </div>
+                    </div>
 
-                        {{-- Section B: Rincian Kronologis Agenda & Aktivitas --}}
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
-                                    B. RINCIAN KRONOLOGIS AGENDA &amp; AKTIVITAS
-                                </h3>
+                    {{-- Prospek & Topik Bar (Identik Persis Engineer) --}}
+                    <div class="px-4 py-3 sm:px-6 sm:py-3.5 bg-[#F8FAFC] border-b border-[#CBD5E1] shrink-0">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                            <div class="md:col-span-2">
+                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                                    PILIH PROSPEK / PROYEK TUJUAN <span class="text-[#8F0A0D]">*</span>
+                                </label>
+                                <select name="project_id" x-model="bulkProjectId" @change="onProjectChange()" required
+                                        class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer shadow-xs">
+                                    <option value="">-- Pilih Prospek / Proyek Terkait (Data otomatis terisi ke formulir) --</option>
+                                    @foreach($activeProjects as $p)
+                                        <option value="{{ $p->id }}" {{ ($filterProject == $p->id || (count($activeProjects) == 1 && $activeProjects[0]->id == $p->id)) ? 'selected' : '' }}>
+                                            {{ $p->name }} {{ $p->client ? '('.$p->client.')' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                                    JUDUL / TOPIK LAPORAN (OPSIONAL)
+                                </label>
+                                <input type="text" name="activity_title" x-model="activityTitle"
+                                       placeholder="Contoh: Diskusi Kebutuhan Switch &amp; Firewall..."
+                                       class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-xs">
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="category" :value="selectedCategory">
+                    <input type="hidden" name="report_category" :value="selectedCategory">
+
+                    {{-- Scrollable Canvas Container (Identik Persis Engineer) --}}
+                    <div class="flex-1 overflow-y-auto px-4 pt-3.5 pb-6 sm:px-6 sm:pt-4 sm:pb-6 bg-[#F1F5F9]/70">
+
+                        {{-- Kategori 1: FORM LAPORAN AKTIVITAS SALES & CRM --}}
+                        <div x-show="selectedCategory === 'activity'"
+                             class="!mt-0 bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
+                            
+                            {{-- Kop Surat Resmi --}}
+                            <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div class="flex items-center gap-3">
-                                    <button type="button" @click="addBulkRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>+ Tambah Baris</span>
-                                    </button>
-                                    <button type="button" @click="addBulkMultiple(5)" class="text-[11px] font-bold text-[#475569] hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>+ Tambah 5 Baris</span>
-                                    </button>
+                                    <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
+                                    <div>
+                                        <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
+                                            FORM LAPORAN AKTIVITAS SALES &amp; CRM
+                                        </h2>
+                                        <p class="text-[11px] text-[#475569] mt-0.5">
+                                            Dokumen resmi ini digunakan sebagai laporan aktivitas sales, notulensi koordinasi dengan klien, dan bukti pelaksanaan agenda bisnis lapangan.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                        Dokumen Resmi
+                                    </span>
                                 </div>
                             </div>
-                            <div class="border border-[#1E293B] rounded-sm overflow-x-auto text-xs bg-white shadow-2xs">
-                                <table class="w-full border-collapse border border-[#1E293B] min-w-[1050px]">
-                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
-                                        <tr>
-                                            <th class="py-2 px-2 w-10 text-center border-r border-[#1E293B]">No.</th>
-                                            <th class="py-2 px-2 w-72 border-r border-[#1E293B] text-left">Kronologis Agenda / Aktivitas <span class="text-[#8F0A0D]">*</span></th>
-                                            <th class="py-2 px-2 w-32 border-r border-[#1E293B] text-center">Tanggal</th>
-                                            <th class="py-2 px-2 w-28 border-r border-[#1E293B] text-center">Waktu (Jam)</th>
-                                            <th class="py-2 px-2 w-36 border-r border-[#1E293B] text-left">PIC Klien</th>
-                                            <th class="py-2 px-2 w-36 border-r border-[#1E293B] text-left">PIC IPNET</th>
-                                            <th class="py-2 px-2 min-w-[200px] border-r border-[#1E293B] text-left">Catatan Aksi / Detail</th>
-                                            <th class="py-2 px-1 w-12 text-center">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-for="(row, index) in bulkRows" :key="index">
-                                            <tr class="border-b border-[#1E293B] hover:bg-[#F8FAFC]">
-                                                {{-- No --}}
-                                                <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B] text-[#8F0A0D]" x-text="index + 1"></td>
-                                                
-                                                {{-- Agenda / Subject --}}
-                                                <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="hidden" :name="'activities[' + index + '][activity_type]'" value="Troubleshooting">
-                                                    <textarea :name="'activities[' + index + '][subject]'" 
-                                                              x-model="row.subject" 
-                                                              rows="2" 
-                                                              placeholder="Contoh: Pembahasan spesifikasi switch dan SLA..."
-                                                              class="w-full p-1 text-xs border-0 bg-transparent font-semibold focus:ring-1 focus:ring-[#8F0A0D] resize-none"></textarea>
-                                                </td>
 
-                                                {{-- Tanggal --}}
-                                                <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="date" 
-                                                           :name="'activities[' + index + '][activity_date]'" 
-                                                           x-model="row.activity_date" 
-                                                           class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium cursor-pointer focus:ring-1 focus:ring-[#8F0A0D]">
+                            {{-- A. IDENTITAS PROSPEK & PERTEMUAN --}}
+                            <div class="space-y-1.5">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS PROSPEK &amp; PERTEMUAN</h3>
+                                <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B]">
+                                        <tbody>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Prospek / Proyek Tujuan</td>
+                                                <td class="w-3/10 py-1 px-2 border-r border-[#1E293B]">
+                                                    <span class="font-bold text-[#0F172A]" x-text="selectedProjectData?.name || 'Pilih proyek di atas...'"></span>
                                                 </td>
-
-                                                {{-- Waktu --}}
-                                                <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="time" 
-                                                           :name="'activities[' + index + '][time_str]'" 
-                                                           x-model="row.time_str" 
-                                                           class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium cursor-pointer focus:ring-1 focus:ring-[#8F0A0D]">
-                                                </td>
-
-                                                {{-- PIC Klien --}}
-                                                <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="text" 
-                                                           :name="'activities[' + index + '][client_pic]'" 
-                                                           x-model="row.client_pic" 
-                                                           placeholder="Nama PIC Klien"
-                                                           class="w-full p-1 text-xs border-0 bg-transparent focus:ring-1 focus:ring-[#8F0A0D]">
-                                                </td>
-
-                                                {{-- PIC IPNET --}}
-                                                <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="text" 
-                                                           :name="'activities[' + index + '][ipnet_pic]'" 
-                                                           x-model="row.ipnet_pic" 
-                                                           placeholder="Nama PIC IPNET"
-                                                           class="w-full p-1 text-xs border-0 bg-transparent focus:ring-1 focus:ring-[#8F0A0D]">
-                                                </td>
-
-                                                {{-- Catatan Aksi --}}
-                                                <td class="p-1 border-r border-[#1E293B]">
-                                                    <textarea :name="'activities[' + index + '][notes]'" 
-                                                              x-model="row.notes" 
-                                                              rows="2" 
-                                                              placeholder="Rangkuman hasil diskusi, durasi, dll..."
-                                                              class="w-full p-1 text-xs border-0 bg-transparent resize-none focus:ring-1 focus:ring-[#8F0A0D]"></textarea>
-                                                </td>
-
-                                                {{-- Hapus Baris --}}
-                                                <td class="p-1 text-center">
-                                                    <button type="button" 
-                                                            @click="removeBulkRow(index)" 
-                                                            title="Hapus baris ini"
-                                                            class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition cursor-pointer">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                    </button>
+                                                <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">No. Dokumen / Laporan</td>
+                                                <td class="w-3/10 py-1 px-2 font-mono font-bold text-[#8F0A0D]">
+                                                    SLS-REP/{{ date('Y') }}/DRAFT
                                                 </td>
                                             </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Judul / Topik Pertemuan</td>
+                                                <td class="py-1 px-2 border-r border-[#1E293B]">
+                                                    <span class="font-semibold text-slate-800" x-text="activityTitle || 'Sesuai judul laporan di atas'"></span>
+                                                </td>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tipe Aktivitas / Agenda</td>
+                                                <td class="py-1 px-2">
+                                                    <select name="activity_type" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-semibold text-xs cursor-pointer">
+                                                        @foreach($activityTypes as $typeKey => $typeLabel)
+                                                            <option value="{{ $typeKey }}" {{ $typeKey === 'Meeting' ? 'selected' : '' }}>{{ $typeLabel }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Sales Person (AE)</td>
+                                                <td class="py-1 px-2.5 border-r border-[#1E293B] font-semibold text-xs text-[#0F172A]">
+                                                    <span x-text="selectedProjectData?.sales_name || '{{ auth()->user()->name }}'"></span>
+                                                </td>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tanggal Dokumen</td>
+                                                <td class="py-1 px-2.5 font-semibold text-xs text-slate-700">
+                                                    {{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                            <div class="text-[11.5px] font-semibold text-[#334155] pt-0.5 flex items-center justify-between">
-                                <span>Total agenda tercatat: <strong class="text-[#8F0A0D]" x-text="filledRowsCount"></strong> dari <strong x-text="bulkRows.length"></strong> baris</span>
+
+                            {{-- B. RINCIAN KRONOLOGIS AGENDA & AKTIVITAS --}}
+                            <div class="space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
+                                        B. RINCIAN KRONOLOGIS AGENDA &amp; AKTIVITAS
+                                    </h3>
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" @click="addBulkRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                            <span>+ Tambah Baris</span>
+                                        </button>
+                                        <button type="button" @click="addBulkMultiple(5)" class="text-[11px] font-bold text-[#475569] hover:underline flex items-center gap-1 cursor-pointer">
+                                            <span>+ Tambah 5 Baris</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="border border-[#1E293B] rounded-sm overflow-x-auto text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B] min-w-[1050px]">
+                                        <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
+                                            <tr>
+                                                <th class="py-1.5 px-2 w-10 text-center border-r border-[#1E293B]">No.</th>
+                                                <th class="py-1.5 px-2 w-72 border-r border-[#1E293B] text-left">Kronologis Agenda / Aktivitas <span class="text-[#8F0A0D]">*</span></th>
+                                                <th class="py-1.5 px-2 w-32 border-r border-[#1E293B] text-center">Tanggal</th>
+                                                <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-center">Waktu (Jam)</th>
+                                                <th class="py-1.5 px-2 w-36 border-r border-[#1E293B] text-left">PIC Klien</th>
+                                                <th class="py-1.5 px-2 w-36 border-r border-[#1E293B] text-left">PIC IPNET</th>
+                                                <th class="py-1.5 px-2 min-w-[200px] border-r border-[#1E293B] text-left">Catatan Aksi / Detail</th>
+                                                <th class="py-1.5 px-1 w-12 text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(row, index) in bulkRows" :key="index">
+                                                <tr class="border-b border-[#1E293B] hover:bg-[#F8FAFC]">
+                                                    <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B] text-[#8F0A0D]" x-text="index + 1"></td>
+                                                    <td class="p-1 border-r border-[#1E293B]">
+                                                        <textarea :name="'activities[' + index + '][subject]'" 
+                                                                  x-model="row.subject" 
+                                                                  rows="2" 
+                                                                  placeholder="Contoh: Pembahasan spesifikasi switch dan SLA..."
+                                                                  class="w-full p-1 text-xs border-0 bg-transparent font-semibold focus:ring-1 focus:ring-[#8F0A0D] resize-none"></textarea>
+                                                    </td>
+                                                    <td class="p-1 border-r border-[#1E293B] text-center">
+                                                        <input type="date" 
+                                                               :name="'activities[' + index + '][activity_date]'" 
+                                                               x-model="row.activity_date" 
+                                                               class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium cursor-pointer focus:ring-1 focus:ring-[#8F0A0D]">
+                                                    </td>
+                                                    <td class="p-1 border-r border-[#1E293B] text-center">
+                                                        <input type="time" 
+                                                               :name="'activities[' + index + '][time_str]'" 
+                                                               x-model="row.time_str" 
+                                                               class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium cursor-pointer focus:ring-1 focus:ring-[#8F0A0D]">
+                                                    </td>
+                                                    <td class="p-1 border-r border-[#1E293B]">
+                                                        <input type="text" 
+                                                               :name="'activities[' + index + '][client_pic]'" 
+                                                               x-model="row.client_pic" 
+                                                               placeholder="Nama PIC Klien"
+                                                               class="w-full p-1 text-xs border-0 bg-transparent focus:ring-1 focus:ring-[#8F0A0D]">
+                                                    </td>
+                                                    <td class="p-1 border-r border-[#1E293B]">
+                                                        <input type="text" 
+                                                               :name="'activities[' + index + '][ipnet_pic]'" 
+                                                               x-model="row.ipnet_pic" 
+                                                               placeholder="Nama PIC IPNET"
+                                                               class="w-full p-1 text-xs border-0 bg-transparent focus:ring-1 focus:ring-[#8F0A0D]">
+                                                    </td>
+                                                    <td class="p-1 border-r border-[#1E293B]">
+                                                        <textarea :name="'activities[' + index + '][notes]'" 
+                                                                  x-model="row.notes" 
+                                                                  rows="2" 
+                                                                  placeholder="Rangkuman hasil diskusi, durasi, dll..."
+                                                                  class="w-full p-1 text-xs border-0 bg-transparent resize-none focus:ring-1 focus:ring-[#8F0A0D]"></textarea>
+                                                    </td>
+                                                    <td class="p-1 text-center">
+                                                        <button type="button" 
+                                                                @click="removeBulkRow(index)" 
+                                                                title="Hapus baris ini"
+                                                                class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition cursor-pointer">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="text-[11.5px] font-semibold text-[#334155] pt-0.5 flex items-center justify-between">
+                                    <span>Total agenda tercatat: <strong class="text-[#8F0A0D]" x-text="filledRowsCount"></strong> dari <strong x-text="bulkRows.length"></strong> baris</span>
+                                </div>
                             </div>
+
+                            {{-- C. RENCANA TINDAK LANJUT BERIKUTNYA --}}
+                            <div class="space-y-1.5">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
+                                    C. RENCANA TINDAK LANJUT BERIKUTNYA (NEXT ACTION PLAN)
+                                </h3>
+                                <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B]">
+                                        <tbody>
+                                            <tr>
+                                                <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
+                                                    Komitmen / Aksi Berikutnya
+                                                </td>
+                                                <td class="w-3/5 p-1 border-r border-[#1E293B]">
+                                                    <input type="text" name="next_action" placeholder="Contoh: Mengirimkan surat penawaran harga (SPH) revisi dan spesifikasi teknis" 
+                                                           class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold text-[#0F172A]">
+                                                </td>
+                                                <td class="w-1/10 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B] text-center">
+                                                    Target Selesai
+                                                </td>
+                                                <td class="w-1/10 p-1">
+                                                    <input type="date" name="next_action_date" 
+                                                           class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
                         </div>
 
-                        {{-- Section C: Kesepakatan & Tindak Lanjut Berikutnya (Next Action Plan) --}}
-                        <div class="space-y-1.5">
-                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">
-                                C. RENCANA TINDAK LANJUT BERIKUTNYA (NEXT ACTION PLAN)
-                            </h3>
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs bg-white shadow-2xs">
-                                <table class="w-full border-collapse border border-[#1E293B]">
-                                    <tbody>
-                                        <tr>
-                                            <td class="w-1/5 py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
-                                                Komitmen / Aksi Berikutnya
-                                            </td>
-                                            <td class="w-3/5 p-1 border-r border-[#1E293B]">
-                                                <input type="text" name="next_action" placeholder="Contoh: Mengirimkan surat penawaran harga (SPH) revisi dan spesifikasi teknis" 
-                                                       class="w-full p-1.5 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold text-[#0F172A]">
-                                            </td>
-                                            <td class="w-1/10 py-2 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] text-center">
-                                                Target Selesai
-                                            </td>
-                                            <td class="w-1/10 p-1">
-                                                <input type="date" name="next_action_date" 
-                                                       class="w-full p-1.5 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        {{-- Kategori 2: FORM LAPORAN EVALUASI & LESSON LEARNED (LOST DEAL) --}}
+                        <div x-show="selectedCategory === 'lesson_learned'"
+                             class="!mt-0 bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
+                            
+                            {{-- Kop Surat Resmi --}}
+                            <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
+                                    <div>
+                                        <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
+                                            FORM LAPORAN EVALUASI &amp; LESSON LEARNED (LOST DEAL)
+                                        </h2>
+                                        <p class="text-[11px] text-[#475569] mt-0.5">
+                                            Dokumen analisis resmi komersial untuk meninjau penyebab kegagalan peluang (Closed Lost) dan rekomendasi perbaikan strategi tim sales.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                        Dokumen Resmi
+                                    </span>
+                                </div>
                             </div>
+
+                            {{-- A. IDENTITAS PROSPEK & PELUANG --}}
+                            <div class="space-y-1.5">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS PROSPEK &amp; PELUANG</h3>
+                                <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B]">
+                                        <tbody>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Nama Prospek / Proyek</td>
+                                                <td class="w-3/10 py-1 px-2 border-r border-[#1E293B]">
+                                                    <span class="font-bold text-[#0F172A]" x-text="selectedProjectData?.name || 'Pilih proyek di atas...'"></span>
+                                                </td>
+                                                <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">No. Laporan</td>
+                                                <td class="w-3/10 py-1 px-2 font-mono font-bold text-[#8F0A0D]">
+                                                    LST-REP/{{ date('Y') }}/DRAFT
+                                                </td>
+                                            </tr>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Klien / Instansi</td>
+                                                <td class="py-1 px-2 border-r border-[#1E293B]">
+                                                    <span class="font-semibold text-slate-700" x-text="selectedProjectData?.client || '-'"></span>
+                                                </td>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tanggal Evaluasi</td>
+                                                <td class="py-1 px-2 font-medium text-slate-700">
+                                                    {{ \Carbon\Carbon::now()->isoFormat('dddd, D MMMM Y') }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Account Executive / Sales</td>
+                                                <td class="py-1 px-2 border-r border-[#1E293B]">
+                                                    <span class="font-semibold text-slate-700" x-text="selectedProjectData?.sales_name || '{{ auth()->user()->name }}'"></span>
+                                                </td>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Nilai Peluang / Estimasi (IDR)</td>
+                                                <td class="py-1 px-2 font-bold text-[#8F0A0D]">
+                                                    <span x-text="selectedProjectData?.contract_value ? 'Rp ' + Number(selectedProjectData.contract_value).toLocaleString('id-ID') : 'Rp 0'"></span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- B. ANALISIS FAKTOR PENYEBAB & KOMPETITOR --}}
+                            <div class="space-y-1.5">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. ANALISIS FAKTOR PENYEBAB &amp; KOMPETITOR</h3>
+                                <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B]">
+                                        <tbody>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Faktor Utama Kekalahan <span class="text-[#8F0A0D]">*</span></td>
+                                                <td class="w-3/10 py-1 px-2 border-r border-[#1E293B]">
+                                                    <select name="primary_factor" x-model="lostFormData.primary_factor" :required="selectedCategory === 'lesson_learned'" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs cursor-pointer">
+                                                        <option value="">-- Pilih Faktor Utama --</option>
+                                                        <option value="Harga / Budget Kurang Bersaing">Harga / Budget Kurang Bersaing</option>
+                                                        <option value="Kalah Spesifikasi Teknis / Brand">Kalah Spesifikasi Teknis / Brand</option>
+                                                        <option value="Hubungan / Kedekatan Kompetitor">Hubungan / Kedekatan Kompetitor</option>
+                                                        <option value="Waktu Delivery / SLA Tidak Cocok">Waktu Delivery / SLA Tidak Cocok</option>
+                                                        <option value="Persyaratan Legal / Kualifikasi">Persyaratan Legal / Kualifikasi</option>
+                                                        <option value="Proyek Dibatalkan Internal Klien">Proyek Dibatalkan Internal Klien</option>
+                                                        <option value="Lainnya">Lainnya</option>
+                                                    </select>
+                                                </td>
+                                                <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Kompetitor Pemenang</td>
+                                                <td class="w-3/10 py-1 px-2">
+                                                    <input type="text" name="competitor_winner" x-model="lostFormData.competitor_winner" placeholder="Contoh: PT Mitra Solusi..." class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-semibold text-xs">
+                                                </td>
+                                            </tr>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Harga Penawaran IPNET (IDR)</td>
+                                                <td class="py-1 px-2 border-r border-[#1E293B]">
+                                                    <input type="number" name="our_price" x-model="lostFormData.our_price" placeholder="Contoh: 150000000" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold">
+                                                </td>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Estimasi Harga Pemenang (IDR)</td>
+                                                <td class="py-1 px-2">
+                                                    <input type="number" name="competitor_price" x-model="lostFormData.competitor_price" placeholder="Contoh: 135000000" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Titik Balik Keputusan (Turning Point)</td>
+                                                <td colspan="3" class="p-1">
+                                                    <input type="text" name="turning_point" x-model="lostFormData.turning_point" placeholder="Momen saat peluang mulai lepas, contoh: Saat klarifikasi spesifikasi atau negosiasi diskon..." class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- C. ANALISIS KESENJANGAN (GAP ANALYSIS) --}}
+                            <div class="space-y-1.5">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. ANALISIS KESENJANGAN (GAP ANALYSIS)</h3>
+                                <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B]">
+                                        <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
+                                            <tr>
+                                                <th class="py-1.5 px-2.5 w-1/2 border-r border-[#1E293B] text-left">Kelemahan Penawaran IPNET</th>
+                                                <th class="py-1.5 px-2.5 w-1/2 text-left">Keunggulan Utama Kompetitor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="p-1 border-r border-[#1E293B] align-top">
+                                                    <textarea name="gap_our_weakness" x-model="lostFormData.gap_our_weakness" rows="3" placeholder="Faktor kekurangan kita, misal: Lead time delivery terlalu lama, diskon prinsipal kurang..." class="w-full p-1 text-xs border-0 bg-transparent resize-none focus:ring-1 focus:ring-[#8F0A0D]"></textarea>
+                                                </td>
+                                                <td class="p-1 align-top">
+                                                    <textarea name="gap_competitor_strength" x-model="lostFormData.gap_competitor_strength" rows="3" placeholder="Keunggulan lawan, misal: Brand sudah terpasang lama, bonus implementasi free..." class="w-full p-1 text-xs border-0 bg-transparent resize-none focus:ring-1 focus:ring-[#8F0A0D]"></textarea>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- D. LESSON LEARNED & STRATEGI REKOMENDASI --}}
+                            <div class="space-y-1.5">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. LESSON LEARNED &amp; STRATEGI REKOMENDASI</h3>
+                                <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                    <table class="w-full border-collapse border border-[#1E293B]">
+                                        <tbody>
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-top">Pembelajaran (Lesson Learned)</td>
+                                                <td class="w-3/4 p-1">
+                                                    <textarea name="lessons_learned" x-model="lostFormData.lessons_learned" rows="3" placeholder="Apa yang dipelajari tim sales agar kesalahan tidak terulang di prospek serupa..." class="w-full p-1 text-xs border-0 bg-transparent resize-none focus:ring-1 focus:ring-[#8F0A0D]"></textarea>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-top">Rekomendasi Strategi Berikutnya</td>
+                                                <td class="p-1">
+                                                    <textarea name="future_strategy" x-model="lostFormData.future_strategy" rows="3" placeholder="Langkah mitigasi ke depan: menjaga relasi dengan klien untuk proyek berikutnya, dsb..." class="w-full p-1 text-xs border-0 bg-transparent resize-none focus:ring-1 focus:ring-[#8F0A0D]"></textarea>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>
 
-                    {{-- Fixed Footer --}}
-                    <div class="flex items-center justify-between p-4 px-6 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
-                        <button type="button" 
-                                @click="isBulkModalOpen = false" 
-                                class="px-5 py-2.5 text-xs font-bold text-[#475569] hover:bg-white border border-[#CBD5E1] rounded-xl transition cursor-pointer shadow-xs">
+                    {{-- Footer Modal (Identik Persis Engineer) --}}
+                    <div class="px-6 py-4 bg-white border-t border-[#CBD5E1] flex items-center justify-between shrink-0 shadow-sm">
+                        <button type="button" @click="isBulkModalOpen = false"
+                                class="px-5 py-2.5 bg-white text-[#334155] border border-[#CBD5E1] hover:bg-gray-50 font-bold text-xs rounded-xl transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" 
-                                class="btn-ipnet-primary px-6 py-2.5 text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span>Simpan Dokumen Resmi Aktivitas</span>
+                        <button type="submit"
+                                :disabled="isSubmitting"
+                                :class="isSubmitting ? 'opacity-75 cursor-not-allowed bg-[#73080A]' : 'bg-[#8F0A0D] hover:bg-[#73080A] cursor-pointer'"
+                                class="px-6 py-2.5 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2">
+                            <template x-if="!isSubmitting">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </template>
+                            <template x-if="isSubmitting">
+                                <svg class="w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                </svg>
+                            </template>
+                            <span x-text="isSubmitting ? 'Menyimpan...' : (selectedCategory === 'lesson_learned' ? 'Simpan Laporan Lesson Learned' : 'Simpan Laporan Aktivitas')"></span>
                         </button>
                     </div>
 
@@ -860,7 +1084,48 @@
 
             // Spreadsheet Multi-Row Bulk Entry
             isBulkModalOpen: false,
+            selectedCategory: 'activity',
+            activityTitle: '',
+            isSubmitting: false,
             bulkProjectId: '{{ $filterProject ?: ($activeProjects->first()->id ?? '') }}',
+            projectsMap: {{ Js::from($projectsLookup) }},
+            lostFormData: {
+                primary_factor: '',
+                competitor_winner: '',
+                competitor_price: '',
+                our_price: '',
+                turning_point: '',
+                gap_our_weakness: '',
+                gap_competitor_strength: '',
+                lessons_learned: '',
+                future_strategy: ''
+            },
+            get selectedProjectData() {
+                return this.projectsMap[this.bulkProjectId] || null;
+            },
+            onProjectChange() {
+                const p = this.selectedProjectData;
+                if (p) {
+                    if (p.lost_analysis) {
+                        try {
+                            const la = typeof p.lost_analysis === 'string' ? JSON.parse(p.lost_analysis) : p.lost_analysis;
+                            this.lostFormData.primary_factor = la.primary_factor || '';
+                            this.lostFormData.competitor_winner = la.competitor_winner || p.lost_competitor || '';
+                            this.lostFormData.competitor_price = la.competitor_price || '';
+                            this.lostFormData.our_price = la.our_price || p.contract_value || '';
+                            this.lostFormData.turning_point = la.turning_point || '';
+                            this.lostFormData.gap_our_weakness = la.gap_our_weakness || '';
+                            this.lostFormData.gap_competitor_strength = la.gap_competitor_strength || '';
+                            this.lostFormData.lessons_learned = la.lessons_learned || p.lost_reason || '';
+                            this.lostFormData.future_strategy = la.future_strategy || '';
+                        } catch (e) {}
+                    } else {
+                        this.lostFormData.our_price = p.contract_value || '';
+                        this.lostFormData.competitor_winner = p.lost_competitor || '';
+                        this.lostFormData.lessons_learned = p.lost_reason || '';
+                    }
+                }
+            },
             bulkDefaultType: 'Troubleshooting',
             bulkRows: [
                 { subject: '', activity_date: '{{ date('Y-m-d') }}', time_str: '{{ date('H:i') }}', client_pic: '', ipnet_pic: '', notes: '' },
@@ -876,6 +1141,7 @@
 
             openBulkModal() {
                 this.isBulkModalOpen = true;
+                this.onProjectChange();
             },
 
             addBulkRow() {
