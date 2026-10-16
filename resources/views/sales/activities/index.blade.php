@@ -462,37 +462,19 @@
                                         <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#CBD5E1] align-middle">Account Executive (Sales)</td>
                                         <td class="p-2 border-r border-[#CBD5E1] font-bold text-[#0F172A] align-middle" x-text="selectedDetail?.activity?.sales?.name || '{{ auth()->user()->name }}'"></td>
                                         <td class="p-2 border-r border-[#CBD5E1] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
-                                        <td class="py-2.5 px-3 text-center align-middle">
-                                            <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-emerald-50/80 border border-emerald-300 min-w-[150px]">
-                                                <span class="text-[10px] font-black text-emerald-800 tracking-wider">[ TANDA TANGAN DIGITAL ]</span>
-                                                <span class="text-[9px] text-emerald-600 font-semibold mt-0.5">Terverifikasi Digital CRM</span>
-                                                <span class="text-[9px] text-slate-500 font-mono" x-text="selectedDetail?.activity?.sales?.name || '{{ auth()->user()->name }}'"></span>
-                                            </div>
-                                        </td>
+                                        <td class="h-14 p-2 text-center align-middle bg-white"></td>
                                     </tr>
                                     <tr>
                                         <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#CBD5E1] align-middle">Division Head / Atasan Sales</td>
                                         <td class="p-2 border-r border-[#CBD5E1] font-bold text-[#0F172A] align-middle">Susanto Djaya</td>
                                         <td class="p-2 border-r border-[#CBD5E1] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
-                                        <td class="py-2.5 px-3 text-center align-middle">
-                                            <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-red-50/80 border border-red-300 min-w-[150px]">
-                                                <span class="text-[10px] font-black text-[#8F0A0D] tracking-wider">[ TANDA TANGAN ATASAN ]</span>
-                                                <span class="text-[9px] text-[#8F0A0D] font-semibold mt-0.5">Approved Division Head</span>
-                                                <span class="text-[9px] text-slate-500 font-mono">Susanto Djaya</span>
-                                            </div>
-                                        </td>
+                                        <td class="h-14 p-2 text-center align-middle bg-white"></td>
                                     </tr>
                                     <tr>
                                         <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#CBD5E1] align-middle">Customer / PIC Klien</td>
                                         <td class="p-2 border-r border-[#CBD5E1] font-semibold text-slate-700 align-middle" x-text="selectedDetail?.activity?.project?.client || 'PIC Customer Representative'"></td>
                                         <td class="p-2 border-r border-[#CBD5E1] text-center align-middle font-medium" x-text="selectedDetail?.activity?.activity_date ? new Date(selectedDetail.activity.activity_date).toLocaleDateString('id-ID') : '{{ date('d/m/Y') }}'"></td>
-                                        <td class="py-2.5 px-3 text-center align-middle">
-                                            <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-blue-50/80 border border-blue-300 min-w-[150px]">
-                                                <span class="text-[10px] font-black text-blue-800 tracking-wider">[ TANDA TANGAN KLIEN ]</span>
-                                                <span class="text-[9px] text-blue-600 font-semibold mt-0.5">Tervalidasi Pertemuan</span>
-                                                <span class="text-[9px] text-slate-500 font-mono">Customer Representative</span>
-                                            </div>
-                                        </td>
+                                        <td class="h-14 p-2 text-center align-middle bg-white"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -614,7 +596,7 @@
                                     <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
                                     <div>
                                         <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
-                                            FORM LAPORAN AKTIVITAS SALES &amp; CRM
+                                            FORM LAPORAN AKTIVITAS SALES
                                         </h2>
                                         <p class="text-[11px] text-[#475569] mt-0.5">
                                             Dokumen resmi ini digunakan sebagai laporan aktivitas sales, notulensi koordinasi dengan klien, dan bukti pelaksanaan agenda bisnis lapangan.
@@ -981,25 +963,13 @@
                                                 <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Account Executive (Sales)</td>
                                                 <td class="p-1 px-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle">{{ auth()->user()->name }}</td>
                                                 <td class="p-1 px-2 border-r border-[#1E293B] text-center align-middle font-medium">{{ date('d/m/Y') }}</td>
-                                                <td class="py-2.5 px-3 text-center align-middle">
-                                                    <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-emerald-50/80 border border-emerald-300 min-w-[150px]">
-                                                        <span class="text-[10px] font-black text-emerald-800 tracking-wider">[ TANDA TANGAN DIGITAL ]</span>
-                                                        <span class="text-[9px] text-emerald-600 font-semibold mt-0.5">Terverifikasi Digital CRM</span>
-                                                        <span class="text-[9px] text-slate-500 font-mono">{{ auth()->user()->name }}</span>
-                                                    </div>
-                                                </td>
+                                                <td class="h-14 py-4 px-3 text-center align-middle bg-white"></td>
                                             </tr>
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Division Head / Atasan Sales</td>
                                                 <td class="p-1 px-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle">Susanto Djaya</td>
                                                 <td class="p-1 px-2 border-r border-[#1E293B] text-center align-middle font-medium">{{ date('d/m/Y') }}</td>
-                                                <td class="py-2.5 px-3 text-center align-middle">
-                                                    <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-red-50/80 border border-red-300 min-w-[150px]">
-                                                        <span class="text-[10px] font-black text-[#8F0A0D] tracking-wider">[ TANDA TANGAN ATASAN ]</span>
-                                                        <span class="text-[9px] text-[#8F0A0D] font-semibold mt-0.5">Approved Division Head</span>
-                                                        <span class="text-[9px] text-slate-500 font-mono">Susanto Djaya</span>
-                                                    </div>
-                                                </td>
+                                                <td class="h-14 py-4 px-3 text-center align-middle bg-white"></td>
                                             </tr>
                                             <tr>
                                                 <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Customer / PIC Klien</td>
@@ -1007,13 +977,7 @@
                                                     <input type="text" name="customer_rep_name" placeholder="Nama PIC Customer / Klien..." class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
                                                 </td>
                                                 <td class="p-1 px-2 border-r border-[#1E293B] text-center align-middle font-medium">{{ date('d/m/Y') }}</td>
-                                                <td class="py-2.5 px-3 text-center align-middle">
-                                                    <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-blue-50/80 border border-blue-300 min-w-[150px]">
-                                                        <span class="text-[10px] font-black text-blue-800 tracking-wider">[ TANDA TANGAN KLIEN ]</span>
-                                                        <span class="text-[9px] text-blue-600 font-semibold mt-0.5">Tervalidasi Pertemuan</span>
-                                                        <span class="text-[9px] text-slate-500 font-mono">Customer Representative</span>
-                                                    </div>
-                                                </td>
+                                                <td class="h-14 py-4 px-3 text-center align-middle bg-white"></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -1022,7 +986,7 @@
 
                             {{-- Catatan Footer Resmi Dokumen --}}
                             <div class="pt-2 text-[10.5px] text-[#475569] italic border-t border-dashed border-[#CBD5E1]">
-                                <p><strong>Catatan Dokumen Resmi:</strong> Dokumen ini diterbitkan secara sah melalui Sistem Terintegrasi CRM &amp; Pipeline PT IP Network Solusindo. Berfungsi sebagai bukti otentik notulensi koordinasi bisnis, berita acara pertemuan komersial, dan rujukan audit operasional sales tanpa memerlukan tanda tangan basah.</p>
+                                <p><strong>Catatan Dokumen Resmi:</strong> Dokumen ini diterbitkan secara sah melalui Sistem Terintegrasi Penjualan &amp; Pipeline PT IP Network Solusindo. Berfungsi sebagai bukti otentik notulensi koordinasi bisnis, berita acara pertemuan komersial, dan rujukan audit operasional sales.</p>
                             </div>
 
                         </div>
@@ -1206,25 +1170,13 @@
                                                 <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Account Executive (Sales)</td>
                                                 <td class="p-1 px-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle">{{ auth()->user()->name }}</td>
                                                 <td class="p-1 px-2 border-r border-[#1E293B] text-center align-middle font-medium">{{ date('d/m/Y') }}</td>
-                                                <td class="py-2.5 px-3 text-center align-middle">
-                                                    <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-emerald-50/80 border border-emerald-300 min-w-[150px]">
-                                                        <span class="text-[10px] font-black text-emerald-800 tracking-wider">[ TANDA TANGAN DIGITAL ]</span>
-                                                        <span class="text-[9px] text-emerald-600 font-semibold mt-0.5">Evaluated &amp; Logged</span>
-                                                        <span class="text-[9px] text-slate-500 font-mono">{{ auth()->user()->name }}</span>
-                                                    </div>
-                                                </td>
+                                                <td class="h-14 py-4 px-3 text-center align-middle bg-white"></td>
                                             </tr>
                                             <tr>
                                                 <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-middle">Division Head / Atasan Sales</td>
                                                 <td class="p-1 px-2 border-r border-[#1E293B] font-bold text-[#0F172A] align-middle">Susanto Djaya</td>
                                                 <td class="p-1 px-2 border-r border-[#1E293B] text-center align-middle font-medium">{{ date('d/m/Y') }}</td>
-                                                <td class="py-2.5 px-3 text-center align-middle">
-                                                    <div class="inline-flex flex-col items-center justify-center p-2 rounded-lg bg-red-50/80 border border-red-300 min-w-[150px]">
-                                                        <span class="text-[10px] font-black text-[#8F0A0D] tracking-wider">[ TANDA TANGAN ATASAN ]</span>
-                                                        <span class="text-[9px] text-[#8F0A0D] font-semibold mt-0.5">Reviewed &amp; Approved</span>
-                                                        <span class="text-[9px] text-slate-500 font-mono">Susanto Djaya</span>
-                                                    </div>
-                                                </td>
+                                                <td class="h-14 py-4 px-3 text-center align-middle bg-white"></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -1233,7 +1185,7 @@
 
                             {{-- Catatan Footer Resmi Dokumen --}}
                             <div class="pt-2 text-[10.5px] text-[#475569] italic border-t border-dashed border-[#CBD5E1]">
-                                <p><strong>Catatan Dokumen Resmi:</strong> Dokumen Lesson Learned ini diterbitkan sebagai laporan evaluasi resmi komersial PT IP Network Solusindo untuk keperluan review manajemen, mitigasi risiko deal serupa, dan peningkatan win-rate tim penjualan di masa mendatang tanpa memerlukan tanda tangan basah.</p>
+                                <p><strong>Catatan Dokumen Resmi:</strong> Dokumen Lesson Learned ini diterbitkan sebagai laporan evaluasi resmi komersial PT IP Network Solusindo untuk keperluan review manajemen, mitigasi risiko deal serupa, dan peningkatan win-rate tim penjualan di masa mendatang.</p>
                             </div>
 
                         </div>

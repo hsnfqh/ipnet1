@@ -186,7 +186,7 @@
             </td>
             <td style="width: 58%; vertical-align: middle; padding-left: 10px;">
                 <h1 class="doc-title">PT IP NETWORK SOLUSINDO</h1>
-                <p class="doc-subtitle">FORM LAPORAN AKTIVITAS &amp; KRONOLOGIS SALES (CRM REPORT)</p>
+                <p class="doc-subtitle">FORM LAPORAN AKTIVITAS SALES</p>
             </td>
             <td style="width: 22%; text-align: right; vertical-align: middle;">
                 <div class="badge-official">Dokumen Resmi Sales</div>
@@ -463,44 +463,26 @@
                 <td style="font-weight: bold; background-color: #F8FAFC;">Account Executive (Sales)</td>
                 <td style="font-weight: bold;">{{ $activity->sales->name ?? 'Sales Team' }}</td>
                 <td class="center">{{ \Carbon\Carbon::parse($activity->activity_date ?? now())->format('d/m/Y') }}</td>
-                <td class="center" style="padding: 6px 4px;">
-                    <div style="border: 1px dashed #059669; background-color: #ECFDF5; border-radius: 4px; padding: 4px; display: inline-block; min-width: 120px;">
-                        <span style="font-size: 6.8pt; font-weight: bold; color: #065F46; display: block;">[ TANDA TANGAN DIGITAL ]</span>
-                        <span style="font-size: 6.2pt; color: #047857; display: block;">Terverifikasi Digital CRM</span>
-                        <span style="font-size: 5.8pt; color: #64748B; font-family: monospace;">{{ $activity->sales->name ?? 'Sales Team' }}</span>
-                    </div>
-                </td>
+                <td class="center" style="height: 48px; background-color: #FFFFFF;"></td>
             </tr>
             <tr>
                 <td style="font-weight: bold; background-color: #F8FAFC;">Division Head / Atasan Sales</td>
                 <td style="font-weight: bold; color: #0F172A;">Susanto Djaya</td>
                 <td class="center">{{ \Carbon\Carbon::parse($activity->activity_date ?? now())->format('d/m/Y') }}</td>
-                <td class="center" style="padding: 6px 4px;">
-                    <div style="border: 1px dashed #8F0A0D; background-color: #FEF2F2; border-radius: 4px; padding: 4px; display: inline-block; min-width: 120px;">
-                        <span style="font-size: 6.8pt; font-weight: bold; color: #8F0A0D; display: block;">[ TANDA TANGAN ATASAN ]</span>
-                        <span style="font-size: 6.2pt; color: #991B1B; display: block;">Approved Division Head</span>
-                        <span style="font-size: 5.8pt; color: #64748B; font-family: monospace;">Susanto Djaya</span>
-                    </div>
-                </td>
+                <td class="center" style="height: 48px; background-color: #FFFFFF;"></td>
             </tr>
             <tr>
                 <td style="font-weight: bold; background-color: #F8FAFC;">Customer / PIC Klien</td>
                 <td style="font-weight: bold; color: #334155;">{{ $clientPic ?? ($activity->project->client ?? 'PIC Customer Representative') }}</td>
                 <td class="center">{{ \Carbon\Carbon::parse($activity->activity_date ?? now())->format('d/m/Y') }}</td>
-                <td class="center" style="padding: 6px 4px;">
-                    <div style="border: 1px dashed #2563EB; background-color: #EFF6FF; border-radius: 4px; padding: 4px; display: inline-block; min-width: 120px;">
-                        <span style="font-size: 6.8pt; font-weight: bold; color: #1E40AF; display: block;">[ TANDA TANGAN KLIEN ]</span>
-                        <span style="font-size: 6.2pt; color: #1D4ED8; display: block;">Tervalidasi Pertemuan</span>
-                        <span style="font-size: 5.8pt; color: #64748B; font-family: monospace;">Customer Representative</span>
-                    </div>
-                </td>
+                <td class="center" style="height: 48px; background-color: #FFFFFF;"></td>
             </tr>
         </tbody>
     </table>
 
     {{-- Catatan Footer Dokumen Resmi --}}
     <div class="footer-disclaimer">
-        <strong>Catatan Dokumen Resmi:</strong> Dokumen ini diterbitkan secara sah melalui Sistem Terintegrasi CRM &amp; Pipeline PT IP Network Solusindo. Berfungsi sebagai bukti otentik notulensi koordinasi bisnis, berita acara pertemuan komersial, dan rujukan audit operasional sales tanpa memerlukan tanda tangan basah.
+        <strong>Catatan Dokumen Resmi:</strong> Dokumen ini diterbitkan secara sah melalui Sistem Manajemen Penjualan PT IP Network Solusindo. Berfungsi sebagai bukti otentik notulensi koordinasi bisnis, berita acara pertemuan komersial, dan rujukan audit operasional sales.
     </div>
 
 </div>

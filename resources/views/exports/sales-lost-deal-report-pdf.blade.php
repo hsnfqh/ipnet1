@@ -349,25 +349,13 @@
                 <td style="font-weight: bold; background-color: #F8FAFC;">Account Executive (Sales)</td>
                 <td style="font-weight: bold;">{{ $project->sales_name ?: ($analysis['evaluated_by'] ?? 'Sales Person') }}</td>
                 <td style="text-align: center;">{{ !empty($analysis['evaluated_at']) ? \Carbon\Carbon::parse($analysis['evaluated_at'])->format('d/m/Y') : now()->format('d/m/Y') }}</td>
-                <td style="text-align: center; padding: 6px 4px;">
-                    <div style="border: 1px dashed #059669; background-color: #ECFDF5; border-radius: 4px; padding: 4px; display: inline-block; min-width: 120px;">
-                        <span style="font-size: 6.8pt; font-weight: bold; color: #065F46; display: block;">[ TANDA TANGAN DIGITAL ]</span>
-                        <span style="font-size: 6.2pt; color: #047857; display: block;">Evaluated &amp; Logged</span>
-                        <span style="font-size: 5.8pt; color: #64748B; font-family: monospace;">{{ $project->sales_name ?: ($analysis['evaluated_by'] ?? 'Sales Person') }}</span>
-                    </div>
-                </td>
+                <td style="text-align: center; height: 48px; background-color: #FFFFFF;"></td>
             </tr>
             <tr>
                 <td style="font-weight: bold; background-color: #F8FAFC;">Division Head / Atasan Sales</td>
                 <td style="font-weight: bold; color: #0F172A;">Susanto Djaya</td>
                 <td style="text-align: center;">{{ !empty($analysis['evaluated_at']) ? \Carbon\Carbon::parse($analysis['evaluated_at'])->format('d/m/Y') : now()->format('d/m/Y') }}</td>
-                <td style="text-align: center; padding: 6px 4px;">
-                    <div style="border: 1px dashed #8F0A0D; background-color: #FEF2F2; border-radius: 4px; padding: 4px; display: inline-block; min-width: 120px;">
-                        <span style="font-size: 6.8pt; font-weight: bold; color: #8F0A0D; display: block;">[ TANDA TANGAN ATASAN ]</span>
-                        <span style="font-size: 6.2pt; color: #991B1B; display: block;">Approved Division Head</span>
-                        <span style="font-size: 5.8pt; color: #64748B; font-family: monospace;">Susanto Djaya</span>
-                    </div>
-                </td>
+                <td style="text-align: center; height: 48px; background-color: #FFFFFF;"></td>
             </tr>
         </tbody>
     </table>
