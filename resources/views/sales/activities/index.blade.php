@@ -376,83 +376,47 @@
                                     @endif
                                 @endif
                             </div>
-                        </div>
-
-                        {{-- Footer: Form Laporan Button + Edit + PDF + Hapus (Identik Persis Engineer) --}}
+                                            {{-- Footer: Tepat 2 Tombol (Edit Form Laporan/Evaluasi & Hapus) --}}
                         <div class="activity-card-footer">
                             @if($isLessonLearned)
-                                <button type="button" @click="openDetailModal({{ json_encode($act) }}, {{ json_encode($batchData) }})"
+                                <button type="button" @click="openEditBulkModal({{ json_encode($act) }}, {{ json_encode($batchData) }})"
                                         class="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-[11px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-all cursor-pointer">
                                     <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
-                                    <span>Form Evaluasi</span>
+                                    <span>Edit Form Evaluasi</span>
                                 </button>
 
-                                <div class="flex items-center gap-1.5 shrink-0">
-                                    <button type="button"
-                                            @click="openEditModal({{ $act->id }}, '{{ addslashes($projectName) }}', {{ json_encode($cardItems) }}, true, {{ json_encode($lostAnalysis) }})"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 transition cursor-pointer"
-                                            title="Edit Evaluasi Lost Deal">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                        Edit
+                                @if(!$isExecutiveOrPimpinan)
+                                    <button type="button" 
+                                            @click="confirmDelete({{ $act->id }}, '{{ addslashes($act->subject) }}')" 
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
+                                            title="Hapus Aktivitas">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <span>Hapus</span>
                                     </button>
-
-                                    <a href="{{ route('sales.pipeline.lost_analysis_pdf', $act->project_id) }}" target="_blank"
-                                       class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-amber-50 text-amber-700 text-[11px] font-bold rounded-lg border border-amber-300 transition cursor-pointer"
-                                       title="Cetak Dokumen Resmi PDF Evaluasi">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        <span>PDF</span>
-                                    </a>
-
-                                    @if(!$isExecutiveOrPimpinan)
-                                        <button type="button" 
-                                                @click="confirmDelete({{ $act->id }}, '{{ addslashes($act->subject) }}')" 
-                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
-                                                title="Hapus Aktivitas">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            <span>Hapus</span>
-                                        </button>
-                                    @endif
-                                </div>
+                                @endif
                             @else
-                                <button type="button" @click="openDetailModal({{ json_encode($act) }}, {{ json_encode($batchData) }})"
+                                <button type="button" @click="openEditBulkModal({{ json_encode($act) }}, {{ json_encode($batchData) }})"
                                         class="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50/70 hover:bg-red-100/80 border border-red-200/80 hover:border-red-300 transition-all cursor-pointer">
                                     <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
-                                    <span>Form Laporan</span>
+                                    <span>Edit Form Laporan</span>
                                     <span class="px-1.5 py-0.2 rounded-full bg-white text-[#8F0A0D] text-[9.5px] font-black border border-red-200/60">{{ $totalInBatch }}</span>
                                 </button>
 
-                                <div class="flex items-center gap-1.5 shrink-0">
-                                    <button type="button"
-                                            @click="openEditModal({{ $act->id }}, '{{ addslashes($projectName) }}', {{ json_encode($cardItems) }}, false, {})"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-blue-50 text-blue-600 text-[11px] font-bold rounded-lg border border-blue-200 transition cursor-pointer"
-                                            title="Edit Aktivitas Sales">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                        Edit
+                                @if(!$isExecutiveOrPimpinan)
+                                    <button type="button" 
+                                            @click="confirmDelete({{ $act->id }}, '{{ addslashes($act->subject) }}')" 
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
+                                            title="Hapus Aktivitas">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <span>Hapus</span>
                                     </button>
-
-                                    <a href="{{ route('sales.activities.pdf', $act->id) }}" target="_blank"
-                                       class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
-                                       title="Cetak Dokumen Resmi PDF">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        <span>PDF</span>
-                                    </a>
-
-                                    @if(!$isExecutiveOrPimpinan)
-                                        <button type="button" 
-                                                @click="confirmDelete({{ $act->id }}, '{{ addslashes($act->subject) }}')" 
-                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-[11px] font-bold rounded-lg border border-red-200 transition cursor-pointer"
-                                                title="Hapus Aktivitas">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            <span>Hapus</span>
-                                        </button>
-                                    @endif
-                                </div>
+                                @endif
                             @endif
-                        </div>
+                        </div>      </div>
 
                     </div>
                 @empty
@@ -970,8 +934,8 @@
                     <div class="flex items-center gap-2.5">
                         <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
                         <div>
-                            <h3 class="text-[16px] font-bold text-[#0F172A]">Input Form Laporan Aktivitas Sales</h3>
-                            <p class="text-[11px] text-[#64748B]">Isi formulir laporan kerja resmi di bawah ini sesuai acuan template PT IP Network Solusindo.</p>
+                            <h3 class="text-[16px] font-bold text-[#0F172A]" x-text="isBulkEditing ? (selectedCategory === 'lesson_learned' ? 'Edit Form Evaluasi & Lesson Learned Prospek' : 'Edit Form Laporan Aktivitas Sales') : 'Input Form Laporan Aktivitas Sales'"></h3>
+                            <p class="text-[11px] text-[#64748B]" x-text="isBulkEditing ? 'Perbarui formulir laporan kerja resmi di bawah ini sesuai acuan template PT IP Network Solusindo.' : 'Isi formulir laporan kerja resmi di bawah ini sesuai acuan template PT IP Network Solusindo.'"></p>
                         </div>
                     </div>
                     <button type="button" @click="isBulkModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
@@ -981,8 +945,11 @@
                     </button>
                 </div>
 
-                <form action="{{ route('sales.activities.bulk') }}" method="POST" @submit="isSubmitting = true" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                <form :action="bulkFormUrl" method="POST" @submit="isSubmitting = true" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
+                    <template x-if="isBulkEditing">
+                        <input type="hidden" name="_method" value="PUT">
+                    </template>
 
                     {{-- Kategori Bar (Identik Persis Engineer: 2 Kategori Sales & CRM) --}}
                     <div class="px-4 sm:px-6 py-3 bg-white border-b border-[#CBD5E1] flex flex-wrap items-center justify-between gap-3 shrink-0">
@@ -1087,9 +1054,9 @@
                                                 </td>
                                                 <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tipe Aktivitas / Agenda</td>
                                                 <td class="py-1 px-2">
-                                                    <select name="activity_type" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-semibold text-xs cursor-pointer">
+                                                    <select name="activity_type" x-model="bulkActivityType" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-semibold text-xs cursor-pointer">
                                                         @foreach($activityTypes as $typeKey => $typeLabel)
-                                                            <option value="{{ $typeKey }}" {{ $typeKey === 'Meeting' ? 'selected' : '' }}>{{ $typeLabel }}</option>
+                                                            <option value="{{ $typeKey }}">{{ $typeLabel }}</option>
                                                         @endforeach
                                                     </select>
                                                 </td>
@@ -1101,7 +1068,7 @@
                                                 </td>
                                                 <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Media / Lokasi Pertemuan</td>
                                                 <td class="py-1 px-2">
-                                                    <select name="meeting_media" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
+                                                    <select name="meeting_media" x-model="meetingMedia" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
                                                         <option value="Onsite di Lokasi Klien">Onsite di Lokasi Klien / Customer Office</option>
                                                         <option value="Kantor IP Network Solusindo">Kantor IP Network Solusindo</option>
                                                         <option value="Virtual Video Conference (Zoom / Google Meet)">Virtual Video Conference (Zoom / Google Meet)</option>
@@ -1118,7 +1085,7 @@
                                                 <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Durasi Pelaksanaan</td>
                                                 <td class="py-1 px-2">
                                                     <div class="flex items-center gap-1.5 text-xs">
-                                                        <input type="number" min="1" max="365" name="duration_days" value="1" placeholder="1" class="w-20 p-1 border border-gray-300 rounded text-xs font-bold text-center text-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]">
+                                                        <input type="number" min="1" max="365" name="duration_days" x-model="durationDays" placeholder="1" class="w-20 p-1 border border-gray-300 rounded text-xs font-bold text-center text-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]">
                                                         <span class="font-bold text-[#0F172A]">Hari</span>
                                                     </div>
                                                 </td>
@@ -1199,7 +1166,7 @@
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Kategori Kebutuhan Prospek</td>
                                                 <td class="w-3/4 p-1">
-                                                    <select name="scope_category" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-semibold text-xs cursor-pointer">
+                                                    <select name="scope_category" x-model="scopeCategory" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-semibold text-xs cursor-pointer">
                                                         <option value="Hardware & Perangkat Jaringan (Switch/Router/Firewall/Server)">Hardware &amp; Perangkat Jaringan (Switch/Router/Firewall/Server)</option>
                                                         <option value="Software, License & Cloud Subscription">Software, License &amp; Cloud Subscription</option>
                                                         <option value="Managed Service & SLA Operasional">Managed Service &amp; SLA Operasional</option>
@@ -1213,7 +1180,7 @@
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-top">Ringkasan Kebutuhan &amp; Spesifikasi</td>
                                                 <td class="p-1">
-                                                    <textarea name="scope_description" rows="2" placeholder="Rangkuman spesifikasi teknis atau ruang lingkup pekerjaan yang diminta customer..." class="w-full p-1 text-xs border-0 bg-transparent resize-none focus:ring-1 focus:ring-[#8F0A0D]"></textarea>
+                                                    <textarea name="scope_description" x-model="scopeDescription" rows="2" placeholder="Rangkuman spesifikasi teknis atau ruang lingkup pekerjaan yang diminta customer..." class="w-full p-1 text-xs border-0 bg-transparent resize-none focus:ring-1 focus:ring-[#8F0A0D]"></textarea>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -1221,12 +1188,12 @@
                                                 <td class="p-1">
                                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                         <div class="flex items-center gap-1.5">
-                                                            <span class="text-slate-500 font-bold shrink-0">Budget:</span>
-                                                            <input type="number" name="estimated_budget" placeholder="Estimasi IDR..." class="w-full p-1 text-xs border border-gray-200 rounded font-semibold text-[#8F0A0D]">
+                                                             <span class="text-slate-500 font-bold shrink-0">Budget:</span>
+                                                            <input type="number" name="estimated_budget" x-model="estimatedBudget" placeholder="Estimasi IDR..." class="w-full p-1 text-xs border border-gray-200 rounded font-semibold text-[#8F0A0D]">
                                                         </div>
                                                         <div class="flex items-center gap-1.5">
                                                             <span class="text-slate-500 font-bold shrink-0">Target Tender/PO:</span>
-                                                            <input type="text" name="tender_timeline" placeholder="Contoh: Q4 2026 / Bulan Depan" class="w-full p-1 text-xs border border-gray-200 rounded font-medium">
+                                                            <input type="text" name="tender_timeline" x-model="tenderTimeline" placeholder="Contoh: Q4 2026 / Bulan Depan" class="w-full p-1 text-xs border border-gray-200 rounded font-medium">
                                                         </div>
                                                     </div>
                                                 </td>
@@ -1338,19 +1305,19 @@
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Kompetitor / Brand Pesaing</td>
                                                 <td class="w-3/4 p-1">
-                                                    <input type="text" name="competitors" placeholder="Nama kompetitor atau brand alternatif yang dipertimbangkan customer..." class="w-full p-1 text-xs border-0 bg-transparent">
+                                                    <input type="text" name="competitors" x-model="competitors" placeholder="Nama kompetitor atau brand alternatif yang dipertimbangkan customer..." class="w-full p-1 text-xs border-0 bg-transparent">
                                                 </td>
                                             </tr>
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B] align-top">Kendala / Isu Kritis Customer</td>
                                                 <td class="p-1">
-                                                    <textarea name="challenges" rows="2" placeholder="Tantangan procurement, batasan regulasi, atau masalah teknis customer..." class="w-full p-1 text-xs border-0 bg-transparent resize-none"></textarea>
+                                                    <textarea name="challenges" x-model="challenges" rows="2" placeholder="Tantangan procurement, batasan regulasi, atau masalah teknis customer..." class="w-full p-1 text-xs border-0 bg-transparent resize-none"></textarea>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Estimasi Win Probability Saat Ini</td>
                                                 <td class="p-1 flex items-center gap-2">
-                                                    <input type="number" min="0" max="100" name="win_probability" :value="selectedProjectData?.win_probability || 50" class="w-20 p-1 text-xs border border-gray-300 rounded font-bold text-center text-[#8F0A0D]">
+                                                    <input type="number" min="0" max="100" name="win_probability" x-model="winProbability" class="w-20 p-1 text-xs border border-gray-300 rounded font-bold text-center text-[#8F0A0D]">
                                                     <span class="font-bold text-xs">%</span>
                                                     <span class="text-[11px] text-slate-500 italic">(Otomatis memperbarui probabilitas kemenangan pada CRM Pipeline)</span>
                                                 </td>
@@ -1373,20 +1340,20 @@
                                                     Komitmen / Aksi Berikutnya
                                                 </td>
                                                 <td class="w-2/5 p-1 border-r border-[#1E293B]">
-                                                    <input type="text" name="next_action" placeholder="Contoh: Mengirimkan surat penawaran harga (SPH) revisi dan BoQ teknis" 
+                                                    <input type="text" name="next_action" x-model="nextAction" placeholder="Contoh: Mengirimkan surat penawaran harga (SPH) revisi dan BoQ teknis" 
                                                            class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold text-[#0F172A]">
                                                 </td>
                                                 <td class="w-1/6 py-1.5 px-2 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">
                                                     PIC Pelaksana
                                                 </td>
                                                 <td class="w-1/6 p-1 border-r border-[#1E293B]">
-                                                    <input type="text" name="next_action_pic" :value="selectedProjectData?.sales_name || '{{ auth()->user()->name }}'" placeholder="PIC Aksi" class="w-full p-1 text-xs border-0 bg-transparent font-medium">
+                                                    <input type="text" name="next_action_pic" x-model="nextActionPic" placeholder="PIC Aksi" class="w-full p-1 text-xs border-0 bg-transparent font-medium">
                                                 </td>
                                                 <td class="w-1/12 py-1.5 px-2 font-bold bg-[#F8FAFC] border-r border-[#1E293B] text-center">
                                                     Target
                                                 </td>
                                                 <td class="w-1/6 p-1">
-                                                    <input type="date" name="next_action_date" 
+                                                    <input type="date" name="next_action_date" x-model="nextActionDate"
                                                            class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium cursor-pointer">
                                                 </td>
                                             </tr>
@@ -1665,7 +1632,7 @@
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                                 </svg>
                             </template>
-                            <span x-text="isSubmitting ? 'Menyimpan...' : (selectedCategory === 'lesson_learned' ? 'Simpan Laporan Lesson Learned' : 'Simpan Laporan Aktivitas')"></span>
+                            <span x-text="isSubmitting ? 'Menyimpan...' : (isBulkEditing ? 'Simpan Perubahan Laporan Aktivitas' : (selectedCategory === 'lesson_learned' ? 'Simpan Laporan Lesson Learned' : 'Simpan Laporan Aktivitas'))"></span>
                         </button>
                     </div>
 
@@ -1829,234 +1796,6 @@
         </div>
     </template>
 
-    {{-- == MODAL EDIT AKTIVITAS SALES (IDENTIK DENGAN ENGINEER / LEAD ENGINEER) == --}}
-    <template x-teleport="body">
-        <div x-show="isEditModalOpen" x-cloak
-             class="fixed inset-0 z-[60] bg-[#0F172A]/65 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
-             @click.self="isEditModalOpen = false"
-             @keydown.escape.window="isEditModalOpen = false">
-            <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-[#E2E8F0] max-h-[92vh] flex flex-col overflow-hidden">
-
-                {{-- Header --}}
-                <div class="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0] shrink-0">
-                    <div class="flex items-center gap-3">
-                        <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#8F0A0D,#C41E2A);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(143,10,13,.22);">
-                            <svg width="16" height="16" fill="none" stroke="white" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-bold text-[#8F0A0D] uppercase tracking-widest mb-0.5" x-text="editIsLessonLearned ? 'Edit Evaluasi Lost Deal' : 'Edit Aktivitas Sales'"></p>
-                            <h3 class="text-[14.5px] font-bold text-[#1E293B] leading-tight truncate max-w-xs sm:max-w-md" x-text="editGroupName"></h3>
-                        </div>
-                    </div>
-                    <button type="button" @click="isEditModalOpen = false"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg text-[#94A3B8] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition cursor-pointer shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-
-                {{-- Subheader / Counter & Add Button --}}
-                <div class="px-6 py-2.5 border-b border-[#F0F4F8] bg-[#F8FAFC] flex items-center justify-between shrink-0">
-                    <template x-if="!editIsLessonLearned">
-                        <div class="flex items-center justify-between w-full">
-                            <p class="text-[11px] text-gray-500">
-                                Terdapat <span class="font-bold text-[#1E293B]" x-text="editRows.length"></span> agenda
-                            </p>
-                            <button type="button" @click="addEditRow()"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#8F0A0D]/25 bg-white hover:bg-red-50 text-[#8F0A0D] text-[11px] font-bold transition cursor-pointer">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                Tambah Agenda
-                            </button>
-                        </div>
-                    </template>
-                    <template x-if="editIsLessonLearned">
-                        <div class="flex items-center justify-between w-full">
-                            <p class="text-[11px] text-amber-800 font-semibold flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                Evaluasi Kinerja Penawaran & Analisis Kompetitor
-                            </p>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wide">
-                                Lesson Learned
-                            </span>
-                        </div>
-                    </template>
-                </div>
-
-                {{-- Body Content --}}
-                <div id="edit-modal-scroll" class="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-[#EEF2F7]">
-                    
-                    {{-- 1. MODE REGULAR AGENDA LIST (PERSIS SAMA SEPERTI ENGINEER) --}}
-                    <template x-if="!editIsLessonLearned">
-                        <div class="space-y-3">
-                            <template x-for="(row, idx) in editRows" :key="idx">
-                                <div class="bg-white rounded-xl border border-[#E2E8F0] shadow-sm overflow-hidden">
-                                    {{-- Row Card Header --}}
-                                    <div class="flex items-center justify-between px-4 py-2.5 border-b border-[#F1F5F9] bg-white">
-                                        <div class="flex items-center gap-2.5">
-                                            <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10.5px] font-bold shrink-0"
-                                                 style="background:#FEF2F2;border:1.5px solid #FECACA;color:#8F0A0D;"
-                                                 x-text="idx + 1"></div>
-                                            <span class="text-[12.5px] font-bold text-[#1E293B]" x-text="'Agenda #' + (idx + 1)"></span>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <input type="date" x-model="row.date"
-                                                   class="px-2.5 py-1 border border-[#D1D5DB] rounded-lg text-[11px] text-[#374151] bg-[#F9FAFB] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                                            <input type="time" x-model="row.time"
-                                                   class="px-2 py-1 border border-[#D1D5DB] rounded-lg text-[11px] text-[#374151] bg-[#F9FAFB] focus:outline-none focus:border-[#8F0A0D] transition cursor-pointer">
-                                            <button type="button" @click="removeEditRow(idx)"
-                                                    class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white border border-red-200 transition cursor-pointer"
-                                                    title="Hapus Agenda Ini">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                <span>Hapus</span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {{-- Row Card Inputs --}}
-                                    <div class="px-4 pt-3.5 pb-4 space-y-3">
-                                        <div>
-                                            <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">Aktivitas / Agenda <span class="text-red-500">*</span></label>
-                                            <textarea x-model="row.subject" rows="2"
-                                                      class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12.5px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/15 transition resize-none placeholder-gray-300"
-                                                      placeholder="Rincian pembahasan / agenda aktivitas sales..."></textarea>
-                                        </div>
-                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                            <div>
-                                                <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">PIC Klien</label>
-                                                <input type="text" x-model="row.client_pic" placeholder="Nama PIC klien"
-                                                       class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
-                                            </div>
-                                            <div>
-                                                <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">PIC IPNET / Sales</label>
-                                                <input type="text" x-model="row.ipnet_pic" placeholder="Nama sales"
-                                                       class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
-                                            </div>
-                                            <div>
-                                                <label class="block text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1.5">Notes / Hasil</label>
-                                                <input type="text" x-model="row.notes" placeholder="Catatan hasil meeting"
-                                                       class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[12px] text-[#1E293B] focus:outline-none focus:bg-white focus:border-[#8F0A0D] transition placeholder-gray-300">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-
-                            <div x-show="editRows.length === 0"
-                                 class="bg-white rounded-xl border border-dashed border-[#CBD5E1] py-10 text-center">
-                                <p class="text-sm font-semibold text-gray-400">Belum ada agenda aktivitas.</p>
-                                <p class="text-xs text-gray-300 mt-0.5">Klik "Tambah Agenda" di atas untuk menambahkan.</p>
-                            </div>
-                        </div>
-                    </template>
-
-                    {{-- 2. MODE LESSON LEARNED FORM (EVALUASI LOST DEAL) --}}
-                    <template x-if="editIsLessonLearned">
-                        <div class="bg-white rounded-xl border border-[#E2E8F0] shadow-sm p-4 sm:p-5 space-y-3.5">
-                            <div>
-                                <label class="block text-[10.5px] font-bold text-[#475569] uppercase tracking-wider mb-1">
-                                    Faktor Penyebab Utama <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" x-model="editLostForm.primary_factor"
-                                       class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[12.5px] font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] transition"
-                                       placeholder="Contoh: Faktor Harga / Komersial & Lead Time Delivery">
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div>
-                                    <label class="block text-[10.5px] font-bold text-[#475569] uppercase tracking-wider mb-1">
-                                        Kompetitor Pemenang
-                                    </label>
-                                    <input type="text" x-model="editLostForm.competitor_winner"
-                                           class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[12px] text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] transition"
-                                           placeholder="Nama kompetitor">
-                                </div>
-                                <div>
-                                    <label class="block text-[10.5px] font-bold text-[#475569] uppercase tracking-wider mb-1">
-                                        Harga Penawaran IPNET
-                                    </label>
-                                    <input type="text" x-model="editLostForm.our_price"
-                                           class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[12px] text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] transition"
-                                           placeholder="Nilai penawaran IPNET">
-                                </div>
-                                <div>
-                                    <label class="block text-[10.5px] font-bold text-[#475569] uppercase tracking-wider mb-1">
-                                        Harga Estimasi Kompetitor
-                                    </label>
-                                    <input type="text" x-model="editLostForm.competitor_price"
-                                           class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[12px] text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] transition"
-                                           placeholder="Nilai penawaran kompetitor">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-[10.5px] font-bold text-[#475569] uppercase tracking-wider mb-1">
-                                    Titik Balik Keputusan Klien (Turning Point)
-                                </label>
-                                <textarea x-model="editLostForm.turning_point" rows="2"
-                                          class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[12px] text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] transition resize-none"
-                                          placeholder="Kapan dan apa momen krusial klien memilih opsi lain..."></textarea>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[10.5px] font-bold text-[#475569] uppercase tracking-wider mb-1">
-                                        Kelemahan Penawaran IPNET
-                                    </label>
-                                    <textarea x-model="editLostForm.gap_our_weakness" rows="2"
-                                              class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[12px] text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] transition resize-none"
-                                              placeholder="Aspek teknis / komersial IPNET yang kurang bersaing..."></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-[10.5px] font-bold text-[#475569] uppercase tracking-wider mb-1">
-                                        Keunggulan Penawaran Kompetitor
-                                    </label>
-                                    <textarea x-model="editLostForm.gap_competitor_strength" rows="2"
-                                              class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[12px] text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] transition resize-none"
-                                              placeholder="Kelebihan utama yang ditawarkan kompetitor..."></textarea>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-[10.5px] font-bold text-[#475569] uppercase tracking-wider mb-1">
-                                    Pembelajaran Utama (Lessons Learned) <span class="text-red-500">*</span>
-                                </label>
-                                <textarea x-model="editLostForm.lessons_learned" rows="2"
-                                          class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[12px] text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] transition resize-none"
-                                          placeholder="Pelajaran kunci bagi tim sales & presales ke depan..."></textarea>
-                            </div>
-
-                            <div>
-                                <label class="block text-[10.5px] font-bold text-[#475569] uppercase tracking-wider mb-1">
-                                    Rekomendasi Tindak Lanjut / Strategi Masa Depan
-                                </label>
-                                <textarea x-model="editLostForm.future_strategy" rows="2"
-                                          class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[12px] text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] transition resize-none"
-                                          placeholder="Rencana follow-up hubungan atau peluang proyek berikutnya..."></textarea>
-                            </div>
-                        </div>
-                    </template>
-
-                </div>
-
-                {{-- Footer --}}
-                <div class="px-6 py-3 border-t border-[#E2E8F0] bg-white flex items-center justify-between shrink-0">
-                    <p class="text-[11px] text-gray-400" x-text="editIsLessonLearned ? 'Data tersinkron otomatis ke evaluasi prospek.' : 'Simpan semua perubahan agenda sebelum menutup.'"></p>
-                    <div class="flex items-center gap-2">
-                        <button type="button" @click="isEditModalOpen = false"
-                                class="px-4 py-2 text-[12px] font-bold text-[#475569] bg-[#F1F5F9] hover:bg-[#E2E8F0] border border-[#CBD5E1] rounded-xl transition cursor-pointer">
-                            Tutup
-                        </button>
-                        <button type="button" @click="saveEditModal()" :disabled="editSaving"
-                                class="inline-flex items-center gap-2 px-5 py-2 text-[12px] font-bold text-white rounded-xl transition cursor-pointer disabled:opacity-50 shadow-sm"
-                                style="background:linear-gradient(135deg,#8F0A0D,#C41E2A);">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            <span x-text="editSaving ? 'Menyimpan...' : 'Simpan Semua Perubahan'"></span>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </template>
 
     {{-- Hidden Delete Form --}}
     <form id="delete-activity-form" method="POST" style="display: none;">
@@ -2115,24 +1854,23 @@
                 form.submit();
             },
 
-            // Edit Modal State (Identik Persis Engineer)
-            isEditModalOpen: false,
-            editActivityId: null,
-            editGroupName: '',
-            editRows: [],
-            editIsLessonLearned: false,
-            editLostForm: {
-                primary_factor: '',
-                competitor_winner: '',
-                competitor_price: '',
-                our_price: '',
-                turning_point: '',
-                gap_our_weakness: '',
-                gap_competitor_strength: '',
-                lessons_learned: '',
-                future_strategy: '',
-            },
-            editSaving: false,
+            // Edit via Official Form Laporan (Identik Persis Engineer)
+            isBulkEditing: false,
+            bulkFormUrl: '{{ route('sales.activities.bulk') }}',
+            bulkActivityId: null,
+            bulkActivityType: 'Meeting',
+            meetingMedia: 'Onsite di Lokasi Klien',
+            durationDays: 1,
+            scopeCategory: 'Hardware & Perangkat Jaringan (Switch/Router/Firewall/Server)',
+            scopeDescription: '',
+            estimatedBudget: '',
+            tenderTimeline: '',
+            competitors: '',
+            challenges: '',
+            winProbability: 50,
+            nextAction: '',
+            nextActionPic: '{{ auth()->user()->name }}',
+            nextActionDate: '',
 
             // Spreadsheet Multi-Row Bulk Entry
             isBulkModalOpen: false,
@@ -2243,6 +1981,38 @@
             },
 
             openBulkModal() {
+                this.isBulkEditing = false;
+                this.bulkFormUrl = '{{ route('sales.activities.bulk') }}';
+                this.bulkActivityId = null;
+                this.selectedCategory = 'activity';
+                this.activityTitle = '';
+                this.bulkActivityType = 'Meeting';
+                this.meetingMedia = 'Onsite di Lokasi Klien';
+                this.durationDays = 1;
+                this.scopeCategory = 'Hardware & Perangkat Jaringan (Switch/Router/Firewall/Server)';
+                this.scopeDescription = '';
+                this.estimatedBudget = '';
+                this.tenderTimeline = '';
+                this.competitors = '';
+                this.challenges = '';
+                this.winProbability = 50;
+                this.nextAction = '';
+                this.nextActionPic = '{{ auth()->user()->name }}';
+                this.nextActionDate = '';
+                this.attendees = [
+                    { pihak: 'Internal IPNET', nama: '{{ auth()->user()->name }}', jabatan: 'Presales & Solution Specialist', kontak: '0812-9876-5432', keterangan: 'PIC Teknis IPNET' },
+                    { pihak: 'Klien', nama: 'Hasan Faqih', jabatan: 'Head of IT Infrastructure', kontak: '0811-2345-6789', keterangan: 'PIC Representatif Klien' }
+                ];
+                this.bulkRows = [
+                    { 
+                        subject: 'Kick-off koordinasi teknis kebutuhan bandwidth & arsitektur core switch', 
+                        activity_date: '{{ date('Y-m-d') }}', 
+                        time_str: '09:00', 
+                        client_pic: 'Hasan Faqih', 
+                        ipnet_pic: '{{ auth()->user()->name }}', 
+                        notes: 'Pemaparan arsitektur high availability dan redundancy dual-uplink 10Gbps. Klien menyepakati skema topologi jaringan.' 
+                    }
+                ];
                 this.isBulkModalOpen = true;
                 this.onProjectChange();
             },
@@ -2299,144 +2069,121 @@
                 this.isModalOpen = true;
             },
 
-            openEditModal(actOrId, groupName, rows, isLessonLearned = false, lostAnalysis = {}) {
-                if (typeof actOrId === 'object' && actOrId !== null) {
-                    // Legacy call or object passed
-                    const act = actOrId;
-                    this.editActivityId = act.id;
-                    this.editGroupName = act.project?.name || 'Aktivitas Sales';
-                    this.editIsLessonLearned = (act.activity_type === 'Lesson Learned');
-                    let parsedItems = [];
+            openEditBulkModal(act, batchData) {
+                if (!act) return;
+                this.isBulkEditing = true;
+                this.bulkActivityId = act.id;
+                this.bulkFormUrl = '/sales/activities/' + act.id;
+                this.bulkProjectId = act.project_id || '';
+                
+                const isLesson = (act.activity_type === 'Lesson Learned' || (batchData && batchData.primary_factor));
+                this.selectedCategory = isLesson ? 'lesson_learned' : 'activity';
+
+                this.activityTitle = (batchData && batchData.title) ? batchData.title : (act.subject || '');
+                this.bulkActivityType = act.activity_type || 'Meeting';
+                this.meetingMedia = (batchData && batchData.meeting_media) ? batchData.meeting_media : 'Onsite di Lokasi Klien';
+                this.durationDays = (batchData && batchData.duration_days) ? batchData.duration_days : 1;
+
+                // Attendees
+                if (batchData && Array.isArray(batchData.attendees) && batchData.attendees.length > 0) {
+                    this.attendees = batchData.attendees.map(a => ({
+                        pihak: a.pihak || 'Internal IPNET',
+                        nama: a.nama || '',
+                        jabatan: a.jabatan || '',
+                        kontak: a.kontak || '',
+                        keterangan: a.keterangan || ''
+                    }));
+                } else {
+                    this.attendees = [
+                        { pihak: 'Internal IPNET', nama: act.sales?.name || '{{ auth()->user()->name }}', jabatan: 'Account Executive', kontak: '-', keterangan: 'Sales Person In Charge' }
+                    ];
+                }
+
+                // Scope
+                this.scopeCategory = (batchData && batchData.scope_category) ? batchData.scope_category : 'Hardware & Perangkat Jaringan (Switch/Router/Firewall/Server)';
+                this.scopeDescription = (batchData && batchData.scope_description) ? batchData.scope_description : '';
+                this.estimatedBudget = (batchData && batchData.estimated_budget) ? batchData.estimated_budget : '';
+                this.tenderTimeline = (batchData && batchData.tender_timeline) ? batchData.tender_timeline : '';
+
+                // Kronologis items
+                let items = [];
+                if (batchData && Array.isArray(batchData.items) && batchData.items.length > 0) {
+                    items = batchData.items.map(it => ({
+                        subject: it.subject || '',
+                        activity_date: it.date || (act.activity_date ? act.activity_date.substring(0, 10) : '{{ date('Y-m-d') }}'),
+                        time_str: it.time || (act.activity_date && act.activity_date.length > 11 ? act.activity_date.substring(11, 16) : '{{ date('H:i') }}'),
+                        client_pic: it.client_pic || '',
+                        ipnet_pic: it.ipnet_pic || act.sales?.name || '{{ auth()->user()->name }}',
+                        notes: it.notes || ''
+                    }));
+                } else {
+                    let parsedNotes = null;
                     if (act.notes) {
                         try {
-                            const parsed = typeof act.notes === 'string' ? JSON.parse(act.notes) : act.notes;
-                            if (parsed && Array.isArray(parsed.items)) {
-                                parsedItems = parsed.items;
-                            }
+                            parsedNotes = typeof act.notes === 'string' ? JSON.parse(act.notes) : act.notes;
                         } catch(e) {}
                     }
-                    if (parsedItems.length === 0) {
-                        parsedItems = [{
-                            no: 1,
+                    if (parsedNotes && Array.isArray(parsedNotes.items) && parsedNotes.items.length > 0) {
+                        items = parsedNotes.items.map(it => ({
+                            subject: it.subject || '',
+                            activity_date: it.date || (act.activity_date ? act.activity_date.substring(0, 10) : '{{ date('Y-m-d') }}'),
+                            time_str: it.time || '{{ date('H:i') }}',
+                            client_pic: it.client_pic || '',
+                            ipnet_pic: it.ipnet_pic || act.sales?.name || '{{ auth()->user()->name }}',
+                            notes: it.notes || ''
+                        }));
+                    } else {
+                        items = [{
                             subject: act.subject || '',
-                            date: act.activity_date ? act.activity_date.substring(0, 10) : new Date().toISOString().slice(0, 10),
-                            time: act.activity_date && act.activity_date.length > 11 ? act.activity_date.substring(11, 16) : '',
+                            activity_date: act.activity_date ? act.activity_date.substring(0, 10) : '{{ date('Y-m-d') }}',
+                            time_str: act.activity_date && act.activity_date.length > 11 ? act.activity_date.substring(11, 16) : '{{ date('H:i') }}',
                             client_pic: '',
-                            ipnet_pic: '{{ auth()->user()?->name ?? 'Sales' }}',
-                            notes: typeof act.notes === 'string' && !act.notes.startsWith('{') ? act.notes : '',
-                            next_action: act.next_action || '',
+                            ipnet_pic: act.sales?.name || '{{ auth()->user()->name }}',
+                            notes: typeof act.notes === 'string' && !act.notes.startsWith('{') ? act.notes : ''
                         }];
                     }
-                    this.editRows = parsedItems.map(r => ({ ...r }));
-                } else {
-                    // Modern call (dari tombol Edit pada card identik engineer)
-                    this.editActivityId = actOrId;
-                    this.editGroupName = groupName || 'Aktivitas Sales';
-                    this.editIsLessonLearned = !!isLessonLearned;
-                    this.editRows = (rows || []).map(r => ({
-                        no: r.no || 1,
-                        subject: r.subject || '',
-                        date: r.date || new Date().toISOString().slice(0, 10),
-                        time: r.time || '',
-                        client_pic: r.client_pic || '',
-                        ipnet_pic: r.ipnet_pic || '',
-                        notes: r.notes || '',
-                        next_action: r.next_action || '',
-                    }));
-                    if (this.editRows.length === 0 && !this.editIsLessonLearned) {
-                        this.addEditRow();
-                    }
-                    if (this.editIsLessonLearned) {
-                        this.editLostForm = {
-                            primary_factor: lostAnalysis?.primary_factor || 'Faktor Harga / Komersial & Lead Time Delivery Hardware',
-                            competitor_winner: lostAnalysis?.competitor_winner || '',
-                            competitor_price: lostAnalysis?.competitor_price || '',
-                            our_price: lostAnalysis?.our_price || '',
-                            turning_point: lostAnalysis?.turning_point || '',
-                            gap_our_weakness: lostAnalysis?.gap_our_weakness || '',
-                            gap_competitor_strength: lostAnalysis?.gap_competitor_strength || '',
-                            lessons_learned: lostAnalysis?.lessons_learned || '',
-                            future_strategy: lostAnalysis?.future_strategy || '',
-                        };
-                    }
                 }
-                this.isEditModalOpen = true;
-            },
+                this.bulkRows = items;
 
-            addEditRow() {
-                const today = new Date().toISOString().slice(0, 10);
-                this.editRows.push({
-                    no: this.editRows.length + 1,
-                    subject: '',
-                    date: today,
-                    time: '',
-                    client_pic: '',
-                    ipnet_pic: '{{ auth()->user()?->name ?? 'Sales' }}',
-                    notes: '',
-                    next_action: '',
-                });
-                this.$nextTick(() => {
-                    const c = document.getElementById('edit-modal-scroll');
-                    if (c) c.scrollTop = c.scrollHeight;
-                });
-            },
+                // Section E & F
+                this.competitors = (batchData && batchData.competitors) ? batchData.competitors : '';
+                this.challenges = (batchData && batchData.challenges) ? batchData.challenges : '';
+                this.winProbability = (batchData && batchData.win_probability) ? batchData.win_probability : (act.project?.win_probability || 50);
+                this.nextAction = act.next_action || (batchData && batchData.next_action) || '';
+                this.nextActionPic = (batchData && batchData.next_action_pic) ? batchData.next_action_pic : (act.sales?.name || '{{ auth()->user()->name }}');
+                this.nextActionDate = act.next_action_date ? act.next_action_date.substring(0, 10) : ((batchData && batchData.next_action_date) || '');
 
-            removeEditRow(idx) {
-                if (this.editRows.length <= 1) {
-                    alert('Minimal harus ada 1 agenda aktivitas.');
-                    return;
-                }
-                this.editRows.splice(idx, 1);
-                this.editRows.forEach((r, i) => r.no = i + 1);
-            },
-
-            async saveEditModal() {
-                if (this.editSaving) return;
-                this.editSaving = true;
-                const token = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
-                const url = '/sales/activities/' + this.editActivityId;
-
-                try {
-                    let bodyData = {};
-                    if (this.editIsLessonLearned) {
-                        bodyData = {
-                            ...this.editLostForm,
-                            _method: 'PUT'
+                // Lost Form Data (if Lesson Learned)
+                if (batchData && batchData.primary_factor) {
+                    this.lostFormData = {
+                        primary_factor: batchData.primary_factor || '',
+                        competitor_winner: batchData.competitor_winner || '',
+                        competitor_price: batchData.competitor_price || '',
+                        our_price: batchData.our_price || '',
+                        turning_point: batchData.turning_point || '',
+                        gap_our_weakness: batchData.gap_our_weakness || '',
+                        gap_competitor_strength: batchData.gap_competitor_strength || '',
+                        lessons_learned: batchData.lessons_learned || '',
+                        future_strategy: batchData.future_strategy || ''
+                    };
+                } else if (act.project?.lost_analysis) {
+                    try {
+                        const la = typeof act.project.lost_analysis === 'string' ? JSON.parse(act.project.lost_analysis) : act.project.lost_analysis;
+                        this.lostFormData = {
+                            primary_factor: la.primary_factor || '',
+                            competitor_winner: la.competitor_winner || act.project.lost_competitor || '',
+                            competitor_price: la.competitor_price || '',
+                            our_price: la.our_price || act.project.contract_value || '',
+                            turning_point: la.turning_point || '',
+                            gap_our_weakness: la.gap_our_weakness || '',
+                            gap_competitor_strength: la.gap_competitor_strength || '',
+                            lessons_learned: la.lessons_learned || act.project.lost_reason || '',
+                            future_strategy: la.future_strategy || ''
                         };
-                    } else {
-                        const validRows = this.editRows.filter(r => r.subject && r.subject.trim());
-                        if (validRows.length === 0) {
-                            alert('Silakan isi setidaknya satu rincian aktivitas/agenda.');
-                            this.editSaving = false;
-                            return;
-                        }
-                        bodyData = {
-                            items: validRows,
-                            _method: 'PUT'
-                        };
-                    }
-
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': token
-                        },
-                        body: JSON.stringify(bodyData)
-                    });
-
-                    const data = await res.json();
-                    if (res.ok && data.success) {
-                        window.location.reload();
-                    } else {
-                        alert(data.message || 'Gagal menyimpan perubahan. Coba lagi.');
-                    }
-                } catch (e) {
-                    alert('Terjadi kesalahan saat menyimpan: ' + e.message);
-                } finally {
-                    this.editSaving = false;
+                    } catch(e) {}
                 }
+
+                this.isBulkModalOpen = true;
             }
         }
     }

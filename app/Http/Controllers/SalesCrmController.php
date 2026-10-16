@@ -869,7 +869,95 @@ class SalesCrmController extends Controller
             return redirect()->back()->with('success', 'Evaluasi Lesson Learned berhasil diperbarui.');
         }
 
-        // 2. Cek apakah ada update batch items
+        // 2. Cek apakah ada update dari Form Laporan Aktivitas Sales (batch activities)
+        if ($request->has('activities') && is_array($request->input('activities'))) {
+            $projectId = $request->input('project_id', $activity->project_id);
+            $now = now();
+            $items = [];
+
+            foreach ($request->input('activities') as $row) {
+                $subj = trim($row['subject'] ?? '');
+                if (empty($subj)) {
+                    continue;
+                }
+
+                $dateStr = !empty($row['activity_date']) ? $row['activity_date'] : $now->toDateString();
+                $timeInput = !empty($row['time_str']) ? trim($row['time_str']) : $now->format('H:i');
+
+                $items[] = [
+                    'no'          => count($items) + 1,
+                    'subject'     => $subj,
+                    'date'        => $dateStr,
+                    'time'        => $timeInput,
+                    'client_pic'  => trim($row['client_pic'] ?? ''),
+                    'ipnet_pic'   => trim($row['ipnet_pic'] ?? ''),
+                    'notes'       => trim($row['notes'] ?? ''),
+                    'next_action' => trim($row['next_action'] ?? ''),
+                ];
+            }
+
+            if (!empty($items)) {
+                $firstItem = $items[0];
+                try {
+                    $firstDateTime = \Carbon\Carbon::parse("{$firstItem['date']} " . ($firstItem['time'] ?: '00:00'));
+                } catch (\Exception $e) {
+                    $firstDateTime = $now;
+                }
+
+                $totalItems = count($items);
+                $actType = $request->input('activity_type', $activity->activity_type ?: 'Meeting');
+
+                if ($request->filled('activity_title')) {
+                    $finalSubject = trim($request->input('activity_title'));
+                } elseif ($totalItems === 1) {
+                    $finalSubject = $firstItem['subject'];
+                } else {
+                    $finalSubject = "Kronologi Aktivitas: {$firstItem['subject']} (+ " . ($totalItems - 1) . " agenda lainnya)";
+                }
+
+                $payload = [
+                    'type'               => 'kronologi_batch',
+                    'title'              => $finalSubject,
+                    'meeting_media'      => $request->input('meeting_media', 'Onsite Klien'),
+                    'duration_days'      => $request->input('duration_days', 1),
+                    'meeting_time_start' => $request->input('meeting_time_start'),
+                    'meeting_time_end'   => $request->input('meeting_time_end'),
+                    'attendees'          => $request->input('attendees', []),
+                    'scope_category'     => $request->input('scope_category'),
+                    'scope_description'  => $request->input('scope_description'),
+                    'estimated_budget'   => $request->input('estimated_budget'),
+                    'tender_timeline'    => $request->input('tender_timeline'),
+                    'competitors'        => $request->input('competitors'),
+                    'challenges'         => $request->input('challenges'),
+                    'win_probability'    => $request->input('win_probability'),
+                    'next_action_pic'    => $request->input('next_action_pic'),
+                    'total_items'        => $totalItems,
+                    'items'              => $items,
+                ];
+
+                if ($request->filled('win_probability')) {
+                    Project::where('id', $projectId)->update([
+                        'win_probability' => min(100, max(0, (int) $request->input('win_probability')))
+                    ]);
+                }
+
+                $activity->project_id       = $projectId;
+                $activity->activity_type    = $actType;
+                $activity->subject          = $finalSubject;
+                $activity->activity_date    = $firstDateTime;
+                $activity->notes            = json_encode($payload, JSON_UNESCAPED_UNICODE);
+                $activity->next_action      = $request->input('next_action');
+                $activity->next_action_date = $request->input('next_action_date');
+                $activity->save();
+
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => true, 'message' => 'Laporan formulir aktivitas berhasil diperbarui.']);
+                }
+                return redirect()->back()->with('success', 'Form laporan resmi aktivitas sales berhasil diperbarui.');
+            }
+        }
+
+        // 3. Cek apakah ada update batch items via array items
         if ($request->has('items') && is_array($request->input('items'))) {
             $items = $request->input('items');
             $existingNotes = [];
