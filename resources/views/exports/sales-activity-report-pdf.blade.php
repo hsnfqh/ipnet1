@@ -24,13 +24,13 @@
             position: relative;
         }
 
-        /* ── Header Dokumen ── */
+        /* ── Header Dokumen (Standar Engineer) ── */
         .doc-header-table {
             width: 100%;
             border-collapse: collapse;
-            border-bottom: 2px solid #8F0A0D;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
+            border: none;
+            margin-top: 2px;
+            margin-bottom: 4px;
         }
         .doc-header-table td {
             border: none;
@@ -38,30 +38,27 @@
             vertical-align: middle;
         }
         .doc-title {
-            font-size: 13pt;
+            font-size: 13.5pt;
             font-weight: bold;
-            color: #0F172A;
+            color: #000000;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 0;
+            letter-spacing: 0.4px;
+            text-align: center;
         }
-        .doc-subtitle {
-            font-size: 8pt;
-            color: #64748B;
-            margin-top: 3px;
-            margin-bottom: 0;
+        .doc-intro {
+            font-size: 7pt;
+            color: #1E293B;
+            margin-top: 2px;
+            margin-bottom: 4px;
+            line-height: 1.2;
         }
-        .badge-official {
-            display: inline-block;
-            background-color: #FEF2F2;
-            color: #8F0A0D;
-            border: 1px solid #FECACA;
-            border-radius: 4px;
-            font-size: 7.5pt;
-            font-weight: bold;
-            padding: 4px 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .doc-header-line {
+            width: 100%;
+            height: 0;
+            border-bottom: 1px solid #000000;
+            margin-top: 2px;
+            margin-bottom: 6px;
+            clear: both;
         }
 
         /* ── Section Titles ── */
@@ -169,33 +166,61 @@
             font-style: italic;
             line-height: 1.35;
         }
+
+        /* ── Footer Dokumen (Standar Engineer) ── */
+        .doc-footer {
+            margin-top: 10px;
+            padding-top: 4px;
+            border-top: 1px solid #000000;
+        }
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+        }
+        .footer-table td {
+            border: none;
+            padding: 0;
+            vertical-align: middle;
+            font-size: 6pt;
+            color: #000000;
+            line-height: 1.2;
+        }
+        .paraf-box {
+            border: 1px solid #000000;
+            width: 55px;
+            height: 16px;
+            text-align: center;
+            line-height: 16px;
+            font-size: 6pt;
+            display: inline-block;
+            float: right;
+        }
     </style>
 </head>
 <body>
 <div class="page-container">
 
-    {{-- Header Dokumen --}}
+    {{-- Header Dokumen (Standar Engineer) --}}
     <table class="doc-header-table">
         <tr>
-            <td style="width: 20%; vertical-align: top;">
+            <td style="width: 15%; text-align: left; vertical-align: middle;">
                 @if(!empty($logoBase64))
-                    <img src="{{ $logoBase64 }}" alt="Logo IPNET" style="max-height: 40px; max-width: 135px;">
+                    <img src="{{ $logoBase64 }}" alt="Logo IPNET" style="height: 38px; width: auto; max-width: 80px; display: block;">
                 @else
-                    <span style="font-size: 14pt; font-weight: bold; color: #8F0A0D;">IP-NET</span>
+                    <span style="font-size: 14pt; font-weight: bold; color: #000000;">IP-NET</span>
                 @endif
             </td>
-            <td style="width: 58%; vertical-align: middle; padding-left: 10px;">
-                <h1 class="doc-title">PT IP NETWORK SOLUSINDO</h1>
-                <p class="doc-subtitle">FORM LAPORAN AKTIVITAS SALES</p>
-            </td>
-            <td style="width: 22%; text-align: right; vertical-align: middle;">
-                <div class="badge-official">Dokumen Resmi Sales</div>
-                <div style="font-size: 6.8pt; color: #64748B; margin-top: 4px;">
-                    No: SLS-ACT/{{ date('Y') }}/{{ str_pad($activity->id, 4, '0', STR_PAD_LEFT) }}
-                </div>
+            <td style="width: 85%; text-align: center; vertical-align: middle;">
+                <div class="doc-title">FORM LAPORAN AKTIVITAS SALES</div>
             </td>
         </tr>
     </table>
+
+    <div class="doc-intro">
+        Dokumen ini digunakan sebagai laporan aktivitas sales, notulensi koordinasi dengan klien, dan bukti pelaksanaan agenda bisnis.
+    </div>
+    <div class="doc-header-line"></div>
 
     @php
         $payload = [];
@@ -412,9 +437,8 @@
             @endif
             <tr>
                 <td class="info-label">Estimasi Win Probability</td>
-                <td class="info-value" colspan="3" style="font-weight: bold; color: #059669;">
-                    {{ $payload['win_probability'] ?? ($activity->project->win_probability ?? 50) }}% 
-                    <span style="font-size: 6.8pt; color: #64748B; font-weight: normal;">(Tercatat otomatis pada CRM Pipeline)</span>
+                <td class="info-value" colspan="3" style="font-weight: bold; color: #0F172A;">
+                    {{ $payload['win_probability'] ?? ($activity->project->win_probability ?? 50) }}%
                 </td>
             </tr>
         </table>
@@ -479,6 +503,27 @@
     {{-- Catatan Footer Dokumen Resmi --}}
     <div class="footer-disclaimer">
         <strong>Catatan Dokumen Resmi:</strong> Dokumen ini diterbitkan secara sah melalui Sistem Manajemen Penjualan PT IP Network Solusindo. Berfungsi sebagai bukti otentik notulensi koordinasi bisnis, berita acara pertemuan komersial, dan rujukan audit operasional sales.
+    </div>
+
+    {{-- Footer Dokumen Resmi PT IP Network Solusindo (Standar Engineer) --}}
+    <div class="doc-footer">
+        <table class="footer-table">
+            <tr>
+                <td style="width: 65%;">
+                    <div style="font-weight: bold; color: #000000; font-size: 6.2pt;">Dokumen ini merupakan milik PT.IP Network Solusindo</div>
+                    <div style="color: #334155; margin-top: 1px;">
+                        Seluruh isi dokumen hanya dipergunakan untuk kepentingan penyelenggaraan tata kelola perusahaan dan tidak diperkenankan diperbanyak, disalin, dipublikasikan ataupun didistribusikan kepada pihak lain, baik sebagian maupun seluruhnya, tanpa persetujuan tertulis dari Direksi PT.IP Network Solusindo
+                    </div>
+                </td>
+                <td style="width: 35%; text-align: right; vertical-align: top;">
+                    <div style="font-weight: bold; color: #000000; font-size: 6.2pt;">&copy;PT.IP Network Solusindo, Seluruh Hak Dilindungi.</div>
+                    <div style="margin-top: 2px;">
+                        <div class="paraf-box">Paraf</div>
+                        <div style="clear: both; margin-top: 2px;"><strong style="font-size: 7.2pt; color: #000000;">Hal 1</strong></div>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
 </div>
