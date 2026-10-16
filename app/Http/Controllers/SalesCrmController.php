@@ -826,27 +826,139 @@ class SalesCrmController extends Controller
      */
     public function updateActivity(Request $request, SalesActivity $activity)
     {
+        // 1. Cek apakah ini Lesson Learned
+        if ($activity->activity_type === 'Lesson Learned' || $request->has('primary_factor')) {
+            $analysisData = [
+                'primary_factor'          => $request->input('primary_factor', 'Harga / Komersial'),
+                'competitor_winner'       => $request->input('competitor_winner', '-'),
+                'competitor_price'        => $request->input('competitor_price'),
+                'our_price'               => $request->input('our_price'),
+                'turning_point'           => $request->input('turning_point'),
+                'gap_our_weakness'        => $request->input('gap_our_weakness'),
+                'gap_competitor_strength' => $request->input('gap_competitor_strength'),
+                'lessons_learned'         => $request->input('lessons_learned'),
+                'future_strategy'         => $request->input('future_strategy'),
+                'evaluated_by'            => auth()->user()?->name ?: 'Sales Team',
+                'evaluated_at'            => now()->format('Y-m-d H:i:s'),
+            ];
+
+            $activity->notes = json_encode([
+                'type'          => 'lesson_learned',
+                'analysis_data' => $analysisData,
+            ], JSON_UNESCAPED_UNICODE);
+
+            if ($request->filled('future_strategy')) {
+                $activity->next_action = $request->input('future_strategy');
+            }
+            $activity->save();
+
+            // Sinkronkan ke proyek jika terkait
+            if ($activity->project) {
+                $proj = $activity->project;
+                $proj->lost_reason = $analysisData['lessons_learned'] ?: $analysisData['primary_factor'];
+                $proj->lost_competitor = $analysisData['competitor_winner'];
+                if (\Illuminate\Support\Facades\Schema::hasColumn('projects', 'lost_analysis')) {
+                    $proj->lost_analysis = $analysisData;
+                }
+                $proj->save();
+            }
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Evaluasi Lesson Learned berhasil diperbarui.']);
+            }
+            return redirect()->back()->with('success', 'Evaluasi Lesson Learned berhasil diperbarui.');
+        }
+
+        // 2. Cek apakah ada update batch items
+        if ($request->has('items') && is_array($request->input('items'))) {
+            $items = $request->input('items');
+            $existingNotes = [];
+            if (!empty($activity->notes)) {
+                $decoded = json_decode($activity->notes, true);
+                if (is_array($decoded)) {
+                    $existingNotes = $decoded;
+                }
+            }
+            $existingNotes['items'] = $items;
+            $activity->notes = json_encode($existingNotes, JSON_UNESCAPED_UNICODE);
+            if (!empty($items[0]['subject'])) {
+                if (count($items) === 1) {
+                    $activity->subject = $items[0]['subject'];
+                } else {
+                    $activity->subject = $existingNotes['title'] ?? ($items[0]['subject'] . ' (+ ' . (count($items) - 1) . ' agenda lainnya)');
+                }
+                if (!empty($items[0]['date'])) {
+                    $activity->activity_date = $items[0]['date'];
+                }
+            }
+            $activity->save();
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Agenda aktivitas berhasil diperbarui.']);
+            }
+            return redirect()->back()->with('success', 'Agenda aktivitas berhasil diperbarui.');
+        }
+
+        // 3. Update single row atau field standar
         $validated = $request->validate([
-            'project_id'       => 'required|exists:projects,id',
-            'activity_type'    => 'required|string',
-            'subject'          => 'required|string|max:255',
-            'activity_date'    => 'required|date',
+            'project_id'       => 'nullable|exists:projects,id',
+            'activity_type'    => 'nullable|string',
+            'subject'          => 'nullable|string|max:255',
+            'activity_date'    => 'nullable',
             'notes'            => 'nullable|string',
             'next_action'      => 'nullable|string',
-            'next_action_date' => 'nullable|date',
+            'next_action_date' => 'nullable',
             'status'           => 'nullable|string',
         ]);
 
-        $activity->update([
-            'project_id'       => $validated['project_id'],
-            'activity_type'    => $validated['activity_type'],
-            'subject'          => $validated['subject'],
-            'activity_date'    => $validated['activity_date'],
-            'notes'            => $validated['notes'] ?? null,
-            'next_action'      => $validated['next_action'] ?? null,
-            'next_action_date' => $validated['next_action_date'] ?? null,
-            'status'           => $validated['status'] ?? $activity->status,
-        ]);
+        if ($request->filled('subject')) {
+            $activity->subject = $request->input('subject');
+        }
+        if ($request->filled('project_id')) {
+            $activity->project_id = $request->input('project_id');
+        }
+        if ($request->filled('activity_type')) {
+            $activity->activity_type = $request->input('activity_type');
+        }
+        if ($request->filled('activity_date')) {
+            $activity->activity_date = $request->input('activity_date');
+        }
+        if ($request->has('notes')) {
+            if (!empty($activity->notes) && str_starts_with(trim($activity->notes), '{')) {
+                $decoded = json_decode($activity->notes, true);
+                if (is_array($decoded) && isset($decoded['items'])) {
+                    $decoded['notes'] = $request->input('notes');
+                    if (!empty($decoded['items'])) {
+                        $decoded['items'][0]['notes'] = $request->input('notes');
+                        if ($request->has('client_pic')) {
+                            $decoded['items'][0]['client_pic'] = $request->input('client_pic');
+                        }
+                        if ($request->has('ipnet_pic')) {
+                            $decoded['items'][0]['ipnet_pic'] = $request->input('ipnet_pic');
+                        }
+                    }
+                    $activity->notes = json_encode($decoded, JSON_UNESCAPED_UNICODE);
+                } else {
+                    $activity->notes = $request->input('notes');
+                }
+            } else {
+                $activity->notes = $request->input('notes');
+            }
+        }
+        if ($request->filled('next_action')) {
+            $activity->next_action = $request->input('next_action');
+        }
+        if ($request->filled('next_action_date')) {
+            $activity->next_action_date = $request->input('next_action_date');
+        }
+        if ($request->filled('status')) {
+            $activity->status = $request->input('status');
+        }
+        $activity->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => "Aktivitas CRM '{$activity->subject}' berhasil diperbarui."]);
+        }
 
         return redirect()->back()
             ->with('success', "Aktivitas CRM '{$activity->subject}' berhasil diperbarui.");
