@@ -514,7 +514,7 @@ class SalesCrmController extends Controller
         if (SalesActivity::where('subject', 'like', '%Infrastruktur Jaringan Enterprise%')->doesntExist()
             || SalesActivity::where('activity_type', 'Lesson Learned')->doesntExist()) {
             try {
-                (new \Database\Seeders\SalesDummyReportSeeder())->run($user);
+                (new \Database\Seeders\SalesDummyReportSeeder())->run();
             } catch (\Throwable $e) {
                 \Log::warning("Auto-seed sales dummy: " . $e->getMessage());
             }

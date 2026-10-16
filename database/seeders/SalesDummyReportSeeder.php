@@ -13,16 +13,13 @@ class SalesDummyReportSeeder extends Seeder
 {
     public function run(?User $targetUser = null): void
     {
-        // 1. Dapatkan Sales User (Prioritas targetUser, lalu Raiza / Nabylla / Sales / User pertama)
-        $salesUser = $targetUser
-            ?? User::where('name', 'like', '%Raiza%')->first()
+        // 1. Dapatkan Sales User (Tegas menggunakan Akun Raiza)
+        $salesUser = User::where('name', 'like', '%Raiza%')->first()
             ?? User::where('name', 'like', '%Nabylla%')->first()
-            ?? User::whereHas('roles', function($q) {
-                $q->whereIn('name', ['Sales', 'Account Manager', 'CRO']);
-            })->first()
+            ?? $targetUser
             ?? User::first();
 
-        $salesName = $salesUser ? $salesUser->name : 'Raiza';
+        $salesName = $salesUser && str_contains(strtolower($salesUser->name), 'raiza') ? $salesUser->name : 'Raiza';
         $salesId = $salesUser ? $salesUser->id : 1;
 
         // 2. PROJECT DUMMY 1: Untuk Form Laporan Aktivitas Sales (Kategori 1)
