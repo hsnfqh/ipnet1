@@ -5,7 +5,7 @@
     <title>Laporan Aktivitas &amp; Kronologis Sales - PT IP Network Solusindo</title>
     <style>
         @page {
-            margin: 10mm 12mm 22mm 12mm;
+            margin: 23mm 12mm 22mm 12mm;
             size: a4 portrait;
         }
         * {
@@ -24,13 +24,20 @@
             position: relative;
         }
 
-        /* ── Header Dokumen (Standar Engineer) ── */
+        /* ── Header Dokumen (Standar Engineer - Fixed di Setiap Halaman) ── */
+        .doc-header {
+            position: fixed;
+            top: -19mm;
+            left: 0;
+            right: 0;
+            height: 18mm;
+        }
         .doc-header-table {
             width: 100%;
             border-collapse: collapse;
             border: none;
-            margin-top: 2px;
-            margin-bottom: 4px;
+            margin-top: 1px;
+            margin-bottom: 2px;
         }
         .doc-header-table td {
             border: none;
@@ -217,14 +224,13 @@
     </table>
 </div>
 
-<div class="page-container">
-
-    {{-- Header Dokumen (Standar Engineer) --}}
+{{-- Header Dokumen Resmi PT IP Network Solusindo (Fixed di Setiap Halaman) --}}
+<div class="doc-header">
     <table class="doc-header-table">
         <tr>
             <td style="width: 50px; text-align: left; vertical-align: middle;">
                 @if(!empty($logoBase64))
-                    <img src="{{ $logoBase64 }}" alt="Logo IPNET" style="height: 38px; width: auto; max-width: 80px; display: block;">
+                    <img src="{{ $logoBase64 }}" alt="Logo IPNET" style="height: 36px; width: auto; max-width: 80px; display: block;">
                 @else
                     <span style="font-size: 14pt; font-weight: bold; color: #000000;">IP-NET</span>
                 @endif
@@ -234,11 +240,13 @@
             </td>
         </tr>
     </table>
-
     <div class="doc-intro">
         Dokumen ini digunakan sebagai laporan aktivitas sales, notulensi koordinasi dengan klien, dan bukti pelaksanaan agenda bisnis.
     </div>
     <div class="doc-header-line"></div>
+</div>
+
+<div class="page-container">
 
     @php
         $payload = [];

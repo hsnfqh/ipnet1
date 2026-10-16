@@ -741,7 +741,7 @@
                                 <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
                                 <div>
                                     <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
-                                        FORM LAPORAN EVALUASI &amp; LESSON LEARNED PROSPEK (LOST DEAL)
+                                        FORM EVALUASI &amp; LESSON LEARNED (LOST DEAL)
                                     </h2>
                                     <p class="text-[11px] text-[#475569] mt-0.5">
                                         Dokumen ini digunakan sebagai evaluasi retrospektif internal dan dasar continuous improvement strategi komersial penjualan.
@@ -1409,7 +1409,7 @@
                                     <img src="/images/ipnet1.png" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
                                     <div>
                                         <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
-                                            FORM LAPORAN EVALUASI &amp; LESSON LEARNED (LOST DEAL)
+                                            FORM EVALUASI &amp; LESSON LEARNED (LOST DEAL)
                                         </h2>
                                         <p class="text-[11px] text-[#475569] mt-0.5">
                                             Dokumen analisis resmi komersial untuk meninjau penyebab kegagalan peluang (Closed Lost) dan rekomendasi perbaikan strategi tim sales.
