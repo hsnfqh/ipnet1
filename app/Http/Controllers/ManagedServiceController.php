@@ -46,6 +46,7 @@ class ManagedServiceController extends Controller
     public function dashboard(Request $request)
     {
         $this->ensureTablesExist();
+        $this->ensureSampleProjectExists();
 
         $selectedYear = $request->input('year', 2026);
         $selectedClient = $request->input('client');
@@ -876,6 +877,15 @@ class ManagedServiceController extends Controller
      */
     private function ensureSampleProjectExists(): void
     {
+        // Pastikan proyek dummy resmi PE LAN Sudirman (Bank BRI) terdaftar
+        if (!Project::where('name', 'like', '%Router Edge LAN (PE LAN) Sudirman%')->exists()) {
+            try {
+                \Database\Seeders\SamplePeLanProjectSeeder::runDirectly();
+            } catch (\Throwable $e) {
+                Log::warning('Auto seed PeLan project: ' . $e->getMessage());
+            }
+        }
+
         if (Project::count() === 0) {
             $creatorId = auth()->id() ?: User::first()?->id ?: 1;
             $sampleProject = Project::create([

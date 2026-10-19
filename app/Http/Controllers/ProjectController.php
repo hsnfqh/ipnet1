@@ -36,6 +36,15 @@ class ProjectController extends Controller
         $canEditProgress = !$isExecutive && (\App\Helpers\ScopeHelper::isTeamLeader($user) || \App\Helpers\ScopeHelper::isManagerial($user));
         $scopeIds        = \App\Helpers\ScopeHelper::getScopeUserIds($user);
 
+        // Pastikan proyek dummy resmi PE LAN Sudirman (Bank BRI) terdaftar
+        if (!Project::where('name', 'like', '%Router Edge LAN (PE LAN) Sudirman%')->exists()) {
+            try {
+                \Database\Seeders\SamplePeLanProjectSeeder::runDirectly();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Auto seed PeLan in ProjectController: ' . $e->getMessage());
+            }
+        }
+
         $baseQuery = Project::with(['tasks.engineer:id,name', 'creator:id,name', 'division:id,name', 'pm:id,name'])
             ->where(function($q) {
                 $q->whereNull('project_type')->orWhere('project_type', '!=', 'Meeting / Internal');
