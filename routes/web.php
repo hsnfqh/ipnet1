@@ -60,6 +60,74 @@ Route::get('/fix-cpanel-deploy', function () {
     return '<pre>' . implode("\n", $output) . '</pre>';
 });
 
+// Route untuk membersihkan semua data dummy dari web database kecuali data user & login
+Route::get('/clean-dummy-data', function () {
+    $tablesToClear = [
+        'activity_document_signatures',
+        'admin_dispatch_items',
+        'admin_document_checklists',
+        'admin_documents',
+        'admin_equipment_assets',
+        'admin_logistics_dispatches',
+        'admin_project_handovers',
+        'admin_serial_numbers',
+        'attendances',
+        'certifications',
+        'clients',
+        'cro_account_health',
+        'cro_concerns',
+        'cro_csat_surveys',
+        'cro_engagements',
+        'cro_opportunities',
+        'digital_signature_documents',
+        'engineer_activity_logs',
+        'inventory_items',
+        'inventory_transactions',
+        'managed_service_assets',
+        'managed_service_reports',
+        'managed_service_tickets',
+        'market_intelligences',
+        'notifications',
+        'partnerships',
+        'project_documents',
+        'projects',
+        'sales_activities',
+        'schedule_user',
+        'schedules',
+        'task_user',
+        'tasks',
+        'timesheets',
+        'vendors',
+    ];
+
+    \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+    $cleared = [];
+    foreach ($tablesToClear as $table) {
+        if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
+            $count = \Illuminate\Support\Facades\DB::table($table)->count();
+            \Illuminate\Support\Facades\DB::table($table)->truncate();
+            $cleared[] = "Tabel <strong>$table</strong> berhasil dikosongkan (sebelumnya ada $count baris)";
+        }
+    }
+    \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+    $usersCount = \Illuminate\Support\Facades\DB::table('users')->count();
+    $rolesCount = \Illuminate\Support\Facades\DB::table('roles')->count();
+
+    $output = [
+        "<div style='font-family:sans-serif; max-width:650px; margin:40px auto; padding:24px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc;'>",
+        "<h2 style='color:#16a34a; margin-top:0;'>&#10004; SEMUA DATA DUMMY BERHASIL DIBERSIHKAN!</h2>",
+        "<p style='color:#334155;'><strong>Data Login Tetap Utuh:</strong> $usersCount User dan $rolesCount Role tersimpan aman.</p>",
+        "<hr style='border:none; border-top:1px solid #cbd5e1; margin:16px 0;'>",
+        "<h4 style='color:#475569; margin-bottom:8px;'>Daftar Tabel yang Dikosongkan:</h4>",
+        "<ul style='color:#64748b; font-size:14px; line-height:1.6;'><li>" . implode("</li><li>", $cleared) . "</li></ul>",
+        "<p style='margin-top:20px;'><a href='/login' style='display:inline-block; padding:10px 20px; background:#1e293b; color:#fff; text-decoration:none; border-radius:6px; font-weight:600;'>Kembali ke Login</a></p>",
+        "</div>",
+    ];
+
+    return implode("\n", $output);
+});
+
 // Auth Routes
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
