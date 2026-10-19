@@ -170,7 +170,7 @@
                     <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Preventive Maint.</span>
-                            <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                            <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-[#8F0A0D] border border-rose-200">
                                 {{ $pmProgress }}% Progres
                             </span>
                         </div>
@@ -194,8 +194,8 @@
                     <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Komitmen SLA</span>
-                            <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-                                {{ $project->sla_tier ?: 'Gold' }}
+                            <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-[#8F0A0D] border border-rose-200">
+                                Tier: {{ $project->sla_tier ?: 'Gold' }}
                             </span>
                         </div>
                         <p class="text-[15px] font-bold text-[#1E293B]">{{ $project->sla_target_percentage ?: '99.50' }}% Uptime</p>
@@ -289,55 +289,55 @@
                         </div>
 
                         <!-- Customer PIC Contacts -->
-                        <div class="space-y-2.5 pt-2 border-t border-[#E2E8F0] text-[12.5px]">
-                            <div class="flex items-start gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-[#F1F5F9] text-[#64748B] flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <div class="space-y-2.5 pt-3 border-t border-[#E2E8F0]">
+                            <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-center gap-3.5">
+                                <div class="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                 </div>
-                                <div class="min-w-0">
-                                    <span class="text-[10.5px] text-[#64748B] font-semibold uppercase tracking-wider block">Customer PIC (Technical)</span>
-                                    <p class="font-medium text-[#1E293B]">{{ $project->customer_pic_technical ?: 'Bpk. Budi Santoso (0812-3456-7890)' }}</p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-start gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-[#F1F5F9] text-[#64748B] flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                </div>
-                                <div class="min-w-0">
-                                    <span class="text-[10.5px] text-[#64748B] font-semibold uppercase tracking-wider block">Customer PIC (Procurement)</span>
-                                    <p class="font-medium text-[#1E293B]">{{ $project->customer_pic_business ?: 'Ibu Diana Putri (0812-9876-5432)' }}</p>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">Customer PIC (Technical)</span>
+                                    <p class="font-bold text-[#1E293B] text-[12.5px] mt-0.5">{{ $project->customer_pic_technical ?: 'Bpk. Budi Santoso (0812-3456-7890)' }}</p>
                                 </div>
                             </div>
 
-                            <div class="flex items-start gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-[#F1F5F9] text-[#64748B] flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-center gap-3.5">
+                                <div class="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                 </div>
-                                <div class="min-w-0">
-                                    <span class="text-[10.5px] text-[#64748B] font-semibold uppercase tracking-wider block">Customer PIC (Finance)</span>
-                                    <p class="font-medium text-[#1E293B]">{{ $project->customer_pic_finance ?: 'Bpk. Hendra Gunawan' }}</p>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">Customer PIC (Procurement)</span>
+                                    <p class="font-bold text-[#1E293B] text-[12.5px] mt-0.5">{{ $project->customer_pic_business ?: 'Ibu Diana Putri (0812-9876-5432)' }}</p>
                                 </div>
                             </div>
 
-                            <div class="flex items-start gap-2.5">
-                                <div class="w-7 h-7 rounded-lg bg-[#F1F5F9] text-[#64748B] flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-center gap-3.5">
+                                <div class="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                 </div>
-                                <div class="min-w-0">
-                                    <span class="text-[10.5px] text-[#64748B] font-semibold uppercase tracking-wider block">Lokasi Operasional / Site</span>
-                                    <p class="font-medium text-[#1E293B]">{{ $project->location ?: 'On-Site Klien (Data Center / Head Office)' }}</p>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">Customer PIC (Finance)</span>
+                                    <p class="font-bold text-[#1E293B] text-[12.5px] mt-0.5">{{ $project->customer_pic_finance ?: 'Bpk. Hendra Gunawan' }}</p>
+                                </div>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition flex items-center gap-3.5">
+                                <div class="w-8 h-8 rounded-lg bg-white border border-[#CBD5E1] text-[#64748B] flex items-center justify-center shrink-0 shadow-2xs">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[10px] text-[#64748B] font-bold uppercase tracking-wider block">Lokasi Operasional / Site</span>
+                                    <p class="font-bold text-[#1E293B] text-[12.5px] mt-0.5">{{ $project->location ?: 'On-Site Klien (Data Center / Head Office)' }}</p>
                                 </div>
                             </div>
 
                             @if($project->contract_value)
-                                <div class="flex items-start gap-2.5 pt-1">
-                                    <div class="w-7 h-7 rounded-lg bg-rose-50 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5 border border-rose-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-200/80 flex items-center gap-3.5">
+                                    <div class="w-8 h-8 rounded-lg bg-white border border-rose-200 text-[#8F0A0D] flex items-center justify-center shrink-0 shadow-2xs">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     </div>
-                                    <div class="min-w-0">
-                                        <span class="text-[10.5px] text-[#64748B] font-semibold uppercase tracking-wider block">Nilai Kontrak Layanan</span>
-                                        <p class="font-bold text-[#8F0A0D] text-[14px]">Rp {{ number_format($project->contract_value, 0, ',', '.') }}</p>
+                                    <div class="min-w-0 flex-1">
+                                        <span class="text-[10px] font-bold text-[#8F0A0D] uppercase tracking-wider block">Nilai Kontrak Layanan</span>
+                                        <p class="font-bold text-[#8F0A0D] text-[14px] mt-0.5">Rp {{ number_format($project->contract_value, 0, ',', '.') }}</p>
                                     </div>
                                 </div>
                             @endif
@@ -349,7 +349,7 @@
                 <div class="lg:col-span-7 ipnet-card p-5 sm:p-6 space-y-4">
                     <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
                         <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-[#1E293B]"></span>
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
                             <h2 class="text-[13px] font-bold text-[#1E293B] uppercase tracking-wider">Berkas Dokumen Kontrak & Legal</h2>
                         </div>
                         <span class="text-[11px] font-semibold text-[#64748B]">SPK, Kontrak, BOQ, BA, Dokumen Project</span>
@@ -410,14 +410,14 @@
                 <div class="ipnet-card p-5 sm:p-6 space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#E2E8F0] pb-3">
                         <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
                             <h3 class="text-[13px] font-bold text-[#1E293B] uppercase tracking-wider">
                                 Timeline Siklus Kunjungan PM ({{ $pmTotal }}x Visit &bull; {{ str_replace('_', ' ', $project->pm_frequency_type ?: 'per 3 bulan') }})
                             </h3>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-[11.5px] font-semibold text-[#64748B]">Realisasi:</span>
-                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-[#8F0A0D] border border-rose-200">
                                 {{ $pmCompleted }} dari {{ $pmTotal }} Visit Selesai
                             </span>
                         </div>
@@ -485,11 +485,12 @@
 
                 {{-- Card 2: PM Cycles Table --}}
                 <div class="ipnet-card overflow-hidden">
-                    <div class="p-4 sm:p-5 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div>
-                            <h3 class="text-[14px] font-bold text-[#1E293B]">Daftar Siklus Preventive Maintenance (PM)</h3>
-                            <p class="text-[12px] text-[#64748B] mt-0.5">Pantau realisasi visit lapangan, teknisi pelaksana, laporan inspeksi PDF, dan berita acara penagihan</p>
+                    <div class="p-4 sm:p-5 border-b border-[#E2E8F0]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                            <h3 class="text-[13px] font-bold text-[#1E293B] uppercase tracking-wider">Daftar Siklus Preventive Maintenance (PM)</h3>
                         </div>
+                        <p class="text-[12px] text-[#64748B] mt-0.5">Pantau realisasi visit lapangan, teknisi pelaksana, laporan inspeksi PDF, dan berita acara penagihan</p>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -591,8 +592,11 @@
                 <div class="ipnet-card p-5 sm:p-6 space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E2E8F0] pb-4">
                         <div>
-                            <span class="text-[11px] font-bold text-[#8F0A0D] uppercase tracking-wider block">Corrective Maintenance (CM) Quota Tracker</span>
-                            <h3 class="text-[15px] font-bold text-[#1E293B] mt-0.5">Penggunaan Kuota Tiket Penanganan Masalah & Incident</h3>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                                <span class="text-[11px] font-bold text-[#8F0A0D] uppercase tracking-wider block">Corrective Maintenance (CM) Quota Tracker</span>
+                            </div>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Penggunaan Kuota Tiket Penanganan Masalah & Incident</h3>
                             <p class="text-[12px] text-[#64748B] mt-0.5">Pilihan kuota kontrak: 4, 6, 8, 12, 18 tiket, atau unlimited per periode kontrak.</p>
                         </div>
                         <button type="button" @click="isCmModalOpen = true" 
@@ -622,7 +626,10 @@
                 {{-- CM Tickets Table --}}
                 <div class="ipnet-card overflow-hidden">
                     <div class="p-4 sm:p-5 border-b border-[#E2E8F0]">
-                        <h3 class="text-[14px] font-bold text-[#1E293B]">Daftar Tiket Corrective Maintenance Proyek Ini</h3>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                            <h3 class="text-[13px] font-bold text-[#1E293B] uppercase tracking-wider">Daftar Tiket Corrective Maintenance Proyek Ini</h3>
+                        </div>
                         <p class="text-[12px] text-[#64748B] mt-0.5">Riwayat insiden, perbaikan perangkat, teknisi yang bertugas, dan berita acara perbaikan (BAP)</p>
                     </div>
 
@@ -802,10 +809,10 @@
                     <div class="p-4 rounded-xl border border-[#E2E8F0] bg-white space-y-3 shadow-2xs">
                         <div class="flex items-center justify-between">
                             <div>
-                                <span class="text-[10.5px] font-bold text-[#475569] uppercase tracking-wider">Preventive Maintenance</span>
+                                <span class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Preventive Maintenance</span>
                                 <h3 class="text-[13.5px] font-bold text-[#1E293B] mt-0.5">Jadwal Siklus PM (1 Tahun)</h3>
                             </div>
-                            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-[#1E293B] border border-[#CBD5E1]">
+                            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-[#8F0A0D] border border-rose-200">
                                 {{ $pmTotal }} Kali ({{ str_replace('_', ' ', $project->pm_frequency_type ?: 'per 3 bulan') }})
                             </span>
                         </div>
@@ -816,7 +823,8 @@
                                 <span>Progres: <strong class="text-[#8F0A0D]">{{ $pmProgress }}%</strong></span>
                             </div>
                             <div class="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden">
-                                <div class="bg-emerald-600 h-2 rounded-full transition-all duration-500" style="width: {{ min(100, $pmProgress) }}%;"></div>
+                                <div class="h-full rounded-full transition-all duration-500" 
+                                     style="background: linear-gradient(90deg, #8F0A0D, #D62E3C); width: {{ min(100, $pmProgress) }}%;"></div>
                             </div>
                         </div>
 
