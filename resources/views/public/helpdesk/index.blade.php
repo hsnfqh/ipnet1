@@ -660,7 +660,7 @@
                                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-2 relative">
                                         <!-- Step 1: Diterima -->
                                         <div class="text-center">
-                                            <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-emerald-500/20">✓</div>
+                                            <div class="w-10 h-10 rounded-full bg-[#8F0A0D] text-white flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-[#8F0A0D]/25">✓</div>
                                             <div class="text-xs font-extrabold text-slate-900">Tiket Diterima</div>
                                             <div class="text-[11px] text-slate-500 mt-0.5 font-medium">{{ $trackingTicket->created_at->format('d/m/Y H:i') }}</div>
                                             <div class="text-[10.5px] text-slate-500 mt-0.5">Tercatat di Portal NOC</div>
@@ -669,7 +669,7 @@
                                         <!-- Step 2: Penugasan -->
                                         <div class="text-center">
                                             @if($trackingTicket->assigned_to)
-                                                <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-emerald-500/20">✓</div>
+                                                <div class="w-10 h-10 rounded-full bg-[#8F0A0D] text-white flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-[#8F0A0D]/25">✓</div>
                                                 <div class="text-xs font-extrabold text-slate-900">Ditugaskan</div>
                                                 <div class="text-[11px] text-slate-700 font-bold truncate mt-0.5">{{ $trackingTicket->assignedEngineer->name ?? 'Teknisi' }}</div>
                                                 <div class="text-[10.5px] text-slate-500 mt-0.5">PIC Maintenance</div>
@@ -684,11 +684,11 @@
                                         <!-- Step 3: Pengerjaan -->
                                         <div class="text-center">
                                             @if(in_array($trackingTicket->status, ['In Progress', 'Resolved', 'Closed']))
-                                                <div class="w-10 h-10 rounded-full {{ in_array($trackingTicket->status, ['Resolved', 'Closed']) ? 'bg-emerald-500 text-white' : 'bg-blue-600 text-white animate-pulse' }} flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm">
+                                                <div class="w-10 h-10 rounded-full {{ in_array($trackingTicket->status, ['Resolved', 'Closed']) ? 'bg-[#8F0A0D] text-white' : 'bg-[#BA1B1D] text-white animate-pulse' }} flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-[#8F0A0D]/25">
                                                     {{ in_array($trackingTicket->status, ['Resolved', 'Closed']) ? '✓' : '3' }}
                                                 </div>
                                                 <div class="text-xs font-extrabold text-slate-900">Pengerjaan</div>
-                                                <div class="text-[11px] text-blue-600 font-bold mt-0.5">Sedang Ditangani</div>
+                                                <div class="text-[11px] text-[#8F0A0D] font-bold mt-0.5">Sedang Ditangani</div>
                                                 <div class="text-[10.5px] text-slate-500 mt-0.5">Investigasi Masalah</div>
                                             @else
                                                 <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 text-sm font-bold">3</div>
@@ -701,10 +701,10 @@
                                         <!-- Step 4: Selesai -->
                                         <div class="text-center">
                                             @if(in_array($trackingTicket->status, ['Resolved', 'Closed']))
-                                                <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-emerald-500/20">✓</div>
-                                                <div class="text-xs font-extrabold text-emerald-800">Selesai</div>
-                                                <div class="text-[11px] text-emerald-600 font-bold mt-0.5">{{ $trackingTicket->resolved_at ? $trackingTicket->resolved_at->format('d/m/Y H:i') : 'Terverifikasi' }}</div>
-                                                <div class="text-[10.5px] text-emerald-700 mt-0.5">Solusi Berhasil</div>
+                                                <div class="w-10 h-10 rounded-full bg-[#8F0A0D] text-white flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-[#8F0A0D]/25">✓</div>
+                                                <div class="text-xs font-extrabold text-slate-900">Selesai</div>
+                                                <div class="text-[11px] text-[#8F0A0D] font-bold mt-0.5">{{ $trackingTicket->resolved_at ? $trackingTicket->resolved_at->format('d/m/Y H:i') : 'Terverifikasi' }}</div>
+                                                <div class="text-[10.5px] text-slate-500 mt-0.5">Solusi Berhasil</div>
                                             @else
                                                 <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 text-sm font-bold">4</div>
                                                 <div class="text-xs font-medium text-slate-500">Selesai</div>
