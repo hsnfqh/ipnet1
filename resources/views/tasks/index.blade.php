@@ -580,14 +580,17 @@
             <template x-teleport="body">
                 <div x-show="progressModalOpen"
                      x-cloak
-                     class="fixed inset-0 z-[99999] bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5"
+                     style="position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(3px);"
                      @click.self="progressModalOpen = false">
 
-                    <div class="bg-white rounded-2xl w-[540px] max-w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-[#E2E8F0] my-auto anim-fade-up">
+                    <div style="background:white; border-radius:20px; width:560px; max-width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 60px rgba(15,23,42,0.22); margin:auto; position:relative; border:1px solid #E2E8F0; animation:fadeInUp 0.2s ease;">
 
-                        {{-- Modal Header (Konsisten dengan Catat Log Aktivitas Kerja Baru) --}}
-                        <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0" style="border-radius:16px 16px 0 0;">
-                            <h3 class="text-[16px] font-bold text-[#1E293B]">Update Progres Pekerjaan</h3>
+                        <!-- Modal Header -->
+                        <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] sticky top-0 z-10" style="border-radius:20px 20px 0 0;">
+                            <div>
+                                <h3 class="text-[16px] font-bold text-[#1E293B]">Update Progres Pekerjaan</h3>
+                                <p class="text-[12px] text-[#64748B] mt-0.5 line-clamp-1" x-text="(progressForm.taskTitle || 'Tugas Pekerjaan') + (progressForm.projectName ? ' • ' + progressForm.projectName : '')"></p>
+                            </div>
                             <button type="button" @click="progressModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -595,102 +598,100 @@
                             </button>
                         </div>
 
-                        {{-- Modal Body --}}
-                        <div class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4 text-[12.5px]">
-                            {{-- Task Context Card --}}
-                            <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <span class="font-bold text-[#1E293B] text-[13px] line-clamp-1" x-text="progressForm.taskTitle || 'Tugas Pekerjaan'"></span>
-                                    <span class="px-2 py-0.5 rounded text-[10.5px] font-bold shrink-0"
-                                          :class="progressForm.priority === 'High' ? 'bg-red-50 text-red-700 border border-red-200' : (progressForm.priority === 'Medium' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-slate-100 text-slate-700 border border-slate-200')"
-                                          x-text="progressForm.priority || 'Medium'"></span>
-                                </div>
-                                <div class="text-[11.5px] text-[#64748B] flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                    <span class="truncate" x-text="progressForm.projectName || '-'"></span>
-                                </div>
-                            </div>
+                        <!-- Modal Body -->
+                        <div style="padding:22px 24px;">
+                            <form @submit.prevent="saveProgress">
+                                <div style="display:flex; flex-direction:column; gap:18px;">
+                                    
+                                    <!-- STATUS & PROGRESS (2-Kolom Rapi) -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                                                Status Pengerjaan <span style="color:#8F0A0D;">*</span>
+                                            </label>
+                                            <select x-model="progressForm.status"
+                                                    style="width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; transition:border 0.15s ease; box-sizing:border-box; cursor:pointer;"
+                                                    onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
+                                                    onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'">
+                                                <option value="In Progress">In Progress</option>
+                                                <option value="Waiting Review">Waiting Review</option>
+                                                <template x-if="isLead">
+                                                    <option value="Completed">Completed</option>
+                                                </template>
+                                                <option value="Assigned">Assigned</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                                <label style="font-size:11.5px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.4px;">
+                                                    Progress
+                                                </label>
+                                                <span style="font-size:13px; font-weight:800; color:#8F0A0D;" x-text="progressForm.progress + '%'"></span>
+                                            </div>
+                                            <div style="padding-top:6px;">
+                                                <input type="range" min="0" max="100" step="5" x-model="progressForm.progress" 
+                                                       @input="if(progressForm.progress == 100 && !isLead) { progressForm.status = 'Waiting Review'; } else if(progressForm.progress > 0 && progressForm.status === 'Assigned') { progressForm.status = 'In Progress'; }"
+                                                       style="width:100%; accent-color:#8F0A0D; cursor:pointer;">
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            {{-- Progress Slider & Quick Selector --}}
-                            <div class="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <label class="font-bold text-[#475569] uppercase tracking-wider text-[11px]">
-                                        Tingkat Progres Pengerjaan
-                                    </label>
-                                    <span class="text-[15px] font-black"
-                                          :class="progressForm.progress == 100 ? 'text-emerald-600' : (progressForm.progress >= 50 ? 'text-[#8F0A0D]' : 'text-amber-600')"
-                                          x-text="progressForm.progress + '%'"></span>
-                                </div>
-                                
-                                <input type="range" min="0" max="100" step="5" x-model="progressForm.progress" 
-                                       @input="if(progressForm.progress == 100 && !isLead) { progressForm.status = 'Waiting Review'; } else if(progressForm.progress > 0 && progressForm.status === 'Assigned') { progressForm.status = 'In Progress'; }"
-                                       class="w-full accent-[#8F0A0D] cursor-pointer">
-                            </div>
+                                    <!-- UPLOAD DOKUMENTASI / BUKTI PEKERJAAN -->
+                                    <div>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                                            Dokumentasi / Bukti Lapangan <span style="font-size:11px; font-weight:500; color:#94A3B8; text-transform:none;">(Opsional)</span>
+                                        </label>
+                                        <label style="width:100%; padding:12px 14px; border-radius:10px; border:1.5px dashed #CBD5E1; background:#F8FAFC; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s ease; box-sizing:border-box;"
+                                               onmouseover="this.style.borderColor='#8F0A0D'; this.style.background='#FEF2F2'"
+                                               onmouseout="this.style.borderColor='#CBD5E1'; this.style.background='#F8FAFC'">
+                                            <div style="width:34px; height:34px; border-radius:8px; background:white; border:1px solid #E2E8F0; display:flex; align-items:center; justify-content:center; color:#8F0A0D; flex-shrink:0;">
+                                                <svg style="width:17px; height:17px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                                </svg>
+                                            </div>
+                                            <div style="min-width:0; flex:1;">
+                                                <div style="font-size:12.5px; font-weight:600; color:#1E293B; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="progressForm.fileName || 'Pilih foto atau dokumen bukti pengerjaan...'"></div>
+                                                <div style="font-size:11px; color:#94A3B8; margin-top:1px;">Format: JPG, PNG, PDF, atau DOCX (Maks 10MB)</div>
+                                            </div>
+                                            <input type="file" id="doc_file_input" accept="image/*,.pdf,.doc,.docx" class="hidden" @change="handleFileChange($event)">
+                                        </label>
+                                        <div x-show="progressForm.fileName" style="font-size:11.5px; font-weight:700; color:#16A34A; display:flex; align-items:center; gap:6px; margin-top:6px;">
+                                            <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            <span>File terpilih dan siap diunggah</span>
+                                        </div>
+                                    </div>
 
-                            {{-- Status Pengerjaan --}}
-                            <div class="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs space-y-2">
-                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
-                                    Status Pengerjaan
-                                </label>
-                                <select x-model="progressForm.status"
-                                        class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs cursor-pointer">
-                                    <option value="Assigned">Assigned (Ditugaskan / Belum Mulai)</option>
-                                    <option value="In Progress">In Progress (Sedang Dikerjakan)</option>
-                                    <option value="Waiting Review">Waiting Review (Selesai Dikerjakan & Siap Dicek Lead)</option>
-                                    <template x-if="isLead">
-                                        <option value="Completed">Completed (Selesai & Terverifikasi Lead)</option>
-                                    </template>
-                                </select>
-                                <div class="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/60 text-[11px] text-amber-800 flex items-start gap-2" x-show="!isLead">
-                                    <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span><strong>Alur SOP:</strong> Bila pekerjaan Anda telah selesai di lapangan, pilih status <strong>"Waiting Review"</strong> dan sertakan bukti dokumentasi agar Team Leader dapat mengecek dan memverifikasi menjadi <strong>Completed</strong>.</span>
+                                    <!-- CATATAN / TINDAKAN TEKNIS -->
+                                    <div>
+                                        <label style="display:block; font-size:11.5px; font-weight:700; color:#475569; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
+                                            Catatan Hasil Tindakan Teknis Lapangan <span style="font-size:11px; font-weight:500; color:#94A3B8; text-transform:none;">(Opsional)</span>
+                                        </label>
+                                        <textarea x-model="progressForm.description" rows="3"
+                                                  placeholder="Tuliskan catatan teknis yang diambil, temuan di lokasi, atau keterangan penyelesaian..."
+                                                  style="width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid #CBD5E1; font-size:13px; color:#0F172A; outline:none; background:white; min-height:85px; transition:border 0.15s ease; box-sizing:border-box; resize:none;"
+                                                  onfocus="this.style.borderColor='#8F0A0D'; this.style.boxShadow='0 0 0 3px rgba(143,10,13,0.1)'"
+                                                  onblur="this.style.borderColor='#CBD5E1'; this.style.boxShadow='none'"></textarea>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {{-- File Upload --}}
-                            <div>
-                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                                    Upload Bukti / Dokumentasi Lapangan
-                                </label>
-                                <label class="w-full p-3 rounded-xl border border-dashed border-[#CBD5E1] hover:border-[#8F0A0D] bg-[#F8FAFC] hover:bg-white flex items-center gap-3 cursor-pointer transition shadow-2xs">
-                                    <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                <!-- Footer Buttons -->
+                                <div style="display:flex; gap:12px; margin-top:20px; padding-top:16px; border-top:1px solid #E2E8F0; flex-wrap:wrap;">
+                                    <button type="submit"
+                                            class="btn-ipnet-gradient"
+                                            style="flex:1 1 160px; justify-content:center; padding:11px 22px; border-radius:12px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(143,10,13,0.25);">
+                                        <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                         </svg>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="font-medium text-[#1E293B] text-[12px] truncate" x-text="progressForm.fileName || 'Pilih file foto atau dokumen pekerjaan...'"></div>
-                                        <div class="text-[10.5px] text-[#94A3B8]">Format: JPG, PNG, PDF, atau DOCX (Maks 10MB)</div>
-                                    </div>
-                                    <input type="file" id="doc_file_input" accept="image/*,.pdf,.doc,.docx" class="hidden" @change="handleFileChange($event)">
-                                </label>
-                                <div x-show="progressForm.fileName" class="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    <span>File terpilih dan siap diunggah</span>
+                                        Simpan Perubahan
+                                    </button>
+                                    <button type="button" @click="progressModalOpen = false"
+                                            style="flex:1 1 110px; justify-content:center; background:white; color:#334155; border:1.5px solid #CBD5E1; padding:11px 20px; border-radius:12px; font-weight:700; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:all 0.15s ease;"
+                                            onmouseover="this.style.background='#F8FAFC'; this.style.borderColor='#94A3B8'"
+                                            onmouseout="this.style.background='white'; this.style.borderColor='#CBD5E1'">
+                                        Batal
+                                    </button>
                                 </div>
-                            </div>
-
-                            {{-- Catatan / Tindakan Teknis --}}
-                            <div>
-                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                                    Catatan Hasil Tindakan Teknis Lapangan
-                                </label>
-                                <textarea x-model="progressForm.description" rows="3"
-                                          placeholder="Tuliskan tindakan teknis yang diambil, temuan di lokasi, atau status penyelesaian..."
-                                          class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none shadow-2xs"></textarea>
-                            </div>
-                        </div>
-
-                        {{-- Modal Footer --}}
-                        <div class="flex items-center justify-end gap-2.5 p-4 px-6 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
-                            <button type="button" @click="progressModalOpen = false" 
-                                    class="px-4 py-2.5 text-[12px] font-bold text-[#475569] hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-xl transition cursor-pointer">
-                                Batal
-                            </button>
-                            <button type="button" @click="saveProgress()" 
-                                    class="btn-ipnet-gradient px-5 py-2.5 text-[12px] font-bold rounded-xl shadow-md transition cursor-pointer">
-                                Simpan Progress
-                            </button>
+                            </form>
                         </div>
                     </div>
                 </div>
