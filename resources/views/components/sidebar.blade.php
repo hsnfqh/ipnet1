@@ -54,15 +54,6 @@
         $navItems = [
             ['key' => 'dashboard',         'label' => 'Dashboard',         'route' => 'ms.dashboard'],
             ['key' => 'ms_projects',       'label' => 'Projects',          'route' => 'ms.projects.index'],
-            [
-                'key'      => 'ms_monitoring',
-                'label'    => 'Monitoring',
-                'route'    => 'ms.monitoring.index',
-                'children' => [
-                    ['key' => 'ms_pm', 'label' => 'Preventive (PM)', 'route' => 'ms.monitoring.pm'],
-                    ['key' => 'ms_cm', 'label' => 'Corrective (CM)', 'route' => 'ms.monitoring.cm'],
-                ]
-            ],
             ['key' => 'ms_tickets',        'label' => 'Tickets & SLA',     'route' => 'ms.tickets.index'],
             ['key' => 'tasks',             'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
             ['key' => 'activities',        'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],

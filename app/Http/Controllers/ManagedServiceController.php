@@ -1032,17 +1032,35 @@ class ManagedServiceController extends Controller
             ->where(function($q) {
                 $q->where('type', 'like', '%Corrective%')
                   ->orWhere('type', 'like', '%Incident%');
-            })->get();
+            })->latest()->get();
         $cmQuota = $project->cm_quota ?: 18;
         $cmUsed = $cmTickets->count();
         $cmRemaining = max(0, $cmQuota - $cmUsed);
 
-        $pmCycles = $project->pmCycles()->get();
+        $pmCycles = $project->pmCycles()->orderBy('cycle_number')->get();
         $pmCompleted = $pmCycles->where('activity_status', 'Completed')->count();
         $pmTotal = $pmCycles->count() ?: ($project->pm_total_cycles ?: 4);
         $pmProgress = $pmTotal > 0 ? round(($pmCompleted / $pmTotal) * 100) : 0;
 
-        return view('managed_service.project_detail', compact('project', 'documents', 'cmQuota', 'cmUsed', 'cmRemaining', 'pmCycles', 'pmCompleted', 'pmTotal', 'pmProgress'));
+        $activeTab = $request->input('tab', 'documents');
+        if (!in_array($activeTab, ['documents', 'pm', 'cm', 'sla'])) {
+            $activeTab = 'documents';
+        }
+
+        $allProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
+
+        $engineers = User::where(function($q) {
+            $q->where('division_id', 3)
+              ->orWhereHas('roles', fn($r) => $r->whereIn('name', [
+                  'Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)'
+              ]));
+        })->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Lead Engineer', 'Team Leader', 'Director', 'Direktur', 'PMO']))
+          ->orderBy('name')->get(['id', 'name']);
+
+        return view('managed_service.project_detail', compact(
+            'project', 'allProjects', 'documents', 'cmQuota', 'cmUsed', 'cmRemaining', 'cmTickets',
+            'pmCycles', 'pmCompleted', 'pmTotal', 'pmProgress', 'engineers', 'activeTab'
+        ));
     }
 
     /**
@@ -1185,59 +1203,25 @@ class ManagedServiceController extends Controller
         $this->ensureSampleProjectExists();
 
         $activeTab = $tab ?: $request->input('tab', 'pm');
-        if (!in_array($activeTab, ['pm', 'cm'])) {
+        if (!in_array($activeTab, ['documents', 'pm', 'cm', 'sla'])) {
             $activeTab = 'pm';
         }
 
-        $allProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
-
         $selectedProjectId = $projectId ?: $request->input('project_id');
         if ($selectedProjectId) {
-            $project = Project::with(['pmCycles.assignedEngineer', 'managedServiceTickets.assignedEngineer'])->find($selectedProjectId);
+            $project = Project::find($selectedProjectId);
         } else {
-            $project = Project::with(['pmCycles.assignedEngineer', 'managedServiceTickets.assignedEngineer'])
-                ->where('stage', 'Operate')
+            $project = Project::where('stage', 'Operate')
                 ->orWhere('project_type', 'like', '%Managed%')
                 ->latest()
-                ->first() ?: $allProjects->first();
+                ->first() ?: Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->first();
         }
 
         if ($project) {
-            self::initPmCycles($project);
-            $pmCycles = $project->pmCycles()->get();
-            $cmTickets = $project->managedServiceTickets()
-                ->where(function($q) {
-                    $q->where('type', 'like', '%Corrective%')
-                      ->orWhere('type', 'like', '%Incident%');
-                })->latest()->get();
-
-            $cmQuota = $project->cm_quota ?: 18;
-            $cmUsed = $cmTickets->count();
-            $cmRemaining = max(0, $cmQuota - $cmUsed);
-
-            $pmCompleted = $pmCycles->where('activity_status', 'Completed')->count();
-            $pmTotal = $pmCycles->count() ?: ($project->pm_total_cycles ?: 4);
-            $pmProgress = $pmTotal > 0 ? round(($pmCompleted / $pmTotal) * 100) : 0;
-        } else {
-            $pmCycles = collect([]);
-            $cmTickets = collect([]);
-            $cmQuota = 18;
-            $cmUsed = 0;
-            $cmRemaining = 18;
-            $pmCompleted = 0;
-            $pmTotal = 4;
-            $pmProgress = 0;
+            return redirect()->route('ms.projects.show', ['project' => $project->id, 'tab' => $activeTab]);
         }
 
-        $engineers = User::where(function($q) {
-            $q->where('division_id', 3)
-              ->orWhereHas('roles', fn($r) => $r->whereIn('name', [
-                  'Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)'
-              ]));
-        })->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Lead Engineer', 'Team Leader', 'Director', 'Direktur', 'PMO']))
-          ->orderBy('name')->get(['id', 'name']);
-
-        return view('managed_service.monitoring', compact('project', 'allProjects', 'pmCycles', 'cmTickets', 'cmQuota', 'cmUsed', 'cmRemaining', 'pmCompleted', 'pmTotal', 'pmProgress', 'engineers', 'activeTab'));
+        return redirect()->route('ms.projects.index');
     }
 
     /**
