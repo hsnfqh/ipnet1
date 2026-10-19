@@ -50,11 +50,12 @@ Route::get('/fix-cpanel-deploy', function () {
     $path = base_path();
     $output = [];
     $output[] = "=== PATH: $path ===";
-    $output[] = "=== 1. STATUS SEBELUM RESET ===";
-    $output[] = shell_exec("git -C \"$path\" status 2>&1") ?? 'shell_exec tidak menghasilkan output';
-    $output[] = "=== 2. MENJALANKAN GIT RESET ===";
-    $output[] = shell_exec("git -C \"$path\" reset --hard HEAD 2>&1") ?? 'N/A';
-    $output[] = "=== 3. STATUS SETELAH RESET ===";
+    $output[] = "=== .cpanel.yml EXISTS? ===" . (file_exists("$path/.cpanel.yml") ? "YES" : "NO");
+    if (file_exists("$path/.cpanel.yml")) {
+        $output[] = "=== .cpanel.yml CONTENT ===";
+        $output[] = file_get_contents("$path/.cpanel.yml");
+    }
+    $output[] = "=== GIT STATUS ===";
     $output[] = shell_exec("git -C \"$path\" status 2>&1") ?? 'N/A';
     return '<pre>' . implode("\n", $output) . '</pre>';
 });
