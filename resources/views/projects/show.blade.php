@@ -273,6 +273,31 @@
         || str_contains(strtolower($authUser->name ?? ''), 'aris')
     ) && empty(array_intersect(['Sales', 'Account Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles));
 
+    // Pre-Sales dan SA mutlak DILARANG mengubah status / tahapan Sales Pipeline:
+    $isPresalesOrSaUser = $authUser && (
+        !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles))
+        || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'solution architect', 'sa', 'pre sales'])
+        || str_contains(strtolower($authUser->position ?? ''), 'presales')
+        || str_contains(strtolower($authUser->position ?? ''), 'pre-sales')
+        || str_contains(strtolower($authUser->position ?? ''), 'architect')
+        || str_contains(strtolower($authUser->position ?? ''), 'solution architect')
+        || str_contains(strtolower($authUser->position ?? ''), 'sa')
+        || str_contains(strtolower($authUser->email ?? ''), 'akbar')
+        || str_contains(strtolower($authUser->email ?? ''), 'aris')
+        || str_contains(strtolower($authUser->name ?? ''), 'akbar')
+        || str_contains(strtolower($authUser->name ?? ''), 'aris')
+    );
+
+    // Otorisasi Mengubah Pipeline Sales: HANYA tim Sales / Account Manager (atau Admin murni, BUKAN Pre-Sales dan BUKAN SA)
+    $canEditSalesPipeline = !$isExecutive && $authUser && !$isPresalesOrSaUser && (
+        !empty(array_intersect(['Sales', 'Account Manager'], $userRoles))
+        || (!empty($project->sales_id) && $authUser->id == $project->sales_id)
+        || (!empty($project->sales_name) && str_contains(strtolower($project->sales_name), strtolower($authUser->name ?? '')))
+        || str_contains(strtolower($authUser->position ?? ''), 'sales')
+        || str_contains(strtolower($authUser->position ?? ''), 'account manager')
+        || (!empty(array_intersect(['Super Admin', 'Admin'], $userRoles)))
+    );
+
     // Hak otorisasi alokasi ruang lingkup (Wewenang khusus tim Pre-Sales Specialist & Super Admin murni, BUKAN Eksekutif / Susanto / Direktur)
     $isAdminPure = !empty(array_intersect(['Super Admin', 'Admin'], $userRoles));
     $isPresalesUser = $authUser && (
@@ -431,6 +456,7 @@
     };
 
     window.openEditPipelineWithStage = function(stageKey) {
+        @if(!empty($canEditSalesPipeline))
         window.openModal('modal-edit-pipeline');
         const modal = document.getElementById('modal-edit-pipeline');
         if (modal) {
@@ -440,6 +466,13 @@
                 select.dispatchEvent(new Event('change'));
             }
         }
+        @else
+        if (typeof window.showToast === 'function') {
+            window.showToast('Hanya tim Sales yang berwenang mengubah tahapan Sales Pipeline!', 'error');
+        } else {
+            alert('Akses Ditolak: Hanya tim Sales yang berwenang mengubah tahapan Sales Pipeline!');
+        }
+        @endif
     };
 
     window.openAssignModalCustom = function(role) {
@@ -639,8 +672,16 @@
             },
 
             openEditPipelineModal() {
+                @if(!empty($canEditSalesPipeline))
                 this.isEditPipelineModalOpen = true;
                 window.openModal('modal-edit-pipeline');
+                @else
+                if (typeof window.showToast === 'function') {
+                    window.showToast('Hanya tim Sales yang berwenang mengubah tahapan Sales Pipeline!', 'error');
+                } else {
+                    alert('Akses Ditolak: Hanya tim Sales yang berwenang mengubah tahapan Sales Pipeline!');
+                }
+                @endif
             },
 
             openAssignTechnicalModal(role = 'bdm') {
@@ -971,11 +1012,13 @@
                                         <span>Cetak Dokumen Resmi (PDF)</span>
                                     </a>
 
+                                    @if(!empty($canEditSalesPipeline))
                                     <button type="button" 
                                             onclick="window.openModal('modal-edit-pipeline')"
                                             class="px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition cursor-pointer shadow-2xs">
                                         Edit Evaluasi
                                     </button>
+                                    @endif
                                 </div>
                             </div>
 
@@ -3203,6 +3246,7 @@
     </div>
 
     {{-- 7. MODAL EDIT PIPELINE SALES & OPPORTUNITY --}}
+    @if(!empty($canEditSalesPipeline))
     <div id="modal-edit-pipeline" x-show="isEditPipelineModalOpen" x-cloak 
          @click.self="isEditPipelineModalOpen = false; window.closeModal('modal-edit-pipeline')"
          onclick="if(event.target === this) window.closeModal('modal-edit-pipeline')"
@@ -3368,6 +3412,7 @@
             </form>
         </div>
     </div>
+    @endif
 
     {{-- 8. MODAL ASSIGN KE TIM SOLUSI (PIC BD, PRESALES & SA) --}}
     <div id="modal-assign-technical" x-show="isAssignTechnicalModalOpen" x-cloak 

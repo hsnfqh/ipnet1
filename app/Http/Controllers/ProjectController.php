@@ -1450,6 +1450,39 @@ class ProjectController extends Controller
      */
     public function updatePipeline(Request $request, Project $project)
     {
+        $user = auth()->user();
+        if (!$user) {
+            abort(403, 'Akses Ditolak: Anda belum login.');
+        }
+
+        $userRoles = method_exists($user, 'roles') ? $user->roles->pluck('name')->toArray() : [];
+        $userPosLower = strtolower($user->position ?? '');
+        $userNameLower = strtolower($user->name ?? '');
+        $userEmailLower = strtolower($user->email ?? '');
+
+        // Pre-Sales dan Solution Architect (SA) MUTLAK DILARANG mengubah status Sales Pipeline
+        $isPresalesOrSa = !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles))
+            || str_contains($userPosLower, 'presales')
+            || str_contains($userPosLower, 'pre-sales')
+            || str_contains($userPosLower, 'architect')
+            || str_contains($userPosLower, 'solution architect')
+            || str_contains($userPosLower, 'sa')
+            || str_contains($userEmailLower, 'akbar')
+            || str_contains($userEmailLower, 'aris')
+            || str_contains($userNameLower, 'akbar')
+            || str_contains($userNameLower, 'aris');
+
+        $isSales = !empty(array_intersect(['Sales', 'Account Manager'], $userRoles))
+            || ($project->sales_id && $user->id == $project->sales_id)
+            || ($project->sales_name && str_contains(strtolower($project->sales_name), $userNameLower))
+            || str_contains($userPosLower, 'sales')
+            || str_contains($userPosLower, 'account manager')
+            || (!empty(array_intersect(['Super Admin', 'Admin'], $userRoles)) && !$isPresalesOrSa);
+
+        if ($isPresalesOrSa || !$isSales) {
+            abort(403, 'Akses Ditolak: Hanya tim Sales yang berwenang memperbarui tahapan Sales Pipeline & Prospek.');
+        }
+
         if ($request->has('contract_value')) {
             $rawContract = preg_replace('/[^\d]/', '', (string)$request->input('contract_value'));
             $request->merge(['contract_value' => $rawContract !== '' ? (float)$rawContract : null]);

@@ -10,7 +10,7 @@
             </p>
             <h3 class="text-sm font-bold text-slate-900">Tahapan Sales &amp; Estimasi Closing</h3>
         </div>
-        @if(empty($isPresalesOrSaOnly) && ($canAssignSales ?? false))
+        @if(!empty($canEditSalesPipeline))
         <button type="button" 
                 @click="isEditPipelineModalOpen = true; openEditPipelineModal()" 
                 onclick="window.openModal('modal-edit-pipeline')"

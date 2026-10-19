@@ -215,7 +215,7 @@
                 <span>Proyek saat ini masih di tahap penawaran ({{ $currentSalesStage }}). Serah terima proyek dibuka setelah status mencapai Closed Won.</span>
             </div>
 
-            @if(empty($isPresalesOrSaOnly) && ($canAssignSales ?? false))
+            @if(!empty($canEditSalesPipeline))
                 <button type="button" 
                         onclick="window.openModal('modal-edit-pipeline')"
                         class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#75080A] transition shadow-xs cursor-pointer whitespace-nowrap shrink-0">

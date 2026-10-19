@@ -66,6 +66,37 @@
             'prob'     => $isClosedLost ? '0%' : '100%',
         ],
     ];
+
+    $authUser = auth()->user();
+    $userRoles = $authUser && method_exists($authUser, 'roles') ? $authUser->roles->pluck('name')->toArray() : [];
+    $userPosLower = strtolower($authUser->position ?? '');
+    $userNameLower = strtolower($authUser->name ?? '');
+    $userEmailLower = strtolower($authUser->email ?? '');
+
+    // Cek apakah user adalah Pre-Sales atau Solution Architect (SA)
+    $isPresalesOrSaUser = $authUser && (
+        !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles))
+        || str_contains($userPosLower, 'presales')
+        || str_contains($userPosLower, 'pre-sales')
+        || str_contains($userPosLower, 'architect')
+        || str_contains($userPosLower, 'solution architect')
+        || str_contains($userPosLower, 'sa')
+        || str_contains($userEmailLower, 'akbar')
+        || str_contains($userEmailLower, 'aris')
+        || str_contains($userNameLower, 'akbar')
+        || str_contains($userNameLower, 'aris')
+    );
+
+    // Hanya tim Sales yang berwenang mengubah status/tahapan Sales Pipeline
+    // Pre-Sales dan Solution Architect (SA) MUTLAK DILARANG mengubah status pipeline!
+    $canEditSalesPipeline = $authUser && !$isPresalesOrSaUser && (
+        !empty(array_intersect(['Sales', 'Account Manager'], $userRoles))
+        || (!empty($project->sales_id) && $authUser->id == $project->sales_id)
+        || (!empty($project->sales_name) && str_contains(strtolower($project->sales_name), $userNameLower))
+        || str_contains($userPosLower, 'sales')
+        || str_contains($userPosLower, 'account manager')
+        || (!empty(array_intersect(['Super Admin', 'Admin'], $userRoles)))
+    );
 @endphp
 
 <div class="ipnet-card p-5 sm:p-6 space-y-4">
@@ -107,7 +138,7 @@
             @endif
         </div>
 
-        @if(empty($isPresalesOrSaOnly) && ($canAssignSales ?? false))
+        @if($canEditSalesPipeline)
             <button type="button" 
                     @click="isEditPipelineModalOpen = true; window.openModal('modal-edit-pipeline')"
                     onclick="window.openModal('modal-edit-pipeline')"
@@ -115,6 +146,11 @@
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                 <span>Ubah Stage &amp; Prospek</span>
             </button>
+        @else
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-semibold text-slate-400 bg-slate-50 border border-slate-200" title="Hanya tim Sales yang berwenang mengubah status pipeline">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <span>Pipeline Khusus Sales</span>
+            </span>
         @endif
     </div>
 
@@ -131,12 +167,16 @@
                     $isLast = ($step['index'] === 5);
                 @endphp
 
-                <div class="relative flex-1 min-h-[58px] sm:min-h-[62px] flex items-center transition-all duration-200 cursor-pointer select-none group"
+                <div class="relative flex-1 min-h-[58px] sm:min-h-[62px] flex items-center transition-all duration-200 select-none {{ $canEditSalesPipeline ? 'cursor-pointer group' : 'cursor-default' }}"
+                     @if($canEditSalesPipeline)
                      @click="window.openEditPipelineWithStage('{{ $step['key'] }}')"
-                     title="Klik untuk ubah ke tahap {{ $step['title'] }}">
+                     title="Klik untuk ubah ke tahap {{ $step['title'] }}"
+                     @else
+                     title="Tahap {{ $step['title'] }} (Hanya tim Sales yang berwenang mengubah status pipeline)"
+                     @endif>
                     
                     {{-- SVG Background Chevron Shape dengan Vektor Presisi --}}
-                    <svg viewBox="0 0 200 60" class="absolute inset-0 w-full h-full filter transition-all duration-200 group-hover:brightness-95" preserveAspectRatio="none">
+                    <svg viewBox="0 0 200 60" class="absolute inset-0 w-full h-full filter transition-all duration-200 {{ $canEditSalesPipeline ? 'group-hover:brightness-95' : '' }}" preserveAspectRatio="none">
                         <defs>
                             {{-- Gradient Merah IPNet untuk Stage Aktif --}}
                             <linearGradient id="ipnetRedGrad_{{ $step['index'] }}" x1="0%" y1="0%" x2="100%" y2="100%">
