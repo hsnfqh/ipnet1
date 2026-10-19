@@ -804,17 +804,39 @@
                                                 <svg style="width:20px; height:20px; color:#059669; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                                 <span style="font-size:13px; font-weight:700; color:#065F46; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" x-text="selectedTask.doc_file.split('/').pop()"></span>
                                             </div>
-                                            <a :href="'/storage/' + selectedTask.doc_file" target="_blank" download style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#065F46; background:white; padding:7px 14px; border-radius:8px; border:1px solid #6EE7B7; text-decoration:none; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-                                                <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                Unduh File
-                                            </a>
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <a :href="'/storage/' + selectedTask.doc_file" target="_blank" download style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:#065F46; background:white; padding:7px 14px; border-radius:8px; border:1px solid #6EE7B7; text-decoration:none; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                                                    <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                    Unduh File
+                                                </a>
+                                            </div>
                                         </div>
+                                        @if($canManage)
+                                        <div style="margin-top:8px; text-align:right;">
+                                            <button type="button" @click="detailModalOpen = false; openProgressModal(selectedTask);" 
+                                                    style="background:none; border:none; color:#8F0A0D; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; text-decoration:underline;">
+                                                <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                Ganti / Upload Ulang Bukti Lapangan
+                                            </button>
+                                        </div>
+                                        @endif
                                     </div>
                                 </template>
 
                                 <template x-if="!selectedTask?.doc_file">
-                                    <div style="padding:20px; border:1.5px dashed #CBD5E1; border-radius:12px; text-align:center; color:#94A3B8; font-size:13px; background:#F8FAFC;">
-                                        Belum ada dokumentasi foto/file yang diupload untuk task ini.
+                                    <div style="padding:22px; border:1.5px dashed #CBD5E1; border-radius:14px; text-align:center; background:#F8FAFC;">
+                                        <svg style="width:32px; height:32px; color:#94A3B8; margin:0 auto 8px auto; display:block;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <p style="color:#475569; font-size:12.5px; font-weight:700; margin:0 0 4px 0;">Belum ada dokumentasi foto/file yang diupload untuk task ini.</p>
+                                        <p style="color:#94A3B8; font-size:11px; margin:0 0 14px 0;">Bukti lapangan (foto perangkat, kabel, hasil ping/speedtest, atau BAST) diupload melalui menu Update Progress.</p>
+                                        @if($canManage)
+                                        <button type="button" @click="detailModalOpen = false; openProgressModal(selectedTask);" 
+                                                style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px; background:white; border:1.5px solid #CBD5E1; color:#8F0A0D; font-size:12px; font-weight:700; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.04); transition:all 0.15s ease;"
+                                                onmouseover="this.style.borderColor='#8F0A0D'; this.style.background='#FEF2F2'"
+                                                onmouseout="this.style.borderColor='#CBD5E1'; this.style.background='white'">
+                                            <svg style="width:15px; height:15px; color:#8F0A0D;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                            <span>Upload Foto / Dokumen Sekarang</span>
+                                        </button>
+                                        @endif
                                     </div>
                                 </template>
                             </div>
