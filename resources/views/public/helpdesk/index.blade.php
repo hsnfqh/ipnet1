@@ -568,182 +568,282 @@
         </div>
 
         <!-- ============================================================== -->
-        <!-- TAB 2: PELACAKAN TIKET (TRACK TICKET)                          -->
+        <!-- TAB 2: PELACAKAN TIKET (TRACK TICKET) - LEBAR & KONSISTEN       -->
         <!-- ============================================================== -->
-        <div x-show="activeTab === 'track'">
-            <div class="max-w-3xl mx-auto space-y-6">
-                
-                <!-- Search Box Card -->
-                <div class="ipnet-card p-6 sm:p-8">
-                    <div class="text-center max-w-md mx-auto mb-6">
-                        <div class="w-11 h-11 rounded-2xl bg-red-50 text-[#8F0A0D] flex items-center justify-center mx-auto mb-3 border border-red-100">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        </div>
-                        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">Lacak Status Tiket Aduan</h3>
-                        <p class="text-xs text-slate-500 mt-1">Masukkan nomor tiket pengaduan Anda untuk memantau status diagnosa dan progres teknisi.</p>
+        <div x-show="activeTab === 'track'" class="space-y-6">
+            
+            <!-- Search Box Card (Lebar & Proporsional Sesuai Container Utama) -->
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-6 sm:p-8">
+                <div class="max-w-2xl mx-auto text-center mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-red-50 text-[#8F0A0D] flex items-center justify-center mx-auto mb-3 border border-red-100 shadow-2xs">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </div>
-
-                    <form method="GET" action="{{ route('public.helpdesk.index') }}" class="flex flex-col sm:flex-row gap-2.5">
-                        <input type="text" name="track" value="{{ request('track') }}" required
-                               placeholder="Masukkan nomor tiket Anda (contoh: TCK-202610-0001)"
-                               class="flex-1 px-4 py-3 text-xs sm:text-sm font-mono font-bold text-slate-800 bg-white border border-[#CBD5E1] rounded-xl outline-none form-input-focus shadow-2xs uppercase">
-                        <button type="submit" 
-                                class="btn-ipnet-primary px-7 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            <span>Lacak Tiket</span>
-                        </button>
-                    </form>
+                    <h3 class="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">Lacak Status &amp; Progres Tiket Aduan</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">Pantau perkembangan tindak lanjut, diagnosa teknisi, dan pemenuhan SLA tiket Anda secara real-time.</p>
                 </div>
 
-                <!-- Tracking Result Section -->
-                @if($trackingTicket)
-                    <div class="ipnet-card p-6 sm:p-8 space-y-6">
-                        <!-- Header Status -->
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
-                            <div>
-                                <div class="flex items-center gap-2 mb-1.5">
-                                    <span class="font-mono text-base sm:text-lg font-extrabold text-slate-900">{{ $trackingTicket->ticket_number }}</span>
-                                    @if($trackingTicket->status === 'Resolved')
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Resolved (Selesai)</span>
-                                    @elseif($trackingTicket->status === 'Closed')
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300">Closed</span>
-                                    @elseif($trackingTicket->status === 'In Progress')
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">Sedang Ditangani (In Progress)</span>
-                                    @else
-                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">Open (Antrean NOC)</span>
-                                    @endif
-                                </div>
-                                <h3 class="text-sm sm:text-base font-bold text-slate-900">{{ $trackingTicket->title }}</h3>
-                                <p class="text-xs text-slate-500 mt-0.5">Klien: <strong class="text-slate-800">{{ $trackingTicket->client_name }}</strong> &bull; Pelapor: <span class="text-slate-700 font-medium">{{ $trackingTicket->reported_by }}</span></p>
-                            </div>
+                <form method="GET" action="{{ route('public.helpdesk.index') }}" class="max-w-2xl mx-auto flex flex-col sm:flex-row gap-2.5">
+                    <input type="text" name="track" value="{{ request('track') }}" required
+                           placeholder="Masukkan nomor tiket Anda (contoh: TCK-202610-0001)"
+                           class="flex-1 px-4 py-3 text-xs sm:text-sm font-mono font-bold text-slate-800 bg-white border border-[#CBD5E1] rounded-xl outline-none form-input-focus shadow-2xs uppercase tracking-wider">
+                    <button type="submit" 
+                            class="btn-ipnet-primary px-8 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm shrink-0">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <span>Cari Tiket</span>
+                    </button>
+                </form>
+            </div>
 
-                            <div class="text-left sm:text-right">
-                                <span class="text-[10.5px] font-bold text-slate-400 block uppercase">Target SLA Respon</span>
-                                <span class="font-mono font-bold text-xs sm:text-sm text-[#8F0A0D]">
-                                    {{ $trackingTicket->sla_deadline ? $trackingTicket->sla_deadline->translatedFormat('d M Y, H:i') . ' WIB' : '-' }}
+            <!-- Tracking Result Section (Full Width 12-Col Ergonomic Grid) -->
+            @if($trackingTicket)
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-[0_2px_14px_rgba(0,0,0,0.03)] overflow-hidden">
+                    
+                    <!-- Header Info Bar (Lebar & Jelas) -->
+                    <div class="p-6 sm:p-7 bg-slate-50/70 border-b border-slate-200/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2.5 mb-2">
+                                <span class="font-mono text-base sm:text-xl font-black text-slate-900 tracking-tight">{{ $trackingTicket->ticket_number }}</span>
+                                @if($trackingTicket->status === 'Resolved')
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                                        Resolved (Selesai Ditangani)
+                                    </span>
+                                @elseif($trackingTicket->status === 'Closed')
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                                        Closed (Ditutup)
+                                    </span>
+                                @elseif($trackingTicket->status === 'In Progress')
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-blue-100 text-blue-800 border border-blue-200 shadow-2xs">
+                                        <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                                        Sedang Dikerjakan (In Progress)
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-200 shadow-2xs">
+                                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                        Open (Menunggu Antrean NOC)
+                                    </span>
+                                @endif
+                                <span class="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-slate-200/80 text-slate-700 border border-slate-300">
+                                    {{ $trackingTicket->category ?? 'Gangguan Teknis' }}
                                 </span>
                             </div>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-900">{{ $trackingTicket->title }}</h2>
+                            <p class="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <span>Klien: <strong class="text-slate-800 font-semibold">{{ $trackingTicket->client_name }}</strong></span>
+                                <span class="text-slate-300">•</span>
+                                <span>Pelapor: <span class="text-slate-700 font-medium">{{ $trackingTicket->reported_by }}</span></span>
+                                @if($trackingTicket->contact_phone)
+                                    <span class="text-slate-300">•</span>
+                                    <span>WA: <span class="font-mono text-slate-600">{{ $trackingTicket->contact_phone }}</span></span>
+                                @endif
+                            </p>
                         </div>
 
-                        <!-- Progress Steps Timeline -->
-                        <div>
-                            <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3.5">Tahapan Progres Penanganan</h4>
-                            <div class="grid grid-cols-4 gap-2">
-                                <!-- Step 1: Diterima -->
-                                <div class="text-center">
-                                    <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-1.5 text-xs font-bold shadow-2xs">✓</div>
-                                    <div class="text-[11px] font-bold text-slate-900">Diterima</div>
-                                    <div class="text-[10px] text-slate-400">{{ $trackingTicket->created_at->format('d/m H:i') }}</div>
-                                </div>
+                        <!-- Target SLA Respon Box (Besar, Jelas, & Rapi) -->
+                        <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-red-100 shadow-2xs text-left md:text-right shrink-0">
+                            <div class="flex items-center md:justify-end gap-1.5 text-slate-400 mb-0.5">
+                                <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Target SLA Respon</span>
+                            </div>
+                            <div class="font-mono font-black text-sm sm:text-base text-[#8F0A0D]">
+                                {{ $trackingTicket->sla_deadline ? $trackingTicket->sla_deadline->translatedFormat('d M Y, H:i') . ' WIB' : '-' }}
+                            </div>
+                            <p class="text-[10.5px] text-slate-400 mt-0.5">Batas waktu penanganan sesuai komitmen layanan</p>
+                        </div>
+                    </div>
 
-                                <!-- Step 2: Penugasan -->
-                                <div class="text-center">
-                                    @if($trackingTicket->assigned_to)
-                                        <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-1.5 text-xs font-bold shadow-2xs">✓</div>
-                                        <div class="text-[11px] font-bold text-slate-900">Ditugaskan</div>
-                                        <div class="text-[10px] text-slate-600 font-semibold truncate">{{ $trackingTicket->assignedEngineer->name ?? 'Teknisi' }}</div>
-                                    @else
-                                        <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-1.5 text-xs font-bold">2</div>
-                                        <div class="text-[11px] font-medium text-slate-500">Antrean NOC</div>
-                                    @endif
-                                </div>
+                    <!-- Main Grid Content (8 Cols Progres & 4 Cols Detail Ringkasan) -->
+                    <div class="p-6 sm:p-8">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                            
+                            <!-- Left Column: Stepper & Deskripsi (8 Kolom - Lapang & Bersih) -->
+                            <div class="lg:col-span-8 space-y-6">
+                                
+                                <!-- Timeline Stepper Penanganan -->
+                                <div class="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-5 sm:p-6">
+                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-5 flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                        <span>Tahapan Progres Penanganan</span>
+                                    </h4>
 
-                                <!-- Step 3: Pengerjaan -->
-                                <div class="text-center">
-                                    @if(in_array($trackingTicket->status, ['In Progress', 'Resolved', 'Closed']))
-                                        <div class="w-8 h-8 rounded-full {{ in_array($trackingTicket->status, ['Resolved', 'Closed']) ? 'bg-emerald-500 text-white' : 'bg-blue-600 text-white' }} flex items-center justify-center mx-auto mb-1.5 text-xs font-bold shadow-2xs">
-                                            {{ in_array($trackingTicket->status, ['Resolved', 'Closed']) ? '✓' : '3' }}
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-2 relative">
+                                        <!-- Step 1: Diterima -->
+                                        <div class="text-center">
+                                            <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-emerald-500/20">✓</div>
+                                            <div class="text-xs font-extrabold text-slate-900">Tiket Diterima</div>
+                                            <div class="text-[11px] text-slate-400 mt-0.5 font-mono">{{ $trackingTicket->created_at->format('d/m/Y H:i') }}</div>
+                                            <div class="text-[10.5px] text-slate-500 mt-0.5">Tercatat di Portal NOC</div>
                                         </div>
-                                        <div class="text-[11px] font-bold text-slate-900">Pengerjaan</div>
-                                        <div class="text-[10px] text-blue-600 font-semibold">In Progress</div>
-                                    @else
-                                        <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-1.5 text-xs font-bold">3</div>
-                                        <div class="text-[11px] font-medium text-slate-500">Pengerjaan</div>
-                                    @endif
-                                </div>
 
-                                <!-- Step 4: Selesai -->
-                                <div class="text-center">
-                                    @if(in_array($trackingTicket->status, ['Resolved', 'Closed']))
-                                        <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-1.5 text-xs font-bold shadow-2xs">✓</div>
-                                        <div class="text-[11px] font-bold text-emerald-800">Selesai</div>
-                                        <div class="text-[10px] text-emerald-600 font-semibold">{{ $trackingTicket->resolved_at ? $trackingTicket->resolved_at->format('d/m H:i') : 'OK' }}</div>
-                                    @else
-                                        <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-1.5 text-xs font-bold">4</div>
-                                        <div class="text-[11px] font-medium text-slate-500">Selesai</div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
+                                        <!-- Step 2: Penugasan -->
+                                        <div class="text-center">
+                                            @if($trackingTicket->assigned_to)
+                                                <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-emerald-500/20">✓</div>
+                                                <div class="text-xs font-extrabold text-slate-900">Ditugaskan</div>
+                                                <div class="text-[11px] text-slate-700 font-bold truncate mt-0.5">{{ $trackingTicket->assignedEngineer->name ?? 'Teknisi' }}</div>
+                                                <div class="text-[10.5px] text-slate-500 mt-0.5">PIC Maintenance</div>
+                                            @else
+                                                <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 text-sm font-bold">2</div>
+                                                <div class="text-xs font-bold text-slate-600">Disposisi Teknisi</div>
+                                                <div class="text-[11px] text-amber-600 font-semibold mt-0.5">Antrean Tim NOC</div>
+                                                <div class="text-[10.5px] text-slate-400 mt-0.5">Menunggu PIC</div>
+                                            @endif
+                                        </div>
 
-                        <!-- Ticket Details Grid -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-xs">
-                            <div>
-                                <span class="text-slate-400 font-medium block">Kategori Gangguan:</span>
-                                <span class="font-bold text-slate-900">{{ $trackingTicket->category ?? 'Gangguan Teknis' }}</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-400 font-medium block">Tingkat Urgensi:</span>
-                                <span class="font-bold text-slate-900">{{ $trackingTicket->priority }}</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-400 font-medium block">Waktu Kejadian:</span>
-                                <span class="font-bold text-slate-900">{{ $trackingTicket->incident_date ? $trackingTicket->incident_date->translatedFormat('d F Y, H:i') . ' WIB' : '-' }}</span>
-                            </div>
-                            <div>
-                                <span class="text-slate-400 font-medium block">Teknisi PIC:</span>
-                                <span class="font-bold text-slate-900">{{ $trackingTicket->assignedEngineer->name ?? 'Belum Ditugaskan' }}</span>
-                            </div>
-                        </div>
+                                        <!-- Step 3: Pengerjaan -->
+                                        <div class="text-center">
+                                            @if(in_array($trackingTicket->status, ['In Progress', 'Resolved', 'Closed']))
+                                                <div class="w-10 h-10 rounded-full {{ in_array($trackingTicket->status, ['Resolved', 'Closed']) ? 'bg-emerald-500 text-white' : 'bg-blue-600 text-white animate-pulse' }} flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm">
+                                                    {{ in_array($trackingTicket->status, ['Resolved', 'Closed']) ? '✓' : '3' }}
+                                                </div>
+                                                <div class="text-xs font-extrabold text-slate-900">Pengerjaan</div>
+                                                <div class="text-[11px] text-blue-600 font-bold mt-0.5">Sedang Ditangani</div>
+                                                <div class="text-[10.5px] text-slate-500 mt-0.5">Investigasi Masalah</div>
+                                            @else
+                                                <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 text-sm font-bold">3</div>
+                                                <div class="text-xs font-medium text-slate-500">Pengerjaan</div>
+                                                <div class="text-[11px] text-slate-400 mt-0.5">-</div>
+                                                <div class="text-[10.5px] text-slate-400 mt-0.5">Investigasi Masalah</div>
+                                            @endif
+                                        </div>
 
-                        <!-- Description & Resolution Notes -->
-                        <div class="space-y-4">
-                            <div>
-                                <h4 class="text-xs font-bold text-slate-800 mb-1.5">Deskripsi Kendala Pelapor:</h4>
-                                <div class="p-4 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 whitespace-pre-line leading-relaxed">
-                                    {{ $trackingTicket->description }}
-                                </div>
-                            </div>
-
-                            @if($trackingTicket->resolution_notes)
-                                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
-                                    <div class="flex items-center gap-2 mb-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-                                        <h4 class="text-xs font-bold text-emerald-950">Catatan Tindakan &amp; Resolusi Teknisi IP-NET:</h4>
+                                        <!-- Step 4: Selesai -->
+                                        <div class="text-center">
+                                            @if(in_array($trackingTicket->status, ['Resolved', 'Closed']))
+                                                <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-emerald-500/20">✓</div>
+                                                <div class="text-xs font-extrabold text-emerald-800">Selesai</div>
+                                                <div class="text-[11px] text-emerald-600 font-mono font-bold mt-0.5">{{ $trackingTicket->resolved_at ? $trackingTicket->resolved_at->format('d/m/Y H:i') : 'Terverifikasi' }}</div>
+                                                <div class="text-[10.5px] text-emerald-700 mt-0.5">Solusi Berhasil</div>
+                                            @else
+                                                <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 text-sm font-bold">4</div>
+                                                <div class="text-xs font-medium text-slate-500">Selesai</div>
+                                                <div class="text-[11px] text-slate-400 mt-0.5">-</div>
+                                                <div class="text-[10.5px] text-slate-400 mt-0.5">Konfirmasi Akhir</div>
+                                            @endif
+                                        </div>
                                     </div>
-                                    <p class="text-xs text-emerald-800 whitespace-pre-line leading-relaxed">
-                                        {{ $trackingTicket->resolution_notes }}
-                                    </p>
-                                    @if($trackingTicket->root_cause)
-                                        <div class="mt-2.5 pt-2 border-t border-emerald-200/60 text-[11px] text-emerald-800 font-semibold">
-                                            Akar Masalah (Root Cause): <span class="text-emerald-950">{{ $trackingTicket->root_cause }}</span>
-                                        </div>
-                                    @endif
                                 </div>
-                            @endif
 
-                            @if($trackingTicket->attachment_path)
-                                <div>
-                                    <span class="text-xs font-bold text-slate-700 block mb-1.5">File Bukti Lampiran:</span>
-                                    <a href="{{ asset('storage/' . $trackingTicket->attachment_path) }}" target="_blank"
-                                       class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition shadow-2xs">
-                                        <svg class="w-4 h-4 text-ipnet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-                                        <span>Buka File Lampiran Bukti</span>
-                                    </a>
+                                <!-- Deskripsi Kendala -->
+                                <div class="space-y-2">
+                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                                        <span>Rincian Kendala yang Dilaporkan</span>
+                                    </h4>
+                                    <div class="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 whitespace-pre-line leading-relaxed font-medium">
+                                        {{ $trackingTicket->description }}
+                                    </div>
                                 </div>
-                            @endif
+
+                                <!-- Catatan Tindakan / Resolusi Teknisi -->
+                                @if($trackingTicket->resolution_notes)
+                                    <div class="p-5 sm:p-6 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-2.5">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                                            <h4 class="text-xs sm:text-sm font-extrabold text-emerald-950">Catatan Tindakan &amp; Solusi Tim Teknisi IP-NET:</h4>
+                                        </div>
+                                        <p class="text-xs sm:text-sm text-emerald-800 whitespace-pre-line leading-relaxed font-medium">
+                                            {{ $trackingTicket->resolution_notes }}
+                                        </p>
+                                        @if($trackingTicket->root_cause)
+                                            <div class="pt-3 border-t border-emerald-200/80 text-xs text-emerald-900 font-semibold flex items-center gap-1.5">
+                                                <span class="text-emerald-700">Akar Masalah (Root Cause):</span>
+                                                <span class="font-bold text-emerald-950">{{ $trackingTicket->root_cause }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                <!-- File Lampiran Bukti -->
+                                @if($trackingTicket->attachment_path)
+                                    <div class="pt-2">
+                                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">Dokumen / Bukti Lampiran:</h4>
+                                        <a href="{{ asset('storage/' . $trackingTicket->attachment_path) }}" target="_blank"
+                                           class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-[#8F0A0D] hover:text-[#8F0A0D] transition shadow-2xs">
+                                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                            <span>Buka / Download File Lampiran Bukti</span>
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Right Column: Ringkasan Spesifikasi & SLA (4 Kolom - Rapi & Konsisten) -->
+                            <div class="lg:col-span-4 space-y-5">
+                                
+                                <!-- Card Detail Spesifikasi Tiket -->
+                                <div class="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-5 space-y-4">
+                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 pb-2 border-b border-slate-200 flex items-center justify-between">
+                                        <span>Spesifikasi Tiket</span>
+                                        <span class="text-[10.5px] font-bold text-slate-400">Parameter SLA</span>
+                                    </h4>
+
+                                    <div class="space-y-3 text-xs">
+                                        <div>
+                                            <span class="text-slate-400 font-medium block text-[11px]">Prioritas &amp; Tingkat Urgensi:</span>
+                                            <span class="font-bold text-slate-900 inline-block mt-0.5 px-2.5 py-0.5 rounded-md 
+                                                {{ $trackingTicket->priority === 'P1 - Critical' ? 'bg-red-100 text-red-800' : ($trackingTicket->priority === 'P2 - Major' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200/80 text-slate-800') }}">
+                                                {{ $trackingTicket->priority }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-400 font-medium block text-[11px]">Kategori Layanan:</span>
+                                            <span class="font-bold text-slate-900">{{ $trackingTicket->category ?? 'Gangguan Teknis' }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-400 font-medium block text-[11px]">Waktu Lapor Kejadian:</span>
+                                            <span class="font-bold text-slate-900 font-mono">{{ $trackingTicket->incident_date ? $trackingTicket->incident_date->translatedFormat('d F Y, H:i') . ' WIB' : '-' }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-400 font-medium block text-[11px]">Teknisi Penanggung Jawab (PIC):</span>
+                                            <span class="font-bold text-slate-900">{{ $trackingTicket->assignedEngineer->name ?? 'Tim NOC / Antrean Maintenance' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card Penjelasan Target SLA Respon -->
+                                <div class="bg-gradient-to-br from-red-50/60 to-rose-50/40 border border-red-100 rounded-2xl p-5 space-y-2">
+                                    <div class="flex items-center gap-2 text-[#8F0A0D]">
+                                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <h4 class="text-xs font-bold text-slate-800">Apa itu Target SLA Respon?</h4>
+                                    </div>
+                                    <p class="text-[11.5px] text-slate-600 leading-relaxed">
+                                        <strong>SLA (Service Level Agreement) Respon</strong> adalah batas waktu maksimal bagi tim teknisi IP-NET untuk merespon dan memberikan tindak lanjut perbaikan sesuai dengan tingkat urgensi yang disepakati.
+                                    </p>
+                                </div>
+
+                                <!-- Card Hubungi Tim NOC Cepat -->
+                                <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs space-y-3">
+                                    <h4 class="text-xs font-bold text-slate-800">Butuh Eskalasi Segera?</h4>
+                                    <p class="text-[11px] text-slate-500 leading-snug">Jika kendala berdampak kritis pada operasional utama, hubungi dispatcher NOC kami:</p>
+                                    <div class="space-y-2 pt-1">
+                                        <a href="https://wa.me/6281234567890?text=Halo%20NOC%20IP-NET,%20mohon%20bantu%20eskalasi%20tiket%20{{ $trackingTicket->ticket_number }}" target="_blank"
+                                           class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-xs">
+                                            <span>WhatsApp NOC Dispatcher</span>
+                                        </a>
+                                        <a href="tel:02112345678" 
+                                           class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition">
+                                            <span>Hotline (021) 1234-5678</span>
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
-                @elseif(request('track'))
-                    <div class="ipnet-card p-8 text-center">
-                        <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        </div>
-                        <h4 class="text-sm sm:text-base font-bold text-slate-900">Tiket Tidak Ditemukan</h4>
-                        <p class="text-xs text-slate-500 mt-1.5 max-w-sm mx-auto">Nomor tiket "<span class="font-mono font-bold text-slate-800">{{ request('track') }}</span>" tidak ditemukan di sistem. Pastikan Anda memasukkan nomor tiket dengan benar.</p>
+                </div>
+            @elseif(request('track'))
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-10 text-center max-w-xl mx-auto">
+                    <div class="w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3.5">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     </div>
-                @endif
-            </div>
+                    <h4 class="text-base font-extrabold text-slate-900">Tiket Tidak Ditemukan</h4>
+                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Nomor tiket "<span class="font-mono font-bold text-slate-800">{{ request('track') }}</span>" tidak ditemukan di sistem. Pastikan Anda memasukkan nomor tiket dengan format yang benar (contoh: <strong>TCK-202610-0001</strong>).</p>
+                    <a href="{{ route('public.helpdesk.index') }}?tab=track" class="inline-block mt-4 px-5 py-2 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition">
+                        Coba Nomor Tiket Lain
+                    </a>
+                </div>
+            @endif
         </div>
 
     </main>
