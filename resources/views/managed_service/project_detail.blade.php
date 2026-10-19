@@ -458,8 +458,8 @@
 
                             {{-- Milestone: Start --}}
                             <div class="relative z-10 flex flex-col items-center text-center">
-                                <div class="w-8 h-8 rounded-full bg-slate-100 border-2 border-slate-400 flex items-center justify-center text-slate-700 font-bold text-[11px]">
-                                    🏁
+                                <div class="w-8 h-8 rounded-full bg-[#F8FAFC] border-2 border-[#94A3B8] flex items-center justify-center text-[#475569] shadow-2xs">
+                                    <svg class="w-3.5 h-3.5 text-[#475569]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2z"/></svg>
                                 </div>
                                 <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">Start</span>
                                 <span class="text-[10px] text-[#64748B]">{{ $project->service_start_date ? date('d/m/Y', strtotime($project->service_start_date)) : 'Awal' }}</span>
@@ -474,7 +474,7 @@
                                     <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all
                                         {{ $isDone ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' : ($isInProg ? 'bg-amber-500 border-amber-500 text-white animate-pulse' : 'bg-white border-[#CBD5E1] text-[#64748B]') }}">
                                         @if($isDone)
-                                            ✓
+                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                         @else
                                             {{ $cycle->cycle_number }}
                                         @endif
@@ -500,8 +500,8 @@
 
                             {{-- Milestone: End --}}
                             <div class="relative z-10 flex flex-col items-center text-center">
-                                <div class="w-8 h-8 rounded-full bg-slate-100 border-2 border-slate-400 flex items-center justify-center text-slate-700 font-bold text-[11px]">
-                                    🎯
+                                <div class="w-8 h-8 rounded-full bg-[#F8FAFC] border-2 border-[#94A3B8] flex items-center justify-center text-[#475569] shadow-2xs">
+                                    <svg class="w-3.5 h-3.5 text-[#475569]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </div>
                                 <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">End</span>
                                 <span class="text-[10px] text-[#64748B]">{{ $project->service_end_date ? date('d/m/Y', strtotime($project->service_end_date)) : 'Akhir' }}</span>

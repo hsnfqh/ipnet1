@@ -178,16 +178,9 @@
                                                         'Silver'   => 'bg-slate-100 text-slate-700 border-slate-300',
                                                         default    => 'bg-orange-50 text-orange-700 border-orange-200',
                                                     };
-                                                    $tierIcon = match($tier) {
-                                                        'Platinum' => '💎',
-                                                        'Gold'     => '🥇',
-                                                        'Silver'   => '🥈',
-                                                        default    => '🥉',
-                                                    };
                                                 @endphp
-                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold border {{ $tierClass }}">
-                                                    <span>{{ $tierIcon }}</span>
-                                                    <span>{{ $tier }}</span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $tierClass }}">
+                                                    Tier: {{ $tier }}
                                                 </span>
                                             @endif
                                         </div>
