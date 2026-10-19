@@ -1024,11 +1024,11 @@
                         @include('projects.partials.card-sales-documents')
                     @endif
 
-                    {{-- 3. Tim Solusi Teknis (PIC BD, Presales Akbar, SA Aris Sadewo) --}}
-                    @include('projects.partials.workflow-technical-solution')
-
-                    {{-- 4. Perencanaan Ruang Lingkup & Alokasi Divisi Teknis (Pre-Sales) --}}
+                    {{-- 3. Perencanaan Ruang Lingkup & Alokasi Tim Teknis (Pre-Sales & Sales) --}}
                     @include('projects.partials.workflow-delivery')
+
+                    {{-- 4. Tim Solusi Teknis (PIC BD, Presales Akbar, SA Aris Sadewo) --}}
+                    @include('projects.partials.workflow-technical-solution')
 
                     {{-- MILESTONES / TIMELINE CARD --}}
                     <div class="ipnet-card p-6 space-y-4">
@@ -1883,26 +1883,26 @@
                                 </div>
                             @endif
 
-                            {{-- 9. Disposisi Divisi Pelaksana (PMO ke Lead Engineer) --}}
+                            {{-- 9. Disposisi Tim Pelaksana (PMO ke Tim Terkait) --}}
                             @if(!empty($project->division_id) && !empty($project->division))
                                 @php
-                                    $divName = $project->division->name;
-                                    $leadName = 'Lead Engineering Delivery';
-                                    if (str_contains(strtolower($divName), 'net') && !str_contains(strtolower($divName), 'lintas') && !str_contains(strtolower($divName), 'security')) {
-                                        $leadName = 'Nugraha Pratama (Lead Network)';
-                                    } elseif (str_contains(strtolower($divName), 'sec') && !str_contains(strtolower($divName), 'lintas') && !str_contains(strtolower($divName), 'network')) {
-                                        $leadName = 'Ignatius Rizky (Lead Security)';
+                                    $teamName = $project->division->name;
+                                    $teamLabel = 'Tim Pelaksana Teknis';
+                                    if (str_contains(strtolower($teamName), 'net') && !str_contains(strtolower($teamName), 'lintas') && !str_contains(strtolower($teamName), 'security')) {
+                                        $teamLabel = 'Tim Network';
+                                    } elseif (str_contains(strtolower($teamName), 'sec') && !str_contains(strtolower($teamName), 'lintas') && !str_contains(strtolower($teamName), 'network')) {
+                                        $teamLabel = 'Tim Security';
                                     } else {
-                                        $leadName = 'Lead Network & Lead Security (Lintas Divisi)';
+                                        $teamLabel = 'Tim Network & Security';
                                     }
                                 @endphp
                                 <div class="relative">
                                     <div class="absolute -left-[24px] top-1 w-3 h-3 rounded-full bg-gradient-to-tr from-[#8F0A0D] to-[#BA1B1D] ring-4 ring-white shadow-2xs"></div>
                                     <div class="font-normal text-slate-700">
-                                        Disposisi Divisi: <strong class="font-semibold text-slate-900">{{ $divName }}</strong>
+                                        Disposisi Tim: <strong class="font-semibold text-slate-900">{{ $teamLabel }}</strong>
                                     </div>
                                     <div class="text-[11px] text-slate-400 mt-0.5">
-                                        Didelegasikan ke {{ $leadName }}
+                                        Didelegasikan ke Lead Engineer Tim Terkait
                                     </div>
                                 </div>
                             @endif
@@ -2425,8 +2425,8 @@
             
             <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900">Delegasi Divisi Pelaksana Teknis</h3>
-                    <p class="text-[11.5px] text-slate-500 mt-0.5">Pilih alokasi divisi penanggung jawab untuk diserahkan ke Lead Engineer terkait.</p>
+                    <h3 class="text-base font-bold text-slate-900">Delegasi Pelaksana Teknis</h3>
+                    <p class="text-[11.5px] text-slate-500 mt-0.5">Pilih alokasi tim penanggung jawab untuk diserahkan ke Lead Engineer terkait.</p>
                 </div>
                 <button type="button" @click="isAssignDivisionModalOpen = false; window.closeModal('modal-assign-division')" onclick="window.closeModal('modal-assign-division')" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">✕</button>
             </div>
@@ -2454,19 +2454,18 @@
                 
                 <div class="space-y-2.5">
                     <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px]">
-                        PILIH DIVISI PENANGGUNG JAWAB <span class="text-[#8F0A0D]">*</span>
+                        PILIH TIM PENANGGUNG JAWAB <span class="text-[#8F0A0D]">*</span>
                     </label>
 
                     <div class="space-y-2.5">
-                        {{-- Opsi 1: Divisi Network --}}
+                        {{-- Opsi 1: Tim Network --}}
                         <label @click="toggle('network')"
-                               class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition shadow-2xs select-none"
-                               :class="selectedDivs.includes('network') ? '!border-[#8F0A0D] !bg-red-50/40 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                                class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition shadow-2xs select-none"
+                                :class="selectedDivs.includes('network') ? '!border-[#8F0A0D] !bg-red-50/40 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-300 bg-white'">
                             <input type="checkbox" value="network" :checked="selectedDivs.includes('network')" @click.stop="toggle('network')" class="mt-1 w-4 h-4 rounded text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
                             <div>
                                 <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                                    <span :class="selectedDivs.includes('network') ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-900'">Divisi Jaringan &amp; Infrastruktur (Network)</span>
-                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold">Lead: Nugraha Pratama</span>
+                                    <span :class="selectedDivs.includes('network') ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-900'">Tim Jaringan &amp; Infrastruktur (Network)</span>
                                 </div>
                                 <p class="text-[11px] text-slate-500 font-normal mt-1 leading-relaxed">
                                     Implementasi routing, switching, wireless enterprise, cabling structure, gateway, dan konfigurasi network infrastructure.
@@ -2474,15 +2473,14 @@
                             </div>
                         </label>
 
-                        {{-- Opsi 2: Divisi Security --}}
+                        {{-- Opsi 2: Tim Security --}}
                         <label @click="toggle('security')"
-                               class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition shadow-2xs select-none"
-                               :class="selectedDivs.includes('security') ? '!border-[#8F0A0D] !bg-red-50/40 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                                class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition shadow-2xs select-none"
+                                :class="selectedDivs.includes('security') ? '!border-[#8F0A0D] !bg-red-50/40 shadow-xs ring-1 ring-[#8F0A0D]/30' : 'border-slate-200 hover:border-slate-300 bg-white'">
                             <input type="checkbox" value="security" :checked="selectedDivs.includes('security')" @click.stop="toggle('security')" class="mt-1 w-4 h-4 rounded text-[#8F0A0D] accent-[#8F0A0D] cursor-pointer">
                             <div>
                                 <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                                    <span :class="selectedDivs.includes('security') ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-900'">Divisi Keamanan Siber (Security)</span>
-                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold">Lead: Ignatius Rizky</span>
+                                    <span :class="selectedDivs.includes('security') ? 'text-[#8F0A0D] font-extrabold' : 'text-slate-900'">Tim Keamanan Siber (Security)</span>
                                 </div>
                                 <p class="text-[11px] text-slate-500 font-normal mt-1 leading-relaxed">
                                     Implementasi Next-Generation Firewall (NGFW), SIEM/SOC, Endpoint Protection (EDR), Vulnerability Assessment, &amp; Hardening.
@@ -2506,7 +2504,7 @@
                         Batal
                     </button>
                     <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition shadow-xs">
-                        Konfirmasi &amp; Delegasikan Divisi
+                        Konfirmasi &amp; Delegasikan Tim
                     </button>
                 </div>
             </form>
