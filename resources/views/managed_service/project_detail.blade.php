@@ -75,6 +75,23 @@
                 </div>
             @endif
 
+            @if(isset($errors) && $errors->any())
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold space-y-1.5 shadow-xs">
+                    <div class="flex items-center justify-between font-bold text-rose-900">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Terjadi kendala pada pengunggahan:</span>
+                        </div>
+                        <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-rose-500 hover:text-rose-700 font-bold px-2 cursor-pointer">✕</button>
+                    </div>
+                    <ul class="list-disc list-inside pl-6 text-[11.5px] space-y-0.5 text-rose-700">
+                        @foreach($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <!-- ========================================================== -->
             <!-- 1. HEADER SECTION & QUICK PROJECT SWITCHER                 -->
             <!-- ========================================================== -->
@@ -971,7 +988,9 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-[#334155] mb-1">Pilih Berkas File (PDF / Word / Gambar / ZIP) <span class="text-[#8F0A0D]">*</span></label>
-                        <input type="file" name="doc_file" required class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
+                        <input type="file" name="doc_file" required 
+                               @change="if ($event.target.files.length && $event.target.files[0].size > 52428800) { alert('Ukuran berkas ' + $event.target.files[0].name + ' melebihi batas 50MB. Silakan pilih berkas lain.'); $event.target.value = ''; }"
+                               class="w-full px-3 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs text-[#1E293B] outline-none focus:border-[#8F0A0D] cursor-pointer">
                         <p class="text-[10.5px] text-[#94A3B8] mt-1">Maksimal ukuran file: 50MB.</p>
                     </div>
 

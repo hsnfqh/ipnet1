@@ -232,6 +232,12 @@ SELECT r.id, 'App\\Models\\User', u.id
 FROM `roles` r, `users` u
 WHERE r.name = 'Solution Architect' AND u.email = 'aris@ipnetsolusindo.com';
 
+-- ---------------------------------------------------------------
+-- 9. BERKAS TOR (Terms of Reference) PADA PROYEK & MANAGED SERVICE
+-- ---------------------------------------------------------------
+ALTER TABLE `projects` ADD COLUMN IF NOT EXISTS `tor_file` VARCHAR(500) NULL AFTER `bast_file`;
+ALTER TABLE `projects` ADD COLUMN IF NOT EXISTS `tor_number` VARCHAR(100) NULL AFTER `tor_file`;
+
 -- =============================================================
 -- SELESAI - Database hosting siap digunakan tanpa error!
 -- =============================================================

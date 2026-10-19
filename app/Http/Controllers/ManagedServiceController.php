@@ -985,6 +985,18 @@ class ManagedServiceController extends Controller
 
         self::initPmCycles($project);
 
+        $torDoc = null;
+        if (Schema::hasTable('project_documents')) {
+            $torDoc = ProjectDocument::where('project_id', $project->id)
+                ->where(function($q) {
+                    $q->where('document_key', 'tor')
+                      ->orWhere('document_key', 'like', '%TOR%')
+                      ->orWhere('document_type', 'TOR')
+                      ->orWhere('document_title', 'like', '%TOR%')
+                      ->orWhere('document_title', 'like', '%Terms of Reference%');
+                })->latest()->first();
+        }
+
         $documents = [
             'spk' => [
                 'key'         => 'spk',
@@ -1001,6 +1013,14 @@ class ManagedServiceController extends Controller
                 'file_path'   => $project->contract_file ?: $project->po_file,
                 'number'      => $project->po_number ?: ('KTR/' . $project->id),
                 'date'        => $project->service_start_date,
+            ],
+            'tor' => [
+                'key'         => 'tor',
+                'title'       => 'Terms of Reference (TOR)',
+                'description' => 'Kerangka acuan kerja, ruang lingkup & spesifikasi teknis layanan.',
+                'file_path'   => $project->tor_file ?: ($torDoc?->file_path),
+                'number'      => $project->tor_number ?: ($torDoc ? ('TOR-' . $project->id) : null),
+                'date'        => $torDoc?->created_at?->format('Y-m-d') ?: $project->start_date,
             ],
             'boq' => [
                 'key'         => 'boq',
@@ -1070,11 +1090,30 @@ class ManagedServiceController extends Controller
     {
         $project = Project::findOrFail($id);
 
+        // Tangani error PHP upload awal
+        if (isset($_FILES['doc_file']) && !empty($_FILES['doc_file']['name'])) {
+            $err = $_FILES['doc_file']['error'] ?? UPLOAD_ERR_OK;
+            if ($err !== UPLOAD_ERR_OK && $err !== UPLOAD_ERR_NO_FILE) {
+                $msg = match($err) {
+                    UPLOAD_ERR_INI_SIZE   => 'Ukuran file terlalu besar melebihi batas upload_max_filesize server. Silakan perkecil file atau pilih berkas di bawah 50MB.',
+                    UPLOAD_ERR_PARTIAL    => 'File hanya terunggah sebagian karena gangguan jaringan. Silakan unggah kembali.',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Direktori temporary server tidak ditemukan.',
+                    UPLOAD_ERR_CANT_WRITE => 'Gagal menulis file ke disk server (periksa izin folder storage).',
+                    default               => 'Terjadi kendala saat mengunggah berkas (Kode error: ' . $err . ').',
+                };
+                return redirect()->back()->withErrors(['doc_file' => $msg]);
+            }
+        }
+
         $validated = $request->validate([
-            'doc_type'   => 'required|string|in:spk,contract,boq,ba,project_doc',
+            'doc_type'   => 'required|string|in:spk,contract,boq,ba,project_doc,tor',
             'doc_file'   => 'required|file|max:51200',
             'doc_number' => 'nullable|string|max:100',
             'doc_date'   => 'nullable|date',
+        ], [
+            'doc_file.uploaded' => 'Berkas gagal diunggah ke server. Pastikan ukuran berkas tidak melebihi kapasitas server atau formulir.',
+            'doc_file.max'      => 'Ukuran berkas tidak boleh melebihi batas maksimal 50MB.',
+            'doc_file.required' => 'Silakan pilih berkas dokumen yang akan diunggah.',
         ]);
 
         $file = $request->file('doc_file');
@@ -1098,6 +1137,18 @@ class ManagedServiceController extends Controller
             'project_doc' => $project->update([
                 'proposal_file' => $filePath,
             ]),
+            'tor' => (function() use ($project, $filePath, $validated) {
+                $data = [];
+                if (Schema::hasColumn('projects', 'tor_file')) {
+                    $data['tor_file'] = $filePath;
+                }
+                if (Schema::hasColumn('projects', 'tor_number')) {
+                    $data['tor_number'] = $validated['doc_number'] ?: $project->tor_number;
+                }
+                if (!empty($data)) {
+                    $project->update($data);
+                }
+            })(),
         };
 
         if (Schema::hasTable('project_documents')) {
@@ -1107,6 +1158,7 @@ class ManagedServiceController extends Controller
                 'boq'         => 'Bill of Quantity (BOQ)',
                 'ba'          => 'Berita Acara Serah Terima (BAST)',
                 'project_doc' => 'Dokumen Teknis & Topologi Proyek',
+                'tor'         => 'Terms of Reference (TOR)',
             ];
             ProjectDocument::updateOrCreate(
                 [

@@ -1151,6 +1151,7 @@
                             ['code' => 'BRD',   'name' => 'Dokumen Business Requirement Document'],
                             ['code' => 'PRP',   'name' => 'Dokumen Proposal'],
                             ['code' => 'TND',   'name' => 'Dokumen Tender'],
+                            ['code' => 'TOR',   'name' => 'Dokumen Terms of Reference (TOR)'],
                             ['code' => 'BOM',   'name' => 'Daftar Built od Material/Built of Quantity'],
                             ['code' => 'RFP',   'name' => 'Surat Request for Proposal'],
                             ['code' => 'PO',    'name' => 'Purchase Order'],
@@ -1241,6 +1242,8 @@
                                     $matchedCode = 'BOM';
                                 } elseif (str_contains($docTitle, 'tender') || str_contains($fileName, 'tender')) {
                                     $matchedCode = 'TND';
+                                } elseif (str_contains($docTitle, 'tor') || str_contains($fileName, 'tor') || str_contains($docTitle, 'terms of reference') || str_contains($fileName, 'terms_of_reference') || str_contains($docTitle, 'kak') || str_contains($fileName, 'kak') || str_contains($docKeyUpper, 'TOR')) {
+                                    $matchedCode = 'TOR';
                                 } elseif (str_contains($docTitle, 'minute') || str_contains($docTitle, 'mom') || str_contains($fileName, 'mom')) {
                                     $matchedCode = 'MOM';
                                 } elseif (str_contains($docTitle, 'requirement') || str_contains($fileName, 'brd')) {
@@ -1362,6 +1365,7 @@
                                             'BRD'   => 'Dokumen kebutuhan bisnis & persyaratan sistem',
                                             'PRP'   => 'Proposal penawaran teknis & komersial',
                                             'TND'   => 'Dokumen lelang / tender proyek',
+                                            'TOR'   => 'Kerangka acuan kerja & spesifikasi teknis kebutuhan proyek',
                                             'BOM'   => 'Daftar material & kuantitas kebutuhan proyek',
                                             'RFP'   => 'Permintaan proposal dari klien ke vendor',
                                             'PO'    => 'Surat pesanan pembelian dari klien',
@@ -1501,13 +1505,36 @@
                                                  :class="isDragging ? 'border-[#8F0A0D] bg-red-50/40' : (selectedFile ? 'border-emerald-400 bg-emerald-50/20' : 'border-slate-200 hover:border-slate-400 bg-white hover:bg-slate-50/60')"
                                                  @dragover.prevent="isDragging = true"
                                                  @dragleave.prevent="isDragging = false"
-                                                 @drop.prevent="isDragging = false; if ($event.dataTransfer.files.length) { $refs.fileInput.files = $event.dataTransfer.files; selectedFile = $event.dataTransfer.files[0]; }">
+                                                 @drop.prevent="isDragging = false; 
+                                                    if ($event.dataTransfer && $event.dataTransfer.files && $event.dataTransfer.files.length) { 
+                                                        const f = $event.dataTransfer.files[0];
+                                                        if (f.size > 52428800) {
+                                                            alert('Ukuran berkas ' + f.name + ' melebihi batas 50MB. Silakan pilih berkas lain.');
+                                                            return;
+                                                        }
+                                                        try {
+                                                            const dt = new DataTransfer();
+                                                            dt.items.add(f);
+                                                            $refs.fileInput.files = dt.files;
+                                                        } catch(e) {
+                                                            $refs.fileInput.files = $event.dataTransfer.files;
+                                                        }
+                                                        selectedFile = f;
+                                                    }">
                                                 
                                                 <input x-ref="fileInput" 
                                                        type="file" 
                                                        name="document_file" 
                                                        required
-                                                       @change="selectedFile = $refs.fileInput.files[0]"
+                                                       @change="if ($refs.fileInput.files.length) { 
+                                                           if ($refs.fileInput.files[0].size > 52428800) { 
+                                                               alert('Ukuran berkas ' + $refs.fileInput.files[0].name + ' melebihi batas maksimal 50MB. Silakan pilih berkas lain.'); 
+                                                               $refs.fileInput.value = ''; 
+                                                               selectedFile = null; 
+                                                           } else { 
+                                                               selectedFile = $refs.fileInput.files[0]; 
+                                                           } 
+                                                       }"
                                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
 
                                                 <div class="py-6 px-4 flex flex-col items-center justify-center text-center space-y-2 pointer-events-none">

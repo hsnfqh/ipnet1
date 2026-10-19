@@ -48,6 +48,43 @@ class ProjectDocumentController extends Controller
      */
     public function upload(Request $request, Project $project)
     {
+        // 1. Tangani kesalahan upload PHP awal (seperti file melebihi upload_max_filesize server)
+        if (isset($_FILES['document_file']) && !empty($_FILES['document_file']['name'])) {
+            $err = $_FILES['document_file']['error'] ?? UPLOAD_ERR_OK;
+            if ($err !== UPLOAD_ERR_OK && $err !== UPLOAD_ERR_NO_FILE) {
+                $msg = match($err) {
+                    UPLOAD_ERR_INI_SIZE   => 'Ukuran file melebihi batas konfigurasi server (upload_max_filesize). Silakan perkecil ukuran file atau gunakan file di bawah 50MB.',
+                    UPLOAD_ERR_FORM_SIZE  => 'Ukuran file melebihi batas formulir upload.',
+                    UPLOAD_ERR_PARTIAL    => 'File hanya terunggah sebagian karena gangguan jaringan. Silakan unggah kembali.',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Server tidak memiliki direktori temporary untuk menyimpan file upload.',
+                    UPLOAD_ERR_CANT_WRITE => 'Gagal menulis file ke disk server (periksa izin folder atau kapasitas disk).',
+                    UPLOAD_ERR_EXTENSION  => 'Unggahan file dihentikan oleh ekstensi PHP server.',
+                    default               => 'Terjadi kendala saat mengunggah berkas (Kode kesalahan server: ' . $err . ').',
+                };
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return redirect()->back()->withErrors(['document_file' => $msg]);
+            }
+        }
+
+        // Cek juga untuk array files
+        if (isset($_FILES['document_files']['error']) && is_array($_FILES['document_files']['error'])) {
+            foreach ($_FILES['document_files']['error'] as $idx => $err) {
+                if ($err !== UPLOAD_ERR_OK && $err !== UPLOAD_ERR_NO_FILE) {
+                    $fileName = $_FILES['document_files']['name'][$idx] ?? ('Berkas #' . ($idx + 1));
+                    $msg = match($err) {
+                        UPLOAD_ERR_INI_SIZE => "Ukuran berkas '{$fileName}' terlalu besar melebihi batas kapasitas server.",
+                        default             => "Berkas '{$fileName}' gagal diunggah (Kode kesalahan: {$err}).",
+                    };
+                    if ($request->wantsJson() || $request->ajax()) {
+                        return response()->json(['success' => false, 'message' => $msg], 422);
+                    }
+                    return redirect()->back()->withErrors(['document_files' => $msg]);
+                }
+            }
+        }
+
         $validated = $request->validate([
             'document_id'       => 'nullable',
             'stage_number'      => 'nullable|integer|min:1|max:6',
@@ -60,12 +97,21 @@ class ProjectDocumentController extends Controller
             'document_files'    => 'nullable|array',
             'document_files.*'  => 'file|max:51200',
             'notes'             => 'nullable|string|max:1000',
+        ], [
+            'document_file.uploaded'    => 'Berkas gagal diunggah ke server. Pastikan ukuran file tidak melebihi kapasitas server atau ulangi beberapa saat lagi.',
+            'document_file.max'         => 'Ukuran berkas tidak boleh melebihi batas maksimal 50MB.',
+            'document_file.file'        => 'Berkas yang dipilih tidak valid.',
+            'document_files.*.uploaded' => 'Salah satu berkas gagal diunggah ke server.',
+            'document_files.*.max'      => 'Ukuran salah satu berkas melebihi batas maksimal 50MB.',
+            'document_files.*.file'     => 'Salah satu berkas yang dipilih tidak valid.',
         ]);
 
         $files = [];
         if ($request->hasFile('document_files')) {
             $files = $request->file('document_files');
         } elseif ($request->hasFile('document_file')) {
+            $files = [$request->file('document_file')];
+        } elseif ($request->file('document_file')) {
             $files = [$request->file('document_file')];
         }
 
@@ -156,7 +202,10 @@ class ProjectDocumentController extends Controller
             }
 
             $storageFolder = $isSalesUpload ? "project_documents/{$project->id}/sales" : "project_documents/{$project->id}/stage_{$stageNumber}";
-            $path = $file->store($storageFolder, 'public');
+            $path = \App\Helpers\FileUploadHelper::storePublicly($file, $storageFolder);
+            if (!$path) {
+                $path = $file->store($storageFolder, 'public');
+            }
 
             $doc->file_path = $path;
             if ($hasNameCol) {
@@ -264,11 +313,20 @@ class ProjectDocumentController extends Controller
             abort(403, 'Akses ditolak. Berkas Sales ini bersifat rahasia dan hanya dapat diakses oleh Sales terkait dan Pimpinan.');
         }
 
-        if (!Storage::disk('public')->exists($document->file_path)) {
-            abort(404, 'Berkas fisik tidak ditemukan di server.');
+        $filePath = $document->file_path;
+        if (Storage::disk('public')->exists($filePath)) {
+            return Storage::disk('public')->download($filePath, $document->file_name);
+        }
+        $fullPathPublic = public_path('storage/' . $filePath);
+        if (file_exists($fullPathPublic)) {
+            return response()->download($fullPathPublic, $document->file_name);
+        }
+        $fullPathApp = storage_path('app/public/' . $filePath);
+        if (file_exists($fullPathApp)) {
+            return response()->download($fullPathApp, $document->file_name);
         }
 
-        return Storage::disk('public')->download($document->file_path, $document->file_name);
+        abort(404, 'Berkas fisik tidak ditemukan di server.');
     }
 
     /**

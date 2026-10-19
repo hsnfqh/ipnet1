@@ -100,6 +100,8 @@ class Project extends Model
         'contract_file',
         'boq_file',
         'bast_file',
+        'tor_file',
+        'tor_number',
     ];
 
     protected $casts = [
