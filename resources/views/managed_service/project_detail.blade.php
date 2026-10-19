@@ -352,10 +352,15 @@
                             <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
                             <h2 class="text-[13px] font-bold text-[#1E293B] uppercase tracking-wider">Berkas Dokumen Kontrak & Legal</h2>
                         </div>
-                        <span class="text-[11px] font-semibold text-[#64748B]">SPK, Kontrak, BOQ, BA, Dokumen Project</span>
+                        <span class="text-[11px] font-semibold text-[#64748B]">Dokumen Legalitas & Kontrak dari Tim Sales</span>
                     </div>
 
                     <div class="space-y-3">
+                        @php
+                            $authUser = auth()->user();
+                            $canUploadDoc = $authUser && ($authUser->hasRole(['Admin', 'Super Admin', 'PMO', 'Sales', 'Account Manager']) || $authUser->division_id == 1 || in_array(strtolower($authUser->position ?? ''), ['admin', 'sales', 'pmo', 'account manager']));
+                        @endphp
+
                         @foreach($documents as $docKey => $doc)
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-[#E2E8F0] hover:border-[#CBD5E1] bg-white transition shadow-2xs">
                                 <div class="flex items-start gap-3 min-w-0">
@@ -372,7 +377,7 @@
                                                 </span>
                                             @else
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
-                                                    Belum Ada
+                                                    Menunggu dari Sales
                                                 </span>
                                             @endif
                                         </div>
@@ -385,15 +390,37 @@
 
                                 <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
                                     @if($doc['file_path'])
-                                        <a href="{{ asset('storage/' . $doc['file_path']) }}" target="_blank" class="px-3 py-1.5 rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#1E293B] text-[11px] font-bold transition flex items-center gap-1.5 border border-[#CBD5E1]">
+                                        {{-- View / Lihat File --}}
+                                        <a href="{{ asset('storage/' . $doc['file_path']) }}" target="_blank" class="px-3 py-1.5 rounded-xl bg-white hover:bg-[#F8FAFC] text-[#1E293B] text-[11px] font-bold transition flex items-center gap-1.5 border border-[#CBD5E1] shadow-2xs">
                                             <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             <span>Lihat File</span>
                                         </a>
+
+                                        {{-- Download / Unduh --}}
+                                        <a href="{{ asset('storage/' . $doc['file_path']) }}" download class="px-3 py-1.5 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#1E293B] text-[11px] font-bold transition flex items-center gap-1.5 border border-[#CBD5E1] shadow-2xs">
+                                            <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                            <span>Download</span>
+                                        </a>
+
+                                        @if($canUploadDoc)
+                                            <button type="button" @click="selectedDocType = '{{ $docKey }}'; selectedDocTitle = '{{ $doc['title'] }}'; isDocModalOpen = true" title="Ganti Berkas Dokumen" class="p-1.5 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-rose-50 transition border border-transparent hover:border-rose-200 cursor-pointer">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                            </button>
+                                        @endif
+                                    @else
+                                        {{-- Belum Ada: Status Menunggu Berkas --}}
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[11px] font-medium text-[#64748B]">
+                                            <svg class="w-3.5 h-3.5 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span>Menunggu Sales</span>
+                                        </span>
+
+                                        @if($canUploadDoc)
+                                            <button type="button" @click="selectedDocType = '{{ $docKey }}'; selectedDocTitle = '{{ $doc['title'] }}'; isDocModalOpen = true" title="Upload Berkas Manual" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#F8FAFC] text-[#64748B] hover:text-[#8F0A0D] text-[11px] font-bold transition flex items-center gap-1.5 border border-[#CBD5E1] shadow-2xs cursor-pointer">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                <span>Upload</span>
+                                            </button>
+                                        @endif
                                     @endif
-                                    <button type="button" @click="selectedDocType = '{{ $docKey }}'; selectedDocTitle = '{{ $doc['title'] }}'; isDocModalOpen = true" class="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-[#8F0A0D] text-[11px] font-bold transition flex items-center gap-1.5 border border-rose-200 cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                        <span>{{ $doc['file_path'] ? 'Ganti File' : 'Upload' }}</span>
-                                    </button>
                                 </div>
                             </div>
                         @endforeach
