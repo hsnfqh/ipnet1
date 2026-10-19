@@ -419,29 +419,38 @@
                                         <td class="py-3.5 px-4 text-right whitespace-nowrap">
                                             <div class="flex items-center justify-end gap-1.5">
                                                 @php
-                                                    $hoJson = json_encode([
-                                                        'id'                    => $ho->id,
-                                                        'name'                  => $ho->name,
-                                                        'client'                => $ho->client ?: '-',
-                                                        'contract_value'        => $ho->contract_value ?: 0,
-                                                        'sla_tier'              => $ho->sla_tier ?: 'Gold',
-                                                        'sla_coverage_hours'    => $ho->sla_coverage_hours ?: '24x7',
-                                                        'maintenance_frequency' => $ho->maintenance_frequency ?: 'Monthly',
-                                                        'service_start_date'    => $ho->service_start_date ? \Carbon\Carbon::parse($ho->service_start_date)->format('Y-m-d') : date('Y-m-d'),
-                                                        'service_end_date'      => $ho->service_end_date ? \Carbon\Carbon::parse($ho->service_end_date)->format('Y-m-d') : '',
-                                                        'special_notes'         => $ho->special_notes ?: '',
-                                                    ]);
+                                                    $formattedValue = $ho->contract_value ? 'Rp ' . number_format($ho->contract_value, 0, ',', '.') : '—';
+                                                    $startDateVal = $ho->service_start_date ? \Carbon\Carbon::parse($ho->service_start_date)->format('Y-m-d') : date('Y-m-d');
+                                                    $endDateVal = $ho->service_end_date ? \Carbon\Carbon::parse($ho->service_end_date)->format('Y-m-d') : '';
                                                 @endphp
                                                 @if(!$isAccepted)
                                                     <button type="button" 
-                                                            data-project="{{ htmlspecialchars($hoJson, ENT_QUOTES, 'UTF-8') }}"
+                                                            data-id="{{ $ho->id }}"
+                                                            data-name="{{ $ho->name }}"
+                                                            data-client="{{ $ho->client ?: '-' }}"
+                                                            data-value="{{ $formattedValue }}"
+                                                            data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
+                                                            data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
+                                                            data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
+                                                            data-start="{{ $startDateVal }}"
+                                                            data-end="{{ $endDateVal }}"
+                                                            data-notes="{{ $ho->special_notes ?: '' }}"
                                                             onclick="window.triggerAcceptModal(this)"
                                                             class="px-2.5 py-1 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1 active:scale-95">
                                                         <span>Terima &amp; Aktivasi</span>
                                                     </button>
                                                 @else
                                                     <button type="button" 
-                                                            data-project="{{ htmlspecialchars($hoJson, ENT_QUOTES, 'UTF-8') }}"
+                                                            data-id="{{ $ho->id }}"
+                                                            data-name="{{ $ho->name }}"
+                                                            data-client="{{ $ho->client ?: '-' }}"
+                                                            data-value="{{ $formattedValue }}"
+                                                            data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
+                                                            data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
+                                                            data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
+                                                            data-start="{{ $startDateVal }}"
+                                                            data-end="{{ $endDateVal }}"
+                                                            data-notes="{{ $ho->special_notes ?: '' }}"
                                                             onclick="window.triggerAcceptModal(this)"
                                                             class="px-2.5 py-1 bg-white hover:bg-gray-50 text-[#8F0A0D] text-[11px] font-bold rounded-lg border border-red-200 shadow-xs transition cursor-pointer active:scale-95">
                                                         <span>Edit SLA</span>
@@ -692,9 +701,8 @@
 
     {{-- MODAL TERIMA & AKTIVASI LAYANAN MANAGED SERVICE --}}
     <div id="modal-accept-handover" 
-         x-show="isAcceptModalOpen" 
-         x-cloak 
-         class="fixed inset-0 z-[99999] bg-[#0F172A]/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-5"
+         class="fixed inset-0 z-[99999] bg-[#0F172A]/60 backdrop-blur-xs items-center justify-center p-3 sm:p-5"
+         style="display: none;"
          onclick="if(event.target === this) window.closeAcceptModal()">
         <div class="bg-white rounded-2xl w-[680px] max-w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-[#E2E8F0] my-auto anim-fade-up">
             
@@ -820,6 +828,70 @@
         </div>
     </div>
 </div>
+
+{{-- Standalone Modal Controller Script --}}
+<script>
+    window.triggerAcceptModal = function(btn) {
+        if (!btn) return;
+        var p = {
+            id: btn.getAttribute('data-id'),
+            name: btn.getAttribute('data-name'),
+            client: btn.getAttribute('data-client'),
+            contract_value_formatted: btn.getAttribute('data-value'),
+            sla_tier: btn.getAttribute('data-tier'),
+            sla_coverage_hours: btn.getAttribute('data-coverage'),
+            maintenance_frequency: btn.getAttribute('data-freq'),
+            service_start_date: btn.getAttribute('data-start'),
+            service_end_date: btn.getAttribute('data-end'),
+            special_notes: btn.getAttribute('data-notes')
+        };
+        window.openAcceptModal(p);
+    };
+
+    window.openAcceptModal = function(p) {
+        if (!p) return;
+        var modal = document.getElementById('modal-accept-handover');
+        if (!modal) return;
+        
+        var form = document.getElementById('form-accept-handover');
+        if (form) {
+            form.action = '/managed-service/handovers/' + p.id + '/accept';
+        }
+        var titleEl = document.getElementById('accept-modal-title');
+        if (titleEl) titleEl.textContent = 'Aktivasi: ' + (p.name || '');
+        var clientEl = document.getElementById('accept-modal-client');
+        if (clientEl) clientEl.textContent = p.client || '—';
+        var valEl = document.getElementById('accept-modal-contract-value');
+        if (valEl) valEl.textContent = p.contract_value_formatted || '—';
+        var slaTierEl = document.getElementById('accept-modal-sla-tier');
+        if (slaTierEl) slaTierEl.value = p.sla_tier || 'Gold';
+        var slaCoverageEl = document.getElementById('accept-modal-sla-coverage');
+        if (slaCoverageEl) slaCoverageEl.value = p.sla_coverage_hours || '24x7';
+        var maintFreqEl = document.getElementById('accept-modal-maint-freq');
+        if (maintFreqEl) maintFreqEl.value = p.maintenance_frequency || 'Monthly';
+        var startDateEl = document.getElementById('accept-modal-start-date');
+        if (startDateEl) startDateEl.value = p.service_start_date ? p.service_start_date.split('T')[0] : '{{ date('Y-m-d') }}';
+        var endDateEl = document.getElementById('accept-modal-end-date');
+        if (endDateEl) endDateEl.value = p.service_end_date ? p.service_end_date.split('T')[0] : '';
+        var notesEl = document.getElementById('accept-modal-notes');
+        if (notesEl) notesEl.value = p.special_notes || '';
+
+        modal.style.display = 'flex';
+    };
+
+    window.closeAcceptModal = function() {
+        var modal = document.getElementById('modal-accept-handover');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            window.closeAcceptModal();
+        }
+    });
+</script>
 @endsection
 
 @push('scripts')
@@ -1118,77 +1190,8 @@
     });
 
     function msDashboard() {
-        return {
-            isAcceptModalOpen: false,
-            selectedProject: {},
-            acceptForm: {
-                sla_tier: 'Gold',
-                sla_coverage_hours: '24x7',
-                maintenance_frequency: 'Monthly',
-                service_start_date: '{{ date('Y-m-d') }}',
-                service_end_date: '',
-                special_notes: '',
-            },
-
-            openAcceptModal(project) {
-                window.openAcceptModal(project);
-            }
-        }
+        return {};
     }
-
-    window.triggerAcceptModal = function(btn) {
-        if (!btn) return;
-        try {
-            const raw = btn.getAttribute('data-project');
-            const p = typeof raw === 'string' ? JSON.parse(raw) : raw;
-            window.openAcceptModal(p);
-        } catch (e) {
-            console.error('Error parsing project data:', e);
-        }
-    };
-
-    window.openAcceptModal = function(project) {
-        if (!project) return;
-        const form = document.getElementById('form-accept-handover');
-        if (form) {
-            form.action = '/managed-service/handovers/' + project.id + '/accept';
-        }
-        const titleEl = document.getElementById('accept-modal-title');
-        if (titleEl) titleEl.textContent = 'Aktivasi: ' + (project.name || '');
-        const clientEl = document.getElementById('accept-modal-client');
-        if (clientEl) clientEl.textContent = project.client || '—';
-        const valEl = document.getElementById('accept-modal-contract-value');
-        if (valEl) {
-            valEl.textContent = project.contract_value ? 'Rp ' + Number(project.contract_value).toLocaleString('id-ID') : '—';
-        }
-        const slaTierEl = document.getElementById('accept-modal-sla-tier');
-        if (slaTierEl) slaTierEl.value = project.sla_tier || 'Gold';
-        const slaCoverageEl = document.getElementById('accept-modal-sla-coverage');
-        if (slaCoverageEl) slaCoverageEl.value = project.sla_coverage_hours || '24x7';
-        const maintFreqEl = document.getElementById('accept-modal-maint-freq');
-        if (maintFreqEl) maintFreqEl.value = project.maintenance_frequency || 'Monthly';
-        const startDateEl = document.getElementById('accept-modal-start-date');
-        if (startDateEl) startDateEl.value = project.service_start_date ? project.service_start_date.split('T')[0] : '{{ date('Y-m-d') }}';
-        const endDateEl = document.getElementById('accept-modal-end-date');
-        if (endDateEl) endDateEl.value = project.service_end_date ? project.service_end_date.split('T')[0] : '';
-        const notesEl = document.getElementById('accept-modal-notes');
-        if (notesEl) notesEl.value = project.special_notes || '';
-
-        const modal = document.getElementById('modal-accept-handover');
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.style.setProperty('display', 'flex', 'important');
-            modal.removeAttribute('x-cloak');
-        }
-    };
-
-    window.closeAcceptModal = function() {
-        const modal = document.getElementById('modal-accept-handover');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.style.setProperty('display', 'none', 'important');
-        }
-    };
 </script>
 @endpush
 
