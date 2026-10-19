@@ -1467,10 +1467,6 @@ Route::get('/run-migration', function () {
         Artisan::call('db:seed', ['--class' => 'SalesInitialSeeder', '--force' => true]);
         $outputs[] = "Artisan db:seed SalesInitialSeeder: OK (Data dummy sales, klien, vendor, inventory diisi)";
 
-        // 4. Jalankan seeder proyek sampel resmi PE LAN Sudirman Bank BRI
-        Artisan::call('db:seed', ['--class' => 'SamplePeLanProjectSeeder', '--force' => true]);
-        $outputs[] = "Artisan db:seed SamplePeLanProjectSeeder: OK (Proyek PE LAN Sudirman Bank BRI diisi)";
-
         Artisan::call('view:clear');
         $outputs[] = "Artisan view:clear: OK";
 
@@ -1482,7 +1478,7 @@ Route::get('/run-migration', function () {
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Database hosting berhasil dibersihkan total & diisi data tim resmi dan proyek PE LAN Sudirman BRI!',
+            'message' => 'Database hosting berhasil dibersihkan total & diisi data tim resmi!',
             'team_members' => [
                 'Director'                          => 'hariyadi@ipnetsolusindo.com (password: password123)',
                 'Division Head & GL Delivery'       => 'susanto@ipnetsolusindo.com (password: password123)',
@@ -1509,35 +1505,6 @@ Route::get('/run-migration', function () {
         return response()->json([
             'status' => 'error',
             'message' => 'Gagal: ' . $e->getMessage(),
-        ], 500);
-    }
-});
-
-// Route mandiri untuk memicu pembuatan/pembaruan proyek sampel PE LAN Sudirman Bank BRI secara instan
-Route::get('/seed-pelan-dummy', function () {
-    try {
-        $project = \Database\Seeders\SamplePeLanProjectSeeder::runDirectly();
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Proyek dummy "Perpanjangan Pemeliharaan Router Edge LAN (PE LAN) Sudirman" berhasil dibuat/diperbarui dengan sukses 100%!',
-            'project' => [
-                'id'              => $project->id,
-                'name'            => $project->name,
-                'client'          => $project->client,
-                'sales_stage'     => $project->sales_stage,
-                'status'          => $project->status,
-                'stage'           => $project->stage,
-                'handover_target' => $project->handover_target,
-                'progress'        => $project->progress,
-                'contract_value'  => $project->contract_value,
-                'url'             => route('projects.show', $project->id),
-            ]
-        ]);
-    } catch (\Throwable $e) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => $e->getMessage(),
-            'trace'   => $e->getTraceAsString(),
         ], 500);
     }
 });
