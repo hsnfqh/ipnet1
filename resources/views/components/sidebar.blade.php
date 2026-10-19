@@ -57,7 +57,6 @@
             ['key' => 'tasks',             'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
             ['key' => 'activities',        'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',         'label' => 'Work Schedule',     'route' => 'schedules.index'],
-            ['key' => 'ms_assets',         'label' => 'Assets & Devices',  'route' => 'ms.assets.index'],
             ['key' => 'digital_signatures','label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
             // ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
             // ['key' => 'attendance',   'label' => 'Attendance',        'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
