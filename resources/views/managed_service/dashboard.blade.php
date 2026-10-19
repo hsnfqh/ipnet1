@@ -360,7 +360,9 @@
                                     <tr class="hover:bg-gray-50/80 transition-colors {{ !$isAccepted ? 'bg-amber-50/20' : '' }}">
                                         {{-- Proyek & Klien --}}
                                         <td class="py-3.5 px-4">
-                                            <div class="font-bold text-gray-900 max-w-sm">{{ $ho->name }}</div>
+                                            <a href="{{ route('projects.show', $ho->id) }}" class="font-bold text-gray-900 hover:text-[#8F0A0D] transition max-w-sm block hover:underline">
+                                                {{ $ho->name }}
+                                            </a>
                                             <div class="text-[11px] text-gray-400 font-medium mt-0.5">{{ $ho->client }}</div>
                                         </td>
 
@@ -445,10 +447,6 @@
                                                         <span>Edit SLA</span>
                                                     </button>
                                                 @endif
-                                                <a href="{{ route('projects.show', $ho->id) }}" 
-                                                   class="px-2.5 py-1 bg-white hover:bg-gray-50 text-gray-700 text-[11px] font-semibold rounded-lg border border-gray-200 shadow-xs transition">
-                                                    Detail
-                                                </a>
                                             </div>
                                         </td>
                                     </tr>
