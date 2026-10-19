@@ -57,6 +57,8 @@
             ['key' => 'tasks',             'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
             ['key' => 'activities',        'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',         'label' => 'Work Schedule',     'route' => 'schedules.index'],
+            ['key' => 'internal_asset',    'label' => 'Internal Asset',    'route' => 'ms.assets.internal'],
+            ['key' => 'external_asset',    'label' => 'External Asset',    'route' => 'ms.assets.external'],
             ['key' => 'digital_signatures','label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
             // ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
             // ['key' => 'attendance',   'label' => 'Attendance',        'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
@@ -452,6 +454,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
                     </svg>
                     @break
+                    @case('internal_asset')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    @break
+                    @case('external_asset')
                     @case('ms_assets')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>

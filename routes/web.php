@@ -800,10 +800,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [\App\Http\Controllers\ManagedServiceController::class, 'dashboard'])->name('ms.dashboard');
         Route::get('/dashboard', [\App\Http\Controllers\ManagedServiceController::class, 'dashboard'])->name('ms.dashboard.alias');
         
-        // CI Assets
+        // Assets Management (Internal Perusahaan & External Klien)
+        Route::get('/assets/internal', [\App\Http\Controllers\ManagedServiceController::class, 'internalAssets'])->name('ms.assets.internal');
+        Route::get('/assets/external', [\App\Http\Controllers\ManagedServiceController::class, 'externalAssets'])->name('ms.assets.external');
         Route::get('/assets', [\App\Http\Controllers\ManagedServiceController::class, 'assets'])->name('ms.assets.index');
         Route::post('/assets', [\App\Http\Controllers\ManagedServiceController::class, 'storeAsset'])->name('ms.assets.store');
-        Route::get('/assets/{asset}', fn() => redirect()->route('ms.assets.index'));
+        Route::get('/assets/{asset}', fn() => redirect()->route('ms.assets.external'));
         Route::put('/assets/{asset}', [\App\Http\Controllers\ManagedServiceController::class, 'updateAsset'])->name('ms.assets.update');
         Route::delete('/assets/{asset}', [\App\Http\Controllers\ManagedServiceController::class, 'destroyAsset'])->name('ms.assets.destroy');
 

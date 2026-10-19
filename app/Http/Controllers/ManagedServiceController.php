@@ -221,6 +221,46 @@ class ManagedServiceController extends Controller
     }
 
     /**
+     * Internal Assets (Aset & Peralatan Kerja Milik Perusahaan)
+     */
+    public function internalAssets(Request $request)
+    {
+        $this->ensureTablesExist();
+        $query = \App\Models\AdminEquipmentAsset::with('borrower')->latest();
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function($q) use ($s) {
+                $q->where('asset_name', 'like', "%{$s}%")
+                  ->orWhere('asset_code', 'like', "%{$s}%")
+                  ->orWhere('serial_number', 'like', "%{$s}%")
+                  ->orWhere('brand_model', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $assets = $query->paginate(15)->withQueryString();
+        $engineers = User::all();
+
+        return view('managed_service.internal_assets', compact('assets', 'engineers'));
+    }
+
+    /**
+     * External Assets (Aset & Perangkat Milik Klien)
+     */
+    public function externalAssets(Request $request)
+    {
+        return $this->assets($request);
+    }
+
+    /**
      * Asset & Configuration Items (CI) Management
      */
     public function assets(Request $request)
