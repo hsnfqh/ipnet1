@@ -6,10 +6,10 @@
     <title>Portal Aduan & Layanan Tiket Klien - PT IP Network Solusindo</title>
     <link rel="icon" type="image/png" href="{{ asset('images/ipnet1.png') }}">
     
-    <!-- Google Fonts: Plus Jakarta Sans & IBM Plex Mono -->
+    <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,7 +22,6 @@
                 extend: {
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        mono: ['"IBM Plex Mono"', 'monospace'],
                     },
                     colors: {
                         ipnet: {
@@ -213,7 +212,7 @@
                         <p class="text-xs text-emerald-800 mt-0.5">{{ session('success') }}</p>
                         @if(session('ticket_number'))
                             <div class="mt-2.5 flex flex-wrap items-center gap-2.5">
-                                <div class="px-3.5 py-1.5 rounded-xl bg-white border border-emerald-300 font-mono font-extrabold text-emerald-900 text-xs sm:text-sm tracking-wide shadow-2xs">
+                                <div class="px-3.5 py-1.5 rounded-xl bg-white border border-emerald-300 font-extrabold text-emerald-900 text-xs sm:text-sm tracking-wide shadow-2xs">
                                     {{ session('ticket_number') }}
                                 </div>
                                 <button type="button" @click="navigator.clipboard.writeText('{{ session('ticket_number') }}'); copied = true; setTimeout(() => copied = false, 2000)"
@@ -551,10 +550,8 @@
                                     <div class="font-bold text-slate-800 text-[12px] leading-tight">Tindakan &amp; Penyelesaian</div>
                                     <p class="text-[11px] text-slate-500 leading-relaxed mt-1">Perbaikan dilakukan secara remote atau on-site hingga layanan normal kembali.</p>
                                 </div>
-                            </div>
-
-                            <div class="flex items-start gap-3">
-                                <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-[#8F0A0D] to-[#BA1B1D] text-white font-mono font-bold text-[11px] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">4</div>
+                            </div>                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-[#8F0A0D] to-[#BA1B1D] text-white font-bold text-[11px] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">4</div>
                                 <div>
                                     <div class="font-bold text-slate-800 text-[12px] leading-tight">Konfirmasi Selesai (Resolved)</div>
                                     <p class="text-[11px] text-slate-500 leading-relaxed mt-1">Laporan penyelesaian dicatat dan tiket ditutup setelah diverifikasi.</p>
@@ -585,7 +582,7 @@
                 <form method="GET" action="{{ route('public.helpdesk.index') }}" class="max-w-2xl mx-auto flex flex-col sm:flex-row gap-2.5">
                     <input type="text" name="track" value="{{ request('track') }}" required
                            placeholder="Masukkan nomor tiket Anda (contoh: TCK-202610-0001)"
-                           class="flex-1 px-4 py-3 text-xs sm:text-sm font-mono font-bold text-slate-800 bg-white border border-[#CBD5E1] rounded-xl outline-none form-input-focus shadow-2xs uppercase tracking-wider">
+                           class="flex-1 px-4 py-3 text-xs sm:text-sm font-bold text-slate-800 bg-white border border-[#CBD5E1] rounded-xl outline-none form-input-focus shadow-2xs uppercase tracking-wider">
                     <button type="submit" 
                             class="btn-ipnet-primary px-8 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm shrink-0">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -602,7 +599,7 @@
                     <div class="p-6 sm:p-7 bg-slate-50/70 border-b border-slate-200/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div class="space-y-1.5">
                             <div class="flex flex-wrap items-center gap-2.5">
-                                <span class="font-mono text-base sm:text-xl font-black text-slate-900 tracking-tight">{{ $trackingTicket->ticket_number }}</span>
+                                <span class="text-base sm:text-xl font-black text-slate-900 tracking-tight">{{ $trackingTicket->ticket_number }}</span>
                                 @if($trackingTicket->status === 'Resolved')
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs">
                                         <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
@@ -634,7 +631,7 @@
                                 <span>Pelapor: <span class="text-slate-700 font-medium">{{ $trackingTicket->reported_by }}</span></span>
                                 @if($trackingTicket->contact_phone)
                                     <span class="text-slate-300">•</span>
-                                    <span>Kontak / WA: <span class="font-mono text-slate-700 font-semibold">{{ $trackingTicket->contact_phone }}</span></span>
+                                    <span>Kontak / WA: <span class="text-slate-700 font-semibold">{{ $trackingTicket->contact_phone }}</span></span>
                                 @endif
                             </p>
                         </div>
@@ -642,7 +639,7 @@
                         <!-- Tanggal Pengajuan Tiket -->
                         <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs text-xs text-slate-500 shrink-0 self-start md:self-center">
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            <span>Didaftarkan: <strong class="text-slate-800 font-semibold font-mono">{{ $trackingTicket->created_at->translatedFormat('d M Y, H:i') }} WIB</strong></span>
+                            <span>Didaftarkan: <strong class="text-slate-800 font-semibold">{{ $trackingTicket->created_at->translatedFormat('d M Y, H:i') }} WIB</strong></span>
                         </div>
                     </div>
 
@@ -665,7 +662,7 @@
                                         <div class="text-center">
                                             <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-emerald-500/20">✓</div>
                                             <div class="text-xs font-extrabold text-slate-900">Tiket Diterima</div>
-                                            <div class="text-[11px] text-slate-400 mt-0.5 font-mono">{{ $trackingTicket->created_at->format('d/m/Y H:i') }}</div>
+                                            <div class="text-[11px] text-slate-500 mt-0.5 font-medium">{{ $trackingTicket->created_at->format('d/m/Y H:i') }}</div>
                                             <div class="text-[10.5px] text-slate-500 mt-0.5">Tercatat di Portal NOC</div>
                                         </div>
 
@@ -706,7 +703,7 @@
                                             @if(in_array($trackingTicket->status, ['Resolved', 'Closed']))
                                                 <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-2 text-sm font-black shadow-sm shadow-emerald-500/20">✓</div>
                                                 <div class="text-xs font-extrabold text-emerald-800">Selesai</div>
-                                                <div class="text-[11px] text-emerald-600 font-mono font-bold mt-0.5">{{ $trackingTicket->resolved_at ? $trackingTicket->resolved_at->format('d/m/Y H:i') : 'Terverifikasi' }}</div>
+                                                <div class="text-[11px] text-emerald-600 font-bold mt-0.5">{{ $trackingTicket->resolved_at ? $trackingTicket->resolved_at->format('d/m/Y H:i') : 'Terverifikasi' }}</div>
                                                 <div class="text-[10.5px] text-emerald-700 mt-0.5">Solusi Berhasil</div>
                                             @else
                                                 <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 text-sm font-bold">4</div>
@@ -762,14 +759,14 @@
                                 @endif
                             </div>
 
-                            <!-- Right Column: Ringkasan Spesifikasi & Kontak (4 Kolom - Rapi & Konsisten) -->
+                            <!-- Right Column: Informasi Ringkasan Tiket (4 Kolom - Rapi & Bersih) -->
                             <div class="lg:col-span-4 space-y-5">
                                 
-                                <!-- Card Detail Spesifikasi Tiket -->
-                                <div class="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-5 space-y-4">
-                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 pb-2 border-b border-slate-200 flex items-center justify-between">
+                                <!-- Card Detail Informasi Tiket -->
+                                <div class="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-5 sm:p-6 space-y-4">
+                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 pb-2.5 border-b border-slate-200 flex items-center justify-between">
                                         <span>Informasi Tiket</span>
-                                        <span class="text-[10.5px] font-medium text-slate-400">Detail Ringkasan</span>
+                                        <span class="text-[11px] font-medium text-slate-400">Detail Ringkasan</span>
                                     </h4>
 
                                     <div class="space-y-3.5 text-xs">
@@ -785,33 +782,17 @@
                                             <span class="font-bold text-slate-900">{{ $trackingTicket->category ?? 'Gangguan Teknis' }}</span>
                                         </div>
                                         <div>
-                                            <span class="text-slate-400 font-medium block text-[11px]">Waktu Kejadian:</span>
-                                            <span class="font-bold text-slate-900 font-mono">{{ $trackingTicket->incident_date ? $trackingTicket->incident_date->translatedFormat('d F Y, H:i') . ' WIB' : '-' }}</span>
+                                            <span class="text-slate-400 font-medium block text-[11px]">Waktu Kejadian Dilaporkan:</span>
+                                            <span class="font-bold text-slate-900">{{ $trackingTicket->incident_date ? $trackingTicket->incident_date->translatedFormat('d F Y, H:i') . ' WIB' : '-' }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-400 font-medium block text-[11px]">Waktu Tiket Didaftarkan:</span>
+                                            <span class="font-bold text-slate-900">{{ $trackingTicket->created_at->translatedFormat('d F Y, H:i') }} WIB</span>
                                         </div>
                                         <div>
                                             <span class="text-slate-400 font-medium block text-[11px]">Teknisi Penanggung Jawab (PIC):</span>
                                             <span class="font-bold text-slate-900">{{ $trackingTicket->assignedEngineer->name ?? 'Tim NOC / Antrean Maintenance' }}</span>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card Hubungi Tim NOC Cepat -->
-                                <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs space-y-3">
-                                    <div>
-                                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-800">Butuh Eskalasi Segera?</h4>
-                                        <p class="text-[11px] text-slate-500 leading-relaxed mt-1">Jika kendala berdampak kritis pada operasional utama, hubungi dispatcher NOC kami:</p>
-                                    </div>
-                                    <div class="space-y-2 pt-1">
-                                        <a href="https://wa.me/6281234567890?text=Halo%20NOC%20IP-NET,%20mohon%20bantu%20eskalasi%20tiket%20{{ $trackingTicket->ticket_number }}" target="_blank"
-                                           class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-xs">
-                                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
-                                            <span>WhatsApp NOC Dispatcher</span>
-                                        </a>
-                                        <a href="tel:02112345678" 
-                                           class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition">
-                                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                            <span>Hotline (021) 1234-5678</span>
-                                        </a>
                                     </div>
                                 </div>
 
@@ -825,7 +806,7 @@
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     </div>
                     <h4 class="text-base font-extrabold text-slate-900">Tiket Tidak Ditemukan</h4>
-                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Nomor tiket "<span class="font-mono font-bold text-slate-800">{{ request('track') }}</span>" tidak ditemukan di sistem. Pastikan Anda memasukkan nomor tiket dengan format yang benar (contoh: <strong>TCK-202610-0001</strong>).</p>
+                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Nomor tiket "<span class="font-bold text-slate-800">{{ request('track') }}</span>" tidak ditemukan di sistem. Pastikan Anda memasukkan nomor tiket dengan format yang benar (contoh: <strong>TCK-202610-0001</strong>).</p>
                     <a href="{{ route('public.helpdesk.index') }}?tab=track" class="inline-block mt-4 px-5 py-2 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition">
                         Coba Nomor Tiket Lain
                     </a>
