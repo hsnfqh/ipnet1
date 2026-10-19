@@ -45,6 +45,20 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
 });
 
+// Helper untuk membersihkan working tree Git di server cPanel agar Deploy HEAD Commit aktif
+Route::get('/fix-cpanel-deploy', function () {
+    $path = base_path();
+    $output = [];
+    $output[] = "=== PATH: $path ===";
+    $output[] = "=== 1. STATUS SEBELUM RESET ===";
+    $output[] = shell_exec("git -C \"$path\" status 2>&1") ?? 'shell_exec tidak menghasilkan output';
+    $output[] = "=== 2. MENJALANKAN GIT RESET ===";
+    $output[] = shell_exec("git -C \"$path\" reset --hard HEAD 2>&1") ?? 'N/A';
+    $output[] = "=== 3. STATUS SETELAH RESET ===";
+    $output[] = shell_exec("git -C \"$path\" status 2>&1") ?? 'N/A';
+    return '<pre>' . implode("\n", $output) . '</pre>';
+});
+
 // Auth Routes
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 

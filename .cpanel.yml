@@ -1,6 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/ipnetso1/public_html
-    - /bin/cp -r public/* $DEPLOYPATH/
-    - /bin/cp -f public/.htaccess $DEPLOYPATH/
+    - export DEPLOYPATH=/home/ipnetso1/public_html/
+    - /bin/cp -R public/. $DEPLOYPATH
