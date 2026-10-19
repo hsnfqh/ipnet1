@@ -43,7 +43,7 @@
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Internal Asset (Aset & Peralatan Milik IPNET)'])
+        @include('components.topbar', ['title' => 'Internal Asset'])
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
             
@@ -63,10 +63,10 @@
             <div class="ipnet-card p-5 sm:p-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 anim-fade-up anim-delay-1">
                 <div>
                     <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> ASET INTERNAL PERUSAHAAN
+                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> ASET INTERNAL
                     </p>
-                    <h3 class="font-bold text-[#1E293B] text-[20px] tracking-tight mt-0.5">Inventaris Alat Kerja & Perangkat Kantor PT IPNET</h3>
-                    <p class="text-[13px] text-[#64748B] mt-0.5">Daftar testing tool (OTDR, Splicer), laptop engineer, dan aset milik internal perusahaan</p>
+                    <h3 class="font-bold text-[#1E293B] text-[20px] tracking-tight mt-0.5">Aset Internal Perusahaan</h3>
+                    <p class="text-[13px] text-[#64748B] mt-0.5">Inventaris alat kerja, perangkat kantor, dan operasional PT IPNET</p>
                 </div>
 
                 <div class="flex items-center gap-2.5 shrink-0">

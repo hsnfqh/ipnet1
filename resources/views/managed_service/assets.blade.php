@@ -43,7 +43,7 @@
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Data Aset & Perangkat (CMDB)'])
+        @include('components.topbar', ['title' => 'Data Aset & Perangkat'])
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
             
@@ -74,7 +74,7 @@
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> DATA ASET & CMDB
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> DATA ASET & PERANGKAT
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight mt-0.5">Daftar Aset & Perangkat</h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5">Inventaris perangkat keras, spesifikasi teknis, nomor seri, dan kepemilikan aset</p>
