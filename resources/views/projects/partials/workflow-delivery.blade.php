@@ -161,13 +161,7 @@
                     <div class="min-w-0 flex-1">
                         <h4 class="font-bold text-xs {{ (!empty($project->division_id) && !empty($project->division)) ? 'text-slate-900' : 'text-slate-500 italic' }} truncate">
                             @if(!empty($project->division_id) && !empty($project->division))
-                                @if(str_contains(strtolower($project->division->name), 'net') && !str_contains(strtolower($project->division->name), 'lintas') && !str_contains(strtolower($project->division->name), 'security'))
-                                    Tim Network
-                                @elseif(str_contains(strtolower($project->division->name), 'sec') && !str_contains(strtolower($project->division->name), 'lintas') && !str_contains(strtolower($project->division->name), 'network'))
-                                    Tim Security
-                                @else
-                                    Tim Network &amp; Tim Security
-                                @endif
+                                {{ $project->division->name }}
                             @else
                                 Belum Didelegasikan ke Tim
                             @endif
@@ -188,13 +182,17 @@
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <div class="font-bold text-slate-900 text-xs truncate">
-                                        {{ $project->division->name }}
+                                        @if($uniqueEngineers->count() > 0)
+                                            Personel Lapangan Ditetapkan ({{ $uniqueEngineers->count() }})
+                                        @else
+                                            Wewenang Teknis Ditetapkan
+                                        @endif
                                     </div>
                                     <div class="text-[10.5px] text-slate-500 truncate">
                                         @if($uniqueEngineers->count() > 0)
-                                            Teknisi Lapangan: {{ $uniqueEngineers->pluck('name')->join(', ') }}
+                                            Teknisi: {{ $uniqueEngineers->pluck('name')->join(', ') }}
                                         @else
-                                            Tim Pelaksana Teknis Proyek
+                                            Menunggu penugasan personel teknisi oleh Lead Engineer
                                         @endif
                                     </div>
                                 </div>

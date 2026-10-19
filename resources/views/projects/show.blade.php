@@ -476,6 +476,15 @@
     };
 
     window.openAssignModalCustom = function(role) {
+        @if(!$project->hasSalesCalculator())
+        if (typeof window.showToast === 'function') {
+            window.showToast('Unggah berkas Sales Calculator (SC) terlebih dahulu sebelum mengajukan ke pimpinan!', 'error');
+        } else {
+            alert('Peringatan: Berkas Sales Calculator (SC) wajib diunggah pada kartu Berkas Sales terlebih dahulu sebelum mengajukan ke pimpinan!');
+        }
+        return;
+        @endif
+
         const data = window.getProjectData();
         if (data) {
             data.assignRole = role;
@@ -1059,13 +1068,13 @@
                         </div>
                     @endif
 
-                    {{-- Otorisasi Pimpinan (Pak Susanto Djaya & Pak Hariyadi) --}}
-                    @include('projects.partials.workflow-leadership')
-
                     {{-- Berkas Sales (Confidential - Hanya Head Division, Sales Terkait & Direktur) --}}
                     @if($canAccessSalesDocs)
                         @include('projects.partials.card-sales-documents')
                     @endif
+
+                    {{-- Otorisasi Pimpinan (Pak Susanto Djaya & Pak Hariyadi) --}}
+                    @include('projects.partials.workflow-leadership')
 
                     {{-- 3. Perencanaan Ruang Lingkup & Alokasi Tim Teknis (Pre-Sales & Sales) --}}
                     @include('projects.partials.workflow-delivery')
@@ -3240,11 +3249,25 @@
                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-red-500/20 focus:border-red-500"></textarea>
                 </div>
 
+                @if(!$project->hasSalesCalculator())
+                    <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
+                        <div class="font-bold flex items-center gap-1.5 text-amber-800">
+                            <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span>Berkas Sales Calculator (SC) Belum Diunggah</span>
+                        </div>
+                        <p class="text-[11px] text-amber-800">
+                            Pengajuan telaah ke pimpinan (Head Divisi & Direktur) hanya dapat dilakukan setelah dokumen Sales Calculator (SC) diunggah pada kartu <strong>Berkas Sales</strong> di bagian atas.
+                        </p>
+                    </div>
+                @endif
+
                 <div class="flex justify-end gap-2 pt-3 border-t">
                     <button type="button" @click="isAssignModalOpen = false; window.closeModal('modal-assign')" onclick="window.closeModal('modal-assign')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" id="assign-submit-btn" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                    <button type="submit" id="assign-submit-btn" 
+                            @if(!$project->hasSalesCalculator()) disabled @endif
+                            class="px-5 py-2 rounded-xl font-bold @if(!$project->hasSalesCalculator()) opacity-50 cursor-not-allowed bg-slate-300 text-slate-500 @else btn-ipnet-primary cursor-pointer transition @endif">
                         Tugaskan Sekarang
                     </button>
                 </div>
@@ -3272,11 +3295,15 @@
             @php
                 $currentSalesStage = $project->sales_stage ?: 'Qualification';
                 $currentProb = $project->win_probability ?? 10;
+                $missingLampiran = $project->getMissingLampiranPendukung();
+                $countMissingLampiran = count($missingLampiran);
             @endphp
             <form action="{{ route('projects.update_pipeline', $project->id) }}" method="POST" class="space-y-4 text-xs font-semibold"
                   x-data="{
                       stageVal: '{{ $currentSalesStage }}',
                       probVal: {{ (int)$currentProb }},
+                      hasMissingDocs: {{ $countMissingLampiran > 0 ? 'true' : 'false' }},
+                      missingCount: {{ $countMissingLampiran }},
                       onStageChange(val) {
                           this.stageVal = val;
                           if (val === 'Closed Won') this.probVal = 100;
@@ -3408,11 +3435,25 @@
                     </div>
                 </div>
 
+                {{-- Peringatan Berkas Lampiran Pendukung Harus Lengkap Sebelum Closed Won --}}
+                <div x-show="stageVal === 'Closed Won' && hasMissingDocs" x-cloak class="p-3.5 bg-rose-50/90 border border-rose-300 rounded-xl space-y-1.5 text-xs text-rose-900">
+                    <div class="font-bold flex items-center gap-1.5 text-rose-800">
+                        <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span>Berkas Lampiran Pendukung Belum Lengkap</span>
+                    </div>
+                    <p class="text-[11px] text-rose-800 leading-relaxed">
+                        Tahapan <strong>Closed Won</strong> dikunci. Seluruh berkas lampiran pendukung wajib diisi lengkap terlebih dahulu sebelum proyek dapat di-close won. Saat ini masih terdapat <strong x-text="missingCount">{{ $countMissingLampiran }}</strong> jenis berkas lampiran yang belum diunggah pada kartu Berkas Lampiran Pendukung.
+                    </p>
+                </div>
+
                 <div class="flex justify-end gap-2 pt-3 border-t">
                     <button type="button" @click="isEditPipelineModalOpen = false; window.closeModal('modal-edit-pipeline')" onclick="window.closeModal('modal-edit-pipeline')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl font-bold btn-ipnet-primary cursor-pointer transition">
+                    <button type="submit" 
+                            :disabled="stageVal === 'Closed Won' && hasMissingDocs"
+                            :class="(stageVal === 'Closed Won' && hasMissingDocs) ? 'opacity-50 cursor-not-allowed bg-slate-300 text-slate-500' : 'btn-ipnet-primary cursor-pointer transition'"
+                            class="px-5 py-2 rounded-xl font-bold">
                         Simpan Perubahan Stage
                     </button>
                 </div>

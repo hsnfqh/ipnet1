@@ -703,4 +703,177 @@ class Project extends Model
             ->orWhere('id', $this->client)
             ->first();
     }
+
+    /**
+     * Memeriksa apakah berkas Sales Calculator (SC) sudah diunggah oleh Sales
+     */
+    public function hasSalesCalculator(): bool
+    {
+        return \App\Models\ProjectDocument::where('project_id', $this->id)
+            ->whereNotNull('file_path')
+            ->where('file_path', '!=', '')
+            ->where(function ($q) {
+                $q->where('stage_name', 'Sales')
+                  ->orWhere('document_type', 'SC')
+                  ->orWhere('document_key', 'SC')
+                  ->orWhere('document_key', 'like', 'sales_berkas%')
+                  ->orWhere(function ($s) {
+                      $s->where('document_title', 'like', '%calculator%')
+                        ->orWhere('file_name', 'like', '%calculator%');
+                  });
+            })
+            ->exists();
+    }
+
+    /**
+     * Memeriksa daftar berkas Lampiran Pendukung yang belum diisi/diunggah.
+     * Seluruh 16 berkas lampiran pendukung harus diisi lengkap sebelum Closed Won.
+     */
+    public function getMissingLampiranPendukung(): array
+    {
+        $documentTemplates = [
+            'REQ'   => 'Surat Permohonan (REQ)',
+            'INF'   => 'Surat Informasi (INF)',
+            'SP'    => 'Surat Penawaran (SP)',
+            'BRD'   => 'Dokumen Business Requirement Document (BRD)',
+            'PRP'   => 'Dokumen Proposal (PRP)',
+            'TND'   => 'Dokumen Tender (TND)',
+            'TOR'   => 'Dokumen Terms of Reference (TOR)',
+            'BOM'   => 'Daftar Built of Material / BoQ (BOM)',
+            'RFP'   => 'Surat Request for Proposal (RFP)',
+            'PO'    => 'Purchase Order (PO)',
+            'SPK'   => 'Surat Perintah Kerja (SPK)',
+            'BA'    => 'Dokumen Berita Acara (BA)',
+            'BAST'  => 'Dokumen Berita Acara Serah Terima (BAST)',
+            'BALAP' => 'Dokumen Berita Acara Lapangan (BALAP)',
+            'PRJ'   => 'Dokumen Project (PRJ)',
+            'MOM'   => 'Dokumen Minute Meeting (MOM)',
+        ];
+
+        $uploadedDocs = \App\Models\ProjectDocument::where('project_id', $this->id)
+            ->where(function ($q) {
+                $q->where('stage_name', '!=', 'Sales')
+                  ->where('document_key', 'not like', 'sales_berkas%');
+            })
+            ->whereNotNull('file_path')
+            ->where('file_path', '!=', '')
+            ->get();
+
+        $filledCodes = [];
+
+        // Integrasi field berkas langsung di model Project
+        if (!empty($this->tor_file))      $filledCodes['TOR'] = true;
+        if (!empty($this->boq_file))      $filledCodes['BOM'] = true;
+        if (!empty($this->bast_file))     $filledCodes['BAST'] = true;
+        if (!empty($this->po_spk_file)) {
+            $filledCodes['PO'] = true;
+            $filledCodes['SPK'] = true;
+        }
+        if (!empty($this->contract_file)) {
+            $filledCodes['SPK'] = true;
+        }
+
+        foreach ($uploadedDocs as $doc) {
+            $matchedCode = null;
+            $docKeyUpper = strtoupper($doc->document_key ?? '');
+            $docTypeUpper = strtoupper($doc->document_type ?? '');
+            $docTitle = strtolower($doc->document_title ?? ($doc->name ?? ''));
+            $fileName = strtolower($doc->file_name ?? '');
+
+            // 1. Cek kode via document_key atau document_type
+            foreach (array_keys($documentTemplates) as $c) {
+                if (
+                    $docKeyUpper === $c || 
+                    $docKeyUpper === 'LAMPIRAN_' . $c ||
+                    str_starts_with($docKeyUpper, 'LAMPIRAN_' . $c . '_') ||
+                    str_starts_with($docKeyUpper, 'DOC_' . $c) ||
+                    $docTypeUpper === $c
+                ) {
+                    $matchedCode = $c;
+                    break;
+                }
+            }
+
+            // 2. Cek via document_title / template name
+            if (!$matchedCode) {
+                foreach ($documentTemplates as $c => $name) {
+                    $nameLower = strtolower($name);
+                    if ($docTitle === $nameLower || str_starts_with($docTitle, $nameLower)) {
+                        $matchedCode = $c;
+                        break;
+                    }
+                }
+            }
+
+            // 3. Fallback matching
+            if (!$matchedCode) {
+                if (
+                    str_contains($docTitle, 'proposal') || 
+                    str_contains($fileName, 'proposal') ||
+                    str_contains($docTitle, 'topologi') ||
+                    str_contains($docTitle, 'arsitektur') ||
+                    str_contains($docTitle, 'sizing') ||
+                    str_contains($fileName, 'topologi') ||
+                    str_contains($fileName, 'arsitektur') ||
+                    str_contains($docKeyUpper, 'SOLUTION_ARCHITECTURE') ||
+                    str_contains($docKeyUpper, 'TECHNICAL_PROPOSAL') ||
+                    str_contains($docTypeUpper, 'TOPOLOGY') ||
+                    ($doc->stage_name === 'Solution')
+                ) {
+                    $matchedCode = 'PRP';
+                } elseif (str_contains($docTitle, 'serah terima') || str_contains($fileName, 'bast')) {
+                    $matchedCode = 'BAST';
+                } elseif (str_contains($docTitle, 'lapangan') || str_contains($fileName, 'balap')) {
+                    $matchedCode = 'BALAP';
+                } elseif (str_contains($docTitle, 'berita acara') || str_contains($fileName, 'ba_')) {
+                    $matchedCode = 'BA';
+                } elseif (str_contains($docTitle, 'perintah kerja') || str_contains($fileName, 'spk')) {
+                    $matchedCode = 'SPK';
+                } elseif (str_contains($docTitle, 'purchase order') || str_starts_with($docTitle, 'po ') || str_contains($fileName, 'po_')) {
+                    $matchedCode = 'PO';
+                } elseif (str_contains($docTitle, 'boq') || str_contains($docTitle, 'bom') || str_contains($fileName, 'boq') || str_contains($fileName, 'bom')) {
+                    $matchedCode = 'BOM';
+                } elseif (str_contains($docTitle, 'tender') || str_contains($fileName, 'tender')) {
+                    $matchedCode = 'TND';
+                } elseif (str_contains($docTitle, 'tor') || str_contains($fileName, 'tor') || str_contains($docTitle, 'terms of reference') || str_contains($fileName, 'terms_of_reference') || str_contains($docTitle, 'kak') || str_contains($fileName, 'kak') || str_contains($docKeyUpper, 'TOR')) {
+                    $matchedCode = 'TOR';
+                } elseif (str_contains($docTitle, 'minute') || str_contains($docTitle, 'mom') || str_contains($fileName, 'mom')) {
+                    $matchedCode = 'MOM';
+                } elseif (str_contains($docTitle, 'requirement') || str_contains($fileName, 'brd')) {
+                    $matchedCode = 'BRD';
+                } elseif (str_contains($docTitle, 'request for proposal') || str_contains($fileName, 'rfp')) {
+                    $matchedCode = 'RFP';
+                } elseif (str_contains($docTitle, 'permohonan') || str_contains($fileName, 'req')) {
+                    $matchedCode = 'REQ';
+                } elseif (str_contains($docTitle, 'informasi') || str_contains($fileName, 'inf')) {
+                    $matchedCode = 'INF';
+                } elseif (str_contains($docTitle, 'penawaran') || str_contains($fileName, 'penawaran') || str_starts_with($fileName, 'sp_') || str_starts_with($fileName, 'sp-')) {
+                    $matchedCode = 'SP';
+                } elseif (str_contains($docTitle, 'project') && !str_contains($docTitle, 'lampiran')) {
+                    $matchedCode = 'PRJ';
+                }
+            }
+
+            if ($matchedCode && isset($documentTemplates[$matchedCode])) {
+                $filledCodes[$matchedCode] = true;
+            }
+        }
+
+        $missing = [];
+        foreach ($documentTemplates as $code => $label) {
+            if (empty($filledCodes[$code])) {
+                $missing[$code] = $label;
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
+     * Cek apakah seluruh berkas lampiran pendukung sudah lengkap
+     */
+    public function hasAllLampiranPendukung(): bool
+    {
+        return empty($this->getMissingLampiranPendukung());
+    }
 }

@@ -19,6 +19,8 @@
     if (str_contains(strtolower($directorName), 'hariyadi')) {
         $directorInitials = 'HY';
     }
+
+    $hasSalesCalculator = $project->hasSalesCalculator();
 @endphp
 <div class="ipnet-card p-6 space-y-5">
     {{-- Header & Status --}}
@@ -121,10 +123,17 @@
             @if((!$isHeadAssigned && ($canAssignSales ?? false)) || ($canApproveHead && $isHeadAssigned))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isHeadAssigned && ($canAssignSales ?? false))
-                        <button type="button" @click.stop="openAssignModal('head')" onclick="event.stopPropagation(); window.openAssignModalCustom('head')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            <span>Ajukan ke Head Divisi</span>
-                        </button>
+                        @if(!$hasSalesCalculator)
+                            <button type="button" onclick="alert('Unggah berkas Sales Calculator (SC) terlebih dahulu pada Berkas Sales sebelum mengajukan ke Head Divisi!'); return false;" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-80" title="Wajib unggah berkas Sales Calculator (SC) terlebih dahulu">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <span>Ajukan ke Head Divisi</span>
+                            </button>
+                        @else
+                            <button type="button" @click.stop="openAssignModal('head')" onclick="event.stopPropagation(); window.openAssignModalCustom('head')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                <span>Ajukan ke Head Divisi</span>
+                            </button>
+                        @endif
                     @endif
 
                     @if($canApproveHead && $isHeadAssigned)
@@ -217,10 +226,17 @@
             @if((!$isDirectorAssigned && ($canAssignSales ?? false)) || ($canApproveDirector && $isDirectorAssigned))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     @if(!$isDirectorAssigned && ($canAssignSales ?? false))
-                        <button type="button" @click.stop="openAssignModal('director')" onclick="event.stopPropagation(); window.openAssignModalCustom('director')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            <span>Ajukan ke Direktur</span>
-                        </button>
+                        @if(!$hasSalesCalculator)
+                            <button type="button" onclick="alert('Unggah berkas Sales Calculator (SC) terlebih dahulu pada Berkas Sales sebelum mengajukan ke Direktur!'); return false;" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-80" title="Wajib unggah berkas Sales Calculator (SC) terlebih dahulu">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <span>Ajukan ke Direktur</span>
+                            </button>
+                        @else
+                            <button type="button" @click.stop="openAssignModal('director')" onclick="event.stopPropagation(); window.openAssignModalCustom('director')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold btn-ipnet-soft transition cursor-pointer shadow-none active:scale-95">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                <span>Ajukan ke Direktur</span>
+                            </button>
+                        @endif
                     @endif
 
                     @if($canApproveDirector && $isDirectorAssigned)

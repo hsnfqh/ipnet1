@@ -490,6 +490,24 @@ class SalesCrmController extends Controller
 
         // Automatic Status Adjustment
         if ($validated['sales_stage'] === 'Closed Won') {
+            $missingDocs = $project->getMissingLampiranPendukung();
+            if (!empty($missingDocs)) {
+                $countMissing = count($missingDocs);
+                $missingList = implode(', ', array_slice(array_values($missingDocs), 0, 4));
+                if ($countMissing > 4) {
+                    $missingList .= ' dan ' . ($countMissing - 4) . ' berkas lainnya';
+                }
+                $errorMsg = "Tidak dapat beralih ke Closed Won: Seluruh Berkas Lampiran Pendukung wajib diisi lengkap terlebih dahulu. Masih ada {$countMissing} berkas yang belum diisi ({$missingList}).";
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMsg,
+                        'missing' => array_values($missingDocs),
+                    ], 422);
+                }
+                return redirect()->back()->with('error', $errorMsg);
+            }
+
             $updateData['status'] = 'In Progress';
             $updateData['stage'] = 'Deliver';
             $updateData['win_probability'] = 100;
