@@ -4,9 +4,13 @@
     $uniqueEngineers = $uniqueEngineers ?? collect();
     $isBoth = ($project->handover_target === 'both');
     $isMs = ($project->handover_target === 'managed_service' || ($project->stage === 'Operate' && !$isBoth));
+    $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+    $draftApprovals = $handoverData['draft_approvals'] ?? [];
+    $headApproval = $headApproval ?? ($draftApprovals['head'] ?? []);
+    $directorApproval = $directorApproval ?? ($draftApprovals['director'] ?? []);
+    $isBothApproved = $isBothApproved ?? (!empty($headApproval['approved']) && !empty($directorApproval['approved']));
     $isAnyApproved = $isAnyApproved ?? (!empty($headApproval['approved']) || !empty($directorApproval['approved']));
     $isBdApproved = $isBdApproved ?? (!empty($bdVerification['status']) && $bdVerification['status'] === 'Approved');
-    $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
     $msHandover = $handoverData['ms_handover'] ?? [];
     $isMsHandedOver = !empty($msHandover['handed_over']);
 
@@ -40,8 +44,8 @@
         || str_contains(strtolower($authUser->position ?? ''), 'sales')
         || str_contains(strtolower($authUser->position ?? ''), 'account manager')
     );
-    $canAssignDivision = $authUser && !$isExecutiveUser && ($isAdminPure || $isPresalesUser || $isSalesUser);
-    $canAssignScope = $authUser && !$isExecutiveUser && ($isAdminPure || $isSalesUser);
+    $canAssignDivision = $isBothApproved && $authUser && !$isExecutiveUser && ($isAdminPure || $isPresalesUser || $isSalesUser);
+    $canAssignScope = $isBothApproved && $authUser && !$isExecutiveUser && ($isAdminPure || $isSalesUser);
 @endphp
 <div class="ipnet-card p-6 space-y-5">
     {{-- Header & Status (Konsisten dengan Kolaborasi Tim Solusi Teknis) --}}
@@ -61,9 +65,9 @@
         </div>
         
         <div class="shrink-0 flex items-center">
-            @if(!$isAnyApproved)
+            @if(!$isBothApproved)
                 <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5 shadow-2xs whitespace-nowrap">
-                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     <span>Menunggu Persetujuan Pimpinan</span>
                 </span>
             @elseif($isBoth)
@@ -204,7 +208,15 @@
                             @endif
                         </div>
                     @else
-                        @if(!empty($canAssignDivision))
+                        @if(!$isBothApproved)
+                            <div class="p-3 rounded-lg bg-amber-50/40 border border-dashed border-amber-300/80 text-amber-900 space-y-1">
+                                <div class="font-bold text-amber-900 text-xs flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    <span>Terkunci - Menunggu Persetujuan Pimpinan</span>
+                                </div>
+                                <div class="text-[10.5px] text-amber-800/80">Penetapan tim teknis pelaksana akan terbuka setelah disetujui oleh Head Division &amp; Direktur.</div>
+                            </div>
+                        @elseif(!empty($canAssignDivision))
                             <div @click.stop="openAssignDivisionModal()" 
                                  onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
                                  class="p-3 rounded-lg bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200 text-amber-900 space-y-1.5 cursor-pointer transition shadow-2xs group">
@@ -237,14 +249,19 @@
 
             {{-- Actions Footer: Wewenang Pre-Sales Specialist, Sales, Lead Engineer, PMO & Admin --}}
             @php
-                $canAssignEngineerCard = $authUser && (
+                $canAssignEngineerCard = $isBothApproved && $authUser && (
                     \App\Helpers\ScopeHelper::isTeamLeader($authUser)
                     || !empty(array_intersect(['Lead Engineer', 'Team Leader', 'Team Leader Engineering', 'Lead Divisi', 'Lead Maintenance', 'PMO', 'Project Manager', 'Super Admin', 'Admin'], $userRoles))
                     || ($project->created_by === $authUser->id)
                 );
             @endphp
             <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto flex-wrap">
-                @if(!empty($canAssignDivision))
+                @if(!$isBothApproved)
+                    <span class="inline-flex items-center gap-1.5 text-xs text-amber-800 font-semibold">
+                        <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        Terkunci (Menunggu Persetujuan Pimpinan)
+                    </span>
+                @elseif(!empty($canAssignDivision))
                     <button type="button" 
                             @click.stop="openAssignDivisionModal()" 
                             onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
@@ -261,7 +278,7 @@
                     </span>
                 @endif
 
-                @if(!empty($canAssignEngineerCard) && !empty($project->division_id))
+                @if($isBothApproved && !empty($canAssignEngineerCard) && !empty($project->division_id))
                     <button type="button" 
                             @click.stop="openAssignEngineerModal()" 
                             onclick="event.stopPropagation(); window.openModal('modal-assign-engineer')"
@@ -371,7 +388,15 @@
                             @endif
                         </div>
                     @else
-                        @if(!empty($canAssignScope))
+                        @if(!$isBothApproved)
+                            <div class="p-3 rounded-lg bg-amber-50/40 border border-dashed border-amber-300/80 text-amber-900 space-y-1">
+                                <div class="font-bold text-amber-900 text-xs flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    <span>Terkunci - Menunggu Persetujuan Pimpinan</span>
+                                </div>
+                                <div class="text-[10.5px] text-amber-800/80">Penetapan skema &amp; karakteristik proyek akan terbuka setelah disetujui oleh Head Division &amp; Direktur.</div>
+                            </div>
+                        @elseif(!empty($canAssignScope))
                             <div @click.stop="openHandoverModal('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}')"
                                  onclick="event.stopPropagation(); (window.openHandoverModalCustom ? window.openHandoverModalCustom('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}') : window.openModal('modal-handover'))"
                                  class="p-3 rounded-lg bg-amber-50/80 hover:bg-amber-100/80 border border-amber-200 text-amber-900 space-y-1.5 cursor-pointer transition shadow-2xs group">
@@ -403,7 +428,14 @@
             </div>
 
             {{-- Actions Footer: Wewenang Sales / Account Manager & Admin --}}
-            @if(!empty($canAssignScope))
+            @if(!$isBothApproved)
+                <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
+                    <span class="inline-flex items-center gap-1.5 text-xs text-amber-800 font-semibold">
+                        <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        Terkunci (Menunggu Persetujuan Pimpinan)
+                    </span>
+                </div>
+            @elseif(!empty($canAssignScope))
                 <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2 mt-auto">
                     <button type="button" 
                             @click.stop="openHandoverModal('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}')"

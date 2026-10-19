@@ -363,6 +363,10 @@
     };
 
     window.openModal = function(modalId) {
+        if ((modalId === 'modal-handover' || modalId === 'modal-assign-division' || modalId === 'modal-assign-engineer') && !@json($isBothApproved)) {
+            alert('Alokasi lingkup kerja dan tim teknis masih terkunci: Menunggu persetujuan resmi dari Head Division dan Direktur.');
+            return;
+        }
         const el = document.getElementById(modalId);
         if (el) {
             el.removeAttribute('x-cloak');
@@ -640,6 +644,10 @@
             isAssignEngineerModalOpen: false,
 
             openHandoverModal(target = null) {
+                if (!@json($isBothApproved)) {
+                    alert('Alokasi lingkup dan skema proyek masih terkunci: Menunggu persetujuan resmi dari Head Division dan Direktur.');
+                    return;
+                }
                 if (target === 'both') {
                     this.handoverTargets = ['pmo', 'managed_service'];
                     this.handoverTargetType = 'both';
@@ -655,11 +663,19 @@
             },
 
             openAssignDivisionModal() {
+                if (!@json($isBothApproved)) {
+                    alert('Alokasi tim pelaksana teknis masih terkunci: Menunggu persetujuan resmi dari Head Division dan Direktur.');
+                    return;
+                }
                 this.isAssignDivisionModalOpen = true;
                 window.openModal('modal-assign-division');
             },
 
             openAssignEngineerModal() {
+                if (!@json($isBothApproved)) {
+                    alert('Penugasan personel teknisi masih terkunci: Menunggu persetujuan resmi dari Head Division dan Direktur.');
+                    return;
+                }
                 this.isAssignEngineerModalOpen = true;
                 window.openModal('modal-assign-engineer');
             },

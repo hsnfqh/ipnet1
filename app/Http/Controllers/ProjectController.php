@@ -395,6 +395,11 @@ class ProjectController extends Controller
             $canAssignScope = $authUser && ($isAdmin || $isSales);
             abort_unless($canAssignScope, 403, 'Penetapan skema dan ruang lingkup proyek merupakan wewenang Sales / Account Manager atau Admin.');
 
+            $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
+            $draftApprovals = $handoverData['draft_approvals'] ?? [];
+            $isBothApproved = !empty($draftApprovals['head']['approved']) && !empty($draftApprovals['director']['approved']);
+            abort_unless($isBothApproved, 403, 'Penetapan skema dan karakteristik proyek terkunci: Menunggu persetujuan resmi dari Head Division dan Direktur.');
+
             $target = $validated['handover_target'] ?? ($project->handover_target ?: 'pmo');
             $updateFields = [
                 'handover_target' => $target,
@@ -539,6 +544,11 @@ class ProjectController extends Controller
                     : "Serah terima berhasil & User '" . ($user ? $user->name : 'PM') . "' ditugaskan sebagai Project Manager (PMO)!")
                 : "Perencanaan ruang lingkup & rekomendasi skema proyek berhasil disimpan.";
         } else {
+            $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
+            $draftApprovals = $handoverData['draft_approvals'] ?? [];
+            $isBothApproved = !empty($draftApprovals['head']['approved']) && !empty($draftApprovals['director']['approved']);
+            abort_unless($isBothApproved, 403, 'Penugasan personel teknisi terkunci: Menunggu persetujuan resmi dari Head Division dan Direktur.');
+
             $taskTitle = $validated['task_title'] ?: ('Implementasi Teknis: ' . $project->name);
             $task = Task::create([
                 'project_id'  => $project->id,
@@ -596,6 +606,11 @@ class ProjectController extends Controller
         );
         $canAssign = $authUser && ($isAdmin || $isPresalesUser || $isSalesUser);
         abort_unless($canAssign, 403, 'Penetapan tim pelaksana teknis merupakan wewenang tim Pre-Sales Specialist atau Sales.');
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : (json_decode($project->handover_data ?? '', true) ?: []);
+        $draftApprovals = $handoverData['draft_approvals'] ?? [];
+        $isBothApproved = !empty($draftApprovals['head']['approved']) && !empty($draftApprovals['director']['approved']);
+        abort_unless($isBothApproved, 403, 'Penetapan tim pelaksana teknis terkunci: Menunggu persetujuan resmi dari Head Division dan Direktur.');
 
         $validated = $request->validate([
             'target_division' => 'required|in:network,security,both',
