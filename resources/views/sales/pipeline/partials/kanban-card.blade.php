@@ -220,8 +220,7 @@
                 || !empty(array_intersect(['Sales', 'Account Manager', 'PMO', 'Project Manager', 'Super Admin', 'Admin'], $authCardUserRoles))
             );
             $isCompletedColumn = (($column ?? '') === 'Completed')
-                || in_array(strtolower($project->status ?? ''), ['completed', 'finished', 'delivered', 'done', 'closed won'])
-                || strtolower($project->sales_stage ?? '') === 'closed won';
+                || in_array(strtolower($project->status ?? ''), ['completed', 'finished', 'delivered', 'done', 'selesai', 'closed']);
         @endphp
 
         @if($canMarkComplete && !$isCompletedColumn && (($column ?? '') === 'In Progress' || $project->status === 'In Progress'))

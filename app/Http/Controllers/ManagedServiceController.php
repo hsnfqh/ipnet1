@@ -90,9 +90,17 @@ class ManagedServiceController extends Controller
         $slaMetCount     = $tickets->where('sla_met', true)->whereNotNull('resolved_at')->count();
         $slaScore        = $totalSlaChecked > 0 ? round(($slaMetCount / $totalSlaChecked) * 100, 1) : 0;
 
-        // Proyek di Tahap Operate / Managed Service (Selesai Serah Terima)
-        $operateProjects = Project::where('stage', 'Operate')
-            ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+        // Proyek di Tahap Operate / Managed Service (Selesai Serah Terima atau Closed Won & In Progress)
+        $operateProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where(function($q) {
+                $q->where('stage', 'Operate')
+                  ->orWhere('sales_stage', 'Closed Won')
+                  ->orWhere('status', 'In Progress')
+                  ->orWhereIn('handover_target', ['managed_service', 'both'])
+                  ->orWhere('name', 'like', '%pemeliharaan%')
+                  ->orWhere('name', 'like', '%maintenance%')
+                  ->orWhere('name', 'like', '%managed service%');
+            })
             ->get();
 
         // SLA Tier counts
@@ -946,10 +954,12 @@ class ManagedServiceController extends Controller
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
             ->where(function($q) {
                 $q->where('stage', 'Operate')
-                  ->orWhere(function($sub) {
-                      $sub->where('sales_stage', 'Closed Won')
-                          ->whereIn('handover_target', ['managed_service', 'both']);
-                  });
+                  ->orWhere('sales_stage', 'Closed Won')
+                  ->orWhere('status', 'In Progress')
+                  ->orWhereIn('handover_target', ['managed_service', 'both'])
+                  ->orWhere('name', 'like', '%pemeliharaan%')
+                  ->orWhere('name', 'like', '%maintenance%')
+                  ->orWhere('name', 'like', '%managed service%');
             });
 
         if ($request->filled('search')) {

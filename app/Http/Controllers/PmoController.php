@@ -79,11 +79,16 @@ class PmoController extends Controller
         ->where('name', 'not like', '%- Closed Project%')
         ->where(function($q) {
             $q->where('sales_name', 'like', '%Nabylla%')
-              ->orWhere('sales_name', 'like', '%Raiza%');
+              ->orWhere('sales_name', 'like', '%Raiza%')
+              ->orWhereNotNull('sales_name')
+              ->orWhere('sales_stage', 'Closed Won')
+              ->orWhere('status', 'In Progress');
         })
         ->where(function($q) {
             $q->whereIn('stage', ['Deliver', 'Operate'])
-              ->orWhereIn('handover_status', ['Submitted', 'Conditional']);
+              ->orWhereIn('handover_status', ['Submitted', 'Conditional', 'Approved'])
+              ->orWhere('sales_stage', 'Closed Won')
+              ->orWhere('status', 'In Progress');
         });
 
         // Filter divisi jika dipilih

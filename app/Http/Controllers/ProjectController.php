@@ -1513,6 +1513,12 @@ class ProjectController extends Controller
             if ($project->progress < 10) {
                 $project->progress = 15;
             }
+            if (empty($project->handover_status) || $project->handover_status === 'Pending') {
+                $project->handover_status = 'Submitted';
+            }
+            if (empty($project->handover_target)) {
+                $project->handover_target = 'both';
+            }
 
             // Notifikasi ke tim PMO & Manajemen
             if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {

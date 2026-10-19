@@ -153,11 +153,10 @@ class DashboardController extends Controller
             $totalProjectCount = $salesProjects->count();
             $totalProjectValue = $salesProjects->sum($valOf);
 
-            // Complete / Closed Won
+            // Complete (Hanya proyek yang eksekusinya benar-benar sudah selesai)
             $completeProjects = $salesProjects->filter(function($p) {
                 $st = strtolower(trim($p->status ?? ''));
-                $sst = $p->sales_stage ?? '';
-                return $sst === 'Closed Won' || in_array($st, ['completed', 'finished', 'delivered', 'done', 'selesai', 'closed']);
+                return in_array($st, ['completed', 'finished', 'delivered', 'done', 'selesai', 'closed']);
             });
             $totalCompleteCount = $completeProjects->count();
             $totalCompleteValue = $completeProjects->sum($valOf);
@@ -171,12 +170,13 @@ class DashboardController extends Controller
             $totalPendingCount = $pendingProjects->count();
             $totalPendingValue = $pendingProjects->sum($valOf);
 
-            // In Progress
+            // In Progress (Termasuk proyek Closed Won yang sedang berjalan di PM / Engineer dan belum selesai)
             $inProgressProjects = $salesProjects->filter(function($p) use ($completeProjects, $pendingProjects) {
                 if ($completeProjects->contains('id', $p->id) || $pendingProjects->contains('id', $p->id)) return false;
                 $st = strtolower(trim($p->status ?? ''));
                 $sst = $p->sales_stage ?? '';
                 return in_array($st, ['in progress', 'on progress', 'active', 'development', 'testing', 'progress', 'ongoing'])
+                    || $sst === 'Closed Won'
                     || in_array($sst, ['Contract / PO / SPK', 'Negotiation', 'Approval']);
             });
             $totalInProgressCount = $inProgressProjects->count();

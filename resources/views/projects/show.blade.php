@@ -1093,16 +1093,32 @@
                                     || ($project->sales_id && $project->sales_id === $authUser->id)
                                     || !empty(array_intersect(['PMO', 'Project Manager', 'Super Admin', 'Admin'], $userRoles))
                                 );
+                                $canAssignEngineer = $authUser && (
+                                    \App\Helpers\ScopeHelper::isTeamLeader($authUser)
+                                    || !empty(array_intersect(['Lead Engineer', 'Team Leader', 'Team Leader Engineering', 'Lead Divisi', 'Lead Maintenance', 'PMO', 'Project Manager', 'Super Admin', 'Admin'], $userRoles))
+                                    || ($project->created_by === $authUser->id)
+                                );
                             @endphp
-                            @if($canAddMilestone)
-                            <button type="button" 
-                                    @click="isAddMilestoneModalOpen = true" 
-                                    onclick="window.openModal('modal-add-milestone')"
-                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200 shadow-2xs">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span>Susun Timeline Proyek</span>
-                            </button>
-                            @endif
+                            <div class="flex items-center gap-2 flex-wrap">
+                                @if($canAssignEngineer)
+                                <button type="button" 
+                                        @click="openAssignEngineerModal()" 
+                                        onclick="window.openModal('modal-assign-engineer')"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] transition cursor-pointer shadow-2xs">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                    <span>Tugaskan Teknisi Lapangan</span>
+                                </button>
+                                @endif
+                                @if($canAddMilestone)
+                                <button type="button" 
+                                        @click="isAddMilestoneModalOpen = true" 
+                                        onclick="window.openModal('modal-add-milestone')"
+                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition cursor-pointer border border-slate-200 shadow-2xs">
+                                    <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Susun Timeline Proyek</span>
+                                </button>
+                                @endif
+                            </div>
                         </div>
 
                         @if($project->tasks->count() > 0)
