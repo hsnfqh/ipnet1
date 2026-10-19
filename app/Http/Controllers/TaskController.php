@@ -352,31 +352,57 @@ class TaskController extends Controller
     public function update(Request $request, Task $task)
     {
         $user = auth()->user();
+        $isLead = ScopeHelper::canManageTasks($user);
 
-        // Hanya Team Leader & Koordinator Helpdesk yang memiliki wewenang untuk mengubah atau memperbarui task
-        abort_unless(ScopeHelper::canManageTasks($user), 403, 'Hanya Team Leader / Koordinator yang berhak mengubah atau memperbarui task.');
-
-        $rules = [
-            'title'             => 'sometimes|required|string|max:255',
-            'project_id'        => 'sometimes|required',
-            'new_project_name'  => 'sometimes|nullable|string|max:255',
-            'engineer_id'       => 'sometimes|nullable|exists:users,id',
-            'engineer_ids'      => 'sometimes|nullable|array|min:1',
-            'engineer_ids.*'    => 'exists:users,id',
-            'priority'          => 'sometimes|required|in:High,Medium,Low',
-            'start_date'        => 'sometimes|nullable|date',
-            'end_date'          => 'sometimes|nullable|date',
-            'deadline'          => 'sometimes|nullable|date',
-            'deadline_time'     => 'sometimes|nullable|string',
-            'description'       => 'sometimes|nullable|string',
-            'status'            => 'sometimes|required|in:Assigned,In Progress,Waiting Review,Completed',
-            'progress'          => 'sometimes|nullable|integer|min:0|max:100',
-            'doc_file'          => \App\Helpers\FileUploadHelper::fileValidationRule(51200),
-        ];
-        if ($request->has('project_id') && $request->input('project_id') !== 'other') {
-            $rules['project_id'] .= '|exists:projects,id';
+        // Cek apakah user adalah teknisi pelaksana yang ditugaskan pada task ini
+        $isAssignee = false;
+        if ($task->engineer_id && (int) $task->engineer_id === (int) $user->id) {
+            $isAssignee = true;
+        } elseif (Schema::hasTable('task_user')) {
+            $isAssignee = \Illuminate\Support\Facades\DB::table('task_user')
+                ->where('task_id', $task->id)
+                ->where('user_id', $user->id)
+                ->exists();
         }
-        $validated = $request->validate($rules);
+
+        // Izin update diberikan kepada Team Leader ATAU Teknisi yang ditugaskan
+        abort_unless($isLead || $isAssignee, 403, 'Anda tidak memiliki wewenang untuk memperbarui task ini.');
+
+        // Jika teknisi pelaksana (bukan lead), status 'Completed' otomatis dialihkan ke 'Waiting Review'
+        if (!$isLead && $isAssignee) {
+            if ($request->input('status') === 'Completed') {
+                $request->merge(['status' => 'Waiting Review']);
+            }
+            $rules = [
+                'status'        => 'sometimes|required|in:Assigned,In Progress,Waiting Review',
+                'progress'      => 'sometimes|nullable|integer|min:0|max:100',
+                'description'   => 'sometimes|nullable|string',
+                'doc_file'      => \App\Helpers\FileUploadHelper::fileValidationRule(51200),
+            ];
+            $validated = $request->validate($rules);
+        } else {
+            $rules = [
+                'title'             => 'sometimes|required|string|max:255',
+                'project_id'        => 'sometimes|required',
+                'new_project_name'  => 'sometimes|nullable|string|max:255',
+                'engineer_id'       => 'sometimes|nullable|exists:users,id',
+                'engineer_ids'      => 'sometimes|nullable|array|min:1',
+                'engineer_ids.*'    => 'exists:users,id',
+                'priority'          => 'sometimes|required|in:High,Medium,Low',
+                'start_date'        => 'sometimes|nullable|date',
+                'end_date'          => 'sometimes|nullable|date',
+                'deadline'          => 'sometimes|nullable|date',
+                'deadline_time'     => 'sometimes|nullable|string',
+                'description'       => 'sometimes|nullable|string',
+                'status'            => 'sometimes|required|in:Assigned,In Progress,Waiting Review,Completed',
+                'progress'          => 'sometimes|nullable|integer|min:0|max:100',
+                'doc_file'          => \App\Helpers\FileUploadHelper::fileValidationRule(51200),
+            ];
+            if ($request->has('project_id') && $request->input('project_id') !== 'other') {
+                $rules['project_id'] .= '|exists:projects,id';
+            }
+            $validated = $request->validate($rules);
+        }
 
         // Kelola project 'other' / project baru jika diedit
         if ($request->input('project_id') === 'other' || !empty($request->input('new_project_name'))) {

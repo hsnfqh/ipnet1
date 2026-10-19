@@ -285,16 +285,27 @@
                                         </button>
                                     </div>
                                     @else
-                                    {{-- READ-ONLY / ENGINEER / PMO / VIEWERS: HANYA LIHAT DETAIL TASK --}}
+                                    {{-- ENGINEER / VIEWERS: JIKA TEKNISI TUGAS TERKAIT, BISA UPDATE PROGRESS --}}
                                     <div class="flex items-center gap-1.5 mt-3">
                                         <button @click="openDetailModal(task)"
-                                                class="w-full py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                                :class="isMyTask(task) && task.status !== 'Completed' ? 'w-1/2' : 'w-full'"
+                                                class="py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                             </svg>
                                             Detail Task
                                         </button>
+                                        <template x-if="isMyTask(task) && task.status !== 'Completed'">
+                                            <button @click="openProgressModal(task)"
+                                                    class="w-1/2 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#72080a] text-white text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                                                    title="Update Progress & Bukti Lapangan">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                </svg>
+                                                Update
+                                            </button>
+                                        </template>
                                     </div>
                                     @endif
                                 </div>
@@ -612,7 +623,28 @@
                                 </div>
                                 
                                 <input type="range" min="0" max="100" step="5" x-model="progressForm.progress" 
+                                       @input="if(progressForm.progress == 100 && !isLead) { progressForm.status = 'Waiting Review'; } else if(progressForm.progress > 0 && progressForm.status === 'Assigned') { progressForm.status = 'In Progress'; }"
                                        class="w-full accent-[#8F0A0D] cursor-pointer">
+                            </div>
+
+                            {{-- Status Pengerjaan --}}
+                            <div class="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-2xs space-y-2">
+                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px]">
+                                    Status Pengerjaan
+                                </label>
+                                <select x-model="progressForm.status"
+                                        class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs cursor-pointer">
+                                    <option value="Assigned">Assigned (Ditugaskan / Belum Mulai)</option>
+                                    <option value="In Progress">In Progress (Sedang Dikerjakan)</option>
+                                    <option value="Waiting Review">Waiting Review (Selesai Dikerjakan & Siap Dicek Lead)</option>
+                                    <template x-if="isLead">
+                                        <option value="Completed">Completed (Selesai & Terverifikasi Lead)</option>
+                                    </template>
+                                </select>
+                                <div class="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/60 text-[11px] text-amber-800 flex items-start gap-2" x-show="!isLead">
+                                    <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span><strong>Alur SOP:</strong> Bila pekerjaan Anda telah selesai di lapangan, pilih status <strong>"Waiting Review"</strong> dan sertakan bukti dokumentasi agar Team Leader dapat mengecek dan memverifikasi menjadi <strong>Completed</strong>.</span>
+                                </div>
                             </div>
 
                             {{-- File Upload --}}
@@ -811,15 +843,15 @@
                                                 </a>
                                             </div>
                                         </div>
-                                        @if($canManage)
-                                        <div style="margin-top:8px; text-align:right;">
-                                            <button type="button" @click="detailModalOpen = false; openProgressModal(selectedTask);" 
-                                                    style="background:none; border:none; color:#8F0A0D; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; text-decoration:underline;">
-                                                <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                                Ganti / Upload Ulang Bukti Lapangan
-                                            </button>
-                                        </div>
-                                        @endif
+                                        <template x-if="isLead || isMyTask(selectedTask)">
+                                            <div style="margin-top:8px; text-align:right;">
+                                                <button type="button" @click="detailModalOpen = false; openProgressModal(selectedTask);" 
+                                                        style="background:none; border:none; color:#8F0A0D; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; text-decoration:underline;">
+                                                    <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                    Ganti / Upload Ulang Bukti Lapangan
+                                                </button>
+                                            </div>
+                                        </template>
                                     </div>
                                 </template>
 
@@ -828,15 +860,15 @@
                                         <svg style="width:32px; height:32px; color:#94A3B8; margin:0 auto 8px auto; display:block;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                         <p style="color:#475569; font-size:12.5px; font-weight:700; margin:0 0 4px 0;">Belum ada dokumentasi foto/file yang diupload untuk task ini.</p>
                                         <p style="color:#94A3B8; font-size:11px; margin:0 0 14px 0;">Bukti lapangan (foto perangkat, kabel, hasil ping/speedtest, atau BAST) diupload melalui menu Update Progress.</p>
-                                        @if($canManage)
-                                        <button type="button" @click="detailModalOpen = false; openProgressModal(selectedTask);" 
-                                                style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px; background:white; border:1.5px solid #CBD5E1; color:#8F0A0D; font-size:12px; font-weight:700; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.04); transition:all 0.15s ease;"
-                                                onmouseover="this.style.borderColor='#8F0A0D'; this.style.background='#FEF2F2'"
-                                                onmouseout="this.style.borderColor='#CBD5E1'; this.style.background='white'">
-                                            <svg style="width:15px; height:15px; color:#8F0A0D;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                            <span>Upload Foto / Dokumen Sekarang</span>
-                                        </button>
-                                        @endif
+                                        <template x-if="isLead || isMyTask(selectedTask)">
+                                            <button type="button" @click="detailModalOpen = false; openProgressModal(selectedTask);" 
+                                                    style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px; background:white; border:1.5px solid #CBD5E1; color:#8F0A0D; font-size:12px; font-weight:700; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.04); transition:all 0.15s ease;"
+                                                    onmouseover="this.style.borderColor='#8F0A0D'; this.style.background='#FEF2F2'"
+                                                    onmouseout="this.style.borderColor='#CBD5E1'; this.style.background='white'">
+                                                <svg style="width:15px; height:15px; color:#8F0A0D;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                                <span>Upload Foto / Dokumen Sekarang</span>
+                                            </button>
+                                        </template>
                                     </div>
                                 </template>
                             </div>
@@ -844,7 +876,27 @@
                             <!-- Detail Modal Footer Actions -->
                             <div style="margin-top:24px; padding-top:18px; border-top:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
                                 @if($canManage)
-                                <template x-if="selectedTask?.status !== 'Completed' || selectedTask?.progress < 100">
+                                <template x-if="selectedTask?.status === 'Waiting Review'">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <button type="button" 
+                                                @click="quickCompleteTask(selectedTask); detailModalOpen = false;"
+                                                style="padding:10px 20px; border-radius:12px; border:none; background:#16A34A; color:white; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(22,163,74,0.25); transition:all 0.15s ease;"
+                                                onmouseover="this.style.background='#15803D'"
+                                                onmouseout="this.style.background='#16A34A'">
+                                            <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            Verifikasi & Selesaikan (Completed)
+                                        </button>
+                                        <button type="button" 
+                                                @click="rejectTask(selectedTask); detailModalOpen = false;"
+                                                style="padding:10px 18px; border-radius:12px; border:1px solid #FCA5A5; background:#FEF2F2; color:#DC2626; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.15s ease;"
+                                                onmouseover="this.style.background='#FEE2E2'"
+                                                onmouseout="this.style.background='#FEF2F2'">
+                                            <svg style="width:15px; height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                            Minta Revisi
+                                        </button>
+                                    </div>
+                                </template>
+                                <template x-if="selectedTask?.status !== 'Waiting Review' && selectedTask?.status !== 'Completed'">
                                     <button type="button" 
                                             @click="quickCompleteTask(selectedTask); detailModalOpen = false;"
                                             style="padding:11px 22px; border-radius:12px; border:none; background:#16A34A; color:white; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(22,163,74,0.25); transition:all 0.15s ease;"
@@ -852,6 +904,15 @@
                                             onmouseout="this.style.background='#16A34A'">
                                         <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                         Tandai Selesai (100% Completed)
+                                    </button>
+                                </template>
+                                @else
+                                <template x-if="isMyTask(selectedTask) && selectedTask?.status !== 'Completed'">
+                                    <button type="button" 
+                                            @click="detailModalOpen = false; openProgressModal(selectedTask);"
+                                            style="padding:10px 20px; border-radius:12px; border:none; background:#8F0A0D; color:white; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(143,10,13,0.25); transition:all 0.15s ease;">
+                                        <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                        Update Progres & Dokumen
                                     </button>
                                 </template>
                                 @endif
@@ -1035,8 +1096,12 @@
                 },
                 progressForm: {
                     taskId: null,
+                    taskTitle: '',
+                    projectName: '',
+                    priority: 'Medium',
                     progress: 0,
-                    notes: '',
+                    status: 'In Progress',
+                    description: '',
                     fileName: '',
                     docFile: null
                 },
@@ -1365,12 +1430,25 @@
                     this.confirmOpen = true;
                 },
 
+                isMyTask: function(task) {
+                    if (!task) return false;
+                    if (this.isLead) return true;
+                    if (task.engineer_id && parseInt(task.engineer_id) === parseInt(this.currentUserId)) return true;
+                    if (task.engineers && Array.isArray(task.engineers)) {
+                        return task.engineers.some(function(e) {
+                            return parseInt(e.id || e) === parseInt(this.currentUserId);
+                        }.bind(this));
+                    }
+                    return false;
+                },
+
                 openProgressModal: function(task) {
                     this.progressForm.taskId = task.id;
                     this.progressForm.taskTitle = task.title || '';
                     this.progressForm.projectName = task.project ? task.project.name : (task.client_name || 'Layanan SLA & Maintenance');
                     this.progressForm.priority = task.priority || 'Medium';
-                    this.progressForm.progress = task.progress || 0;
+                    this.progressForm.progress = task.progress !== undefined ? parseInt(task.progress) : 0;
+                    this.progressForm.status = task.status || 'In Progress';
                     this.progressForm.description = '';
                     this.progressForm.fileName = '';
                     this.progressForm.docFile = null;
@@ -1558,7 +1636,7 @@
                                 this.selectedTask.status = 'Completed';
                                 this.selectedTask.progress = 100;
                             }
-                            this.showToast('Task "' + task.title + '" berhasil diselesaikan (100% Completed)!');
+                            this.showToast('Task "' + task.title + '" berhasil diverifikasi dan diselesaikan (Completed)!');
                         } else {
                             var err = await response.json();
                             this.showToast('Error: ' + (err.message || 'Gagal menyelesaikan task.'));
@@ -1566,6 +1644,47 @@
                     } catch (error) {
                         console.error('Error completing task:', error);
                         this.showToast('Terjadi kesalahan saat menyelesaikan task.');
+                    }
+                },
+
+                rejectTask: async function(task) {
+                    if (!task || !task.id) return;
+                    if (!confirm('Kembalikan status task ke "In Progress" untuk direvisi oleh teknisi?')) return;
+                    try {
+                        var response = await fetch('/tasks/' + task.id, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({ 
+                                status: 'In Progress',
+                                progress: 80
+                            })
+                        });
+
+                        if (response.ok) {
+                            var data = await response.json();
+                            var idx = this.tasks.findIndex(function(t) { return t.id === task.id; });
+                            if (idx !== -1 && data) {
+                                this.tasks[idx] = data;
+                            } else {
+                                task.status = 'In Progress';
+                                task.progress = 80;
+                            }
+                            if (this.selectedTask && this.selectedTask.id === task.id) {
+                                this.selectedTask.status = 'In Progress';
+                                this.selectedTask.progress = 80;
+                            }
+                            this.showToast('Task dikembalikan ke "In Progress" untuk perbaikan oleh teknisi.');
+                        } else {
+                            var err = await response.json();
+                            this.showToast('Error: ' + (err.message || 'Gagal mengubah status.'));
+                        }
+                    } catch (error) {
+                        console.error('Error rejecting task:', error);
+                        this.showToast('Terjadi kesalahan saat meminta revisi task.');
                     }
                 },
 
@@ -1599,6 +1718,9 @@
                     try {
                         var formData = new FormData();
                         formData.append('progress', this.progressForm.progress);
+                        if (this.progressForm.status) {
+                            formData.append('status', this.progressForm.status);
+                        }
                         if (this.progressForm.description) {
                             formData.append('description', this.progressForm.description);
                         }
@@ -1625,8 +1747,14 @@
                                 task.progress = data.progress !== undefined ? data.progress : parseInt(this.progressForm.progress);
                                 task.doc_file = data.doc_file !== undefined ? data.doc_file : task.doc_file;
                                 task.description = data.description !== undefined ? data.description : task.description;
-                                task.status = data.status !== undefined ? data.status : task.status;
+                                task.status = data.status !== undefined ? data.status : (this.progressForm.status || task.status);
                                 task.attachments = data.attachments !== undefined ? data.attachments : task.attachments;
+                            }
+                            if (this.selectedTask && this.selectedTask.id === this.progressForm.taskId) {
+                                this.selectedTask.progress = task.progress;
+                                this.selectedTask.doc_file = task.doc_file;
+                                this.selectedTask.description = task.description;
+                                this.selectedTask.status = task.status;
                             }
                             this.progressModalOpen = false;
                             var msg = this.progressForm.docFile
