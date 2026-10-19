@@ -1391,6 +1391,32 @@ Route::get('/clear-dummy-data', function () {
     }
 });
 
+// Webhook / Helper route untuk menarik update terbaru dari GitHub di cPanel/hosting
+Route::get('/git-pull-deploy', function () {
+    $outputs = [];
+    $returnVar = 0;
+    if (function_exists('exec')) {
+        @exec('git pull origin main 2>&1', $outputs, $returnVar);
+    }
+    
+    $migrateOutput = '';
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    } catch (\Throwable $e) {
+        $migrateOutput = 'Migrate error: ' . $e->getMessage();
+    }
+
+    return response()->json([
+        'status' => $returnVar === 0 ? 'success' : 'notice',
+        'git_pull_output' => $outputs,
+        'migrate_output' => trim($migrateOutput),
+        'message' => 'Kode terbaru dari GitHub telah ditarik dan cache tampilan telah dibersihkan!',
+    ]);
+});
+
 // Route aman untuk menjalankan migration saja tanpa mereset data
 Route::get('/migrate-only', function () {
     try {
