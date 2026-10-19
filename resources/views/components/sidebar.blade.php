@@ -54,7 +54,15 @@
         $navItems = [
             ['key' => 'dashboard',         'label' => 'Dashboard',         'route' => 'ms.dashboard'],
             ['key' => 'ms_projects',       'label' => 'Projects',          'route' => 'ms.projects.index'],
-            ['key' => 'ms_monitoring',     'label' => 'Monitoring PM/CM',  'route' => 'ms.monitoring.index'],
+            [
+                'key'      => 'ms_monitoring',
+                'label'    => 'Monitoring',
+                'route'    => 'ms.monitoring.index',
+                'children' => [
+                    ['key' => 'ms_pm', 'label' => 'Preventive (PM)', 'route' => 'ms.monitoring.pm'],
+                    ['key' => 'ms_cm', 'label' => 'Corrective (CM)', 'route' => 'ms.monitoring.cm'],
+                ]
+            ],
             ['key' => 'ms_tickets',        'label' => 'Tickets & SLA',     'route' => 'ms.tickets.index'],
             ['key' => 'tasks',             'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
             ['key' => 'activities',        'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
@@ -332,20 +340,63 @@
             @php
                 $itemParams = $item['params'] ?? [];
                 $itemUrl = !empty($itemParams) ? route($item['route'], $itemParams) : route($item['route']);
+                $hasChildren = !empty($item['children']);
+                $childActive = false;
+                if ($hasChildren) {
+                    foreach ($item['children'] as $child) {
+                        if ($currentRoute === $child['route']) {
+                            $childActive = true;
+                            break;
+                        }
+                    }
+                }
                 if (isset($itemParams['status'])) {
                     $isActive = ($currentRoute === $item['route']) && (request('status') === $itemParams['status']);
                 } else {
                     $isActive = (($currentRoute === $item['route']) || 
                                  ($item['key'] === 'projects' && in_array($currentRoute, ['sales.pipeline.index', 'sales.pipeline.show', 'sales.pipeline.create', 'projects.show', 'projects.index', 'sales.projects.show'])) ||
                                  ($item['key'] === 'ms_projects' && in_array($currentRoute, ['ms.projects.index', 'ms.projects.show'])) ||
-                                 ($item['key'] === 'ms_monitoring' && in_array($currentRoute, ['ms.monitoring.index'])) ||
+                                 ($item['key'] === 'ms_monitoring' && (in_array($currentRoute, ['ms.monitoring.index', 'ms.monitoring.pm', 'ms.monitoring.cm']) || $childActive)) ||
                                  ($item['key'] === 'digital_signatures' && str_starts_with($currentRoute, 'digital_signatures.'))) && (!request()->has('status') || request('status') === '');
                 }
             @endphp
-            <a href="{{ $itemUrl }}"
-               class="sidebar-nav-item{{ $isActive ? ' sidebar-nav-item-active' : '' }}"
-               style="display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:12px; text-decoration:none; font-size:13.5px; font-weight:{{ $isActive ? '700' : '500' }}; {{ $isActive ? 'background:white; color:#8F0A0D; box-shadow:0 6px 18px rgba(0,0,0,0.22);' : 'color:rgba(255,255,255,0.85);' }} transition:all 0.15s ease;">
-                @switch($item['key'])
+            @if($hasChildren)
+                <div x-data="{ openMenu: {{ ($isActive || $childActive) ? 'true' : 'false' }} }" style="width:100%;">
+                    <button type="button"
+                            @click="if (!isExpanded) { toggle(); } openMenu = !openMenu"
+                            class="sidebar-nav-item{{ ($isActive || $childActive) ? ' sidebar-nav-item-active' : '' }}"
+                            style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; border-radius:12px; font-size:13.5px; font-weight:{{ ($isActive || $childActive) ? '700' : '500' }}; {{ ($isActive || $childActive) ? 'background:white; color:#8F0A0D; box-shadow:0 6px 18px rgba(0,0,0,0.22);' : 'color:rgba(255,255,255,0.85);' }} transition:all 0.15s ease; border:none; background:{{ ($isActive || $childActive) ? 'white' : 'transparent' }}; cursor:pointer; width:100%; text-align:left;">
+                        <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+                            @if($item['key'] === 'ms_monitoring')
+                                <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                            @endif
+                            <span x-show="isExpanded" x-cloak>{{ $item['label'] }}</span>
+                        </div>
+                        <svg x-show="isExpanded" x-cloak style="width:13px; height:13px; flex-shrink:0; transition:transform 0.2s;" :style="{ transform: openMenu ? 'rotate(180deg)' : 'none' }" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <div x-show="openMenu && isExpanded" x-cloak style="padding-left: 14px; margin-top: 3px; display:flex; flex-direction:column; gap:2px;">
+                        @foreach($item['children'] as $child)
+                            @php
+                                $isSubActive = ($currentRoute === $child['route']);
+                            @endphp
+                            <a href="{{ route($child['route']) }}"
+                               class="sidebar-nav-item{{ $isSubActive ? ' sidebar-nav-item-active' : '' }}"
+                               style="display:flex; align-items:center; gap:10px; padding:7.5px 12px; border-radius:10px; font-size:12.5px; font-weight:{{ $isSubActive ? '700' : '500' }}; {{ $isSubActive ? 'background:rgba(255,255,255,0.22); color:#FFFFFF; border-left:3px solid #FFFFFF;' : 'color:rgba(255,255,255,0.78);' }} text-decoration:none; transition:all 0.15s ease;">
+                                <span style="width:6px; height:6px; border-radius:50%; background:{{ $isSubActive ? '#FFFFFF' : 'rgba(255,255,255,0.45)' }};"></span>
+                                <span>{{ $child['label'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @else
+                <a href="{{ $itemUrl }}"
+                   class="sidebar-nav-item{{ $isActive ? ' sidebar-nav-item-active' : '' }}"
+                   style="display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:12px; text-decoration:none; font-size:13.5px; font-weight:{{ $isActive ? '700' : '500' }}; {{ $isActive ? 'background:white; color:#8F0A0D; box-shadow:0 6px 18px rgba(0,0,0,0.22);' : 'color:rgba(255,255,255,0.85);' }} transition:all 0.15s ease;">
+                    @switch($item['key'])
                     @case('opportunities')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -554,13 +605,14 @@
                     </svg>
                     @break
                 @endswitch
-                <span x-show="isExpanded" x-cloak>{{ $item['label'] }}</span>
-                @if(isset($item['badge']) && $item['badge'] > 0)
-                    <span x-show="isExpanded" x-cloak style="margin-left:auto; background:{{ $isActive ? '#8F0A0D' : '#ef4444' }}; color:white; font-size:10px; font-weight:800; padding:2px 7.5px; border-radius:9999px; line-height:1.2; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
-                        {{ $item['badge'] }}
-                    </span>
-                @endif
-            </a>
+                    <span x-show="isExpanded" x-cloak>{{ $item['label'] }}</span>
+                    @if(isset($item['badge']) && $item['badge'] > 0)
+                        <span x-show="isExpanded" x-cloak style="margin-left:auto; background:{{ $isActive ? '#8F0A0D' : '#ef4444' }}; color:white; font-size:10px; font-weight:800; padding:2px 7.5px; border-radius:9999px; line-height:1.2; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+                            {{ $item['badge'] }}
+                        </span>
+                    @endif
+                </a>
+            @endif
         @endforeach
     </div>
 

@@ -807,6 +807,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/projects/{project}/sla-params', [\App\Http\Controllers\ManagedServiceController::class, 'updateProjectSlaParams'])->name('ms.projects.sla.update');
 
         // Monitoring PM & CM Tracker
+        Route::get('/monitoring/preventive/{project?}', [\App\Http\Controllers\ManagedServiceController::class, 'monitoringPm'])->name('ms.monitoring.pm');
+        Route::get('/monitoring/corrective/{project?}', [\App\Http\Controllers\ManagedServiceController::class, 'monitoringCm'])->name('ms.monitoring.cm');
         Route::get('/monitoring/{project?}', [\App\Http\Controllers\ManagedServiceController::class, 'monitoring'])->name('ms.monitoring.index');
         Route::post('/monitoring/pm-cycles/{cycle}', [\App\Http\Controllers\ManagedServiceController::class, 'updatePmCycle'])->name('ms.monitoring.pm.update');
         Route::post('/monitoring/cm-tickets', [\App\Http\Controllers\ManagedServiceController::class, 'storeCmTicket'])->name('ms.monitoring.cm.store');

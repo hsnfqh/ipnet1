@@ -1161,12 +1161,33 @@ class ManagedServiceController extends Controller
     }
 
     /**
+     * Halaman Monitoring Preventive Maintenance (PM)
+     */
+    public function monitoringPm(Request $request, $projectId = null)
+    {
+        return $this->monitoring($request, $projectId, 'pm');
+    }
+
+    /**
+     * Halaman Monitoring Corrective Maintenance (CM)
+     */
+    public function monitoringCm(Request $request, $projectId = null)
+    {
+        return $this->monitoring($request, $projectId, 'cm');
+    }
+
+    /**
      * Halaman Monitoring PM & CM (Timeline, Siklus PM, dan Kuota CM)
      */
-    public function monitoring(Request $request, $projectId = null)
+    public function monitoring(Request $request, $projectId = null, $tab = null)
     {
         $this->ensureTablesExist();
         $this->ensureSampleProjectExists();
+
+        $activeTab = $tab ?: $request->input('tab', 'pm');
+        if (!in_array($activeTab, ['pm', 'cm'])) {
+            $activeTab = 'pm';
+        }
 
         $allProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
 
@@ -1216,7 +1237,7 @@ class ManagedServiceController extends Controller
         })->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Lead Engineer', 'Team Leader', 'Director', 'Direktur', 'PMO']))
           ->orderBy('name')->get(['id', 'name']);
 
-        return view('managed_service.monitoring', compact('project', 'allProjects', 'pmCycles', 'cmTickets', 'cmQuota', 'cmUsed', 'cmRemaining', 'pmCompleted', 'pmTotal', 'pmProgress', 'engineers'));
+        return view('managed_service.monitoring', compact('project', 'allProjects', 'pmCycles', 'cmTickets', 'cmQuota', 'cmUsed', 'cmRemaining', 'pmCompleted', 'pmTotal', 'pmProgress', 'engineers', 'activeTab'));
     }
 
     /**
