@@ -799,6 +799,17 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('managed-service')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|Group Leader Commercial & Solution|Lead Maintenance|Maintenance|PMO|Project Manager|Lead Engineer|Lead Divisi|Team Leader Engineering|Team Leader')->group(function () {
         Route::get('/', [\App\Http\Controllers\ManagedServiceController::class, 'dashboard'])->name('ms.dashboard');
         Route::get('/dashboard', [\App\Http\Controllers\ManagedServiceController::class, 'dashboard'])->name('ms.dashboard.alias');
+
+        // Projects & Contracts Detail
+        Route::get('/projects', [\App\Http\Controllers\ManagedServiceController::class, 'projects'])->name('ms.projects.index');
+        Route::get('/projects/{project}', [\App\Http\Controllers\ManagedServiceController::class, 'showProject'])->name('ms.projects.show');
+        Route::post('/projects/{project}/documents', [\App\Http\Controllers\ManagedServiceController::class, 'updateProjectDocuments'])->name('ms.projects.documents.update');
+        Route::put('/projects/{project}/sla-params', [\App\Http\Controllers\ManagedServiceController::class, 'updateProjectSlaParams'])->name('ms.projects.sla.update');
+
+        // Monitoring PM & CM Tracker
+        Route::get('/monitoring/{project?}', [\App\Http\Controllers\ManagedServiceController::class, 'monitoring'])->name('ms.monitoring.index');
+        Route::post('/monitoring/pm-cycles/{cycle}', [\App\Http\Controllers\ManagedServiceController::class, 'updatePmCycle'])->name('ms.monitoring.pm.update');
+        Route::post('/monitoring/cm-tickets', [\App\Http\Controllers\ManagedServiceController::class, 'storeCmTicket'])->name('ms.monitoring.cm.store');
         
         // Assets Management (Internal Perusahaan & External Klien)
         Route::get('/assets/internal', [\App\Http\Controllers\ManagedServiceController::class, 'internalAssets'])->name('ms.assets.internal');

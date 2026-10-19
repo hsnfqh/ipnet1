@@ -89,6 +89,17 @@ class Project extends Model
         'pm_id',
         'division_id',
         'documents_checklist',
+        'cm_quota',
+        'pm_frequency_type',
+        'pm_total_cycles',
+        'mttr_hours',
+        'call_response_time',
+        'incident_resolution_hours',
+        'sla_target_percentage',
+        'presales_name',
+        'contract_file',
+        'boq_file',
+        'bast_file',
     ];
 
     protected $casts = [
@@ -220,6 +231,11 @@ class Project extends Model
     public function managedServiceReports()
     {
         return $this->hasMany(ManagedServiceReport::class, 'project_id');
+    }
+
+    public function pmCycles()
+    {
+        return $this->hasMany(ManagedServicePmCycle::class, 'project_id')->orderBy('cycle_number');
     }
 
     /**

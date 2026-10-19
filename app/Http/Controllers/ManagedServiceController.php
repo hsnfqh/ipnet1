@@ -6,11 +6,14 @@ use Illuminate\Http\Request;
 use App\Models\ManagedServiceAsset;
 use App\Models\ManagedServiceTicket;
 use App\Models\ManagedServiceReport;
+use App\Models\ManagedServicePmCycle;
+use App\Models\ProjectDocument;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Schedule;
 use App\Models\Client;
 use App\Models\Task;
+use App\Helpers\FileUploadHelper;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -20,7 +23,7 @@ class ManagedServiceController extends Controller
 {
     private function ensureTablesExist(): void
     {
-        if (!Schema::hasTable('managed_service_assets') || !Schema::hasTable('managed_service_tickets') || !Schema::hasTable('managed_service_reports') || !Schema::hasColumn('managed_service_assets', 'product_description')) {
+        if (!Schema::hasTable('managed_service_assets') || !Schema::hasTable('managed_service_tickets') || !Schema::hasTable('managed_service_reports') || !Schema::hasTable('managed_service_pm_cycles') || !Schema::hasColumn('projects', 'cm_quota')) {
             try {
                 Artisan::call('migrate', ['--force' => true]);
             } catch (\Throwable $e) {
@@ -817,6 +820,527 @@ class ManagedServiceController extends Controller
         }
 
         return back()->with('success', 'Layanan Managed Service untuk ' . $project->name . ' berhasil diterima dan resmi diaktifkan!');
+    }
+
+    /**
+     * Auto-inisialisasi siklus Preventive Maintenance jika belum ada
+     */
+    public static function initPmCycles(Project $project): void
+    {
+        if (!Schema::hasTable('managed_service_pm_cycles')) {
+            return;
+        }
+
+        $existingCount = ManagedServicePmCycle::where('project_id', $project->id)->count();
+        if ($existingCount > 0) {
+            return;
+        }
+
+        $totalCycles = $project->pm_total_cycles ?: 4;
+        $startDate = $project->service_start_date ? Carbon::parse($project->service_start_date) : ($project->start_date ? Carbon::parse($project->start_date) : now());
+        $monthsInterval = match($project->pm_frequency_type) {
+            'per_bulan'   => 1,
+            'per_2_bulan' => 2,
+            'per_3_bulan' => 3,
+            'per_4_bulan' => 4,
+            default       => 3,
+        };
+
+        for ($i = 1; $i <= $totalCycles; $i++) {
+            $schedDate = $startDate->copy()->addMonths(($i - 1) * $monthsInterval + $monthsInterval);
+            $isFirstCompleted = ($i === 1) && ($project->progress >= 25);
+            ManagedServicePmCycle::create([
+                'project_id'        => $project->id,
+                'cycle_number'      => $i,
+                'cycle_label'       => 'PM ' . $i . ' (Bulan ke-' . (($i - 1) * $monthsInterval + $monthsInterval) . ')',
+                'scheduled_date'    => $schedDate->toDateString(),
+                'activity_status'   => $isFirstCompleted ? 'Completed' : 'Scheduled',
+                'actual_date'       => $isFirstCompleted ? $schedDate->copy()->subDays(2)->toDateString() : null,
+                'activity_notes'    => $isFirstCompleted ? 'Preventive maintenance berkala Q1 selesai dilaksanakan sesuai checklist inspeksi.' : null,
+                'report_status'     => $isFirstCompleted ? 'Approved' : 'Pending',
+                'billing_ba_status' => $isFirstCompleted ? 'Signed' : 'Pending',
+            ]);
+        }
+    }
+
+    /**
+     * Pastikan minimal ada 1 proyek sampel (Bank Raya sesuai sketsa user) jika database kosong
+     */
+    private function ensureSampleProjectExists(): void
+    {
+        if (Project::count() === 0) {
+            $creatorId = auth()->id() ?: User::first()?->id ?: 1;
+            $sampleProject = Project::create([
+                'name'                      => 'Layanan Managed Service & Pemeliharaan Jaringan Bank Raya',
+                'client'                    => 'Bank Raya',
+                'sales_name'                => 'Raiza',
+                'presales_name'             => 'Akbar',
+                'location'                  => 'Menara BRI Lt. 12, Jakarta Selatan',
+                'project_type'              => 'Managed Service SLA',
+                'sla_tier'                  => 'Platinum',
+                'stage'                     => 'Operate',
+                'status'                    => 'Active',
+                'progress'                  => 25,
+                'contract_value'            => 450000000,
+                'start_date'                => now()->subMonths(3)->toDateString(),
+                'deadline'                  => now()->addMonths(9)->toDateString(),
+                'service_start_date'        => now()->subMonths(3)->toDateString(),
+                'service_end_date'          => now()->addMonths(9)->toDateString(),
+                'po_spk_number'             => 'SPK/IPNET/BRY/2026/014',
+                'po_spk_date'               => now()->subMonths(3)->toDateString(),
+                'sla_commitment'            => '99.5% Uptime, 24x7 Standby Support, MTTR < 4 Jam',
+                'sla_coverage_hours'        => '24x7',
+                'maintenance_frequency'     => 'Quarterly',
+                'pm_frequency_type'         => 'per_3_bulan',
+                'pm_total_cycles'           => 4,
+                'cm_quota'                  => 18,
+                'mttr_hours'                => 4,
+                'call_response_time'        => '15 menit',
+                'incident_resolution_hours' => 4,
+                'sla_target_percentage'     => 99.50,
+                'customer_pic_technical'    => 'Bpk. Budi Santoso (Head of IT Ops - 081234567890)',
+                'customer_pic_business'     => 'Ibu Diana Putri (Procurement - 081298765432)',
+                'customer_pic_finance'      => 'Bpk. Hendra Gunawan (Finance)',
+                'created_by'                => $creatorId,
+            ]);
+
+            self::initPmCycles($sampleProject);
+
+            ManagedServiceTicket::create([
+                'ticket_number'    => 'CM-2026-001',
+                'project_id'       => $sampleProject->id,
+                'client_name'      => 'Bank Raya',
+                'title'            => 'Kegiatan Upgrade OS & Patching Security Core Switch',
+                'description'      => 'Upgrade firmware NOS dan verifikasi redundansi link failover.',
+                'incident_date'    => now()->subWeeks(2)->toDateString(),
+                'type'             => 'Corrective Maintenance',
+                'category'         => 'Switch',
+                'priority'         => 'Gold',
+                'status'           => 'Resolved',
+                'source'           => 'Portal',
+                'reported_by'      => 'Budi Santoso',
+                'contact_phone'    => '081234567890',
+                'assigned_to'      => $creatorId,
+                'resolved_at'      => now()->subWeeks(2)->addHours(2),
+                'sla_met'          => true,
+                'resolution_notes' => 'Upgrade OS selesai tanpa downtime transaksi nasabah.',
+                'created_by'       => $creatorId,
+            ]);
+        }
+    }
+
+    /**
+     * Daftar Proyek Managed Service
+     */
+    public function projects(Request $request)
+    {
+        $this->ensureTablesExist();
+        $this->ensureSampleProjectExists();
+
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 25, 50])) {
+            $perPage = 10;
+        }
+
+        $query = Project::with(['creator', 'pmCycles', 'managedServiceTickets'])
+            ->whereNotIn('name', ['DAY OFF', 'Day Off']);
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('client', 'like', "%{$s}%")
+                  ->orWhere('sales_name', 'like', "%{$s}%")
+                  ->orWhere('presales_name', 'like', "%{$s}%")
+                  ->orWhere('location', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where(function($q) use ($request) {
+                $q->where('status', $request->status)
+                  ->orWhere('stage', $request->status);
+            });
+        }
+
+        if ($request->filled('type') && $request->type !== 'all') {
+            $query->where('project_type', 'like', "%{$request->type}%");
+        }
+
+        $projects = $query->latest()->paginate($perPage)->withQueryString();
+
+        return view('managed_service.projects', compact('projects', 'perPage'));
+    }
+
+    /**
+     * Detail Kontrak & Dokumen Proyek Managed Service
+     */
+    public function showProject(Request $request, $id)
+    {
+        $this->ensureTablesExist();
+        $this->ensureSampleProjectExists();
+
+        $project = Project::with(['pmCycles.assignedEngineer', 'managedServiceTickets.assignedEngineer', 'creator', 'managedServiceAssets'])
+            ->findOrFail($id);
+
+        self::initPmCycles($project);
+
+        $documents = [
+            'spk' => [
+                'key'         => 'spk',
+                'title'       => 'Surat Perintah Kerja (SPK / PO)',
+                'description' => 'Dokumen acuan perintah kerja resmi dari klien.',
+                'file_path'   => $project->po_spk_file,
+                'number'      => $project->po_spk_number,
+                'date'        => $project->po_spk_date,
+            ],
+            'contract' => [
+                'key'         => 'contract',
+                'title'       => 'Kontrak Perjanjian Layanan (PKS / Contract)',
+                'description' => 'Perjanjian kerja sama SLA dan pemeliharaan jangka panjang.',
+                'file_path'   => $project->contract_file ?: $project->po_file,
+                'number'      => $project->po_number ?: ('KTR/' . $project->id),
+                'date'        => $project->service_start_date,
+            ],
+            'boq' => [
+                'key'         => 'boq',
+                'title'       => 'Bill of Quantity (BOQ & Spesifikasi Layanan)',
+                'description' => 'Daftar rincian perangkat keras, lisensi software, dan alokasi mandays.',
+                'file_path'   => $project->boq_file,
+                'number'      => 'BOQ-' . ($project->po_spk_number ?: $project->id),
+                'date'        => $project->start_date,
+            ],
+            'ba' => [
+                'key'         => 'ba',
+                'title'       => 'Berita Acara Serah Terima (BA / BAST / BAP)',
+                'description' => 'Bukti serah terima operasional dan milestone penagihan berkala.',
+                'file_path'   => $project->bast_file,
+                'number'      => 'BAST/' . $project->id,
+                'date'        => $project->service_start_date,
+            ],
+            'project_doc' => [
+                'key'         => 'project_doc',
+                'title'       => 'Dokumen Teknis & Topologi Proyek',
+                'description' => 'Diagram jaringan, desain arsitektur, IP addressing, dan NDA.',
+                'file_path'   => $project->proposal_file,
+                'number'      => 'DOC-' . $project->id,
+                'date'        => null,
+            ],
+        ];
+
+        $cmTickets = $project->managedServiceTickets()
+            ->where(function($q) {
+                $q->where('type', 'like', '%Corrective%')
+                  ->orWhere('type', 'like', '%Incident%');
+            })->get();
+        $cmQuota = $project->cm_quota ?: 18;
+        $cmUsed = $cmTickets->count();
+        $cmRemaining = max(0, $cmQuota - $cmUsed);
+
+        $pmCycles = $project->pmCycles()->get();
+        $pmCompleted = $pmCycles->where('activity_status', 'Completed')->count();
+        $pmTotal = $pmCycles->count() ?: ($project->pm_total_cycles ?: 4);
+        $pmProgress = $pmTotal > 0 ? round(($pmCompleted / $pmTotal) * 100) : 0;
+
+        return view('managed_service.project_detail', compact('project', 'documents', 'cmQuota', 'cmUsed', 'cmRemaining', 'pmCycles', 'pmCompleted', 'pmTotal', 'pmProgress'));
+    }
+
+    /**
+     * Upload & Perbarui Dokumen Proyek (SPK, Kontrak, BOQ, BA, Dokumen Project)
+     */
+    public function updateProjectDocuments(Request $request, $id)
+    {
+        $project = Project::findOrFail($id);
+
+        $validated = $request->validate([
+            'doc_type'   => 'required|string|in:spk,contract,boq,ba,project_doc',
+            'doc_file'   => 'required|file|max:51200',
+            'doc_number' => 'nullable|string|max:100',
+            'doc_date'   => 'nullable|date',
+        ]);
+
+        $file = $request->file('doc_file');
+        $filePath = FileUploadHelper::storePublicly($file, 'managed_service_documents');
+
+        match($validated['doc_type']) {
+            'spk' => $project->update([
+                'po_spk_file'   => $filePath,
+                'po_spk_number' => $validated['doc_number'] ?: $project->po_spk_number,
+                'po_spk_date'   => $validated['doc_date'] ?: $project->po_spk_date,
+            ]),
+            'contract' => $project->update([
+                'contract_file' => $filePath,
+            ]),
+            'boq' => $project->update([
+                'boq_file' => $filePath,
+            ]),
+            'ba' => $project->update([
+                'bast_file' => $filePath,
+            ]),
+            'project_doc' => $project->update([
+                'proposal_file' => $filePath,
+            ]),
+        };
+
+        if (Schema::hasTable('project_documents')) {
+            $docTitles = [
+                'spk'         => 'Surat Perintah Kerja (SPK)',
+                'contract'    => 'Kontrak Layanan Managed Service',
+                'boq'         => 'Bill of Quantity (BOQ)',
+                'ba'          => 'Berita Acara Serah Terima (BAST)',
+                'project_doc' => 'Dokumen Teknis & Topologi Proyek',
+            ];
+            ProjectDocument::updateOrCreate(
+                [
+                    'project_id'   => $project->id,
+                    'document_key' => $validated['doc_type'],
+                ],
+                [
+                    'document_title' => $docTitles[$validated['doc_type']] ?? 'Dokumen Proyek',
+                    'file_path'      => $filePath,
+                    'file_name'      => $file->getClientOriginalName(),
+                    'file_size'      => $file->getSize() ?: 0,
+                    'status'         => 'Uploaded',
+                    'uploaded_by'    => auth()->id(),
+                    'uploaded_at'    => now(),
+                ]
+            );
+        }
+
+        return redirect()->back()->with('success', 'Dokumen berhasil diunggah.');
+    }
+
+    /**
+     * Perbarui Parameter SLA & Kontrak Managed Service
+     */
+    public function updateProjectSlaParams(Request $request, $id)
+    {
+        $project = Project::findOrFail($id);
+
+        $validated = $request->validate([
+            'cm_quota'                  => 'required|integer|in:4,6,8,12,18,999',
+            'pm_frequency_type'         => 'required|string|in:per_bulan,per_2_bulan,per_3_bulan,per_4_bulan,custom',
+            'pm_total_cycles'           => 'required|integer|min:1|max:24',
+            'sla_target_percentage'     => 'required|numeric|min:80|max:100',
+            'mttr_hours'                => 'required|integer|min:1|max:72',
+            'sla_coverage_hours'        => 'required|string',
+            'call_response_time'        => 'required|string',
+            'incident_resolution_hours' => 'required|integer|min:1',
+            'service_start_date'        => 'nullable|date',
+            'service_end_date'          => 'nullable|date',
+            'customer_pic_technical'    => 'nullable|string|max:255',
+            'customer_pic_business'     => 'nullable|string|max:255',
+            'customer_pic_finance'      => 'nullable|string|max:255',
+            'sales_name'                => 'nullable|string|max:255',
+            'presales_name'             => 'nullable|string|max:255',
+        ]);
+
+        $oldCycles = $project->pm_total_cycles;
+        $project->update($validated);
+
+        if ($oldCycles != $validated['pm_total_cycles']) {
+            $existingCycles = ManagedServicePmCycle::where('project_id', $project->id)->orderBy('cycle_number')->get();
+            if ($existingCycles->count() < $validated['pm_total_cycles']) {
+                $startNum = $existingCycles->count() + 1;
+                $lastDate = $existingCycles->last()?->scheduled_date ? Carbon::parse($existingCycles->last()->scheduled_date) : now();
+                for ($i = $startNum; $i <= $validated['pm_total_cycles']; $i++) {
+                    ManagedServicePmCycle::create([
+                        'project_id'        => $project->id,
+                        'cycle_number'      => $i,
+                        'cycle_label'       => 'PM ' . $i,
+                        'scheduled_date'    => $lastDate->copy()->addMonths(3)->toDateString(),
+                        'activity_status'   => 'Scheduled',
+                        'report_status'     => 'Pending',
+                        'billing_ba_status' => 'Pending',
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->back()->with('success', 'Parameter Kontrak & SLA Managed Service berhasil diperbarui.');
+    }
+
+    /**
+     * Halaman Monitoring PM & CM (Timeline, Siklus PM, dan Kuota CM)
+     */
+    public function monitoring(Request $request, $projectId = null)
+    {
+        $this->ensureTablesExist();
+        $this->ensureSampleProjectExists();
+
+        $allProjects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
+
+        $selectedProjectId = $projectId ?: $request->input('project_id');
+        if ($selectedProjectId) {
+            $project = Project::with(['pmCycles.assignedEngineer', 'managedServiceTickets.assignedEngineer'])->find($selectedProjectId);
+        } else {
+            $project = Project::with(['pmCycles.assignedEngineer', 'managedServiceTickets.assignedEngineer'])
+                ->where('stage', 'Operate')
+                ->orWhere('project_type', 'like', '%Managed%')
+                ->latest()
+                ->first() ?: $allProjects->first();
+        }
+
+        if ($project) {
+            self::initPmCycles($project);
+            $pmCycles = $project->pmCycles()->get();
+            $cmTickets = $project->managedServiceTickets()
+                ->where(function($q) {
+                    $q->where('type', 'like', '%Corrective%')
+                      ->orWhere('type', 'like', '%Incident%');
+                })->latest()->get();
+
+            $cmQuota = $project->cm_quota ?: 18;
+            $cmUsed = $cmTickets->count();
+            $cmRemaining = max(0, $cmQuota - $cmUsed);
+
+            $pmCompleted = $pmCycles->where('activity_status', 'Completed')->count();
+            $pmTotal = $pmCycles->count() ?: ($project->pm_total_cycles ?: 4);
+            $pmProgress = $pmTotal > 0 ? round(($pmCompleted / $pmTotal) * 100) : 0;
+        } else {
+            $pmCycles = collect([]);
+            $cmTickets = collect([]);
+            $cmQuota = 18;
+            $cmUsed = 0;
+            $cmRemaining = 18;
+            $pmCompleted = 0;
+            $pmTotal = 4;
+            $pmProgress = 0;
+        }
+
+        $engineers = User::where(function($q) {
+            $q->where('division_id', 3)
+              ->orWhereHas('roles', fn($r) => $r->whereIn('name', [
+                  'Lead Maintenance', 'Maintenance', 'Managed Service', 'Field Support', 'Field Support (EOS)'
+              ]));
+        })->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Lead Engineer', 'Team Leader', 'Director', 'Direktur', 'PMO']))
+          ->orderBy('name')->get(['id', 'name']);
+
+        return view('managed_service.monitoring', compact('project', 'allProjects', 'pmCycles', 'cmTickets', 'cmQuota', 'cmUsed', 'cmRemaining', 'pmCompleted', 'pmTotal', 'pmProgress', 'engineers'));
+    }
+
+    /**
+     * Update Siklus Preventive Maintenance (Activity, Laporan PM, BA / Penagihan)
+     */
+    public function updatePmCycle(Request $request, $cycleId)
+    {
+        $cycle = ManagedServicePmCycle::findOrFail($cycleId);
+
+        $validated = $request->validate([
+            'activity_status'      => 'required|string|in:Scheduled,In Progress,Completed',
+            'actual_date'          => 'nullable|date',
+            'activity_notes'       => 'nullable|string',
+            'assigned_engineer_id' => 'nullable|exists:users,id',
+            'report_status'        => 'required|string|in:Pending,Draft,Submitted,Approved',
+            'billing_ba_status'    => 'required|string|in:Pending,Draft,Submitted,Signed,Invoiced',
+            'report_file'          => 'nullable|file|max:51200',
+            'billing_ba_file'      => 'nullable|file|max:51200',
+        ]);
+
+        if ($request->hasFile('report_file')) {
+            $file = $request->file('report_file');
+            $validated['report_file'] = FileUploadHelper::storePublicly($file, 'ms_pm_reports');
+            $validated['report_filename'] = $file->getClientOriginalName();
+            if ($validated['report_status'] === 'Pending') {
+                $validated['report_status'] = 'Submitted';
+            }
+        }
+
+        if ($request->hasFile('billing_ba_file')) {
+            $file = $request->file('billing_ba_file');
+            $validated['billing_ba_file'] = FileUploadHelper::storePublicly($file, 'ms_pm_billing');
+            $validated['billing_ba_filename'] = $file->getClientOriginalName();
+            if ($validated['billing_ba_status'] === 'Pending') {
+                $validated['billing_ba_status'] = 'Submitted';
+            }
+        }
+
+        if ($validated['activity_status'] === 'Completed' && empty($validated['actual_date'])) {
+            $validated['actual_date'] = now()->toDateString();
+        }
+
+        $cycle->update($validated);
+
+        $project = $cycle->project;
+        if ($project) {
+            $total = $project->pmCycles()->count();
+            $completed = $project->pmCycles()->where('activity_status', 'Completed')->count();
+            if ($total > 0) {
+                $newProgress = round(($completed / $total) * 100);
+                $project->update(['progress' => $newProgress]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Data siklus ' . $cycle->cycle_label . ' berhasil diperbarui.');
+    }
+
+    /**
+     * Catat Tiket Corrective Maintenance (CM Tracker)
+     */
+    public function storeCmTicket(Request $request)
+    {
+        $validated = $request->validate([
+            'project_id'    => 'required|exists:projects,id',
+            'title'         => 'required|string|max:255',
+            'description'   => 'nullable|string',
+            'priority'      => 'required|string|in:Platinum,Gold,Silver,Bronze',
+            'assigned_to'   => 'nullable|exists:users,id',
+            'incident_date' => 'nullable|date',
+            'attachment'    => 'nullable|file|max:51200',
+        ]);
+
+        $project = Project::findOrFail($validated['project_id']);
+
+        $quota = $project->cm_quota ?: 18;
+        $usedCount = ManagedServiceTicket::where('project_id', $project->id)
+            ->where(function($q) {
+                $q->where('type', 'like', '%Corrective%')
+                  ->orWhere('type', 'like', '%Incident%');
+            })->count();
+
+        if ($quota < 999 && $usedCount >= $quota) {
+            return redirect()->back()->with('error', 'Kuota Corrective Maintenance (' . $quota . ' tiket) untuk proyek ini sudah habis.');
+        }
+
+        $ticketDate = !empty($validated['incident_date']) ? Carbon::parse($validated['incident_date']) : now();
+        $count = ManagedServiceTicket::whereYear('created_at', $ticketDate->year)->count() + 1;
+        $ticketNumber = 'CM-' . $ticketDate->year . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = FileUploadHelper::storePublicly($request->file('attachment'), 'ms_cm_docs');
+        }
+
+        $slaHours = match($validated['priority']) {
+            'Platinum' => 1,
+            'Gold'     => 4,
+            'Silver'   => 8,
+            'Bronze'   => 24,
+            default    => 4,
+        };
+
+        $ticket = ManagedServiceTicket::create([
+            'ticket_number'   => $ticketNumber,
+            'project_id'      => $project->id,
+            'client_name'     => $project->client,
+            'title'           => $validated['title'],
+            'description'     => $validated['description'] ?? 'Pekerjaan perbaikan insiden Corrective Maintenance.',
+            'incident_date'   => $ticketDate->toDateString(),
+            'type'            => 'Corrective Maintenance',
+            'category'        => 'Troubleshooting',
+            'priority'        => $validated['priority'],
+            'status'          => 'In Progress',
+            'source'          => 'Portal',
+            'reported_by'     => $project->customer_pic_technical ?: ($project->client ?: 'Klien'),
+            'assigned_to'     => $validated['assigned_to'] ?: auth()->id(),
+            'attachment_path' => $attachmentPath,
+            'sla_deadline'    => $ticketDate->copy()->addHours($slaHours),
+            'created_by'      => auth()->id(),
+        ]);
+
+        self::syncTicketToTaskAndSchedule($ticket);
+
+        return redirect()->back()->with('success', 'Tiket Corrective Maintenance ' . $ticketNumber . ' berhasil dicatat.');
     }
 }
 

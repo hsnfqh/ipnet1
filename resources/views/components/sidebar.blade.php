@@ -53,6 +53,8 @@
         // Dedicated Managed Service & Maintenance Portal (Doris, Mario, Eris)
         $navItems = [
             ['key' => 'dashboard',         'label' => 'Dashboard',         'route' => 'ms.dashboard'],
+            ['key' => 'ms_projects',       'label' => 'Projects',          'route' => 'ms.projects.index'],
+            ['key' => 'ms_monitoring',     'label' => 'Monitoring PM/CM',  'route' => 'ms.monitoring.index'],
             ['key' => 'ms_tickets',        'label' => 'Tickets & SLA',     'route' => 'ms.tickets.index'],
             ['key' => 'tasks',             'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
             ['key' => 'activities',        'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
@@ -335,6 +337,8 @@
                 } else {
                     $isActive = (($currentRoute === $item['route']) || 
                                  ($item['key'] === 'projects' && in_array($currentRoute, ['sales.pipeline.index', 'sales.pipeline.show', 'sales.pipeline.create', 'projects.show', 'projects.index', 'sales.projects.show'])) ||
+                                 ($item['key'] === 'ms_projects' && in_array($currentRoute, ['ms.projects.index', 'ms.projects.show'])) ||
+                                 ($item['key'] === 'ms_monitoring' && in_array($currentRoute, ['ms.monitoring.index'])) ||
                                  ($item['key'] === 'digital_signatures' && str_starts_with($currentRoute, 'digital_signatures.'))) && (!request()->has('status') || request('status') === '');
                 }
             @endphp
@@ -504,8 +508,14 @@
                     </svg>
                     @break
                     @case('projects')
+                    @case('ms_projects')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                    </svg>
+                    @break
+                    @case('ms_monitoring')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
                     @break
                     @case('tasks')
