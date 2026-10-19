@@ -112,9 +112,7 @@
                         </select>
 
                         <select name="owner" onchange="this.form.submit()" class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                            <option value="">Semua Pemilik</option>
-                            <option value="internal" {{ request('owner') == 'internal' ? 'selected' : '' }}>PT IPNET (Internal)</option>
-                            <option value="client" {{ request('owner') == 'client' ? 'selected' : '' }}>Semua Klien Eksternal</option>
+                            <option value="">Semua Pemilik (Klien)</option>
                             @foreach($clients as $c)
                                 <option value="{{ $c->name }}" {{ request('owner') == $c->name ? 'selected' : '' }}>{{ $c->name }}</option>
                             @endforeach
@@ -263,67 +261,42 @@
         </div>
     </div>
 
-    {{-- MODAL CREATE / EDIT ASSET (7 KOLOM SESUAI TABEL) --}}
+    {{-- MODAL TAMBAH / EDIT EXTERNAL ASSET --}}
     <template x-teleport="body">
         <div x-show="isModalOpen" 
              x-cloak 
              class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col overflow-hidden" @click.away="isModalOpen = false">
+            <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col overflow-hidden" @click.away="isModalOpen = false">
                 <!-- Header -->
                 <div class="flex items-center justify-between border-b border-slate-200 p-5 sm:p-6 pb-4 shrink-0 bg-white">
                     <div>
-                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">Aset & Perangkat</p>
-                        <h3 class="text-[17px] font-bold text-slate-900" x-text="isEdit ? 'Perbarui Data Aset' : 'Tambah Aset & Perangkat Baru'"></h3>
+                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">External Asset</p>
+                        <h3 class="text-[17px] font-bold text-slate-900" x-text="isEdit ? 'Perbarui Aset Eksternal' : 'Tambah Aset Eksternal Baru'"></h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Kelola data perangkat dan aset operasional milik klien.</p>
                     </div>
                     <button @click="isModalOpen = false" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
 
-                <!-- Form (7 Field Konsisten) -->
+                <!-- Form (7 Kolom Presisi: Tipe Perangkat, Product Name, Product Description, Quantity, Serial Number, Keterangan, Pemilik) -->
                 <form :action="isEdit ? '/managed-service/assets/' + form.id : '{{ route('ms.assets.store') }}'" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     @csrf
                     <template x-if="isEdit">
                         <input type="hidden" name="_method" value="PUT">
                     </template>
+                    <input type="hidden" name="owner_type" value="client">
 
                     <div class="p-5 sm:p-6 overflow-y-auto space-y-4 text-[13px] flex-1">
                         
-                        {{-- 1. Pemilik Aset --}}
-                        <div>
-                            <label class="block text-[12px] font-semibold text-slate-700 mb-1.5">
-                                Pemilik Aset <span class="text-[#8F0A0D]">*</span>
-                            </label>
-                            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl mb-2.5">
-                                <button type="button" 
-                                        @click="form.owner_type_choice = 'internal'; form.client_name = 'PT IP Network Solusindo (IPNET)'"
-                                        :class="form.owner_type_choice === 'internal' ? 'bg-white text-[#8F0A0D] font-bold shadow-xs' : 'text-slate-600 font-medium hover:text-slate-900'"
-                                        class="py-2 text-[12.5px] rounded-lg transition text-center cursor-pointer">
-                                    PT IPNET (Internal)
-                                </button>
-                                <button type="button" 
-                                        @click="form.owner_type_choice = 'client'; if(form.client_name === 'PT IP Network Solusindo (IPNET)') form.client_name = ''"
-                                        :class="form.owner_type_choice === 'client' ? 'bg-white text-[#8F0A0D] font-bold shadow-xs' : 'text-slate-600 font-medium hover:text-slate-900'"
-                                        class="py-2 text-[12.5px] rounded-lg transition text-center cursor-pointer">
-                                    Klien Eksternal
-                                </button>
-                            </div>
-                            <div x-show="form.owner_type_choice === 'client'">
-                                <input type="text" name="client_name" x-model="form.client_name" :required="form.owner_type_choice === 'client'" placeholder="Masukkan nama klien atau perusahaan pemilik..."
-                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[13px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
-                            </div>
-                            <input type="hidden" name="client_name" :value="form.client_name" x-show="form.owner_type_choice === 'internal'">
-                            <input type="hidden" name="owner_type" :value="form.owner_type_choice">
-                        </div>
-
-                        {{-- 2. Tipe Perangkat & 3. Product Name --}}
+                        {{-- 1. Tipe Perangkat & 2. Product Name --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                             <div>
-                                <label class="block text-[12px] font-semibold text-slate-700 mb-1.5">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
                                     Tipe Perangkat <span class="text-[#8F0A0D]">*</span>
                                 </label>
                                 <select name="category" x-model="form.category" required 
-                                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[13px] font-medium text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs cursor-pointer">
+                                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs cursor-pointer">
                                     <option value="Router">Router</option>
                                     <option value="Switch">Switch</option>
                                     <option value="Firewall">Firewall</option>
@@ -340,58 +313,68 @@
                             </div>
 
                             <div>
-                                <label class="block text-[12px] font-semibold text-slate-700 mb-1.5">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
                                     Product Name <span class="text-[#8F0A0D]">*</span>
                                 </label>
                                 <input type="text" name="device_name" x-model="form.device_name" required placeholder="Contoh: Cisco Catalyst 9200L"
-                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[13px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
                             </div>
                         </div>
 
-                        {{-- 4. Product Description --}}
+                        {{-- 3. Product Description --}}
                         <div>
-                            <label class="block text-[12px] font-semibold text-slate-700 mb-1.5">
-                                Product Description (Deskripsi / Spesifikasi)
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Product Description
                             </label>
                             <textarea name="product_description" x-model="form.product_description" rows="2" placeholder="Spesifikasi teknis, 24-Port Gigabit PoE+, Layer 3 Switch..."
-                                      class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[13px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs"></textarea>
+                                      class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs"></textarea>
                         </div>
 
-                        {{-- 5. Quantity & 6. Serial Number --}}
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <div>
-                                <label class="block text-[12px] font-semibold text-slate-700 mb-1.5">
-                                    Quantity (Jumlah) <span class="text-[#8F0A0D]">*</span>
+                        {{-- 4. Quantity & 5. Serial Number --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                            <div class="sm:col-span-1">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Quantity <span class="text-[#8F0A0D]">*</span>
                                 </label>
                                 <input type="number" name="quantity" x-model="form.quantity" min="1" required placeholder="1"
-                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[13px] font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
                             </div>
 
-                            <div>
-                                <label class="block text-[12px] font-semibold text-slate-700 mb-1.5">
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">
                                     Serial Number
                                 </label>
                                 <input type="text" name="serial_number" x-model="form.serial_number" placeholder="Contoh: FOC223419LK"
-                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[13px] font-mono text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                                       class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-mono text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
                             </div>
                         </div>
 
-                        {{-- 7. Keterangan --}}
+                        {{-- 6. Keterangan --}}
                         <div>
-                            <label class="block text-[12px] font-semibold text-slate-700 mb-1.5">
-                                Keterangan (Catatan Tambahan / Lokasi)
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Keterangan
                             </label>
                             <textarea name="notes" x-model="form.notes" rows="2" placeholder="Catatan kondisi perangkat, lokasi rak DC-01, atau informasi garansi..."
-                                      class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-[13px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs"></textarea>
+                                      class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs"></textarea>
                         </div>
+
+                        {{-- 7. Pemilik (Nama Klien Eksternal) --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Pemilik <span class="text-[#8F0A0D]">*</span>
+                            </label>
+                            <input type="text" name="client_name" x-model="form.client_name" required placeholder="Nama Klien atau Perusahaan Pemilik (contoh: Bank Raya, Telkom)..."
+                                   class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition shadow-2xs">
+                        </div>
+
                     </div>
 
                     <!-- Footer Action -->
                     <div class="border-t border-slate-200 p-4 sm:p-5 flex items-center justify-end gap-3 bg-slate-50 shrink-0">
-                        <button type="button" @click="isModalOpen = false" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:text-slate-900 font-semibold text-[13px] hover:bg-white transition cursor-pointer">
+                        <button type="button" @click="isModalOpen = false" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:text-slate-900 font-semibold text-sm hover:bg-white transition cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white font-semibold text-[13px] transition shadow-sm cursor-pointer">
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white font-semibold text-sm transition shadow-sm cursor-pointer">
                             <span x-text="isEdit ? 'Simpan Perubahan' : 'Daftarkan Aset'"></span>
                         </button>
                     </div>

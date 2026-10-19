@@ -20,7 +20,7 @@ class ManagedServiceController extends Controller
 {
     private function ensureTablesExist(): void
     {
-        if (!Schema::hasTable('managed_service_assets') || !Schema::hasTable('managed_service_tickets') || !Schema::hasTable('managed_service_reports')) {
+        if (!Schema::hasTable('managed_service_assets') || !Schema::hasTable('managed_service_tickets') || !Schema::hasTable('managed_service_reports') || !Schema::hasColumn('managed_service_assets', 'product_description')) {
             try {
                 Artisan::call('migrate', ['--force' => true]);
             } catch (\Throwable $e) {
