@@ -211,8 +211,8 @@
                                  onclick="event.stopPropagation(); window.openModal('modal-assign-division')"
                                  class="p-3 rounded-lg bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200 text-amber-900 space-y-1.5 cursor-pointer transition shadow-2xs group">
                                 <div class="flex items-center gap-2 min-w-0">
-                                    <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                                        <svg class="w-3.5 h-3.5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition shadow-2xs">
+                                        <svg class="w-3.5 h-3.5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="font-bold text-amber-900 text-xs flex items-center justify-between">
@@ -361,8 +361,8 @@
                                  onclick="event.stopPropagation(); (window.openHandoverModalCustom ? window.openHandoverModalCustom('{{ $isBoth ? 'both' : ($isMs ? 'managed_service' : 'pmo') }}') : window.openModal('modal-handover'))"
                                  class="p-3 rounded-lg bg-amber-50/80 hover:bg-amber-100/80 border border-amber-200 text-amber-900 space-y-1.5 cursor-pointer transition shadow-2xs group">
                                 <div class="flex items-center gap-2 min-w-0">
-                                    <div class="w-7 h-7 rounded-lg bg-amber-200/80 text-amber-900 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-                                        <svg class="w-3.5 h-3.5 fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition shadow-2xs">
+                                        <svg class="w-3.5 h-3.5 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <div class="font-bold text-amber-900 text-xs flex items-center justify-between">
