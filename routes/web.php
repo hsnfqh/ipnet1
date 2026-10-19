@@ -1147,36 +1147,23 @@ Route::get('/', function () {
 
 // Fallback storage route untuk cPanel jika symlink public/storage belum ada
 Route::get('/storage/{path}', function ($path) {
+    $cleanPath = ltrim(urldecode($path), '/');
     $candidates = [
-        public_path('storage/' . $path),
-        storage_path('app/public/' . $path),
-        base_path('public/storage/' . $path),
-        base_path('storage/app/public/' . $path),
-        base_path('../public_html/storage/' . $path),
+        storage_path('app/public/' . $cleanPath),
+        public_path('storage/' . $cleanPath),
+        base_path('storage/app/public/' . $cleanPath),
+        base_path('public/storage/' . $cleanPath),
+        base_path('../public_html/storage/' . $cleanPath),
     ];
 
     foreach ($candidates as $filePath) {
         if (file_exists($filePath) && is_file($filePath)) {
-            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-            $mimes = [
-                'jpg'  => 'image/jpeg',
-                'jpeg' => 'image/jpeg',
-                'png'  => 'image/png',
-                'gif'  => 'image/gif',
-                'webp' => 'image/webp',
-                'svg'  => 'image/svg+xml',
-                'pdf'  => 'application/pdf',
-            ];
-            $mime = $mimes[$ext] ?? 'application/octet-stream';
-            return response(file_get_contents($filePath), 200, [
-                'Content-Type'  => $mime,
-                'Cache-Control' => 'public, max-age=86400',
-            ]);
+            return response()->file($filePath);
         }
     }
 
-    abort(404);
-})->where('path', '.*');
+    abort(404, 'File lampiran tidak ditemukan pada server.');
+})->where('path', '.*')->name('storage.file');
 
 // Perbaikan otomatis folder storage & symlink untuk cPanel
 Route::get('/fix-storage', function () {
