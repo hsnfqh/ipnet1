@@ -347,11 +347,15 @@ class ManagedServiceController extends Controller
             'ip_address'          => 'nullable|string|max:50',
             'location_site'       => 'nullable|string|max:255',
             'rack_position'       => 'nullable|string|max:100',
-            'status'              => 'required|string',
+            'status'              => 'nullable|string',
             'warranty_expiry'     => 'nullable|date',
             'notes'               => 'nullable|string',
             'project_id'          => 'nullable|exists:projects,id',
         ]);
+
+        if (empty($validated['status'])) {
+            $validated['status'] = 'Online';
+        }
 
         if (empty($validated['quantity'])) {
             $validated['quantity'] = 1;
@@ -388,11 +392,15 @@ class ManagedServiceController extends Controller
             'ip_address'          => 'nullable|string|max:50',
             'location_site'       => 'nullable|string|max:255',
             'rack_position'       => 'nullable|string|max:100',
-            'status'              => 'required|string',
+            'status'              => 'nullable|string',
             'warranty_expiry'     => 'nullable|date',
             'notes'               => 'nullable|string',
             'project_id'          => 'nullable|exists:projects,id',
         ]);
+
+        if (empty($validated['status'])) {
+            $validated['status'] = $asset->status ?: 'Online';
+        }
 
         if (empty($validated['quantity'])) {
             $validated['quantity'] = 1;
