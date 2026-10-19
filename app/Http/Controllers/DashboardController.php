@@ -1908,19 +1908,35 @@ class DashboardController extends Controller
                             'status'        => !empty($ra['status']) ? $ra['status'] : 'Selesai',
                         ];
                     }
-                } elseif ($reportCat === 'help_desk' && !empty($rawReport['hd_aktivitas'])) {
-                    foreach ($rawReport['hd_aktivitas'] as $ra) {
-                        if (empty(trim($ra['aktivitas'] ?? ''))) continue;
-                        $activitiesList[] = [
-                            'subject'       => $ra['aktivitas'],
-                            'activity_date' => $rawReport['hd_identitas']['tanggal'] ?? date('Y-m-d'),
-                            'time_str'      => $ra['waktu'] ?? '',
-                            'client_pic'    => $rawReport['hd_identitas']['customer_service'] ?? '',
-                            'ipnet_pic'     => $rawReport['hd_identitas']['nama_engineer'] ?? '',
-                            'notes'         => (!empty($ra['ticket_wo']) ? "Ticket/WO: {$ra['ticket_wo']} | " : '') . ($ra['hasil'] ?? ''),
-                            'activity_type' => 'Field Support',
-                            'status'        => !empty($ra['status']) ? $ra['status'] : 'Selesai',
-                        ];
+                } elseif ($reportCat === 'help_desk') {
+                    if (!empty($rawReport['hd_ticket_incident'])) {
+                        foreach ($rawReport['hd_ticket_incident'] as $ra) {
+                            if (empty(trim($ra['ticket'] ?? '')) && empty(trim($ra['keterangan'] ?? ''))) continue;
+                            $activitiesList[] = [
+                                'subject'       => (!empty($ra['ticket']) ? "[{$ra['ticket']}] " : '') . (!empty($ra['keterangan']) ? $ra['keterangan'] : (!empty($ra['customer']) ? $ra['customer'] : 'Penanganan Tiket')),
+                                'activity_date' => $rawReport['hd_identitas']['tanggal'] ?? date('Y-m-d'),
+                                'time_str'      => $ra['time'] ?? ($ra['start'] ?? ''),
+                                'client_pic'    => $ra['customer'] ?? ($rawReport['hd_identitas']['area_site'] ?? ''),
+                                'ipnet_pic'     => $rawReport['hd_identitas']['nama_engineer'] ?? '',
+                                'notes'         => (!empty($ra['priority']) ? "Priority: {$ra['priority']} | " : '') . ($ra['keterangan'] ?? ''),
+                                'activity_type' => 'Field Support',
+                                'status'        => !empty($ra['status']) ? ($ra['status'] === 'Close' ? 'Selesai' : $ra['status']) : 'Selesai',
+                            ];
+                        }
+                    } elseif (!empty($rawReport['hd_aktivitas'])) {
+                        foreach ($rawReport['hd_aktivitas'] as $ra) {
+                            if (empty(trim($ra['aktivitas'] ?? ''))) continue;
+                            $activitiesList[] = [
+                                'subject'       => $ra['aktivitas'],
+                                'activity_date' => $rawReport['hd_identitas']['tanggal'] ?? date('Y-m-d'),
+                                'time_str'      => $ra['waktu'] ?? '',
+                                'client_pic'    => $rawReport['hd_identitas']['customer_service'] ?? ($rawReport['hd_identitas']['area_site'] ?? ''),
+                                'ipnet_pic'     => $rawReport['hd_identitas']['nama_engineer'] ?? '',
+                                'notes'         => (!empty($ra['ticket_wo']) ? "Ticket/WO: {$ra['ticket_wo']} | " : '') . ($ra['hasil'] ?? ''),
+                                'activity_type' => 'Field Support',
+                                'status'        => !empty($ra['status']) ? $ra['status'] : 'Selesai',
+                            ];
+                        }
                     }
                 } elseif (!empty($rawReport['rincian_aktivitas'])) {
                     foreach ($rawReport['rincian_aktivitas'] as $ra) {

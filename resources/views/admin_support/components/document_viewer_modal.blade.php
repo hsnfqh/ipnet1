@@ -9,7 +9,7 @@
         {{-- Viewer Control Bar --}}
         <div class="p-4 px-6 bg-[#17151C] text-white flex items-center justify-between flex-shrink-0 border-b border-gray-800">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-[#C81E2C] text-white flex items-center justify-center font-bold text-xs">
+                <div class="w-8 h-8 rounded-lg bg-[#8F0A0D] text-white flex items-center justify-center font-bold text-xs">
                     PDF
                 </div>
                 <div>
@@ -40,7 +40,7 @@
                 {{-- Official Letterhead / Kop Surat --}}
                 <div class="flex items-start justify-between border-b-2 border-gray-900 pb-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-[#C81E2C] text-white font-extrabold text-sm flex items-center justify-center tracking-tighter shadow-sm">
+                        <div class="w-10 h-10 rounded-xl bg-[#8F0A0D] text-white font-extrabold text-sm flex items-center justify-center tracking-tighter shadow-sm">
                             IP
                         </div>
                         <div>
@@ -58,7 +58,7 @@
                 {{-- Document Title & Reference --}}
                 <div class="text-center py-2 space-y-1">
                     <h2 class="text-sm sm:text-base font-extrabold uppercase tracking-wide text-gray-900 underline underline-offset-4" x-text="activeDoc ? activeDoc.doc_type + ' — ' + activeDoc.title : 'DOKUMEN RESMI'"></h2>
-                    <p class="text-xs font-mono font-bold text-[#C81E2C]">NOMOR: <span x-text="activeDoc ? activeDoc.doc_number : ''"></span></p>
+                    <p class="text-xs font-mono font-bold text-[#8F0A0D]">NOMOR: <span x-text="activeDoc ? activeDoc.doc_number : ''"></span></p>
                 </div>
 
                 {{-- Parties Information --}}
@@ -128,7 +128,7 @@
                             {{-- Circular Official Red Stamp --}}
                             <div class="w-20 h-20 rounded-full border-2 border-red-600 text-red-600 flex flex-col items-center justify-center p-1 transform -rotate-12 opacity-85 shadow-xs select-none">
                                 <span class="text-[7.5px] font-black uppercase text-center leading-tight">PT IP-NET SOLUSINDO</span>
-                                <span class="text-[6.5px] font-extrabold text-[#C81E2C] border-t border-b border-red-500 py-0.5 my-0.5">LEGAL VERIFIED</span>
+                                <span class="text-[6.5px] font-extrabold text-[#8F0A0D] border-t border-b border-red-500 py-0.5 my-0.5">LEGAL VERIFIED</span>
                                 <span class="text-[6px] font-bold">JAKARTA</span>
                             </div>
                             

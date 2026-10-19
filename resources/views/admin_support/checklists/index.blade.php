@@ -28,7 +28,7 @@
             <div class="flex flex-col sm:flex-row sm:flex-wrap sm:justify-between sm:items-center gap-2.5">
                 <form method="GET" action="{{ route('admin_support.checklists.index') }}" class="flex flex-col sm:flex-row flex-wrap gap-2.5 w-full sm:w-auto">
                     <select name="project_id" onchange="this.form.submit()" 
-                            class="w-full sm:w-64 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all cursor-pointer">
+                            class="w-full sm:w-64 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all cursor-pointer">
                         <option value="">Semua Proyek</option>
                         @foreach($projects as $p)
                             <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
@@ -36,7 +36,7 @@
                     </select>
 
                     <select name="milestone" onchange="this.form.submit()" 
-                            class="w-full sm:w-48 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all cursor-pointer">
+                            class="w-full sm:w-48 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all cursor-pointer">
                         <option value="">Semua Milestone</option>
                         <option value="Pre-Sales Handover" {{ request('milestone') == 'Pre-Sales Handover' ? 'selected' : '' }}>Pre-Sales Handover</option>
                         <option value="Project Kickoff" {{ request('milestone') == 'Project Kickoff' ? 'selected' : '' }}>Project Kickoff</option>

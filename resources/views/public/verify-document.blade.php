@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #C81E2C;
+            --primary: #8F0A0D;
             --primary-dark: #8F0A0D;
             --primary-light: #FEE2E2;
             --dark: #0F172A;

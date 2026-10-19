@@ -704,8 +704,7 @@
                         Batal
                     </button>
                     <button type="button" @click="executeConfirmedDelete()" :disabled="deleteLoading"
-                            class="flex-1 py-2.5 px-4 rounded-xl text-white font-bold text-[12.5px] transition cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
-                            style="background:linear-gradient(135deg,#8F0A0D,#C41E2A);">
+                            class="flex-1 py-2.5 px-4 rounded-xl btn-ipnet-gradient font-bold text-[12.5px] transition cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-2">
                         <svg x-show="deleteLoading" class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -771,8 +770,7 @@
                             Batal
                         </button>
                         <button type="button" @click="submitSignature()" :disabled="signatureSaving"
-                                class="px-5 py-2 text-xs font-bold text-white rounded-xl shadow-md transition flex items-center gap-2 disabled:opacity-50 cursor-pointer"
-                                style="background: linear-gradient(135deg, #8F0A0D, #C41E2A);">
+                                class="px-5 py-2 text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2 disabled:opacity-50 cursor-pointer btn-ipnet-gradient">
                             <svg x-show="signatureSaving" class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             <span x-text="signatureSaving ? 'Menyimpan...' : 'Simpan & Bubuhkan Tanda Tangan'"></span>
                         </button>
@@ -1026,13 +1024,13 @@ function engineerActivityManager() {
                 // 2. MANAGED SERVICE DEFAULT DATA
                 ms_identitas: {
                     tanggal: firstDateRaw,
-                    no_report: this.sigInfo?.document_number || 'IPNET-MS-' + todayDate.getFullYear() + pad(todayDate.getMonth()+1) + '-0001',
+                    no_spk_contract: '',
                     customer: detail?.client_name || '',
-                    no_contract: '',
+                    no_so: '',
                     site_lokasi: '',
                     ticket_incident_no: '',
                     engineer_pic: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
-                    shift: '',
+                    service_device: '',
                     jenis_aktivitas: {
                         monitoring: false,
                         pm: false,
@@ -1041,7 +1039,7 @@ function engineerActivityManager() {
                         request: false,
                         visit: false,
                     },
-                    service_device: '',
+                    pic_customer: '',
                     jam_mulai: '',
                     jam_selesai: '',
                 },
@@ -1052,31 +1050,27 @@ function engineerActivityManager() {
                     { parameter: 'Resolution / Close', waktu: '', target_sla: '', aktual: '', status: '', keterangan: '' }
                 ],
                 ms_kondisi_perangkat: [
-                    { no: 1, service_device: '', parameter: '', before: '', after: '', status: '', keterangan: '' }
+                    { no: 1, perangkat: '', cpu_status: '', fan_status: '', power_supply_status: '', firmware_version: '', status: '', keterangan: '' }
+                ],
+                ms_incident_escalation: [
+                    { no: 1, incident: '', impact: '', probable_root_cause: '', escalation: '', status: '' }
                 ],
                 ms_aktivitas: items.length > 0 ? items.map((it, idx) => ({
                     no: idx + 1,
                     waktu: extractTime(it.time_str || it.start_time, ''),
-                    aktivitas: it.subject || '',
-                    ticket_alarm: '',
-                    hasil: '',
-                    status: it.status || '',
-                    kendala: '',
-                    follow_up: it.notes && it.notes !== '-' ? it.notes : ''
+                    detail_aktivitas: it.subject || '',
+                    hasil_catatan: it.notes && it.notes !== '-' ? it.notes : ''
                 })) : [
-                    { no: 1, waktu: '', aktivitas: '', ticket_alarm: '', hasil: '', status: '', kendala: '', follow_up: '' }
-                ],
-                ms_incident_escalation: [
-                    { no: 1, incident: '', impact: '', root_cause: '', corrective_action: '', escalation: '', status: '' }
-                ],
-                ms_pm_checklist: [
-                    { no: 1, item_pemeriksaan: '', kondisi: '', hasil: '', temuan: '', tindakan: '', status: '' }
+                    { no: 1, waktu: '', detail_aktivitas: '', hasil_catatan: '' }
                 ],
                 ms_materials: [
-                    { no: 1, item: '', type: '', qty: '', used_replaced: '', old_new: '', keterangan: '' }
+                    { no: 1, type: '', qty: '', sn_lama: '', sn_baru: '', keterangan: '' }
                 ],
                 ms_evidence: [
-                    { no: 1, evidence: '', waktu: '', foto_url: '', keterangan: '' }
+                    { no: 1, evidence: '', foto_url: '', keterangan: '' }
+                ],
+                ms_catatan: [
+                    { no: 1, catatan: '' }
                 ],
                 ms_closure: {
                     service_status: { resolved: false, monitoring: false, escalated: false, closed: false },
@@ -1090,45 +1084,42 @@ function engineerActivityManager() {
                     customer_name: ''
                 },
 
-                // 3. HELP DESK DEFAULT DATA
+                // 3. HELP DESK DEFAULT DATA (MATCHING OFFICIAL 2-PAGE PDF)
                 hd_identitas: {
                     tanggal: firstDateRaw,
                     shift: { pagi: false, siang: false, malam: false },
                     nama_engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
-                    team_leader: this.sigInfo?.lead?.name || '',
                     area_site: '',
+                    team_leader: this.sigInfo?.lead?.name || '',
                     customer_service: detail?.client_name || '',
                     jam_shift: '',
-                    jumlah_engineer: ''
+                    jumlah_engineer: 1
                 },
                 hd_kondisi_awal: [
-                    { no: 1, item_service: '', kondisi_awal: '', alarm_issue: '', status: '', keterangan: '' }
-                ],
-                hd_aktivitas: items.length > 0 ? items.map((it, idx) => ({
-                    no: idx + 1,
-                    waktu: extractTime(it.time_str || it.start_time, ''),
-                    aktivitas: it.subject || '',
-                    ticket_wo: '',
-                    lokasi_device: '',
-                    hasil: '',
-                    status: it.status || ''
-                })) : [
-                    { no: 1, waktu: '', aktivitas: '', ticket_wo: '', lokasi_device: '', hasil: '', status: '' }
+                    { no: 1, customer: '', alarm_issue: '', status: '', keterangan: '' },
+                    { no: 2, customer: '', alarm_issue: '', status: '', keterangan: '' },
+                    { no: 3, customer: '', alarm_issue: '', status: '', keterangan: '' },
+                    { no: 4, customer: '', alarm_issue: '', status: '', keterangan: '' },
+                    { no: 5, customer: '', alarm_issue: '', status: '', keterangan: '' }
                 ],
                 hd_ticket_incident: [
-                    { no: 1, ticket: '', jenis: '', priority: '', start: '', restore: '', close_status: '', keterangan: '' }
-                ],
-                hd_monitoring_status: [
-                    { no: 1, service_device: '', status: '', alarm: '', performance: '', action: '', keterangan: '' }
-                ],
-                hd_pekerjaan_field: [
-                    { no: 1, lokasi: '', pekerjaan: '', engineer: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}', hasil: '', foto_evidence: '', status: '' }
+                    { no: 1, ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: '' },
+                    { no: 2, ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: '' },
+                    { no: 3, ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: '' },
+                    { no: 4, ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: '' },
+                    { no: 5, ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: '' }
                 ],
                 hd_kendala_escalation: [
-                    { no: 1, kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: '', next_action: '' }
+                    { no: 1, ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open' },
+                    { no: 2, ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open' },
+                    { no: 3, ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open' },
+                    { no: 4, ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open' },
+                    { no: 5, ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open' }
                 ],
                 hd_handover: [
-                    { no: 1, outstanding_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', pic: '', due_time: '', catatan: '' }
+                    { no: 1, ticket_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', durasi_start: '', durasi_end: '', catatan: '' },
+                    { no: 2, ticket_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', durasi_start: '', durasi_end: '', catatan: '' },
+                    { no: 3, ticket_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', durasi_start: '', durasi_end: '', catatan: '' }
                 ],
                 hd_rekap_shift: {
                     total_ticket_diterima: '',
@@ -1142,7 +1133,11 @@ function engineerActivityManager() {
                     engineer_name: detail?.creator_name || detail?.engineer_name || '{{ auth()->user()?->name ?? 'Engineer' }}',
                     team_leader_name: this.sigInfo?.lead?.name || '',
                     next_engineer_name: ''
-                }
+                },
+                hd_evidence: [
+                    { no: 1, evidence: '', foto_url: '', keterangan: '' },
+                    { no: 2, evidence: '', foto_url: '', keterangan: '' }
+                ]
             };
         },
 
@@ -1192,6 +1187,7 @@ function engineerActivityManager() {
                     ms_pm_checklist: Array.isArray(data.ms_pm_checklist) && data.ms_pm_checklist.length > 0 ? data.ms_pm_checklist : this.reportFormData.ms_pm_checklist,
                     ms_materials: Array.isArray(data.ms_materials) && data.ms_materials.length > 0 ? data.ms_materials : this.reportFormData.ms_materials,
                     ms_evidence: Array.isArray(data.ms_evidence) && data.ms_evidence.length > 0 ? data.ms_evidence : this.reportFormData.ms_evidence,
+                    ms_catatan: Array.isArray(data.ms_catatan) && data.ms_catatan.length > 0 ? data.ms_catatan : this.reportFormData.ms_catatan,
                     ms_closure: {
                         ...this.reportFormData.ms_closure,
                         ...(data.ms_closure || {}),
@@ -1415,7 +1411,7 @@ function engineerActivityManager() {
             if (!Array.isArray(this.reportFormData.ms_kondisi_perangkat)) this.reportFormData.ms_kondisi_perangkat = [];
             const nextNo = this.reportFormData.ms_kondisi_perangkat.length + 1;
             this.reportFormData.ms_kondisi_perangkat.push({
-                no: nextNo, service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: ''
+                no: nextNo, perangkat: '', cpu_status: '', fan_status: '', power_supply_status: '', firmware_version: '', status: '', keterangan: ''
             });
         },
         removeMsKondisiRow(idx) {
@@ -1428,28 +1424,11 @@ function engineerActivityManager() {
             }
         },
 
-        addMsActRow() {
-            if (!Array.isArray(this.reportFormData.ms_aktivitas)) this.reportFormData.ms_aktivitas = [];
-            const nextNo = this.reportFormData.ms_aktivitas.length + 1;
-            this.reportFormData.ms_aktivitas.push({
-                no: nextNo, waktu: '09:00', aktivitas: '', ticket_alarm: '', hasil: '', status: 'Done', kendala: '', follow_up: ''
-            });
-        },
-        removeMsActRow(idx) {
-            if (this.reportFormData.ms_aktivitas && this.reportFormData.ms_aktivitas.length > 1) {
-                if (typeof idx === 'number') {
-                    this.reportFormData.ms_aktivitas.splice(idx, 1);
-                } else {
-                    this.reportFormData.ms_aktivitas.pop();
-                }
-            }
-        },
-
         addMsIncidentRow() {
             if (!Array.isArray(this.reportFormData.ms_incident_escalation)) this.reportFormData.ms_incident_escalation = [];
             const nextNo = this.reportFormData.ms_incident_escalation.length + 1;
             this.reportFormData.ms_incident_escalation.push({
-                no: nextNo, incident: '', impact: '', root_cause: '', corrective_action: '', escalation: '', status: 'Closed'
+                no: nextNo, incident: '', impact: '', probable_root_cause: '', escalation: '', status: ''
             });
         },
         removeMsIncidentRow(idx) {
@@ -1462,19 +1441,19 @@ function engineerActivityManager() {
             }
         },
 
-        addMsPmRow() {
-            if (!Array.isArray(this.reportFormData.ms_pm_checklist)) this.reportFormData.ms_pm_checklist = [];
-            const nextNo = this.reportFormData.ms_pm_checklist.length + 1;
-            this.reportFormData.ms_pm_checklist.push({
-                no: nextNo, item_pemeriksaan: '', kondisi: 'Baik', hasil: 'Normal', temuan: '', tindakan: '', status: 'OK'
+        addMsActRow() {
+            if (!Array.isArray(this.reportFormData.ms_aktivitas)) this.reportFormData.ms_aktivitas = [];
+            const nextNo = this.reportFormData.ms_aktivitas.length + 1;
+            this.reportFormData.ms_aktivitas.push({
+                no: nextNo, waktu: '', detail_aktivitas: '', hasil_catatan: ''
             });
         },
-        removeMsPmRow(idx) {
-            if (this.reportFormData.ms_pm_checklist && this.reportFormData.ms_pm_checklist.length > 1) {
+        removeMsActRow(idx) {
+            if (this.reportFormData.ms_aktivitas && this.reportFormData.ms_aktivitas.length > 1) {
                 if (typeof idx === 'number') {
-                    this.reportFormData.ms_pm_checklist.splice(idx, 1);
+                    this.reportFormData.ms_aktivitas.splice(idx, 1);
                 } else {
-                    this.reportFormData.ms_pm_checklist.pop();
+                    this.reportFormData.ms_aktivitas.pop();
                 }
             }
         },
@@ -1483,7 +1462,7 @@ function engineerActivityManager() {
             if (!Array.isArray(this.reportFormData.ms_materials)) this.reportFormData.ms_materials = [];
             const nextNo = this.reportFormData.ms_materials.length + 1;
             this.reportFormData.ms_materials.push({
-                no: nextNo, item: '', type: '', qty: '', used_replaced: '', old_new: '', keterangan: ''
+                no: nextNo, type: '', qty: '', sn_lama: '', sn_baru: '', keterangan: ''
             });
         },
         removeMsMaterialRow(idx) {
@@ -1500,7 +1479,7 @@ function engineerActivityManager() {
             if (!Array.isArray(this.reportFormData.ms_evidence)) this.reportFormData.ms_evidence = [];
             const nextNo = this.reportFormData.ms_evidence.length + 1;
             this.reportFormData.ms_evidence.push({
-                no: nextNo, evidence: '', waktu: '09:00', foto_url: '', keterangan: ''
+                no: nextNo, evidence: '', foto_url: '', keterangan: ''
             });
         },
         removeMsEvidenceRow(idx) {
@@ -1509,6 +1488,23 @@ function engineerActivityManager() {
                     this.reportFormData.ms_evidence.splice(idx, 1);
                 } else {
                     this.reportFormData.ms_evidence.pop();
+                }
+            }
+        },
+
+        addMsCatatanRow() {
+            if (!Array.isArray(this.reportFormData.ms_catatan)) this.reportFormData.ms_catatan = [];
+            const nextNo = this.reportFormData.ms_catatan.length + 1;
+            this.reportFormData.ms_catatan.push({
+                no: nextNo, catatan: ''
+            });
+        },
+        removeMsCatatanRow(idx) {
+            if (this.reportFormData.ms_catatan && this.reportFormData.ms_catatan.length > 1) {
+                if (typeof idx === 'number') {
+                    this.reportFormData.ms_catatan.splice(idx, 1);
+                } else {
+                    this.reportFormData.ms_catatan.pop();
                 }
             }
         },
@@ -1532,38 +1528,18 @@ function engineerActivityManager() {
             }
         },
 
-        // ═══ HELP DESK ROW HELPERS ═══
+        // ═══ HELP DESK ROW HELPERS (MATCHING OFFICIAL 2-PAGE PDF) ═══
         addHdKondisiRow() {
             if (!Array.isArray(this.reportFormData.hd_kondisi_awal)) this.reportFormData.hd_kondisi_awal = [];
             const nextNo = this.reportFormData.hd_kondisi_awal.length + 1;
             this.reportFormData.hd_kondisi_awal.push({
-                no: nextNo, item_service: '', kondisi_awal: 'Normal', alarm_issue: 'Clear', status: 'OK', keterangan: ''
+                no: nextNo, customer: '', alarm_issue: '', status: '', keterangan: ''
             });
         },
         removeHdKondisiRow(idx) {
             if (this.reportFormData.hd_kondisi_awal && this.reportFormData.hd_kondisi_awal.length > 1) {
-                if (typeof idx === 'number') {
-                    this.reportFormData.hd_kondisi_awal.splice(idx, 1);
-                } else {
-                    this.reportFormData.hd_kondisi_awal.pop();
-                }
-            }
-        },
-
-        addHdActRow() {
-            if (!Array.isArray(this.reportFormData.hd_aktivitas)) this.reportFormData.hd_aktivitas = [];
-            const nextNo = this.reportFormData.hd_aktivitas.length + 1;
-            this.reportFormData.hd_aktivitas.push({
-                no: nextNo, waktu: '09:00', aktivitas: '', ticket_wo: '', lokasi_device: '', hasil: '', status: 'Done'
-            });
-        },
-        removeHdActRow(idx) {
-            if (this.reportFormData.hd_aktivitas && this.reportFormData.hd_aktivitas.length > 1) {
-                if (typeof idx === 'number') {
-                    this.reportFormData.hd_aktivitas.splice(idx, 1);
-                } else {
-                    this.reportFormData.hd_aktivitas.pop();
-                }
+                if (typeof idx === 'number') this.reportFormData.hd_kondisi_awal.splice(idx, 1);
+                else this.reportFormData.hd_kondisi_awal.pop();
             }
         },
 
@@ -1571,50 +1547,13 @@ function engineerActivityManager() {
             if (!Array.isArray(this.reportFormData.hd_ticket_incident)) this.reportFormData.hd_ticket_incident = [];
             const nextNo = this.reportFormData.hd_ticket_incident.length + 1;
             this.reportFormData.hd_ticket_incident.push({
-                no: nextNo, ticket: '', jenis: '', priority: 'Medium', start: '', restore: '', close_status: 'Closed', keterangan: ''
+                no: nextNo, ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: ''
             });
         },
         removeHdTicketRow(idx) {
             if (this.reportFormData.hd_ticket_incident && this.reportFormData.hd_ticket_incident.length > 1) {
-                if (typeof idx === 'number') {
-                    this.reportFormData.hd_ticket_incident.splice(idx, 1);
-                } else {
-                    this.reportFormData.hd_ticket_incident.pop();
-                }
-            }
-        },
-
-        addHdMonitoringRow() {
-            if (!Array.isArray(this.reportFormData.hd_monitoring_status)) this.reportFormData.hd_monitoring_status = [];
-            const nextNo = this.reportFormData.hd_monitoring_status.length + 1;
-            this.reportFormData.hd_monitoring_status.push({
-                no: nextNo, service_device: '', status: 'Up', alarm: 'None', performance: '', action: '', keterangan: ''
-            });
-        },
-        removeHdMonitoringRow(idx) {
-            if (this.reportFormData.hd_monitoring_status && this.reportFormData.hd_monitoring_status.length > 1) {
-                if (typeof idx === 'number') {
-                    this.reportFormData.hd_monitoring_status.splice(idx, 1);
-                } else {
-                    this.reportFormData.hd_monitoring_status.pop();
-                }
-            }
-        },
-
-        addHdFieldRow() {
-            if (!Array.isArray(this.reportFormData.hd_pekerjaan_field)) this.reportFormData.hd_pekerjaan_field = [];
-            const nextNo = this.reportFormData.hd_pekerjaan_field.length + 1;
-            this.reportFormData.hd_pekerjaan_field.push({
-                no: nextNo, lokasi: '', pekerjaan: '', engineer: '{{ auth()->user()?->name ?? 'Engineer' }}', hasil: '', foto_evidence: '', status: 'Done'
-            });
-        },
-        removeHdFieldRow(idx) {
-            if (this.reportFormData.hd_pekerjaan_field && this.reportFormData.hd_pekerjaan_field.length > 1) {
-                if (typeof idx === 'number') {
-                    this.reportFormData.hd_pekerjaan_field.splice(idx, 1);
-                } else {
-                    this.reportFormData.hd_pekerjaan_field.pop();
-                }
+                if (typeof idx === 'number') this.reportFormData.hd_ticket_incident.splice(idx, 1);
+                else this.reportFormData.hd_ticket_incident.pop();
             }
         },
 
@@ -1622,16 +1561,13 @@ function engineerActivityManager() {
             if (!Array.isArray(this.reportFormData.hd_kendala_escalation)) this.reportFormData.hd_kendala_escalation = [];
             const nextNo = this.reportFormData.hd_kendala_escalation.length + 1;
             this.reportFormData.hd_kendala_escalation.push({
-                no: nextNo, kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: '', next_action: ''
+                no: nextNo, ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open'
             });
         },
         removeHdKendalaRow(idx) {
             if (this.reportFormData.hd_kendala_escalation && this.reportFormData.hd_kendala_escalation.length > 1) {
-                if (typeof idx === 'number') {
-                    this.reportFormData.hd_kendala_escalation.splice(idx, 1);
-                } else {
-                    this.reportFormData.hd_kendala_escalation.pop();
-                }
+                if (typeof idx === 'number') this.reportFormData.hd_kendala_escalation.splice(idx, 1);
+                else this.reportFormData.hd_kendala_escalation.pop();
             }
         },
 
@@ -1639,16 +1575,45 @@ function engineerActivityManager() {
             if (!Array.isArray(this.reportFormData.hd_handover)) this.reportFormData.hd_handover = [];
             const nextNo = this.reportFormData.hd_handover.length + 1;
             this.reportFormData.hd_handover.push({
-                no: nextNo, outstanding_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', pic: '', due_time: '', catatan: ''
+                no: nextNo, ticket_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', durasi_start: '', durasi_end: '', catatan: ''
             });
         },
         removeHdHandoverRow(idx) {
             if (this.reportFormData.hd_handover && this.reportFormData.hd_handover.length > 1) {
-                if (typeof idx === 'number') {
-                    this.reportFormData.hd_handover.splice(idx, 1);
-                } else {
-                    this.reportFormData.hd_handover.pop();
+                if (typeof idx === 'number') this.reportFormData.hd_handover.splice(idx, 1);
+                else this.reportFormData.hd_handover.pop();
+            }
+        },
+
+        addHdEvidenceRow() {
+            if (!Array.isArray(this.reportFormData.hd_evidence)) this.reportFormData.hd_evidence = [];
+            const nextNo = this.reportFormData.hd_evidence.length + 1;
+            this.reportFormData.hd_evidence.push({
+                no: nextNo, evidence: '', foto_url: '', keterangan: ''
+            });
+        },
+        removeHdEvidenceRow(idx) {
+            if (this.reportFormData.hd_evidence && this.reportFormData.hd_evidence.length > 1) {
+                if (typeof idx === 'number') this.reportFormData.hd_evidence.splice(idx, 1);
+                else this.reportFormData.hd_evidence.pop();
+            }
+        },
+        async handleHdEvidenceUpload(e, idx) {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const compressed = await this.compressImage(file, 1000, 0.72);
+                if (compressed && this.reportFormData.hd_evidence[idx]) {
+                    this.reportFormData.hd_evidence[idx].foto_url = compressed;
                 }
+            } catch (err) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    if (this.reportFormData.hd_evidence[idx]) {
+                        this.reportFormData.hd_evidence[idx].foto_url = ev.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
             }
         },
 

@@ -65,6 +65,13 @@ if (!class_exists(\App\Http\Controllers\DigitalSignatureController::class)) {
 Route::get('/verify', [\App\Http\Controllers\PublicDocumentVerificationController::class, 'index'])->name('public.verify.index');
 Route::match(['GET', 'POST'], '/verify/inspect', [\App\Http\Controllers\PublicDocumentVerificationController::class, 'inspect'])->name('public.verify.inspect');
 
+// Public Client Helpdesk & Ticketing Portal (Tanpa Perlu Login)
+Route::get('/helpdesk', [\App\Http\Controllers\ClientTicketPortalController::class, 'index'])->name('public.helpdesk.index');
+Route::post('/helpdesk', [\App\Http\Controllers\ClientTicketPortalController::class, 'store'])->name('public.helpdesk.store');
+Route::get('/helpdesk/track', [\App\Http\Controllers\ClientTicketPortalController::class, 'track'])->name('public.helpdesk.track');
+Route::get('/helpdesk/{ticketNumber}', [\App\Http\Controllers\ClientTicketPortalController::class, 'show'])->name('public.helpdesk.show');
+Route::get('/tiket', [\App\Http\Controllers\ClientTicketPortalController::class, 'index'])->name('public.ticket.alias');
+
 // Public Client Digital Signature Portal & Verification (Tanpa Perlu Login)
 Route::get('/sign/{token}', [DigitalSignatureController::class, 'clientSignShow'])->name('client.digital_signature.show');
 Route::get('/sign/{token}', [DigitalSignatureController::class, 'clientSignShow'])->name('digital_signatures.client_sign');

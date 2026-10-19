@@ -18,14 +18,14 @@
         }
         .header-table {
             width: 100%;
-            border-bottom: 2px solid #C81E2C;
+            border-bottom: 2px solid #8F0A0D;
             padding-bottom: 12px;
             margin-bottom: 14px;
         }
         .company-title {
             font-size: 18px;
             font-weight: bold;
-            color: #C81E2C;
+            color: #8F0A0D;
             margin: 0;
             letter-spacing: 0.5px;
         }
@@ -39,7 +39,7 @@
         .report-badge {
             display: inline-block;
             background: #FDF1F2;
-            color: #C81E2C;
+            color: #8F0A0D;
             border: 1px solid #FADADF;
             padding: 4px 10px;
             border-radius: 4px;
@@ -119,7 +119,7 @@
             font-size: 8px;
             font-weight: bold;
         }
-        .cat-onsite { background: #FDF1F2; color: #C81E2C; }
+        .cat-onsite { background: #FDF1F2; color: #8F0A0D; }
         .cat-remote { background: #EFF6FF; color: #1D4ED8; }
         .cat-overtime { background: #FEF3C7; color: #B45309; }
         .cat-maint { background: #ECFDF5; color: #047857; }
@@ -179,7 +179,7 @@
             <td style="width: 25%;">
                 <div class="summary-box">
                     <div class="summary-title">Total Jam Kerja</div>
-                    <div class="summary-value" style="color: #C81E2C;">{{ $totalHours }} Jam</div>
+                    <div class="summary-value" style="color: #8F0A0D;">{{ $totalHours }} Jam</div>
                 </div>
             </td>
             <td style="width: 25%;">
@@ -257,7 +257,7 @@
             @if($timesheets->isNotEmpty())
                 <tr class="total-row">
                     <td colspan="6" class="text-right">TOTAL DURASI JAM KERJA :</td>
-                    <td class="text-center" style="color: #C81E2C;">{{ $totalHours }} Jam</td>
+                    <td class="text-center" style="color: #8F0A0D;">{{ $totalHours }} Jam</td>
                     <td colspan="2" style="font-size: 8.5px; color: #475569;">Total {{ $timesheets->count() }} aktivitas pengerjaan</td>
                 </tr>
             @endif

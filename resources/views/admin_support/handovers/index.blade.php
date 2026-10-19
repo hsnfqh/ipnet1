@@ -33,7 +33,7 @@
                                name="search" 
                                value="{{ request('search') }}"
                                placeholder="Cari No Handover / Proyek..." 
-                               class="w-full sm:w-64 px-[11px] py-[9px] pl-8 rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all">
+                               class="w-full sm:w-64 px-[11px] py-[9px] pl-8 rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all">
                     </div>
 
                     @if(request('search'))
@@ -45,7 +45,7 @@
                 </form>
 
                 <button type="button" @click="isCreateModalOpen = true" 
-                        class="w-full sm:w-auto justify-center bg-[#C81E2C] text-white shadow-[0_8px_20px_rgba(200,30,44,0.24)] px-[17px] py-[9px] rounded-lg font-semibold text-[13px] flex items-center gap-1.5 hover:brightness-105 active:translate-y-[1px] transition-all cursor-pointer">
+                        class="w-full sm:w-auto justify-center btn-ipnet-gradient text-white shadow-md px-[17px] py-[9px] rounded-lg font-semibold text-[13px] flex items-center gap-1.5 hover:brightness-105 active:translate-y-[1px] transition-all cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -79,7 +79,7 @@
                                     <td class="py-3.5 px-4">
                                         <div class="font-bold text-[#17151C] text-[13px]">{{ $hnd->project ? $hnd->project->name : 'N/A' }}</div>
                                         <div class="text-[11.5px] text-gray-600 mt-0.5">
-                                            Tujuan: <strong class="text-[#C81E2C]">{{ $hnd->target_division }}</strong>
+                                            Tujuan: <strong class="text-[#8F0A0D]">{{ $hnd->target_division }}</strong>
                                         </div>
                                         @if($hnd->audit_notes)
                                             <div class="text-[11px] text-gray-400 mt-0.5 truncate max-w-sm">{{ $hnd->audit_notes }}</div>
@@ -174,7 +174,7 @@
 
                 <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
                     <button type="button" @click="isCreateModalOpen = false" class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 cursor-pointer">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-[#C81E2C] text-white font-bold rounded-xl hover:brightness-105 shadow-sm cursor-pointer">Simpan Handover</button>
+                    <button type="submit" class="px-4 py-2 btn-ipnet-gradient text-white font-bold rounded-xl shadow-md cursor-pointer">Simpan Handover</button>
                 </div>
             </form>
         </div>

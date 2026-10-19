@@ -53,7 +53,7 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
                             <h3 class="font-bold text-gray-900 text-sm">Antrean Verifikasi Dokumen Masuk</h3>
                         </div>
-                        <a href="{{ route('admin_support.documents.index') }}" class="text-xs font-bold text-[#C81E2C] hover:underline">
+                        <a href="{{ route('admin_support.documents.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">
                             Lihat Register &rarr;
                         </a>
                     </div>
@@ -101,7 +101,7 @@
 
                                 <div class="flex items-center gap-1.5 flex-shrink-0">
                                     <button @click="openInspectModal({{ json_encode($doc) }})" 
-                                            class="px-3 py-1.5 bg-[#C81E2C] hover:brightness-105 active:translate-y-[1px] text-white rounded-lg text-xs font-bold shadow-xs transition inline-flex items-center gap-1 cursor-pointer" title="Periksa Berkas & Verifikasi">
+                                            class="px-3 py-1.5 btn-ipnet-gradient text-white rounded-lg text-xs font-bold shadow-xs transition inline-flex items-center gap-1 cursor-pointer" title="Periksa Berkas & Verifikasi">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         <span>Periksa</span>
                                     </button>
@@ -128,7 +128,7 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
                             <h3 class="font-bold text-gray-900 text-sm">Gatekeeper: Dokumen Wajib Proyek yang Belum Lengkap</h3>
                         </div>
-                        <a href="{{ route('admin_support.checklists.index') }}" class="text-xs font-bold text-[#C81E2C] hover:underline">
+                        <a href="{{ route('admin_support.checklists.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">
                             Matriks Lengkap &rarr;
                         </a>
                     </div>
@@ -184,7 +184,7 @@
                 <div class="bg-white rounded-2xl border border-[#E7E5E3] shadow-xs flex flex-col justify-between overflow-hidden">
                     <div class="p-4 px-5 flex items-center justify-between border-b border-[#EFEDEB]">
                         <h3 class="font-bold text-gray-900 text-sm">Surat Jalan & Pengiriman Material (Logistik)</h3>
-                        <a href="{{ route('admin_support.logistics.index') }}" class="text-xs font-bold text-[#C81E2C] hover:underline">Kelola Surat Jalan &rarr;</a>
+                        <a href="{{ route('admin_support.logistics.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">Kelola Surat Jalan &rarr;</a>
                     </div>
 
                     <div class="divide-y divide-gray-100 flex-1">
@@ -219,7 +219,7 @@
                         <div>
                             <h3 class="font-bold text-gray-900 text-sm">Pelacakan Serial Number (SN Master Registry)</h3>
                         </div>
-                        <a href="{{ route('admin_support.inventory.index') }}" class="text-xs font-bold text-[#C81E2C] hover:underline">Database SN &rarr;</a>
+                        <a href="{{ route('admin_support.inventory.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">Database SN &rarr;</a>
                     </div>
 
                     <div class="divide-y divide-gray-100 flex-1">
@@ -309,7 +309,7 @@
                     <div class="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 flex items-center justify-between hover:bg-blue-100/60 transition cursor-pointer"
                          @click="isDocPreviewOpen = true">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-red-100 text-[#C81E2C] border border-red-200 flex items-center justify-center font-black text-xs flex-shrink-0 shadow-xs">
+                            <div class="w-10 h-10 rounded-lg bg-red-100 text-[#8F0A0D] border border-red-200 flex items-center justify-center font-black text-xs flex-shrink-0 shadow-xs">
                                 PDF
                             </div>
                             <div>
@@ -320,7 +320,7 @@
                                 <div class="text-[11px] text-gray-500">Berkas digital terlampir (Klik untuk buka & periksa lembar PDF)</div>
                             </div>
                         </div>
-                        <button type="button" @click.stop="isDocPreviewOpen = true" class="px-3 py-1.5 bg-[#C81E2C] hover:brightness-105 active:translate-y-[1px] text-white font-bold rounded-lg shadow-xs text-xs flex items-center gap-1 cursor-pointer">
+                        <button type="button" @click.stop="isDocPreviewOpen = true" class="px-3 py-1.5 btn-ipnet-gradient text-white font-bold rounded-lg shadow-xs text-xs flex items-center gap-1 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             <span>Buka Dokumen</span>
                         </button>
@@ -331,15 +331,15 @@
                         <div class="font-bold text-amber-900 text-xs">Daftar Pemeriksaan Standar Verifikasi Admin:</div>
                         <div class="space-y-1.5 text-gray-700 text-[11.5px]">
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" checked class="rounded text-[#C81E2C] focus:ring-0">
+                                <input type="checkbox" checked class="rounded text-[#8F0A0D] focus:ring-0">
                                 <span>Keabsahan tanda tangan pejabat berwenang & stempel basah / e-meterai</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" checked class="rounded text-[#C81E2C] focus:ring-0">
+                                <input type="checkbox" checked class="rounded text-[#8F0A0D] focus:ring-0">
                                 <span>Kesesuaian nomor referensi, tanggal berlaku, dan nilai komersial</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" checked class="rounded text-[#C81E2C] focus:ring-0">
+                                <input type="checkbox" checked class="rounded text-[#8F0A0D] focus:ring-0">
                                 <span>Lampiran teknis (SOW / BoQ / Berita Acara UAT) lengkap dan terbaca jelas</span>
                             </label>
                         </div>

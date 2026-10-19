@@ -207,6 +207,21 @@ class Project extends Model
         return $this->hasMany(Schedule::class);
     }
 
+    public function managedServiceAssets()
+    {
+        return $this->hasMany(ManagedServiceAsset::class, 'project_id');
+    }
+
+    public function managedServiceTickets()
+    {
+        return $this->hasMany(ManagedServiceTicket::class, 'project_id');
+    }
+
+    public function managedServiceReports()
+    {
+        return $this->hasMany(ManagedServiceReport::class, 'project_id');
+    }
+
     /**
      * Engineer yang ditugaskan pada proyek (melalui penugasan tugas/tasks)
      */

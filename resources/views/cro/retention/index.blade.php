@@ -33,10 +33,10 @@
                                name="client" 
                                value="{{ request('client') }}"
                                placeholder="Cari Klien / Perusahaan..." 
-                               class="w-full sm:w-64 px-[11px] py-[9px] pl-8 rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all">
+                               class="w-full sm:w-64 px-[11px] py-[9px] pl-8 rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all">
                     </div>
                     <select name="status" onchange="this.form.submit()" 
-                            class="w-full sm:w-56 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all cursor-pointer">
+                            class="w-full sm:w-56 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all cursor-pointer">
                         <option value="">Semua Status Kesehatan</option>
                         <option value="Healthy" {{ request('status') == 'Healthy' ? 'selected' : '' }}>Healthy (Aman)</option>
                         <option value="Warning" {{ request('status') == 'Warning' ? 'selected' : '' }}>Warning (Waspada)</option>
@@ -51,7 +51,7 @@
                 </form>
 
                 <button type="button" @click="openCreateHealthModal()" 
-                        class="w-full sm:w-auto justify-center bg-[#C81E2C] text-white shadow-[0_8px_20px_rgba(200,30,44,0.24)] px-[17px] py-[9px] rounded-lg font-semibold text-[13px] flex items-center gap-1.5 hover:brightness-105 active:translate-y-[1px] transition-all cursor-pointer">
+                        class="w-full sm:w-auto justify-center btn-ipnet-gradient text-white shadow-md px-[17px] py-[9px] rounded-lg font-semibold text-[13px] flex items-center gap-1.5 hover:brightness-105 active:translate-y-[1px] transition-all cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -105,7 +105,7 @@
                                     <td class="py-3.5 px-3 text-center whitespace-nowrap">
                                         <div class="inline-flex items-center gap-1.5">
                                             <div class="w-14 bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                                <div class="bg-[#C81E2C] h-1.5 rounded-full" style="width: {{ $acc->renewal_probability }}%"></div>
+                                                <div class="bg-[#8F0A0D] h-1.5 rounded-full" style="width: {{ $acc->renewal_probability }}%"></div>
                                             </div>
                                             <span class="font-bold text-[11.5px] text-gray-700">{{ $acc->renewal_probability }}%</span>
                                         </div>
@@ -220,7 +220,7 @@
 
                 <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
                     <button type="button" @click="isModalOpen = false" class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 cursor-pointer">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-[#C81E2C] text-white font-bold rounded-xl hover:brightness-105 shadow-sm cursor-pointer">Simpan Matriks</button>
+                    <button type="submit" class="px-4 py-2 btn-ipnet-gradient text-white font-bold rounded-xl shadow-md cursor-pointer">Simpan Matriks</button>
                 </div>
             </form>
         </div>

@@ -15,11 +15,15 @@ class ManagedServiceTicket extends Model
         'client_name',
         'title',
         'description',
+        'incident_date',
         'type',
+        'category',
         'priority',
         'status',
+        'source',
         'reported_by',
         'contact_phone',
+        'contact_email',
         'assigned_to',
         'asset_id',
         'sla_deadline',
@@ -27,13 +31,15 @@ class ManagedServiceTicket extends Model
         'sla_met',
         'resolution_notes',
         'root_cause',
+        'attachment_path',
         'created_by',
     ];
 
     protected $casts = [
-        'sla_deadline' => 'datetime',
-        'resolved_at'  => 'datetime',
-        'sla_met'      => 'boolean',
+        'sla_deadline'  => 'datetime',
+        'resolved_at'   => 'datetime',
+        'incident_date' => 'datetime',
+        'sla_met'       => 'boolean',
     ];
 
     public function project()

@@ -138,9 +138,56 @@
                 </div>
             @endif
 
-            <!-- Filter & Action Bar -->
+            @php
+                $authUser = auth()->user();
+                $isExecutiveOrPimpinan = $authUser && (
+                    str_contains(strtolower($authUser->name ?? ''), 'hariyadi')
+                    || str_contains(strtolower($authUser->name ?? ''), 'susanto')
+                    || $authUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation'])
+                );
+            @endphp
+
+            {{-- Header Card (Konsisten & Identik Persis Engineer) --}}
+            <div class="bg-white border border-[#E2E8F0] rounded-2xl px-6 py-5 shadow-sm anim-fade-up">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block"></span>
+                            <span class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-widest">
+                                MONITORING &amp; LOG AKTIVITAS
+                            </span>
+                        </div>
+                        <h1 class="text-[20px] font-bold text-[#0F172A] leading-snug">
+                            Activity Log
+                        </h1>
+                        <p class="text-[12.5px] text-[#64748B] mt-1">
+                            Pantau dan kelola seluruh aktivitas harian sales secara terpusat
+                        </p>
+                    </div>
+                    <div class="shrink-0 flex items-center gap-2.5">
+                        <a href="{{ route('public.verify.index') }}" target="_blank"
+                           class="px-4 py-2.5 rounded-xl font-bold text-[12.5px] flex items-center gap-2 transition-all cursor-pointer bg-white border border-[#CBD5E1] text-[#334155] hover:bg-[#F8FAFC] hover:border-[#94A3B8] shadow-sm whitespace-nowrap">
+                            <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            Uji Integritas Dokumen
+                        </a>
+                        @if(!$isExecutiveOrPimpinan)
+                        <button type="button" @click="openBulkModal()"
+                                class="btn-ipnet-primary px-5 py-2.5 rounded-xl font-bold text-[12.5px] flex items-center gap-2 transition-all cursor-pointer shadow-md whitespace-nowrap">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Input Aktivitas
+                        </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
             <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3 anim-fade-up anim-delay-1">
-                <form method="GET" action="{{ route('sales.activities.index') }}" class="flex flex-col sm:flex-row flex-wrap gap-2.5 w-full lg:w-auto">
+                <form method="GET" action="{{ route('sales.activities.index') }}" class="flex flex-col sm:flex-row flex-wrap gap-2.5 w-full">
                     <div class="relative">
                         <svg class="w-4 h-4 absolute left-3.5 top-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -174,24 +221,7 @@
                             Reset Filter
                         </a>
                     @endif
-                </form>                @php
-                    $authUser = auth()->user();
-                    $isExecutiveOrPimpinan = $authUser && (
-                        str_contains(strtolower($authUser->name ?? ''), 'hariyadi')
-                        || str_contains(strtolower($authUser->name ?? ''), 'susanto')
-                        || $authUser->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation'])
-                    );
-                @endphp
-
-                @if(!$isExecutiveOrPimpinan)
-                <button type="button" @click="openBulkModal()" 
-                        class="btn-ipnet-primary w-full sm:w-auto justify-center shadow-md px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span>Input Dokumen Resmi Sales</span>
-                </button>
-                @endif
+                </form>
             </div>
 
             {{-- Activity Feed Grid (Identik Persis Layout Engineer) --}}

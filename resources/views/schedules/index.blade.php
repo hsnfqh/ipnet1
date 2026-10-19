@@ -419,8 +419,8 @@
                             </div>
                             <p style="margin-bottom:0; font-size:13.5px; color:#75727C;">Tidak ada jadwal atau agenda pada hari ini.</p>
                             @if($canManageSchedule ?? false)
-                            <button type="button" @click="openModal()" style="margin-top:20px !important; background:#C81E2C; color:white; border:none; padding:10px 22px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 14px rgba(200,30,44,0.22); transition:all 0.15s ease;">
-                                <svg style="width:13px; height:13px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                            <button type="button" @click="openModal()" class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[12.5px] inline-flex items-center gap-2 cursor-pointer shadow-md mt-5 transition-all">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                                 <span>Tambah {{ ($isArchitect ?? false) ? 'Agenda' : 'Jadwal' }} Hari Ini</span>
                             </button>
                             @endif
@@ -1369,10 +1369,10 @@
 .jkw [x-cloak] { display: none !important; }
 
 .jkw {
-    --jkw-primary:#C81E2C;
-    --jkw-primary-dark:#AF1424;
-    --jkw-primary-soft:#FDF1F2;
-    --jkw-primary-border:#F3C6CB;
+    --jkw-primary:#8F0A0D;
+    --jkw-primary-dark:#73080A;
+    --jkw-primary-soft:#FEF2F2;
+    --jkw-primary-border:#FECACA;
     --jkw-success:#1E8A4C;
     --jkw-success-soft:#F0FAF3;
     --jkw-success-border:#BFE8C9;
@@ -2042,7 +2042,7 @@
     border-color: #FDA4AF !important;
 }
 .jkw-cat-btn--poc.is-active {
-    background: linear-gradient(135deg, #C81E2C 0%, #8F0A0D 100%) !important;
+    background: linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%) !important;
     color: #FFFFFF !important;
     border-color: #8F0A0D !important;
     box-shadow: 0 4px 14px rgba(143, 10, 13, 0.35) !important;
@@ -2463,7 +2463,7 @@
                 isCommercial: @json($isCommercial ?? false),
                 isCommercialOrSolution: @json($isCommercialOrSolution ?? false),
                 canManageSchedule: @json($canManageSchedule ?? false),
-                viewMode: 'week',
+                viewMode: '{{ request("view", "day") }}',
                 currentDate: new Date(),
                 showAvailability: false,
                 showOnlyAvailable: false,

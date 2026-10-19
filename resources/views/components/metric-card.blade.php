@@ -1,7 +1,7 @@
 @php
     $accent = $accent ?? false;
     $href = $href ?? null;
-    $iconColor = $accent ? '#C81E2C' : '#3D3A44';
+    $iconColor = $accent ? '#8F0A0D' : '#3D3A44';
     $iconBg = $accent ? '#FDF1F2' : '#F4F2EF';
 @endphp
 
@@ -11,10 +11,10 @@
     <div class="group">
 @endif
 
-<div class="wms-card wms-card-hover relative overflow-hidden p-4 sm:p-[18px] bg-white border border-[#EAE8E5] group-hover:border-[#C81E2C]/40 group-hover:shadow-[0_12px_28px_-6px_rgba(200,30,44,0.12)] transition-all duration-300 {{ $href ? 'cursor: pointer' : '' }}">
+<div class="wms-card wms-card-hover relative overflow-hidden p-4 sm:p-[18px] bg-white border border-[#EAE8E5] group-hover:border-[#8F0A0D]/40 group-hover:shadow-[0_12px_28px_-6px_rgba(200,30,44,0.12)] transition-all duration-300 {{ $href ? 'cursor: pointer' : '' }}">
     {{-- Top Accent Bar --}}
     @if($accent)
-        <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#C81E2C] via-[#E14B54] to-[#7A0D18]"></div>
+        <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#8F0A0D] via-[#E14B54] to-[#7A0D18]"></div>
     @else
         <div class="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-[#EAE8E5] transition-colors duration-300"></div>
     @endif
@@ -34,7 +34,7 @@
     </div>
 
     <div class="relative z-10 mt-2.5">
-        <div class="metric-counter font-display text-[26px] sm:text-[30px] font-bold text-[#17151C] group-hover:text-[#C81E2C] tracking-[-0.5px] leading-tight transition-colors duration-200" data-target="{{ $value }}">
+        <div class="metric-counter font-display text-[26px] sm:text-[30px] font-bold text-[#17151C] group-hover:text-[#8F0A0D] tracking-[-0.5px] leading-tight transition-colors duration-200" data-target="{{ $value }}">
             {{ $value }}
         </div>
     </div>

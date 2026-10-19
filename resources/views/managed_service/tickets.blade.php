@@ -74,9 +74,17 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3 shrink-0">
+                        <a href="{{ route('public.helpdesk.index') }}" target="_blank"
+                           class="px-4 py-2.5 rounded-xl font-bold text-[12.5px] bg-white border border-[#CBD5E1] text-[#1E293B] hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition flex items-center gap-2 shadow-xs cursor-pointer whitespace-nowrap">
+                            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            <span>Buka Portal Klien Eksternal</span>
+                        </a>
+
                         <div class="px-3.5 py-1.5 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] text-[12px] font-bold text-[#1E293B] flex items-center gap-1.5 shadow-xs">
                             <span class="text-[#64748B]">Total Tiket:</span>
-                            <span class="text-[#8F0A0D] font-extrabold">{{ $tickets->count() }}</span>
+                            <span class="text-[#8F0A0D] font-extrabold">{{ $tickets->total() }}</span>
                         </div>
 
                         <button @click="openCreateModal()" class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md">
@@ -96,19 +104,29 @@
                                class="w-full pl-10 pr-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-medium text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs">
                     </div>
 
-                    <select name="type" onchange="this.form.submit()" class="w-full sm:w-56 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                    <select name="type" onchange="this.form.submit()" class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="all">Semua Tipe Layanan</option>
                         <option value="Preventive Maintenance" {{ in_array(request('type'), ['Preventive Maintenance', 'Preventive']) ? 'selected' : '' }}>Preventive Maintenance (PM)</option>
                         <option value="Corrective Maintenance" {{ in_array(request('type'), ['Corrective Maintenance', 'Corrective', 'Incident']) ? 'selected' : '' }}>Corrective Maintenance (CM)</option>
                     </select>
+
+                    <select name="source" onchange="this.form.submit()" class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="all">Semua Sumber Tiket</option>
+                        <option value="External Portal" {{ request('source') == 'External Portal' ? 'selected' : '' }}>Portal Klien Eksternal</option>
+                        <option value="Internal" {{ request('source') == 'Internal' ? 'selected' : '' }}>Internal Managed Service</option>
+                    </select>
                     
-                    <select name="status" onchange="this.form.submit()" class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                    <select name="status" onchange="this.form.submit()" class="w-full sm:w-40 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="all">Semua Status</option>
                         <option value="Open" {{ request('status') == 'Open' ? 'selected' : '' }}>Open</option>
                         <option value="In Progress" {{ request('status') == 'In Progress' ? 'selected' : '' }}>In Progress</option>
                         <option value="Resolved" {{ request('status') == 'Resolved' ? 'selected' : '' }}>Resolved</option>
                         <option value="Closed" {{ request('status') == 'Closed' ? 'selected' : '' }}>Closed</option>
                     </select>
+
+                    @if(request('search') || request('type') || request('source') || request('status'))
+                        <a href="{{ route('ms.tickets.index') }}" class="px-3 py-2 text-[12px] font-bold text-slate-500 hover:text-slate-800">Reset Filter</a>
+                    @endif
                 </form>
             </div>
 
@@ -120,7 +138,7 @@
                             <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-extrabold tracking-wider text-[#64748B] uppercase">
                                 <th class="py-3.5 px-5">NO. TIKET & KLIEN</th>
                                 <th class="py-3.5 px-5">JUDUL & RINGKASAN MASALAH</th>
-                                <th class="py-3.5 px-5">TIPE LAYANAN</th>
+                                <th class="py-3.5 px-5">TIPE & SUMBER</th>
                                 <th class="py-3.5 px-5">TEKNISI PIC</th>
                                 <th class="py-3.5 px-5">SLA DEADLINE</th>
                                 <th class="py-3.5 px-5 text-center">STATUS</th>
@@ -132,7 +150,15 @@
                                 @php $tTier = $t->sla_tier_info; @endphp
                                 <tr class="hover:bg-[#F8FAFC] transition-colors">
                                     <td class="py-4 px-5 whitespace-nowrap">
-                                        <div class="font-mono font-extrabold text-[#1E293B] text-[13px]">{{ $t->ticket_number }}</div>
+                                        <div class="font-mono font-extrabold text-[#1E293B] text-[13px] flex items-center gap-2">
+                                            <span>{{ $t->ticket_number }}</span>
+                                            @if($t->source === 'External Portal')
+                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200" title="Tiket dari Portal Klien Eksternal">
+                                                    <svg class="w-3 h-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                                                    <span>Web Klien</span>
+                                                </span>
+                                            @endif
+                                        </div>
                                         <div class="text-[12px] text-[#64748B] font-semibold flex items-center gap-1.5 mt-0.5">
                                             <span>{{ $t->client_name }}</span>
                                             @if($tTier)
@@ -143,8 +169,38 @@
                                         </div>
                                     </td>
                                     <td class="py-4 px-5">
-                                        <div class="font-bold text-[#1E293B] text-[13.5px]">{{ $t->title }}</div>
+                                        <div class="font-bold text-[#1E293B] text-[13.5px] flex items-center gap-2">
+                                            <span>{{ $t->title }}</span>
+                                            @if($t->priority)
+                                                @php
+                                                    $pColor = str_contains($t->priority, 'Critical') || str_contains($t->priority, 'P1') ? 'bg-red-50 text-red-700 border-red-200' :
+                                                              (str_contains($t->priority, 'Major') || str_contains($t->priority, 'High') || str_contains($t->priority, 'P2') ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                                              (str_contains($t->priority, 'Minor') || str_contains($t->priority, 'Medium') || str_contains($t->priority, 'P3') ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'));
+                                                @endphp
+                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold border {{ $pColor }}">{{ $t->priority }}</span>
+                                            @endif
+                                        </div>
                                         <div class="text-[11.5px] text-[#64748B] line-clamp-1 mt-0.5">{{ $t->description ?: 'Tidak ada deskripsi tambahan.' }}</div>
+                                        <div class="text-[11px] text-slate-500 flex flex-wrap items-center gap-2 mt-1">
+                                            @if($t->reported_by)
+                                                <span class="font-medium text-slate-700">Pelapor: {{ $t->reported_by }}</span>
+                                            @endif
+                                            @if($t->contact_phone)
+                                                <span class="text-slate-300">•</span>
+                                                <span class="font-mono text-slate-600">{{ $t->contact_phone }}</span>
+                                            @endif
+                                            @if($t->contact_email)
+                                                <span class="text-slate-300">•</span>
+                                                <span class="text-slate-600">{{ $t->contact_email }}</span>
+                                            @endif
+                                            @if($t->attachment_path)
+                                                <span class="text-slate-300">•</span>
+                                                <a href="{{ asset('storage/' . $t->attachment_path) }}" target="_blank" class="text-blue-600 hover:underline font-bold inline-flex items-center gap-0.5">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                                    <span>Lampiran Bukti</span>
+                                                </a>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="py-4 px-5 whitespace-nowrap">
                                         @if(in_array($t->type, ['Preventive Maintenance', 'Preventive']))
@@ -383,6 +439,30 @@
                     @method('PUT')
 
                     <div class="p-5 sm:p-6 overflow-y-auto space-y-3.5 text-[12.5px] flex-1">
+                        <!-- Info Panel Klien / Pelapor -->
+                        <div x-show="activeTicket.reported_by || activeTicket.contact_email || activeTicket.source === 'External Portal'" 
+                             class="p-3.5 rounded-xl bg-purple-50/70 border border-purple-200 text-xs space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-purple-900 uppercase tracking-wider text-[10.5px] flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-purple-600"></span>
+                                    Informasi Pelapor (Klien Eksternal)
+                                </span>
+                                <span class="font-mono text-[10.5px] font-bold text-purple-700" x-text="activeTicket.ticket_number"></span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-[11.5px] pt-1 border-t border-purple-100">
+                                <div><span class="text-slate-400">Instansi:</span> <strong class="text-slate-800" x-text="activeTicket.client_name"></strong></div>
+                                <div><span class="text-slate-400">Pelapor:</span> <strong class="text-slate-800" x-text="activeTicket.reported_by || '-'"></strong></div>
+                                <div><span class="text-slate-400">Email:</span> <span class="text-slate-700" x-text="activeTicket.contact_email || '-'"></span></div>
+                                <div><span class="text-slate-400">Telepon:</span> <span class="text-slate-700" x-text="activeTicket.contact_phone || '-'"></span></div>
+                            </div>
+                            <div x-show="activeTicket.attachment_path" class="pt-1 text-[11px]">
+                                <a :href="'/storage/' + activeTicket.attachment_path" target="_blank" class="text-blue-600 hover:underline font-bold inline-flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                    <span>Lihat File Lampiran Bukti Klien</span>
+                                </a>
+                            </div>
+                        </div>
+
                         <div>
                             <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Status Tiket <span class="text-[#8F0A0D]">*</span></label>
                             <select name="status" x-model="activeTicket.status" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">

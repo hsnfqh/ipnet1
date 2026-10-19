@@ -371,6 +371,16 @@ class ManagedServiceController extends Controller
             $query->where('priority', $request->priority);
         }
 
+        if ($request->filled('source') && $request->source !== 'all') {
+            if ($request->source === 'External Portal') {
+                $query->where('source', 'External Portal');
+            } elseif ($request->source === 'Internal') {
+                $query->where(function($q) {
+                    $q->whereNull('source')->orWhere('source', '!=', 'External Portal');
+                });
+            }
+        }
+
         $tickets = $query->latest()->paginate(15)->withQueryString();
         $assets  = ManagedServiceAsset::orderBy('device_name')->get();
         $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();

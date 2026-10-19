@@ -1,6 +1,6 @@
 @php
     $colors = [
-        'High' => '#C81E2C',
+        'High' => '#8F0A0D',
         'Medium' => '#9A6206',
         'Low' => '#75727C',
     ];

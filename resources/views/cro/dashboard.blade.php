@@ -53,7 +53,7 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
                             <h3 class="font-bold text-gray-900 text-sm">At-Risk & Warning Account Radar</h3>
                         </div>
-                        <a href="{{ route('cro.retention.index') }}" class="text-xs font-bold text-[#C81E2C] hover:underline">
+                        <a href="{{ route('cro.retention.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">
                             Lihat Semua &rarr;
                         </a>
                     </div>
@@ -111,7 +111,7 @@
                         <div>
                             <h3 class="font-bold text-gray-900 text-sm">Orkestrasi Disposisi Isu Aktif</h3>
                         </div>
-                        <a href="{{ route('cro.concerns.index') }}" class="text-xs font-bold text-[#C81E2C] hover:underline">
+                        <a href="{{ route('cro.concerns.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">
                             Daftar Tiket &rarr;
                         </a>
                     </div>
@@ -147,7 +147,7 @@
                                         <span>•</span>
                                         <span>SLA Target: <strong class="text-gray-700 font-semibold">{{ $con->sla_due_date ? $con->sla_due_date->format('d M Y') : '-' }}</strong></span>
                                         <span>•</span>
-                                        <span>PIC: <strong class="text-[#C81E2C]">{{ $con->assignedUser ? $con->assignedUser->name : 'Belum Ditugaskan' }}</strong></span>
+                                        <span>PIC: <strong class="text-[#8F0A0D]">{{ $con->assignedUser ? $con->assignedUser->name : 'Belum Ditugaskan' }}</strong></span>
                                     </div>
                                 </div>
                             </div>
@@ -174,7 +174,7 @@
                 <div class="bg-white rounded-2xl border border-[#E7E5E3] shadow-xs flex flex-col justify-between overflow-hidden">
                     <div class="p-4 px-5 flex items-center justify-between border-b border-[#EFEDEB]">
                         <h3 class="font-bold text-gray-900 text-sm">Log Relasi & Meeting Klien (QBR / Touchpoint)</h3>
-                        <a href="{{ route('cro.engagements.index') }}" class="text-xs font-bold text-[#C81E2C] hover:underline">Lihat Semua &rarr;</a>
+                        <a href="{{ route('cro.engagements.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">Lihat Semua &rarr;</a>
                     </div>
 
                     <div class="divide-y divide-gray-100 flex-1">
@@ -210,7 +210,7 @@
                         <div>
                             <h3 class="font-bold text-gray-900 text-sm">Peluang Ekspansi Akun (Bridge to Sales)</h3>
                         </div>
-                        <a href="{{ route('cro.opportunities.index') }}" class="text-xs font-bold text-[#C81E2C] hover:underline">Lihat Semua &rarr;</a>
+                        <a href="{{ route('cro.opportunities.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">Lihat Semua &rarr;</a>
                     </div>
 
                     <div class="divide-y divide-gray-100 flex-1">
@@ -299,7 +299,7 @@
 
                 <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
                     <button type="button" @click="isHealthModalOpen = false" class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 cursor-pointer">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-[#C81E2C] text-white font-bold rounded-xl hover:brightness-105 shadow-sm cursor-pointer">Simpan Perubahan</button>
+                    <button type="submit" class="btn-ipnet-gradient px-5 py-2 font-bold rounded-xl shadow-md cursor-pointer">Simpan Perubahan</button>
                 </div>
             </form>
         </div>

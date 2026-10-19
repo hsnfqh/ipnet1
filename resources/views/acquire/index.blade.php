@@ -437,7 +437,7 @@
                                     <button type="button" @click="formModalOpen = false" class="px-4 py-2 bg-white border border-[#E7E5E3] rounded-xl text-[13px] font-semibold text-[#475569] hover:bg-[#F1F0EE] transition cursor-pointer">
                                         Batal
                                     </button>
-                                    <button type="submit" class="px-5 py-2 bg-[#C81E2C] hover:bg-[#AF1424] text-white rounded-xl text-[13px] font-bold shadow-[0_4px_14px_rgba(200,30,44,0.25)] transition cursor-pointer">
+                                    <button type="submit" class="btn-ipnet-gradient px-5 py-2 font-bold rounded-xl text-[13px] shadow-md transition cursor-pointer">
                                         Simpan Peluang
                                     </button>
                                 </div>

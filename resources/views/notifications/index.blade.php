@@ -148,7 +148,7 @@
                         <!-- Icon -->
                         <div class="flex justify-center mb-4">
                             <div class="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center">
-                                <svg class="w-7 h-7 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <svg class="w-7 h-7 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                 </svg>
                             </div>
@@ -165,7 +165,7 @@
                         <!-- Buttons -->
                         <div class="flex flex-col sm:flex-row gap-3">
                             <button @click="confirmDeleteAction()" 
-                                    class="flex-1 py-2.5 px-4 rounded-lg bg-[#C81E2C] text-white font-semibold text-[14px] hover:brightness-105 transition-all">
+                                    class="flex-1 py-2.5 px-4 rounded-lg btn-ipnet-gradient text-white font-semibold text-[14px] shadow-md transition-all">
                                 Yakin
                             </button>
                             <button @click="confirmOpen = false" 

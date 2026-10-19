@@ -1,6 +1,6 @@
 @php
     $size = $size ?? 32;
-    $tone = $tone ?? '#3D3A44';
+    $tone = $tone ?? 'linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%)';
     $initials = collect(explode(' ', $name))
         ->map(fn($word) => substr($word, 0, 1))
         ->take(2)
@@ -8,6 +8,6 @@
     $initials = strtoupper($initials);
 @endphp
 
-<div style="width: {{ $size }}px; height: {{ $size }}px; border-radius: 50%; background: {{ $tone }}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #FFFFFF, 0 1px 3px rgba(14,13,18,0.18); font-family: 'Inter', sans-serif; font-weight: 600; font-size: {{ $size * 0.36 }}px; flex-shrink: 0;">
+<div style="width: {{ $size }}px; height: {{ $size }}px; border-radius: 50%; background: {{ $tone }}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #FFFFFF, 0 2px 6px rgba(143,10,13,0.3); font-family: 'Inter', sans-serif; font-weight: 600; font-size: {{ $size * 0.36 }}px; flex-shrink: 0;">
     {{ $initials }}
 </div>

@@ -177,13 +177,13 @@
         // 2. MANAGED SERVICE DEFAULT DATA
         ms_identitas: {
             tanggal: '{{ date('Y-m-d') }}',
-            no_report: 'IPNET-MS-{{ date('Ym') }}-DRAFT',
+            no_spk_contract: '',
             customer: '',
-            no_contract: '',
+            no_so: '',
             site_lokasi: '',
             ticket_incident_no: '',
             engineer_pic: '{{ auth()->user()?->name ?? 'Engineer' }}',
-            shift: '',
+            service_device: '',
             jenis_aktivitas: {
                 monitoring: false,
                 pm: false,
@@ -192,7 +192,7 @@
                 request: false,
                 visit: false,
             },
-            service_device: '',
+            pic_customer: '',
             jam_mulai: '',
             jam_selesai: '',
         },
@@ -203,22 +203,22 @@
             { parameter: 'Resolution / Close', waktu: '', target_sla: '', aktual: '', status: '', keterangan: '' }
         ],
         ms_kondisi_perangkat: [
-            { no: 1, service_device: '', parameter: '', before: '', after: '', status: '', keterangan: '' }
-        ],
-        ms_aktivitas: [
-            { no: 1, waktu: '', aktivitas: '', ticket_alarm: '', hasil: '', status: '', kendala: '', follow_up: '' }
+            { no: 1, perangkat: '', cpu_status: '', fan_status: '', power_supply_status: '', firmware_version: '', status: '', keterangan: '' }
         ],
         ms_incident_escalation: [
-            { no: 1, incident: '', impact: '', root_cause: '', corrective_action: '', escalation: '', status: '' }
+            { no: 1, incident: '', impact: '', root_cause: '', escalation: '', status: '' }
         ],
-        ms_pm_checklist: [
-            { no: 1, item_pemeriksaan: '', kondisi: '', hasil: '', temuan: '', tindakan: '', status: '' }
+        ms_aktivitas: [
+            { no: 1, waktu: '', detail_aktivitas: '', hasil_catatan: '' }
         ],
         ms_materials: [
-            { no: 1, item: '', type: '', qty: '', used_replaced: '', old_new: '', keterangan: '' }
+            { no: 1, type: '', qty: '', sn_lama: '', sn_baru: '', keterangan: '' }
         ],
         ms_evidence: [
-            { no: 1, evidence: '', waktu: '', foto_url: '', keterangan: '' }
+            { no: 1, evidence: '', foto_url: '', keterangan: '' }
+        ],
+        ms_catatan: [
+            { no: 1, catatan: '' }
         ],
         ms_closure: {
             service_status: { resolved: false, monitoring: false, escalated: false, closed: false },
@@ -232,7 +232,7 @@
             customer_name: ''
         },
 
-        // 3. HELP DESK DEFAULT DATA
+        // 3. HELP DESK DEFAULT DATA (MATCHING OFFICIAL 2-PAGE PDF)
         hd_identitas: {
             tanggal: '{{ date('Y-m-d') }}',
             shift: { pagi: false, siang: false, malam: false },
@@ -241,28 +241,33 @@
             area_site: '',
             customer_service: '',
             jam_shift: '',
-            jumlah_engineer: ''
+            jumlah_engineer: 1
         },
         hd_kondisi_awal: [
-            { no: 1, item_service: '', kondisi_awal: '', alarm_issue: '', status: '', keterangan: '' }
-        ],
-        hd_aktivitas: [
-            { no: 1, waktu: '', aktivitas: '', ticket_wo: '', lokasi_device: '', hasil: '', status: '' }
+            { no: 1, customer: '', alarm_issue: '', status: '', keterangan: '' },
+            { no: 2, customer: '', alarm_issue: '', status: '', keterangan: '' },
+            { no: 3, customer: '', alarm_issue: '', status: '', keterangan: '' },
+            { no: 4, customer: '', alarm_issue: '', status: '', keterangan: '' },
+            { no: 5, customer: '', alarm_issue: '', status: '', keterangan: '' }
         ],
         hd_ticket_incident: [
-            { no: 1, ticket: '', jenis: '', priority: '', start: '', restore: '', close_status: '', keterangan: '' }
-        ],
-        hd_monitoring_status: [
-            { no: 1, service_device: '', status: '', alarm: '', performance: '', action: '', keterangan: '' }
-        ],
-        hd_pekerjaan_field: [
-            { no: 1, lokasi: '', pekerjaan: '', engineer: '{{ auth()->user()?->name ?? 'Engineer' }}', hasil: '', foto_evidence: '', status: '' }
+            { no: 1, ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: '' },
+            { no: 2, ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: '' },
+            { no: 3, ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: '' },
+            { no: 4, ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: '' },
+            { no: 5, ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: '' }
         ],
         hd_kendala_escalation: [
-            { no: 1, kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: '', next_action: '' }
+            { no: 1, ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open' },
+            { no: 2, ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open' },
+            { no: 3, ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open' },
+            { no: 4, ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open' },
+            { no: 5, ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open' }
         ],
         hd_handover: [
-            { no: 1, outstanding_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', pic: '', due_time: '', catatan: '' }
+            { no: 1, ticket_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', durasi_start: '', durasi_end: '', catatan: '' },
+            { no: 2, ticket_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', durasi_start: '', durasi_end: '', catatan: '' },
+            { no: 3, ticket_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', durasi_start: '', durasi_end: '', catatan: '' }
         ],
         hd_rekap_shift: {
             total_ticket_diterima: '',
@@ -272,6 +277,10 @@
             service_kritis: '',
             handover_diperlukan: false
         },
+        hd_evidence: [
+            { no: 1, evidence: '', foto_url: '', keterangan: '' },
+            { no: 2, evidence: '', foto_url: '', keterangan: '' }
+        ],
         hd_verifikasi: {
             engineer_name: '{{ auth()->user()?->name ?? 'Engineer' }}',
             team_leader_name: '',
@@ -291,7 +300,8 @@
             if (p.progress) this.reportFormData.hasil_akhir.progress_percent = p.progress;
             this.reportFormData.ms_identitas.customer = p.client || '';
             this.reportFormData.ms_identitas.site_lokasi = p.location || '';
-            this.reportFormData.ms_identitas.no_contract = p.po_number || '';
+            this.reportFormData.ms_identitas.no_spk_contract = p.po_number || '';
+            this.reportFormData.ms_identitas.pic_customer = p.customer_pic_technical || '';
             this.reportFormData.hd_identitas.customer_service = (p.client || '') + ' / ' + (p.name || '');
             this.reportFormData.hd_identitas.area_site = p.location || '';
 
@@ -478,46 +488,49 @@
         if (!Array.isArray(this.reportFormData.ms_kondisi_perangkat)) this.reportFormData.ms_kondisi_perangkat = [];
         this.reportFormData.ms_kondisi_perangkat.push({
             no: this.reportFormData.ms_kondisi_perangkat.length + 1,
-            service_device: '', parameter: '', before: '', after: '', status: 'Good', keterangan: ''
+            perangkat: '', cpu_status: '', fan_status: '', power_supply_status: '', firmware_version: '', status: '', keterangan: ''
         });
     },
     removeMsKondisiRow(idx) {
         if (this.reportFormData.ms_kondisi_perangkat && this.reportFormData.ms_kondisi_perangkat.length > 1) {
             if (typeof idx === 'number') this.reportFormData.ms_kondisi_perangkat.splice(idx, 1);
             else this.reportFormData.ms_kondisi_perangkat.pop();
+            this.reportFormData.ms_kondisi_perangkat.forEach((r, i) => r.no = i + 1);
         }
     },
     addMsActRow() {
         if (!Array.isArray(this.reportFormData.ms_aktivitas)) this.reportFormData.ms_aktivitas = [];
         this.reportFormData.ms_aktivitas.push({
             no: this.reportFormData.ms_aktivitas.length + 1,
-            waktu: '09:00', aktivitas: '', ticket_alarm: '', hasil: '', status: 'Done', kendala: '', follow_up: ''
+            waktu: '', detail_aktivitas: '', hasil_catatan: ''
         });
     },
     removeMsActRow(idx) {
         if (this.reportFormData.ms_aktivitas && this.reportFormData.ms_aktivitas.length > 1) {
             if (typeof idx === 'number') this.reportFormData.ms_aktivitas.splice(idx, 1);
             else this.reportFormData.ms_aktivitas.pop();
+            this.reportFormData.ms_aktivitas.forEach((r, i) => r.no = i + 1);
         }
     },
     addMsIncidentRow() {
         if (!Array.isArray(this.reportFormData.ms_incident_escalation)) this.reportFormData.ms_incident_escalation = [];
         this.reportFormData.ms_incident_escalation.push({
             no: this.reportFormData.ms_incident_escalation.length + 1,
-            incident: '', impact: '', root_cause: '', corrective_action: '', escalation: '', status: 'Closed'
+            incident: '', impact: '', root_cause: '', escalation: '', status: ''
         });
     },
     removeMsIncidentRow(idx) {
         if (this.reportFormData.ms_incident_escalation && this.reportFormData.ms_incident_escalation.length > 1) {
             if (typeof idx === 'number') this.reportFormData.ms_incident_escalation.splice(idx, 1);
             else this.reportFormData.ms_incident_escalation.pop();
+            this.reportFormData.ms_incident_escalation.forEach((r, i) => r.no = i + 1);
         }
     },
     addMsPmRow() {
         if (!Array.isArray(this.reportFormData.ms_pm_checklist)) this.reportFormData.ms_pm_checklist = [];
         this.reportFormData.ms_pm_checklist.push({
             no: this.reportFormData.ms_pm_checklist.length + 1,
-            item_pemeriksaan: '', kondisi: 'Baik', hasil: 'Normal', temuan: '', tindakan: '', status: 'OK'
+            item_pemeriksaan: '', kondisi: '', hasil: '', temuan: '', tindakan: '', status: ''
         });
     },
     removeMsPmRow(idx) {
@@ -530,26 +543,42 @@
         if (!Array.isArray(this.reportFormData.ms_materials)) this.reportFormData.ms_materials = [];
         this.reportFormData.ms_materials.push({
             no: this.reportFormData.ms_materials.length + 1,
-            item: '', type: '', qty: '', used_replaced: '', old_new: '', keterangan: ''
+            type: '', qty: '', sn_lama: '', sn_baru: '', keterangan: ''
         });
     },
     removeMsMaterialRow(idx) {
         if (this.reportFormData.ms_materials && this.reportFormData.ms_materials.length > 1) {
             if (typeof idx === 'number') this.reportFormData.ms_materials.splice(idx, 1);
             else this.reportFormData.ms_materials.pop();
+            this.reportFormData.ms_materials.forEach((r, i) => r.no = i + 1);
         }
     },
     addMsEvidenceRow() {
         if (!Array.isArray(this.reportFormData.ms_evidence)) this.reportFormData.ms_evidence = [];
         this.reportFormData.ms_evidence.push({
             no: this.reportFormData.ms_evidence.length + 1,
-            evidence: '', waktu: '09:00', foto_url: '', keterangan: ''
+            evidence: '', foto_url: '', keterangan: ''
         });
     },
     removeMsEvidenceRow(idx) {
         if (this.reportFormData.ms_evidence && this.reportFormData.ms_evidence.length > 1) {
             if (typeof idx === 'number') this.reportFormData.ms_evidence.splice(idx, 1);
             else this.reportFormData.ms_evidence.pop();
+            this.reportFormData.ms_evidence.forEach((r, i) => r.no = i + 1);
+        }
+    },
+    addMsCatatanRow() {
+        if (!Array.isArray(this.reportFormData.ms_catatan)) this.reportFormData.ms_catatan = [];
+        this.reportFormData.ms_catatan.push({
+            no: this.reportFormData.ms_catatan.length + 1,
+            catatan: ''
+        });
+    },
+    removeMsCatatanRow(idx) {
+        if (this.reportFormData.ms_catatan && this.reportFormData.ms_catatan.length > 1) {
+            if (typeof idx === 'number') this.reportFormData.ms_catatan.splice(idx, 1);
+            else this.reportFormData.ms_catatan.pop();
+            this.reportFormData.ms_catatan.forEach((r, i) => r.no = i + 1);
         }
     },
     async handleMsEvidenceUpload(e, idx) {
@@ -571,12 +600,12 @@
         }
     },
 
-    // ═══ HELP DESK ROW HELPERS ═══
+    // ═══ HELP DESK ROW HELPERS (MATCHING OFFICIAL 2-PAGE PDF) ═══
     addHdKondisiRow() {
         if (!Array.isArray(this.reportFormData.hd_kondisi_awal)) this.reportFormData.hd_kondisi_awal = [];
         this.reportFormData.hd_kondisi_awal.push({
             no: this.reportFormData.hd_kondisi_awal.length + 1,
-            item_service: '', kondisi_awal: 'Normal', alarm_issue: 'Clear', status: 'OK', keterangan: ''
+            customer: '', alarm_issue: '', status: '', keterangan: ''
         });
     },
     removeHdKondisiRow(idx) {
@@ -585,24 +614,11 @@
             else this.reportFormData.hd_kondisi_awal.pop();
         }
     },
-    addHdActRow() {
-        if (!Array.isArray(this.reportFormData.hd_aktivitas)) this.reportFormData.hd_aktivitas = [];
-        this.reportFormData.hd_aktivitas.push({
-            no: this.reportFormData.hd_aktivitas.length + 1,
-            waktu: '09:00', aktivitas: '', ticket_wo: '', lokasi_device: '', hasil: '', status: 'Done'
-        });
-    },
-    removeHdActRow(idx) {
-        if (this.reportFormData.hd_aktivitas && this.reportFormData.hd_aktivitas.length > 1) {
-            if (typeof idx === 'number') this.reportFormData.hd_aktivitas.splice(idx, 1);
-            else this.reportFormData.hd_aktivitas.pop();
-        }
-    },
     addHdTicketRow() {
         if (!Array.isArray(this.reportFormData.hd_ticket_incident)) this.reportFormData.hd_ticket_incident = [];
         this.reportFormData.hd_ticket_incident.push({
             no: this.reportFormData.hd_ticket_incident.length + 1,
-            ticket: '', jenis: '', priority: 'Medium', start: '', restore: '', close_status: 'Closed', keterangan: ''
+            ticket: '', customer: '', priority: '', time: '', status: 'Open', keterangan: ''
         });
     },
     removeHdTicketRow(idx) {
@@ -611,37 +627,11 @@
             else this.reportFormData.hd_ticket_incident.pop();
         }
     },
-    addHdMonitoringRow() {
-        if (!Array.isArray(this.reportFormData.hd_monitoring_status)) this.reportFormData.hd_monitoring_status = [];
-        this.reportFormData.hd_monitoring_status.push({
-            no: this.reportFormData.hd_monitoring_status.length + 1,
-            service_device: '', status: 'Up', alarm: 'None', performance: '', action: '', keterangan: ''
-        });
-    },
-    removeHdMonitoringRow(idx) {
-        if (this.reportFormData.hd_monitoring_status && this.reportFormData.hd_monitoring_status.length > 1) {
-            if (typeof idx === 'number') this.reportFormData.hd_monitoring_status.splice(idx, 1);
-            else this.reportFormData.hd_monitoring_status.pop();
-        }
-    },
-    addHdFieldRow() {
-        if (!Array.isArray(this.reportFormData.hd_pekerjaan_field)) this.reportFormData.hd_pekerjaan_field = [];
-        this.reportFormData.hd_pekerjaan_field.push({
-            no: this.reportFormData.hd_pekerjaan_field.length + 1,
-            lokasi: '', pekerjaan: '', engineer: '{{ auth()->user()?->name ?? 'Engineer' }}', hasil: '', foto_evidence: '', status: 'Done'
-        });
-    },
-    removeHdFieldRow(idx) {
-        if (this.reportFormData.hd_pekerjaan_field && this.reportFormData.hd_pekerjaan_field.length > 1) {
-            if (typeof idx === 'number') this.reportFormData.hd_pekerjaan_field.splice(idx, 1);
-            else this.reportFormData.hd_pekerjaan_field.pop();
-        }
-    },
     addHdKendalaRow() {
         if (!Array.isArray(this.reportFormData.hd_kendala_escalation)) this.reportFormData.hd_kendala_escalation = [];
         this.reportFormData.hd_kendala_escalation.push({
             no: this.reportFormData.hd_kendala_escalation.length + 1,
-            kendala_incident: '', dampak: '', tindakan: '', escalated_to: '', status: '', next_action: ''
+            ticket: '', dampak: '', action: '', escalated_to: '', status: 'Open'
         });
     },
     removeHdKendalaRow(idx) {
@@ -654,13 +644,44 @@
         if (!Array.isArray(this.reportFormData.hd_handover)) this.reportFormData.hd_handover = [];
         this.reportFormData.hd_handover.push({
             no: this.reportFormData.hd_handover.length + 1,
-            outstanding_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', pic: '', due_time: '', catatan: ''
+            ticket_issue: '', kondisi_terakhir: '', tindakan_berikutnya: '', durasi_start: '', durasi_end: '', catatan: ''
         });
     },
     removeHdHandoverRow(idx) {
         if (this.reportFormData.hd_handover && this.reportFormData.hd_handover.length > 1) {
             if (typeof idx === 'number') this.reportFormData.hd_handover.splice(idx, 1);
             else this.reportFormData.hd_handover.pop();
+        }
+    },
+    addHdEvidenceRow() {
+        if (!Array.isArray(this.reportFormData.hd_evidence)) this.reportFormData.hd_evidence = [];
+        this.reportFormData.hd_evidence.push({
+            no: this.reportFormData.hd_evidence.length + 1,
+            evidence: '', foto_url: '', keterangan: ''
+        });
+    },
+    removeHdEvidenceRow(idx) {
+        if (this.reportFormData.hd_evidence && this.reportFormData.hd_evidence.length > 1) {
+            if (typeof idx === 'number') this.reportFormData.hd_evidence.splice(idx, 1);
+            else this.reportFormData.hd_evidence.pop();
+        }
+    },
+    async handleHdEvidenceUpload(e, idx) {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            const compressed = await this.compressImage(file, 1000, 0.72);
+            if (compressed && this.reportFormData.hd_evidence[idx]) {
+                this.reportFormData.hd_evidence[idx].foto_url = compressed;
+            }
+        } catch (err) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                if (this.reportFormData.hd_evidence[idx]) {
+                    this.reportFormData.hd_evidence[idx].foto_url = ev.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
         }
     },
 
@@ -798,12 +819,12 @@
                     <div>
                         <template x-for="(act, idx) in reportFormData.ms_aktivitas" :key="'ms-' + idx">
                             <div>
-                                <input type="hidden" :name="'activities[' + idx + '][subject]'" :value="act.aktivitas">
+                                <input type="hidden" :name="'activities[' + idx + '][subject]'" :value="act.detail_aktivitas || act.aktivitas || ''">
                                 <input type="hidden" :name="'activities[' + idx + '][activity_date]'" :value="reportFormData.ms_identitas.tanggal || '{{ date('Y-m-d') }}'">
-                                <input type="hidden" :name="'activities[' + idx + '][time_str]'" :value="act.waktu">
-                                <input type="hidden" :name="'activities[' + idx + '][client_pic]'" :value="reportFormData.ms_identitas.customer">
-                                <input type="hidden" :name="'activities[' + idx + '][ipnet_pic]'" :value="reportFormData.ms_identitas.engineer_pic">
-                                <input type="hidden" :name="'activities[' + idx + '][notes]'" :value="(act.ticket_alarm ? '[' + act.ticket_alarm + '] ' : '') + (act.follow_up || act.hasil || '')">
+                                <input type="hidden" :name="'activities[' + idx + '][time_str]'" :value="act.waktu || ''">
+                                <input type="hidden" :name="'activities[' + idx + '][client_pic]'" :value="reportFormData.ms_identitas.customer || ''">
+                                <input type="hidden" :name="'activities[' + idx + '][ipnet_pic]'" :value="reportFormData.ms_identitas.engineer_pic || ''">
+                                <input type="hidden" :name="'activities[' + idx + '][notes]'" :value="act.hasil_catatan || act.follow_up || act.hasil || ''">
                                 <input type="hidden" :name="'activities[' + idx + '][activity_type]'" value="Maintenance">
                             </div>
                         </template>
@@ -1293,10 +1314,9 @@
                                                     </div>
                                                 </template>
                                                 <template x-if="!reportFormData.foto_dokumentasi.before.url">
-                                                    <div class="py-2.5 border-2 border-dashed border-gray-300 rounded text-center bg-gray-50">
-                                                        <span class="text-[10px] text-gray-500 font-bold block mb-1">[TEMPEL FOTO DI SINI]</span>
-                                                        <label class="px-2 py-0.5 bg-white border border-gray-300 rounded text-[10px] font-bold text-gray-700 cursor-pointer hover:bg-gray-100 inline-block">
-                                                            <span>Pilih Foto</span>
+                                                    <div class="w-full py-2.5 border-2 border-dashed border-gray-300 rounded text-center bg-gray-50/60 hover:bg-gray-50 transition">
+                                                        <label class="px-3 py-1 bg-white border border-gray-300 rounded text-[10.5px] font-bold text-gray-700 cursor-pointer hover:bg-gray-100 inline-block shadow-2xs transition">
+                                                            <span>Upload Foto</span>
                                                             <input type="file" accept="image/*" class="hidden" @change="handlePhotoUpload($event, 'before')">
                                                         </label>
                                                     </div>
@@ -1321,10 +1341,9 @@
                                                     </div>
                                                 </template>
                                                 <template x-if="!reportFormData.foto_dokumentasi.progress.url">
-                                                    <div class="py-2.5 border-2 border-dashed border-gray-300 rounded text-center bg-gray-50">
-                                                        <span class="text-[10px] text-gray-500 font-bold block mb-1">[TEMPEL FOTO DI SINI]</span>
-                                                        <label class="px-2 py-0.5 bg-white border border-gray-300 rounded text-[10px] font-bold text-gray-700 cursor-pointer hover:bg-gray-100 inline-block">
-                                                            <span>Pilih Foto</span>
+                                                    <div class="w-full py-2.5 border-2 border-dashed border-gray-300 rounded text-center bg-gray-50/60 hover:bg-gray-50 transition">
+                                                        <label class="px-3 py-1 bg-white border border-gray-300 rounded text-[10.5px] font-bold text-gray-700 cursor-pointer hover:bg-gray-100 inline-block shadow-2xs transition">
+                                                            <span>Upload Foto</span>
                                                             <input type="file" accept="image/*" class="hidden" @change="handlePhotoUpload($event, 'progress')">
                                                         </label>
                                                     </div>
@@ -1349,10 +1368,9 @@
                                                     </div>
                                                 </template>
                                                 <template x-if="!reportFormData.foto_dokumentasi.after.url">
-                                                    <div class="py-2.5 border-2 border-dashed border-gray-300 rounded text-center bg-gray-50">
-                                                        <span class="text-[10px] text-gray-500 font-bold block mb-1">[TEMPEL FOTO DI SINI]</span>
-                                                        <label class="px-2 py-0.5 bg-white border border-gray-300 rounded text-[10px] font-bold text-gray-700 cursor-pointer hover:bg-gray-100 inline-block">
-                                                            <span>Pilih Foto</span>
+                                                    <div class="w-full py-2.5 border-2 border-dashed border-gray-300 rounded text-center bg-gray-50/60 hover:bg-gray-50 transition">
+                                                        <label class="px-3 py-1 bg-white border border-gray-300 rounded text-[10.5px] font-bold text-gray-700 cursor-pointer hover:bg-gray-100 inline-block shadow-2xs transition">
+                                                            <span>Upload Foto</span>
                                                             <input type="file" accept="image/*" class="hidden" @change="handlePhotoUpload($event, 'after')">
                                                         </label>
                                                     </div>
@@ -1463,8 +1481,9 @@
                             </div>
                         </div>
 
+                        <!-- A. IDENTITAS SERVICE -->
                         <div class="space-y-1.5">
-                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS SERVICE</h3>
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. . IDENTITAS SERVICE</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                 <table class="w-full border-collapse border border-[#1E293B]">
                                     <tbody>
@@ -1473,29 +1492,29 @@
                                             <td class="w-3/10 py-1 px-2 border-r border-[#1E293B]">
                                                 <input type="date" x-model="reportFormData.ms_identitas.tanggal" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-medium text-xs cursor-pointer">
                                             </td>
-                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">No. Report</td>
+                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">No. SPK/Contract</td>
                                             <td class="w-3/10 py-1 px-2">
-                                                <input type="text" x-model="reportFormData.ms_identitas.no_report" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#8F0A0D]">
+                                                <input type="text" x-model="reportFormData.ms_identitas.no_spk_contract" placeholder="" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold">
                                             </td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Customer</td>
                                             <td class="py-1 px-2 border-r border-[#1E293B]">
-                                                <input type="text" x-model="reportFormData.ms_identitas.customer" placeholder="Nama Customer" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
+                                                <input type="text" x-model="reportFormData.ms_identitas.customer" placeholder="" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
                                             </td>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">No. Contract</td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">No. SO</td>
                                             <td class="py-1 px-2">
-                                                <input type="text" x-model="reportFormData.ms_identitas.no_contract" placeholder="No. Contract" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
+                                                <input type="text" x-model="reportFormData.ms_identitas.no_so" placeholder="" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
                                             </td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Site / Lokasi</td>
                                             <td class="py-1 px-2 border-r border-[#1E293B]">
-                                                <input type="text" x-model="reportFormData.ms_identitas.site_lokasi" placeholder="Lokasi site / gedung" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
+                                                <input type="text" x-model="reportFormData.ms_identitas.site_lokasi" placeholder="" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
                                             </td>
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Ticket / Incident No.</td>
                                             <td class="py-1 px-2">
-                                                <input type="text" x-model="reportFormData.ms_identitas.ticket_incident_no" placeholder="INC/TICK-xxx" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
+                                                <input type="text" x-model="reportFormData.ms_identitas.ticket_incident_no" placeholder="" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
                                             </td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
@@ -1503,9 +1522,9 @@
                                             <td class="py-1 px-2 border-r border-[#1E293B]">
                                                 <input type="text" x-model="reportFormData.ms_identitas.engineer_pic" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-semibold text-xs">
                                             </td>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Shift</td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Service / Device</td>
                                             <td class="py-1 px-2">
-                                                <input type="text" x-model="reportFormData.ms_identitas.shift" placeholder="Pagi / Regular" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
+                                                <input type="text" x-model="reportFormData.ms_identitas.service_device" placeholder="" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold">
                                             </td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
@@ -1538,9 +1557,9 @@
                                                     </label>
                                                 </div>
                                             </td>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Service / Device</td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">PIC Customer</td>
                                             <td class="py-1 px-2">
-                                                <input type="text" x-model="reportFormData.ms_identitas.service_device" placeholder="Nama Service / Perangkat" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold">
+                                                <input type="text" x-model="reportFormData.ms_identitas.pic_customer" placeholder="" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
                                             </td>
                                         </tr>
                                         <tr>
@@ -1558,8 +1577,9 @@
                             </div>
                         </div>
 
+                        <!-- B. SLA TRACKING -->
                         <div class="space-y-1.5">
-                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. SLA TRACKING</h3>
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. B. SLA TRACKING</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                 <table class="w-full border-collapse border border-[#1E293B]">
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
@@ -1580,10 +1600,10 @@
                                                     <input type="time" x-model="sla.waktu" class="w-full p-1 text-xs border-0 bg-transparent text-center font-medium cursor-pointer">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="text" x-model="sla.target_sla" class="w-full p-1 text-xs border-0 bg-transparent text-center">
+                                                    <input type="text" x-model="sla.target_sla" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="text" x-model="sla.aktual" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold">
+                                                    <input type="text" x-model="sla.aktual" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center">
                                                     <select x-model="sla.status" class="w-full p-1 text-xs border-0 bg-transparent font-bold text-center text-[#8F0A0D] cursor-pointer">
@@ -1593,7 +1613,7 @@
                                                     </select>
                                                 </td>
                                                 <td class="p-1">
-                                                    <input type="text" x-model="sla.keterangan" placeholder="Keterangan..." class="w-full p-1 text-xs border-0 bg-transparent">
+                                                    <input type="text" x-model="sla.keterangan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent">
                                                 </td>
                                             </tr>
                                         </template>
@@ -1602,6 +1622,7 @@
                             </div>
                         </div>
 
+                        <!-- C. KONDISI SERVICE / PERANGKAT -->
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. KONDISI SERVICE / PERANGKAT</h3>
@@ -1614,16 +1635,17 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
-                                <table class="w-full border-collapse border border-[#1E293B]">
+                            <div class="border border-[#1E293B] rounded-sm overflow-x-auto text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B] min-w-[750px]">
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                         <tr>
                                             <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
-                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Service / Device</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Parameter</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Before</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">After</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Status</th>
+                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Perangkat</th>
+                                            <th class="py-1.5 px-2 w-20 border-r border-[#1E293B] text-center">CPU Status</th>
+                                            <th class="py-1.5 px-2 w-20 border-r border-[#1E293B] text-center">Fan Status</th>
+                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Power Supply Status</th>
+                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Firmware Version</th>
+                                            <th class="py-1.5 px-2 w-20 border-r border-[#1E293B] text-center">Status</th>
                                             <th class="py-1.5 px-2 text-left">Keterangan</th>
                                         </tr>
                                     </thead>
@@ -1632,19 +1654,22 @@
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
                                                 <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="text" x-model="k.service_device" placeholder="Nama Service / Device" class="w-full p-1 text-xs border-0 bg-transparent font-semibold">
-                                                </td>
-                                                <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="text" x-model="k.parameter" placeholder="Parameter" class="w-full p-1 text-xs border-0 bg-transparent">
+                                                    <input type="text" x-model="k.perangkat" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-semibold">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="text" x-model="k.before" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center">
+                                                    <input type="text" x-model="k.cpu_status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="text" x-model="k.after" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold">
+                                                    <input type="text" x-model="k.fan_status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="text" x-model="k.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center">
+                                                    <input type="text" x-model="k.power_supply_status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center">
+                                                </td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center">
+                                                    <input type="text" x-model="k.firmware_version" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-mono">
+                                                </td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center">
+                                                    <input type="text" x-model="k.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold">
                                                 </td>
                                                 <td class="p-1">
                                                     <input type="text" x-model="k.keterangan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent">
@@ -1656,11 +1681,52 @@
                             </div>
                         </div>
 
+                        <!-- D. INCIDENT / ROOT CAUSE / ESCALATION -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. INCIDENT / ROOT CAUSE / ESCALATION</h3>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" @click="addMsIncidentRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>+ Tambah Incident</span>
+                                    </button>
+                                    <button type="button" @click="removeMsIncidentRow()" x-show="reportFormData.ms_incident_escalation.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>- Hapus Incident</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="border border-[#1E293B] rounded-sm overflow-x-auto text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B] min-w-[700px]">
+                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
+                                        <tr>
+                                            <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
+                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Incident</th>
+                                            <th class="py-1.5 px-2 w-1/5 border-r border-[#1E293B] text-left">Impact</th>
+                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Probable / Root Cause</th>
+                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Escalation</th>
+                                            <th class="py-1.5 px-2 w-24 text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="(inc, idx) in reportFormData.ms_incident_escalation" :key="idx">
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><textarea rows="2" x-model="inc.incident" placeholder="" class="w-full p-1 text-xs border rounded bg-[#F8FAFC] resize-none focus:bg-white"></textarea></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><textarea rows="2" x-model="inc.impact" placeholder="" class="w-full p-1 text-xs border rounded bg-[#F8FAFC] resize-none focus:bg-white"></textarea></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><textarea rows="2" x-model="inc.probable_root_cause" placeholder="" class="w-full p-1 text-xs border rounded bg-[#F8FAFC] resize-none focus:bg-white"></textarea></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><textarea rows="2" x-model="inc.escalation" placeholder="" class="w-full p-1 text-xs border rounded bg-[#F8FAFC] resize-none focus:bg-white"></textarea></td>
+                                                <td class="p-1 text-center font-semibold"><input type="text" x-model="inc.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- E. RINCIAN AKTIVITAS ENGINEER -->
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. RINCIAN AKTIVITAS ENGINEER <span class="text-[#8F0A0D]">*</span></h3>
-                                    <p class="text-[10.5px] text-gray-500">Rincian aktivitas operasi, penanganan tiket, alarm monitoring atau preventive maintenance.</p>
+                                    <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. RINCIAN AKTIVITAS ENGINEER</h3>
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <button type="button" @click="addMsActRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
@@ -1671,18 +1737,14 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="border border-[#1E293B] rounded-sm overflow-x-auto text-xs">
-                                <table class="w-full border-collapse border border-[#1E293B] min-w-[750px]">
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                         <tr>
-                                            <th class="py-1.5 px-1.5 w-10 text-center border-r border-[#1E293B]">No.</th>
-                                            <th class="py-1.5 px-1.5 w-24 text-center border-r border-[#1E293B]">Waktu</th>
-                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Aktivitas <span class="text-red-500">*</span></th>
-                                            <th class="py-1.5 px-2 w-32 border-r border-[#1E293B] text-left">Ticket / Alarm</th>
-                                            <th class="py-1.5 px-2 w-1/6 border-r border-[#1E293B] text-left">Hasil</th>
-                                            <th class="py-1.5 px-1.5 w-28 text-center border-r border-[#1E293B]">Status</th>
-                                            <th class="py-1.5 px-2 w-1/8 border-r border-[#1E293B] text-left">Kendala</th>
-                                            <th class="py-1.5 px-2 text-left">Follow-up</th>
+                                            <th class="py-1.5 px-2 w-10 text-center border-r border-[#1E293B]">No.</th>
+                                            <th class="py-1.5 px-2 w-28 text-center border-r border-[#1E293B]">Waktu</th>
+                                            <th class="py-1.5 px-3 border-r border-[#1E293B] text-left">Detail Aktivitas</th>
+                                            <th class="py-1.5 px-3 w-1/3 text-left">Hasil /Catatan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1693,26 +1755,10 @@
                                                     <input type="time" x-model="act.waktu" class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium cursor-pointer">
                                                 </td>
                                                 <td class="p-1 border-r border-[#1E293B]">
-                                                    <textarea rows="2" x-model="act.aktivitas" placeholder="Aktivitas engineer..." class="w-full p-1 text-xs border rounded bg-[#F8FAFC] font-semibold resize-none focus:bg-white"></textarea>
-                                                </td>
-                                                <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="text" x-model="act.ticket_alarm" placeholder="TICK-001 / ALM" class="w-full p-1 text-xs border-0 bg-transparent">
-                                                </td>
-                                                <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="text" x-model="act.hasil" placeholder="Hasil tindakan" class="w-full p-1 text-xs border-0 bg-transparent">
-                                                </td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <select x-model="act.status" class="w-full p-1 text-center font-bold text-xs border-0 bg-transparent text-[#8F0A0D] cursor-pointer">
-                                                        <option value="Done">Done</option>
-                                                        <option value="In Progress">In Progress</option>
-                                                        <option value="Pending">Pending</option>
-                                                    </select>
-                                                </td>
-                                                <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="text" x-model="act.kendala" placeholder="Nihil" class="w-full p-1 text-xs border-0 bg-transparent">
+                                                    <textarea rows="2" x-model="act.detail_aktivitas" placeholder="" class="w-full p-1 text-xs border rounded bg-[#F8FAFC] font-semibold resize-none focus:bg-white"></textarea>
                                                 </td>
                                                 <td class="p-1">
-                                                    <input type="text" x-model="act.follow_up" placeholder="Tindak lanjut..." class="w-full p-1 text-xs border-0 bg-transparent">
+                                                    <textarea rows="2" x-model="act.hasil_catatan" placeholder="" class="w-full p-1 text-xs border rounded bg-[#F8FAFC] resize-none focus:bg-white"></textarea>
                                                 </td>
                                             </tr>
                                         </template>
@@ -1721,93 +1767,10 @@
                             </div>
                         </div>
 
+                        <!-- F. MATERIAL / SPARE PART (RMA) -->
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. INCIDENT / ROOT CAUSE / ESCALATION</h3>
-                                <div class="flex items-center gap-3">
-                                    <button type="button" @click="addMsIncidentRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>+ Tambah Incident</span>
-                                    </button>
-                                    <button type="button" @click="removeMsIncidentRow()" x-show="reportFormData.ms_incident_escalation.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>- Hapus Incident</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
-                                <table class="w-full border-collapse border border-[#1E293B]">
-                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
-                                        <tr>
-                                            <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Incident</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Impact</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Probable / Root Cause</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Corrective Action</th>
-                                            <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-left">Escalation</th>
-                                            <th class="py-1.5 px-2 w-24 text-center">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-for="(inc, idx) in reportFormData.ms_incident_escalation" :key="idx">
-                                            <tr class="border-b border-[#1E293B]">
-                                                <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.incident" placeholder="Deskripsi insiden..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.impact" placeholder="Dampak..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.root_cause" placeholder="Penyebab..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.corrective_action" placeholder="Tindakan perbaikan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="inc.escalation" placeholder="Eskalasi ke..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 text-center font-semibold"><input type="text" x-model="inc.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold"></td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. PREVENTIVE MAINTENANCE / CHECKLIST</h3>
-                                <div class="flex items-center gap-3">
-                                    <button type="button" @click="addMsPmRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>+ Tambah Checklist</span>
-                                    </button>
-                                    <button type="button" @click="removeMsPmRow()" x-show="reportFormData.ms_pm_checklist.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>- Hapus Checklist</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
-                                <table class="w-full border-collapse border border-[#1E293B]">
-                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
-                                        <tr>
-                                            <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
-                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Item Pemeriksaan</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Kondisi</th>
-                                            <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-center">Hasil</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Temuan</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Tindakan</th>
-                                            <th class="py-1.5 px-2 w-20 text-center">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-for="(pm, idx) in reportFormData.ms_pm_checklist" :key="idx">
-                                            <tr class="border-b border-[#1E293B]">
-                                                <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="pm.item_pemeriksaan" placeholder="Item pemeriksaan..." class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="pm.kondisi" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="pm.hasil" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="pm.temuan" placeholder="Temuan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="pm.tindakan" placeholder="Tindakan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 text-center font-bold"><input type="text" x-model="pm.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center text-[#8F0A0D]"></td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. MATERIAL / SPARE PART</h3>
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. MATERIAL / SPARE PART (RMA)</h3>
                                 <div class="flex items-center gap-3">
                                     <button type="button" @click="addMsMaterialRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
                                         <span>+ Tambah Item</span>
@@ -1822,11 +1785,10 @@
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                         <tr>
                                             <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
-                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Item</th>
-                                            <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-left">Type</th>
-                                            <th class="py-1.5 px-2 w-20 border-r border-[#1E293B] text-center">Qty</th>
-                                            <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-center">Used / Replaced</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Old/New</th>
+                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Type</th>
+                                            <th class="py-1.5 px-2 w-16 border-r border-[#1E293B] text-center">QTY</th>
+                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Serial Number Lama</th>
+                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Serial Number Baru</th>
                                             <th class="py-1.5 px-2 text-left">Keterangan</th>
                                         </tr>
                                     </thead>
@@ -1834,12 +1796,11 @@
                                         <template x-for="(mat, idx) in reportFormData.ms_materials" :key="idx">
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mat.item" placeholder="Item material..." class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mat.type" placeholder="Type / Model" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.qty" placeholder="1 Pcs" class="w-full p-1 text-xs border-0 bg-transparent text-center"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.used_replaced" placeholder="Replaced" class="w-full p-1 text-xs border-0 bg-transparent text-center"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="mat.old_new" placeholder="New" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold"></td>
-                                                <td class="p-1"><input type="text" x-model="mat.keterangan" placeholder="Keterangan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mat.type" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="number" min="0" x-model.number="mat.qty" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mat.sn_lama" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-mono"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="mat.sn_baru" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-mono font-semibold"></td>
+                                                <td class="p-1"><input type="text" x-model="mat.keterangan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -1847,9 +1808,10 @@
                             </div>
                         </div>
 
+                        <!-- G. DOKUMENTASI & EVIDENCE -->
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. DOKUMENTASI &amp; EVIDENCE</h3>
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. DOKUMENTASI &amp; EVIDENCE</h3>
                                 <div class="flex items-center gap-3">
                                     <button type="button" @click="addMsEvidenceRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
                                         <span>+ Tambah Evidence</span>
@@ -1865,8 +1827,7 @@
                                         <tr>
                                             <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
                                             <th class="py-1.5 px-2 w-1/3 border-r border-[#1E293B] text-left">Evidence</th>
-                                            <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-center">Waktu</th>
-                                            <th class="py-1.5 px-2 w-48 border-r border-[#1E293B] text-center">Foto / Screenshot / Log</th>
+                                            <th class="py-1.5 px-2 w-56 border-r border-[#1E293B] text-center">Foto / Screenshot / Log</th>
                                             <th class="py-1.5 px-2 text-left">Keterangan</th>
                                         </tr>
                                     </thead>
@@ -1874,31 +1835,68 @@
                                         <template x-for="(evi, idx) in reportFormData.ms_evidence" :key="idx">
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="evi.evidence" placeholder="Screenshot monitoring / foto" class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="time" x-model="evi.waktu" class="w-full p-1 text-xs border-0 bg-transparent text-center font-medium cursor-pointer"></td>
-                                                <td class="p-1.5 border-r border-[#1E293B] text-center">
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="evi.evidence" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
+                                                <td class="p-2 border-r border-[#1E293B] text-center">
                                                     <template x-if="evi.foto_url">
-                                                        <div class="flex items-center justify-center gap-2">
-                                                            <img :src="evi.foto_url" class="h-9 w-auto rounded border object-contain">
-                                                            <button type="button" @click="evi.foto_url = ''" class="text-red-500 hover:text-red-700 text-[11px] font-bold underline">Hapus</button>
+                                                        <div class="relative group inline-block my-0.5">
+                                                            <img :src="evi.foto_url" class="h-16 w-auto max-w-full rounded border object-contain">
+                                                            <button type="button" @click="evi.foto_url = ''" class="absolute -top-1.5 -right-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full w-5 h-5 text-xs font-bold shadow flex items-center justify-center transition" title="Hapus Foto">&times;</button>
                                                         </div>
                                                     </template>
                                                     <template x-if="!evi.foto_url">
-                                                        <label class="cursor-pointer inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[11px] font-bold transition">
-                                                            <span>Upload File</span>
-                                                            <input type="file" accept="image/*" class="hidden" @change="handleMsEvidenceUpload($event, idx)">
-                                                        </label>
+                                                        <div class="w-full py-2 px-1.5 border-2 border-dashed border-gray-300 rounded text-center bg-gray-50/60 hover:bg-gray-50 transition">
+                                                            <label class="px-3 py-1 bg-white border border-gray-300 rounded text-[10.5px] font-bold text-gray-700 cursor-pointer hover:bg-gray-100 inline-block shadow-2xs transition">
+                                                                <span>Upload Foto</span>
+                                                                <input type="file" accept="image/*" class="hidden" @change="handleMsEvidenceUpload($event, idx)">
+                                                            </label>
+                                                        </div>
                                                     </template>
                                                 </td>
-                                                <td class="p-1"><input type="text" x-model="evi.keterangan" placeholder="Keterangan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1"><input type="text" x-model="evi.keterangan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
                                 </table>
                             </div>
-                            <p class="text-[10.5px] text-[#475569] italic pt-0.5">Evidence dapat berupa foto onsite, screenshot monitoring, log, hasil check, atau bukti pengujian.</p>
+                            <p class="text-[10.5px] text-[#475569] italic pt-0.5">** Evidence dapat berupa foto onsite, screenshot monitoring, log, hasil check, atau bukti pengujian.</p>
                         </div>
 
+                        <!-- H. CATATAN -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. CATATAN</h3>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" @click="addMsCatatanRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>+ Tambah Catatan</span>
+                                    </button>
+                                    <button type="button" @click="removeMsCatatanRow()" x-show="reportFormData.ms_catatan.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>- Hapus Catatan</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
+                                        <tr>
+                                            <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
+                                            <th class="py-1.5 px-3 text-left">Catatan Hasil Pekerjaan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="(cat, idx) in reportFormData.ms_catatan" :key="idx">
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
+                                                <td class="p-1">
+                                                    <textarea rows="2" x-model="cat.catatan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent resize-none"></textarea>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- I. SERVICE CLOSURE -->
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">I. SERVICE CLOSURE</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
@@ -1943,11 +1941,11 @@
                                         <tr>
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Customer Confirmation</td>
                                             <td class="p-1 border-r border-[#1E293B]">
-                                                <input type="text" x-model="reportFormData.ms_closure.customer_confirmation" placeholder="Konfirmasi pelanggan..." class="w-full p-1 text-xs border-0 bg-transparent font-medium">
+                                                <input type="text" x-model="reportFormData.ms_closure.customer_confirmation" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-medium">
                                             </td>
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Outstanding</td>
                                             <td class="p-1">
-                                                <input type="text" x-model="reportFormData.ms_closure.outstanding" placeholder="Catatan outstanding issue..." class="w-full p-1 text-xs border-0 bg-transparent">
+                                                <input type="text" x-model="reportFormData.ms_closure.outstanding" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent">
                                             </td>
                                         </tr>
                                     </tbody>
@@ -1955,41 +1953,38 @@
                             </div>
                         </div>
 
+                        <!-- J. VERIFIKASI -->
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">J. VERIFIKASI</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                 <table class="w-full border-collapse border border-[#1E293B]">
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                         <tr>
-                                            <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Pihak</th>
+                                            <th class="py-1.5 px-3 w-1/3 border-r border-[#1E293B] text-left">Pihak</th>
                                             <th class="py-1.5 px-3 w-1/3 border-r border-[#1E293B] text-left">Nama</th>
-                                            <th class="py-1.5 px-3 w-1/6 border-r border-[#1E293B] text-center">Tanggal / Jam</th>
-                                            <th class="py-1.5 px-3 w-1/4 text-center">Tanda Tangan</th>
+                                            <th class="py-1.5 px-3 w-1/3 text-center">Tanda Tangan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Engineer / PIC</td>
                                             <td class="p-1 border-r border-[#1E293B]">
-                                                <input type="text" x-model="reportFormData.ms_identitas.engineer_pic" placeholder="Nama Engineer" class="w-full p-1 text-xs font-bold bg-transparent border-0">
+                                                <input type="text" x-model="reportFormData.ms_identitas.engineer_pic" placeholder="" class="w-full p-1 text-xs font-bold bg-transparent border-0">
                                             </td>
-                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
                                             <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Team Leader / Service Manager</td>
                                             <td class="p-1 border-r border-[#1E293B]">
-                                                <input type="text" x-model="reportFormData.ms_verifikasi.lead_name" placeholder="Nama Team Leader / Service Manager" class="w-full p-1 text-xs font-bold bg-transparent border-0">
+                                                <input type="text" x-model="reportFormData.ms_verifikasi.lead_name" placeholder="" class="w-full p-1 text-xs font-bold bg-transparent border-0">
                                             </td>
-                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
                                             <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                         </tr>
                                         <tr>
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Customer / Authorized Representative</td>
                                             <td class="p-1 border-r border-[#1E293B]">
-                                                <input type="text" x-model="reportFormData.ms_verifikasi.customer_name" placeholder="Nama Customer / Authorized PIC" class="w-full p-1 text-xs font-bold bg-transparent border-0">
+                                                <input type="text" x-model="reportFormData.ms_verifikasi.customer_name" placeholder="" class="w-full p-1 text-xs font-bold bg-transparent border-0">
                                             </td>
-                                            <td class="py-2 px-3 text-center border-r border-[#1E293B]">{{ date('d/m/Y') }}</td>
                                             <td class="py-6 px-3 text-center min-h-[56px]"></td>
                                         </tr>
                                     </tbody>
@@ -2001,8 +1996,8 @@
                     </div>
 
 
-                    <div x-show="selectedCategory === 'help_desk'"
-                         class="!mt-0 bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
+                                        <div x-show="selectedCategory === 'help_desk'"
+                         class="!mt-3.5 bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
                         
                         <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
@@ -2023,32 +2018,19 @@
                             </div>
                         </div>
 
+                        <!-- A. IDENTITAS SHIFT -->
                         <div class="space-y-1.5">
                             <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. IDENTITAS SHIFT</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                 <table class="w-full border-collapse border border-[#1E293B]">
                                     <tbody>
                                         <tr class="border-b border-[#1E293B]">
-                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tanggal</td>
-                                            <td class="w-3/10 py-1 px-2 border-r border-[#1E293B]">
+                                            <td class="w-[18%] py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tanggal</td>
+                                            <td class="w-[42%] py-1 px-2 border-r border-[#1E293B]">
                                                 <input type="date" x-model="reportFormData.hd_identitas.tanggal" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-medium text-xs cursor-pointer">
                                             </td>
-                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Shift</td>
-                                            <td class="w-3/10 py-1.5 px-2.5">
-                                                <div class="flex items-center gap-4 text-xs font-semibold">
-                                                    <label class="flex items-center gap-1.5 cursor-pointer">
-                                                        <input type="checkbox" x-model="reportFormData.hd_identitas.shift.pagi" class="rounded text-[#8F0A0D] focus:ring-[#8F0A0D] w-3.5 h-3.5">
-                                                        <span>Pagi</span>
-                                                    </label>
-                                                    <label class="flex items-center gap-1.5 cursor-pointer">
-                                                        <input type="checkbox" x-model="reportFormData.hd_identitas.shift.siang" class="rounded text-[#8F0A0D] focus:ring-[#8F0A0D] w-3.5 h-3.5">
-                                                        <span>Siang</span>
-                                                    </label>
-                                                    <label class="flex items-center gap-1.5 cursor-pointer">
-                                                        <input type="checkbox" x-model="reportFormData.hd_identitas.shift.malam" class="rounded text-[#8F0A0D] focus:ring-[#8F0A0D] w-3.5 h-3.5">
-                                                        <span>Malam</span>
-                                                    </label>
-                                                </div>
+                                            <td colspan="2" class="w-[40%] py-1.5 px-2 font-black bg-[#EBF3FB] text-center border-b border-[#1E293B] text-xs uppercase tracking-wider text-[#0F172A]">
+                                                Shift
                                             </td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
@@ -2056,29 +2038,35 @@
                                             <td class="py-1 px-2 border-r border-[#1E293B]">
                                                 <input type="text" x-model="reportFormData.hd_identitas.nama_engineer" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] font-bold text-xs text-[#0F172A]">
                                             </td>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Team Leader</td>
-                                            <td class="py-1 px-2">
-                                                <input type="text" x-model="reportFormData.hd_identitas.team_leader" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold">
+                                            <td class="py-1.5 px-3 border-r border-[#1E293B] font-semibold text-xs text-[#0F172A] w-[32%]">
+                                                Pagi &nbsp;&nbsp;(06.00–14.00)
+                                            </td>
+                                            <td class="py-1.5 px-2 text-center w-[8%]">
+                                                <input type="checkbox" x-model="reportFormData.hd_identitas.shift.pagi" class="rounded text-[#8F0A0D] focus:ring-[#8F0A0D] w-4 h-4 cursor-pointer">
                                             </td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Area / Site</td>
                                             <td class="py-1 px-2 border-r border-[#1E293B]">
-                                                <input type="text" x-model="reportFormData.hd_identitas.area_site" placeholder="Area site..." class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
+                                                <input type="text" x-model="reportFormData.hd_identitas.area_site" placeholder="" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs">
                                             </td>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Customer / Service</td>
-                                            <td class="py-1 px-2">
-                                                <input type="text" x-model="reportFormData.hd_identitas.customer_service" placeholder="Customer / Layanan..." class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold">
+                                            <td class="py-1.5 px-3 border-r border-[#1E293B] font-semibold text-xs text-[#0F172A]">
+                                                Siang &nbsp;(14.00–22.00)
+                                            </td>
+                                            <td class="py-1.5 px-2 text-center">
+                                                <input type="checkbox" x-model="reportFormData.hd_identitas.shift.siang" class="rounded text-[#8F0A0D] focus:ring-[#8F0A0D] w-4 h-4 cursor-pointer">
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Jam Shift</td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Team Leader</td>
                                             <td class="py-1 px-2 border-r border-[#1E293B]">
-                                                <input type="text" x-model="reportFormData.hd_identitas.jam_shift" placeholder="08:00 - 16:00 WIB" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-medium">
+                                                <input type="text" x-model="reportFormData.hd_identitas.team_leader" class="w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-semibold">
                                             </td>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Jumlah Engineer</td>
-                                            <td class="py-1 px-2">
-                                                <input type="number" min="1" x-model="reportFormData.hd_identitas.jumlah_engineer" class="w-16 p-1 bg-transparent border-0 focus:ring-1 focus:ring-[#8F0A0D] text-xs font-bold"> orang
+                                            <td class="py-1.5 px-3 border-r border-[#1E293B] font-semibold text-xs text-[#0F172A]">
+                                                Malam (22.00–06.00)
+                                            </td>
+                                            <td class="py-1.5 px-2 text-center">
+                                                <input type="checkbox" x-model="reportFormData.hd_identitas.shift.malam" class="rounded text-[#8F0A0D] focus:ring-[#8F0A0D] w-4 h-4 cursor-pointer">
                                             </td>
                                         </tr>
                                     </tbody>
@@ -2086,6 +2074,7 @@
                             </div>
                         </div>
 
+                        <!-- B. KONDISI AWAL SHIFT -->
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
                                 <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. KONDISI AWAL SHIFT</h3>
@@ -2103,22 +2092,20 @@
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                         <tr>
                                             <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
-                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Item / Service</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Kondisi Awal</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Alarm / Issue</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Status</th>
-                                            <th class="py-1.5 px-2 text-left">Keterangan</th>
+                                            <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Customer</th>
+                                            <th class="py-1.5 px-3 w-1/4 border-r border-[#1E293B] text-left">Alarm / Issue</th>
+                                            <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-center">Status</th>
+                                            <th class="py-1.5 px-3 text-left">Keterangan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <template x-for="(k, idx) in reportFormData.hd_kondisi_awal" :key="idx">
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="k.item_service" placeholder="Item / service..." class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="k.kondisi_awal" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="k.customer" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
                                                 <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="k.alarm_issue" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="k.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold text-[#8F0A0D]"></td>
-                                                <td class="p-1"><input type="text" x-model="k.keterangan" placeholder="Keterangan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1"><input type="text" x-model="k.keterangan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -2126,70 +2113,10 @@
                             </div>
                         </div>
 
+                        <!-- C. REKAP TICKET / INCIDENT -->
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. REKAP AKTIVITAS SHIFT <span class="text-[#8F0A0D]">*</span></h3>
-                                    <p class="text-[10.5px] text-gray-500">Rincian aktivitas tiket, WO, troubleshooting perangkat, atau penanganan gangguan.</p>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <button type="button" @click="addHdActRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>+ Tambah Baris</span>
-                                    </button>
-                                    <button type="button" @click="removeHdActRow()" x-show="reportFormData.hd_aktivitas.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>- Hapus Baris</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="border border-[#1E293B] rounded-sm overflow-x-auto text-xs">
-                                <table class="w-full border-collapse border border-[#1E293B] min-w-[700px]">
-                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
-                                        <tr>
-                                            <th class="py-1.5 px-1.5 w-10 text-center border-r border-[#1E293B]">No.</th>
-                                            <th class="py-1.5 px-1.5 w-24 text-center border-r border-[#1E293B]">Waktu</th>
-                                            <th class="py-1.5 px-2 w-1/3 border-r border-[#1E293B] text-left">Aktivitas <span class="text-red-500">*</span></th>
-                                            <th class="py-1.5 px-2 w-32 border-r border-[#1E293B] text-left">Ticket / WO</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Lokasi / Device</th>
-                                            <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-center">Hasil</th>
-                                            <th class="py-1.5 px-1.5 w-24 text-center">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-for="(act, idx) in reportFormData.hd_aktivitas" :key="idx">
-                                            <tr class="border-b border-[#1E293B]">
-                                                <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="time" x-model="act.waktu" class="w-full p-1 text-center text-xs border-0 bg-transparent font-medium cursor-pointer">
-                                                </td>
-                                                <td class="p-1 border-r border-[#1E293B]">
-                                                    <textarea rows="2" x-model="act.aktivitas" placeholder="Aktivitas engineer..." class="w-full p-1 text-xs border rounded bg-[#F8FAFC] font-semibold resize-none focus:bg-white"></textarea>
-                                                </td>
-                                                <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="text" x-model="act.ticket_wo" placeholder="TICK/WO..." class="w-full p-1 text-xs border-0 bg-transparent">
-                                                </td>
-                                                <td class="p-1 border-r border-[#1E293B]">
-                                                    <input type="text" x-model="act.lokasi_device" placeholder="Lokasi / Device..." class="w-full p-1 text-xs border-0 bg-transparent">
-                                                </td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center">
-                                                    <input type="text" x-model="act.hasil" placeholder="Hasil..." class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold">
-                                                </td>
-                                                <td class="p-1 text-center">
-                                                    <select x-model="act.status" class="w-full p-1 text-center font-bold text-xs border-0 bg-transparent text-[#8F0A0D] cursor-pointer">
-                                                        <option value="Done">Done</option>
-                                                        <option value="In Progress">In Progress</option>
-                                                        <option value="Pending">Pending</option>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. REKAP TICKET / INCIDENT</h3>
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. REKAP TICKET / INCIDENT</h3>
                                 <div class="flex items-center gap-3">
                                     <button type="button" @click="addHdTicketRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
                                         <span>+ Tambah Ticket</span>
@@ -2204,12 +2131,11 @@
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                         <tr>
                                             <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
-                                            <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-left">Ticket</th>
-                                            <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-left">Jenis</th>
+                                            <th class="py-1.5 px-2 w-32 border-r border-[#1E293B] text-left">Ticket</th>
+                                            <th class="py-1.5 px-2 w-36 border-r border-[#1E293B] text-left">Customer</th>
                                             <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Priority</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Start</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Restore</th>
-                                            <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-center">Close / Status</th>
+                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Time</th>
+                                            <th class="py-1.5 px-2 w-32 border-r border-[#1E293B] text-center">Status</th>
                                             <th class="py-1.5 px-2 text-left">Keterangan</th>
                                         </tr>
                                     </thead>
@@ -2217,13 +2143,18 @@
                                         <template x-for="(tk, idx) in reportFormData.hd_ticket_incident" :key="idx">
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="tk.ticket" placeholder="TICK-xxx" class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="tk.jenis" placeholder="Incident / Request" class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="tk.ticket" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="tk.customer" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                                 <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="tk.priority" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="time" x-model="tk.start" class="w-full p-1 text-xs border-0 bg-transparent text-center font-medium cursor-pointer"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="time" x-model="tk.restore" class="w-full p-1 text-xs border-0 bg-transparent text-center font-medium cursor-pointer"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="tk.close_status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold text-[#8F0A0D]"></td>
-                                                <td class="p-1"><input type="text" x-model="tk.keterangan" placeholder="Keterangan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="time" x-model="tk.time" class="w-full p-1 text-xs border-0 bg-transparent text-center font-medium cursor-pointer"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center">
+                                                    <select x-model="tk.status" class="w-full p-1 text-center font-bold text-xs border-0 bg-transparent text-[#8F0A0D] cursor-pointer">
+                                                        <option value="Open">Open</option>
+                                                        <option value="Progress">Progress</option>
+                                                        <option value="Close">Close</option>
+                                                    </select>
+                                                </td>
+                                                <td class="p-1"><input type="text" x-model="tk.keterangan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -2231,91 +2162,10 @@
                             </div>
                         </div>
 
+                        <!-- D. KENDALA & ESCALATION -->
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. MONITORING &amp; SERVICE STATUS</h3>
-                                <div class="flex items-center gap-3">
-                                    <button type="button" @click="addHdMonitoringRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>+ Tambah Baris</span>
-                                    </button>
-                                    <button type="button" @click="removeHdMonitoringRow()" x-show="reportFormData.hd_monitoring_status.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>- Hapus Baris</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
-                                <table class="w-full border-collapse border border-[#1E293B]">
-                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
-                                        <tr>
-                                            <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
-                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Service / Device</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Status</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Alarm</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Performance / Parameter</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Action</th>
-                                            <th class="py-1.5 px-2 text-left">Keterangan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-for="(m, idx) in reportFormData.hd_monitoring_status" :key="idx">
-                                            <tr class="border-b border-[#1E293B]">
-                                                <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="m.service_device" placeholder="Service / Device..." class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="m.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center font-bold text-emerald-700"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="m.alarm" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="m.performance" placeholder="CPU 15%, RAM 40%" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="m.action" placeholder="Monitoring rutin" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1"><input type="text" x-model="m.keterangan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. PEKERJAAN ONSITE / FIELD</h3>
-                                <div class="flex items-center gap-3">
-                                    <button type="button" @click="addHdFieldRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>+ Tambah Pekerjaan</span>
-                                    </button>
-                                    <button type="button" @click="removeHdFieldRow()" x-show="reportFormData.hd_pekerjaan_field.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
-                                        <span>- Hapus Pekerjaan</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
-                                <table class="w-full border-collapse border border-[#1E293B]">
-                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
-                                        <tr>
-                                            <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
-                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Lokasi</th>
-                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Pekerjaan</th>
-                                            <th class="py-1.5 px-2 w-1/6 border-r border-[#1E293B] text-left">Engineer</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Hasil</th>
-                                            <th class="py-1.5 px-2 w-28 text-center">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-for="(f, idx) in reportFormData.hd_pekerjaan_field" :key="idx">
-                                            <tr class="border-b border-[#1E293B]">
-                                                <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="f.lokasi" placeholder="Lokasi site..." class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="f.pekerjaan" placeholder="Uraian pekerjaan onsite..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="f.engineer" placeholder="Nama engineer" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="f.hasil" placeholder="Hasil pekerjaan..." class="w-full p-1 text-xs border-0 bg-transparent font-semibold"></td>
-                                                <td class="p-1 text-center font-bold"><input type="text" x-model="f.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center text-[#8F0A0D]"></td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. KENDALA &amp; ESCALATION</h3>
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. KENDALA &amp; ESCALATION</h3>
                                 <div class="flex items-center gap-3">
                                     <button type="button" @click="addHdKendalaRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
                                         <span>+ Tambah Kendala</span>
@@ -2330,24 +2180,28 @@
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                         <tr>
                                             <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Kendala / Incident</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Dampak</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Tindakan</th>
-                                            <th class="py-1.5 px-2 w-32 border-r border-[#1E293B] text-left">Escalated To</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Status</th>
-                                            <th class="py-1.5 px-2 text-left">Next Action</th>
+                                            <th class="py-1.5 px-2 w-32 border-r border-[#1E293B] text-left">Ticket</th>
+                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Dampak</th>
+                                            <th class="py-1.5 px-2 w-1/3 border-r border-[#1E293B] text-left">Action</th>
+                                            <th class="py-1.5 px-2 w-36 border-r border-[#1E293B] text-left">Escalated To</th>
+                                            <th class="py-1.5 px-2 w-28 text-center">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <template x-for="(kd, idx) in reportFormData.hd_kendala_escalation" :key="idx">
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="kd.kendala_incident" placeholder="Kendala..." class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="kd.dampak" placeholder="Dampak..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="kd.tindakan" placeholder="Tindakan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="kd.escalated_to" placeholder="Eskalasi..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center font-bold"><input type="text" x-model="kd.status" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent text-center"></td>
-                                                <td class="p-1"><input type="text" x-model="kd.next_action" placeholder="Next action..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="kd.ticket" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="kd.dampak" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><textarea rows="2" x-model="kd.action" placeholder="" class="w-full p-1 text-xs border rounded bg-[#F8FAFC] resize-none"></textarea></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="kd.escalated_to" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 text-center font-bold">
+                                                    <select x-model="kd.status" class="w-full p-1 text-center font-bold text-xs border-0 bg-transparent text-[#8F0A0D] cursor-pointer">
+                                                        <option value="Open">Open</option>
+                                                        <option value="Progress">Progress</option>
+                                                        <option value="Close">Close</option>
+                                                    </select>
+                                                </td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -2355,9 +2209,10 @@
                             </div>
                         </div>
 
+                        <!-- E. HANDOVER KE SHIFT BERIKUTNYA -->
                         <div class="space-y-1.5">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. HANDOVER KE SHIFT BERIKUTNYA</h3>
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. HANDOVER KE SHIFT BERIKUTNYA</h3>
                                 <div class="flex items-center gap-3">
                                     <button type="button" @click="addHdHandoverRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
                                         <span>+ Tambah Handover</span>
@@ -2372,11 +2227,10 @@
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
                                         <tr>
                                             <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Outstanding / Issue</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Kondisi Terakhir</th>
-                                            <th class="py-1.5 px-2 border-r border-[#1E293B] text-left">Tindakan Berikutnya</th>
-                                            <th class="py-1.5 px-2 w-28 border-r border-[#1E293B] text-left">PIC</th>
-                                            <th class="py-1.5 px-2 w-24 border-r border-[#1E293B] text-center">Due Time</th>
+                                            <th class="py-1.5 px-2 w-1/4 border-r border-[#1E293B] text-left">Tiket Outstanding / Issue</th>
+                                            <th class="py-1.5 px-2 w-1/5 border-r border-[#1E293B] text-left">Kondisi Terakhir</th>
+                                            <th class="py-1.5 px-2 w-1/5 border-r border-[#1E293B] text-left">Tindakan Berikutnya</th>
+                                            <th class="py-1.5 px-2 w-32 border-r border-[#1E293B] text-center">Durasi Incident<br><span class="text-[10px] font-normal text-slate-500">Start / End</span></th>
                                             <th class="py-1.5 px-2 text-left">Catatan</th>
                                         </tr>
                                     </thead>
@@ -2384,12 +2238,17 @@
                                         <template x-for="(ho, idx) in reportFormData.hd_handover" :key="idx">
                                             <tr class="border-b border-[#1E293B]">
                                                 <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="ho.outstanding_issue" placeholder="Issue..." class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="ho.kondisi_terakhir" placeholder="Kondisi..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="ho.tindakan_berikutnya" placeholder="Tindakan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="ho.pic" placeholder="PIC" class="w-full p-1 text-xs border-0 bg-transparent"></td>
-                                                <td class="p-1 border-r border-[#1E293B] text-center"><input type="text" x-model="ho.due_time" placeholder="10:00 WIB" class="w-full p-1 text-xs border-0 bg-transparent text-center font-semibold"></td>
-                                                <td class="p-1"><input type="text" x-model="ho.catatan" placeholder="Catatan..." class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="ho.ticket_issue" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="ho.kondisi_terakhir" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="ho.tindakan_berikutnya" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                                <td class="p-1 border-r border-[#1E293B] text-center">
+                                                    <div class="flex items-center justify-center gap-1">
+                                                        <input type="time" x-model="ho.durasi_start" class="w-16 p-1 text-xs border rounded bg-[#F8FAFC] text-center cursor-pointer">
+                                                        <span class="text-slate-400">-</span>
+                                                        <input type="time" x-model="ho.durasi_end" class="w-16 p-1 text-xs border rounded bg-[#F8FAFC] text-center cursor-pointer">
+                                                    </div>
+                                                </td>
+                                                <td class="p-1"><input type="text" x-model="ho.catatan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
                                             </tr>
                                         </template>
                                     </tbody>
@@ -2397,26 +2256,27 @@
                             </div>
                         </div>
 
+                        <!-- F. REKAP SHIFT -->
                         <div class="space-y-1.5">
-                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">I. REKAP SHIFT</h3>
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">F. REKAP SHIFT</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                 <table class="w-full border-collapse border border-[#1E293B]">
                                     <tbody>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Total ticket diterima</td>
-                                            <td class="w-1/4 p-1 border-r border-[#1E293B]"><input type="number" min="0" x-model="reportFormData.hd_rekap_shift.total_ticket_diterima" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
+                                            <td class="w-1/4 p-1 border-r border-[#1E293B]"><input type="number" min="0" x-model.number="reportFormData.hd_rekap_shift.total_ticket_diterima" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
                                             <td class="w-1/4 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Total ticket closed</td>
-                                            <td class="w-1/4 p-1"><input type="number" min="0" x-model="reportFormData.hd_rekap_shift.total_ticket_closed" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
+                                            <td class="w-1/4 p-1"><input type="number" min="0" x-model.number="reportFormData.hd_rekap_shift.total_ticket_closed" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
                                         </tr>
                                         <tr class="border-b border-[#1E293B]">
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Total incident</td>
-                                            <td class="p-1 border-r border-[#1E293B]"><input type="number" min="0" x-model="reportFormData.hd_rekap_shift.total_incident" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
+                                            <td class="p-1 border-r border-[#1E293B]"><input type="number" min="0" x-model.number="reportFormData.hd_rekap_shift.total_incident" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Outstanding</td>
-                                            <td class="p-1"><input type="number" min="0" x-model="reportFormData.hd_rekap_shift.outstanding" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
+                                            <td class="p-1"><input type="number" min="0" x-model.number="reportFormData.hd_rekap_shift.outstanding" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
                                         </tr>
                                         <tr>
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Service kritis / alert</td>
-                                            <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="reportFormData.hd_rekap_shift.service_kritis" placeholder="Nihil / -" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
+                                            <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="reportFormData.hd_rekap_shift.service_kritis" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-bold"></td>
                                             <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Handover diperlukan</td>
                                             <td class="p-2">
                                                 <div class="flex items-center gap-5 text-xs font-semibold">
@@ -2436,8 +2296,9 @@
                             </div>
                         </div>
 
+                        <!-- G. VERIFIKASI -->
                         <div class="space-y-1.5">
-                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">J. VERIFIKASI</h3>
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">G. VERIFIKASI</h3>
                             <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
                                 <table class="w-full border-collapse border border-[#1E293B]">
                                     <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
@@ -2460,13 +2321,68 @@
                                         </tr>
                                         <tr>
                                             <td class="py-2.5 px-3 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Engineer Shift Berikutnya / Handover</td>
-                                            <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="reportFormData.hd_verifikasi.next_engineer_name" placeholder="Nama Engineer Shift Berikutnya..." class="w-full p-1 text-xs font-bold bg-transparent border-0"></td>
+                                            <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="reportFormData.hd_verifikasi.next_engineer_name" placeholder="" class="w-full p-1 text-xs font-bold bg-transparent border-0"></td>
                                             <td class="p-2 text-center text-xs text-slate-500">Handover Verified</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                             <p class="text-[10.5px] text-[#475569] italic pt-0.5">Catatan: Daily/Shift Report bukan pengganti laporan Project atau Managed Service. Fungsinya sebagai kontrol operasional dan handover antar-shift.</p>
+                        </div>
+
+                        <!-- H. DOKUMENTASI & EVIDENCE (OPSIONAL) -->
+                        <div class="space-y-1.5 pt-2 border-t border-dashed border-gray-300">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">H. DOKUMENTASI &amp; EVIDENCE (FOTO / SCREENSHOT / LOG)</h3>
+                                    <p class="text-[10.5px] text-gray-500">Lampirkan tangkapan layar monitoring, foto perangkat fisik, log, atau bukti penanganan incident (opsional).</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <button type="button" @click="addHdEvidenceRow()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>+ Tambah Evidence</span>
+                                    </button>
+                                    <button type="button" @click="removeHdEvidenceRow()" x-show="reportFormData.hd_evidence && reportFormData.hd_evidence.length > 1" class="text-[11px] font-bold text-gray-500 hover:text-red-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                        <span>- Hapus Evidence</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <thead class="bg-[#EBF3FB] font-bold text-[#0F172A] border-b border-[#1E293B]">
+                                        <tr>
+                                            <th class="py-1.5 px-2 w-10 border-r border-[#1E293B] text-center">No.</th>
+                                            <th class="py-1.5 px-3 w-1/3 border-r border-[#1E293B] text-left">Evidence / Keterangan Masalah</th>
+                                            <th class="py-1.5 px-3 w-1/3 border-r border-[#1E293B] text-center">Foto / Screenshot / Log</th>
+                                            <th class="py-1.5 px-3 text-left">Keterangan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="(evi, idx) in reportFormData.hd_evidence" :key="idx">
+                                            <tr class="border-b border-[#1E293B]">
+                                                <td class="text-center font-bold py-1 px-1 border-r border-[#1E293B]" x-text="idx + 1"></td>
+                                                <td class="p-1 border-r border-[#1E293B]"><input type="text" x-model="evi.evidence" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent font-medium"></td>
+                                                <td class="p-2 border-r border-[#1E293B] text-center">
+                                                    <template x-if="evi.foto_url">
+                                                        <div class="relative group inline-block my-0.5">
+                                                            <img :src="evi.foto_url" class="h-16 w-auto max-w-full rounded border object-contain">
+                                                            <button type="button" @click="evi.foto_url = ''" class="absolute -top-1.5 -right-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full w-5 h-5 text-xs font-bold shadow flex items-center justify-center transition" title="Hapus Foto">&times;</button>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="!evi.foto_url">
+                                                        <div class="w-full py-2 px-1.5 border-2 border-dashed border-gray-300 rounded text-center bg-gray-50/60 hover:bg-gray-50 transition">
+                                                            <label class="px-3 py-1 bg-white border border-gray-300 rounded text-[10.5px] font-bold text-gray-700 cursor-pointer hover:bg-gray-100 inline-block shadow-2xs transition">
+                                                                <span>Upload Foto</span>
+                                                                <input type="file" accept="image/*" class="hidden" @change="handleHdEvidenceUpload($event, idx)">
+                                                            </label>
+                                                        </div>
+                                                    </template>
+                                                </td>
+                                                <td class="p-1"><input type="text" x-model="evi.keterangan" placeholder="" class="w-full p-1 text-xs border-0 bg-transparent"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
 
                     </div>
@@ -2480,8 +2396,8 @@
                     </button>
                     <button type="submit"
                             :disabled="isSubmitting"
-                            :class="isSubmitting ? 'opacity-75 cursor-not-allowed bg-[#73080A]' : 'bg-[#8F0A0D] hover:bg-[#73080A] cursor-pointer'"
-                            class="px-6 py-2.5 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2">
+                            :class="isSubmitting ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer'"
+                            class="btn-ipnet-gradient px-6 py-2.5 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2">
                         <template x-if="!isSubmitting">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>

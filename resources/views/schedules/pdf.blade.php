@@ -18,14 +18,14 @@
         }
         .header-table {
             width: 100%;
-            border-bottom: 2px solid #C81E2C;
+            border-bottom: 2px solid #8F0A0D;
             padding-bottom: 10px;
             margin-bottom: 12px;
         }
         .company-title {
             font-size: 18px;
             font-weight: bold;
-            color: #C81E2C;
+            color: #8F0A0D;
             margin: 0;
             letter-spacing: 0.5px;
         }
@@ -39,7 +39,7 @@
         .report-badge {
             display: inline-block;
             background: #FDF1F2;
-            color: #C81E2C;
+            color: #8F0A0D;
             border: 1px solid #FADADF;
             padding: 4px 12px;
             border-radius: 4px;
@@ -202,7 +202,7 @@
         <tr>
             <td class="summary-box" style="width: 25%;">
                 <div class="summary-title">Total Jadwal Kerja</div>
-                <div class="summary-value" style="color: #C81E2C;">{{ $totalSchedules }}</div>
+                <div class="summary-value" style="color: #8F0A0D;">{{ $totalSchedules }}</div>
             </td>
             <td class="summary-box" style="width: 25%;">
                 <div class="summary-title">Project Terlibat</div>

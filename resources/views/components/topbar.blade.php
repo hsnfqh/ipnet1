@@ -39,13 +39,13 @@
 
         <!-- Notifications Dropdown -->
         <div class="relative" x-data="notificationDropdown()" x-init="init()">
-            <button @click="toggleDropdown()" class="w-9 h-9 rounded-xl flex items-center justify-center text-[#57545F] hover:text-[#C81E2C] hover:bg-[#FDF1F2] border border-transparent hover:border-[#FADADF] transition-all duration-200 relative focus:outline-none" title="Pemberitahuan">
+            <button @click="toggleDropdown()" class="w-9 h-9 rounded-xl flex items-center justify-center text-[#57545F] hover:text-[#8F0A0D] hover:bg-[#FDF1F2] border border-transparent hover:border-[#FADADF] transition-all duration-200 relative focus:outline-none" title="Pemberitahuan">
                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
                 <template x-if="unreadCount > 0">
                     <span class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#C81E2C] border-2 border-white"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#8F0A0D] border-2 border-white"></span>
                     </span>
                 </template>
             </button>
@@ -67,17 +67,17 @@
                     <div class="flex items-center gap-2">
                         <span class="text-[13px] font-bold text-[#17151C]">Notifikasi</span>
                         <template x-if="unreadCount > 0">
-                            <span class="px-2 py-0.5 text-[10.5px] font-bold rounded-full bg-[#C81E2C] text-white" x-text="unreadCount"></span>
+                            <span class="px-2 py-0.5 text-[10.5px] font-bold rounded-full bg-[#8F0A0D] text-white" x-text="unreadCount"></span>
                         </template>
                     </div>
                     <div class="flex items-center gap-2">
                         <template x-if="unreadCount > 0">
-                            <button @click="markAllRead()" class="text-[11px] font-bold text-[#C81E2C] hover:underline">
+                            <button @click="markAllRead()" class="text-[11px] font-bold text-[#8F0A0D] hover:underline">
                                 Tandai dibaca
                             </button>
                         </template>
                         <template x-if="notifications.length > 0">
-                            <button @click="promptDeleteAll()" class="text-[11px] font-semibold text-[#75727C] hover:text-[#C81E2C] flex items-center gap-1 transition-colors" title="Hapus semua notifikasi">
+                            <button @click="promptDeleteAll()" class="text-[11px] font-semibold text-[#75727C] hover:text-[#8F0A0D] flex items-center gap-1 transition-colors" title="Hapus semua notifikasi">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
@@ -102,7 +102,7 @@
                              @click="goToNotif(notif)">
                             <div class="flex-1 min-w-0 pr-2">
                                 <div class="flex gap-2.5 items-start">
-                                    <span class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" :class="!notif.is_read ? 'bg-[#C81E2C] ring-2 ring-red-200' : 'bg-transparent'"></span>
+                                    <span class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" :class="!notif.is_read ? 'bg-[#8F0A0D] ring-2 ring-red-200' : 'bg-transparent'"></span>
                                     <div class="flex-1 min-w-0">
                                         <div class="text-[12.5px] font-semibold text-[#17151C] leading-snug" x-text="notif.title"></div>
                                         <div class="text-[11.5px] text-[#57545F] mt-0.5 line-clamp-2" x-text="notif.message"></div>
@@ -111,7 +111,7 @@
                                 </div>
                             </div>
                             <button @click.stop.prevent="promptDeleteNotification(notif.id, notif.title)" 
-                                    class="opacity-40 group-hover:opacity-100 text-[#75727C] hover:text-[#C81E2C] p-1.5 rounded-lg hover:bg-white transition-all flex-shrink-0"
+                                    class="opacity-40 group-hover:opacity-100 text-[#75727C] hover:text-[#8F0A0D] p-1.5 rounded-lg hover:bg-white transition-all flex-shrink-0"
                                     title="Hapus notifikasi ini">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -122,7 +122,7 @@
                 </div>
 
                 <div class="border-t border-[#EAE8E5] bg-[#FAF9F8] text-center">
-                    <a href="{{ route('notifications.index') }}" class="block py-2.5 text-[12px] font-bold text-[#57545F] hover:text-[#C81E2C] transition-colors">
+                    <a href="{{ route('notifications.index') }}" class="block py-2.5 text-[12px] font-bold text-[#57545F] hover:text-[#8F0A0D] transition-colors">
                         Lihat Semua Notifikasi &rarr;
                     </a>
                 </div>
@@ -145,7 +145,7 @@
                         <!-- Icon -->
                         <div class="flex justify-center mb-4">
                             <div class="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center">
-                                <svg class="w-7 h-7 text-[#C81E2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <svg class="w-7 h-7 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                 </svg>
                             </div>
@@ -162,7 +162,7 @@
                         <!-- Buttons -->
                         <div class="flex flex-col sm:flex-row gap-3">
                             <button @click="executeConfirmAction()" 
-                                    class="flex-1 py-2.5 px-4 rounded-lg bg-[#C81E2C] text-white font-semibold text-[14px] hover:brightness-105 transition-all">
+                                    class="flex-1 py-2.5 px-4 rounded-lg btn-ipnet-gradient text-white font-semibold text-[14px] shadow-md transition-all">
                                 Yakin
                             </button>
                             <button @click="confirmModalOpen = false" 
@@ -180,7 +180,7 @@
 
         <!-- User Profile Link -->
         <a href="{{ route('profile.show') }}" class="flex items-center gap-[9px] hover:opacity-85 transition-opacity" title="Lihat Profil Saya">
-            <x-avatar :name="$user->name" size="34" tone="#C81E2C" />
+            <x-avatar :name="$user->name" size="34" tone="linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%)" />
             <div class="hidden sm:block">
                 <div class="text-[13px] font-semibold text-wms-ink-900 leading-tight">{{ $user->name }}</div>
                 <div class="text-[11.5px] text-wms-ink-500">{{ $user->role_label === 'PMO' ? 'Project Manager' : $user->role_label }}</div>

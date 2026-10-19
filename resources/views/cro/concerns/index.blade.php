@@ -60,10 +60,10 @@
                                name="client" 
                                value="{{ request('client') }}"
                                placeholder="Cari Klien / Tiket..." 
-                               class="w-full sm:w-56 px-[11px] py-[9px] pl-8 rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all">
+                               class="w-full sm:w-56 px-[11px] py-[9px] pl-8 rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all">
                     </div>
                     <select name="status" onchange="this.form.submit()" 
-                            class="w-full sm:w-44 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all cursor-pointer">
+                            class="w-full sm:w-44 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all cursor-pointer">
                         <option value="">Semua Status</option>
                         <option value="Open" {{ request('status') == 'Open' ? 'selected' : '' }}>Open</option>
                         <option value="Dispatched" {{ request('status') == 'Dispatched' ? 'selected' : '' }}>Dispatched</option>
@@ -72,7 +72,7 @@
                         <option value="Closed" {{ request('status') == 'Closed' ? 'selected' : '' }}>Closed</option>
                     </select>
                     <select name="severity" onchange="this.form.submit()" 
-                            class="w-full sm:w-44 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all cursor-pointer">
+                            class="w-full sm:w-44 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all cursor-pointer">
                         <option value="">Semua Severity</option>
                         <option value="P1 - Critical" {{ request('severity') == 'P1 - Critical' ? 'selected' : '' }}>P1 - Critical</option>
                         <option value="P2 - High" {{ request('severity') == 'P2 - High' ? 'selected' : '' }}>P2 - High</option>
@@ -80,7 +80,7 @@
                         <option value="P4 - Low" {{ request('severity') == 'P4 - Low' ? 'selected' : '' }}>P4 - Low</option>
                     </select>
                     <select name="dept" onchange="this.form.submit()" 
-                            class="w-full sm:w-44 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all cursor-pointer">
+                            class="w-full sm:w-44 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all cursor-pointer">
                         <option value="">Semua Unit Internal</option>
                         <option value="Managed Service" {{ request('dept') == 'Managed Service' ? 'selected' : '' }}>Managed Service</option>
                         <option value="PMO" {{ request('dept') == 'PMO' ? 'selected' : '' }}>PMO</option>
@@ -96,7 +96,7 @@
                 </form>
 
                 <button type="button" @click="isCreateModalOpen = true" 
-                        class="w-full sm:w-auto justify-center bg-[#C81E2C] text-white shadow-[0_8px_20px_rgba(200,30,44,0.24)] px-[17px] py-[9px] rounded-lg font-semibold text-[13px] flex items-center gap-1.5 hover:brightness-105 active:translate-y-[1px] transition-all cursor-pointer">
+                        class="w-full sm:w-auto justify-center btn-ipnet-gradient text-white shadow-md px-[17px] py-[9px] rounded-lg font-semibold text-[13px] flex items-center gap-1.5 hover:brightness-105 active:translate-y-[1px] transition-all cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -123,7 +123,7 @@
                             @forelse($concerns as $con)
                                 <tr class="hover:bg-[#F8F7F6] transition-colors">
                                     <td class="py-3.5 px-4">
-                                        <div class="font-mono text-[11px] font-bold text-[#C81E2C]">{{ $con->ticket_number }}</div>
+                                        <div class="font-mono text-[11px] font-bold text-[#8F0A0D]">{{ $con->ticket_number }}</div>
                                         <div class="font-bold text-[#17151C] text-[13px] leading-snug mt-0.5">{{ $con->client_name }}</div>
                                     </td>
                                     <td class="py-3.5 px-3 text-center whitespace-nowrap">
@@ -295,7 +295,7 @@
 
                 <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
                     <button type="button" @click="isCreateModalOpen = false" class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 cursor-pointer">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-[#C81E2C] text-white font-bold rounded-xl hover:brightness-105 shadow-sm cursor-pointer">Simpan Tiket</button>
+                    <button type="submit" class="px-4 py-2 btn-ipnet-gradient text-white font-bold rounded-xl shadow-md cursor-pointer">Simpan Tiket</button>
                 </div>
             </form>
         </div>
@@ -305,7 +305,7 @@
     <div x-show="isDispatchModalOpen" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 border border-[#E7E5E3] shadow-xl animate-fade-in-up" @click.outside="isDispatchModalOpen = false">
             <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-                <h3 class="text-base font-bold text-gray-900">Disposisi Tiket <span x-text="dispatchData.ticketNumber" class="text-[#C81E2C]"></span></h3>
+                <h3 class="text-base font-bold text-gray-900">Disposisi Tiket <span x-text="dispatchData.ticketNumber" class="text-[#8F0A0D]"></span></h3>
                 <button @click="isDispatchModalOpen = false" class="text-gray-400 hover:text-gray-600">&times;</button>
             </div>
 
@@ -348,7 +348,7 @@
     <div x-show="isResolveModalOpen" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 border border-[#E7E5E3] shadow-xl animate-fade-in-up" @click.outside="isResolveModalOpen = false">
             <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-                <h3 class="text-base font-bold text-gray-900">Catat Tindakan Selesai (<span x-text="resolveData.ticketNumber" class="text-[#C81E2C]"></span>)</h3>
+                <h3 class="text-base font-bold text-gray-900">Catat Tindakan Selesai (<span x-text="resolveData.ticketNumber" class="text-[#8F0A0D]"></span>)</h3>
                 <button @click="isResolveModalOpen = false" class="text-gray-400 hover:text-gray-600">&times;</button>
             </div>
 
@@ -380,7 +380,7 @@
     <div x-show="isConfirmModalOpen" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 border border-[#E7E5E3] shadow-xl animate-fade-in-up" @click.outside="isConfirmModalOpen = false">
             <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-                <h3 class="text-base font-bold text-gray-900">Validasi Konfirmasi Klien (<span x-text="confirmData.ticketNumber" class="text-[#C81E2C]"></span>)</h3>
+                <h3 class="text-base font-bold text-gray-900">Validasi Konfirmasi Klien (<span x-text="confirmData.ticketNumber" class="text-[#8F0A0D]"></span>)</h3>
                 <button @click="isConfirmModalOpen = false" class="text-gray-400 hover:text-gray-600">&times;</button>
             </div>
 

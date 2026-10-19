@@ -22,7 +22,7 @@
             @endif
 
             @if(session('error'))
-            <div style="margin-bottom:20px; padding:13px 16px; background:#FDF1F2; border:1px solid #F8C8CC; border-radius:12px; color:#C81E2C; font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:10px;">
+            <div style="margin-bottom:20px; padding:13px 16px; background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; color:#8F0A0D; font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:10px;">
                 <svg style="width:18px; height:18px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
@@ -31,7 +31,7 @@
             @endif
 
             @if($errors->any())
-            <div style="margin-bottom:20px; padding:13px 16px; background:#FDF1F2; border:1px solid #F8C8CC; border-radius:12px; color:#C81E2C; font-size:13.5px; font-weight:600;">
+            <div style="margin-bottom:20px; padding:13px 16px; background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; color:#8F0A0D; font-size:13.5px; font-weight:600;">
                 <ul style="margin:0; padding-left:20px;">
                     @foreach($errors->all() as $err)
                     <li>{{ $err }}</li>
@@ -48,7 +48,7 @@
                     <div>
                         {{-- Avatar & Identity Header --}}
                         <div style="display:flex; align-items:center; gap:16px; padding-bottom:20px; margin-bottom:20px; border-bottom:1px solid #EFEDEB;">
-                            <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg, #AF1424, #D62E3C); color:white; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; flex-shrink:0; box-shadow:0 6px 16px rgba(200,30,44,0.25);">
+                            <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%); color:white; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; flex-shrink:0; box-shadow:0 6px 16px rgba(143,10,13,0.3);">
                                 {{ $user->initials }}
                             </div>
                             <div style="min-width:0; flex:1;">
@@ -79,14 +79,14 @@
                             <div style="display:flex; flex-direction:column; gap:16px;">
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
-                                        Nama Lengkap <span style="color:#C81E2C;">*</span>
+                                        Nama Lengkap <span style="color:#8F0A0D;">*</span>
                                     </label>
                                     <input type="text" 
                                            name="name" 
                                            value="{{ old('name', $user->name) }}" 
                                            required
                                            style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13.5px; color:#17151C; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;"
-                                           onfocus="this.style.borderColor='#C81E2C';"
+                                           onfocus="this.style.borderColor='#8F0A0D';"
                                            onblur="this.style.borderColor='#E7E5E3';">
                                 </div>
 
@@ -110,7 +110,7 @@
                                            value="{{ old('phone', $user->phone) }}" 
                                            placeholder="Contoh: 081234567890"
                                            style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13.5px; color:#17151C; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;"
-                                           onfocus="this.style.borderColor='#C81E2C';"
+                                           onfocus="this.style.borderColor='#8F0A0D';"
                                            onblur="this.style.borderColor='#E7E5E3';">
                                 </div>
                             </div>
@@ -120,10 +120,9 @@
                     <div style="margin-top:24px; padding-top:16px; border-top:1px solid #EFEDEB; display:flex; justify-content:flex-end;">
                         <button type="submit" 
                                 form="profileForm"
-                                style="background:#C81E2C; color:white; padding:10px 20px; border-radius:10px; border:none; font-weight:600; font-size:13.5px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(200,30,44,0.22); transition:all 0.15s ease;"
-                                onmouseover="this.style.background='#A31622';"
-                                onmouseout="this.style.background='#C81E2C';">
-                            <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                class="btn-ipnet-gradient"
+                                style="padding:10px 22px; border-radius:10px; font-weight:700; font-size:13.5px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 14px rgba(143,10,13,0.3);">
+                            <svg style="width:16px; height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                             </svg>
                             Simpan Perubahan
@@ -157,40 +156,40 @@
                             <div style="display:flex; flex-direction:column; gap:14px;">
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
-                                        Password Saat Ini <span style="color:#C81E2C;">*</span>
+                                        Password Saat Ini <span style="color:#8F0A0D;">*</span>
                                     </label>
                                     <input type="password" 
                                            name="current_password" 
                                            required
                                            placeholder="Masukkan password saat ini"
                                            style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13.5px; color:#17151C; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;"
-                                           onfocus="this.style.borderColor='#C81E2C';"
+                                           onfocus="this.style.borderColor='#8F0A0D';"
                                            onblur="this.style.borderColor='#E7E5E3';">
                                 </div>
 
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
-                                        Password Baru <span style="color:#C81E2C;">*</span>
+                                        Password Baru <span style="color:#8F0A0D;">*</span>
                                     </label>
                                     <input type="password" 
                                            name="password" 
                                            required
                                            placeholder="Minimal 8 karakter"
                                            style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13.5px; color:#17151C; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;"
-                                           onfocus="this.style.borderColor='#C81E2C';"
+                                           onfocus="this.style.borderColor='#8F0A0D';"
                                            onblur="this.style.borderColor='#E7E5E3';">
                                 </div>
 
                                 <div>
                                     <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
-                                        Konfirmasi Password Baru <span style="color:#C81E2C;">*</span>
+                                        Konfirmasi Password Baru <span style="color:#8F0A0D;">*</span>
                                     </label>
                                     <input type="password" 
                                            name="password_confirmation" 
                                            required
                                            placeholder="Ulangi password baru"
                                            style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; background:white; font-size:13.5px; color:#17151C; outline:none; box-sizing:border-box; transition:border-color 0.15s ease;"
-                                           onfocus="this.style.borderColor='#C81E2C';"
+                                           onfocus="this.style.borderColor='#8F0A0D';"
                                            onblur="this.style.borderColor='#E7E5E3';">
                                 </div>
                             </div>
@@ -222,7 +221,7 @@
                             <h3 style="margin:0 0 3px; font-family:'Inter',sans-serif; font-size:17px; font-weight:700; color:#17151C;">Sertifikasi Keahlian</h3>
                             <p style="margin:0; font-size:12.5px; color:#75727C;">Upload dokumen sertifikat keahlian Anda untuk diverifikasi oleh Team Leader divisi Anda</p>
                         </div>
-                        <span style="background:#FDF1F2; color:#C81E2C; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; flex-shrink:0;">
+                        <span style="background:#FEF2F2; color:#8F0A0D; border:1px solid #FECACA; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; flex-shrink:0;">
                             {{ $user->certifications->count() }} Sertifikat
                         </span>
                     </div>
@@ -315,7 +314,7 @@
                         {{-- Input Nama Sertifikasi --}}
                         <div style="margin-bottom:12px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
-                                Nama Sertifikasi <span style="color:#C81E2C;">*</span>
+                                Nama Sertifikasi <span style="color:#8F0A0D;">*</span>
                             </label>
                             <input type="text"
                                    name="name"
@@ -323,21 +322,21 @@
                                    required
                                    placeholder="Contoh: MikroTik MTCNA / Cisco CCNA / AWS Cloud"
                                    style="width:100%; padding:10px 14px; border-radius:8px; border:1px solid #E7E5E3; font-size:13.5px; color:#17151C; outline:none; box-sizing:border-box; transition:border-color 0.15s;"
-                                   onfocus="this.style.borderColor='#C81E2C';"
+                                   onfocus="this.style.borderColor='#8F0A0D';"
                                    onblur="this.style.borderColor='#E7E5E3';">
                         </div>
 
                         {{-- Drop Zone File --}}
                         <div style="margin-bottom:12px;">
                             <label style="display:block; font-size:11px; font-weight:700; color:#75727C; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.4px;">
-                                File Dokumen Sertifikat <span style="color:#C81E2C;">*</span>
+                                File Dokumen Sertifikat <span style="color:#8F0A0D;">*</span>
                             </label>
                             <div style="border:2px dashed #E7E5E3; border-radius:10px; padding:18px 14px; text-align:center; background:#F9F9F8; cursor:pointer; transition:border-color 0.18s ease, background 0.18s ease;"
-                                 onmouseover="this.style.borderColor='#C81E2C'; this.style.background='#FEF5F5';"
+                                 onmouseover="this.style.borderColor='#8F0A0D'; this.style.background='#FEF5F5';"
                                  onmouseout="this.style.borderColor='#E7E5E3'; this.style.background='#F9F9F8';"
                                  @click="document.getElementById('profileCertFile').click()">
                                 <input type="file" id="profileCertFile" name="certification_file" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none;" @change="handleFileSelect($event)">
-                                <div style="width:36px; height:36px; border-radius:50%; background:#FDF1F2; color:#C81E2C; display:flex; align-items:center; justify-content:center; margin:0 auto 8px;">
+                                <div style="width:36px; height:36px; border-radius:50%; background:#FEF2F2; color:#8F0A0D; display:flex; align-items:center; justify-content:center; margin:0 auto 8px;">
                                     <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                     </svg>
@@ -423,7 +422,7 @@
          style="position:fixed; inset:0; background:rgba(14,13,18,0.6); z-index:99999; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(2px);"
          @click.self="deleteModalOpen = false">
         <div style="background:white; border-radius:16px; width:400px; max-width:100%; padding:24px; text-align:center; box-shadow:0 20px 60px rgba(14,13,18,0.2); animation:fadeInUp 0.18s ease;">
-            <div style="width:50px; height:50px; border-radius:50%; background:#FDF1F2; color:#C81E2C; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
+            <div style="width:50px; height:50px; border-radius:50%; background:#FEF2F2; color:#8F0A0D; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
                 <svg style="width:24px; height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
@@ -434,7 +433,7 @@
                 <form :action="'/profile/certification/' + deletingCertId" method="POST" style="flex:1; margin:0;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" style="width:100%; padding:10px 14px; border-radius:8px; border:none; background:#C81E2C; font-weight:600; font-size:13px; color:white; cursor:pointer;">
+                    <button type="submit" class="btn-ipnet-gradient" style="width:100%; padding:10px 14px; border-radius:8px; border:none; font-weight:600; font-size:13px; cursor:pointer;">
                         Hapus
                     </button>
                 </form>
@@ -456,11 +455,11 @@
         padding: 12px 18px;
         border-radius: 10px;
         border: none;
-        background: #C81E2C;
+        background: linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%);
         color: #ffffff;
-        font-weight: 600;
+        font-weight: 700;
         font-size: 14px;
-        box-shadow: 0 4px 14px rgba(200, 30, 44, 0.28);
+        box-shadow: 0 4px 14px rgba(143, 10, 13, 0.3);
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -471,9 +470,9 @@
     }
 
     .profile-upload-submit-btn:hover:not(:disabled) {
-        background: #A31622;
+        background: linear-gradient(135deg, #991B1B 0%, #7F080A 60%, #5E0305 100%);
         transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(200, 30, 44, 0.35);
+        box-shadow: 0 6px 20px rgba(143, 10, 13, 0.4);
     }
 
     .profile-upload-submit-btn:active:not(:disabled) {
@@ -483,7 +482,7 @@
     .profile-upload-submit-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-        background: #C81E2C;
+        background: #8F0A0D;
         box-shadow: none;
     }
 </style>

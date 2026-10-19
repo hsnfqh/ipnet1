@@ -33,11 +33,11 @@
                                name="search" 
                                value="{{ request('search') }}"
                                placeholder="Cari No. SJ / Penerima / Klien..." 
-                               class="w-full sm:w-64 px-[11px] py-[9px] pl-8 rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all">
+                               class="w-full sm:w-64 px-[11px] py-[9px] pl-8 rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all">
                     </div>
 
                     <select name="status" onchange="this.form.submit()" 
-                            class="w-full sm:w-52 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#C81E2C] focus:shadow-[0_0_0_3px_#FDF1F2] transition-all cursor-pointer">
+                            class="w-full sm:w-52 px-[11px] py-[9px] rounded-lg border border-[#E7E5E3] text-[13px] text-[#17151C] outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all cursor-pointer">
                         <option value="">Semua Status Pengiriman</option>
                         <option value="Ready to Dispatch" {{ request('status') == 'Ready to Dispatch' ? 'selected' : '' }}>Ready to Dispatch (Siap)</option>
                         <option value="In Transit" {{ request('status') == 'In Transit' ? 'selected' : '' }}>In Transit (Di Jalan)</option>
@@ -54,7 +54,7 @@
                 </form>
 
                 <button type="button" @click="isCreateModalOpen = true" 
-                        class="w-full sm:w-auto justify-center bg-[#C81E2C] text-white shadow-[0_8px_20px_rgba(200,30,44,0.24)] px-[17px] py-[9px] rounded-lg font-semibold text-[13px] flex items-center gap-1.5 hover:brightness-105 active:translate-y-[1px] transition-all cursor-pointer">
+                        class="w-full sm:w-auto justify-center btn-ipnet-gradient text-white shadow-md px-[17px] py-[9px] rounded-lg font-semibold text-[13px] flex items-center gap-1.5 hover:brightness-105 active:translate-y-[1px] transition-all cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -106,7 +106,7 @@
                                             <div class="text-xs font-semibold text-gray-800">{{ $disp->items->first()->item_name }}</div>
                                             <div class="text-[11px] text-gray-500">Qty: {{ $disp->items->first()->quantity }} {{ $disp->items->first()->unit }}</div>
                                             @if($disp->items->count() > 1)
-                                                <div class="text-[10.5px] text-[#C81E2C] font-semibold">+{{ $disp->items->count() - 1 }} item lainnya</div>
+                                                <div class="text-[10.5px] text-[#8F0A0D] font-semibold">+{{ $disp->items->count() - 1 }} item lainnya</div>
                                             @endif
                                         @else
                                             <span class="text-xs text-gray-400">Belum ada rincian item</span>
@@ -227,7 +227,7 @@
 
                 <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
                     <button type="button" @click="isCreateModalOpen = false" class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 cursor-pointer">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-[#C81E2C] text-white font-bold rounded-xl hover:brightness-105 shadow-sm cursor-pointer">Terbitkan & Cetak</button>
+                    <button type="submit" class="px-4 py-2 btn-ipnet-gradient text-white font-bold rounded-xl shadow-md cursor-pointer">Terbitkan & Cetak</button>
                 </div>
             </form>
         </div>
@@ -260,7 +260,7 @@
 
                 <div class="pt-2 border-t border-gray-100 flex justify-end gap-2">
                     <button type="button" @click="isStatusModalOpen = false" class="px-3 py-1.5 bg-gray-100 text-gray-700 font-bold rounded-lg">Batal</button>
-                    <button type="submit" class="px-3 py-1.5 bg-[#C81E2C] text-white font-bold rounded-lg">Update</button>
+                    <button type="submit" class="px-3 py-1.5 bg-[#8F0A0D] text-white font-bold rounded-lg">Update</button>
                 </div>
             </form>
         </div>

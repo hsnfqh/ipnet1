@@ -156,8 +156,8 @@
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .wms-input:focus { 
-            border-color: #C81E2C !important; 
-            box-shadow: 0 0 0 3.5px rgba(200, 30, 44, 0.1) !important; 
+            border-color: #8F0A0D !important; 
+            box-shadow: 0 0 0 3.5px rgba(143, 10, 13, 0.12) !important; 
             background: #FFFFFF;
         }
         
@@ -322,7 +322,7 @@
             top: 20%;
             bottom: 20%;
             width: 3px;
-            background: #C81E2C;
+            background: #8F0A0D;
             border-radius: 0 3px 3px 0;
             opacity: 0;
             transform: scaleY(0.4);

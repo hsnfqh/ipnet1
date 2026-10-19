@@ -510,16 +510,6 @@ class SalesCrmController extends Controller
             $validSalesNames[] = $user->name;
         }
 
-        // Auto-seed dummy activities (1 Aktivitas Sales 5 Kronologis & 1 Lesson Learned) jika belum ada di web
-        if (SalesActivity::where('subject', 'like', '%Infrastruktur Jaringan Enterprise%')->doesntExist()
-            || SalesActivity::where('activity_type', 'Lesson Learned')->doesntExist()) {
-            try {
-                (new \Database\Seeders\SalesDummyReportSeeder())->run();
-            } catch (\Throwable $e) {
-                \Log::warning("Auto-seed sales dummy: " . $e->getMessage());
-            }
-        }
-
         $query = SalesActivity::with(['project', 'sales'])->latest('activity_date');
 
         // Always restrict CRM activity feed to valid sales projects only
