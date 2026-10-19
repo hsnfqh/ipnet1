@@ -307,15 +307,15 @@
         || str_contains(strtolower($authUser->email ?? ''), 'akbar')
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
     );
-    $canAssignDivision = !$isExecutive && $authUser && ($isAdminPure || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
-
     $isSalesUser = $authUser && (
         (!empty($project->sales_id) && $authUser->id == $project->sales_id)
         || (!empty($project->created_by) && $authUser->id == $project->created_by)
+        || ($project->sales_name && str_contains(strtolower($project->sales_name), strtolower($authUser->name ?? '')))
         || !empty(array_intersect(['Sales', 'Account Manager', 'BDM'], $userRoles))
         || str_contains(strtolower($authUser->position ?? ''), 'sales')
         || str_contains(strtolower($authUser->position ?? ''), 'account manager')
     );
+    $canAssignDivision = !$isExecutive && $authUser && ($isAdminPure || $isPresalesUser || $isSalesUser);
     $canAssignScope = !$isExecutive && $authUser && ($isAdminPure || $isSalesUser);
 
     // Hak otorisasi Berkas Sales: Hanya Head Division, Sales itu sendiri (PIC Proyek), dan Direktur.

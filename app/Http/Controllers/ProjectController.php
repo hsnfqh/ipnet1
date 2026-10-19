@@ -586,8 +586,16 @@ class ProjectController extends Controller
             || str_contains(strtolower($authUser->email ?? ''), 'akbar')
             || str_contains(strtolower($authUser->name ?? ''), 'akbar')
         );
-        $canAssign = $authUser && ($isAdmin || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
-        abort_unless($canAssign, 403, 'Penetapan divisi pelaksana teknis merupakan wewenang tim Pre-Sales Specialist.');
+        $isSalesUser = $authUser && (
+            (!empty($project->sales_id) && $authUser->id == $project->sales_id)
+            || (!empty($project->created_by) && $authUser->id == $project->created_by)
+            || ($project->sales_name && str_contains(strtolower($project->sales_name), strtolower($authUser->name ?? '')))
+            || !empty(array_intersect(['Sales', 'Account Manager', 'BDM'], $userRoles))
+            || str_contains(strtolower($authUser->position ?? ''), 'sales')
+            || str_contains(strtolower($authUser->position ?? ''), 'account manager')
+        );
+        $canAssign = $authUser && ($isAdmin || $isPresalesUser || $isSalesUser);
+        abort_unless($canAssign, 403, 'Penetapan tim pelaksana teknis merupakan wewenang tim Pre-Sales Specialist atau Sales.');
 
         $validated = $request->validate([
             'target_division' => 'required|in:network,security,both',

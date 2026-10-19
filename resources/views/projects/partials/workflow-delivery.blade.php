@@ -32,15 +32,15 @@
         || str_contains(strtolower($authUser->email ?? ''), 'akbar')
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')
     );
-    $canAssignDivision = $authUser && !$isExecutiveUser && ($isAdminPure || ($isPresalesUser && empty(array_intersect(['Sales', 'Account Manager'], $userRoles))));
-
     $isSalesUser = $authUser && (
         (!empty($project->sales_id) && $authUser->id == $project->sales_id)
         || (!empty($project->created_by) && $authUser->id == $project->created_by)
+        || ($project->sales_name && str_contains(strtolower($project->sales_name), strtolower($authUser->name ?? '')))
         || !empty(array_intersect(['Sales', 'Account Manager', 'BDM'], $userRoles))
         || str_contains(strtolower($authUser->position ?? ''), 'sales')
         || str_contains(strtolower($authUser->position ?? ''), 'account manager')
     );
+    $canAssignDivision = $authUser && !$isExecutiveUser && ($isAdminPure || $isPresalesUser || $isSalesUser);
     $canAssignScope = $authUser && !$isExecutiveUser && ($isAdminPure || $isSalesUser);
 @endphp
 <div class="ipnet-card p-6 space-y-5">
@@ -229,7 +229,7 @@
                                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     <span>Menunggu Penetapan Tim</span>
                                 </div>
-                                <div class="text-[10.5px] text-slate-400">Penetapan tim teknis pelaksana dilakukan oleh tim Pre-Sales.</div>
+                                <div class="text-[10.5px] text-slate-400">Penetapan tim teknis pelaksana dilakukan oleh tim Pre-Sales atau Sales.</div>
                             </div>
                         @endif
                     @endif
@@ -237,7 +237,7 @@
 
             </div>
 
-            {{-- Actions Footer: Wewenang Pre-Sales Specialist, Lead Engineer, PMO & Admin --}}
+            {{-- Actions Footer: Wewenang Pre-Sales Specialist, Sales, Lead Engineer, PMO & Admin --}}
             @php
                 $canAssignEngineerCard = $authUser && (
                     \App\Helpers\ScopeHelper::isTeamLeader($authUser)
@@ -259,7 +259,7 @@
                 @else
                     <span class="inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Wewenang Pre-Sales Specialist
+                        Wewenang Pre-Sales Specialist &amp; Sales
                     </span>
                 @endif
 
