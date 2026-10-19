@@ -2316,47 +2316,84 @@
                                 <span>Parameter Khusus Layanan Managed Service &amp; SLA</span>
                             </div>
 
+                            @php
+                                $defaultStartDate = $project->service_start_date ?: $project->start_date;
+                                $defaultEndDate   = $project->service_end_date ?: $project->deadline;
+                                $valStartDate     = $defaultStartDate ? \Carbon\Carbon::parse($defaultStartDate)->format('Y-m-d') : '';
+                                $valEndDate       = $defaultEndDate ? \Carbon\Carbon::parse($defaultEndDate)->format('Y-m-d') : '';
+                            @endphp
+
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                {{-- 1. Frekuensi Preventive Maintenance (PM) --}}
                                 <div>
                                     <label class="block font-semibold text-gray-700 text-[11px] mb-1">
-                                        SLA Tier <span class="text-[#8F0A0D]">*</span>
+                                        Frekuensi Preventive Maintenance (PM) <span class="text-[#8F0A0D]">*</span>
                                     </label>
-                                    <select name="sla_tier"
+                                    <select name="pm_frequency_type"
                                             class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-gray-800 hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
-                                        <option value="Platinum" {{ ($project->sla_tier ?? '') === 'Platinum' ? 'selected' : '' }}>Platinum (24x7 MTTR 2 Jam, Uptime 99.9%)</option>
-                                        <option value="Gold" {{ ($project->sla_tier ?: 'Gold') === 'Gold' ? 'selected' : '' }}>Gold (8x5 MTTR 4 Jam, Uptime 99.5%)</option>
-                                        <option value="Silver" {{ ($project->sla_tier ?? '') === 'Silver' ? 'selected' : '' }}>Silver (8x5 Next Business Day, Uptime 99.0%)</option>
-                                        <option value="Bronze" {{ ($project->sla_tier ?? '') === 'Bronze' ? 'selected' : '' }}>Bronze (Best Effort On-Call Support)</option>
+                                        <option value="per_3_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_3_bulan' ? 'selected' : '' }}>Per 3 Bulan / Quarterly (4 Kali/Tahun) - Standar</option>
+                                        <option value="per_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_bulan' ? 'selected' : '' }}>Per Bulan (12 Kali/Tahun)</option>
+                                        <option value="per_2_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_2_bulan' ? 'selected' : '' }}>Per 2 Bulan (6 Kali/Tahun)</option>
+                                        <option value="per_4_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_4_bulan' ? 'selected' : '' }}>Per 4 Bulan (3 Kali/Tahun)</option>
                                     </select>
                                 </div>
 
+                                {{-- 2. Kuota Corrective Maintenance (CM) --}}
                                 <div>
                                     <label class="block font-semibold text-gray-700 text-[11px] mb-1">
-                                        Frekuensi Preventive Maint.
+                                        Kuota Corrective Maintenance (CM) <span class="text-[#8F0A0D]">*</span>
                                     </label>
-                                    <select name="maintenance_frequency"
-                                            class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-gray-800 hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
-                                        <option value="Monthly">Bulanan (Monthly Routine)</option>
-                                        <option value="Quarterly">Triwulanan (Quarterly - 3 Bulan)</option>
-                                        <option value="Bi-Annual">Semesteran (Bi-Annual - 6 Bulan)</option>
-                                        <option value="Annual">Tahunan (Annual)</option>
-                                        <option value="On-Demand">On-Demand / Incident Based</option>
+                                    <select name="cm_quota"
+                                            class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-gray-800 hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
+                                        <option value="18" {{ ($project->cm_quota ?? 18) == 18 ? 'selected' : '' }}>18 Tiket / Tahun (Standar)</option>
+                                        <option value="4" {{ ($project->cm_quota ?? 18) == 4 ? 'selected' : '' }}>4 Tiket / Tahun</option>
+                                        <option value="6" {{ ($project->cm_quota ?? 18) == 6 ? 'selected' : '' }}>6 Tiket / Tahun</option>
+                                        <option value="8" {{ ($project->cm_quota ?? 18) == 8 ? 'selected' : '' }}>8 Tiket / Tahun</option>
+                                        <option value="12" {{ ($project->cm_quota ?? 18) == 12 ? 'selected' : '' }}>12 Tiket / Tahun</option>
+                                        <option value="999" {{ ($project->cm_quota ?? 18) == 999 ? 'selected' : '' }}>Unlimited Tiket</option>
                                     </select>
                                 </div>
 
+                                {{-- 3. Target SLA Uptime (%) --}}
                                 <div>
                                     <label class="block font-semibold text-gray-700 text-[11px] mb-1">
-                                        Tanggal Mulai Layanan
+                                        Target SLA Uptime (%) <span class="text-[#8F0A0D]">*</span>
                                     </label>
-                                    <input type="date" name="service_start_date" value="{{ $project->service_start_date ? \Carbon\Carbon::parse($project->service_start_date)->format('Y-m-d') : '' }}"
+                                    <input type="number" step="0.01" min="90" max="100" name="sla_target_percentage" 
+                                           value="{{ $project->sla_target_percentage ?: 99.50 }}"
+                                           placeholder="Contoh: 99.50"
+                                           class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-[#1E293B] hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+                                </div>
+
+                                {{-- 4. Jam Layanan (Coverage Hours) --}}
+                                <div>
+                                    <label class="block font-semibold text-gray-700 text-[11px] mb-1">
+                                        Jam Layanan (Coverage Hours)
+                                    </label>
+                                    <select name="sla_coverage_hours"
+                                            class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-gray-800 hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
+                                        <option value="8x5" {{ ($project->sla_coverage_hours ?? '8x5') == '8x5' ? 'selected' : '' }}>8x5 (Hari &amp; Jam Kerja Normal)</option>
+                                        <option value="24x7" {{ ($project->sla_coverage_hours ?? '8x5') == '24x7' ? 'selected' : '' }}>24x7 (24 Jam Non-Stop / Kritis)</option>
+                                    </select>
+                                </div>
+
+                                {{-- 5. Tanggal Mulai Layanan (Otomatis dari start_date) --}}
+                                <div>
+                                    <label class="block font-semibold text-gray-700 text-[11px] mb-1 flex items-center justify-between">
+                                        <span>Tanggal Mulai Layanan</span>
+                                        <span class="text-[10px] text-emerald-600 font-normal">Otomatis dari jadwal proyek</span>
+                                    </label>
+                                    <input type="date" name="service_start_date" value="{{ $valStartDate }}"
                                            class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
                                 </div>
 
+                                {{-- 6. Tanggal Akhir Kontrak (Otomatis dari deadline) --}}
                                 <div>
-                                    <label class="block font-semibold text-gray-700 text-[11px] mb-1">
-                                        Tanggal Akhir Kontrak
+                                    <label class="block font-semibold text-gray-700 text-[11px] mb-1 flex items-center justify-between">
+                                        <span>Tanggal Akhir Kontrak</span>
+                                        <span class="text-[10px] text-emerald-600 font-normal">Otomatis dari deadline proyek</span>
                                     </label>
-                                    <input type="date" name="service_end_date" value="{{ $project->service_end_date ? \Carbon\Carbon::parse($project->service_end_date)->format('Y-m-d') : '' }}"
+                                    <input type="date" name="service_end_date" value="{{ $valEndDate }}"
                                            class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
                                 </div>
                             </div>

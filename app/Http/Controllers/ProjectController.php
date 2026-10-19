@@ -354,6 +354,10 @@ class ProjectController extends Controller
             'sla_tier'              => 'nullable|string|max:50',
             'sla_coverage_hours'    => 'nullable|string|max:100',
             'maintenance_frequency' => 'nullable|string|max:100',
+            'pm_frequency_type'     => 'nullable|string|max:50',
+            'cm_quota'              => 'nullable|integer',
+            'sla_target_percentage' => 'nullable|numeric|min:0|max:100',
+            'mttr_hours'            => 'nullable|integer|min:1|max:72',
             'service_start_date'    => 'nullable|date',
             'service_end_date'      => 'nullable|date',
         ]);
@@ -457,29 +461,42 @@ class ProjectController extends Controller
             }
 
             if (in_array($target, ['managed_service', 'both'])) {
-                if ($request->filled('sla_tier')) {
-                    $tierVal = $request->input('sla_tier');
-                    $updateFields['sla_tier'] = $tierVal;
-                    if (!$request->filled('sla_coverage_hours')) {
-                        $updateFields['sla_coverage_hours'] = match($tierVal) {
-                            'Platinum' => '24x7',
-                            'Gold', 'Silver' => '8x5',
-                            default => '24x7',
-                        };
-                    }
+                if ($request->filled('pm_frequency_type')) {
+                    $freqType = $request->input('pm_frequency_type');
+                    $updateFields['pm_frequency_type'] = $freqType;
+                    $updateFields['pm_total_cycles'] = match($freqType) {
+                        'per_bulan' => 12,
+                        'per_2_bulan' => 6,
+                        'per_4_bulan' => 3,
+                        default => 4,
+                    };
+                    $updateFields['maintenance_frequency'] = match($freqType) {
+                        'per_bulan' => 'Monthly',
+                        'per_2_bulan' => 'Bi-Monthly',
+                        'per_4_bulan' => 'Quarterly-Plus',
+                        default => 'Quarterly',
+                    };
+                }
+                if ($request->filled('cm_quota')) {
+                    $updateFields['cm_quota'] = (int)$request->input('cm_quota');
+                }
+                if ($request->filled('sla_target_percentage')) {
+                    $updateFields['sla_target_percentage'] = (float)$request->input('sla_target_percentage');
                 }
                 if ($request->filled('sla_coverage_hours')) {
                     $updateFields['sla_coverage_hours'] = $request->input('sla_coverage_hours');
                 }
-                if ($request->filled('maintenance_frequency')) {
-                    $updateFields['maintenance_frequency'] = $request->input('maintenance_frequency');
+                if ($request->filled('mttr_hours')) {
+                    $updateFields['mttr_hours'] = (int)$request->input('mttr_hours');
                 }
-                if ($request->filled('service_start_date')) {
-                    $updateFields['service_start_date'] = $request->input('service_start_date');
+                if ($request->filled('sla_tier')) {
+                    $updateFields['sla_tier'] = $request->input('sla_tier');
                 }
-                if ($request->filled('service_end_date')) {
-                    $updateFields['service_end_date'] = $request->input('service_end_date');
-                }
+
+                $startDate = $request->input('service_start_date') ?: $project->start_date;
+                $endDate = $request->input('service_end_date') ?: $project->deadline;
+                if ($startDate) $updateFields['service_start_date'] = $startDate;
+                if ($endDate) $updateFields['service_end_date'] = $endDate;
             }
 
             $isClosedWon = ($project->sales_stage === 'Closed Won');
@@ -650,11 +667,13 @@ class ProjectController extends Controller
 
         // Kirim notifikasi ke Lead Engineer
         if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+            $shortTitle = \Illuminate\Support\Str::limit('Disposisi: ' . $project->name, 190);
+            $shortMsg   = \Illuminate\Support\Str::limit('Proyek "' . $project->name . '" (' . ($project->client ?: '-') . ') didisposisikan ke ' . $divName . '. Silakan pilih teknisi lapangan.', 240);
             foreach (array_unique($leaderIds) as $lId) {
                 \App\Models\Notification::create([
                     'user_id' => $lId,
-                    'title'   => 'Disposisi Proyek Baru: ' . $project->name,
-                    'message' => 'Proyek "' . $project->name . '" (Klien: ' . ($project->client ?: '-') . ') telah didisposisikan ke ' . $divName . '. Silakan pilih dan delegasikan personel teknisi lapangan Anda.',
+                    'title'   => $shortTitle,
+                    'message' => $shortMsg,
                     'url'     => route('projects.show', $project->id),
                     'is_read' => false,
                 ]);

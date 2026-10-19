@@ -943,7 +943,14 @@ class ManagedServiceController extends Controller
         }
 
         $query = Project::with(['creator', 'pmCycles', 'managedServiceTickets'])
-            ->whereNotIn('name', ['DAY OFF', 'Day Off']);
+            ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->where(function($q) {
+                $q->where('stage', 'Operate')
+                  ->orWhere(function($sub) {
+                      $sub->where('sales_stage', 'Closed Won')
+                          ->whereIn('handover_target', ['managed_service', 'both']);
+                  });
+            });
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -983,17 +990,28 @@ class ManagedServiceController extends Controller
         $project = Project::with(['pmCycles.assignedEngineer', 'managedServiceTickets.assignedEngineer', 'creator', 'managedServiceAssets'])
             ->findOrFail($id);
 
+        $isEligible = ($project->stage === 'Operate')
+            || ($project->sales_stage === 'Closed Won' && in_array($project->handover_target, ['managed_service', 'both']))
+            || ($project->handover_target === 'managed_service' && in_array($project->handover_status, ['Approved', 'Submitted']));
+
+        if (!$isEligible) {
+            return redirect()->route('ms.projects.index')->with('error', 'Proyek "' . $project->name . '" belum dapat diproses di Managed Service karena masih dalam tahap Sales pipeline dan belum disahkan Closed Won / masuk tahap Operate.');
+        }
+
         self::initPmCycles($project);
 
         $torDoc = null;
         if (Schema::hasTable('project_documents')) {
+            $hasDocType = Schema::hasColumn('project_documents', 'document_type');
             $torDoc = ProjectDocument::where('project_id', $project->id)
-                ->where(function($q) {
+                ->where(function($q) use ($hasDocType) {
                     $q->where('document_key', 'tor')
                       ->orWhere('document_key', 'like', '%TOR%')
-                      ->orWhere('document_type', 'TOR')
                       ->orWhere('document_title', 'like', '%TOR%')
                       ->orWhere('document_title', 'like', '%Terms of Reference%');
+                    if ($hasDocType) {
+                        $q->orWhere('document_type', 'TOR');
+                    }
                 })->latest()->first();
         }
 

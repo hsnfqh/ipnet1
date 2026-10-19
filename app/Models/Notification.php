@@ -21,6 +21,16 @@ class Notification extends Model
         'is_read' => 'boolean',
     ];
 
+    public function setTitleAttribute($value)
+    {
+        $this->attributes['title'] = \Illuminate\Support\Str::limit((string)$value, 245, '...');
+    }
+
+    public function setMessageAttribute($value)
+    {
+        $this->attributes['message'] = \Illuminate\Support\Str::limit((string)$value, 245, '...');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -100,7 +100,7 @@
                 </div>
                 <p class="text-[11.5px] {{ $isMsHandedOver ? 'text-purple-700' : 'text-amber-800' }}">
                     @if($isMsHandedOver)
-                        Diserahterimakan ke Tim Managed Service pada {{ $msHandover['handed_over_at'] ?? '-' }} oleh {{ $msHandover['handed_over_by'] ?? 'PMO' }}. SLA: {{ $project->sla_tier ?: 'Gold (99.5%)' }}.
+                        Diserahterimakan ke Tim Managed Service pada {{ $msHandover['handed_over_at'] ?? '-' }} oleh {{ $msHandover['handed_over_by'] ?? 'PMO' }}. SLA: Uptime {{ $project->sla_target_percentage ?: '99.50' }}% ({{ $project->sla_coverage_hours ?: '8x5' }}).
                     @else
                         Setelah penggelaran &amp; instalasi teknis selesai, tim delivery akan melakukan serah terima resmi ke Tim Managed Service.
                     @endif
@@ -346,7 +346,7 @@
                             @if($isMs || $isBoth)
                                 <div class="text-[10px] text-purple-700 font-bold pt-1.5 border-t border-slate-200/80 flex items-center justify-between">
                                     <span>Komitmen SLA:</span>
-                                    <span>{{ $project->sla_tier ?: 'Gold (8x5 Uptime 99.5%)' }}</span>
+                                    <span>Uptime {{ $project->sla_target_percentage ?: '99.50' }}% ({{ $project->sla_coverage_hours ?: '8x5' }})</span>
                                 </div>
                             @endif
                             @if($project->exclusions)
