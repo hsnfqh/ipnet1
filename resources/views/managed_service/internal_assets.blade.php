@@ -43,7 +43,7 @@
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Internal Asset (Aset & Peralatan Perusahaan)'])
+        @include('components.topbar', ['title' => 'Internal Asset (Aset & Peralatan Milik IPNET)'])
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
             
@@ -59,41 +59,41 @@
                 </div>
             @endif
 
-            {{-- Top Action Bar & Filter --}}
+            {{-- Top Action Bar --}}
             <div class="ipnet-card p-5 sm:p-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 anim-fade-up anim-delay-1">
                 <div>
                     <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> ASET PERUSAHAAN (INTERNAL)
+                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> ASET INTERNAL PERUSAHAAN
                     </p>
-                    <h3 class="font-bold text-[#1E293B] text-[20px] tracking-tight mt-0.5">Inventaris Alat Kerja & Aset Operasional HQ</h3>
-                    <p class="text-[13px] text-[#64748B] mt-0.5">Daftar alat ukur, splicing kit, laptop, dan perlengkapan teknisi milik PT IP Network Solusindo.</p>
+                    <h3 class="font-bold text-[#1E293B] text-[20px] tracking-tight mt-0.5">Inventaris Alat Kerja & Perangkat Kantor PT IPNET</h3>
+                    <p class="text-[13px] text-[#64748B] mt-0.5">Daftar testing tool (OTDR, Splicer), laptop engineer, dan aset milik internal perusahaan</p>
                 </div>
 
                 <div class="flex items-center gap-2.5 shrink-0">
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                        Total: {{ $assets->total() }} Alat
+                    <span class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F8FAFC] text-[#1E293B] border border-[#E2E8F0] shadow-xs">
+                        Total Aset Internal: <strong class="text-[#8F0A0D] ml-1">{{ $assets->total() }}</strong>
                     </span>
                 </div>
             </div>
 
-            {{-- Filters --}}
+            {{-- Filter & Per-Page Controls --}}
             <div class="ipnet-card p-4 anim-fade-up anim-delay-2">
-                <form method="GET" action="{{ route('ms.assets.internal') }}" class="flex flex-col sm:flex-row flex-wrap gap-3 items-center justify-between">
-                    <div class="flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto flex-1">
-                        <div class="relative flex-1 sm:max-w-xs">
-                            <svg class="w-4 h-4 absolute left-3 top-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
+                <form method="GET" action="{{ route('ms.assets.internal') }}" class="flex flex-col md:flex-row flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-col sm:flex-row flex-wrap items-center gap-2.5 w-full md:w-auto flex-1">
+                        <div class="relative w-full sm:w-64">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </div>
                             <input type="text" 
                                    name="search" 
                                    value="{{ request('search') }}"
-                                   placeholder="Cari Kode Aset / Nama Alat / SN..." 
-                                   class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-[13px] text-slate-800 outline-none bg-white focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all">
+                                   placeholder="Cari kode aset, nama alat, SN..." 
+                                   class="w-full pl-10 pr-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-medium text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs">
                         </div>
 
                         <select name="category" onchange="this.form.submit()" 
-                                class="px-3 py-2 rounded-xl border border-slate-200 text-[13px] text-slate-800 outline-none bg-white focus:border-[#8F0A0D] cursor-pointer">
-                            <option value="">Semua Kategori</option>
+                                class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] cursor-pointer shadow-xs">
+                            <option value="all">Semua Tipe</option>
                             <option value="Testing Tool" {{ request('category') == 'Testing Tool' ? 'selected' : '' }}>Testing Tool (OTDR)</option>
                             <option value="Fusion Splicer" {{ request('category') == 'Fusion Splicer' ? 'selected' : '' }}>Fusion Splicer</option>
                             <option value="Power Meter" {{ request('category') == 'Power Meter' ? 'selected' : '' }}>Power Meter (OPM)</option>
@@ -102,91 +102,119 @@
                         </select>
 
                         <select name="status" onchange="this.form.submit()" 
-                                class="px-3 py-2 rounded-xl border border-slate-200 text-[13px] text-slate-800 outline-none bg-white focus:border-[#8F0A0D] cursor-pointer">
-                            <option value="">Semua Status</option>
+                                class="w-full sm:w-48 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] cursor-pointer shadow-xs">
+                            <option value="all">Semua Status</option>
                             <option value="Available in HQ" {{ request('status') == 'Available in HQ' ? 'selected' : '' }}>Tersedia di HQ</option>
                             <option value="Borrowed by Engineer" {{ request('status') == 'Borrowed by Engineer' ? 'selected' : '' }}>Dipinjam Engineer</option>
                             <option value="In Maintenance" {{ request('status') == 'In Maintenance' ? 'selected' : '' }}>Kalibrasi / Servis</option>
                         </select>
+
+                        @if(request('search') || (request('category') && request('category') !== 'all') || (request('status') && request('status') !== 'all') || (request('per_page') && request('per_page') != 10))
+                            <a href="{{ route('ms.assets.internal') }}" class="px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 self-center">
+                                Reset Filter
+                            </a>
+                        @endif
                     </div>
 
-                    @if(request('search') || request('category') || request('status'))
-                        <a href="{{ route('ms.assets.internal') }}" class="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800">
-                            Reset Filter
-                        </a>
-                    @endif
+                    {{-- Option 5, 10, 25, 50 per page --}}
+                    <div class="flex items-center gap-2 self-end md:self-center shrink-0">
+                        <span class="text-[12px] font-semibold text-[#64748B]">Tampilkan:</span>
+                        <select name="per_page" onchange="this.form.submit()" class="px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12px] font-bold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] cursor-pointer shadow-xs">
+                            <option value="5" {{ request('per_page', $perPage ?? 10) == 5 ? 'selected' : '' }}>5 baris</option>
+                            <option value="10" {{ request('per_page', $perPage ?? 10) == 10 ? 'selected' : '' }}>10 baris</option>
+                            <option value="25" {{ request('per_page', $perPage ?? 10) == 25 ? 'selected' : '' }}>25 baris</option>
+                            <option value="50" {{ request('per_page', $perPage ?? 10) == 50 ? 'selected' : '' }}>50 baris</option>
+                        </select>
+                    </div>
                 </form>
             </div>
 
-            {{-- Table --}}
+            {{-- Table with Exact 7 Columns: Tipe Perangkat, Product Name, Product Description, Quantity, Serial Number, Keterangan, Pemilik --}}
             <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-3">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-[13px]">
-                        <thead class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                            <tr>
-                                <th class="px-5 py-3.5">Kode & Nama Alat</th>
-                                <th class="px-5 py-3.5">Kategori</th>
-                                <th class="px-5 py-3.5">Merek / Model</th>
-                                <th class="px-5 py-3.5">Serial Number</th>
-                                <th class="px-5 py-3.5">Kondisi</th>
-                                <th class="px-5 py-3.5">Status Peminjaman</th>
-                                <th class="px-5 py-3.5">Lokasi Penyimpanan</th>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-bold tracking-wider text-[#64748B] uppercase">
+                                <th class="py-3.5 px-4">Tipe Perangkat</th>
+                                <th class="py-3.5 px-4">Product Name</th>
+                                <th class="py-3.5 px-4">Product Description</th>
+                                <th class="py-3.5 px-3 text-center">Quantity</th>
+                                <th class="py-3.5 px-4">Serial Number</th>
+                                <th class="py-3.5 px-4">Keterangan</th>
+                                <th class="py-3.5 px-4">Pemilik</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                        <tbody class="divide-y divide-[#F1F5F9] text-[12.5px]">
                             @forelse($assets as $asset)
-                                <tr class="hover:bg-slate-50/60 transition">
-                                    <td class="px-5 py-3.5">
-                                        <div class="font-bold text-slate-900">{{ $asset->asset_name }}</div>
-                                        <div class="text-[11.5px] font-mono text-[#8F0A0D] font-semibold">{{ $asset->asset_code ?: '-' }}</div>
-                                    </td>
-                                    <td class="px-5 py-3.5">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">
-                                            {{ $asset->category ?: 'General' }}
+                                <tr class="hover:bg-[#F8FAFC]/80 transition-colors">
+                                    {{-- 1. Tipe Perangkat --}}
+                                    <td class="py-3.5 px-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]">
+                                            {{ $asset->category ?: 'Peralatan' }}
                                         </span>
                                     </td>
-                                    <td class="px-5 py-3.5 text-slate-600 font-medium">
-                                        {{ $asset->brand_model ?: '-' }}
+
+                                    {{-- 2. Product Name --}}
+                                    <td class="py-3.5 px-4">
+                                        <div class="font-bold text-[#1E293B] text-[13px]">{{ $asset->asset_name }}</div>
+                                        <div class="text-[11.5px] font-mono text-[#8F0A0D] font-semibold">{{ $asset->asset_code ?: '-' }}</div>
                                     </td>
-                                    <td class="px-5 py-3.5 font-mono text-[12px] text-slate-500">
-                                        {{ $asset->serial_number ?: '-' }}
+
+                                    {{-- 3. Product Description --}}
+                                    <td class="py-3.5 px-4 max-w-xs">
+                                        <div class="text-[#334155] text-[12px]">
+                                            {{ $asset->brand_model ?: '—' }}
+                                        </div>
                                     </td>
-                                    <td class="px-5 py-3.5">
-                                        @if($asset->condition === 'Good' || $asset->condition === 'Baik')
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                Baik / Siap Pakai
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                                {{ $asset->condition ?: 'Normal' }}
-                                            </span>
-                                        @endif
+
+                                    {{-- 4. Quantity --}}
+                                    <td class="py-3.5 px-3 text-center whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11.5px] font-extrabold bg-slate-100 text-slate-800 border border-slate-200">
+                                            1 Unit
+                                        </span>
                                     </td>
-                                    <td class="px-5 py-3.5">
-                                        @if($asset->status === 'Borrowed by Engineer')
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                                Dipinjam: {{ $asset->borrower ? $asset->borrower->name : ($asset->borrower_name ?: 'Engineer') }}
-                                            </span>
-                                        @elseif($asset->status === 'In Maintenance')
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-800 border border-rose-200">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                                Servis / Kalibrasi
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                Tersedia di HQ
-                                            </span>
-                                        @endif
+
+                                    {{-- 5. Serial Number --}}
+                                    <td class="py-3.5 px-4 font-mono text-[11.5px] text-[#475569] font-medium whitespace-nowrap">
+                                        {{ $asset->serial_number ?: '—' }}
                                     </td>
-                                    <td class="px-5 py-3.5 text-slate-500 text-[12px]">
-                                        {{ $asset->storage_location ?: 'HQ Workshop' }}
+
+                                    {{-- 6. Keterangan --}}
+                                    <td class="py-3.5 px-4 max-w-xs">
+                                        <div class="text-[#475569] text-[11.5px]">
+                                            {{ $asset->notes ?: ($asset->storage_location ? 'Lokasi: ' . $asset->storage_location : '—') }}
+                                        </div>
+                                        <div class="mt-1">
+                                            @if($asset->status === 'Borrowed by Engineer')
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                    Dipinjam: {{ $asset->borrower ? $asset->borrower->name : 'Engineer' }}
+                                                </span>
+                                            @elseif($asset->status === 'In Maintenance')
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-rose-50 text-rose-800 border border-rose-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                    Servis / Kalibrasi
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                    Tersedia di HQ
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </td>
+
+                                    {{-- 7. Pemilik --}}
+                                    <td class="py-3.5 px-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-rose-50 text-[#8F0A0D] border border-rose-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                            PT IPNET (Internal)
+                                        </span>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-5 py-10 text-center text-slate-400">
+                                    <td colspan="7" class="py-12 text-center text-[#64748B] text-[13px]">
                                         Belum ada data aset internal perusahaan yang terdaftar.
                                     </td>
                                 </tr>
@@ -196,8 +224,13 @@
                 </div>
 
                 @if($assets->hasPages())
-                    <div class="p-4 border-t border-slate-100">
-                        {{ $assets->links() }}
+                    <div class="p-4 border-t border-[#E2E8F0] bg-white flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div class="text-xs text-slate-500">
+                            Menampilkan {{ $assets->firstItem() ?? 0 }} - {{ $assets->lastItem() ?? 0 }} dari total {{ $assets->total() }} data
+                        </div>
+                        <div>
+                            {{ $assets->links() }}
+                        </div>
                     </div>
                 @endif
             </div>

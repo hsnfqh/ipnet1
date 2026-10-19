@@ -12,10 +12,13 @@ class ManagedServiceAsset extends Model
     protected $fillable = [
         'project_id',
         'client_name',
+        'owner_type',
         'device_name',
+        'product_description',
         'category',
         'brand',
         'model',
+        'quantity',
         'serial_number',
         'ip_address',
         'location_site',

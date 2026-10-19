@@ -226,6 +226,11 @@ class ManagedServiceController extends Controller
     public function internalAssets(Request $request)
     {
         $this->ensureTablesExist();
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 25, 50])) {
+            $perPage = 10;
+        }
+
         $query = \App\Models\AdminEquipmentAsset::with('borrower')->latest();
 
         if ($request->filled('search')) {
@@ -238,18 +243,18 @@ class ManagedServiceController extends Controller
             });
         }
 
-        if ($request->filled('category')) {
+        if ($request->filled('category') && $request->category !== 'all') {
             $query->where('category', $request->category);
         }
 
-        if ($request->filled('status')) {
+        if ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
-        $assets = $query->paginate(15)->withQueryString();
+        $assets = $query->paginate($perPage)->withQueryString();
         $engineers = User::all();
 
-        return view('managed_service.internal_assets', compact('assets', 'engineers'));
+        return view('managed_service.internal_assets', compact('assets', 'engineers', 'perPage'));
     }
 
     /**
@@ -266,12 +271,16 @@ class ManagedServiceController extends Controller
     public function assets(Request $request)
     {
         $this->ensureTablesExist();
+        $perPage = (int) $request->input('per_page', 10);
+        if (!in_array($perPage, [5, 10, 25, 50])) {
+            $perPage = 10;
+        }
 
         if (!Schema::hasTable('managed_service_assets')) {
-            $assets = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
+            $assets = new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage);
             $clients = $this->getClients();
             $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
-            return view('managed_service.assets', compact('assets', 'clients', 'projects'));
+            return view('managed_service.assets', compact('assets', 'clients', 'projects', 'perPage'));
         }
 
         $query = ManagedServiceAsset::query();
@@ -281,6 +290,7 @@ class ManagedServiceController extends Controller
             $query->where(function($q) use ($search) {
                 $q->where('device_name', 'like', "%{$search}%")
                   ->orWhere('client_name', 'like', "%{$search}%")
+                  ->orWhere('product_description', 'like', "%{$search}%")
                   ->orWhere('serial_number', 'like', "%{$search}%")
                   ->orWhere('ip_address', 'like', "%{$search}%")
                   ->orWhere('brand', 'like', "%{$search}%");
@@ -295,74 +305,118 @@ class ManagedServiceController extends Controller
             $query->where('status', $request->status);
         }
 
-        $assets = $query->latest()->paginate(15)->withQueryString();
+        if ($request->filled('owner')) {
+            $owner = $request->owner;
+            if ($owner === 'internal' || $owner === 'IPNET') {
+                $query->where(function($q) {
+                    $q->where('owner_type', 'internal')
+                      ->orWhere('client_name', 'like', '%IPNET%')
+                      ->orWhere('client_name', 'like', '%IP Network%')
+                      ->orWhere('client_name', 'like', '%Internal%');
+                });
+            } elseif ($owner === 'client') {
+                $query->where(function($q) {
+                    $q->where('owner_type', 'client')
+                      ->where('client_name', 'not like', '%IPNET%')
+                      ->where('client_name', 'not like', '%Internal%');
+                });
+            } else {
+                $query->where('client_name', 'like', "%{$owner}%");
+            }
+        }
+
+        $assets = $query->latest()->paginate($perPage)->withQueryString();
         $clients = $this->getClients();
         $projects = Project::whereNotIn('name', ['DAY OFF', 'Day Off'])->orderBy('name')->get();
 
-        return view('managed_service.assets', compact('assets', 'clients', 'projects'));
+        return view('managed_service.assets', compact('assets', 'clients', 'projects', 'perPage'));
     }
 
     public function storeAsset(Request $request)
     {
         $validated = $request->validate([
-            'client_name'   => 'required|string|max:255',
-            'device_name'   => 'required|string|max:255',
-            'category'      => 'required|string|in:Router,Switch,Firewall,Server,Access Point,UPS,Storage,Other',
-            'brand'         => 'nullable|string|max:100',
-            'model'         => 'nullable|string|max:100',
-            'serial_number' => 'nullable|string|max:100',
-            'ip_address'    => 'nullable|string|max:50',
-            'location_site' => 'nullable|string|max:255',
-            'rack_position' => 'nullable|string|max:100',
-            'status'        => 'required|string|in:Online,Warning,Offline,Maintenance',
-            'warranty_expiry'=> 'nullable|date',
-            'notes'         => 'nullable|string',
-            'project_id'    => 'nullable|exists:projects,id',
+            'client_name'         => 'required|string|max:255',
+            'owner_type'          => 'nullable|string|in:internal,client',
+            'device_name'         => 'required|string|max:255',
+            'product_description' => 'nullable|string',
+            'category'            => 'required|string',
+            'brand'               => 'nullable|string|max:100',
+            'model'               => 'nullable|string|max:100',
+            'quantity'            => 'nullable|integer|min:1',
+            'serial_number'       => 'nullable|string|max:100',
+            'ip_address'          => 'nullable|string|max:50',
+            'location_site'       => 'nullable|string|max:255',
+            'rack_position'       => 'nullable|string|max:100',
+            'status'              => 'required|string',
+            'warranty_expiry'     => 'nullable|date',
+            'notes'               => 'nullable|string',
+            'project_id'          => 'nullable|exists:projects,id',
         ]);
+
+        if (empty($validated['quantity'])) {
+            $validated['quantity'] = 1;
+        }
+
+        if (empty($validated['owner_type'])) {
+            $isIpnet = str_contains(strtolower($validated['client_name']), 'ipnet') || str_contains(strtolower($validated['client_name']), 'internal');
+            $validated['owner_type'] = $isIpnet ? 'internal' : 'client';
+        }
 
         $validated['created_by'] = auth()->id();
         ManagedServiceAsset::create($validated);
 
-        return redirect()->route('ms.assets.index')->with('success', 'Aset Configuration Item (CI) berhasil didaftarkan.');
+        return redirect()->back()->with('success', 'Data Aset berhasil didaftarkan.');
     }
 
     public function updateAsset(Request $request, $id)
     {
         $asset = ManagedServiceAsset::find($id);
         if (!$asset) {
-            return redirect()->route('ms.assets.index')->with('info', 'Aset tidak ditemukan atau sudah dihapus.');
+            return redirect()->back()->with('info', 'Aset tidak ditemukan atau sudah dihapus.');
         }
 
         $validated = $request->validate([
-            'client_name'   => 'required|string|max:255',
-            'device_name'   => 'required|string|max:255',
-            'category'      => 'required|string|in:Router,Switch,Firewall,Server,Access Point,UPS,Storage,Other',
-            'brand'         => 'nullable|string|max:100',
-            'model'         => 'nullable|string|max:100',
-            'serial_number' => 'nullable|string|max:100',
-            'ip_address'    => 'nullable|string|max:50',
-            'location_site' => 'nullable|string|max:255',
-            'rack_position' => 'nullable|string|max:100',
-            'status'        => 'required|string|in:Online,Warning,Offline,Maintenance',
-            'warranty_expiry'=> 'nullable|date',
-            'notes'         => 'nullable|string',
-            'project_id'    => 'nullable|exists:projects,id',
+            'client_name'         => 'required|string|max:255',
+            'owner_type'          => 'nullable|string|in:internal,client',
+            'device_name'         => 'required|string|max:255',
+            'product_description' => 'nullable|string',
+            'category'            => 'required|string',
+            'brand'               => 'nullable|string|max:100',
+            'model'               => 'nullable|string|max:100',
+            'quantity'            => 'nullable|integer|min:1',
+            'serial_number'       => 'nullable|string|max:100',
+            'ip_address'          => 'nullable|string|max:50',
+            'location_site'       => 'nullable|string|max:255',
+            'rack_position'       => 'nullable|string|max:100',
+            'status'              => 'required|string',
+            'warranty_expiry'     => 'nullable|date',
+            'notes'               => 'nullable|string',
+            'project_id'          => 'nullable|exists:projects,id',
         ]);
+
+        if (empty($validated['quantity'])) {
+            $validated['quantity'] = 1;
+        }
+
+        if (empty($validated['owner_type'])) {
+            $isIpnet = str_contains(strtolower($validated['client_name']), 'ipnet') || str_contains(strtolower($validated['client_name']), 'internal');
+            $validated['owner_type'] = $isIpnet ? 'internal' : 'client';
+        }
 
         $asset->update($validated);
 
-        return redirect()->route('ms.assets.index')->with('success', 'Data Aset berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Data Aset berhasil diperbarui.');
     }
 
     public function destroyAsset($id)
     {
         $asset = ManagedServiceAsset::find($id);
         if (!$asset) {
-            return redirect()->route('ms.assets.index')->with('info', 'Aset sudah tidak ada atau telah dihapus sebelumnya.');
+            return redirect()->back()->with('info', 'Aset sudah tidak ada atau telah dihapus sebelumnya.');
         }
 
         $asset->delete();
-        return redirect()->route('ms.assets.index')->with('success', 'Aset berhasil dihapus.');
+        return redirect()->back()->with('success', 'Aset berhasil dihapus.');
     }
 
     /**
