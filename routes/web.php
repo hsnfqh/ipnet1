@@ -1428,6 +1428,36 @@ Route::get('/migrate-only', function () {
     }
 });
 
+// Route pembersihan instan untuk menghapus proyek dummy PE LAN Sudirman beserta relasinya dari database
+Route::get('/delete-dummy-pelan', function () {
+    $deleted = [];
+    $projects = \App\Models\Project::where('name', 'like', '%Router Edge LAN (PE LAN) Sudirman%')->get();
+    foreach ($projects as $p) {
+        \App\Models\Task::where('project_id', $p->id)->forceDelete();
+        if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+            \App\Models\ProjectDocument::where('project_id', $p->id)->delete();
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_assets')) {
+            \App\Models\ManagedServiceAsset::where('project_id', $p->id)->delete();
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_tickets')) {
+            \App\Models\ManagedServiceTicket::where('project_id', $p->id)->delete();
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('managed_service_pm_cycles')) {
+            \App\Models\ManagedServicePmCycle::where('project_id', $p->id)->delete();
+        }
+        $deleted[] = $p->name;
+        $p->forceDelete();
+    }
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Seluruh data dummy PE LAN Sudirman berhasil dihapus total dari database!',
+        'deleted_projects' => $deleted
+    ]);
+});
+
 // Utility route untuk migrate database & seed user resmi & clear cache dari browser di cPanel
 Route::get('/run-migration', function () {
     $outputs = [];
