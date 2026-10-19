@@ -709,18 +709,23 @@ class Project extends Model
      */
     public function hasSalesCalculator(): bool
     {
+        $hasDocTypeCol = \Illuminate\Support\Facades\Schema::hasTable('project_documents') 
+            && \Illuminate\Support\Facades\Schema::hasColumn('project_documents', 'document_type');
+
         return \App\Models\ProjectDocument::where('project_id', $this->id)
             ->whereNotNull('file_path')
             ->where('file_path', '!=', '')
-            ->where(function ($q) {
+            ->where(function ($q) use ($hasDocTypeCol) {
                 $q->where('stage_name', 'Sales')
-                  ->orWhere('document_type', 'SC')
                   ->orWhere('document_key', 'SC')
+                  ->orWhere('document_key', 'sales_berkas_sc')
                   ->orWhere('document_key', 'like', 'sales_berkas%')
-                  ->orWhere(function ($s) {
-                      $s->where('document_title', 'like', '%calculator%')
-                        ->orWhere('file_name', 'like', '%calculator%');
-                  });
+                  ->orWhere('document_title', 'like', '%calculator%')
+                  ->orWhere('file_name', 'like', '%calculator%');
+
+                if ($hasDocTypeCol) {
+                    $q->orWhere('document_type', 'SC');
+                }
             })
             ->exists();
     }

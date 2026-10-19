@@ -90,12 +90,13 @@
     // Hanya tim Sales yang berwenang mengubah status/tahapan Sales Pipeline
     // Pre-Sales dan Solution Architect (SA) MUTLAK DILARANG mengubah status pipeline!
     $canEditSalesPipeline = $authUser && !$isPresalesOrSaUser && (
-        !empty(array_intersect(['Sales', 'Account Manager'], $userRoles))
+        !empty(array_intersect(['Sales', 'Account Manager', 'Super Admin', 'Admin', 'Admin Support', 'Commercial', 'Head of Sales', 'Commercial Head'], $userRoles))
         || (!empty($project->sales_id) && $authUser->id == $project->sales_id)
+        || (!empty($project->created_by) && $authUser->id == $project->created_by)
         || (!empty($project->sales_name) && str_contains(strtolower($project->sales_name), $userNameLower))
         || str_contains($userPosLower, 'sales')
         || str_contains($userPosLower, 'account manager')
-        || (!empty(array_intersect(['Super Admin', 'Admin'], $userRoles)))
+        || str_contains($userPosLower, 'commercial')
     );
 @endphp
 

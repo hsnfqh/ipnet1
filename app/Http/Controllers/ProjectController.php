@@ -1489,12 +1489,13 @@ class ProjectController extends Controller
             || str_contains($userNameLower, 'akbar')
             || str_contains($userNameLower, 'aris');
 
-        $isSales = !empty(array_intersect(['Sales', 'Account Manager'], $userRoles))
+        $isSales = !empty(array_intersect(['Sales', 'Account Manager', 'Super Admin', 'Admin', 'Admin Support', 'Commercial', 'Head of Sales', 'Commercial Head'], $userRoles))
             || ($project->sales_id && $user->id == $project->sales_id)
+            || ($project->created_by && $user->id == $project->created_by)
             || ($project->sales_name && str_contains(strtolower($project->sales_name), $userNameLower))
             || str_contains($userPosLower, 'sales')
             || str_contains($userPosLower, 'account manager')
-            || (!empty(array_intersect(['Super Admin', 'Admin'], $userRoles)) && !$isPresalesOrSa);
+            || str_contains($userPosLower, 'commercial');
 
         if ($isPresalesOrSa || !$isSales) {
             abort(403, 'Akses Ditolak: Hanya tim Sales yang berwenang memperbarui tahapan Sales Pipeline & Prospek.');

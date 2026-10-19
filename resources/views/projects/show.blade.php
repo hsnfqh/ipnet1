@@ -288,14 +288,15 @@
         || str_contains(strtolower($authUser->name ?? ''), 'aris')
     );
 
-    // Otorisasi Mengubah Pipeline Sales: HANYA tim Sales / Account Manager (atau Admin murni, BUKAN Pre-Sales dan BUKAN SA)
-    $canEditSalesPipeline = !$isExecutive && $authUser && !$isPresalesOrSaUser && (
-        !empty(array_intersect(['Sales', 'Account Manager'], $userRoles))
+    // Otorisasi Mengubah Pipeline Sales: HANYA tim Sales / Account Manager / PIC Sales proyek / Creator proyek (BUKAN Pre-Sales dan BUKAN SA)
+    $canEditSalesPipeline = $authUser && !$isPresalesOrSaUser && (
+        !empty(array_intersect(['Sales', 'Account Manager', 'Super Admin', 'Admin', 'Admin Support', 'Commercial', 'Head of Sales', 'Commercial Head'], $userRoles))
         || (!empty($project->sales_id) && $authUser->id == $project->sales_id)
+        || (!empty($project->created_by) && $authUser->id == $project->created_by)
         || (!empty($project->sales_name) && str_contains(strtolower($project->sales_name), strtolower($authUser->name ?? '')))
         || str_contains(strtolower($authUser->position ?? ''), 'sales')
         || str_contains(strtolower($authUser->position ?? ''), 'account manager')
-        || (!empty(array_intersect(['Super Admin', 'Admin'], $userRoles)))
+        || str_contains(strtolower($authUser->position ?? ''), 'commercial')
     );
 
     // Hak otorisasi alokasi ruang lingkup (Wewenang khusus tim Pre-Sales Specialist & Super Admin murni, BUKAN Eksekutif / Susanto / Direktur)
