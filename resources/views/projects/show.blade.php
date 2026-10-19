@@ -1100,15 +1100,6 @@
                                 );
                             @endphp
                             <div class="flex items-center gap-2 flex-wrap">
-                                @if($canAssignEngineer)
-                                <button type="button" 
-                                        @click="openAssignEngineerModal()" 
-                                        onclick="window.openModal('modal-assign-engineer')"
-                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] transition cursor-pointer shadow-2xs">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                                    <span>Tugaskan Teknisi Lapangan</span>
-                                </button>
-                                @endif
                                 @if($canAddMilestone)
                                 <button type="button" 
                                         @click="isAddMilestoneModalOpen = true" 
@@ -2980,9 +2971,9 @@
                     <div class="flex items-center gap-2 pt-3">
                         <button type="button" 
                                 @click="addRow()" 
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-slate-300 text-xs font-semibold text-slate-600 hover:border-red-400 hover:text-[#8F0A0D] hover:bg-red-50/50 transition cursor-pointer">
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-dashed border-red-300 text-xs font-semibold text-[#8F0A0D] hover:border-red-400 hover:text-[#8F0A0D] hover:bg-red-50/50 transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>+ Tambah Baris</span>
+                            <span>Tambah Baris</span>
                         </button>
                         <button type="button" 
                                 @click="addMultiple(5)" 
