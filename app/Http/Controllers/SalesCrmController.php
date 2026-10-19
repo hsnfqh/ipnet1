@@ -426,16 +426,19 @@ class SalesCrmController extends Controller
         $userEmailLower = strtolower($user->email ?? '');
 
         // Pre-Sales dan Solution Architect (SA) MUTLAK DILARANG mengubah status Sales Pipeline
-        $isPresalesOrSa = !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles))
+        // Pastikan user berstatus Sales / Account Manager / Admin TIDAK terdeteksi sebagai Pre-Sales/SA
+        $isPresalesOrSa = empty(array_intersect(['Sales', 'Account Manager', 'Super Admin', 'Admin', 'Admin Support', 'Commercial', 'Head of Sales', 'Commercial Head'], $userRoles)) && (
+            !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles))
+            || in_array($userPosLower, ['presales', 'pre-sales', 'solution architect', 'solutions architect', 'sa', 'pre sales'])
             || str_contains($userPosLower, 'presales')
             || str_contains($userPosLower, 'pre-sales')
-            || str_contains($userPosLower, 'architect')
             || str_contains($userPosLower, 'solution architect')
-            || str_contains($userPosLower, 'sa')
+            || (str_contains($userPosLower, 'architect') && !str_contains($userPosLower, 'sales'))
             || str_contains($userEmailLower, 'akbar')
             || str_contains($userEmailLower, 'aris')
             || str_contains($userNameLower, 'akbar')
-            || str_contains($userNameLower, 'aris');
+            || str_contains($userNameLower, 'aris')
+        );
 
         $isSales = !empty(array_intersect(['Sales', 'Account Manager', 'Super Admin', 'Admin', 'Admin Support', 'Commercial', 'Head of Sales', 'Commercial Head'], $userRoles))
             || ($project->sales_id && $user->id == $project->sales_id)

@@ -274,14 +274,14 @@
     ) && empty(array_intersect(['Sales', 'Account Manager', 'Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Head Divisi', 'Group Leader Commercial & Solution', 'Super Admin', 'Admin'], $userRoles));
 
     // Pre-Sales dan SA mutlak DILARANG mengubah status / tahapan Sales Pipeline:
-    $isPresalesOrSaUser = $authUser && (
+    // Pastikan user berstatus Sales / Account Manager / Admin TIDAK terdeteksi sebagai Pre-Sales/SA
+    $isPresalesOrSaUser = $authUser && empty(array_intersect(['Sales', 'Account Manager', 'Super Admin', 'Admin', 'Admin Support', 'Commercial', 'Head of Sales', 'Commercial Head'], $userRoles)) && (
         !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles))
-        || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'solution architect', 'sa', 'pre sales'])
+        || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'solution architect', 'solutions architect', 'sa', 'pre sales'])
         || str_contains(strtolower($authUser->position ?? ''), 'presales')
         || str_contains(strtolower($authUser->position ?? ''), 'pre-sales')
-        || str_contains(strtolower($authUser->position ?? ''), 'architect')
         || str_contains(strtolower($authUser->position ?? ''), 'solution architect')
-        || str_contains(strtolower($authUser->position ?? ''), 'sa')
+        || (str_contains(strtolower($authUser->position ?? ''), 'architect') && !str_contains(strtolower($authUser->position ?? ''), 'sales'))
         || str_contains(strtolower($authUser->email ?? ''), 'akbar')
         || str_contains(strtolower($authUser->email ?? ''), 'aris')
         || str_contains(strtolower($authUser->name ?? ''), 'akbar')

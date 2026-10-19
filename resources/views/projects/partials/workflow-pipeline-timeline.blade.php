@@ -74,13 +74,14 @@
     $userEmailLower = strtolower($authUser->email ?? '');
 
     // Cek apakah user adalah Pre-Sales atau Solution Architect (SA)
-    $isPresalesOrSaUser = $authUser && (
+    // Pastikan user berstatus Sales / Account Manager / Admin TIDAK terdeteksi sebagai Pre-Sales/SA
+    $isPresalesOrSaUser = $authUser && empty(array_intersect(['Sales', 'Account Manager', 'Super Admin', 'Admin', 'Admin Support', 'Commercial', 'Head of Sales', 'Commercial Head'], $userRoles)) && (
         !empty(array_intersect(['Presales', 'Pre-Sales', 'Solution Architect', 'Solutions Architect', 'SA'], $userRoles))
+        || in_array(strtolower($authUser->position ?? ''), ['presales', 'pre-sales', 'solution architect', 'solutions architect', 'sa', 'pre sales'])
         || str_contains($userPosLower, 'presales')
         || str_contains($userPosLower, 'pre-sales')
-        || str_contains($userPosLower, 'architect')
         || str_contains($userPosLower, 'solution architect')
-        || str_contains($userPosLower, 'sa')
+        || (str_contains($userPosLower, 'architect') && !str_contains($userPosLower, 'sales'))
         || str_contains($userEmailLower, 'akbar')
         || str_contains($userEmailLower, 'aris')
         || str_contains($userNameLower, 'akbar')
