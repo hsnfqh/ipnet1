@@ -579,7 +579,7 @@
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </div>
                     <h3 class="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">Lacak Status &amp; Progres Tiket Aduan</h3>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-1">Pantau perkembangan tindak lanjut, diagnosa teknisi, dan pemenuhan SLA tiket Anda secara real-time.</p>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">Pantau perkembangan tindak lanjut dan diagnosa teknisi atas kendala Anda secara real-time.</p>
                 </div>
 
                 <form method="GET" action="{{ route('public.helpdesk.index') }}" class="max-w-2xl mx-auto flex flex-col sm:flex-row gap-2.5">
@@ -600,8 +600,8 @@
                     
                     <!-- Header Info Bar (Lebar & Jelas) -->
                     <div class="p-6 sm:p-7 bg-slate-50/70 border-b border-slate-200/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <div class="flex flex-wrap items-center gap-2.5 mb-2">
+                        <div class="space-y-1.5">
+                            <div class="flex flex-wrap items-center gap-2.5">
                                 <span class="font-mono text-base sm:text-xl font-black text-slate-900 tracking-tight">{{ $trackingTicket->ticket_number }}</span>
                                 @if($trackingTicket->status === 'Resolved')
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs">
@@ -627,28 +627,22 @@
                                     {{ $trackingTicket->category ?? 'Gangguan Teknis' }}
                                 </span>
                             </div>
-                            <h2 class="text-base sm:text-lg font-bold text-slate-900">{{ $trackingTicket->title }}</h2>
-                            <p class="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-snug">{{ $trackingTicket->title }}</h2>
+                            <p class="text-xs text-slate-500 flex flex-wrap items-center gap-x-2.5 gap-y-1">
                                 <span>Klien: <strong class="text-slate-800 font-semibold">{{ $trackingTicket->client_name }}</strong></span>
                                 <span class="text-slate-300">•</span>
                                 <span>Pelapor: <span class="text-slate-700 font-medium">{{ $trackingTicket->reported_by }}</span></span>
                                 @if($trackingTicket->contact_phone)
                                     <span class="text-slate-300">•</span>
-                                    <span>WA: <span class="font-mono text-slate-600">{{ $trackingTicket->contact_phone }}</span></span>
+                                    <span>Kontak / WA: <span class="font-mono text-slate-700 font-semibold">{{ $trackingTicket->contact_phone }}</span></span>
                                 @endif
                             </p>
                         </div>
 
-                        <!-- Target SLA Respon Box (Besar, Jelas, & Rapi) -->
-                        <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-red-100 shadow-2xs text-left md:text-right shrink-0">
-                            <div class="flex items-center md:justify-end gap-1.5 text-slate-400 mb-0.5">
-                                <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Target SLA Respon</span>
-                            </div>
-                            <div class="font-mono font-black text-sm sm:text-base text-[#8F0A0D]">
-                                {{ $trackingTicket->sla_deadline ? $trackingTicket->sla_deadline->translatedFormat('d M Y, H:i') . ' WIB' : '-' }}
-                            </div>
-                            <p class="text-[10.5px] text-slate-400 mt-0.5">Batas waktu penanganan sesuai komitmen layanan</p>
+                        <!-- Tanggal Pengajuan Tiket -->
+                        <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs text-xs text-slate-500 shrink-0 self-start md:self-center">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span>Didaftarkan: <strong class="text-slate-800 font-semibold font-mono">{{ $trackingTicket->created_at->translatedFormat('d M Y, H:i') }} WIB</strong></span>
                         </div>
                     </div>
 
@@ -768,19 +762,19 @@
                                 @endif
                             </div>
 
-                            <!-- Right Column: Ringkasan Spesifikasi & SLA (4 Kolom - Rapi & Konsisten) -->
+                            <!-- Right Column: Ringkasan Spesifikasi & Kontak (4 Kolom - Rapi & Konsisten) -->
                             <div class="lg:col-span-4 space-y-5">
                                 
                                 <!-- Card Detail Spesifikasi Tiket -->
                                 <div class="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-5 space-y-4">
                                     <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 pb-2 border-b border-slate-200 flex items-center justify-between">
-                                        <span>Spesifikasi Tiket</span>
-                                        <span class="text-[10.5px] font-bold text-slate-400">Parameter SLA</span>
+                                        <span>Informasi Tiket</span>
+                                        <span class="text-[10.5px] font-medium text-slate-400">Detail Ringkasan</span>
                                     </h4>
 
-                                    <div class="space-y-3 text-xs">
+                                    <div class="space-y-3.5 text-xs">
                                         <div>
-                                            <span class="text-slate-400 font-medium block text-[11px]">Prioritas &amp; Tingkat Urgensi:</span>
+                                            <span class="text-slate-400 font-medium block text-[11px]">Prioritas Kendala:</span>
                                             <span class="font-bold text-slate-900 inline-block mt-0.5 px-2.5 py-0.5 rounded-md 
                                                 {{ $trackingTicket->priority === 'P1 - Critical' ? 'bg-red-100 text-red-800' : ($trackingTicket->priority === 'P2 - Major' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200/80 text-slate-800') }}">
                                                 {{ $trackingTicket->priority }}
@@ -791,7 +785,7 @@
                                             <span class="font-bold text-slate-900">{{ $trackingTicket->category ?? 'Gangguan Teknis' }}</span>
                                         </div>
                                         <div>
-                                            <span class="text-slate-400 font-medium block text-[11px]">Waktu Lapor Kejadian:</span>
+                                            <span class="text-slate-400 font-medium block text-[11px]">Waktu Kejadian:</span>
                                             <span class="font-bold text-slate-900 font-mono">{{ $trackingTicket->incident_date ? $trackingTicket->incident_date->translatedFormat('d F Y, H:i') . ' WIB' : '-' }}</span>
                                         </div>
                                         <div>
@@ -801,28 +795,21 @@
                                     </div>
                                 </div>
 
-                                <!-- Card Penjelasan Target SLA Respon -->
-                                <div class="bg-gradient-to-br from-red-50/60 to-rose-50/40 border border-red-100 rounded-2xl p-5 space-y-2">
-                                    <div class="flex items-center gap-2 text-[#8F0A0D]">
-                                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        <h4 class="text-xs font-bold text-slate-800">Apa itu Target SLA Respon?</h4>
-                                    </div>
-                                    <p class="text-[11.5px] text-slate-600 leading-relaxed">
-                                        <strong>SLA (Service Level Agreement) Respon</strong> adalah batas waktu maksimal bagi tim teknisi IP-NET untuk merespon dan memberikan tindak lanjut perbaikan sesuai dengan tingkat urgensi yang disepakati.
-                                    </p>
-                                </div>
-
                                 <!-- Card Hubungi Tim NOC Cepat -->
                                 <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs space-y-3">
-                                    <h4 class="text-xs font-bold text-slate-800">Butuh Eskalasi Segera?</h4>
-                                    <p class="text-[11px] text-slate-500 leading-snug">Jika kendala berdampak kritis pada operasional utama, hubungi dispatcher NOC kami:</p>
+                                    <div>
+                                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-800">Butuh Eskalasi Segera?</h4>
+                                        <p class="text-[11px] text-slate-500 leading-relaxed mt-1">Jika kendala berdampak kritis pada operasional utama, hubungi dispatcher NOC kami:</p>
+                                    </div>
                                     <div class="space-y-2 pt-1">
                                         <a href="https://wa.me/6281234567890?text=Halo%20NOC%20IP-NET,%20mohon%20bantu%20eskalasi%20tiket%20{{ $trackingTicket->ticket_number }}" target="_blank"
                                            class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition shadow-xs">
+                                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
                                             <span>WhatsApp NOC Dispatcher</span>
                                         </a>
                                         <a href="tel:02112345678" 
                                            class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition">
+                                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                             <span>Hotline (021) 1234-5678</span>
                                         </a>
                                     </div>
