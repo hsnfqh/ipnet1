@@ -950,9 +950,10 @@ class ManagedServiceController extends Controller
             'service_start_date'    => 'nullable|date',
             'service_end_date'      => 'nullable|date',
             'special_notes'         => 'nullable|string',
+            'documents_checklist'   => 'nullable|array',
         ]);
 
-        $project->update([
+        $updateData = [
             'ms_handover_status'    => 'Accepted',
             'ms_accepted_at'        => now(),
             'ms_accepted_by'        => auth()->id(),
@@ -964,7 +965,13 @@ class ManagedServiceController extends Controller
             'special_notes'         => $validated['special_notes'] ?? $project->special_notes,
             'stage'                 => 'Operate',
             'status'                => 'Active',
-        ]);
+        ];
+
+        if ($request->has('documents_checklist')) {
+            $updateData['documents_checklist'] = $request->input('documents_checklist');
+        }
+
+        $project->update($updateData);
 
         // Kirim notifikasi konfirmasi ke Sales PIC
         if ($project->commercial_handover_by) {
@@ -1158,9 +1165,157 @@ class ManagedServiceController extends Controller
             ->latest('updated_at')
             ->get();
 
+        foreach ($incomingHandovers as $ho) {
+            $ho->resolved_documents = self::getProjectDocuments($ho);
+        }
+
         $pendingHandoversCount = $incomingHandovers->where('ms_handover_status', '!=', 'Accepted')->count();
 
         return view('managed_service.projects', compact('projects', 'incomingHandovers', 'pendingHandoversCount', 'perPage'));
+    }
+
+    /**
+     * Helper Ekstraksi & Resolusi 6 Berkas Dokumen Kontrak & Legal Proyek
+     */
+    public static function getProjectDocuments($project)
+    {
+        $projectDocs = collect();
+        if (\Illuminate\Support\Facades\Schema::hasTable('project_documents')) {
+            $projectDocs = \App\Models\ProjectDocument::where('project_id', $project->id)
+                ->whereNotNull('file_path')
+                ->where('file_path', '!=', '')
+                ->latest()
+                ->get();
+        }
+
+        $findDoc = function(array $keys, array $keywords = [], array $types = []) use ($projectDocs) {
+            return $projectDocs->first(function ($doc) use ($keys, $keywords, $types) {
+                $docKey   = strtoupper($doc->document_key ?? '');
+                $docType  = strtoupper($doc->document_type ?? '');
+                $docTitle = strtolower($doc->document_title ?? ($doc->name ?? ''));
+                $fileName = strtolower($doc->file_name ?? '');
+
+                foreach ($keys as $k) {
+                    $kUpper = strtoupper($k);
+                    if ($docKey === $kUpper || $docKey === 'LAMPIRAN_' . $kUpper || str_starts_with($docKey, 'DOC_' . $kUpper)) {
+                        return true;
+                    }
+                }
+                foreach ($types as $t) {
+                    if ($docType === strtoupper($t)) {
+                        return true;
+                    }
+                }
+                foreach ($keywords as $kw) {
+                    $kwLower = strtolower($kw);
+                    if (str_contains($docTitle, $kwLower) || str_contains($fileName, $kwLower)) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+        };
+
+        // 1. SPK / PO
+        $spkDoc = $findDoc(['spk', 'po', 'contract_po_so'], ['perintah kerja', 'purchase order', 'spk', 'po_'], ['SPK', 'PO']);
+        $spkFilePath = $project->po_spk_file ?: ($project->po_file ?: ($spkDoc?->file_path));
+        $spkNumber   = $project->po_spk_number ?: ($project->po_number ?: ($spkDoc ? ($spkDoc->notes ?? ('SPK-' . $project->id)) : null));
+        $spkDate     = $project->po_spk_date ?: ($spkDoc?->created_at?->format('Y-m-d') ?: $project->start_date);
+
+        // 2. Kontrak / PKS
+        $contractDoc = $findDoc(['contract', 'pks', 'commercial_handover_package'], ['kontrak', 'perjanjian', 'contract', 'pks'], ['CONTRACT', 'PKS']) ?: ($spkDoc && (in_array(strtoupper($spkDoc->document_key ?? ''), ['CONTRACT_PO_SO', 'COMMERCIAL_HANDOVER_PACKAGE']) || str_contains(strtolower($spkDoc->document_title ?? ''), 'contract') || str_contains(strtolower($spkDoc->document_title ?? ''), 'kontrak')) ? $spkDoc : null);
+        $contractFilePath = $project->contract_file ?: ($project->po_file ?: ($contractDoc?->file_path ?: ($project->po_spk_file ?? null)));
+        $contractNumber   = $project->po_number ?: ('KTR/' . $project->id);
+        $contractDate     = $contractDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
+
+        // 3. TOR
+        $torDoc = $findDoc(['tor', 'kak'], ['terms of reference', 'tor', 'kak', 'kerangka acuan'], ['TOR', 'KAK']);
+        $torFilePath = $project->tor_file ?: ($torDoc?->file_path);
+        $torNumber   = $project->tor_number ?: ('TOR-' . $project->id);
+        $torDate     = $torDoc?->created_at?->format('Y-m-d') ?: $project->start_date;
+
+        // 4. BOQ
+        $boqDoc = $findDoc(['boq', 'bom'], ['boq', 'bom', 'bill of quantity', 'built of material'], ['BOQ', 'BOM']);
+        $boqFilePath = $project->boq_file ?: ($project->bom_file ?? null ?: ($boqDoc?->file_path));
+        $boqNumber   = 'BOQ-' . ($project->po_spk_number ?: $project->id);
+        $boqDate     = $boqDoc?->created_at?->format('Y-m-d') ?: $project->start_date;
+
+        // 5. BA / BAST
+        $baDoc = $findDoc(['ba', 'bast', 'balap', 'bap'], ['serah terima', 'berita acara', 'bast', 'balap', 'bap'], ['BA', 'BAST', 'BALAP', 'BAP']);
+        $baFilePath = $project->bast_file ?: ($project->ba_file ?? null ?: ($baDoc?->file_path));
+        $baNumber   = 'BAST/' . $project->id;
+        $baDate     = $baDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
+
+        // 6. Dokumen Teknis & Topologi Proyek
+        $techDoc = $findDoc(['project_doc', 'technical_proposal', 'commercial_proposal', 'customer_requirement', 'PRP', 'PRJ', 'BRD'], ['proposal', 'topologi', 'arsitektur', 'teknis', 'desain', 'diagram', 'sizing'], ['PRP', 'PRJ', 'TOPOLOGY']) ?: $projectDocs->first(fn($d) => in_array($d->stage_name ?? '', ['Solution', 'Presales']));
+        $techFilePath = $project->proposal_file ?: ($project->technical_file ?? null ?: ($project->topology_file ?? null ?: ($techDoc?->file_path)));
+        $techNumber   = 'DOC-' . $project->id;
+        $techDate     = $techDoc?->created_at?->format('Y-m-d') ?: null;
+
+        $checklist = is_array($project->documents_checklist) ? $project->documents_checklist : [];
+
+        return [
+            'ba' => [
+                'key'         => 'ba',
+                'title'       => 'Berita Acara Serah Terima (BA / BAST / BAP)',
+                'description' => 'Bukti serah terima operasional dan milestone penagihan berkala.',
+                'file_path'   => $baFilePath,
+                'file_url'    => $baFilePath ? asset('storage/' . $baFilePath) : null,
+                'number'      => $baNumber,
+                'date'        => $baDate,
+                'verified'    => !empty($checklist['ba']) || !empty($checklist['bast']) || !empty($baFilePath),
+            ],
+            'spk' => [
+                'key'         => 'spk',
+                'title'       => 'Surat Perintah Kerja (SPK / PO)',
+                'description' => 'Dokumen acuan perintah kerja resmi dari klien.',
+                'file_path'   => $spkFilePath,
+                'file_url'    => $spkFilePath ? asset('storage/' . $spkFilePath) : null,
+                'number'      => $spkNumber,
+                'date'        => $spkDate,
+                'verified'    => !empty($checklist['spk']) || !empty($spkFilePath),
+            ],
+            'contract' => [
+                'key'         => 'contract',
+                'title'       => 'Kontrak Perjanjian Layanan (PKS / Contract)',
+                'description' => 'Perjanjian kerja sama SLA dan pemeliharaan jangka panjang.',
+                'file_path'   => $contractFilePath,
+                'file_url'    => $contractFilePath ? asset('storage/' . $contractFilePath) : null,
+                'number'      => $contractNumber,
+                'date'        => $contractDate,
+                'verified'    => !empty($checklist['contract']) || !empty($contractFilePath),
+            ],
+            'boq' => [
+                'key'         => 'boq',
+                'title'       => 'Bill of Quantity (BOQ & Spesifikasi Layanan)',
+                'description' => 'Daftar rincian perangkat keras, lisensi software, dan alokasi mandays.',
+                'file_path'   => $boqFilePath,
+                'file_url'    => $boqFilePath ? asset('storage/' . $boqFilePath) : null,
+                'number'      => $boqNumber,
+                'date'        => $boqDate,
+                'verified'    => !empty($checklist['boq']) || !empty($boqFilePath),
+            ],
+            'tor' => [
+                'key'         => 'tor',
+                'title'       => 'Terms of Reference (TOR)',
+                'description' => 'Kerangka acuan kerja, ruang lingkup & spesifikasi teknis layanan.',
+                'file_path'   => $torFilePath,
+                'file_url'    => $torFilePath ? asset('storage/' . $torFilePath) : null,
+                'number'      => $torNumber,
+                'date'        => $torDate,
+                'verified'    => !empty($checklist['tor']) || !empty($torFilePath),
+            ],
+            'project_doc' => [
+                'key'         => 'project_doc',
+                'title'       => 'Dokumen Teknis & Topologi Proyek',
+                'description' => 'Diagram jaringan, desain arsitektur, IP addressing, dan NDA.',
+                'file_path'   => $techFilePath,
+                'file_url'    => $techFilePath ? asset('storage/' . $techFilePath) : null,
+                'number'      => $techNumber,
+                'date'        => $techDate,
+                'verified'    => !empty($checklist['project_doc']) || !empty($checklist['technical']) || !empty($techFilePath),
+            ],
+        ];
     }
 
     /**
@@ -1193,147 +1348,7 @@ class ManagedServiceController extends Controller
                 ->get();
         }
 
-        // Helper untuk mencocokkan dokumen dari tabel project_documents
-        $findDoc = function(array $keys, array $keywords = [], array $types = []) use ($projectDocs) {
-            return $projectDocs->first(function ($doc) use ($keys, $keywords, $types) {
-                $docKey   = strtoupper($doc->document_key ?? '');
-                $docType  = strtoupper($doc->document_type ?? '');
-                $docTitle = strtolower($doc->document_title ?? ($doc->name ?? ''));
-                $fileName = strtolower($doc->file_name ?? '');
-
-                foreach ($keys as $k) {
-                    $kUpper = strtoupper($k);
-                    if ($docKey === $kUpper || $docKey === 'LAMPIRAN_' . $kUpper || str_starts_with($docKey, 'DOC_' . $kUpper)) {
-                        return true;
-                    }
-                }
-                foreach ($types as $t) {
-                    if ($docType === strtoupper($t)) {
-                        return true;
-                    }
-                }
-                foreach ($keywords as $kw) {
-                    $kwLower = strtolower($kw);
-                    if (str_contains($docTitle, $kwLower) || str_contains($fileName, $kwLower)) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-        };
-
-        // 1. SPK / PO
-        $spkDoc = $findDoc(
-            ['spk', 'po', 'contract_po_so'],
-            ['perintah kerja', 'purchase order', 'spk', 'po_'],
-            ['SPK', 'PO']
-        );
-        $spkFilePath = $project->po_spk_file ?: ($project->po_file ?: ($spkDoc?->file_path));
-        $spkNumber   = $project->po_spk_number ?: ($project->po_number ?: ($spkDoc ? ($spkDoc->notes ?? ('SPK-' . $project->id)) : null));
-        $spkDate     = $project->po_spk_date ?: ($spkDoc?->created_at?->format('Y-m-d') ?: $project->start_date);
-
-        // 2. Kontrak / PKS
-        $contractDoc = $findDoc(
-            ['contract', 'pks', 'commercial_handover_package'],
-            ['kontrak', 'perjanjian', 'contract', 'pks'],
-            ['CONTRACT', 'PKS']
-        ) ?: ($spkDoc && (in_array(strtoupper($spkDoc->document_key ?? ''), ['CONTRACT_PO_SO', 'COMMERCIAL_HANDOVER_PACKAGE']) || str_contains(strtolower($spkDoc->document_title ?? ''), 'contract') || str_contains(strtolower($spkDoc->document_title ?? ''), 'kontrak')) ? $spkDoc : null);
-
-        $contractFilePath = $project->contract_file ?: ($project->po_file ?: ($contractDoc?->file_path ?: ($project->po_spk_file ?? null)));
-        $contractNumber   = $project->po_number ?: ($contractDoc ? ('KTR/' . $project->id) : ('KTR/' . $project->id));
-        $contractDate     = $contractDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
-
-        // 3. TOR
-        $torDoc = $findDoc(
-            ['tor', 'kak'],
-            ['terms of reference', 'tor', 'kak', 'kerangka acuan'],
-            ['TOR', 'KAK']
-        );
-        $torFilePath = $project->tor_file ?: ($torDoc?->file_path);
-        $torNumber   = $project->tor_number ?: ($torDoc ? ('TOR-' . $project->id) : null);
-        $torDate     = $torDoc?->created_at?->format('Y-m-d') ?: $project->start_date;
-
-        // 4. BOQ / BOM
-        $boqDoc = $findDoc(
-            ['boq', 'bom'],
-            ['boq', 'bom', 'bill of quantity', 'built of material'],
-            ['BOQ', 'BOM']
-        );
-        $boqFilePath = $project->boq_file ?: ($project->bom_file ?? null ?: ($boqDoc?->file_path));
-        $boqNumber   = 'BOQ-' . ($project->po_spk_number ?: $project->id);
-        $boqDate     = $boqDoc?->created_at?->format('Y-m-d') ?: $project->start_date;
-
-        // 5. BA / BAST / BALAP
-        $baDoc = $findDoc(
-            ['ba', 'bast', 'balap', 'bap'],
-            ['serah terima', 'berita acara', 'bast', 'balap', 'bap'],
-            ['BA', 'BAST', 'BALAP', 'BAP']
-        );
-        $baFilePath = $project->bast_file ?: ($project->ba_file ?? null ?: ($baDoc?->file_path));
-        $baNumber   = 'BAST/' . $project->id;
-        $baDate     = $baDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
-
-        // 6. Dokumen Teknis & Topologi / Proposal
-        $techDoc = $findDoc(
-            ['project_doc', 'technical_proposal', 'commercial_proposal', 'customer_requirement', 'PRP', 'PRJ', 'BRD'],
-            ['proposal', 'topologi', 'arsitektur', 'teknis', 'desain', 'diagram', 'sizing'],
-            ['PRP', 'PRJ', 'TOPOLOGY']
-        ) ?: $projectDocs->first(fn($d) => in_array($d->stage_name ?? '', ['Solution', 'Presales']));
-
-        $techFilePath = $project->proposal_file ?: ($project->technical_file ?? null ?: ($project->topology_file ?? null ?: ($techDoc?->file_path)));
-        $techNumber   = 'DOC-' . $project->id;
-        $techDate     = $techDoc?->created_at?->format('Y-m-d') ?: null;
-
-        $documents = [
-            'spk' => [
-                'key'         => 'spk',
-                'title'       => 'Surat Perintah Kerja (SPK / PO)',
-                'description' => 'Dokumen acuan perintah kerja resmi dari klien.',
-                'file_path'   => $spkFilePath,
-                'number'      => $spkNumber,
-                'date'        => $spkDate,
-            ],
-            'contract' => [
-                'key'         => 'contract',
-                'title'       => 'Kontrak Perjanjian Layanan (PKS / Contract)',
-                'description' => 'Perjanjian kerja sama SLA dan pemeliharaan jangka panjang.',
-                'file_path'   => $contractFilePath,
-                'number'      => $contractNumber,
-                'date'        => $contractDate,
-            ],
-            'tor' => [
-                'key'         => 'tor',
-                'title'       => 'Terms of Reference (TOR)',
-                'description' => 'Kerangka acuan kerja, ruang lingkup & spesifikasi teknis layanan.',
-                'file_path'   => $torFilePath,
-                'number'      => $torNumber,
-                'date'        => $torDate,
-            ],
-            'boq' => [
-                'key'         => 'boq',
-                'title'       => 'Bill of Quantity (BOQ & Spesifikasi Layanan)',
-                'description' => 'Daftar rincian perangkat keras, lisensi software, dan alokasi mandays.',
-                'file_path'   => $boqFilePath,
-                'number'      => $boqNumber,
-                'date'        => $boqDate,
-            ],
-            'ba' => [
-                'key'         => 'ba',
-                'title'       => 'Berita Acara Serah Terima (BA / BAST / BAP)',
-                'description' => 'Bukti serah terima operasional dan milestone penagihan berkala.',
-                'file_path'   => $baFilePath,
-                'number'      => $baNumber,
-                'date'        => $baDate,
-            ],
-            'project_doc' => [
-                'key'         => 'project_doc',
-                'title'       => 'Dokumen Teknis & Topologi Proyek',
-                'description' => 'Diagram jaringan, desain arsitektur, IP addressing, dan NDA.',
-                'file_path'   => $techFilePath,
-                'number'      => $techNumber,
-                'date'        => $techDate,
-            ],
-        ];
+        $documents = self::getProjectDocuments($project);
 
         // Kumpulkan berkas dokumen tambahan dari Sales / Presales / ProjectDocument yang belum dipakai di 6 slot utama
         $usedPaths = array_filter(array_column($documents, 'file_path'));

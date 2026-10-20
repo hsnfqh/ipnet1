@@ -487,6 +487,7 @@
                                                             data-id="{{ $ho->id }}"
                                                             data-name="{{ $ho->name }}"
                                                             data-client="{{ $ho->client ?: '-' }}"
+                                                            data-origin="{{ $isFromSales ? 'Sales Direct Handover (PIC: ' . ($ho->sales_name ?: ($ho->creator?->name ?: 'Sales')) . ')' : 'PMO Delivery Gate 4 (PM: ' . ($ho->pm ? $ho->pm->name : 'PMO') . ')' }}"
                                                             data-value="{{ $formattedValue }}"
                                                             data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
                                                             data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
@@ -494,6 +495,7 @@
                                                             data-start="{{ $startDateVal }}"
                                                             data-end="{{ $endDateVal }}"
                                                             data-notes="{{ $ho->special_notes ?: '' }}"
+                                                            data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
                                                             onclick="window.triggerAcceptModal(this)"
                                                             class="px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11.5px] font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
                                                         <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -506,6 +508,7 @@
                                                             data-id="{{ $ho->id }}"
                                                             data-name="{{ $ho->name }}"
                                                             data-client="{{ $ho->client ?: '-' }}"
+                                                            data-origin="{{ $isFromSales ? 'Sales Direct Handover (PIC: ' . ($ho->sales_name ?: ($ho->creator?->name ?: 'Sales')) . ')' : 'PMO Delivery Gate 4 (PM: ' . ($ho->pm ? $ho->pm->name : 'PMO') . ')' }}"
                                                             data-value="{{ $formattedValue }}"
                                                             data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
                                                             data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
@@ -513,6 +516,7 @@
                                                             data-start="{{ $startDateVal }}"
                                                             data-end="{{ $endDateVal }}"
                                                             data-notes="{{ $ho->special_notes ?: '' }}"
+                                                            data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
                                                             onclick="window.triggerAcceptModal(this)"
                                                             class="px-3 py-1.5 bg-white hover:bg-slate-50 text-[#8F0A0D] border border-[#FCA5A5] text-[11.5px] font-bold rounded-xl shadow-xs transition cursor-pointer active:scale-95">
                                                         <span>Edit SLA</span>
@@ -553,28 +557,31 @@
 <!-- =================================================================== -->
 <!-- MODAL TERIMA & AKTIVASI LAYANAN MANAGED SERVICE                     -->
 <!-- =================================================================== -->
+<!-- =================================================================== -->
+<!-- MODAL TERIMA & AKTIVASI LAYANAN MANAGED SERVICE                     -->
+<!-- =================================================================== -->
 <div id="modal-accept-handover" 
      tabindex="-1"
      style="display: none;" 
-     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
+     class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+    <div class="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
         
         {{-- Header --}}
         <div class="flex items-center justify-between p-4 px-6 border-b border-[#E2E8F0] bg-[#FAF9F8] shrink-0">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center font-bold">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center font-bold shrink-0">
+                    <svg class="w-5 h-5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
                 </div>
                 <div>
-                    <h3 id="accept-modal-title" class="text-[15px] font-bold text-[#1E293B]">Terima &amp; Aktivasi Kontrak Layanan</h3>
-                    <p class="text-[11.5px] text-[#64748B]">Verifikasi parameter SLA sebelum mengaktifkan operasional Managed Service</p>
+                    <h3 id="accept-modal-title" class="text-[16px] font-bold text-[#1E293B]">Aktivasi Kontrak Layanan</h3>
+                    <p class="text-[12px] text-[#64748B]">Verifikasi parameter SLA dan kelengkapan berkas dokumen serah terima sebelum operasional aktif</p>
                 </div>
             </div>
             <button type="button" 
                     onclick="window.closeAcceptModal()" 
-                    class="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100 cursor-pointer">
+                    class="text-gray-400 hover:text-gray-600 transition p-1.5 rounded-lg hover:bg-gray-100 cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
@@ -586,100 +593,134 @@
               class="flex flex-col flex-1 min-h-0 overflow-hidden">
             @csrf
 
-            <div class="p-5 sm:p-6 overflow-y-auto space-y-4 text-[12.5px] flex-1">
+            <div class="p-5 sm:p-6 overflow-y-auto space-y-5 text-[12.5px] flex-1">
                 
-                {{-- Info Klien --}}
-                <div class="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2 text-xs">
+                {{-- Info Klien & Asal Handover (Simetris 3 Kolom) --}}
+                <div class="p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0] grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-center">
                     <div>
-                        <span class="text-[#64748B] block font-medium">Klien / Instansi:</span>
-                        <span id="accept-modal-client" class="font-bold text-[#1E293B] text-[13px]">—</span>
+                        <span class="text-[#64748B] block font-bold text-[11px] uppercase tracking-wider">Klien / Instansi</span>
+                        <span id="accept-modal-client" class="font-bold text-[#1E293B] text-[13.5px] block truncate mt-0.5">—</span>
                     </div>
-                    <div class="text-right">
-                        <span class="text-[#64748B] block font-medium">Nilai Kontrak:</span>
-                        <span id="accept-modal-contract-value" class="font-bold text-[#8F0A0D] text-[13px]">—</span>
+                    <div>
+                        <span class="text-[#64748B] block font-bold text-[11px] uppercase tracking-wider">Asal Handover</span>
+                        <span id="accept-modal-origin" class="font-semibold text-[#334155] text-[12.5px] block truncate mt-0.5">—</span>
+                    </div>
+                    <div class="sm:text-right">
+                        <span class="text-[#64748B] block font-bold text-[11px] uppercase tracking-wider">Nilai Kontrak</span>
+                        <span id="accept-modal-contract-value" class="font-extrabold text-[#8F0A0D] font-mono text-[14.5px] block mt-0.5">—</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div>
-                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                            Tier Komitmen SLA <span class="text-red-500">*</span>
-                        </label>
-                        <select id="accept-modal-sla-tier" name="sla_tier" required
-                                class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
-                            <option value="Platinum">Platinum (Response 15m, MTTR 2h)</option>
-                            <option value="Gold">Gold (Response 30m, MTTR 4h)</option>
-                            <option value="Silver">Silver (Response 1h, MTTR 8h)</option>
-                            <option value="Bronze">Bronze (Best Effort / 24h)</option>
-                        </select>
+                {{-- SECTION 1: PARAMETER SLA OPERASIONAL --}}
+                <div class="space-y-3.5">
+                    <div class="flex items-center gap-2 pb-2 border-b border-[#F1F5F9]">
+                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                        <h4 class="text-[12px] font-bold text-[#1E293B] uppercase tracking-wider">1. Parameter SLA &amp; Jadwal Pemeliharaan</h4>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                                Tier Komitmen SLA <span class="text-red-500">*</span>
+                            </label>
+                            <select id="accept-modal-sla-tier" name="sla_tier" required
+                                    class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
+                                <option value="Platinum">Platinum (Response 15m, MTTR 2h)</option>
+                                <option value="Gold">Gold (Response 30m, MTTR 4h)</option>
+                                <option value="Silver">Silver (Response 1h, MTTR 8h)</option>
+                                <option value="Bronze">Bronze (Best Effort / 24h)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                                Jam Dukungan (Coverage Hours)
+                            </label>
+                            <select id="accept-modal-sla-coverage" name="sla_coverage_hours"
+                                    class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
+                                <option value="24x7">24x7 (24 Jam Termasuk Libur)</option>
+                                <option value="8x5">8x5 (Jam Kerja Senin-Jumat 08:00 - 17:00)</option>
+                                <option value="12x7">12x7 (08:00 - 20:00 Setiap Hari)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <div>
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                                Frekuensi Kunjungan PM
+                            </label>
+                            <select id="accept-modal-maint-freq" name="maintenance_frequency"
+                                    class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
+                                <option value="Monthly">Bulanan (Monthly)</option>
+                                <option value="Quarterly">Triwulanan (3 Bulan)</option>
+                                <option value="Bi-Annual">Semesteran (6 Bulan)</option>
+                                <option value="Annual">Tahunan</option>
+                                <option value="On-Demand">On-Demand</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                                Mulai Tanggal Layanan
+                            </label>
+                            <input type="date" id="accept-modal-start-date" name="service_start_date"
+                                   class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                                Akhir Kontrak Layanan
+                            </label>
+                            <input type="date" id="accept-modal-end-date" name="service_end_date"
+                                   class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
+                        </div>
                     </div>
 
                     <div>
                         <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                            Jam Dukungan (Coverage Hours)
+                            Catatan Khusus Operasional / SLA Baseline
                         </label>
-                        <select id="accept-modal-sla-coverage" name="sla_coverage_hours"
-                                class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
-                            <option value="24x7">24x7 (24 Jam Termasuk Libur)</option>
-                            <option value="8x5">8x5 (Jam Kerja Senin-Jumat 08:00 - 17:00)</option>
-                            <option value="12x7">12x7 (08:00 - 20:00 Setiap Hari)</option>
-                        </select>
+                        <textarea id="accept-modal-notes" name="special_notes" rows="2" placeholder="Contoh: Akun monitoring NOC telah disiapkan, kontak darurat PIC klien: Bpk. Budi 0812..."
+                                  class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"></textarea>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                    <div>
-                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                            Frekuensi Kunjungan PM
-                        </label>
-                        <select id="accept-modal-maint-freq" name="maintenance_frequency"
-                                class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
-                            <option value="Monthly">Bulanan (Monthly)</option>
-                            <option value="Quarterly">Triwulanan (3 Bulan)</option>
-                            <option value="Bi-Annual">Semesteran (6 Bulan)</option>
-                            <option value="Annual">Tahunan</option>
-                            <option value="On-Demand">On-Demand</option>
-                        </select>
+                {{-- SECTION 2: CEKLIS DOKUMEN KONTRAK & LEGAL (PERSIS GAMBAR 2 DENGAN LIHAT FILE & CEKLIS) --}}
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between pb-2 border-b border-[#F1F5F9]">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                            <h4 class="text-[12px] font-bold text-[#1E293B] uppercase tracking-wider">2. Berkas Dokumen Kontrak &amp; Legal Serah Terima</h4>
+                        </div>
+                        <span class="text-[11px] font-medium text-[#64748B]">Tinjau berkas &amp; ceklis verifikasi kelengkapan</span>
                     </div>
 
-                    <div>
-                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                            Mulai Tanggal Layanan
-                        </label>
-                        <input type="date" id="accept-modal-start-date" name="service_start_date"
-                               class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
+                    <div id="accept-modal-docs-container" class="space-y-2.5">
+                        {{-- Dimuat secara dinamis oleh JavaScript openAcceptModal() --}}
                     </div>
-
-                    <div>
-                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                            Akhir Kontrak Layanan
-                        </label>
-                        <input type="date" id="accept-modal-end-date" name="service_end_date"
-                               class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                        Catatan Khusus Operasional / SLA Baseline
-                    </label>
-                    <textarea id="accept-modal-notes" name="special_notes" rows="2.5" placeholder="Contoh: Akun monitoring NOC telah disiapkan, kontak darurat PIC klien: Bpk. Budi 0812..."
-                              class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"></textarea>
                 </div>
 
             </div>
 
             {{-- Footer --}}
-            <div class="flex items-center justify-end gap-2.5 p-4 px-6 border-t border-[#E2E8F0] bg-[#FAF9F8] shrink-0">
-                <button type="button" 
-                        onclick="window.closeAcceptModal()" 
-                        class="px-4 py-2 text-[12.5px] font-bold text-[#475569] hover:bg-gray-100 border border-gray-300 rounded-xl transition cursor-pointer">
-                    Batal
-                </button>
-                <button type="submit" 
-                        class="px-5 py-2 text-[12.5px] font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-xs transition cursor-pointer">
-                    Konfirmasi &amp; Aktifkan Layanan
-                </button>
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 px-6 border-t border-[#E2E8F0] bg-[#FAF9F8] shrink-0">
+                <div class="text-[11.5px] text-[#64748B] flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Status proyek akan otomatis diaktifkan ke tahap <strong>Active (Operate)</strong>.</span>
+                </div>
+                <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
+                    <button type="button" 
+                            onclick="window.closeAcceptModal()" 
+                            class="px-4 py-2 text-[12.5px] font-bold text-[#475569] hover:bg-gray-100 border border-gray-300 rounded-xl transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" 
+                            class="px-5 py-2 text-[12.5px] font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <span>Konfirmasi &amp; Aktifkan Layanan</span>
+                    </button>
+                </div>
             </div>
 
         </form>
@@ -691,17 +732,24 @@
 <script>
     window.triggerAcceptModal = function(btn) {
         if (!btn) return;
+        var docs = {};
+        try {
+            docs = JSON.parse(btn.getAttribute('data-docs') || '{}');
+        } catch(e) { docs = {}; }
+
         var p = {
             id: btn.getAttribute('data-id'),
             name: btn.getAttribute('data-name'),
             client: btn.getAttribute('data-client'),
+            origin: btn.getAttribute('data-origin'),
             contract_value_formatted: btn.getAttribute('data-value'),
             sla_tier: btn.getAttribute('data-tier'),
             sla_coverage_hours: btn.getAttribute('data-coverage'),
             maintenance_frequency: btn.getAttribute('data-freq'),
             service_start_date: btn.getAttribute('data-start'),
             service_end_date: btn.getAttribute('data-end'),
-            special_notes: btn.getAttribute('data-notes')
+            special_notes: btn.getAttribute('data-notes'),
+            docs: docs
         };
         window.openAcceptModal(p);
     };
@@ -719,6 +767,8 @@
         if (titleEl) titleEl.textContent = 'Aktivasi: ' + (p.name || '');
         var clientEl = document.getElementById('accept-modal-client');
         if (clientEl) clientEl.textContent = p.client || '—';
+        var originEl = document.getElementById('accept-modal-origin');
+        if (originEl) originEl.textContent = p.origin || 'PMO / Sales Handover';
         var valEl = document.getElementById('accept-modal-contract-value');
         if (valEl) valEl.textContent = p.contract_value_formatted || '—';
         var slaTierEl = document.getElementById('accept-modal-sla-tier');
@@ -733,6 +783,74 @@
         if (endDateEl) endDateEl.value = p.service_end_date ? p.service_end_date.split('T')[0] : '';
         var notesEl = document.getElementById('accept-modal-notes');
         if (notesEl) notesEl.value = p.special_notes || '';
+
+        // Render 6 Berkas Dokumen Kontrak & Legal (Persis Gambar 2 dengan Tombol Lihat File & Ceklis)
+        var docsContainer = document.getElementById('accept-modal-docs-container');
+        if (docsContainer) {
+            docsContainer.innerHTML = '';
+            var docKeys = ['ba', 'spk', 'contract', 'boq', 'tor', 'project_doc'];
+            var defaultDocs = {
+                'ba': { title: 'Berita Acara Serah Terima (BA / BAST / BAP)', description: 'Bukti serah terima operasional dan milestone penagihan berkala.' },
+                'spk': { title: 'Surat Perintah Kerja (SPK / PO)', description: 'Dokumen acuan perintah kerja resmi dari klien.' },
+                'contract': { title: 'Kontrak Perjanjian Layanan (PKS / Contract)', description: 'Perjanjian kerja sama SLA dan pemeliharaan jangka panjang.' },
+                'boq': { title: 'Bill of Quantity (BOQ & Spesifikasi Layanan)', description: 'Daftar rincian perangkat keras, lisensi software, dan alokasi mandays.' },
+                'tor': { title: 'Terms of Reference (TOR)', description: 'Kerangka acuan kerja, ruang lingkup & spesifikasi teknis layanan.' },
+                'project_doc': { title: 'Dokumen Teknis & Topologi Proyek', description: 'Diagram jaringan, desain arsitektur, IP addressing, dan NDA.' }
+            };
+
+            var docs = p.docs || {};
+
+            docKeys.forEach(function(key) {
+                var doc = docs[key] || defaultDocs[key] || {};
+                var title = doc.title || defaultDocs[key].title;
+                var desc = doc.description || defaultDocs[key].description;
+                var hasFile = !!doc.file_path;
+                var fileUrl = doc.file_url || (hasFile ? ('/storage/' + doc.file_path) : '');
+                var num = doc.number ? ('No: ' + doc.number) : '';
+                var isChecked = doc.verified ? 'checked' : '';
+
+                var row = document.createElement('div');
+                row.className = 'flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl border border-[#E2E8F0] hover:border-[#CBD5E1] bg-white transition shadow-2xs';
+
+                var leftDiv = `
+                    <div class="flex items-start gap-3 min-w-0">
+                        <div class="w-8 h-8 rounded-lg ${hasFile ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-[#F1F5F9] text-[#64748B] border border-[#E2E8F0]'} flex items-center justify-center shrink-0 mt-0.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h5 class="text-[12.5px] font-bold text-[#1E293B]">${title}</h5>
+                                ${hasFile ? '<span class="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>Tersedia</span>' : '<span class="inline-flex items-center px-2 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">Belum Terlampir</span>'}
+                            </div>
+                            <p class="text-[11px] text-[#64748B] mt-0.5">${desc}</p>
+                            ${num ? '<p class="text-[10.5px] font-mono text-[#475569] mt-0.5 font-semibold">' + num + '</p>' : ''}
+                        </div>
+                    </div>
+                `;
+
+                var rightDiv = `
+                    <div class="flex items-center gap-2.5 self-end sm:self-center shrink-0">
+                        ${hasFile ? `
+                            <a href="${fileUrl}" target="_blank" class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-[#1E293B] text-[11.5px] font-bold border border-[#CBD5E1] shadow-2xs flex items-center gap-1.5 transition">
+                                <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <span>Lihat File</span>
+                            </a>
+                        ` : `
+                            <span class="px-2.5 py-1.5 rounded-lg bg-slate-50 text-[#94A3B8] text-[11px] font-medium border border-slate-200">
+                                Belum Ada File
+                            </span>
+                        `}
+                        <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] text-[#1E293B] text-[11.5px] font-bold cursor-pointer transition select-none">
+                            <input type="checkbox" name="documents_checklist[${key}]" value="1" ${isChecked} class="w-4 h-4 text-[#8F0A0D] rounded border-gray-300 focus:ring-[#8F0A0D] cursor-pointer">
+                            <span>Terverifikasi</span>
+                        </label>
+                    </div>
+                `;
+
+                row.innerHTML = leftDiv + rightDiv;
+                docsContainer.appendChild(row);
+            });
+        }
 
         modal.style.display = 'flex';
     };
