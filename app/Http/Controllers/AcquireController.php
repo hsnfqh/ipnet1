@@ -262,6 +262,53 @@ class AcquireController extends Controller
 
         $checklist = array_merge($defaultChecklist, $validated['handover_checklist'] ?? []);
 
+        $isMs = ($project->handover_target === 'managed_service')
+            || str_contains(strtolower($project->name), 'pemeliharaan')
+            || str_contains(strtolower($project->name), 'maintenance')
+            || str_contains(strtolower($project->project_type ?? ''), 'managed service');
+
+        if ($isMs) {
+            $project->update([
+                'stage'                      => 'Operate',
+                'status'                     => 'Active',
+                'handover_target'            => 'managed_service',
+                'acquire_status'             => 'Handover to Managed Service',
+                'commercial_handover_status' => 'Approved',
+                'ms_handover_status'         => 'Submitted',
+                'handover_submitted_at'      => now(),
+                'customer_pic_technical'     => $validated['customer_pic_technical'] ?? $project->customer_pic_technical,
+                'customer_pic_business'      => $validated['customer_pic_business'] ?? $project->customer_pic_business,
+                'customer_pic_finance'       => $validated['customer_pic_finance'] ?? $project->customer_pic_finance,
+                'special_notes'              => $validated['special_notes'] ?? $project->special_notes,
+                'handover_data'              => $checklist,
+                'process_status'             => 'Dalam Pelaksanaan',
+            ]);
+
+            // Kirim Notifikasi langsung ke Tim Managed Service (Bukan PMO)
+            $msUsers = \App\Models\User::whereHas('roles', function($q) {
+                $q->whereIn('name', ['Managed Service', 'Lead Maintenance', 'Lead Engineer', 'Director', 'Direktur']);
+            })->get();
+            foreach ($msUsers as $ms) {
+                \App\Models\Notification::create([
+                    'user_id' => $ms->id,
+                    'title'   => 'Serah Terima Kontrak Managed Service: ' . $project->name,
+                    'message' => 'Tim Commercial (' . ($project->sales_name ?: 'Sales') . ') telah menyerahkan kontrak Managed Service/Pemeliharaan "' . $project->name . '" (Klien: ' . $project->client . ') langsung ke Tim Managed Service.',
+                    'url'     => route('ms.dashboard'),
+                    'is_read' => false,
+                ]);
+            }
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Kontrak Managed Service berhasil diserahkan langsung ke Tim Managed Service (Operate & Maintenance)!',
+                    'project' => $project,
+                ]);
+            }
+
+            return redirect()->route('acquire.index')->with('success', 'Kontrak Managed Service berhasil diserahkan langsung ke Tim Managed Service!');
+        }
+
         $project->update([
             'stage'                  => 'Design',
             'acquire_status'         => 'Handover to Design',

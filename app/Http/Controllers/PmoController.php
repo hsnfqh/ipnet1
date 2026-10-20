@@ -89,6 +89,20 @@ class PmoController extends Controller
               ->orWhereIn('handover_status', ['Submitted', 'Conditional', 'Approved'])
               ->orWhere('sales_stage', 'Closed Won')
               ->orWhere('status', 'In Progress');
+        })
+        // PMO Implementasi hanya menangani proyek Delivery / Implementasi fisik (Kecualikan kontrak murni Managed Service & Pemeliharaan)
+        ->where(function($q) {
+            $q->where(function($sub) {
+                $sub->whereNull('handover_target')
+                    ->orWhere('handover_target', '!=', 'managed_service')
+                    ->orWhere('handover_target', 'both');
+            })
+            ->where(function($sub) {
+                $sub->whereNull('project_type')
+                    ->orWhere('project_type', '!=', 'Managed Service');
+            })
+            ->where('name', 'not like', '%perpanjangan pemeliharaan%')
+            ->where('name', 'not like', '%maintenance contract%');
         });
 
         // Filter divisi jika dipilih

@@ -9,8 +9,11 @@
     $isClosedWon = ($currentSalesStage === 'Closed Won');
     $isClosedLost = ($currentSalesStage === 'Closed Lost');
     $isBoth = ($project->handover_target === 'both');
-    $isMs = ($project->handover_target === 'managed_service');
-    $isHandoverApproved = ($project->commercial_handover_status === 'Approved');
+    $isMs = ($project->handover_target === 'managed_service')
+        || str_contains(strtolower($project->name), 'pemeliharaan')
+        || str_contains(strtolower($project->name), 'maintenance')
+        || str_contains(strtolower($project->project_type ?? ''), 'managed service');
+    $isHandoverApproved = ($project->commercial_handover_status === 'Approved' || ($isMs && in_array($project->ms_handover_status, ['Accepted', 'Approved'])));
 
     // Cek wewenang pengesahan handover
     $canConfirmHandover = $authUser && (
@@ -32,8 +35,12 @@
             <p class="text-[#8F0A0D] text-[11px] font-bold inline-flex items-center uppercase tracking-wider mb-0.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D] inline-block mr-1.5"></span> SERAH TERIMA &amp; OPERASIONAL
             </p>
-            <h3 class="text-sm sm:text-base font-bold text-slate-900">Pengesahan Serah Terima Proyek</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Alur verifikasi legalitas kontrak, penetapan ruang lingkup deliverable, dan serah terima ke tim delivery.</p>
+            <h3 class="text-sm sm:text-base font-bold text-slate-900">
+                {{ $isMs ? 'Serah Terima Kontrak Managed Service' : 'Pengesahan Serah Terima Proyek' }}
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+                {{ $isMs ? 'Alur serah terima kontrak operasional, pemeliharaan rutin, dan kepatuhan SLA langsung ke Tim Managed Service.' : 'Alur verifikasi legalitas kontrak, penetapan ruang lingkup deliverable, dan serah terima ke tim delivery PMO.' }}
+            </p>
         </div>
         
         <div class="shrink-0 flex items-center">
@@ -99,7 +106,7 @@
                             @endif
                         </h4>
                         <p class="text-[10.5px] text-slate-500 truncate">
-                            Divisi: {{ $project->division ? $project->division->name : 'Belum didelegasikan' }}
+                            Divisi: {{ $project->division ? $project->division->name : ($isMs ? 'Managed Service & Operasional' : 'Belum didelegasikan') }}
                         </p>
                     </div>
                 </div>
@@ -108,7 +115,7 @@
                 <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1">
                     <div class="font-bold text-slate-900 text-xs">Target Penyerahan Deliverable</div>
                     <div class="text-[10.5px] text-slate-500 line-clamp-2">
-                        {{ $project->handover_target ? 'Ruang lingkup proyek dan deliverable teknis telah teridentifikasi.' : 'Menunggu perumusan lingkup kerja teknis dan deliverable.' }}
+                        {{ $isMs ? 'Pekerjaan bersifat pemeliharaan rutin, monitoring, dan SLA berkelanjutan.' : ($project->handover_target ? 'Ruang lingkup proyek dan deliverable teknis telah teridentifikasi.' : 'Menunggu perumusan lingkup kerja teknis dan deliverable.') }}
                     </div>
                 </div>
             </div>
@@ -141,7 +148,7 @@
                             @if(!empty($project->contract_value))
                                 Nilai: Rp {{ number_format((float)$project->contract_value, 0, ',', '.') }}
                             @else
-                                Peluang: {{ $currentProb }}%
+                                Peluang: {{ $currentProb ?? 100 }}%
                             @endif
                         </p>
                     </div>
@@ -157,12 +164,12 @@
             </div>
         </div>
 
-        {{-- ══ CARD 3: KESIAPAN EKSEKUSI (PMO DELIVERY) ══ --}}
+        {{-- ══ CARD 3: KESIAPAN EKSEKUSI (DELIVERY ATAU MANAGED SERVICE) ══ --}}
         <div class="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3.5 hover:border-slate-300 transition overflow-hidden">
             <div class="space-y-3">
                 <div class="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between items-start gap-1.5 pb-2 border-b border-slate-100 min-h-[50px] 2xl:min-h-0">
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider self-start">
-                        KESIAPAN EKSEKUSI
+                        {{ $isMs ? 'KESIAPAN OPERASIONAL' : 'KESIAPAN EKSEKUSI' }}
                     </span>
                     @php
                         $execBadgeClass = $isHandoverApproved
@@ -185,20 +192,33 @@
                         </svg>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <h4 class="font-bold text-xs {{ $project->pm ? 'text-slate-900' : 'text-slate-400 italic' }} truncate">
-                            Project Manager: {{ $project->pm ? $project->pm->name : 'Ditetapkan Saat Handover' }}
-                        </h4>
-                        <p class="text-[10.5px] text-slate-500 truncate">
-                            Dokumen teknis tersedia di Lampiran
-                        </p>
+                        @if($isMs)
+                            <h4 class="font-bold text-xs text-slate-900 truncate">
+                                Tim Managed Service (Koordinator: Doris)
+                            </h4>
+                            <p class="text-[10.5px] text-slate-500 truncate">
+                                Kontrak Layanan &amp; Pemeliharaan Rutin
+                            </p>
+                        @else
+                            <h4 class="font-bold text-xs {{ $project->pm ? 'text-slate-900' : 'text-slate-400 italic' }} truncate">
+                                Project Manager: {{ $project->pm ? $project->pm->name : 'Ditetapkan Saat Handover' }}
+                            </h4>
+                            <p class="text-[10.5px] text-slate-500 truncate">
+                                Dokumen teknis tersedia di Lampiran
+                            </p>
+                        @endif
                     </div>
                 </div>
 
                 {{-- Details Box --}}
                 <div class="p-3 rounded-lg bg-slate-50 border border-slate-200/80 space-y-1">
-                    <div class="font-bold text-slate-900 text-xs">Penetapan Tim Lapangan</div>
+                    <div class="font-bold text-slate-900 text-xs">Penetapan Tim Pelaksana</div>
                     <div class="text-[10.5px] text-slate-500 line-clamp-2">
-                        {{ $isHandoverApproved ? 'Handover tervalidasi dan penugasan tim operasional aktif.' : ($isClosedWon ? 'Pilih Project Manager di form bawah untuk mengesahkan.' : 'Handover dapat disahkan setelah status mencapai Closed Won.') }}
+                        @if($isMs)
+                            {{ $isHandoverApproved ? 'Kontrak Managed Service aktif berjalan di modul Managed Service.' : 'Pekerjaan langsung diserahkan ke Tim Managed Service (tanpa fase konstruksi PMO).' }}
+                        @else
+                            {{ $isHandoverApproved ? 'Handover tervalidasi dan penugasan tim operasional aktif.' : ($isClosedWon ? 'Pilih Project Manager di form bawah untuk mengesahkan.' : 'Handover dapat disahkan setelah status mencapai Closed Won.') }}
+                        @endif
                     </div>
                 </div>
             </div>
@@ -226,66 +246,121 @@
         </div>
 
     @elseif($isClosedWon && !$isHandoverApproved)
-        {{-- Proyek Sudah Closed Won, Belum Disahkan --}}
-        <div class="p-5 rounded-xl bg-blue-50/60 border border-blue-200 space-y-4">
-            <div class="flex items-center justify-between flex-wrap gap-2 border-b border-blue-100 pb-2">
-                <div class="font-bold text-blue-950 text-xs flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
-                    <span>Proyek Closed Won — Silakan Tetapkan PM &amp; Sahkan Serah Terima</span>
+        @if($isMs)
+            {{-- FORM KHUSUS SERAH TERIMA MANAGED SERVICE (BYPASS PMO) --}}
+            <div class="p-5 rounded-xl bg-purple-50/60 border border-purple-200 space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-2 border-b border-purple-100 pb-2">
+                    <div class="font-bold text-purple-950 text-xs flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-purple-600 animate-ping"></span>
+                        <span>Kontrak Managed Service Closed Won — Serah Terima Langsung ke Tim Managed Service</span>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                        Bypass PMO (Operate &amp; Maintenance)
+                    </span>
                 </div>
+
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Proyek ini merupakan kontrak pemeliharaan &amp; operasional rutin (Opex). Pekerjaan ini langsung diserahkan ke <strong>Tim Managed Service (Doris / Helpdesk)</strong> untuk pengelolaan SLA, Preventive Maintenance, dan Corrective Maintenance tanpa melalui proses konstruksi fisik PMO.
+                </p>
+
+                <form action="{{ route('projects.confirm_handover_pmo', $project->id) }}" method="POST" class="space-y-3.5 text-xs">
+                    @csrf
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-slate-700 text-[11px] mb-1">
+                                TIM PENERIMA SERAH TERIMA
+                            </label>
+                            <input type="text" readonly value="Tim Managed Service (Koordinator: Doris)"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 bg-white font-bold cursor-not-allowed">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 text-[11px] mb-1">
+                                CATATAN SERAH TERIMA (OPSIONAL)
+                            </label>
+                            <input type="text" name="handover_notes" placeholder="Contoh: Pemeliharaan berkala bulanan dimulai sesuai tanggal PO."
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white hover:border-slate-400 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600/20 transition">
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex items-center justify-end">
+                        @if($canConfirmHandover)
+                            <button type="submit" 
+                                    onclick="return confirm('Apakah Anda yakin ingin mengesahkan serah terima kontrak ini langsung ke Tim Managed Service?')"
+                                    class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 transition cursor-pointer shadow-sm active:scale-95">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>Sahkan Serah Terima ke Managed Service</span>
+                            </button>
+                        @else
+                            <span class="text-xs text-slate-400 font-medium italic">
+                                Wewenang pengesahan: Sales terkait, Tim MS, atau Manajemen
+                            </span>
+                        @endif
+                    </div>
+                </form>
             </div>
-
-            {{-- Formulir Pengesahan Handover --}}
-            <form action="{{ route('projects.confirm_handover_pmo', $project->id) }}" method="POST" class="space-y-3.5 text-xs">
-                @csrf
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block font-bold text-slate-700 text-[11px] mb-1">
-                            PENETAPAN PROJECT MANAGER (PMO) <span class="text-[#8F0A0D]">*</span>
-                        </label>
-                        <select name="pm_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white font-bold hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
-                            <option value="">-- Pilih Project Manager --</option>
-                            @foreach($pmoUsersList as $pmo)
-                                <option value="{{ $pmo->id }}" {{ ($project->pm_id == $pmo->id || (empty($project->pm_id) && str_contains(strtolower($pmo->name), 'rizki'))) ? 'selected' : '' }}>
-                                    {{ $pmo->name }}
-                                </option>
-                            @endforeach
-                            @php
-                                $otherEngineers = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $pmoUsersList->pluck('id'));
-                            @endphp
-                            @foreach($otherEngineers as $oe)
-                                <option value="{{ $oe->id }}" {{ $project->pm_id == $oe->id ? 'selected' : '' }}>
-                                    {{ $oe->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block font-bold text-slate-700 text-[11px] mb-1">
-                            CATATAN SERAH TERIMA (OPSIONAL)
-                        </label>
-                        <input type="text" name="handover_notes" placeholder="Contoh: Instalasi dimulai H+3 setelah PO."
-                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+        @else
+            {{-- Proyek Implementasi PMO Biasa --}}
+            <div class="p-5 rounded-xl bg-blue-50/60 border border-blue-200 space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-2 border-b border-blue-100 pb-2">
+                    <div class="font-bold text-blue-950 text-xs flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
+                        <span>Proyek Closed Won — Silakan Tetapkan PM &amp; Sahkan Serah Terima</span>
                     </div>
                 </div>
 
-                <div class="pt-2 flex items-center justify-end">
-                    @if($canConfirmHandover)
-                        <button type="submit" 
-                                onclick="return confirm('Apakah Anda yakin ingin mengesahkan serah terima proyek ini ke PMO?')"
-                                class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold btn-ipnet-primary transition cursor-pointer shadow-sm active:scale-95">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>Sahkan Serah Terima ke PMO</span>
-                        </button>
-                    @else
-                        <span class="text-xs text-slate-400 font-medium italic">
-                            Wewenang pengesahan: PMO, Sales terkait, atau Manajemen
-                        </span>
-                    @endif
-                </div>
-            </form>
-        </div>
+                {{-- Formulir Pengesahan Handover --}}
+                <form action="{{ route('projects.confirm_handover_pmo', $project->id) }}" method="POST" class="space-y-3.5 text-xs">
+                    @csrf
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-slate-700 text-[11px] mb-1">
+                                PENETAPAN PROJECT MANAGER (PMO) <span class="text-[#8F0A0D]">*</span>
+                            </label>
+                            <select name="pm_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white font-bold hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
+                                <option value="">-- Pilih Project Manager --</option>
+                                @foreach($pmoUsersList as $pmo)
+                                    <option value="{{ $pmo->id }}" {{ ($project->pm_id == $pmo->id || (empty($project->pm_id) && str_contains(strtolower($pmo->name), 'rizki'))) ? 'selected' : '' }}>
+                                        {{ $pmo->name }}
+                                    </option>
+                                @endforeach
+                                @php
+                                    $otherEngineers = ($allUsers ?? \App\Models\User::orderBy('name')->get())->whereNotIn('id', $pmoUsersList->pluck('id'));
+                                @endphp
+                                @foreach($otherEngineers as $oe)
+                                    <option value="{{ $oe->id }}" {{ $project->pm_id == $oe->id ? 'selected' : '' }}>
+                                        {{ $oe->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 text-[11px] mb-1">
+                                CATATAN SERAH TERIMA (OPSIONAL)
+                            </label>
+                            <input type="text" name="handover_notes" placeholder="Contoh: Instalasi dimulai H+3 setelah PO."
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex items-center justify-end">
+                        @if($canConfirmHandover)
+                            <button type="submit" 
+                                    onclick="return confirm('Apakah Anda yakin ingin mengesahkan serah terima proyek ini ke PMO?')"
+                                    class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold btn-ipnet-primary transition cursor-pointer shadow-sm active:scale-95">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>Sahkan Serah Terima ke PMO</span>
+                            </button>
+                        @else
+                            <span class="text-xs text-slate-400 font-medium italic">
+                                Wewenang pengesahan: PMO, Sales terkait, atau Manajemen
+                            </span>
+                        @endif
+                    </div>
+                </form>
+            </div>
+        @endif
 
     @else
         {{-- Proyek Sudah Resmi Diserahterimakan --}}

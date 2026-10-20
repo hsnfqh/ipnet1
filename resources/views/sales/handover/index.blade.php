@@ -209,7 +209,11 @@
                         <tbody class="divide-y divide-gray-100 font-medium text-gray-700">
                             @forelse($handoverProjects as $hp)
                                 @php
-                                    $isMs = ($hp->handover_target === 'managed_service' || $hp->stage === 'Operate');
+                                    $isMs = ($hp->handover_target === 'managed_service' 
+                                        || $hp->stage === 'Operate'
+                                        || str_contains(strtolower($hp->name), 'pemeliharaan')
+                                        || str_contains(strtolower($hp->name), 'maintenance')
+                                        || str_contains(strtolower($hp->project_type ?? ''), 'managed service'));
                                     
                                     if ($isMs) {
                                         $badge = match($hp->ms_handover_status) {
@@ -718,7 +722,14 @@
 
             openHandoverModal(proj) {
                 this.selectedProject = proj;
-                this.formTarget = proj.handover_target || (proj.stage === 'Operate' ? 'managed_service' : 'pmo');
+                const pName = (proj.name || '').toLowerCase();
+                const pType = (proj.project_type || '').toLowerCase();
+                const isMsAuto = proj.handover_target === 'managed_service' 
+                    || proj.stage === 'Operate'
+                    || pName.includes('pemeliharaan') 
+                    || pName.includes('maintenance') 
+                    || pType.includes('managed service');
+                this.formTarget = proj.handover_target || (isMsAuto ? 'managed_service' : 'pmo');
                 if (this.formTarget === 'both') {
                     this.formTargets = ['pmo', 'managed_service'];
                 } else if (this.formTarget === 'managed_service') {

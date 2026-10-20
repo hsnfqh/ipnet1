@@ -1294,6 +1294,14 @@ class SalesCrmController extends Controller
         }
 
         $target = $validated['handover_target'];
+        if ($target !== 'both' && (
+            $target === 'managed_service' 
+            || str_contains(strtolower($project->name), 'pemeliharaan')
+            || str_contains(strtolower($project->name), 'maintenance')
+            || str_contains(strtolower($project->project_type ?? ''), 'managed service')
+        )) {
+            $target = 'managed_service';
+        }
         $isManagedService = ($target === 'managed_service');
 
         $updateData = [
@@ -1310,7 +1318,7 @@ class SalesCrmController extends Controller
             'description'                => $validated['description'] ?? $project->description,
             'sales_stage'                => 'Closed Won',
             'win_probability'            => 100,
-            'commercial_handover_status' => 'Submitted',
+            'commercial_handover_status' => $isManagedService ? 'Approved' : 'Submitted',
             'commercial_handover_at'     => now(),
             'commercial_handover_by'     => auth()->id(),
         ];

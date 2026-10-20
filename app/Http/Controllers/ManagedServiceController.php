@@ -192,7 +192,10 @@ class ManagedServiceController extends Controller
         // 8. Incoming Service Handovers (Dari Sales Tipe 2 & Pasca-Implementasi PMO)
         $incomingHandovers = Project::where(function($q) {
                 $q->where('stage', 'Operate')
-                  ->orWhere('handover_target', 'managed_service');
+                  ->orWhere('handover_target', 'managed_service')
+                  ->orWhere('project_type', 'like', '%Managed Service%')
+                  ->orWhere('name', 'like', '%pemeliharaan%')
+                  ->orWhere('name', 'like', '%maintenance%');
             })
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
             ->with(['creator', 'commercialHandoverBy', 'pm', 'msAcceptedBy'])

@@ -1894,12 +1894,61 @@ class ProjectController extends Controller
             'handover_notes' => 'nullable|string|max:1000',
         ]);
 
+        $isMs = ($project->handover_target === 'managed_service')
+            || str_contains(strtolower($project->name), 'pemeliharaan')
+            || str_contains(strtolower($project->name), 'maintenance')
+            || str_contains(strtolower($project->project_type ?? ''), 'managed service');
+
+        if ($isMs) {
+            $updateData = [
+                'handover_target'            => 'managed_service',
+                'commercial_handover_status' => 'Approved',
+                'commercial_handover_at'     => now(),
+                'commercial_handover_by'     => $authUser->id,
+                'status'                     => 'Active',
+                'stage'                      => 'Operate',
+                'ms_handover_status'         => 'Accepted',
+                'ms_accepted_at'             => now(),
+                'ms_accepted_by'             => $authUser->id,
+            ];
+
+            $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+            $handoverData['ms_handover'] = [
+                'confirmed'    => true,
+                'confirmed_at' => now()->format('d M Y H:i'),
+                'confirmed_by' => $authUser->name,
+                'notes'        => $validated['handover_notes'] ?? 'Kontrak Managed Service & Pemeliharaan resmi diserahterimakan langsung ke Tim Managed Service.',
+            ];
+            $updateData['handover_data'] = $handoverData;
+
+            $project->update($updateData);
+
+            // Notifikasi ke Tim Managed Service
+            if (\Illuminate\Support\Facades\Schema::hasTable('notifications')) {
+                $msUsers = User::whereHas('roles', function($q) {
+                    $q->whereIn('name', ['Managed Service', 'Lead Maintenance', 'Lead Engineer', 'Director', 'Direktur']);
+                })->get();
+
+                foreach ($msUsers as $ms) {
+                    \App\Models\Notification::create([
+                        'user_id' => $ms->id,
+                        'title'   => \Illuminate\Support\Str::limit("Aktivasi Kontrak Managed Service: {$project->name}", 240),
+                        'message' => \Illuminate\Support\Str::limit("Kontrak '{$project->name}' (Klien: " . ($project->client ?: '-') . ") resmi disahkan & diserahkan ke Tim Managed Service untuk operasional & pemeliharaan.", 240),
+                        'url'     => route('ms.dashboard'),
+                        'is_read' => false,
+                    ]);
+                }
+            }
+
+            return back()->with('success', 'Pengesahan serah terima kontrak Managed Service berhasil! Proyek kini aktif berjalan di modul Managed Service.');
+        }
+
         $updateData = [
             'commercial_handover_status' => 'Approved',
             'commercial_handover_at'     => now(),
             'commercial_handover_by'     => $authUser->id,
             'status'                     => 'In Progress',
-            'stage'                      => ($project->handover_target === 'managed_service') ? 'Operate' : 'Deliver',
+            'stage'                      => 'Deliver',
         ];
 
         if (!empty($validated['pm_id'])) {
