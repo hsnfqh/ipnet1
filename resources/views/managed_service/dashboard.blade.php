@@ -292,157 +292,34 @@
             </div>
 
             {{-- ======================================================== --}}
-            {{-- 2.5 INCOMING SERVICE HANDOVERS (DARI SALES & PMO GATE 4)  --}}
+            {{-- 2.5 ALERT KONTRAK LAYANAN MASUK (JIKA ADA ANTRIAN)      --}}
             {{-- ======================================================== --}}
-            @if(isset($incomingHandovers) && $incomingHandovers->count() > 0)
-                <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-2">
-                    <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold shrink-0 shadow-xs">
-                                <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                </svg>
+            @if(isset($pendingHandoversCount) && $pendingHandoversCount > 0)
+                <div class="p-4 rounded-2xl bg-gradient-to-r from-red-50 via-amber-50/40 to-white border border-red-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 anim-fade-up">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-[#8F0A0D] text-white flex items-center justify-center shrink-0 shadow-xs">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-[14px] font-bold text-gray-900">
+                                    {{ $pendingHandoversCount }} Kontrak Layanan Masuk Menunggu Aktivasi
+                                </h4>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold bg-[#8F0A0D] text-white">
+                                    Perlu Tindakan
+                                </span>
                             </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h3 class="text-[16px] font-bold text-gray-900">Serah Terima Kontrak Layanan Masuk (Incoming Service Handovers)</h3>
-                                    @if(($pendingHandoversCount ?? 0) > 0)
-                                        <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200">
-                                            {{ $pendingHandoversCount }} Menunggu Aktivasi
-                                        </span>
-                                    @endif
-                                </div>
-                                <p class="text-[12px] text-gray-500 mt-0.5">
-                                    Kontrak Managed Service dari Sales (Tipe 2) dan pelimpahan pasca-BAST dari PMO Delivery (Gate 4)
-                                </p>
-                            </div>
+                            <p class="text-[12px] text-gray-600 mt-0.5">
+                                Terdapat pelimpahan kontrak baru dari Sales (Tipe 2) dan PMO Delivery (Gate 4) yang siap diaktivasi SLA-nya di menu Projects.
+                            </p>
                         </div>
                     </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-gray-50 text-gray-500 uppercase text-[10.5px] font-bold">
-                                <tr>
-                                    <th class="py-3 px-4">Proyek &amp; Klien</th>
-                                    <th class="py-3 px-4">Asal Serah Terima</th>
-                                    <th class="py-3 px-4">SLA Tier &amp; Coverage</th>
-                                    <th class="py-3 px-4">Jadwal PM &amp; Periode</th>
-                                    <th class="py-3 px-4 text-center">Status Onboarding</th>
-                                    <th class="py-3 px-4 text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 font-medium text-gray-700">
-                                @foreach($incomingHandovers as $ho)
-                                    @php
-                                        $isFromSales = ($ho->handover_target === 'managed_service' && $ho->sales_stage === 'Closed Won');
-                                        $isAccepted = ($ho->ms_handover_status === 'Accepted');
-                                    @endphp
-                                    <tr class="hover:bg-gray-50/80 transition-colors {{ !$isAccepted ? 'bg-amber-50/20' : '' }}">
-                                        {{-- Proyek & Klien --}}
-                                        <td class="py-3.5 px-4">
-                                            <a href="{{ route('projects.show', $ho->id) }}" class="font-bold text-gray-900 hover:text-[#8F0A0D] transition max-w-sm block hover:underline">
-                                                {{ $ho->name }}
-                                            </a>
-                                            <div class="text-[11px] text-gray-400 font-medium mt-0.5">{{ $ho->client }}</div>
-                                        </td>
-
-                                        {{-- Asal Handover --}}
-                                        <td class="py-3.5 px-4 whitespace-nowrap">
-                                            @if($isFromSales)
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
-                                                    <span>Sales Direct Handover</span>
-                                                </span>
-                                                <div class="text-[10px] text-gray-400 mt-0.5">PIC: {{ $ho->sales_name ?: 'Sales' }}</div>
-                                            @else
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
-                                                    <span>PMO Delivery (Gate 4)</span>
-                                                </span>
-                                                <div class="text-[10px] text-gray-400 mt-0.5">PM: {{ $ho->pm ? $ho->pm->name : 'PMO' }}</div>
-                                            @endif
-                                        </td>
-
-                                        {{-- SLA Tier & Coverage --}}
-                                        <td class="py-3.5 px-4 whitespace-nowrap">
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
-                                                <span>{{ $ho->sla_tier ?: 'Gold' }} Tier</span>
-                                            </span>
-                                            <div class="text-[10.5px] text-gray-500 font-medium mt-0.5">
-                                                Support: {{ $ho->sla_coverage_hours ?: '24x7' }}
-                                            </div>
-                                        </td>
-
-                                        {{-- Jadwal & Periode --}}
-                                        <td class="py-3.5 px-4 whitespace-nowrap">
-                                            <div class="font-semibold text-gray-800">{{ $ho->maintenance_frequency ?: 'Bulanan (Monthly)' }}</div>
-                                            <div class="text-[11px] text-gray-400 mt-0.5">
-                                                {{ $ho->service_start_date ? \Carbon\Carbon::parse($ho->service_start_date)->format('d M Y') : 'Mulai: ' . date('d M Y') }}
-                                                @if($ho->service_end_date)
-                                                    &ndash; {{ \Carbon\Carbon::parse($ho->service_end_date)->format('d M Y') }}
-                                                @endif
-                                            </div>
-                                        </td>
-
-                                        {{-- Status Onboarding --}}
-                                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                            @if($isAccepted)
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                    <span>Layanan Aktif (Operate)</span>
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                                    <span>Menunggu Aktivasi</span>
-                                                </span>
-                                            @endif
-                                        </td>
-
-                                        {{-- Aksi --}}
-                                        <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                                            <div class="flex items-center justify-end gap-1.5">
-                                                @php
-                                                    $formattedValue = $ho->contract_value ? 'Rp ' . number_format($ho->contract_value, 0, ',', '.') : '—';
-                                                    $startDateVal = $ho->service_start_date ? \Carbon\Carbon::parse($ho->service_start_date)->format('Y-m-d') : date('Y-m-d');
-                                                    $endDateVal = $ho->service_end_date ? \Carbon\Carbon::parse($ho->service_end_date)->format('Y-m-d') : '';
-                                                @endphp
-                                                @if(!$isAccepted)
-                                                    <button type="button" 
-                                                            data-id="{{ $ho->id }}"
-                                                            data-name="{{ $ho->name }}"
-                                                            data-client="{{ $ho->client ?: '-' }}"
-                                                            data-value="{{ $formattedValue }}"
-                                                            data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
-                                                            data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
-                                                            data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
-                                                            data-start="{{ $startDateVal }}"
-                                                            data-end="{{ $endDateVal }}"
-                                                            data-notes="{{ $ho->special_notes ?: '' }}"
-                                                            onclick="window.triggerAcceptModal(this)"
-                                                            class="px-2.5 py-1 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold rounded-lg shadow-xs transition cursor-pointer flex items-center gap-1 active:scale-95">
-                                                        <span>Terima &amp; Aktivasi</span>
-                                                    </button>
-                                                @else
-                                                    <button type="button" 
-                                                            data-id="{{ $ho->id }}"
-                                                            data-name="{{ $ho->name }}"
-                                                            data-client="{{ $ho->client ?: '-' }}"
-                                                            data-value="{{ $formattedValue }}"
-                                                            data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
-                                                            data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
-                                                            data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
-                                                            data-start="{{ $startDateVal }}"
-                                                            data-end="{{ $endDateVal }}"
-                                                            data-notes="{{ $ho->special_notes ?: '' }}"
-                                                            onclick="window.triggerAcceptModal(this)"
-                                                            class="px-2.5 py-1 bg-white hover:bg-gray-50 text-[#8F0A0D] text-[11px] font-bold rounded-lg border border-red-200 shadow-xs transition cursor-pointer active:scale-95">
-                                                        <span>Edit SLA</span>
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                    <a href="{{ route('ms.projects.index', ['tab' => 'incoming']) }}" 
+                       class="px-4 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[12.5px] font-bold shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 active:scale-95">
+                        <span>Buka &amp; Aktivasi di Menu Projects &rarr;</span>
+                    </a>
                 </div>
             @endif
 
@@ -624,200 +501,7 @@
 
         </div>
     </div>
-
-    {{-- MODAL TERIMA & AKTIVASI LAYANAN MANAGED SERVICE --}}
-    <div id="modal-accept-handover" 
-         class="fixed inset-0 z-[99999] bg-[#0F172A]/60 backdrop-blur-xs items-center justify-center p-3 sm:p-5"
-         style="display: none;"
-         onclick="if(event.target === this) window.closeAcceptModal()">
-        <div class="bg-white rounded-2xl w-[680px] max-w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-[#E2E8F0] my-auto anim-fade-up">
-            
-            {{-- Header --}}
-            <div class="flex items-center justify-between border-b border-[#E2E8F0] p-5 sm:p-6 pb-4 shrink-0 bg-white">
-                <div>
-                    <div class="flex items-center gap-2 text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider mb-0.5">
-                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
-                        <span>Onboarding &amp; Aktivasi Kontrak Managed Service</span>
-                    </div>
-                    <h3 id="accept-modal-title" class="text-[16px] font-bold text-[#1E293B]">Aktivasi Layanan</h3>
-                </div>
-                <button type="button" onclick="window.closeAcceptModal()" class="text-[#94A3B8] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#F1F5F9] transition cursor-pointer">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            {{-- Form Body --}}
-            <form id="form-accept-handover" 
-                  action="" 
-                  method="POST" 
-                  class="flex flex-col flex-1 min-h-0 overflow-hidden">
-                @csrf
-
-                <div class="p-5 sm:p-6 overflow-y-auto space-y-4 text-[12.5px] flex-1">
-                    
-                    {{-- Info Klien --}}
-                    <div class="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <div>
-                            <span class="text-[#64748B] block font-medium">Klien / Instansi:</span>
-                            <span id="accept-modal-client" class="font-bold text-[#1E293B] text-[13px]">—</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-[#64748B] block font-medium">Nilai Kontrak:</span>
-                            <span id="accept-modal-contract-value" class="font-bold text-[#8F0A0D] text-[13px]">—</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div>
-                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                                SLA Tier Layanan <span class="text-[#8F0A0D]">*</span>
-                            </label>
-                            <select id="accept-modal-sla-tier" name="sla_tier" required
-                                    class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
-                                <option value="Platinum">Platinum (24x7 MTTR 2 Jam, Uptime 99.9%)</option>
-                                <option value="Gold">Gold (8x5 MTTR 4 Jam, Uptime 99.5%)</option>
-                                <option value="Silver">Silver (8x5 Next Business Day, Uptime 99.0%)</option>
-                                <option value="Bronze">Bronze (Best Effort On-Call Support)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                                Support Coverage Hours
-                            </label>
-                            <select id="accept-modal-sla-coverage" name="sla_coverage_hours"
-                                    class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
-                                <option value="24x7">24x7 (24 Jam Termasuk Libur)</option>
-                                <option value="8x5">8x5 (Jam Kerja Senin-Jumat 08:00 - 17:00)</option>
-                                <option value="12x7">12x7 (08:00 - 20:00 Setiap Hari)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                        <div>
-                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                                Frekuensi Kunjungan PM
-                            </label>
-                            <select id="accept-modal-maint-freq" name="maintenance_frequency"
-                                    class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
-                                <option value="Monthly">Bulanan (Monthly)</option>
-                                <option value="Quarterly">Triwulanan (3 Bulan)</option>
-                                <option value="Bi-Annual">Semesteran (6 Bulan)</option>
-                                <option value="Annual">Tahunan</option>
-                                <option value="On-Demand">On-Demand</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                                Mulai Tanggal Layanan
-                            </label>
-                            <input type="date" id="accept-modal-start-date" name="service_start_date"
-                                   class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                                Akhir Kontrak Layanan
-                            </label>
-                            <input type="date" id="accept-modal-end-date" name="service_end_date"
-                                   class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
-                            Catatan Khusus Operasional / SLA Baseline
-                        </label>
-                        <textarea id="accept-modal-notes" name="special_notes" rows="2.5" placeholder="Contoh: Akun monitoring NOC telah disiapkan, kontak darurat PIC klien: Bpk. Budi 0812..."
-                                  class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"></textarea>
-                    </div>
-
-                </div>
-
-                {{-- Footer --}}
-                <div class="flex items-center justify-end gap-2.5 p-4 px-6 border-t border-[#E2E8F0] bg-[#FAF9F8] shrink-0">
-                    <button type="button" 
-                            onclick="window.closeAcceptModal()" 
-                            class="px-4 py-2 text-[12.5px] font-bold text-[#475569] hover:bg-gray-100 border border-gray-300 rounded-xl transition cursor-pointer">
-                        Batal
-                    </button>
-                    <button type="submit" 
-                            class="px-5 py-2 text-[12.5px] font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-xs transition cursor-pointer">
-                        Konfirmasi &amp; Aktifkan Layanan
-                    </button>
-                </div>
-
-            </form>
-
-        </div>
-    </div>
 </div>
-
-{{-- Standalone Modal Controller Script --}}
-<script>
-    window.triggerAcceptModal = function(btn) {
-        if (!btn) return;
-        var p = {
-            id: btn.getAttribute('data-id'),
-            name: btn.getAttribute('data-name'),
-            client: btn.getAttribute('data-client'),
-            contract_value_formatted: btn.getAttribute('data-value'),
-            sla_tier: btn.getAttribute('data-tier'),
-            sla_coverage_hours: btn.getAttribute('data-coverage'),
-            maintenance_frequency: btn.getAttribute('data-freq'),
-            service_start_date: btn.getAttribute('data-start'),
-            service_end_date: btn.getAttribute('data-end'),
-            special_notes: btn.getAttribute('data-notes')
-        };
-        window.openAcceptModal(p);
-    };
-
-    window.openAcceptModal = function(p) {
-        if (!p) return;
-        var modal = document.getElementById('modal-accept-handover');
-        if (!modal) return;
-        
-        var form = document.getElementById('form-accept-handover');
-        if (form) {
-            form.action = '/managed-service/handovers/' + p.id + '/accept';
-        }
-        var titleEl = document.getElementById('accept-modal-title');
-        if (titleEl) titleEl.textContent = 'Aktivasi: ' + (p.name || '');
-        var clientEl = document.getElementById('accept-modal-client');
-        if (clientEl) clientEl.textContent = p.client || '—';
-        var valEl = document.getElementById('accept-modal-contract-value');
-        if (valEl) valEl.textContent = p.contract_value_formatted || '—';
-        var slaTierEl = document.getElementById('accept-modal-sla-tier');
-        if (slaTierEl) slaTierEl.value = p.sla_tier || 'Gold';
-        var slaCoverageEl = document.getElementById('accept-modal-sla-coverage');
-        if (slaCoverageEl) slaCoverageEl.value = p.sla_coverage_hours || '24x7';
-        var maintFreqEl = document.getElementById('accept-modal-maint-freq');
-        if (maintFreqEl) maintFreqEl.value = p.maintenance_frequency || 'Monthly';
-        var startDateEl = document.getElementById('accept-modal-start-date');
-        if (startDateEl) startDateEl.value = p.service_start_date ? p.service_start_date.split('T')[0] : '{{ date('Y-m-d') }}';
-        var endDateEl = document.getElementById('accept-modal-end-date');
-        if (endDateEl) endDateEl.value = p.service_end_date ? p.service_end_date.split('T')[0] : '';
-        var notesEl = document.getElementById('accept-modal-notes');
-        if (notesEl) notesEl.value = p.special_notes || '';
-
-        modal.style.display = 'flex';
-    };
-
-    window.closeAcceptModal = function() {
-        var modal = document.getElementById('modal-accept-handover');
-        if (modal) {
-            modal.style.display = 'none';
-        }
-    };
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            window.closeAcceptModal();
-        }
-    });
-</script>
 
 {{-- MODAL CREATE TICKET (STANDAR HELPDESK & SEVERITY IP-NET SESUAI GAMBAR 2) --}}
 @include('managed_service.partials.modal_ticket_create')

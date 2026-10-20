@@ -1145,7 +1145,22 @@ class ManagedServiceController extends Controller
 
         $projects = $query->latest()->paginate($perPage)->withQueryString();
 
-        return view('managed_service.projects', compact('projects', 'perPage'));
+        // 2. Query Serah Terima Kontrak Layanan Masuk (Incoming Service Handovers)
+        $incomingHandovers = Project::where(function($q) {
+                $q->where('stage', 'Operate')
+                  ->orWhere('handover_target', 'managed_service')
+                  ->orWhere('project_type', 'like', '%Managed Service%')
+                  ->orWhere('name', 'like', '%pemeliharaan%')
+                  ->orWhere('name', 'like', '%maintenance%');
+            })
+            ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti'])
+            ->with(['creator', 'commercialHandoverBy', 'pm', 'msAcceptedBy'])
+            ->latest('updated_at')
+            ->get();
+
+        $pendingHandoversCount = $incomingHandovers->where('ms_handover_status', '!=', 'Accepted')->count();
+
+        return view('managed_service.projects', compact('projects', 'incomingHandovers', 'pendingHandoversCount', 'perPage'));
     }
 
     /**

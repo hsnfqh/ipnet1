@@ -35,7 +35,7 @@
 @endpush
 
 @section('content')
-<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans">
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" x-data="{ activeTab: '{{ request('tab', 'active') }}' }">
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
@@ -43,17 +43,28 @@
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1600px] mx-auto">
 
+            {{-- Flash Alert --}}
+            @if(session('success'))
+                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between text-xs font-semibold anim-fade-up">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>{{ session('success') }}</span>
+                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-800 text-sm font-bold">&times;</button>
+                </div>
+            @endif
+
             <!-- ========================================================== -->
-            <!-- 1. HEADER & FILTER CONTROLS (LEAD ENGINEER DESIGN PATTERN) -->
+            <!-- 1. HEADER CARD (LEAD ENGINEER DESIGN PATTERN)              -->
             <!-- ========================================================== -->
             <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> MANAJEMEN PORTOFOLIO
+                            <span class="ipnet-badge-dot"></span> MANAJEMEN PORTOFOLIO &amp; KONTRAK
                         </p>
-                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Daftar Proyek & Kontrak Service</h2>
-                        <p class="text-[13px] text-[#64748B] mt-0.5">Kelola pelaksanaan proyek klien, dokumen legal (SPK, Kontrak, BOQ, BA), dan monitoring SLA</p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight">Daftar Proyek &amp; Kontrak Service</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Kelola pelaksanaan kontrak berjalan, dokumen legal BAST/SPK, serah terima masuk (onboarding), dan monitoring SLA</p>
                     </div>
 
                     <div class="flex items-center gap-2.5 shrink-0">
@@ -61,7 +72,7 @@
                             $firstProj = $projects->first();
                         @endphp
                         @if($firstProj)
-                            <a href="{{ route('ms.projects.show', ['project' => $firstProj->id, 'tab' => 'pm']) }}" class="btn-ipnet-gradient px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer shadow-md text-white">
+                            <a href="{{ route('ms.projects.show', ['project' => $firstProj->id, 'tab' => 'pm']) }}" class="btn-ipnet-gradient px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer shadow-md text-white hover:opacity-95 transition">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                 </svg>
@@ -71,239 +82,717 @@
                     </div>
                 </div>
 
-                <!-- Filter Controls -->
-                <form method="GET" action="{{ route('ms.projects.index') }}" class="flex flex-col md:flex-row flex-wrap items-center justify-between gap-3">
-                    <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full md:w-auto flex-1">
-                        <div class="relative flex-1 min-w-[240px] w-full sm:w-auto">
-                            <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                            <input type="text" 
-                                   name="search"
-                                   value="{{ request('search') }}"
-                                   placeholder="Cari nama project, client, sales, atau lokasi..." 
-                                   class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
-                        </div>
-                        
-                        <select name="status" onchange="this.form.submit()" 
-                                class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                            <option value="all">Semua Status</option>
-                            <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active / Operate</option>
-                            <option value="In Progress" {{ request('status') === 'In Progress' ? 'selected' : '' }}>In Progress</option>
-                            <option value="Planning" {{ request('status') === 'Planning' ? 'selected' : '' }}>Planning</option>
-                            <option value="Completed" {{ request('status') === 'Completed' ? 'selected' : '' }}>Completed</option>
-                        </select>
+                <!-- ========================================================== -->
+                <!-- TAB NAVIGATION SYSTEM                                      -->
+                <!-- ========================================================== -->
+                <div class="flex items-center gap-2 sm:gap-3 border-t border-[#E2E8F0] pt-4 mt-5">
+                    {{-- Tab 1: Kontrak Layanan Aktif --}}
+                    <button type="button" 
+                            @click="activeTab = 'active'" 
+                            :class="activeTab === 'active' 
+                                ? 'bg-[#8F0A0D] text-white shadow-sm font-bold' 
+                                : 'bg-[#F8FAFC] text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] font-semibold border border-[#E2E8F0]'"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] transition-all cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        <span>Kontrak Layanan Aktif</span>
+                        <span :class="activeTab === 'active' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" 
+                              class="px-2 py-0.5 rounded-full text-[10.5px] font-bold">
+                            {{ $projects->total() }}
+                        </span>
+                    </button>
 
-                        <select name="type" onchange="this.form.submit()" 
-                                class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                            <option value="all">Semua Tipe Proyek</option>
-                            <option value="Managed Service SLA" {{ request('type') === 'Managed Service SLA' ? 'selected' : '' }}>Managed Service SLA</option>
-                            <option value="Maintenance" {{ request('type') === 'Maintenance' ? 'selected' : '' }}>Maintenance Berkala</option>
-                            <option value="One-Time" {{ request('type') === 'One-Time' ? 'selected' : '' }}>One-Time Project</option>
-                        </select>
-
-                        @if(request('search') || (request('status') && request('status') !== 'all') || (request('type') && request('type') !== 'all') || (request('per_page') && request('per_page') != 10))
-                            <a href="{{ route('ms.projects.index') }}" 
-                               class="px-3 py-2 text-[12px] font-bold text-[#64748B] hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-[#FEF2F2] border border-[#E2E8F0] hover:border-[#FCA5A5] rounded-xl transition cursor-pointer">
-                                Reset Filter
-                            </a>
+                    {{-- Tab 2: Serah Terima Masuk (Incoming Handover) --}}
+                    <button type="button" 
+                            @click="activeTab = 'incoming'" 
+                            :class="activeTab === 'incoming' 
+                                ? 'bg-[#8F0A0D] text-white shadow-sm font-bold' 
+                                : 'bg-[#F8FAFC] text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] font-semibold border border-[#E2E8F0]'"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] transition-all cursor-pointer relative">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        <span>Serah Terima Masuk (Incoming Handover)</span>
+                        @if(($pendingHandoversCount ?? 0) > 0)
+                            <span :class="activeTab === 'incoming' ? 'bg-white text-[#8F0A0D]' : 'bg-[#8F0A0D] text-white animate-pulse'" 
+                                  class="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold shadow-xs">
+                                {{ $pendingHandoversCount }} Menunggu Aktivasi
+                            </span>
+                        @else
+                            <span :class="activeTab === 'incoming' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" 
+                                  class="px-2 py-0.5 rounded-full text-[10.5px] font-bold">
+                                {{ isset($incomingHandovers) ? $incomingHandovers->count() : 0 }}
+                            </span>
                         @endif
-                    </div>
-
-                    <div class="flex items-center gap-2 self-end md:self-center shrink-0">
-                        <span class="text-[12px] font-semibold text-[#64748B]">Tampilkan:</span>
-                        <select name="per_page" onchange="this.form.submit()" class="px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] text-[12px] font-bold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] cursor-pointer shadow-xs">
-                            <option value="5" {{ request('per_page', $perPage ?? 10) == 5 ? 'selected' : '' }}>5 baris</option>
-                            <option value="10" {{ request('per_page', $perPage ?? 10) == 10 ? 'selected' : '' }}>10 baris</option>
-                            <option value="25" {{ request('per_page', $perPage ?? 10) == 25 ? 'selected' : '' }}>25 baris</option>
-                            <option value="50" {{ request('per_page', $perPage ?? 10) == 50 ? 'selected' : '' }}>50 baris</option>
-                        </select>
-                    </div>
-                </form>
+                    </button>
+                </div>
             </div>
 
             <!-- ========================================================== -->
-            <!-- 2. PROJECTS TABLE CARD                                     -->
+            <!-- TAB 1: KONTRAK LAYANAN AKTIF                               -->
             <!-- ========================================================== -->
-            <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-3">
-                <div class="overflow-x-auto">
-                    <table class="w-full min-w-[900px] border-collapse text-[13px] text-left">
-                        <thead>
-                            <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
-                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Nama Project & Tipe</th>
-                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Client & Sales</th>
-                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Lokasi</th>
-                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Durasi & Deadline</th>
-                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Progress</th>
-                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Status</th>
-                                <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-[#F1F5F9]">
-                            @forelse($projects as $p)
-                                @php
-                                    $pmCyclesCount = $p->pmCycles->count() ?: ($p->pm_total_cycles ?: 4);
-                                    $pmCompletedCount = $p->pmCycles->where('activity_status', 'Completed')->count();
-                                    $progressPct = (int) ($p->progress ?: ($pmCyclesCount > 0 ? round(($pmCompletedCount / $pmCyclesCount) * 100) : 0));
-                                    
-                                    $deadlineDate = $p->service_end_date ?: $p->deadline;
-                                    $formattedDeadline = $deadlineDate ? \Carbon\Carbon::parse($deadlineDate)->translatedFormat('d M Y') : '—';
-                                    $startDate = $p->service_start_date ?: $p->start_date;
-                                    
-                                    $durationText = '—';
-                                    if ($startDate && $deadlineDate) {
-                                        $s = \Carbon\Carbon::parse($startDate);
-                                        $e = \Carbon\Carbon::parse($deadlineDate);
-                                        $diffMonths = round($s->floatDiffInMonths($e), 1);
-                                        if ($diffMonths >= 12) {
-                                            $durationText = round($diffMonths / 12, 1) . ' Tahun';
-                                        } else {
-                                            $durationText = $diffMonths . ' Bulan';
-                                        }
-                                    }
-                                @endphp
-                                <tr class="hover:bg-[#F8FAFC]/80 transition-colors duration-150">
-                                    {{-- Nama Project & Tipe --}}
-                                    <td class="py-3 px-4">
-                                        <div class="flex items-center gap-1.5 flex-wrap">
-                                            <a href="{{ route('ms.projects.show', $p->id) }}" class="font-medium text-[#1E293B] text-[13px] leading-snug hover:text-[#8F0A0D] transition">
-                                                {{ $p->name }}
-                                            </a>
-                                            @if($p->sla_tier)
-                                                @php
-                                                    $tier = $p->sla_tier;
-                                                    $tierClass = match($tier) {
-                                                        'Platinum' => 'bg-purple-50 text-purple-700 border-purple-200',
-                                                        'Gold'     => 'bg-amber-50 text-amber-700 border-amber-200',
-                                                        'Silver'   => 'bg-slate-100 text-slate-700 border-slate-300',
-                                                        default    => 'bg-orange-50 text-orange-700 border-orange-200',
-                                                    };
-                                                @endphp
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $tierClass }}">
-                                                    Tier: {{ $tier }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                        <div class="flex items-center gap-1.5 mt-0.5">
-                                            <span class="inline-block text-[10.5px] font-normal text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded border border-[#E2E8F0]">
-                                                {{ $p->project_type ?: 'Managed Service SLA' }}
-                                            </span>
-                                            @if($p->pm_frequency_type)
-                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]">
-                                                    <svg class="w-3 h-3 text-[#4F46E5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                                    <span>PM: {{ str_replace('_', ' ', $p->pm_frequency_type) }}</span>
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </td>
+            <div x-show="activeTab === 'active'" class="space-y-5">
+                
+                {{-- Filter Controls Tab 1 --}}
+                <div class="ipnet-card p-4 sm:p-5 anim-fade-up anim-delay-2">
+                    <form method="GET" action="{{ route('ms.projects.index') }}" class="flex flex-col md:flex-row flex-wrap items-center justify-between gap-3">
+                        <input type="hidden" name="tab" value="active">
+                        <div class="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full md:w-auto flex-1">
+                            <div class="relative flex-1 min-w-[240px] w-full sm:w-auto">
+                                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="text" 
+                                       name="search"
+                                       value="{{ request('search') }}"
+                                       placeholder="Cari nama project, client, sales, atau lokasi..." 
+                                       class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs placeholder-[#94A3B8]">
+                            </div>
+                            
+                            <select name="status" onchange="this.form.submit()" 
+                                    class="w-full sm:w-44 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                                <option value="all">Semua Status</option>
+                                <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active / Operate</option>
+                                <option value="In Progress" {{ request('status') === 'In Progress' ? 'selected' : '' }}>In Progress</option>
+                                <option value="Planning" {{ request('status') === 'Planning' ? 'selected' : '' }}>Planning</option>
+                                <option value="Completed" {{ request('status') === 'Completed' ? 'selected' : '' }}>Completed</option>
+                            </select>
 
-                                    {{-- Client & Sales --}}
-                                    <td class="py-3 px-4">
-                                        <div class="font-medium text-[#334155] text-[13px]">{{ $p->client }}</div>
-                                        <div class="text-[11.5px] text-[#64748B] flex items-center gap-1.5 mt-0.5">
-                                            <span class="text-[#94A3B8]">Sales:</span>
-                                            <span class="text-[#475569]">{{ $p->sales_name ?: ($p->creator?->name ?: '-') }}</span>
-                                        </div>
-                                    </td>
+                            <select name="type" onchange="this.form.submit()" 
+                                    class="w-full sm:w-52 px-3 py-2 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                                <option value="all">Semua Tipe Proyek</option>
+                                <option value="Managed Service SLA" {{ request('type') === 'Managed Service SLA' ? 'selected' : '' }}>Managed Service SLA</option>
+                                <option value="Maintenance" {{ request('type') === 'Maintenance' ? 'selected' : '' }}>Maintenance Berkala</option>
+                                <option value="One-Time" {{ request('type') === 'One-Time' ? 'selected' : '' }}>One-Time Project</option>
+                            </select>
 
-                                    {{-- Lokasi --}}
-                                    <td class="py-3 px-4 text-[#475569] text-[12.5px] max-w-[160px] truncate" title="{{ $p->location ?: 'On-Site Klien' }}">
-                                        {{ $p->location ?: '—' }}
-                                    </td>
+                            @if(request('search') || (request('status') && request('status') !== 'all') || (request('type') && request('type') !== 'all') || (request('per_page') && request('per_page') != 10))
+                                <a href="{{ route('ms.projects.index', ['tab' => 'active']) }}" 
+                                   class="px-3 py-2 text-[12px] font-bold text-[#64748B] hover:text-[#8F0A0D] bg-[#F8FAFC] hover:bg-[#FEF2F2] border border-[#E2E8F0] hover:border-[#FCA5A5] rounded-xl transition cursor-pointer">
+                                    Reset Filter
+                                </a>
+                            @endif
+                        </div>
 
-                                    {{-- Durasi & Deadline --}}
-                                    <td class="py-3 px-4 whitespace-nowrap">
-                                        <div class="font-mono text-[12px] text-[#334155]">{{ $formattedDeadline }}</div>
-                                        <div class="text-[11px] text-[#64748B] mt-0.5 flex items-center gap-1">
-                                            <span>Durasi:</span>
-                                            <span class="font-medium text-[#8F0A0D]">{{ $durationText }}</span>
-                                        </div>
-                                    </td>
-
-                                    {{-- Progress --}}
-                                    <td class="py-3 px-4 whitespace-nowrap">
-                                        <div class="w-28">
-                                            <div class="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-full h-2 overflow-hidden mb-1">
-                                                <div class="h-full rounded-full transition-all duration-300"
-                                                     style="background: linear-gradient(90deg, #8F0A0D, #D62E3C); width: {{ min(100, $progressPct) }}%;"></div>
-                                            </div>
-                                            <div class="flex items-center justify-between text-[10.5px]">
-                                                <span class="font-medium text-[#1E293B]">{{ $progressPct }}%</span>
-                                                <span class="text-[#94A3B8]">{{ $progressPct >= 100 ? 'Selesai' : 'Progres' }}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    {{-- Status --}}
-                                    <td class="py-3 px-4 whitespace-nowrap">
-                                        @if(in_array(strtolower($p->status ?? ''), ['active', 'operate']) || in_array(strtolower($p->stage ?? ''), ['active', 'operate']))
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                                                Active
-                                            </span>
-                                        @elseif(in_array(strtolower($p->status ?? ''), ['completed', 'selesai']))
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                                                Completed
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                                {{ $p->status ?: 'In Progress' }}
-                                            </span>
-                                        @endif
-                                    </td>
-
-                                    {{-- Aksi --}}
-                                    <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                                        <div class="flex justify-end items-center gap-1.5">
-                                            {{-- Buka Detail Kontrak & Dokumen --}}
-                                            <a href="{{ route('ms.projects.show', ['project' => $p->id, 'tab' => 'documents']) }}" title="Buka Detail Proyek & Dokumen (SPK, Kontrak, BOQ, BA)" class="p-1.5 rounded-lg text-[#8F0A0D] hover:bg-[#FEF2F2] transition cursor-pointer flex items-center justify-center">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                                </svg>
-                                            </a>
-
-                                            {{-- Monitoring PM --}}
-                                            <a href="{{ route('ms.projects.show', ['project' => $p->id, 'tab' => 'pm']) }}" title="Monitoring Preventive Maintenance (PM)" class="p-1.5 rounded-lg text-[#64748B] hover:text-emerald-700 hover:bg-emerald-50 transition cursor-pointer flex items-center justify-center">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                                </svg>
-                                            </a>
-
-                                             {{-- Monitoring CM --}}
-                                            <a href="{{ route('ms.projects.show', ['project' => $p->id, 'tab' => 'cm']) }}" title="Monitoring Corrective Maintenance (CM)" class="p-1.5 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-rose-50 transition cursor-pointer flex items-center justify-center">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                                </svg>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="py-12 text-center text-[#64748B] text-[13px]">
-                                        Tidak ada proyek Managed Service yang sesuai dengan kriteria filter.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                        <div class="flex items-center gap-2 self-end md:self-center shrink-0">
+                            <span class="text-[12px] font-semibold text-[#64748B]">Tampilkan:</span>
+                            <select name="per_page" onchange="this.form.submit()" class="px-2.5 py-1.5 rounded-xl border border-[#CBD5E1] text-[12px] font-bold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] cursor-pointer shadow-xs">
+                                <option value="5" {{ request('per_page', $perPage ?? 10) == 5 ? 'selected' : '' }}>5 baris</option>
+                                <option value="10" {{ request('per_page', $perPage ?? 10) == 10 ? 'selected' : '' }}>10 baris</option>
+                                <option value="25" {{ request('per_page', $perPage ?? 10) == 25 ? 'selected' : '' }}>25 baris</option>
+                                <option value="50" {{ request('per_page', $perPage ?? 10) == 50 ? 'selected' : '' }}>50 baris</option>
+                            </select>
+                        </div>
+                    </form>
                 </div>
 
-                @if($projects instanceof \Illuminate\Pagination\LengthAwarePaginator && $projects->hasPages())
-                    <div class="p-4 border-t border-[#E2E8F0] bg-white flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <div class="text-[12px] text-[#64748B]">
-                            Menampilkan {{ $projects->firstItem() ?? 0 }} - {{ $projects->lastItem() ?? 0 }} dari total {{ $projects->total() }} proyek
+                {{-- Table Card Tab 1 --}}
+                <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-3">
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[900px] border-collapse text-[13px] text-left">
+                            <thead>
+                                <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Nama Project &amp; Tipe</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Client &amp; Sales</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Lokasi</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Durasi &amp; Deadline</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Progress</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Status</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-[#F1F5F9]">
+                                @forelse($projects as $p)
+                                    @php
+                                        $pmCyclesCount = $p->pmCycles->count() ?: ($p->pm_total_cycles ?: 4);
+                                        $pmCompletedCount = $p->pmCycles->where('activity_status', 'Completed')->count();
+                                        $progressPct = (int) ($p->progress ?: ($pmCyclesCount > 0 ? round(($pmCompletedCount / $pmCyclesCount) * 100) : 0));
+                                        
+                                        $deadlineDate = $p->service_end_date ?: $p->deadline;
+                                        $formattedDeadline = $deadlineDate ? \Carbon\Carbon::parse($deadlineDate)->translatedFormat('d M Y') : '—';
+                                        $startDate = $p->service_start_date ?: $p->start_date;
+                                        
+                                        $durationText = '—';
+                                        if ($startDate && $deadlineDate) {
+                                            $s = \Carbon\Carbon::parse($startDate);
+                                            $e = \Carbon\Carbon::parse($deadlineDate);
+                                            $diffMonths = round($s->floatDiffInMonths($e), 1);
+                                            if ($diffMonths >= 12) {
+                                                $durationText = round($diffMonths / 12, 1) . ' Tahun';
+                                            } else {
+                                                $durationText = $diffMonths . ' Bulan';
+                                            }
+                                        }
+                                    @endphp
+                                    <tr class="hover:bg-[#F8FAFC]/80 transition-colors duration-150">
+                                        {{-- Nama Project & Tipe --}}
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <a href="{{ route('ms.projects.show', $p->id) }}" class="font-medium text-[#1E293B] text-[13px] leading-snug hover:text-[#8F0A0D] transition">
+                                                    {{ $p->name }}
+                                                </a>
+                                                @if($p->sla_tier)
+                                                    @php
+                                                        $tier = $p->sla_tier;
+                                                        $tierClass = match($tier) {
+                                                            'Platinum' => 'bg-purple-50 text-purple-700 border-purple-200',
+                                                            'Gold'     => 'bg-amber-50 text-amber-700 border-amber-200',
+                                                            'Silver'   => 'bg-slate-100 text-slate-700 border-slate-300',
+                                                            default    => 'bg-orange-50 text-orange-700 border-orange-200',
+                                                        };
+                                                    @endphp
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $tierClass }}">
+                                                        Tier: {{ $tier }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                <span class="inline-block text-[10.5px] font-normal text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded border border-[#E2E8F0]">
+                                                    {{ $p->project_type ?: 'Managed Service SLA' }}
+                                                </span>
+                                                @if($p->pm_frequency_type)
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF]">
+                                                        <svg class="w-3 h-3 text-[#4F46E5]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                        <span>PM: {{ str_replace('_', ' ', $p->pm_frequency_type) }}</span>
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </td>
+
+                                        {{-- Client & Sales --}}
+                                        <td class="py-3 px-4">
+                                            <div class="font-medium text-[#334155] text-[13px]">{{ $p->client }}</div>
+                                            <div class="text-[11.5px] text-[#64748B] flex items-center gap-1.5 mt-0.5">
+                                                <span class="text-[#94A3B8]">Sales:</span>
+                                                <span class="text-[#475569]">{{ $p->sales_name ?: ($p->creator?->name ?: '-') }}</span>
+                                            </div>
+                                        </td>
+
+                                        {{-- Lokasi --}}
+                                        <td class="py-3 px-4 text-[#475569] text-[12.5px] max-w-[160px] truncate" title="{{ $p->location ?: 'On-Site Klien' }}">
+                                            {{ $p->location ?: '—' }}
+                                        </td>
+
+                                        {{-- Durasi & Deadline --}}
+                                        <td class="py-3 px-4 whitespace-nowrap">
+                                            <div class="font-mono text-[12px] text-[#334155]">{{ $formattedDeadline }}</div>
+                                            <div class="text-[11px] text-[#64748B] mt-0.5 flex items-center gap-1">
+                                                <span>Durasi:</span>
+                                                <span class="font-medium text-[#8F0A0D]">{{ $durationText }}</span>
+                                            </div>
+                                        </td>
+
+                                        {{-- Progress --}}
+                                        <td class="py-3 px-4 whitespace-nowrap">
+                                            <div class="w-28">
+                                                <div class="w-full bg-[#F1F5F9] border border-[#E2E8F0] rounded-full h-2 overflow-hidden mb-1">
+                                                    <div class="h-full rounded-full transition-all duration-300"
+                                                         style="background: linear-gradient(90deg, #8F0A0D, #D62E3C); width: {{ min(100, $progressPct) }}%;"></div>
+                                                </div>
+                                                <div class="flex items-center justify-between text-[10.5px]">
+                                                    <span class="font-medium text-[#1E293B]">{{ $progressPct }}%</span>
+                                                    <span class="text-[#94A3B8]">{{ $progressPct >= 100 ? 'Selesai' : 'Progres' }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {{-- Status --}}
+                                        <td class="py-3 px-4 whitespace-nowrap">
+                                            @if(in_array(strtolower($p->status ?? ''), ['active', 'operate']) || in_array(strtolower($p->stage ?? ''), ['active', 'operate']))
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                                                    Active
+                                                </span>
+                                            @elseif(in_array(strtolower($p->status ?? ''), ['completed', 'selesai']))
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                                                    Completed
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                    {{ $p->status ?: 'In Progress' }}
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        {{-- Aksi --}}
+                                        <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                                            <div class="flex justify-end items-center gap-1.5">
+                                                {{-- Buka Detail Kontrak & Dokumen --}}
+                                                <a href="{{ route('ms.projects.show', ['project' => $p->id, 'tab' => 'documents']) }}" title="Buka Detail Proyek & Dokumen (SPK, Kontrak, BOQ, BA)" class="p-1.5 rounded-lg text-[#8F0A0D] hover:bg-[#FEF2F2] transition cursor-pointer flex items-center justify-center">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                    </svg>
+                                                </a>
+
+                                                {{-- Monitoring PM --}}
+                                                <a href="{{ route('ms.projects.show', ['project' => $p->id, 'tab' => 'pm']) }}" title="Monitoring Preventive Maintenance (PM)" class="p-1.5 rounded-lg text-[#64748B] hover:text-emerald-700 hover:bg-emerald-50 transition cursor-pointer flex items-center justify-center">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                                    </svg>
+                                                </a>
+
+                                                 {{-- Monitoring CM --}}
+                                                <a href="{{ route('ms.projects.show', ['project' => $p->id, 'tab' => 'cm']) }}" title="Monitoring Corrective Maintenance (CM)" class="p-1.5 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-rose-50 transition cursor-pointer flex items-center justify-center">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="py-12 text-center text-[#64748B] text-[13px]">
+                                            Tidak ada proyek Managed Service yang sesuai dengan kriteria filter.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if($projects instanceof \Illuminate\Pagination\LengthAwarePaginator && $projects->hasPages())
+                        <div class="p-4 border-t border-[#E2E8F0] bg-white flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <div class="text-[12px] text-[#64748B]">
+                                Menampilkan {{ $projects->firstItem() ?? 0 }} - {{ $projects->lastItem() ?? 0 }} dari total {{ $projects->total() }} proyek
+                            </div>
+                            <div>
+                                {{ $projects->links() }}
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+            </div>
+
+            <!-- ========================================================== -->
+            <!-- TAB 2: SERAH TERIMA MASUK (INCOMING HANDOVER)              -->
+            <!-- ========================================================== -->
+            <div x-show="activeTab === 'incoming'" class="space-y-5" x-cloak>
+                
+                {{-- Info Callout Tab 2 --}}
+                <div class="p-4 sm:p-5 rounded-2xl bg-[#FFF5F5] border border-[#FED7D7] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs anim-fade-up anim-delay-1">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center shrink-0 mt-0.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
                         </div>
                         <div>
-                            {{ $projects->links() }}
+                            <h4 class="text-[13px] font-bold text-[#1E293B]">Serah Terima Masuk dari PMO Delivery (Gate 4) &amp; Sales</h4>
+                            <p class="text-[12px] text-[#64748B] mt-0.5">
+                                Menampilkan proyek yang telah selesai implementasi (BAST) atau kontrak baru dari Sales yang siap diverifikasi SLA &amp; diaktifkan ke operasional Managed Service.
+                            </p>
                         </div>
                     </div>
-                @endif
+                    @if(($pendingHandoversCount ?? 0) > 0)
+                        <div class="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-[#FCA5A5] shadow-xs">
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D] animate-ping"></span>
+                            <span class="text-[11.5px] font-bold text-[#8F0A0D]">Ada {{ $pendingHandoversCount }} Proyek Menunggu Aktivasi</span>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Table Card Tab 2 --}}
+                <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-2">
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[1000px] border-collapse text-[13px] text-left">
+                            <thead>
+                                <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Proyek &amp; Klien</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Asal Handover</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Info BAST &amp; Legal</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">SLA Tier &amp; Coverage</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Jadwal PM &amp; Periode</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-center">Status Onboarding</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-[#F1F5F9]">
+                                @forelse($incomingHandovers as $ho)
+                                    @php
+                                        $isFromSales = ($ho->handover_target === 'managed_service' && $ho->sales_stage === 'Closed Won');
+                                        $isAccepted = ($ho->ms_handover_status === 'Accepted');
+                                        $formattedValue = $ho->contract_value ? 'Rp ' . number_format($ho->contract_value, 0, ',', '.') : '—';
+                                        $startDateVal = $ho->service_start_date ? \Carbon\Carbon::parse($ho->service_start_date)->format('Y-m-d') : date('Y-m-d');
+                                        $endDateVal = $ho->service_end_date ? \Carbon\Carbon::parse($ho->service_end_date)->format('Y-m-d') : '';
+                                        $tierColor = match($ho->sla_tier) {
+                                            'Platinum' => 'bg-purple-50 text-purple-700 border-purple-200',
+                                            'Gold'     => 'bg-amber-50 text-amber-700 border-amber-200',
+                                            'Silver'   => 'bg-slate-100 text-slate-700 border-slate-300',
+                                            default    => 'bg-orange-50 text-orange-700 border-orange-200',
+                                        };
+                                    @endphp
+                                    <tr class="hover:bg-[#F8FAFC]/80 transition-colors {{ !$isAccepted ? 'bg-[#FFFDF7]' : '' }}">
+                                        {{-- 1. Proyek & Klien --}}
+                                        <td class="py-3.5 px-4">
+                                            <a href="{{ route('ms.projects.show', $ho->id) }}" class="font-medium text-[#1E293B] text-[13px] hover:text-[#8F0A0D] transition block">
+                                                {{ $ho->name }}
+                                            </a>
+                                            <div class="text-[11.5px] text-[#64748B] mt-0.5 flex items-center gap-1.5">
+                                                <span class="font-semibold text-[#475569]">{{ $ho->client }}</span>
+                                                @if($ho->contract_value)
+                                                    <span class="text-[#CBD5E1]">&bull;</span>
+                                                    <span class="text-[#8F0A0D] font-mono font-medium">{{ $formattedValue }}</span>
+                                                @endif
+                                            </div>
+                                        </td>
+
+                                        {{-- 2. Asal Handover --}}
+                                        <td class="py-3.5 px-4 whitespace-nowrap">
+                                            @if($isFromSales)
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                    Sales Direct Handover
+                                                </span>
+                                                <div class="text-[11px] text-[#64748B] mt-0.5">
+                                                    Sales PIC: <span class="font-medium text-[#334155]">{{ $ho->sales_name ?: ($ho->creator?->name ?: 'Sales') }}</span>
+                                                </div>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                                    PMO Delivery (Gate 4)
+                                                </span>
+                                                <div class="text-[11px] text-[#64748B] mt-0.5">
+                                                    Lead PM: <span class="font-medium text-[#334155]">{{ $ho->pm ? $ho->pm->name : 'PMO Delivery' }}</span>
+                                                </div>
+                                            @endif
+                                        </td>
+
+                                        {{-- 3. Info BAST & Legal --}}
+                                        <td class="py-3.5 px-4">
+                                            <div class="space-y-1">
+                                                {{-- BAST Status --}}
+                                                <div class="flex items-center gap-1.5 text-[11.5px]">
+                                                    @if($ho->bast_file)
+                                                        <a href="{{ asset('storage/' . $ho->bast_file) }}" target="_blank" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold hover:bg-emerald-100 transition">
+                                                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                            <span>BAST Terlampir</span>
+                                                        </a>
+                                                    @else
+                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 font-medium">
+                                                            <span>BAST Belum Diunggah</span>
+                                                        </span>
+                                                    @endif
+                                                </div>
+
+                                                {{-- SPK / PO Info --}}
+                                                @if($ho->po_spk_number)
+                                                    <div class="text-[10.5px] text-[#64748B]">
+                                                        SPK: <span class="font-mono text-[#334155]">{{ $ho->po_spk_number }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </td>
+
+                                        {{-- 4. SLA Tier & Coverage --}}
+                                        <td class="py-3.5 px-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{ $tierColor }}">
+                                                {{ $ho->sla_tier ?: 'Gold' }} Tier
+                                            </span>
+                                            <div class="text-[11px] text-[#64748B] mt-0.5">
+                                                Support: <span class="font-semibold text-[#334155]">{{ $ho->sla_coverage_hours ?: '24x7' }}</span>
+                                            </div>
+                                        </td>
+
+                                        {{-- 5. Jadwal PM & Periode Kontrak --}}
+                                        <td class="py-3.5 px-4 whitespace-nowrap">
+                                            <div class="font-medium text-[#1E293B] text-[12.5px]">
+                                                {{ $ho->maintenance_frequency ?: 'Bulanan (Monthly)' }}
+                                            </div>
+                                            <div class="text-[11px] text-[#64748B] mt-0.5 font-mono">
+                                                {{ $ho->service_start_date ? \Carbon\Carbon::parse($ho->service_start_date)->translatedFormat('d M Y') : 'Mulai: ' . date('d M Y') }}
+                                                @if($ho->service_end_date)
+                                                    &ndash; {{ \Carbon\Carbon::parse($ho->service_end_date)->translatedFormat('d M Y') }}
+                                                @endif
+                                            </div>
+                                        </td>
+
+                                        {{-- 6. Status Onboarding --}}
+                                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                            @if($isAccepted)
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                                    <span>Layanan Aktif (Operate)</span>
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                    <span>Menunggu Aktivasi</span>
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        {{-- 7. Aksi --}}
+                                        <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                                            <div class="flex items-center justify-end gap-1.5">
+                                                @if(!$isAccepted)
+                                                    <button type="button" 
+                                                            data-id="{{ $ho->id }}"
+                                                            data-name="{{ $ho->name }}"
+                                                            data-client="{{ $ho->client ?: '-' }}"
+                                                            data-value="{{ $formattedValue }}"
+                                                            data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
+                                                            data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
+                                                            data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
+                                                            data-start="{{ $startDateVal }}"
+                                                            data-end="{{ $endDateVal }}"
+                                                            data-notes="{{ $ho->special_notes ?: '' }}"
+                                                            onclick="window.triggerAcceptModal(this)"
+                                                            class="px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11.5px] font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
+                                                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                                        </svg>
+                                                        <span>Terima &amp; Aktivasi</span>
+                                                    </button>
+                                                @else
+                                                    <button type="button" 
+                                                            data-id="{{ $ho->id }}"
+                                                            data-name="{{ $ho->name }}"
+                                                            data-client="{{ $ho->client ?: '-' }}"
+                                                            data-value="{{ $formattedValue }}"
+                                                            data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
+                                                            data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
+                                                            data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
+                                                            data-start="{{ $startDateVal }}"
+                                                            data-end="{{ $endDateVal }}"
+                                                            data-notes="{{ $ho->special_notes ?: '' }}"
+                                                            onclick="window.triggerAcceptModal(this)"
+                                                            class="px-3 py-1.5 bg-white hover:bg-slate-50 text-[#8F0A0D] border border-[#FCA5A5] text-[11.5px] font-bold rounded-xl shadow-xs transition cursor-pointer active:scale-95">
+                                                        <span>Edit SLA</span>
+                                                    </button>
+                                                @endif
+
+                                                <a href="{{ route('ms.projects.show', ['project' => $ho->id, 'tab' => 'documents']) }}" title="Buka Detail &amp; Dokumen" class="p-1.5 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-[#FEF2F2] transition cursor-pointer flex items-center justify-center">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="py-12 text-center text-[#64748B] text-[13px]">
+                                            <div class="flex flex-col items-center justify-center gap-2">
+                                                <svg class="w-8 h-8 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                </svg>
+                                                <span class="font-medium">Belum ada serah terima kontrak masuk dari PMO Delivery maupun Sales.</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
 
         </div>
     </div>
 </div>
+
+<!-- =================================================================== -->
+<!-- MODAL TERIMA & AKTIVASI LAYANAN MANAGED SERVICE                     -->
+<!-- =================================================================== -->
+<div id="modal-accept-handover" 
+     tabindex="-1"
+     style="display: none;" 
+     class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh]">
+        
+        {{-- Header --}}
+        <div class="flex items-center justify-between p-4 px-6 border-b border-[#E2E8F0] bg-[#FAF9F8] shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center font-bold">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 id="accept-modal-title" class="text-[15px] font-bold text-[#1E293B]">Terima &amp; Aktivasi Kontrak Layanan</h3>
+                    <p class="text-[11.5px] text-[#64748B]">Verifikasi parameter SLA sebelum mengaktifkan operasional Managed Service</p>
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="window.closeAcceptModal()" 
+                    class="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100 cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        {{-- Form Body --}}
+        <form id="form-accept-handover" 
+              action="" 
+              method="POST" 
+              class="flex flex-col flex-1 min-h-0 overflow-hidden">
+            @csrf
+
+            <div class="p-5 sm:p-6 overflow-y-auto space-y-4 text-[12.5px] flex-1">
+                
+                {{-- Info Klien --}}
+                <div class="p-3.5 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div>
+                        <span class="text-[#64748B] block font-medium">Klien / Instansi:</span>
+                        <span id="accept-modal-client" class="font-bold text-[#1E293B] text-[13px]">—</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[#64748B] block font-medium">Nilai Kontrak:</span>
+                        <span id="accept-modal-contract-value" class="font-bold text-[#8F0A0D] text-[13px]">—</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                            Tier Komitmen SLA <span class="text-red-500">*</span>
+                        </label>
+                        <select id="accept-modal-sla-tier" name="sla_tier" required
+                                class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
+                            <option value="Platinum">Platinum (Response 15m, MTTR 2h)</option>
+                            <option value="Gold">Gold (Response 30m, MTTR 4h)</option>
+                            <option value="Silver">Silver (Response 1h, MTTR 8h)</option>
+                            <option value="Bronze">Bronze (Best Effort / 24h)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                            Jam Dukungan (Coverage Hours)
+                        </label>
+                        <select id="accept-modal-sla-coverage" name="sla_coverage_hours"
+                                class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-semibold text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
+                            <option value="24x7">24x7 (24 Jam Termasuk Libur)</option>
+                            <option value="8x5">8x5 (Jam Kerja Senin-Jumat 08:00 - 17:00)</option>
+                            <option value="12x7">12x7 (08:00 - 20:00 Setiap Hari)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                    <div>
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                            Frekuensi Kunjungan PM
+                        </label>
+                        <select id="accept-modal-maint-freq" name="maintenance_frequency"
+                                class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
+                            <option value="Monthly">Bulanan (Monthly)</option>
+                            <option value="Quarterly">Triwulanan (3 Bulan)</option>
+                            <option value="Bi-Annual">Semesteran (6 Bulan)</option>
+                            <option value="Annual">Tahunan</option>
+                            <option value="On-Demand">On-Demand</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                            Mulai Tanggal Layanan
+                        </label>
+                        <input type="date" id="accept-modal-start-date" name="service_start_date"
+                               class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                            Akhir Kontrak Layanan
+                        </label>
+                        <input type="date" id="accept-modal-end-date" name="service_end_date"
+                               class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">
+                        Catatan Khusus Operasional / SLA Baseline
+                    </label>
+                    <textarea id="accept-modal-notes" name="special_notes" rows="2.5" placeholder="Contoh: Akun monitoring NOC telah disiapkan, kontak darurat PIC klien: Bpk. Budi 0812..."
+                              class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"></textarea>
+                </div>
+
+            </div>
+
+            {{-- Footer --}}
+            <div class="flex items-center justify-end gap-2.5 p-4 px-6 border-t border-[#E2E8F0] bg-[#FAF9F8] shrink-0">
+                <button type="button" 
+                        onclick="window.closeAcceptModal()" 
+                        class="px-4 py-2 text-[12.5px] font-bold text-[#475569] hover:bg-gray-100 border border-gray-300 rounded-xl transition cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2 text-[12.5px] font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] rounded-xl shadow-xs transition cursor-pointer">
+                    Konfirmasi &amp; Aktifkan Layanan
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+{{-- Standalone Modal Controller Script --}}
+<script>
+    window.triggerAcceptModal = function(btn) {
+        if (!btn) return;
+        var p = {
+            id: btn.getAttribute('data-id'),
+            name: btn.getAttribute('data-name'),
+            client: btn.getAttribute('data-client'),
+            contract_value_formatted: btn.getAttribute('data-value'),
+            sla_tier: btn.getAttribute('data-tier'),
+            sla_coverage_hours: btn.getAttribute('data-coverage'),
+            maintenance_frequency: btn.getAttribute('data-freq'),
+            service_start_date: btn.getAttribute('data-start'),
+            service_end_date: btn.getAttribute('data-end'),
+            special_notes: btn.getAttribute('data-notes')
+        };
+        window.openAcceptModal(p);
+    };
+
+    window.openAcceptModal = function(p) {
+        if (!p) return;
+        var modal = document.getElementById('modal-accept-handover');
+        if (!modal) return;
+        
+        var form = document.getElementById('form-accept-handover');
+        if (form) {
+            form.action = '/managed-service/handovers/' + p.id + '/accept';
+        }
+        var titleEl = document.getElementById('accept-modal-title');
+        if (titleEl) titleEl.textContent = 'Aktivasi: ' + (p.name || '');
+        var clientEl = document.getElementById('accept-modal-client');
+        if (clientEl) clientEl.textContent = p.client || '—';
+        var valEl = document.getElementById('accept-modal-contract-value');
+        if (valEl) valEl.textContent = p.contract_value_formatted || '—';
+        var slaTierEl = document.getElementById('accept-modal-sla-tier');
+        if (slaTierEl) slaTierEl.value = p.sla_tier || 'Gold';
+        var slaCoverageEl = document.getElementById('accept-modal-sla-coverage');
+        if (slaCoverageEl) slaCoverageEl.value = p.sla_coverage_hours || '24x7';
+        var maintFreqEl = document.getElementById('accept-modal-maint-freq');
+        if (maintFreqEl) maintFreqEl.value = p.maintenance_frequency || 'Monthly';
+        var startDateEl = document.getElementById('accept-modal-start-date');
+        if (startDateEl) startDateEl.value = p.service_start_date ? p.service_start_date.split('T')[0] : '{{ date('Y-m-d') }}';
+        var endDateEl = document.getElementById('accept-modal-end-date');
+        if (endDateEl) endDateEl.value = p.service_end_date ? p.service_end_date.split('T')[0] : '';
+        var notesEl = document.getElementById('accept-modal-notes');
+        if (notesEl) notesEl.value = p.special_notes || '';
+
+        modal.style.display = 'flex';
+    };
+
+    window.closeAcceptModal = function() {
+        var modal = document.getElementById('modal-accept-handover');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            window.closeAcceptModal();
+        }
+    });
+</script>
 @endsection
