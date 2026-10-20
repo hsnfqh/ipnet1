@@ -261,6 +261,12 @@ class ManagedServiceController extends Controller
 
         $totalHealth = $countAman + $countPm + $countCm;
 
+        $customerStatusData = [
+            ['name' => 'Aman (Normal)', 'value' => $countAman, 'color' => '#10B981'],
+            ['name' => 'Preventive (PM)', 'value' => $countPm, 'color' => '#3B82F6'],
+            ['name' => 'Corrective (CM)', 'value' => $countCm, 'color' => '#EF4444'],
+        ];
+
         $clientHealthChart = [
             'labels'     => ['Aman (Normal)', 'Preventive (PM)', 'Corrective (CM)'],
             'counts'     => [$countAman, $countPm, $countCm],
@@ -313,6 +319,7 @@ class ManagedServiceController extends Controller
             'clientSlaData',
             'clientHealthList',
             'clientHealthChart',
+            'customerStatusData',
             'selectedYear',
             'selectedClient'
         ));

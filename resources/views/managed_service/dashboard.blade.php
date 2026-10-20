@@ -439,46 +439,42 @@
             @endif
 
             {{-- ======================================================== --}}
-            {{-- 3. STATUS KESEHATAN & OPERASIONAL PELANGGAN (HEALTH STATUS) --}}
+            {{-- 3. PORTOFOLIO KLIEN & STATUS KESEHATAN LAYANAN           --}}
             {{-- ======================================================== --}}
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 anim-fade-up anim-delay-3">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 anim-fade-up anim-delay-3">
                 
-                {{-- Left: Customer Operational Status List (7 Cols) --}}
-                <div class="lg:col-span-7 ipnet-card flex flex-col justify-between overflow-hidden">
+                {{-- Left: Customer Operational Status List (lg:col-span-2) --}}
+                <div class="lg:col-span-2 ipnet-card p-5 sm:p-6 flex flex-col justify-between">
                     <div>
-                        <div class="p-5 sm:p-6 pb-4 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0]">
                             <div>
                                 <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                                    <span class="ipnet-badge-dot"></span> STATUS PELANGGAN
+                                    <span class="ipnet-badge-dot"></span> PORTOFOLIO KLIEN SLA
                                 </p>
-                                <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Kesehatan Operasional Klien SLA</h3>
-                                <p class="text-[12.5px] text-[#75727C] mt-0.5">Monitoring kondisi layanan real-time per pelanggan aktif</p>
+                                <h3 class="text-[16px] font-bold text-[#292929]">Kesehatan Operasional Klien SLA</h3>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-1 rounded-lg text-[11.5px] font-bold bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0]">
-                                    {{ $clientHealthList->count() }} Klien Terdaftar
-                                </span>
-                            </div>
+                            <a href="{{ route('ms.tickets.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">Lihat Semua &rarr;</a>
                         </div>
 
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-[13px]">
+                            <table class="w-full text-left text-xs">
                                 <thead>
-                                    <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] text-[11px] uppercase tracking-wider">
-                                        <th class="py-3 px-5 font-bold">Pelanggan / Proyek</th>
-                                        <th class="py-3 px-4 font-bold text-center">Tier SLA</th>
-                                        <th class="py-3 px-4 font-bold text-center">Status Layanan</th>
-                                        <th class="py-3 px-5 font-bold text-right">Keterangan</th>
+                                    <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="pb-2.5">Pelanggan &amp; Proyek</th>
+                                        <th class="pb-2.5">Tier SLA</th>
+                                        <th class="pb-2.5">Status Layanan</th>
+                                        <th class="pb-2.5">Keterangan</th>
+                                        <th class="pb-2.5 text-right">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-[#F1F5F9]">
+                                <tbody class="divide-y divide-slate-100">
                                     @forelse($clientHealthList as $client)
-                                    <tr class="hover:bg-slate-50/70 transition-colors">
-                                        <td class="py-3.5 px-5">
-                                            <div class="font-bold text-[#1E293B] leading-snug">{{ $client['name'] }}</div>
-                                            <div class="text-[11.5px] text-[#64748B] truncate max-w-[220px]">{{ $client['projectName'] }}</div>
+                                    <tr class="hover:bg-slate-50/80 transition">
+                                        <td class="py-3 pr-2">
+                                            <div class="font-extrabold text-slate-900 text-[12.5px] line-clamp-1">{{ $client['name'] }}</div>
+                                            <div class="text-[11px] text-slate-500 font-medium truncate max-w-[200px]">{{ $client['projectName'] }}</div>
                                         </td>
-                                        <td class="py-3.5 px-4 text-center">
+                                        <td class="py-3 px-2 whitespace-nowrap">
                                             @php
                                                 $tier = $client['sla_tier'];
                                                 $tierStyle = match($tier) {
@@ -488,28 +484,28 @@
                                                     default => 'bg-orange-50 text-orange-700 border-orange-200',
                                                 };
                                             @endphp
-                                            <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border {{ $tierStyle }}">
+                                            <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold border {{ $tierStyle }}">
                                                 {{ $tier }}
                                             </span>
                                         </td>
-                                        <td class="py-3.5 px-4 text-center">
-                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border {{ $client['badge_bg'] }}">
-                                                <span class="w-2 h-2 rounded-full {{ $client['dot_color'] }}"></span>
+                                        <td class="py-3 px-2 whitespace-nowrap">
+                                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-bold border {{ $client['badge_bg'] }}">
+                                                <span class="w-1.5 h-1.5 rounded-full {{ $client['dot_color'] }}"></span>
                                                 {{ $client['status_label'] }}
                                             </span>
                                         </td>
-                                        <td class="py-3.5 px-5 text-right font-medium text-[12px] text-[#64748B]">
+                                        <td class="py-3 px-2 text-[11.5px] text-slate-600 font-medium whitespace-nowrap">
                                             {{ $client['status_desc'] }}
+                                        </td>
+                                        <td class="py-3 pl-2 text-right whitespace-nowrap">
+                                            <a href="{{ route('ms.tickets.index') }}" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition inline-block">
+                                                Detail &rarr;
+                                            </a>
                                         </td>
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="4" class="text-center py-10 text-[#64748B]">
-                                            <div class="flex flex-col items-center justify-center gap-2">
-                                                <svg class="w-9 h-9 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                                <span class="text-[13px] font-medium">Belum ada kontrak klien Managed Service aktif</span>
-                                            </div>
-                                        </td>
+                                        <td colspan="5" class="py-6 text-center text-slate-400">Belum ada portofolio klien SLA terdaftar.</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -518,56 +514,19 @@
                     </div>
                 </div>
 
-                {{-- Right: Customer Status Pie Chart (5 Cols) --}}
-                <div class="lg:col-span-5 ipnet-card p-5 sm:p-6 flex flex-col justify-between">
+                {{-- Right: Customer Status Doughnut Chart (lg:col-span-1) --}}
+                <div class="ipnet-card p-5 sm:p-6 flex flex-col justify-between">
                     <div>
-                        <div class="mb-4 pb-3 border-b border-[#E2E8F0] flex items-center justify-between">
+                        <div class="flex items-center justify-between mb-4 pb-3 border-b border-[#E2E8F0]">
                             <div>
                                 <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                                    <span class="ipnet-badge-dot"></span> DISTRIBUSI KESEHATAN
+                                    <span class="ipnet-badge-dot"></span> DISTRIBUSI LAYANAN
                                 </p>
-                                <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Status Layanan Customer</h3>
+                                <h3 class="text-[16px] font-bold text-[#292929]">Status Layanan Customer</h3>
                             </div>
-                            <span class="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
-                                Realtime
-                            </span>
                         </div>
-
-                        {{-- Pie / Donut Chart --}}
-                        <div class="relative flex items-center justify-center my-2" style="height: 200px;">
+                        <div style="height: 260px;" class="flex items-center justify-center">
                             <canvas id="customerHealthChart"></canvas>
-                        </div>
-                    </div>
-
-                    {{-- Legend & Detailed Counts --}}
-                    <div class="mt-4 pt-3 border-t border-[#F1F5F9] space-y-2">
-                        <div class="grid grid-cols-3 gap-2 text-center">
-                            {{-- Aman --}}
-                            <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
-                                <div class="flex items-center justify-center gap-1.5 text-emerald-700 text-[11px] font-bold uppercase tracking-wider">
-                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Aman
-                                </div>
-                                <div class="text-[18px] font-extrabold text-emerald-800 mt-0.5">{{ $clientHealthChart['count_aman'] }}</div>
-                                <div class="text-[10px] text-emerald-600 font-medium">Stabil / Normal</div>
-                            </div>
-
-                            {{-- PM --}}
-                            <div class="p-2.5 rounded-xl bg-blue-50/70 border border-blue-100">
-                                <div class="flex items-center justify-center gap-1.5 text-blue-700 text-[11px] font-bold uppercase tracking-wider">
-                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Siklus PM
-                                </div>
-                                <div class="text-[18px] font-extrabold text-blue-800 mt-0.5">{{ $clientHealthChart['count_pm'] }}</div>
-                                <div class="text-[10px] text-blue-600 font-medium">Perawatan Rutin</div>
-                            </div>
-
-                            {{-- CM --}}
-                            <div class="p-2.5 rounded-xl bg-rose-50/70 border border-rose-100">
-                                <div class="flex items-center justify-center gap-1.5 text-rose-700 text-[11px] font-bold uppercase tracking-wider">
-                                    <span class="w-2 h-2 rounded-full bg-rose-500"></span> Insiden (CM)
-                                </div>
-                                <div class="text-[18px] font-extrabold text-rose-800 mt-0.5">{{ $clientHealthChart['count_cm'] }}</div>
-                                <div class="text-[10px] text-rose-600 font-medium">Penanganan Tiket</div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -863,43 +822,37 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Status Layanan Customer Doughnut Chart (Identik dengan Lead Engineer)
         const ctxHealth = document.getElementById('customerHealthChart');
         if (ctxHealth) {
-            const chartData = @json($clientHealthChart);
-            const totalCount = chartData.total || 0;
-            const ctxHealthCanvas = ctxHealth.getContext('2d');
-
-            const hasData = totalCount > 0;
-            const dataCounts = hasData ? chartData.counts : [1];
-            const dataColors = hasData ? ['#10B981', '#3B82F6', '#EF4444'] : ['#E2E8F0'];
-            const dataLabels = hasData ? chartData.labels : ['Belum Ada Klien'];
-
-            new Chart(ctxHealthCanvas, {
+            const statusData = @json($customerStatusData ?? []);
+            new Chart(ctxHealth.getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: dataLabels,
+                    labels: statusData.map(d => d.name),
                     datasets: [{
-                        data: dataCounts,
-                        backgroundColor: dataColors,
+                        data: statusData.map(d => d.value),
+                        backgroundColor: statusData.map(d => d.color),
                         borderWidth: 2,
                         borderColor: '#FFFFFF',
-                        hoverOffset: hasData ? 4 : 0,
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '70%',
+                    cutout: '68%',
                     plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            enabled: hasData,
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.parsed;
-                                    const percentage = totalCount > 0 ? Math.round((value / totalCount) * 100) : 0;
-                                    return ' ' + context.label + ': ' + value + ' Klien (' + percentage + '%)';
-                                }
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                font: {
+                                    size: 11,
+                                    family: "'Inter', sans-serif"
+                                },
+                                color: '#4B5563',
+                                padding: 14
                             }
                         }
                     }
