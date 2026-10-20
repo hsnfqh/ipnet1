@@ -55,7 +55,7 @@
             @endif
 
             <!-- ========================================================== -->
-            <!-- 1. HEADER CARD (LEAD ENGINEER DESIGN PATTERN)              -->
+            <!-- 1. HEADER CARD (WITH SEGMENTED TAB SWITCHER)               -->
             <!-- ========================================================== -->
             <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-1">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -67,65 +67,49 @@
                         <p class="text-[13px] text-[#64748B] mt-0.5">Kelola pelaksanaan kontrak berjalan, dokumen legal BAST/SPK, serah terima masuk (onboarding), dan monitoring SLA</p>
                     </div>
 
-                    <div class="flex items-center gap-2.5 shrink-0">
-                        @php
-                            $firstProj = $projects->first();
-                        @endphp
-                        @if($firstProj)
-                            <a href="{{ route('ms.projects.show', ['project' => $firstProj->id, 'tab' => 'pm']) }}" class="btn-ipnet-gradient px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer shadow-md text-white hover:opacity-95 transition">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                                </svg>
-                                <span>Monitoring PM / CM</span>
-                            </a>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- ========================================================== -->
-                <!-- TAB NAVIGATION SYSTEM                                      -->
-                <!-- ========================================================== -->
-                <div class="flex items-center gap-2 sm:gap-3 border-t border-[#E2E8F0] pt-4 mt-5">
-                    {{-- Tab 1: Kontrak Layanan Aktif --}}
-                    <button type="button" 
-                            @click="activeTab = 'active'" 
-                            :class="activeTab === 'active' 
-                                ? 'bg-[#8F0A0D] text-white shadow-sm font-bold' 
-                                : 'bg-[#F8FAFC] text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] font-semibold border border-[#E2E8F0]'"
-                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] transition-all cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                        </svg>
-                        <span>Kontrak Layanan Aktif</span>
-                        <span :class="activeTab === 'active' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" 
-                              class="px-2 py-0.5 rounded-full text-[10.5px] font-bold">
-                            {{ $projects->total() }}
-                        </span>
-                    </button>
-
-                    {{-- Tab 2: Serah Terima Masuk (Incoming Handover) --}}
-                    <button type="button" 
-                            @click="activeTab = 'incoming'" 
-                            :class="activeTab === 'incoming' 
-                                ? 'bg-[#8F0A0D] text-white shadow-sm font-bold' 
-                                : 'bg-[#F8FAFC] text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] font-semibold border border-[#E2E8F0]'"
-                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] transition-all cursor-pointer relative">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                        <span>Serah Terima Masuk (Incoming Handover)</span>
-                        @if(($pendingHandoversCount ?? 0) > 0)
-                            <span :class="activeTab === 'incoming' ? 'bg-white text-[#8F0A0D]' : 'bg-[#8F0A0D] text-white animate-pulse'" 
-                                  class="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold shadow-xs">
-                                {{ $pendingHandoversCount }} Menunggu Aktivasi
-                            </span>
-                        @else
-                            <span :class="activeTab === 'incoming' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" 
+                    {{-- Tab Switcher: Segmented Toggle Styled Like Reference (Gambar 2) on the right side --}}
+                    <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0 self-start lg:self-center">
+                        {{-- Tab 1: Kontrak Layanan Aktif --}}
+                        <button type="button" 
+                                @click="activeTab = 'active'" 
+                                :class="activeTab === 'active' 
+                                    ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' 
+                                    : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white/60 font-semibold'"
+                                class="px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-2 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span>Kontrak Layanan Aktif</span>
+                            <span :class="activeTab === 'active' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" 
                                   class="px-2 py-0.5 rounded-full text-[10.5px] font-bold">
-                                {{ isset($incomingHandovers) ? $incomingHandovers->count() : 0 }}
+                                {{ $projects->total() }}
                             </span>
-                        @endif
-                    </button>
+                        </button>
+
+                        {{-- Tab 2: Serah Terima Masuk (Incoming Handover) --}}
+                        <button type="button" 
+                                @click="activeTab = 'incoming'" 
+                                :class="activeTab === 'incoming' 
+                                    ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' 
+                                    : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white/60 font-semibold'"
+                                class="px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-2 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                            <span>Serah Terima Masuk (Incoming Handover)</span>
+                            @if(($pendingHandoversCount ?? 0) > 0)
+                                <span :class="activeTab === 'incoming' ? 'bg-white text-[#8F0A0D]' : 'bg-[#8F0A0D] text-white animate-pulse'" 
+                                      class="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold shadow-xs">
+                                    {{ $pendingHandoversCount }} Menunggu Aktivasi
+                                </span>
+                            @else
+                                <span :class="activeTab === 'incoming' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'" 
+                                      class="px-2 py-0.5 rounded-full text-[10.5px] font-bold">
+                                    {{ isset($incomingHandovers) ? $incomingHandovers->count() : 0 }}
+                                </span>
+                            @endif
+                        </button>
+                    </div>
                 </div>
             </div>
 

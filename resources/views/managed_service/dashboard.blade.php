@@ -291,37 +291,6 @@
                 </div>
             </div>
 
-            {{-- ======================================================== --}}
-            {{-- 2.5 ALERT KONTRAK LAYANAN MASUK (JIKA ADA ANTRIAN)      --}}
-            {{-- ======================================================== --}}
-            @if(isset($pendingHandoversCount) && $pendingHandoversCount > 0)
-                <div class="p-4 rounded-2xl bg-gradient-to-r from-red-50 via-amber-50/40 to-white border border-red-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 anim-fade-up">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-[#8F0A0D] text-white flex items-center justify-center shrink-0 shadow-xs">
-                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h4 class="text-[14px] font-bold text-gray-900">
-                                    {{ $pendingHandoversCount }} Kontrak Layanan Masuk Menunggu Aktivasi
-                                </h4>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold bg-[#8F0A0D] text-white">
-                                    Perlu Tindakan
-                                </span>
-                            </div>
-                            <p class="text-[12px] text-gray-600 mt-0.5">
-                                Terdapat pelimpahan kontrak baru dari Sales (Tipe 2) dan PMO Delivery (Gate 4) yang siap diaktivasi SLA-nya di menu Projects.
-                            </p>
-                        </div>
-                    </div>
-                    <a href="{{ route('ms.projects.index', ['tab' => 'incoming']) }}" 
-                       class="px-4 py-2 rounded-xl bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[12.5px] font-bold shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 active:scale-95">
-                        <span>Buka &amp; Aktivasi di Menu Projects &rarr;</span>
-                    </a>
-                </div>
-            @endif
 
             {{-- ======================================================== --}}
             {{-- 3. PORTOFOLIO KLIEN & STATUS OPERASIONAL LAYANAN         --}}
