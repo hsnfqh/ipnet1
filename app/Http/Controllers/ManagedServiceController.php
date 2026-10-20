@@ -1013,71 +1013,164 @@ class ManagedServiceController extends Controller
 
         self::initPmCycles($project);
 
-        $torDoc = null;
+        $projectDocs = collect();
         if (Schema::hasTable('project_documents')) {
-            $hasDocType = Schema::hasColumn('project_documents', 'document_type');
-            $torDoc = ProjectDocument::where('project_id', $project->id)
-                ->where(function($q) use ($hasDocType) {
-                    $q->where('document_key', 'tor')
-                      ->orWhere('document_key', 'like', '%TOR%')
-                      ->orWhere('document_title', 'like', '%TOR%')
-                      ->orWhere('document_title', 'like', '%Terms of Reference%');
-                    if ($hasDocType) {
-                        $q->orWhere('document_type', 'TOR');
-                    }
-                })->latest()->first();
+            $projectDocs = ProjectDocument::where('project_id', $project->id)
+                ->whereNotNull('file_path')
+                ->where('file_path', '!=', '')
+                ->latest()
+                ->get();
         }
+
+        // Helper untuk mencocokkan dokumen dari tabel project_documents
+        $findDoc = function(array $keys, array $keywords = [], array $types = []) use ($projectDocs) {
+            return $projectDocs->first(function ($doc) use ($keys, $keywords, $types) {
+                $docKey   = strtoupper($doc->document_key ?? '');
+                $docType  = strtoupper($doc->document_type ?? '');
+                $docTitle = strtolower($doc->document_title ?? ($doc->name ?? ''));
+                $fileName = strtolower($doc->file_name ?? '');
+
+                foreach ($keys as $k) {
+                    $kUpper = strtoupper($k);
+                    if ($docKey === $kUpper || $docKey === 'LAMPIRAN_' . $kUpper || str_starts_with($docKey, 'DOC_' . $kUpper)) {
+                        return true;
+                    }
+                }
+                foreach ($types as $t) {
+                    if ($docType === strtoupper($t)) {
+                        return true;
+                    }
+                }
+                foreach ($keywords as $kw) {
+                    $kwLower = strtolower($kw);
+                    if (str_contains($docTitle, $kwLower) || str_contains($fileName, $kwLower)) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+        };
+
+        // 1. SPK / PO
+        $spkDoc = $findDoc(
+            ['spk', 'po', 'contract_po_so'],
+            ['perintah kerja', 'purchase order', 'spk', 'po_'],
+            ['SPK', 'PO']
+        );
+        $spkFilePath = $project->po_spk_file ?: ($project->po_file ?: ($spkDoc?->file_path));
+        $spkNumber   = $project->po_spk_number ?: ($project->po_number ?: ($spkDoc ? ($spkDoc->notes ?? ('SPK-' . $project->id)) : null));
+        $spkDate     = $project->po_spk_date ?: ($spkDoc?->created_at?->format('Y-m-d') ?: $project->start_date);
+
+        // 2. Kontrak / PKS
+        $contractDoc = $findDoc(
+            ['contract', 'pks', 'commercial_handover_package'],
+            ['kontrak', 'perjanjian', 'contract', 'pks'],
+            ['CONTRACT', 'PKS']
+        ) ?: ($spkDoc && (in_array(strtoupper($spkDoc->document_key ?? ''), ['CONTRACT_PO_SO', 'COMMERCIAL_HANDOVER_PACKAGE']) || str_contains(strtolower($spkDoc->document_title ?? ''), 'contract') || str_contains(strtolower($spkDoc->document_title ?? ''), 'kontrak')) ? $spkDoc : null);
+
+        $contractFilePath = $project->contract_file ?: ($project->po_file ?: ($contractDoc?->file_path ?: ($project->po_spk_file ?? null)));
+        $contractNumber   = $project->po_number ?: ($contractDoc ? ('KTR/' . $project->id) : ('KTR/' . $project->id));
+        $contractDate     = $contractDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
+
+        // 3. TOR
+        $torDoc = $findDoc(
+            ['tor', 'kak'],
+            ['terms of reference', 'tor', 'kak', 'kerangka acuan'],
+            ['TOR', 'KAK']
+        );
+        $torFilePath = $project->tor_file ?: ($torDoc?->file_path);
+        $torNumber   = $project->tor_number ?: ($torDoc ? ('TOR-' . $project->id) : null);
+        $torDate     = $torDoc?->created_at?->format('Y-m-d') ?: $project->start_date;
+
+        // 4. BOQ / BOM
+        $boqDoc = $findDoc(
+            ['boq', 'bom'],
+            ['boq', 'bom', 'bill of quantity', 'built of material'],
+            ['BOQ', 'BOM']
+        );
+        $boqFilePath = $project->boq_file ?: ($project->bom_file ?? null ?: ($boqDoc?->file_path));
+        $boqNumber   = 'BOQ-' . ($project->po_spk_number ?: $project->id);
+        $boqDate     = $boqDoc?->created_at?->format('Y-m-d') ?: $project->start_date;
+
+        // 5. BA / BAST / BALAP
+        $baDoc = $findDoc(
+            ['ba', 'bast', 'balap', 'bap'],
+            ['serah terima', 'berita acara', 'bast', 'balap', 'bap'],
+            ['BA', 'BAST', 'BALAP', 'BAP']
+        );
+        $baFilePath = $project->bast_file ?: ($project->ba_file ?? null ?: ($baDoc?->file_path));
+        $baNumber   = 'BAST/' . $project->id;
+        $baDate     = $baDoc?->created_at?->format('Y-m-d') ?: ($project->service_start_date ?: $project->start_date);
+
+        // 6. Dokumen Teknis & Topologi / Proposal
+        $techDoc = $findDoc(
+            ['project_doc', 'technical_proposal', 'commercial_proposal', 'customer_requirement', 'PRP', 'PRJ', 'BRD'],
+            ['proposal', 'topologi', 'arsitektur', 'teknis', 'desain', 'diagram', 'sizing'],
+            ['PRP', 'PRJ', 'TOPOLOGY']
+        ) ?: $projectDocs->first(fn($d) => in_array($d->stage_name ?? '', ['Solution', 'Presales']));
+
+        $techFilePath = $project->proposal_file ?: ($project->technical_file ?? null ?: ($project->topology_file ?? null ?: ($techDoc?->file_path)));
+        $techNumber   = 'DOC-' . $project->id;
+        $techDate     = $techDoc?->created_at?->format('Y-m-d') ?: null;
 
         $documents = [
             'spk' => [
                 'key'         => 'spk',
                 'title'       => 'Surat Perintah Kerja (SPK / PO)',
                 'description' => 'Dokumen acuan perintah kerja resmi dari klien.',
-                'file_path'   => $project->po_spk_file,
-                'number'      => $project->po_spk_number,
-                'date'        => $project->po_spk_date,
+                'file_path'   => $spkFilePath,
+                'number'      => $spkNumber,
+                'date'        => $spkDate,
             ],
             'contract' => [
                 'key'         => 'contract',
                 'title'       => 'Kontrak Perjanjian Layanan (PKS / Contract)',
                 'description' => 'Perjanjian kerja sama SLA dan pemeliharaan jangka panjang.',
-                'file_path'   => $project->contract_file ?: $project->po_file,
-                'number'      => $project->po_number ?: ('KTR/' . $project->id),
-                'date'        => $project->service_start_date,
+                'file_path'   => $contractFilePath,
+                'number'      => $contractNumber,
+                'date'        => $contractDate,
             ],
             'tor' => [
                 'key'         => 'tor',
                 'title'       => 'Terms of Reference (TOR)',
                 'description' => 'Kerangka acuan kerja, ruang lingkup & spesifikasi teknis layanan.',
-                'file_path'   => $project->tor_file ?: ($torDoc?->file_path),
-                'number'      => $project->tor_number ?: ($torDoc ? ('TOR-' . $project->id) : null),
-                'date'        => $torDoc?->created_at?->format('Y-m-d') ?: $project->start_date,
+                'file_path'   => $torFilePath,
+                'number'      => $torNumber,
+                'date'        => $torDate,
             ],
             'boq' => [
                 'key'         => 'boq',
                 'title'       => 'Bill of Quantity (BOQ & Spesifikasi Layanan)',
                 'description' => 'Daftar rincian perangkat keras, lisensi software, dan alokasi mandays.',
-                'file_path'   => $project->boq_file,
-                'number'      => 'BOQ-' . ($project->po_spk_number ?: $project->id),
-                'date'        => $project->start_date,
+                'file_path'   => $boqFilePath,
+                'number'      => $boqNumber,
+                'date'        => $boqDate,
             ],
             'ba' => [
                 'key'         => 'ba',
                 'title'       => 'Berita Acara Serah Terima (BA / BAST / BAP)',
                 'description' => 'Bukti serah terima operasional dan milestone penagihan berkala.',
-                'file_path'   => $project->bast_file,
-                'number'      => 'BAST/' . $project->id,
-                'date'        => $project->service_start_date,
+                'file_path'   => $baFilePath,
+                'number'      => $baNumber,
+                'date'        => $baDate,
             ],
             'project_doc' => [
                 'key'         => 'project_doc',
                 'title'       => 'Dokumen Teknis & Topologi Proyek',
                 'description' => 'Diagram jaringan, desain arsitektur, IP addressing, dan NDA.',
-                'file_path'   => $project->proposal_file,
-                'number'      => 'DOC-' . $project->id,
-                'date'        => null,
+                'file_path'   => $techFilePath,
+                'number'      => $techNumber,
+                'date'        => $techDate,
             ],
         ];
+
+        // Kumpulkan berkas dokumen tambahan dari Sales / Presales / ProjectDocument yang belum dipakai di 6 slot utama
+        $usedPaths = array_filter(array_column($documents, 'file_path'));
+        $additionalDocs = $projectDocs->reject(function($doc) use ($usedPaths) {
+            return in_array($doc->file_path, $usedPaths);
+        })->values();
+
+        $availableDocCount = count(array_filter($documents, fn($d) => !empty($d['file_path']))) + $additionalDocs->count();
 
         $cmTickets = $project->managedServiceTickets()
             ->where(function($q) {
@@ -1109,7 +1202,7 @@ class ManagedServiceController extends Controller
           ->orderBy('name')->get(['id', 'name']);
 
         return view('managed_service.project_detail', compact(
-            'project', 'allProjects', 'documents', 'cmQuota', 'cmUsed', 'cmRemaining', 'cmTickets',
+            'project', 'allProjects', 'documents', 'additionalDocs', 'availableDocCount', 'cmQuota', 'cmUsed', 'cmRemaining', 'cmTickets',
             'pmCycles', 'pmCompleted', 'pmTotal', 'pmProgress', 'engineers', 'activeTab'
         ));
     }
