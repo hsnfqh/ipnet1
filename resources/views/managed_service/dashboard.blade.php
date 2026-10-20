@@ -214,60 +214,10 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
                     
-                    {{-- Metric 1: SLA Score --}}
+                    {{-- Metric 1: Klien Kontrak SLA --}}
                     <div class="ipnet-metric-card group block anim-fade-up anim-delay-1">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Kepatuhan SLA</span>
-                            <div class="w-7 h-7 rounded-lg {{ $slaScore > 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-100 text-slate-500' }} flex items-center justify-center">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="text-[22px] font-extrabold {{ $slaScore > 0 ? 'text-emerald-600' : 'text-slate-400' }} tracking-tight">{{ $slaScore > 0 ? $slaScore . '%' : '0%' }}</div>
-                        <p class="text-[11px] text-[#75727C] mt-0.5">{{ ($totalSlaChecked ?? 0) > 0 ? 'Target SLA 99.5%' : 'Belum ada tiket selesai' }}</p>
-                    </div>
-
-                    {{-- Metric 2: Total Tiket Aktif --}}
-                    <a href="{{ route('ms.tickets.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-2">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Tiket Aktif</span>
-                            <div class="w-7 h-7 rounded-lg {{ $openTickets > 0 ? 'bg-rose-500/10 text-rose-600' : 'bg-slate-100 text-slate-500' }} flex items-center justify-center group-hover:bg-[#8F0A0D] group-hover:text-white transition-colors">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="text-[22px] font-extrabold text-[#292929] tracking-tight">{{ $openTickets }}</div>
-                        <p class="text-[11px] font-semibold mt-0.5 {{ $criticalTickets > 0 ? 'text-rose-600' : 'text-[#75727C]' }}">
-                            @if($criticalTickets > 0)
-                                {{ $criticalTickets }} Tiket Kritis (P1)
-                            @elseif($openTickets > 0)
-                                Semua tiket normal
-                            @else
-                                Tidak ada antrean tiket
-                            @endif
-                        </p>
-                    </a>
-
-                    {{-- Metric 3: Aset CI Online --}}
-                    <a href="{{ route('ms.assets.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-3">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Aset CI Online</span>
-                            <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="text-[22px] font-extrabold text-blue-600 tracking-tight">{{ $onlineAssets }} <span class="text-[13px] font-bold text-[#64748B]">/ {{ $totalAssets }}</span></div>
-                        <p class="text-[11px] text-[#75727C] mt-0.5">Perangkat aktif</p>
-                    </a>
-
-                    {{-- Metric 4: Klien Kontrak SLA --}}
-                    <div class="ipnet-metric-card group block anim-fade-up anim-delay-4">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Kontrak SLA</span>
                             <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center">
@@ -276,26 +226,48 @@
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-extrabold text-purple-700 tracking-tight">{{ $operateProjects->count() }}</div>
+                        <div class="text-[24px] font-extrabold text-purple-700 tracking-tight">{{ $operateProjects->count() }}</div>
                         <p class="text-[11px] text-[#75727C] mt-0.5">Klien Maintenance</p>
                     </div>
 
-                    {{-- Metric 5: Jadwal PM Bulan Ini --}}
-                    <a href="{{ route('ms.maintenance.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-5">
+                    {{-- Metric 2: Jadwal PM Bulan Ini --}}
+                    <a href="{{ route('ms.maintenance.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-2">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Agenda PM</span>
-                            <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                            <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-extrabold text-amber-600 tracking-tight">{{ $totalPmSchedulesCount ?? 0 }}</div>
+                        <div class="text-[24px] font-extrabold text-blue-600 tracking-tight">{{ $totalPmSchedulesCount ?? 0 }}</div>
                         <p class="text-[11px] text-[#75727C] mt-0.5">Kunjungan bulan ini</p>
                     </a>
 
-                    {{-- Metric 6: Tiket Selesai --}}
-                    <a href="{{ route('ms.tickets.index', ['status' => 'Resolved']) }}" class="ipnet-metric-card group block anim-fade-up anim-delay-6">
+                    {{-- Metric 3: Total Tiket Aktif --}}
+                    <a href="{{ route('ms.tickets.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Tiket Aktif</span>
+                            <div class="w-7 h-7 rounded-lg {{ $openTickets > 0 ? 'bg-rose-500/10 text-rose-600' : 'bg-slate-100 text-slate-500' }} flex items-center justify-center group-hover:bg-[#8F0A0D] group-hover:text-white transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-[24px] font-extrabold text-[#292929] tracking-tight">{{ $openTickets }}</div>
+                        <p class="text-[11px] font-semibold mt-0.5 {{ $criticalTickets > 0 ? 'text-rose-600' : 'text-[#75727C]' }}">
+                            @if($criticalTickets > 0)
+                                {{ $criticalTickets }} Tiket Kritis (P1)
+                            @elseif($openTickets > 0)
+                                Antrean gangguan aktif
+                            @else
+                                Tidak ada antrean tiket
+                            @endif
+                        </p>
+                    </a>
+
+                    {{-- Metric 4: Tiket Selesai --}}
+                    <a href="{{ route('ms.tickets.index', ['status' => 'Resolved']) }}" class="ipnet-metric-card group block anim-fade-up anim-delay-4">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Tiket Selesai</span>
                             <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
@@ -304,8 +276,8 @@
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[22px] font-extrabold text-[#292929] tracking-tight">{{ $resolvedTickets }}</div>
-                        <p class="text-[11px] text-emerald-600 font-semibold mt-0.5">Bulan berjalan</p>
+                        <div class="text-[24px] font-extrabold text-emerald-600 tracking-tight">{{ $resolvedTickets }}</div>
+                        <p class="text-[11px] text-emerald-700 font-semibold mt-0.5">Bulan berjalan</p>
                     </a>
 
                 </div>
@@ -467,126 +439,152 @@
             @endif
 
             {{-- ======================================================== --}}
-            {{-- 3. WORKLOAD LOAD CHART TIM MAINTENANCE (LEAD STYLE)      --}}
+            {{-- 3. STATUS KESEHATAN & OPERASIONAL PELANGGAN (HEALTH STATUS) --}}
             {{-- ======================================================== --}}
-            <div class="ipnet-card p-5 sm:p-6 anim-fade-up anim-delay-3">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5 pb-4 border-b border-[#E2E8F0]">
-                    <div>
-                        <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> MANAJEMEN PERSONIL
-                        </p>
-                        <h3 class="text-[18px] font-bold text-[#292929] tracking-tight">
-                            Beban & Kapasitas Penugasan Personil
-                        </h3>
-                        <p class="text-[12.5px] text-[#75727C] mt-0.5">
-                            Pantau perbandingan tiket aktif dan penanganan tuntas untuk keseimbangan distribusi tim
-                        </p>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        <span class="text-[12px] font-semibold px-3 py-1.5 rounded-xl border border-[#CBD5E1] bg-white text-[#1E293B] shadow-xs">
-                            Tim Maintenance & Helpdesk
-                        </span>
-
-                        {{-- Period Switcher (Identik dengan Lead Engineer) --}}
-                        <div class="flex gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E2E8F0]">
-                            <button onclick="setMaintenancePeriod('week')" 
-                                     class="text-[11.5px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer" 
-                                     id="maintPeriodWeek"
-                                     style="background:transparent; color:#64748B;">
-                                Minggu Ini
-                            </button>
-                            <button onclick="setMaintenancePeriod('month')" 
-                                     class="text-[11.5px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer shadow-xs" 
-                                     id="maintPeriodMonth"
-                                     style="background:linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%); color:#FFFFFF;">
-                                Bulan Ini
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="w-full overflow-x-auto">
-                    <div style="height: 250px; min-width: 340px;">
-                        <canvas id="maintenanceLoadChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap justify-center items-center gap-6 mt-4 pt-3 border-t border-[#F1F5F9] text-[12px] text-[#64748B]">
-                    <span class="flex items-center gap-2">
-                        <span class="w-3.5 h-3.5 rounded-sm" style="background: linear-gradient(135deg, #D31A2C 0%, #8C0B17 100%);"></span>
-                        <span class="font-semibold text-[#1E293B]">Tiket & Kegiatan Aktif</span>
-                    </span>
-                    <span class="flex items-center gap-2">
-                        <span class="w-3.5 h-3.5 rounded-sm" style="background: linear-gradient(135deg, #34D399 0%, #059669 100%);"></span>
-                        <span class="font-semibold text-[#1E293B]">Tiket Selesai / PM Tuntas</span>
-                    </span>
-                </div>
-            </div>
-
-            {{-- ======================================================== --}}
-            {{-- 4. CHARTS: CLIENT SLA COMPLIANCE & TICKET TYPE STATUS    --}}
-            {{-- ======================================================== --}}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 anim-fade-up anim-delay-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 anim-fade-up anim-delay-3">
                 
-                {{-- Client SLA Compliance Performance Chart (Vertical Bar like Project Progress) --}}
-                <div class="lg:col-span-2 ipnet-card p-5 sm:p-6 flex flex-col justify-between">
+                {{-- Left: Customer Operational Status List (7 Cols) --}}
+                <div class="lg:col-span-7 ipnet-card flex flex-col justify-between overflow-hidden">
                     <div>
-                        <div class="flex flex-wrap justify-between items-center gap-2 mb-4 pb-3 border-b border-[#E2E8F0]">
+                        <div class="p-5 sm:p-6 pb-4 border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
                                 <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                                    <span class="ipnet-badge-dot"></span> KINERJA SLA KLIEN
+                                    <span class="ipnet-badge-dot"></span> STATUS PELANGGAN
                                 </p>
-                                <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Kepatuhan SLA Klien Portofolio (5 Teratas)</h3>
+                                <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Kesehatan Operasional Klien SLA</h3>
+                                <p class="text-[12.5px] text-[#75727C] mt-0.5">Monitoring kondisi layanan real-time per pelanggan aktif</p>
                             </div>
-                            <a href="{{ route('ms.reports.index') }}" class="text-[#8F0A0D] text-[12.5px] font-bold hover:underline inline-flex items-center gap-1">
-                                <span>Lihat Laporan</span>
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </a>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-lg text-[11.5px] font-bold bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0]">
+                                    {{ $clientHealthList->count() }} Klien Terdaftar
+                                </span>
+                            </div>
                         </div>
-                        <div class="w-full overflow-x-auto">
-                            <div style="height: 230px; min-width: 280px;">
-                                <canvas id="clientSlaChart"></canvas>
-                            </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-[13px]">
+                                <thead>
+                                    <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#64748B] text-[11px] uppercase tracking-wider">
+                                        <th class="py-3 px-5 font-bold">Pelanggan / Proyek</th>
+                                        <th class="py-3 px-4 font-bold text-center">Tier SLA</th>
+                                        <th class="py-3 px-4 font-bold text-center">Status Layanan</th>
+                                        <th class="py-3 px-5 font-bold text-right">Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[#F1F5F9]">
+                                    @forelse($clientHealthList as $client)
+                                    <tr class="hover:bg-slate-50/70 transition-colors">
+                                        <td class="py-3.5 px-5">
+                                            <div class="font-bold text-[#1E293B] leading-snug">{{ $client['name'] }}</div>
+                                            <div class="text-[11.5px] text-[#64748B] truncate max-w-[220px]">{{ $client['projectName'] }}</div>
+                                        </td>
+                                        <td class="py-3.5 px-4 text-center">
+                                            @php
+                                                $tier = $client['sla_tier'];
+                                                $tierStyle = match($tier) {
+                                                    'Platinum' => 'bg-purple-50 text-purple-700 border-purple-200',
+                                                    'Gold' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                                    'Silver' => 'bg-slate-100 text-slate-700 border-slate-300',
+                                                    default => 'bg-orange-50 text-orange-700 border-orange-200',
+                                                };
+                                            @endphp
+                                            <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border {{ $tierStyle }}">
+                                                {{ $tier }}
+                                            </span>
+                                        </td>
+                                        <td class="py-3.5 px-4 text-center">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border {{ $client['badge_bg'] }}">
+                                                <span class="w-2 h-2 rounded-full {{ $client['dot_color'] }}"></span>
+                                                {{ $client['status_label'] }}
+                                            </span>
+                                        </td>
+                                        <td class="py-3.5 px-5 text-right font-medium text-[12px] text-[#64748B]">
+                                            {{ $client['status_desc'] }}
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="4" class="text-center py-10 text-[#64748B]">
+                                            <div class="flex flex-col items-center justify-center gap-2">
+                                                <svg class="w-9 h-9 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                                <span class="text-[13px] font-medium">Belum ada kontrak klien Managed Service aktif</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-                
-                {{-- Ticket Type Status Doughnut Chart --}}
-                <div class="ipnet-card p-5 sm:p-6 flex flex-col justify-between">
+
+                {{-- Right: Customer Status Pie Chart (5 Cols) --}}
+                <div class="lg:col-span-5 ipnet-card p-5 sm:p-6 flex flex-col justify-between">
                     <div>
-                        <div class="mb-4 pb-3 border-b border-[#E2E8F0]">
-                            <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                                <span class="ipnet-badge-dot"></span> DISTRIBUSI
-                            </p>
-                            <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Distribusi Tipe Layanan & Tiket</h3>
+                        <div class="mb-4 pb-3 border-b border-[#E2E8F0] flex items-center justify-between">
+                            <div>
+                                <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
+                                    <span class="ipnet-badge-dot"></span> DISTRIBUSI KESEHATAN
+                                </p>
+                                <h3 class="text-[17px] font-bold text-[#1E293B] tracking-tight">Status Layanan Customer</h3>
+                            </div>
+                            <span class="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
+                                Realtime
+                            </span>
                         </div>
-                        <div style="height: 190px;">
-                            <canvas id="ticketTypeChart"></canvas>
+
+                        {{-- Pie / Donut Chart --}}
+                        <div class="relative flex items-center justify-center my-2" style="height: 200px;">
+                            <canvas id="customerHealthChart"></canvas>
                         </div>
                     </div>
-                    <div class="flex flex-wrap gap-2.5 justify-center mt-3 pt-3 border-t border-[#F1F5F9]">
-                        @foreach($ticketTypeData as $data)
-                        <span class="text-[11.5px] font-medium flex items-center gap-1.5 text-[#64748B]">
-                            <span style="width: 8px; height: 8px; border-radius: 2px; background: {{ $data['color'] }};"></span>
-                            {{ $data['name'] }}
-                        </span>
-                        @endforeach
+
+                    {{-- Legend & Detailed Counts --}}
+                    <div class="mt-4 pt-3 border-t border-[#F1F5F9] space-y-2">
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            {{-- Aman --}}
+                            <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
+                                <div class="flex items-center justify-center gap-1.5 text-emerald-700 text-[11px] font-bold uppercase tracking-wider">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Aman
+                                </div>
+                                <div class="text-[18px] font-extrabold text-emerald-800 mt-0.5">{{ $clientHealthChart['count_aman'] }}</div>
+                                <div class="text-[10px] text-emerald-600 font-medium">Stabil / Normal</div>
+                            </div>
+
+                            {{-- PM --}}
+                            <div class="p-2.5 rounded-xl bg-blue-50/70 border border-blue-100">
+                                <div class="flex items-center justify-center gap-1.5 text-blue-700 text-[11px] font-bold uppercase tracking-wider">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span> Siklus PM
+                                </div>
+                                <div class="text-[18px] font-extrabold text-blue-800 mt-0.5">{{ $clientHealthChart['count_pm'] }}</div>
+                                <div class="text-[10px] text-blue-600 font-medium">Perawatan Rutin</div>
+                            </div>
+
+                            {{-- CM --}}
+                            <div class="p-2.5 rounded-xl bg-rose-50/70 border border-rose-100">
+                                <div class="flex items-center justify-center gap-1.5 text-rose-700 text-[11px] font-bold uppercase tracking-wider">
+                                    <span class="w-2 h-2 rounded-full bg-rose-500"></span> Insiden (CM)
+                                </div>
+                                <div class="text-[18px] font-extrabold text-rose-800 mt-0.5">{{ $clientHealthChart['count_cm'] }}</div>
+                                <div class="text-[10px] text-rose-600 font-medium">Penanganan Tiket</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
             </div>
 
             {{-- ======================================================== --}}
-            {{-- 5. RECENT ACTIVITY: TICKETS, ASSETS & SCHEDULES          --}}
+            {{-- 4. AKTIVITAS OPERASIONAL: TIKET INSIDEN & JADWAL PM      --}}
             {{-- ======================================================== --}}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 anim-fade-up anim-delay-5">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 anim-fade-up anim-delay-4">
                 
-                {{-- Recent Tickets --}}
+                {{-- Recent Tickets (Corrective Maintenance) --}}
                 <div class="ipnet-card overflow-hidden flex flex-col">
                     <div class="flex justify-between items-center gap-2 p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-4 bg-[#8F0A0D] rounded-full inline-block"></span>
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Tiket Insiden & Layanan</h3>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Tiket Insiden &amp; Layanan (CM)</h3>
                         </div>
                         <a href="{{ route('ms.tickets.index') }}" class="text-[#8F0A0D] text-[12px] font-bold hover:underline">Lihat semua</a>
                     </div>
@@ -616,45 +614,12 @@
                     </div>
                 </div>
 
-                {{-- Recent CI Assets --}}
+                {{-- Recent PM Schedules (Preventive Maintenance) --}}
                 <div class="ipnet-card overflow-hidden flex flex-col">
                     <div class="flex justify-between items-center gap-2 p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-4 bg-blue-600 rounded-full inline-block"></span>
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Aset Perangkat (CI)</h3>
-                        </div>
-                        <a href="{{ route('ms.assets.index') }}" class="text-[#8F0A0D] text-[12px] font-bold hover:underline">Lihat semua</a>
-                    </div>
-                    <div class="p-2 divide-y divide-[#F1F5F9] flex-1">
-                        @forelse($assets->take(5) as $asset)
-                        <div class="flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] transition-colors">
-                            <div class="min-w-0 flex-1">
-                                <div class="text-[13px] font-bold text-[#1E293B] truncate" title="{{ $asset->device_name }}">{{ $asset->device_name }}</div>
-                                <div class="text-[11.5px] text-[#64748B] truncate mt-0.5">
-                                    {{ $asset->brand }} {{ $asset->model }} &bull; {{ $asset->client_name }}
-                                </div>
-                            </div>
-                            <div class="shrink-0">
-                                <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold 
-                                    {{ $asset->status === 'Online' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : ($asset->status === 'Warning' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-red-50 text-red-700 border border-red-200') }}">
-                                    {{ $asset->status }}
-                                </span>
-                            </div>
-                        </div>
-                        @empty
-                        <div class="text-center py-8 text-[#64748B]">
-                            <p class="text-[13px]">Belum ada perangkat CI</p>
-                        </div>
-                        @endforelse
-                    </div>
-                </div>
-
-                {{-- Recent PM Schedules --}}
-                <div class="ipnet-card overflow-hidden flex flex-col">
-                    <div class="flex justify-between items-center gap-2 p-4 sm:p-5 pb-3 border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-4 bg-emerald-600 rounded-full inline-block"></span>
-                            <h3 class="text-[15px] font-bold text-[#1E293B]">Jadwal Maintenance Terdekat</h3>
+                            <h3 class="text-[15px] font-bold text-[#1E293B]">Jadwal Maintenance Terdekat (PM)</h3>
                         </div>
                         <a href="{{ route('ms.maintenance.index') }}" class="text-[#8F0A0D] text-[12px] font-bold hover:underline">Lihat semua</a>
                     </div>
@@ -897,289 +862,43 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const maintMonthData = @json($maintenanceLoadMonthData);
-    const maintWeekData  = @json($maintenanceLoadWeekData);
-    let currentMaintPeriod = 'month';
-    let maintenanceChart = null;
-
-    function getMaintenanceData() {
-        return (currentMaintPeriod === 'week') ? maintWeekData : maintMonthData;
-    }
-
-    function updateMaintenanceChart() {
-        if (!maintenanceChart) return;
-        const dataToUse = getMaintenanceData();
-        maintenanceChart.data.labels = dataToUse.map(d => d.name);
-        maintenanceChart.data.datasets[0].data = dataToUse.map(d => d.active);
-        if (maintenanceChart.data.datasets[1]) {
-            maintenanceChart.data.datasets[1].data = dataToUse.map(d => d.completed || 0);
-        }
-        maintenanceChart.update();
-    }
-
-    function setMaintenancePeriod(period) {
-        currentMaintPeriod = period;
-        const isWeek = period === 'week';
-        const weekBtn = document.getElementById('maintPeriodWeek');
-        const monthBtn = document.getElementById('maintPeriodMonth');
-        const activeGradient = 'linear-gradient(135deg, #B91C1C 0%, #8F0A0D 60%, #750608 100%)';
-
-        if (isWeek) {
-            weekBtn.style.background = activeGradient;
-            weekBtn.style.color = '#FFFFFF';
-            weekBtn.classList.add('shadow-xs');
-            monthBtn.style.background = 'transparent';
-            monthBtn.style.color = '#64748B';
-            monthBtn.classList.remove('shadow-xs');
-        } else {
-            monthBtn.style.background = activeGradient;
-            monthBtn.style.color = '#FFFFFF';
-            monthBtn.classList.add('shadow-xs');
-            weekBtn.style.background = 'transparent';
-            weekBtn.style.color = '#64748B';
-            weekBtn.classList.remove('shadow-xs');
-        }
-        
-        updateMaintenanceChart();
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
-        // 1. Chart Load Pekerjaan Maintenance (Stacked Horizontal Bar - Identik dengan Lead Engineer Nugraha)
-        const ctxLoad = document.getElementById('maintenanceLoadChart');
-        if (ctxLoad) {
-            const chartCtx = ctxLoad.getContext('2d');
-            const initialData = getMaintenanceData();
+        const ctxHealth = document.getElementById('customerHealthChart');
+        if (ctxHealth) {
+            const chartData = @json($clientHealthChart);
+            const totalCount = chartData.total || 0;
+            const ctxHealthCanvas = ctxHealth.getContext('2d');
 
-            const activeBarGrad = chartCtx.createLinearGradient(0, 0, 500, 0);
-            activeBarGrad.addColorStop(0, '#D31A2C');
-            activeBarGrad.addColorStop(0.55, '#B21322');
-            activeBarGrad.addColorStop(1, '#8C0B17');
+            const hasData = totalCount > 0;
+            const dataCounts = hasData ? chartData.counts : [1];
+            const dataColors = hasData ? ['#10B981', '#3B82F6', '#EF4444'] : ['#E2E8F0'];
+            const dataLabels = hasData ? chartData.labels : ['Belum Ada Klien'];
 
-            const activeBarHoverGrad = chartCtx.createLinearGradient(0, 0, 500, 0);
-            activeBarHoverGrad.addColorStop(0, '#E02336');
-            activeBarHoverGrad.addColorStop(0.55, '#C41829');
-            activeBarHoverGrad.addColorStop(1, '#9E0E1D');
-
-            const completedBarGrad = chartCtx.createLinearGradient(0, 0, 500, 0);
-            completedBarGrad.addColorStop(0, '#34D399');
-            completedBarGrad.addColorStop(1, '#059669');
-
-            maintenanceChart = new Chart(chartCtx, {
-                type: 'bar',
-                data: {
-                    labels: initialData.map(d => d.name),
-                    datasets: [
-                        {
-                            label: 'Tiket & Kegiatan Aktif',
-                            data: initialData.map(d => d.active),
-                            backgroundColor: activeBarGrad,
-                            hoverBackgroundColor: activeBarHoverGrad,
-                            borderRadius: 6,
-                            barPercentage: 0.45,
-                            categoryPercentage: 0.65,
-                        },
-                        {
-                            label: 'Tiket Selesai / PM Tuntas',
-                            data: initialData.map(d => d.completed || 0),
-                            backgroundColor: completedBarGrad,
-                            hoverBackgroundColor: '#047857',
-                            borderRadius: 6,
-                            barPercentage: 0.45,
-                            categoryPercentage: 0.65,
-                        }
-                    ]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false,
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + context.parsed.x + ' penugasan';
-                                },
-                                afterLabel: function(context) {
-                                    const dataToUse = getMaintenanceData();
-                                    const item = dataToUse[context.dataIndex];
-                                    return item && item.position ? item.position : '';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            stacked: true,
-                            suggestedMax: 6,
-                            ticks: {
-                                stepSize: 1,
-                                font: { size: 10, family: 'Inter' }
-                            },
-                            grid: {
-                                display: true,
-                                color: '#F0E8E7'
-                            }
-                        },
-                        y: {
-                            stacked: true,
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: { size: 11.5, weight: '600', family: 'Inter' }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // 2. Chart Client SLA Compliance (Vertical Bar - Identik dengan Project Progress Chart Nugraha)
-        const ctxSla = document.getElementById('clientSlaChart');
-        if (ctxSla) {
-            const clientData = @json($clientSlaData);
-            const chartSlaCtx = ctxSla.getContext('2d');
-
-            const barGradient = chartSlaCtx.createLinearGradient(0, 0, 0, 220);
-            barGradient.addColorStop(0, '#D31A2C');
-            barGradient.addColorStop(0.55, '#B21322');
-            barGradient.addColorStop(1, '#8C0B17');
-
-            new Chart(chartSlaCtx, {
-                type: 'bar',
-                data: {
-                    labels: clientData.map(d => d.name),
-                    datasets: [{
-                        label: 'Kepatuhan SLA (%)',
-                        data: clientData.map(d => d.score),
-                        backgroundColor: barGradient,
-                        borderRadius: 6,
-                        barPercentage: 0.5,
-                        categoryPercentage: 0.65,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    onClick: function() {
-                        window.location.href = "{{ route('ms.reports.index') }}";
-                    },
-                    onHover: function(event, chartElement) {
-                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                title: function(context) {
-                                    const item = clientData[context[0].dataIndex];
-                                    return item && item.fullName ? item.fullName : context[0].label;
-                                },
-                                label: function(context) {
-                                    return 'Kepatuhan SLA: ' + context.parsed.y + '%';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            min: 0,
-                            max: 100,
-                            ticks: {
-                                stepSize: 20,
-                                callback: function(value) {
-                                    return value + '%';
-                                },
-                                font: { family: 'Inter', size: 10 }
-                            },
-                            grid: {
-                                color: '#F0E8E7'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: { family: 'Inter', size: 11, weight: '500' }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // 3. Chart Ticket Type Distribution (Doughnut - Identik dengan Task Status Chart Nugraha)
-        const ctxType = document.getElementById('ticketTypeChart');
-        if (ctxType) {
-            const typeData = @json($ticketTypeData);
-            const ctx2 = ctxType.getContext('2d');
-
-            const gradientColors = [
-                {
-                    gradient: function(ctx) {
-                        const g = ctx.createRadialGradient(60, 60, 10, 100, 100, 120);
-                        g.addColorStop(0, '#F87171');
-                        g.addColorStop(1, '#DC2626');
-                        return g;
-                    }
-                },
-                {
-                    gradient: function(ctx) {
-                        const g = ctx.createRadialGradient(60, 60, 10, 100, 100, 120);
-                        g.addColorStop(0, '#60A5FA');
-                        g.addColorStop(1, '#2563EB');
-                        return g;
-                    }
-                },
-                {
-                    gradient: function(ctx) {
-                        const g = ctx.createRadialGradient(60, 60, 10, 100, 100, 120);
-                        g.addColorStop(0, '#A78BFA');
-                        g.addColorStop(1, '#7C3AED');
-                        return g;
-                    }
-                },
-                {
-                    gradient: function(ctx) {
-                        const g = ctx.createRadialGradient(60, 60, 10, 100, 100, 120);
-                        g.addColorStop(0, '#34D399');
-                        g.addColorStop(1, '#059669');
-                        return g;
-                    }
-                }
-            ];
-
-            const gradients = gradientColors.map(function(g) {
-                return g.gradient(ctx2);
-            });
-
-            new Chart(ctx2, {
+            new Chart(ctxHealthCanvas, {
                 type: 'doughnut',
                 data: {
-                    labels: typeData.map(d => d.name),
+                    labels: dataLabels,
                     datasets: [{
-                        data: typeData.map(d => d.count),
-                        backgroundColor: gradients,
+                        data: dataCounts,
+                        backgroundColor: dataColors,
                         borderWidth: 2,
                         borderColor: '#FFFFFF',
+                        hoverOffset: hasData ? 4 : 0,
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '65%',
+                    cutout: '70%',
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            enabled: hasData,
                             callbacks: {
                                 label: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? Math.round((context.parsed / total) * 100) : 0;
-                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                    const value = context.parsed;
+                                    const percentage = totalCount > 0 ? Math.round((value / totalCount) * 100) : 0;
+                                    return ' ' + context.label + ': ' + value + ' Klien (' + percentage + '%)';
                                 }
                             }
                         }

@@ -189,6 +189,88 @@ class ManagedServiceController extends Controller
             ];
         });
 
+        // Status Kesehatan Layanan Pelanggan (Customer Health: Aman, PM, CM)
+        $clientHealthList = $operateProjects->map(function($project) use ($tickets) {
+            $clientName = $project->client ?: $project->name;
+
+            // Cek tiket aktif untuk proyek/klien ini
+            $clientTickets = $tickets->filter(function($t) use ($project, $clientName) {
+                return ($t->project_id && $t->project_id == $project->id) ||
+                       ($t->client_name && stripos($clientName, $t->client_name) !== false) ||
+                       ($project->client && stripos($t->client_name, $project->client) !== false);
+            });
+
+            $openTicketsCount = $clientTickets->whereIn('status', ['Open', 'In Progress', 'Pending Vendor'])->count();
+            $criticalTicketsCount = $clientTickets->where('priority', 'P1 - Critical')->whereIn('status', ['Open', 'In Progress'])->count();
+
+            // Cek agenda PM bulan berjalan untuk proyek ini
+            $pmCount = Schedule::where(function($q) use ($project) {
+                $q->where('project_id', $project->id)
+                  ->orWhere('title', 'like', "%{$project->name}%");
+            })->where(function($q) {
+                $q->where('title', 'like', '%Maintenance%')
+                  ->orWhere('title', 'like', '%Preventive%')
+                  ->orWhere('title', 'like', '%Kunjungan%')
+                  ->orWhere('title', 'like', '%Managed Service%');
+            })->whereMonth('date', now()->month)->count();
+
+            if ($openTicketsCount > 0) {
+                $statusKey = 'cm';
+                $statusLabel = 'Corrective (CM)';
+                $statusDesc = $criticalTicketsCount > 0 ? "{$criticalTicketsCount} Tiket Kritis" : "{$openTicketsCount} Gangguan Aktif";
+                $badgeBg = 'bg-rose-50 text-rose-700 border-rose-200';
+                $dotColor = 'bg-rose-500';
+            } elseif ($pmCount > 0) {
+                $statusKey = 'pm';
+                $statusLabel = 'Preventive (PM)';
+                $statusDesc = "{$pmCount} Kunjungan Terjadwal";
+                $badgeBg = 'bg-blue-50 text-blue-700 border-blue-200';
+                $dotColor = 'bg-blue-500';
+            } else {
+                $statusKey = 'aman';
+                $statusLabel = 'Aman (Normal)';
+                $statusDesc = 'Operasional Stabil';
+                $badgeBg = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                $dotColor = 'bg-emerald-500';
+            }
+
+            return [
+                'id'           => $project->id,
+                'name'         => $clientName,
+                'projectName'  => $project->name,
+                'sla_tier'     => $project->sla_tier ?: 'Gold',
+                'status_key'   => $statusKey,
+                'status_label' => $statusLabel,
+                'status_desc'  => $statusDesc,
+                'badge_bg'     => $badgeBg,
+                'dot_color'    => $dotColor,
+                'open_tickets' => $openTicketsCount,
+                'pm_count'     => $pmCount,
+            ];
+        });
+
+        $countCm = $clientHealthList->where('status_key', 'cm')->count();
+        $countPm = $clientHealthList->where('status_key', 'pm')->count();
+        $countAman = $clientHealthList->where('status_key', 'aman')->count();
+
+        if ($operateProjects->count() === 0) {
+            $countCm = $tickets->whereIn('type', ['Incident', 'Corrective Maintenance', 'Corrective'])->whereIn('status', ['Open', 'In Progress'])->count();
+            $countPm = $totalPmSchedulesCount ?? 0;
+            $countAman = 0;
+        }
+
+        $totalHealth = $countAman + $countPm + $countCm;
+
+        $clientHealthChart = [
+            'labels'     => ['Aman (Normal)', 'Preventive (PM)', 'Corrective (CM)'],
+            'counts'     => [$countAman, $countPm, $countCm],
+            'colors'     => ['#10B981', '#3B82F6', '#EF4444'],
+            'total'      => $totalHealth,
+            'count_aman' => $countAman,
+            'count_pm'   => $countPm,
+            'count_cm'   => $countCm,
+        ];
+
         // 8. Incoming Service Handovers (Dari Sales Tipe 2 & Pasca-Implementasi PMO)
         $incomingHandovers = Project::where(function($q) {
                 $q->where('stage', 'Operate')
@@ -229,6 +311,8 @@ class ManagedServiceController extends Controller
             'totalPmSchedulesCount',
             'ticketTypeData',
             'clientSlaData',
+            'clientHealthList',
+            'clientHealthChart',
             'selectedYear',
             'selectedClient'
         ));
