@@ -1397,7 +1397,8 @@ Route::get('/git-pull-deploy', function () {
     $outputs = [];
     $returnVar = 0;
     if (function_exists('exec')) {
-        @exec('git pull origin main 2>&1', $outputs, $returnVar);
+        $basePath = base_path();
+        @exec("git -C \"{$basePath}\" pull origin main 2>&1", $outputs, $returnVar);
     }
     
     $migrateOutput = '';
