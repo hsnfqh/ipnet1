@@ -43,7 +43,7 @@
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Data Aset & Perangkat'])
+        @include('components.topbar', ['title' => 'Asset Management'])
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
             
@@ -74,21 +74,35 @@
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> DATA ASET & PERANGKAT
+                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> MANAJEMEN ASET
                         </p>
-                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight mt-0.5">Daftar Aset & Perangkat</h2>
-                        <p class="text-[13px] text-[#64748B] mt-0.5">Inventaris perangkat keras, spesifikasi teknis, nomor seri, dan kepemilikan aset</p>
+                        <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight mt-0.5">Daftar Aset Eksternal (Perangkat Klien)</h2>
+                        <p class="text-[13px] text-[#64748B] mt-0.5">Inventaris perangkat keras, spesifikasi teknis, nomor seri, dan kepemilikan aset klien</p>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3 shrink-0">
-                        <div class="px-3.5 py-1.5 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] text-[12px] font-bold text-[#1E293B] flex items-center gap-1.5 shadow-xs">
-                            <span class="text-[#64748B]">Total Data:</span>
+                        {{-- Toggle Button Internal vs External (Like Reference Image) --}}
+                        <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs">
+                            <a href="{{ route('ms.assets.internal') }}" 
+                               class="px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-[#64748B] hover:text-[#1E293B] hover:bg-white/60">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <span>Internal Asset</span>
+                            </a>
+                            <a href="{{ route('ms.assets.external') }}" 
+                               class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-[#8F0A0D] text-white shadow-xs">
+                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                                <span>External Asset</span>
+                            </a>
+                        </div>
+
+                        <div class="px-3.5 py-2 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[12px] font-bold text-[#1E293B] flex items-center gap-1.5 shadow-xs">
+                            <span class="text-[#64748B]">Total:</span>
                             <span class="text-[#8F0A0D] font-extrabold">{{ $assets->total() }}</span>
                         </div>
 
-                        <button @click="openCreateModal()" class="btn-ipnet-gradient px-4 py-2.5 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer shadow-md">
+                        <button @click="openCreateModal()" class="btn-ipnet-gradient px-4 py-2 rounded-xl font-bold text-[12.5px] flex items-center gap-2 cursor-pointer shadow-md">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>Tambah Aset Baru</span>
+                            <span>Tambah Aset</span>
                         </button>
                     </div>
                 </div>

@@ -58,8 +58,7 @@
             ['key' => 'tasks',             'label' => 'Maintenance Tasks', 'route' => 'tasks.index'],
             ['key' => 'activities',        'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',         'label' => 'Work Schedule',     'route' => 'schedules.index'],
-            ['key' => 'internal_asset',    'label' => 'Internal Asset',    'route' => 'ms.assets.internal'],
-            ['key' => 'external_asset',    'label' => 'External Asset',    'route' => 'ms.assets.external'],
+            ['key' => 'ms_assets',         'label' => 'Asset',             'route' => 'ms.assets.internal'],
             ['key' => 'digital_signatures','label' => 'Digital Signature', 'route' => 'digital_signatures.index'],
             // ['key' => 'timesheets',        'label' => 'Timesheet',         'route' => 'timesheets.index'],
             // ['key' => 'attendance',   'label' => 'Attendance',        'route' => \App\Helpers\ScopeHelper::isTeamLeader($user) ? 'attendance.recap' : 'attendance.index'],
@@ -347,6 +346,7 @@
                     $isActive = (($currentRoute === $item['route']) || 
                                  ($item['key'] === 'projects' && in_array($currentRoute, ['sales.pipeline.index', 'sales.pipeline.show', 'sales.pipeline.create', 'projects.show', 'projects.index', 'sales.projects.show'])) ||
                                  ($item['key'] === 'ms_projects' && in_array($currentRoute, ['ms.projects.index', 'ms.projects.show'])) ||
+                                 ($item['key'] === 'ms_assets' && in_array($currentRoute, ['ms.assets.index', 'ms.assets.internal', 'ms.assets.external'])) ||
                                  ($item['key'] === 'ms_monitoring' && (in_array($currentRoute, ['ms.monitoring.index', 'ms.monitoring.pm', 'ms.monitoring.cm']) || $childActive)) ||
                                  ($item['key'] === 'digital_signatures' && str_starts_with($currentRoute, 'digital_signatures.'))) && (!request()->has('status') || request('status') === '');
                 }

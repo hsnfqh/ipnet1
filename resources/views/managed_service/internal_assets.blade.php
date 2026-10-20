@@ -43,7 +43,7 @@
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Internal Asset'])
+        @include('components.topbar', ['title' => 'Asset Management'])
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
             
@@ -59,19 +59,33 @@
                 </div>
             @endif
 
-            {{-- Top Action Bar --}}
+            {{-- Top Action Bar with Segmented Button Toggle --}}
             <div class="ipnet-card p-5 sm:p-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 anim-fade-up anim-delay-1">
                 <div>
                     <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
-                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> ASET INTERNAL
+                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] inline-block mr-2"></span> MANAJEMEN ASET
                     </p>
                     <h3 class="font-bold text-[#1E293B] text-[20px] tracking-tight mt-0.5">Aset Internal Perusahaan</h3>
                     <p class="text-[13px] text-[#64748B] mt-0.5">Inventaris alat kerja, perangkat kantor, dan operasional PT IPNET</p>
                 </div>
 
-                <div class="flex items-center gap-2.5 shrink-0">
-                    <span class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F8FAFC] text-[#1E293B] border border-[#E2E8F0] shadow-xs">
-                        Total Aset Internal: <strong class="text-[#8F0A0D] ml-1">{{ $assets->total() }}</strong>
+                <div class="flex flex-wrap items-center gap-3 shrink-0">
+                    {{-- Toggle Button Internal vs External (Like Reference Image) --}}
+                    <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs">
+                        <a href="{{ route('ms.assets.internal') }}" 
+                           class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-[#8F0A0D] text-white shadow-xs">
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span>Internal Asset</span>
+                        </a>
+                        <a href="{{ route('ms.assets.external') }}" 
+                           class="px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 text-[#64748B] hover:text-[#1E293B] hover:bg-white/60">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                            <span>External Asset</span>
+                        </a>
+                    </div>
+
+                    <span class="inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-bold bg-[#F8FAFC] text-[#1E293B] border border-[#E2E8F0] shadow-xs">
+                        Total Aset: <strong class="text-[#8F0A0D] ml-1">{{ $assets->total() }}</strong>
                     </span>
                 </div>
             </div>

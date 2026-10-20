@@ -284,6 +284,10 @@ class ManagedServiceController extends Controller
      */
     public function assets(Request $request)
     {
+        if ($request->input('tab') === 'internal' || $request->input('type') === 'internal') {
+            return $this->internalAssets($request);
+        }
+
         $this->ensureTablesExist();
         $perPage = (int) $request->input('per_page', 10);
         if (!in_array($perPage, [5, 10, 25, 50])) {
