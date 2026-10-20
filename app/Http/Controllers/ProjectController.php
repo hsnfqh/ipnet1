@@ -467,7 +467,15 @@ class ProjectController extends Controller
 
             if (in_array($target, ['managed_service', 'both'])) {
                 if ($request->filled('pm_frequency_type')) {
-                    $freqType = $request->input('pm_frequency_type');
+                    $rawFreq = $request->input('pm_frequency_type');
+                    $selectedYears = null;
+                    if (str_contains($rawFreq, ':')) {
+                        [$freqType, $selectedYears] = explode(':', $rawFreq, 2);
+                        $selectedYears = (int) $selectedYears;
+                    } else {
+                        $freqType = $rawFreq;
+                    }
+
                     $updateFields['pm_frequency_type'] = $freqType;
                     
                     $intervalMonths = match($freqType) {
@@ -479,23 +487,27 @@ class ProjectController extends Controller
                         default       => 3, // per_3_bulan
                     };
 
+                    $annualCycles = match($freqType) {
+                        'per_bulan'   => 12,
+                        'per_2_bulan' => 6,
+                        'per_4_bulan' => 3,
+                        'per_6_bulan' => 2,
+                        'tahunan'     => 1,
+                        default       => 4,
+                    };
+
                     $startDate = $request->input('service_start_date') ?: ($project->service_start_date ?: $project->start_date);
                     $endDate   = $request->input('service_end_date') ?: ($project->service_end_date ?: $project->deadline);
 
-                    if ($startDate && $endDate) {
+                    if ($selectedYears && $selectedYears > 0) {
+                        $updateFields['pm_total_cycles'] = $annualCycles * $selectedYears;
+                    } elseif ($startDate && $endDate) {
                         $s = \Carbon\Carbon::parse($startDate);
                         $e = \Carbon\Carbon::parse($endDate);
                         $totalMonths = max(1, (int) round($s->floatDiffInMonths($e)));
                         $updateFields['pm_total_cycles'] = max(1, (int) floor($totalMonths / $intervalMonths));
                     } else {
-                        $updateFields['pm_total_cycles'] = match($freqType) {
-                            'per_bulan'   => 12,
-                            'per_2_bulan' => 6,
-                            'per_4_bulan' => 3,
-                            'per_6_bulan' => 2,
-                            'tahunan'     => 1,
-                            default       => 4,
-                        };
+                        $updateFields['pm_total_cycles'] = $annualCycles;
                     }
 
                     $updateFields['maintenance_frequency'] = match($freqType) {

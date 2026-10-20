@@ -419,41 +419,26 @@
         }
     };
 
-    window.updatePmCycleEstimation = function() {
-        const freqEl = document.getElementById('handover-pm-frequency');
+    window.handlePmOptionChange = function(selectEl) {
+        if (!selectEl) return;
+        const val = selectEl.value; // e.g. "per_3_bulan:5"
+        if (!val || !val.includes(':')) return;
+        const [freq, yearsStr] = val.split(':');
+        const years = parseInt(yearsStr) || 1;
+        
         const startEl = document.getElementById('handover-start-date');
         const endEl = document.getElementById('handover-end-date');
-        const badgeEl = document.getElementById('pm-cycle-estimation-badge');
-        if (!badgeEl || !freqEl) return;
-
-        const freq = freqEl.value || 'per_3_bulan';
-        const intervalMonths = {
-            'per_bulan': 1,
-            'per_2_bulan': 2,
-            'per_3_bulan': 3,
-            'per_4_bulan': 4,
-            'per_6_bulan': 6,
-            'tahunan': 12
-        }[freq] || 3;
-
-        let totalMonths = 12; // default 1 tahun
-        if (startEl && endEl && startEl.value && endEl.value) {
+        if (startEl && endEl && startEl.value) {
             const s = new Date(startEl.value);
-            const e = new Date(endEl.value);
-            if (!isNaN(s.getTime()) && !isNaN(e.getTime()) && e > s) {
-                totalMonths = Math.max(1, Math.round((e - s) / (1000 * 60 * 60 * 24 * 30.4375)));
+            if (!isNaN(s.getTime())) {
+                const e = new Date(s);
+                e.setFullYear(e.getFullYear() + years);
+                const yyyy = e.getFullYear();
+                const mm = String(e.getMonth() + 1).padStart(2, '0');
+                const dd = String(e.getDate()).padStart(2, '0');
+                endEl.value = `${yyyy}-${mm}-${dd}`;
             }
         }
-
-        const totalCycles = Math.max(1, Math.floor(totalMonths / intervalMonths));
-        const durYears = (totalMonths / 12).toFixed(1).replace('.0', '');
-        
-        badgeEl.innerHTML = `
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span>Estimasi Total: <strong>${totalCycles} Kali Kunjungan PM</strong> (Durasi: ${durYears} Tahun / ${totalMonths} Bulan)</span>
-            </div>
-        `;
     };
 
     window.openHandoverModalCustom = function(target) {
@@ -472,7 +457,6 @@
             data.isHandoverModalOpen = true;
         }
         window.openModal('modal-handover');
-        setTimeout(window.updatePmCycleEstimation, 100);
     };
 
     window.startEditTitle = function() {
@@ -2435,6 +2419,20 @@
                                 $defaultEndDate   = $project->service_end_date ?: $project->deadline;
                                 $valStartDate     = $defaultStartDate ? \Carbon\Carbon::parse($defaultStartDate)->format('Y-m-d') : '';
                                 $valEndDate       = $defaultEndDate ? \Carbon\Carbon::parse($defaultEndDate)->format('Y-m-d') : '';
+
+                                $curFreq = $project->pm_frequency_type ?: 'per_3_bulan';
+                                $curCycles = (int) ($project->pm_total_cycles ?: 4);
+                                $annualCycles = match($curFreq) {
+                                    'per_bulan'   => 12,
+                                    'per_2_bulan' => 6,
+                                    'per_3_bulan' => 4,
+                                    'per_4_bulan' => 3,
+                                    'per_6_bulan' => 2,
+                                    'tahunan'     => 1,
+                                    default       => 4,
+                                };
+                                $detectedYears = max(1, min(5, (int) round($curCycles / max(1, $annualCycles))));
+                                $selectedPmVal = $curFreq . ':' . $detectedYears;
                             @endphp
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -2443,16 +2441,51 @@
                                     <label class="block font-semibold text-gray-700 text-[11px] mb-1">
                                         Frekuensi Preventive Maintenance (PM) <span class="text-[#8F0A0D]">*</span>
                                     </label>
-                                    <select name="pm_frequency_type" id="handover-pm-frequency" onchange="window.updatePmCycleEstimation()"
+                                    <select name="pm_frequency_type" id="handover-pm-frequency" onchange="window.handlePmOptionChange(this)"
                                             class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-gray-800 hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
-                                        <option value="per_3_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_3_bulan' ? 'selected' : '' }}>Per 3 Bulan / Triwulanan (4 Kunjungan/Tahun — misal: 20 Kunjungan utk Kontrak 5 Tahun) - Standar</option>
-                                        <option value="per_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_bulan' ? 'selected' : '' }}>Per Bulan / Bulanan (12 Kunjungan/Tahun — misal: 60 Kunjungan utk Kontrak 5 Tahun)</option>
-                                        <option value="per_2_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_2_bulan' ? 'selected' : '' }}>Per 2 Bulan (6 Kunjungan/Tahun — misal: 30 Kunjungan utk Kontrak 5 Tahun)</option>
-                                        <option value="per_4_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_4_bulan' ? 'selected' : '' }}>Per 4 Bulan / Caturwulan (3 Kunjungan/Tahun — misal: 15 Kunjungan utk Kontrak 5 Tahun)</option>
-                                        <option value="per_6_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_6_bulan' ? 'selected' : '' }}>Per 6 Bulan / Semesteran (2 Kunjungan/Tahun — misal: 10 Kunjungan utk Kontrak 5 Tahun)</option>
-                                        <option value="tahunan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'tahunan' ? 'selected' : '' }}>Per 1 Tahun / Tahunan (1 Kunjungan/Tahun — misal: 5 Kunjungan utk Kontrak 5 Tahun)</option>
+                                        <optgroup label="Per 3 Bulan / Triwulanan (Standar)">
+                                            <option value="per_3_bulan:1" {{ $selectedPmVal == 'per_3_bulan:1' ? 'selected' : '' }}>Per 3 Bulan - Kontrak 1 Tahun (4 Kali Kunjungan) - Standar</option>
+                                            <option value="per_3_bulan:2" {{ $selectedPmVal == 'per_3_bulan:2' ? 'selected' : '' }}>Per 3 Bulan - Kontrak 2 Tahun (8 Kali Kunjungan)</option>
+                                            <option value="per_3_bulan:3" {{ $selectedPmVal == 'per_3_bulan:3' ? 'selected' : '' }}>Per 3 Bulan - Kontrak 3 Tahun (12 Kali Kunjungan)</option>
+                                            <option value="per_3_bulan:4" {{ $selectedPmVal == 'per_3_bulan:4' ? 'selected' : '' }}>Per 3 Bulan - Kontrak 4 Tahun (16 Kali Kunjungan)</option>
+                                            <option value="per_3_bulan:5" {{ $selectedPmVal == 'per_3_bulan:5' ? 'selected' : '' }}>Per 3 Bulan - Kontrak 5 Tahun (20 Kali Kunjungan)</option>
+                                        </optgroup>
+                                        <optgroup label="Per Bulan / Bulanan">
+                                            <option value="per_bulan:1" {{ $selectedPmVal == 'per_bulan:1' ? 'selected' : '' }}>Per Bulan - Kontrak 1 Tahun (12 Kali Kunjungan)</option>
+                                            <option value="per_bulan:2" {{ $selectedPmVal == 'per_bulan:2' ? 'selected' : '' }}>Per Bulan - Kontrak 2 Tahun (24 Kali Kunjungan)</option>
+                                            <option value="per_bulan:3" {{ $selectedPmVal == 'per_bulan:3' ? 'selected' : '' }}>Per Bulan - Kontrak 3 Tahun (36 Kali Kunjungan)</option>
+                                            <option value="per_bulan:4" {{ $selectedPmVal == 'per_bulan:4' ? 'selected' : '' }}>Per Bulan - Kontrak 4 Tahun (48 Kali Kunjungan)</option>
+                                            <option value="per_bulan:5" {{ $selectedPmVal == 'per_bulan:5' ? 'selected' : '' }}>Per Bulan - Kontrak 5 Tahun (60 Kali Kunjungan)</option>
+                                        </optgroup>
+                                        <optgroup label="Per 2 Bulan">
+                                            <option value="per_2_bulan:1" {{ $selectedPmVal == 'per_2_bulan:1' ? 'selected' : '' }}>Per 2 Bulan - Kontrak 1 Tahun (6 Kali Kunjungan)</option>
+                                            <option value="per_2_bulan:2" {{ $selectedPmVal == 'per_2_bulan:2' ? 'selected' : '' }}>Per 2 Bulan - Kontrak 2 Tahun (12 Kali Kunjungan)</option>
+                                            <option value="per_2_bulan:3" {{ $selectedPmVal == 'per_2_bulan:3' ? 'selected' : '' }}>Per 2 Bulan - Kontrak 3 Tahun (18 Kali Kunjungan)</option>
+                                            <option value="per_2_bulan:4" {{ $selectedPmVal == 'per_2_bulan:4' ? 'selected' : '' }}>Per 2 Bulan - Kontrak 4 Tahun (24 Kali Kunjungan)</option>
+                                            <option value="per_2_bulan:5" {{ $selectedPmVal == 'per_2_bulan:5' ? 'selected' : '' }}>Per 2 Bulan - Kontrak 5 Tahun (30 Kali Kunjungan)</option>
+                                        </optgroup>
+                                        <optgroup label="Per 4 Bulan / Caturwulan">
+                                            <option value="per_4_bulan:1" {{ $selectedPmVal == 'per_4_bulan:1' ? 'selected' : '' }}>Per 4 Bulan - Kontrak 1 Tahun (3 Kali Kunjungan)</option>
+                                            <option value="per_4_bulan:2" {{ $selectedPmVal == 'per_4_bulan:2' ? 'selected' : '' }}>Per 4 Bulan - Kontrak 2 Tahun (6 Kali Kunjungan)</option>
+                                            <option value="per_4_bulan:3" {{ $selectedPmVal == 'per_4_bulan:3' ? 'selected' : '' }}>Per 4 Bulan - Kontrak 3 Tahun (9 Kali Kunjungan)</option>
+                                            <option value="per_4_bulan:4" {{ $selectedPmVal == 'per_4_bulan:4' ? 'selected' : '' }}>Per 4 Bulan - Kontrak 4 Tahun (12 Kali Kunjungan)</option>
+                                            <option value="per_4_bulan:5" {{ $selectedPmVal == 'per_4_bulan:5' ? 'selected' : '' }}>Per 4 Bulan - Kontrak 5 Tahun (15 Kali Kunjungan)</option>
+                                        </optgroup>
+                                        <optgroup label="Per 6 Bulan / Semesteran">
+                                            <option value="per_6_bulan:1" {{ $selectedPmVal == 'per_6_bulan:1' ? 'selected' : '' }}>Per 6 Bulan - Kontrak 1 Tahun (2 Kali Kunjungan)</option>
+                                            <option value="per_6_bulan:2" {{ $selectedPmVal == 'per_6_bulan:2' ? 'selected' : '' }}>Per 6 Bulan - Kontrak 2 Tahun (4 Kali Kunjungan)</option>
+                                            <option value="per_6_bulan:3" {{ $selectedPmVal == 'per_6_bulan:3' ? 'selected' : '' }}>Per 6 Bulan - Kontrak 3 Tahun (6 Kali Kunjungan)</option>
+                                            <option value="per_6_bulan:4" {{ $selectedPmVal == 'per_6_bulan:4' ? 'selected' : '' }}>Per 6 Bulan - Kontrak 4 Tahun (8 Kali Kunjungan)</option>
+                                            <option value="per_6_bulan:5" {{ $selectedPmVal == 'per_6_bulan:5' ? 'selected' : '' }}>Per 6 Bulan - Kontrak 5 Tahun (10 Kali Kunjungan)</option>
+                                        </optgroup>
+                                        <optgroup label="Per 1 Tahun / Tahunan">
+                                            <option value="tahunan:1" {{ $selectedPmVal == 'tahunan:1' ? 'selected' : '' }}>Per 1 Tahun - Kontrak 1 Tahun (1 Kali Kunjungan)</option>
+                                            <option value="tahunan:2" {{ $selectedPmVal == 'tahunan:2' ? 'selected' : '' }}>Per 1 Tahun - Kontrak 2 Tahun (2 Kali Kunjungan)</option>
+                                            <option value="tahunan:3" {{ $selectedPmVal == 'tahunan:3' ? 'selected' : '' }}>Per 1 Tahun - Kontrak 3 Tahun (3 Kali Kunjungan)</option>
+                                            <option value="tahunan:4" {{ $selectedPmVal == 'tahunan:4' ? 'selected' : '' }}>Per 1 Tahun - Kontrak 4 Tahun (4 Kali Kunjungan)</option>
+                                            <option value="tahunan:5" {{ $selectedPmVal == 'tahunan:5' ? 'selected' : '' }}>Per 1 Tahun - Kontrak 5 Tahun (5 Kali Kunjungan)</option>
+                                        </optgroup>
                                     </select>
-                                    <div id="pm-cycle-estimation-badge" class="mt-1.5 min-h-[20px]"></div>
                                 </div>
 
                                 {{-- 2. Kuota Corrective Maintenance (CM) --}}
@@ -2494,23 +2527,21 @@
                                     </select>
                                 </div>
 
-                                {{-- 5. Tanggal Mulai Layanan (Otomatis dari start_date) --}}
+                                {{-- 5. Tanggal Mulai Layanan --}}
                                 <div>
-                                    <label class="block font-semibold text-gray-700 text-[11px] mb-1 flex items-center justify-between">
-                                        <span>Tanggal Mulai Layanan</span>
-                                        <span class="text-[10px] text-emerald-600 font-normal">Otomatis dari jadwal proyek</span>
+                                    <label class="block font-semibold text-gray-700 text-[11px] mb-1">
+                                        Tanggal Mulai Layanan
                                     </label>
-                                    <input type="date" name="service_start_date" id="handover-start-date" value="{{ $valStartDate }}" onchange="window.updatePmCycleEstimation()"
+                                    <input type="date" name="service_start_date" id="handover-start-date" value="{{ $valStartDate }}" onchange="window.handlePmOptionChange(document.getElementById('handover-pm-frequency'))"
                                            class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
                                 </div>
 
-                                {{-- 6. Tanggal Akhir Kontrak (Otomatis dari deadline) --}}
+                                {{-- 6. Tanggal Akhir Kontrak --}}
                                 <div>
-                                    <label class="block font-semibold text-gray-700 text-[11px] mb-1 flex items-center justify-between">
-                                        <span>Tanggal Akhir Kontrak</span>
-                                        <span class="text-[10px] text-emerald-600 font-normal">Otomatis dari deadline proyek</span>
+                                    <label class="block font-semibold text-gray-700 text-[11px] mb-1">
+                                        Tanggal Akhir Kontrak
                                     </label>
-                                    <input type="date" name="service_end_date" id="handover-end-date" value="{{ $valEndDate }}" onchange="window.updatePmCycleEstimation()"
+                                    <input type="date" name="service_end_date" id="handover-end-date" value="{{ $valEndDate }}"
                                            class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
                                 </div>
                             </div>
