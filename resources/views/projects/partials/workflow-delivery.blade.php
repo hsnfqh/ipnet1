@@ -269,23 +269,11 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                         <span>{{ (!empty($project->division_id) && !empty($project->division)) ? 'Ubah Tim' : 'Tetapkan Tim' }}</span>
                     </button>
-                @elseif(!empty($canAssignEngineerCard) && !empty($project->division_id))
-                    <div></div>
                 @else
                     <span class="inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         Wewenang Pre-Sales Specialist &amp; Sales
                     </span>
-                @endif
-
-                @if($isBothApproved && !empty($canAssignEngineerCard) && !empty($project->division_id))
-                    <button type="button" 
-                            @click.stop="openAssignEngineerModal()" 
-                            onclick="event.stopPropagation(); window.openModal('modal-assign-engineer')"
-                            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] transition cursor-pointer shadow-2xs active:scale-95">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                        <span>{{ $uniqueEngineers->count() > 0 ? 'Tugaskan Personel Lagi' : 'Pilih Personel Teknisi' }}</span>
-                    </button>
                 @endif
             </div>
         </div>

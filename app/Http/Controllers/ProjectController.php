@@ -469,17 +469,42 @@ class ProjectController extends Controller
                 if ($request->filled('pm_frequency_type')) {
                     $freqType = $request->input('pm_frequency_type');
                     $updateFields['pm_frequency_type'] = $freqType;
-                    $updateFields['pm_total_cycles'] = match($freqType) {
-                        'per_bulan' => 12,
-                        'per_2_bulan' => 6,
-                        'per_4_bulan' => 3,
-                        default => 4,
+                    
+                    $intervalMonths = match($freqType) {
+                        'per_bulan'   => 1,
+                        'per_2_bulan' => 2,
+                        'per_4_bulan' => 4,
+                        'per_6_bulan' => 6,
+                        'tahunan'     => 12,
+                        default       => 3, // per_3_bulan
                     };
+
+                    $startDate = $request->input('service_start_date') ?: ($project->service_start_date ?: $project->start_date);
+                    $endDate   = $request->input('service_end_date') ?: ($project->service_end_date ?: $project->deadline);
+
+                    if ($startDate && $endDate) {
+                        $s = \Carbon\Carbon::parse($startDate);
+                        $e = \Carbon\Carbon::parse($endDate);
+                        $totalMonths = max(1, (int) round($s->floatDiffInMonths($e)));
+                        $updateFields['pm_total_cycles'] = max(1, (int) floor($totalMonths / $intervalMonths));
+                    } else {
+                        $updateFields['pm_total_cycles'] = match($freqType) {
+                            'per_bulan'   => 12,
+                            'per_2_bulan' => 6,
+                            'per_4_bulan' => 3,
+                            'per_6_bulan' => 2,
+                            'tahunan'     => 1,
+                            default       => 4,
+                        };
+                    }
+
                     $updateFields['maintenance_frequency'] = match($freqType) {
-                        'per_bulan' => 'Monthly',
+                        'per_bulan'   => 'Monthly',
                         'per_2_bulan' => 'Bi-Monthly',
                         'per_4_bulan' => 'Quarterly-Plus',
-                        default => 'Quarterly',
+                        'per_6_bulan' => 'Semi-Annual',
+                        'tahunan'     => 'Annual',
+                        default       => 'Quarterly',
                     };
                 }
                 if ($request->filled('cm_quota')) {

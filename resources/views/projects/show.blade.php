@@ -419,6 +419,43 @@
         }
     };
 
+    window.updatePmCycleEstimation = function() {
+        const freqEl = document.getElementById('handover-pm-frequency');
+        const startEl = document.getElementById('handover-start-date');
+        const endEl = document.getElementById('handover-end-date');
+        const badgeEl = document.getElementById('pm-cycle-estimation-badge');
+        if (!badgeEl || !freqEl) return;
+
+        const freq = freqEl.value || 'per_3_bulan';
+        const intervalMonths = {
+            'per_bulan': 1,
+            'per_2_bulan': 2,
+            'per_3_bulan': 3,
+            'per_4_bulan': 4,
+            'per_6_bulan': 6,
+            'tahunan': 12
+        }[freq] || 3;
+
+        let totalMonths = 12; // default 1 tahun
+        if (startEl && endEl && startEl.value && endEl.value) {
+            const s = new Date(startEl.value);
+            const e = new Date(endEl.value);
+            if (!isNaN(s.getTime()) && !isNaN(e.getTime()) && e > s) {
+                totalMonths = Math.max(1, Math.round((e - s) / (1000 * 60 * 60 * 24 * 30.4375)));
+            }
+        }
+
+        const totalCycles = Math.max(1, Math.floor(totalMonths / intervalMonths));
+        const durYears = (totalMonths / 12).toFixed(1).replace('.0', '');
+        
+        badgeEl.innerHTML = `
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Estimasi Total: <strong>${totalCycles} Kali Kunjungan PM</strong> (Durasi: ${durYears} Tahun / ${totalMonths} Bulan)</span>
+            </div>
+        `;
+    };
+
     window.openHandoverModalCustom = function(target) {
         const data = window.getProjectData();
         if (data) {
@@ -435,6 +472,7 @@
             data.isHandoverModalOpen = true;
         }
         window.openModal('modal-handover');
+        setTimeout(window.updatePmCycleEstimation, 100);
     };
 
     window.startEditTitle = function() {
@@ -2405,13 +2443,16 @@
                                     <label class="block font-semibold text-gray-700 text-[11px] mb-1">
                                         Frekuensi Preventive Maintenance (PM) <span class="text-[#8F0A0D]">*</span>
                                     </label>
-                                    <select name="pm_frequency_type"
+                                    <select name="pm_frequency_type" id="handover-pm-frequency" onchange="window.updatePmCycleEstimation()"
                                             class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-gray-800 hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
-                                        <option value="per_3_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_3_bulan' ? 'selected' : '' }}>Per 3 Bulan / Quarterly (4 Kali/Tahun) - Standar</option>
-                                        <option value="per_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_bulan' ? 'selected' : '' }}>Per Bulan (12 Kali/Tahun)</option>
-                                        <option value="per_2_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_2_bulan' ? 'selected' : '' }}>Per 2 Bulan (6 Kali/Tahun)</option>
-                                        <option value="per_4_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_4_bulan' ? 'selected' : '' }}>Per 4 Bulan (3 Kali/Tahun)</option>
+                                        <option value="per_3_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_3_bulan' ? 'selected' : '' }}>Per 3 Bulan / Triwulanan (4 Kunjungan/Tahun — misal: 20 Kunjungan utk Kontrak 5 Tahun) - Standar</option>
+                                        <option value="per_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_bulan' ? 'selected' : '' }}>Per Bulan / Bulanan (12 Kunjungan/Tahun — misal: 60 Kunjungan utk Kontrak 5 Tahun)</option>
+                                        <option value="per_2_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_2_bulan' ? 'selected' : '' }}>Per 2 Bulan (6 Kunjungan/Tahun — misal: 30 Kunjungan utk Kontrak 5 Tahun)</option>
+                                        <option value="per_4_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_4_bulan' ? 'selected' : '' }}>Per 4 Bulan / Caturwulan (3 Kunjungan/Tahun — misal: 15 Kunjungan utk Kontrak 5 Tahun)</option>
+                                        <option value="per_6_bulan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'per_6_bulan' ? 'selected' : '' }}>Per 6 Bulan / Semesteran (2 Kunjungan/Tahun — misal: 10 Kunjungan utk Kontrak 5 Tahun)</option>
+                                        <option value="tahunan" {{ ($project->pm_frequency_type ?? 'per_3_bulan') == 'tahunan' ? 'selected' : '' }}>Per 1 Tahun / Tahunan (1 Kunjungan/Tahun — misal: 5 Kunjungan utk Kontrak 5 Tahun)</option>
                                     </select>
+                                    <div id="pm-cycle-estimation-badge" class="mt-1.5 min-h-[20px]"></div>
                                 </div>
 
                                 {{-- 2. Kuota Corrective Maintenance (CM) --}}
@@ -2459,7 +2500,7 @@
                                         <span>Tanggal Mulai Layanan</span>
                                         <span class="text-[10px] text-emerald-600 font-normal">Otomatis dari jadwal proyek</span>
                                     </label>
-                                    <input type="date" name="service_start_date" value="{{ $valStartDate }}"
+                                    <input type="date" name="service_start_date" id="handover-start-date" value="{{ $valStartDate }}" onchange="window.updatePmCycleEstimation()"
                                            class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
                                 </div>
 
@@ -2469,46 +2510,57 @@
                                         <span>Tanggal Akhir Kontrak</span>
                                         <span class="text-[10px] text-emerald-600 font-normal">Otomatis dari deadline proyek</span>
                                     </label>
-                                    <input type="date" name="service_end_date" value="{{ $valEndDate }}"
+                                    <input type="date" name="service_end_date" id="handover-end-date" value="{{ $valEndDate }}" onchange="window.updatePmCycleEstimation()"
                                            class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
                                 </div>
                             </div>
                         </div>
 
-                        {{-- SLA & Terms --}}
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <div>
-                                <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
-                                    SLA &amp; Garansi Komitmen
-                                </label>
-                                <input type="text" name="sla_commitment" value="{{ $project->sla_commitment }}"
-                                       class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+                        {{-- Card: Komitmen Garansi SLA, Ketentuan Komersial & Exclusions (Sempurna Sejajar & Simetris) --}}
+                        <div class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3.5">
+                            <div class="flex items-center gap-2 text-gray-800 font-bold text-xs uppercase tracking-wider">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                <span>Komitmen Garansi SLA, Ketentuan Komersial &amp; Batasan (Exclusions)</span>
                             </div>
 
-                            <div>
-                                <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
-                                    Commercial Terms
-                                </label>
-                                <input type="text" name="commercial_terms" value="{{ $project->commercial_terms }}"
-                                       class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
-                            </div>
-                        </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                    <label class="block font-semibold text-[#475569] text-[11px] mb-1">
+                                        SLA &amp; Garansi Komitmen
+                                    </label>
+                                    <input type="text" name="sla_commitment" value="{{ $project->sla_commitment }}"
+                                           placeholder="Contoh: Garansi perangkat 1 tahun, SLA 99.50%, MTTR < 4 Jam"
+                                           class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+                                </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <div>
-                                <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
-                                    Komitmen Khusus dari Sales
-                                </label>
-                                <textarea name="special_commitment" rows="2"
-                                          class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none">{{ $project->special_commitment }}</textarea>
+                                <div>
+                                    <label class="block font-semibold text-[#475569] text-[11px] mb-1">
+                                        Commercial Terms
+                                    </label>
+                                    <input type="text" name="commercial_terms" value="{{ $project->commercial_terms }}"
+                                           placeholder="Contoh: Pembayaran bertahap sesuai invoice berkala"
+                                           class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
+                                </div>
                             </div>
 
-                            <div>
-                                <label class="block font-semibold text-[#64748B] text-[11px] mb-1">
-                                    Exclusions (Batasan di Luar Scope)
-                                </label>
-                                <textarea name="exclusions" rows="2"
-                                          class="w-full px-3.5 py-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none">{{ $project->exclusions }}</textarea>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                <div>
+                                    <label class="block font-semibold text-[#475569] text-[11px] mb-1">
+                                        Komitmen Khusus dari Sales
+                                    </label>
+                                    <textarea name="special_commitment" rows="2"
+                                              placeholder="Tuliskan catatan komitmen khusus dari tim Sales ke klien..."
+                                              class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none">{{ $project->special_commitment }}</textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block font-semibold text-[#475569] text-[11px] mb-1">
+                                        Exclusions (Batasan di Luar Scope)
+                                    </label>
+                                    <textarea name="exclusions" rows="2"
+                                              placeholder="Batasan pekerjaan yang dikecualikan di luar scope kontrak..."
+                                              class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] hover:border-slate-400 focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none">{{ $project->exclusions }}</textarea>
+                                </div>
                             </div>
                         </div>
                     </div>

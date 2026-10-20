@@ -1010,15 +1010,34 @@ class ManagedServiceController extends Controller
             return;
         }
 
-        $totalCycles = $project->pm_total_cycles ?: 4;
         $startDate = $project->service_start_date ? Carbon::parse($project->service_start_date) : ($project->start_date ? Carbon::parse($project->start_date) : now());
+        $endDate   = $project->service_end_date ? Carbon::parse($project->service_end_date) : ($project->deadline ? Carbon::parse($project->deadline) : null);
+
         $monthsInterval = match($project->pm_frequency_type) {
             'per_bulan'   => 1,
             'per_2_bulan' => 2,
             'per_3_bulan' => 3,
             'per_4_bulan' => 4,
+            'per_6_bulan' => 6,
+            'tahunan'     => 12,
             default       => 3,
         };
+
+        if ($project->pm_total_cycles && $project->pm_total_cycles > 0) {
+            $totalCycles = (int) $project->pm_total_cycles;
+        } elseif ($endDate && $endDate->greaterThan($startDate)) {
+            $diffMonths = max(1, (int) round($startDate->floatDiffInMonths($endDate)));
+            $totalCycles = max(1, (int) floor($diffMonths / $monthsInterval));
+        } else {
+            $totalCycles = match($project->pm_frequency_type) {
+                'per_bulan'   => 12,
+                'per_2_bulan' => 6,
+                'per_4_bulan' => 3,
+                'per_6_bulan' => 2,
+                'tahunan'     => 1,
+                default       => 4,
+            };
+        }
 
         for ($i = 1; $i <= $totalCycles; $i++) {
             $schedDate = $startDate->copy()->addMonths(($i - 1) * $monthsInterval + $monthsInterval);
@@ -1030,7 +1049,7 @@ class ManagedServiceController extends Controller
                 'scheduled_date'    => $schedDate->toDateString(),
                 'activity_status'   => $isFirstCompleted ? 'Completed' : 'Scheduled',
                 'actual_date'       => $isFirstCompleted ? $schedDate->copy()->subDays(2)->toDateString() : null,
-                'activity_notes'    => $isFirstCompleted ? 'Preventive maintenance berkala Q1 selesai dilaksanakan sesuai checklist inspeksi.' : null,
+                'activity_notes'    => $isFirstCompleted ? 'Preventive maintenance berkala selesai dilaksanakan sesuai checklist inspeksi.' : null,
                 'report_status'     => $isFirstCompleted ? 'Approved' : 'Pending',
                 'billing_ba_status' => $isFirstCompleted ? 'Signed' : 'Pending',
             ]);
@@ -1499,8 +1518,8 @@ class ManagedServiceController extends Controller
 
         $validated = $request->validate([
             'cm_quota'                  => 'required|integer|in:4,6,8,12,18,999',
-            'pm_frequency_type'         => 'required|string|in:per_bulan,per_2_bulan,per_3_bulan,per_4_bulan,custom',
-            'pm_total_cycles'           => 'required|integer|min:1|max:24',
+            'pm_frequency_type'         => 'required|string|in:per_bulan,per_2_bulan,per_3_bulan,per_4_bulan,per_6_bulan,tahunan,custom',
+            'pm_total_cycles'           => 'required|integer|min:1|max:120',
             'sla_target_percentage'     => 'required|numeric|min:80|max:100',
             'mttr_hours'                => 'required|integer|min:1|max:72',
             'sla_coverage_hours'        => 'required|string',
