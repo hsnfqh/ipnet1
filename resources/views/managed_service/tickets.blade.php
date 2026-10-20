@@ -75,8 +75,8 @@
 
                     <div class="flex flex-wrap items-center gap-3 shrink-0">
                         <a href="{{ route('public.helpdesk.index') }}" target="_blank"
-                           class="px-4 py-2.5 rounded-xl font-bold text-[12.5px] bg-white border border-[#CBD5E1] text-[#1E293B] hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition flex items-center gap-2 shadow-xs cursor-pointer whitespace-nowrap">
-                            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                           class="px-4 py-2.5 rounded-xl font-bold text-[12.5px] bg-white border border-[#CBD5E1] text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#94A3B8] transition flex items-center gap-2 shadow-xs cursor-pointer whitespace-nowrap">
+                            <svg class="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                             </svg>
                             <span>Buka Portal Klien Eksternal</span>
@@ -152,8 +152,8 @@
                                         <div class="font-mono font-extrabold text-[#1E293B] text-[13px] flex items-center gap-2">
                                             <span>{{ $t->ticket_number }}</span>
                                             @if($t->source === 'External Portal')
-                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200" title="Tiket dari Portal Klien Eksternal">
-                                                    <svg class="w-3 h-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200" title="Tiket dari Portal Klien Eksternal">
+                                                    <svg class="w-3 h-3 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                                                     <span>Web Klien</span>
                                                 </span>
                                             @endif
@@ -345,25 +345,25 @@
                     @method('PUT')
 
                     <div class="p-5 sm:p-6 overflow-y-auto space-y-3.5 text-[12.5px] flex-1">
-                        <!-- Info Panel Klien / Pelapor -->
+                        <!-- Info Panel Klien / Pelapor (Clean & Consistent IPNET Theme) -->
                         <div x-show="activeTicket.reported_by || activeTicket.contact_email || activeTicket.source === 'External Portal'" 
-                             class="p-3.5 rounded-xl bg-purple-50/70 border border-purple-200 text-xs space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <span class="font-bold text-purple-900 uppercase tracking-wider text-[10.5px] flex items-center gap-1.5">
-                                    <span class="w-2 h-2 rounded-full bg-purple-600"></span>
-                                    Informasi Pelapor (Klien Eksternal)
+                             class="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2.5 shadow-2xs">
+                            <div class="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
+                                <span class="font-bold text-[#1E293B] uppercase tracking-wider text-[11px] flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                                    <span>Informasi Pelapor (Klien Eksternal)</span>
                                 </span>
-                                <span class="font-mono text-[10.5px] font-bold text-purple-700" x-text="activeTicket.ticket_number"></span>
+                                <span class="font-mono text-[11px] font-bold text-[#8F0A0D] bg-red-50 px-2 py-0.5 rounded border border-red-100" x-text="activeTicket.ticket_number"></span>
                             </div>
-                            <div class="grid grid-cols-2 gap-2 text-[11.5px] pt-1 border-t border-purple-100">
-                                <div><span class="text-slate-400">Instansi:</span> <strong class="text-slate-800" x-text="activeTicket.client_name"></strong></div>
-                                <div><span class="text-slate-400">Pelapor:</span> <strong class="text-slate-800" x-text="activeTicket.reported_by || '-'"></strong></div>
-                                <div><span class="text-slate-400">Email:</span> <span class="text-slate-700" x-text="activeTicket.contact_email || '-'"></span></div>
-                                <div><span class="text-slate-400">Telepon:</span> <span class="text-slate-700" x-text="activeTicket.contact_phone || '-'"></span></div>
+                            <div class="grid grid-cols-2 gap-3 text-[12px]">
+                                <div><span class="text-[#64748B] block text-[10.5px] uppercase font-bold tracking-wider">Instansi</span> <strong class="text-[#1E293B] font-semibold mt-0.5 block truncate" x-text="activeTicket.client_name || '-'"></strong></div>
+                                <div><span class="text-[#64748B] block text-[10.5px] uppercase font-bold tracking-wider">Pelapor</span> <strong class="text-[#1E293B] font-semibold mt-0.5 block truncate" x-text="activeTicket.reported_by || '-'"></strong></div>
+                                <div><span class="text-[#64748B] block text-[10.5px] uppercase font-bold tracking-wider">Email</span> <span class="text-[#334155] font-medium mt-0.5 block truncate" x-text="activeTicket.contact_email || '-'"></span></div>
+                                <div><span class="text-[#64748B] block text-[10.5px] uppercase font-bold tracking-wider">Telepon</span> <span class="text-[#334155] font-medium mt-0.5 block truncate" x-text="activeTicket.contact_phone || '-'"></span></div>
                             </div>
-                            <div x-show="activeTicket.attachment_path" class="pt-1 text-[11px]">
-                                <a :href="'/storage/' + activeTicket.attachment_path" target="_blank" class="text-blue-600 hover:underline font-bold inline-flex items-center gap-1">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                            <div x-show="activeTicket.attachment_path" class="pt-2 border-t border-[#E2E8F0]">
+                                <a :href="'/storage/' + activeTicket.attachment_path" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-[#1E293B] text-[11.5px] font-bold border border-[#CBD5E1] shadow-2xs transition">
+                                    <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                                     <span>Lihat File Lampiran Bukti Klien</span>
                                 </a>
                             </div>
