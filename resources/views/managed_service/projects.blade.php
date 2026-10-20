@@ -210,17 +210,8 @@
                                                     {{ $p->name }}
                                                 </a>
                                                 @if($p->sla_tier)
-                                                    @php
-                                                        $tier = $p->sla_tier;
-                                                        $tierClass = match($tier) {
-                                                            'Platinum' => 'bg-purple-50 text-purple-700 border-purple-200',
-                                                            'Gold'     => 'bg-amber-50 text-amber-700 border-amber-200',
-                                                            'Silver'   => 'bg-slate-100 text-slate-700 border-slate-300',
-                                                            default    => 'bg-orange-50 text-orange-700 border-orange-200',
-                                                        };
-                                                    @endphp
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $tierClass }}">
-                                                        Tier: {{ $tier }}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                                        Tier: {{ $p->sla_tier }}
                                                     </span>
                                                 @endif
                                             </div>
@@ -354,106 +345,77 @@
                 {{-- Table Card Tab 2 --}}
                 <div class="ipnet-card overflow-hidden anim-fade-up anim-delay-2">
                     <div class="overflow-x-auto">
-                        <table class="w-full min-w-[1000px] border-collapse text-[13px] text-left">
+                        <table class="w-full min-w-[900px] border-collapse text-[13px] text-left">
                             <thead>
                                 <tr class="bg-[#F8FAFC] border-b border-[#E2E8F0]">
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Proyek &amp; Klien</th>
-                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Asal Handover</th>
-                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Info BAST &amp; Legal</th>
-                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">SLA Tier &amp; Coverage</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Dokumen &amp; BAST</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">SLA &amp; Coverage</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Jadwal PM &amp; Periode</th>
-                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-center">Status Onboarding</th>
+                                    <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-center">Status Layanan</th>
                                     <th class="py-3 px-4 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider text-right">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[#F1F5F9]">
                                 @forelse($incomingHandovers as $ho)
                                     @php
-                                        $isFromSales = ($ho->handover_target === 'managed_service' && $ho->sales_stage === 'Closed Won');
                                         $isAccepted = ($ho->ms_handover_status === 'Accepted');
-                                        $formattedValue = $ho->contract_value ? 'Rp ' . number_format($ho->contract_value, 0, ',', '.') : '—';
+                                        $formattedValue = $ho->contract_value ? 'Rp ' . number_format($ho->contract_value, 0, ',', '.') : null;
                                         $startDateVal = $ho->service_start_date ? \Carbon\Carbon::parse($ho->service_start_date)->format('Y-m-d') : date('Y-m-d');
                                         $endDateVal = $ho->service_end_date ? \Carbon\Carbon::parse($ho->service_end_date)->format('Y-m-d') : '';
-                                        $tierColor = match($ho->sla_tier) {
-                                            'Platinum' => 'bg-purple-50 text-purple-700 border-purple-200',
-                                            'Gold'     => 'bg-amber-50 text-amber-700 border-amber-200',
-                                            'Silver'   => 'bg-slate-100 text-slate-700 border-slate-300',
-                                            default    => 'bg-orange-50 text-orange-700 border-orange-200',
-                                        };
                                     @endphp
                                     <tr class="hover:bg-[#F8FAFC]/80 transition-colors {{ !$isAccepted ? 'bg-[#FFFDF7]' : '' }}">
                                         {{-- 1. Proyek & Klien --}}
                                         <td class="py-3.5 px-4">
-                                            <a href="{{ route('ms.projects.show', $ho->id) }}" class="font-medium text-[#1E293B] text-[13px] hover:text-[#8F0A0D] transition block">
+                                            <a href="{{ route('ms.projects.show', $ho->id) }}" class="font-semibold text-[#1E293B] text-[13px] hover:text-[#8F0A0D] transition block leading-snug">
                                                 {{ $ho->name }}
                                             </a>
-                                            <div class="text-[11.5px] text-[#64748B] mt-0.5 flex items-center gap-1.5">
-                                                <span class="font-semibold text-[#475569]">{{ $ho->client }}</span>
-                                                @if($ho->contract_value)
+                                            <div class="text-[11.5px] text-[#64748B] mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                                <span class="font-medium text-[#475569]">{{ $ho->client ?: '—' }}</span>
+                                                @if($formattedValue)
                                                     <span class="text-[#CBD5E1]">&bull;</span>
                                                     <span class="text-[#8F0A0D] font-mono font-medium">{{ $formattedValue }}</span>
                                                 @endif
                                             </div>
                                         </td>
 
-                                        {{-- 2. Asal Handover --}}
-                                        <td class="py-3.5 px-4 whitespace-nowrap">
-                                            @if($isFromSales)
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                                    Sales Direct Handover
-                                                </span>
-                                                <div class="text-[11px] text-[#64748B] mt-0.5">
-                                                    Sales PIC: <span class="font-medium text-[#334155]">{{ $ho->sales_name ?: ($ho->creator?->name ?: 'Sales') }}</span>
-                                                </div>
-                                            @else
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                                    PMO Delivery (Gate 4)
-                                                </span>
-                                                <div class="text-[11px] text-[#64748B] mt-0.5">
-                                                    Lead PM: <span class="font-medium text-[#334155]">{{ $ho->pm ? $ho->pm->name : 'PMO Delivery' }}</span>
-                                                </div>
-                                            @endif
-                                        </td>
-
-                                        {{-- 3. Info BAST & Legal --}}
+                                        {{-- 2. Dokumen & BAST --}}
                                         <td class="py-3.5 px-4">
-                                            <div class="space-y-1">
-                                                {{-- BAST Status --}}
-                                                <div class="flex items-center gap-1.5 text-[11.5px]">
-                                                    @if($ho->bast_file)
-                                                        <a href="{{ asset('storage/' . $ho->bast_file) }}" target="_blank" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold hover:bg-emerald-100 transition">
-                                                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                            <span>BAST Terlampir</span>
-                                                        </a>
-                                                    @else
-                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 font-medium">
-                                                            <span>BAST Belum Diunggah</span>
-                                                        </span>
-                                                    @endif
-                                                </div>
+                                            <div class="space-y-0.5">
+                                                @if($ho->bast_file)
+                                                    <a href="{{ asset('storage/' . $ho->bast_file) }}" target="_blank" class="inline-flex items-center gap-1 text-[11.5px] font-semibold text-emerald-700 hover:text-emerald-800 transition">
+                                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                        <span>BAST Terlampir</span>
+                                                    </a>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1 text-[11.5px] text-[#94A3B8]">
+                                                        <svg class="w-3.5 h-3.5 text-[#CBD5E1]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                        <span>Belum Ada BAST</span>
+                                                    </span>
+                                                @endif
 
-                                                {{-- SPK / PO Info --}}
                                                 @if($ho->po_spk_number)
-                                                    <div class="text-[10.5px] text-[#64748B]">
-                                                        SPK: <span class="font-mono text-[#334155]">{{ $ho->po_spk_number }}</span>
+                                                    <div class="text-[11px] font-mono text-[#64748B]">
+                                                        SPK: <span class="text-[#334155] font-medium">{{ $ho->po_spk_number }}</span>
                                                     </div>
                                                 @endif
                                             </div>
                                         </td>
 
-                                        {{-- 4. SLA Tier & Coverage --}}
+                                        {{-- 3. SLA & Coverage --}}
                                         <td class="py-3.5 px-4 whitespace-nowrap">
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{ $tierColor }}">
-                                                {{ $ho->sla_tier ?: 'Gold' }} Tier
-                                            </span>
+                                            <div class="font-semibold text-[#1E293B] text-[12.5px] flex items-center gap-1.5">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#8F0A0D]"></span>
+                                                <span>{{ $ho->sla_tier ?: 'Gold' }} Tier</span>
+                                            </div>
                                             <div class="text-[11px] text-[#64748B] mt-0.5">
-                                                Support: <span class="font-semibold text-[#334155]">{{ $ho->sla_coverage_hours ?: '24x7' }}</span>
+                                                Jam Dukungan: <span class="font-medium text-[#334155]">{{ $ho->sla_coverage_hours ?: '24×7' }}</span>
                                             </div>
                                         </td>
 
-                                        {{-- 5. Jadwal PM & Periode Kontrak --}}
+                                        {{-- 4. Jadwal PM & Periode --}}
                                         <td class="py-3.5 px-4 whitespace-nowrap">
-                                            <div class="font-medium text-[#1E293B] text-[12.5px]">
+                                            <div class="font-semibold text-[#1E293B] text-[12.5px]">
                                                 {{ $ho->maintenance_frequency ?: 'Bulanan (Monthly)' }}
                                             </div>
                                             <div class="text-[11px] text-[#64748B] mt-0.5 font-mono">
@@ -464,22 +426,22 @@
                                             </div>
                                         </td>
 
-                                        {{-- 6. Status Onboarding --}}
+                                        {{-- 5. Status Layanan --}}
                                         <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                             @if($isAccepted)
-                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                                                    <span>Layanan Aktif (Operate)</span>
+                                                    <span>Layanan Aktif</span>
                                                 </span>
                                             @else
-                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                                     <span>Menunggu Aktivasi</span>
                                                 </span>
                                             @endif
                                         </td>
 
-                                        {{-- 7. Aksi --}}
+                                        {{-- 6. Aksi --}}
                                         <td class="py-3.5 px-4 text-right whitespace-nowrap">
                                             <div class="flex items-center justify-end gap-1.5">
                                                 @if(!$isAccepted)
@@ -487,8 +449,7 @@
                                                             data-id="{{ $ho->id }}"
                                                             data-name="{{ $ho->name }}"
                                                             data-client="{{ $ho->client ?: '-' }}"
-                                                            data-origin="{{ $isFromSales ? 'Sales Direct Handover (PIC: ' . ($ho->sales_name ?: ($ho->creator?->name ?: 'Sales')) . ')' : 'PMO Delivery Gate 4 (PM: ' . ($ho->pm ? $ho->pm->name : 'PMO') . ')' }}"
-                                                            data-value="{{ $formattedValue }}"
+                                                            data-value="{{ $formattedValue ?: '—' }}"
                                                             data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
                                                             data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
                                                             data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
@@ -497,7 +458,7 @@
                                                             data-notes="{{ $ho->special_notes ?: '' }}"
                                                             data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
                                                             onclick="window.triggerAcceptModal(this)"
-                                                            class="px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11.5px] font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
+                                                            class="px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11.5px] font-bold rounded-lg shadow-2xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
                                                         <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                                         </svg>
@@ -508,8 +469,7 @@
                                                             data-id="{{ $ho->id }}"
                                                             data-name="{{ $ho->name }}"
                                                             data-client="{{ $ho->client ?: '-' }}"
-                                                            data-origin="{{ $isFromSales ? 'Sales Direct Handover (PIC: ' . ($ho->sales_name ?: ($ho->creator?->name ?: 'Sales')) . ')' : 'PMO Delivery Gate 4 (PM: ' . ($ho->pm ? $ho->pm->name : 'PMO') . ')' }}"
-                                                            data-value="{{ $formattedValue }}"
+                                                            data-value="{{ $formattedValue ?: '—' }}"
                                                             data-tier="{{ $ho->sla_tier ?: 'Gold' }}"
                                                             data-coverage="{{ $ho->sla_coverage_hours ?: '24x7' }}"
                                                             data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
@@ -518,12 +478,12 @@
                                                             data-notes="{{ $ho->special_notes ?: '' }}"
                                                             data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
                                                             onclick="window.triggerAcceptModal(this)"
-                                                            class="px-3 py-1.5 bg-white hover:bg-slate-50 text-[#8F0A0D] border border-[#FCA5A5] text-[11.5px] font-bold rounded-xl shadow-xs transition cursor-pointer active:scale-95">
+                                                            class="px-3 py-1.5 bg-white hover:bg-[#F8FAFC] text-[#334155] hover:text-[#1E293B] border border-[#CBD5E1] text-[11.5px] font-semibold rounded-lg shadow-2xs transition cursor-pointer active:scale-95">
                                                         <span>Edit SLA</span>
                                                     </button>
                                                 @endif
 
-                                                <a href="{{ route('ms.projects.show', ['project' => $ho->id, 'tab' => 'documents']) }}" title="Buka Detail &amp; Dokumen" class="p-1.5 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-[#FEF2F2] transition cursor-pointer flex items-center justify-center">
+                                                <a href="{{ route('ms.projects.show', ['project' => $ho->id, 'tab' => 'documents']) }}" title="Buka Detail Proyek &amp; Dokumen" class="p-1.5 rounded-lg text-[#64748B] hover:text-[#8F0A0D] hover:bg-[#FEF2F2] transition cursor-pointer flex items-center justify-center">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                                     </svg>
@@ -533,12 +493,12 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="py-12 text-center text-[#64748B] text-[13px]">
+                                        <td colspan="6" class="py-12 text-center text-[#64748B] text-[13px]">
                                             <div class="flex flex-col items-center justify-center gap-2">
                                                 <svg class="w-8 h-8 text-[#94A3B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                 </svg>
-                                                <span class="font-medium">Belum ada serah terima kontrak masuk dari PMO Delivery maupun Sales.</span>
+                                                <span class="font-medium">Belum ada serah terima kontrak masuk.</span>
                                             </div>
                                         </td>
                                     </tr>
@@ -595,19 +555,15 @@
 
             <div class="p-5 sm:p-6 overflow-y-auto space-y-5 text-[12.5px] flex-1">
                 
-                {{-- Info Klien & Asal Handover (Simetris 3 Kolom) --}}
-                <div class="p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0] grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-center">
+                {{-- Info Klien & Nilai Kontrak (Simetris 2 Kolom) --}}
+                <div class="p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0] grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                     <div>
                         <span class="text-[#64748B] block font-bold text-[11px] uppercase tracking-wider">Klien / Instansi</span>
-                        <span id="accept-modal-client" class="font-bold text-[#1E293B] text-[13.5px] block truncate mt-0.5">—</span>
-                    </div>
-                    <div>
-                        <span class="text-[#64748B] block font-bold text-[11px] uppercase tracking-wider">Asal Handover</span>
-                        <span id="accept-modal-origin" class="font-semibold text-[#334155] text-[12.5px] block truncate mt-0.5">—</span>
+                        <span id="accept-modal-client" class="font-bold text-[#1E293B] text-[14px] block truncate mt-0.5">—</span>
                     </div>
                     <div class="sm:text-right">
                         <span class="text-[#64748B] block font-bold text-[11px] uppercase tracking-wider">Nilai Kontrak</span>
-                        <span id="accept-modal-contract-value" class="font-extrabold text-[#8F0A0D] font-mono text-[14.5px] block mt-0.5">—</span>
+                        <span id="accept-modal-contract-value" class="font-extrabold text-[#8F0A0D] font-mono text-[15px] block mt-0.5">—</span>
                     </div>
                 </div>
 
@@ -741,7 +697,6 @@
             id: btn.getAttribute('data-id'),
             name: btn.getAttribute('data-name'),
             client: btn.getAttribute('data-client'),
-            origin: btn.getAttribute('data-origin'),
             contract_value_formatted: btn.getAttribute('data-value'),
             sla_tier: btn.getAttribute('data-tier'),
             sla_coverage_hours: btn.getAttribute('data-coverage'),
@@ -767,8 +722,6 @@
         if (titleEl) titleEl.textContent = 'Aktivasi: ' + (p.name || '');
         var clientEl = document.getElementById('accept-modal-client');
         if (clientEl) clientEl.textContent = p.client || '—';
-        var originEl = document.getElementById('accept-modal-origin');
-        if (originEl) originEl.textContent = p.origin || 'PMO / Sales Handover';
         var valEl = document.getElementById('accept-modal-contract-value');
         if (valEl) valEl.textContent = p.contract_value_formatted || '—';
         var slaTierEl = document.getElementById('accept-modal-sla-tier');
