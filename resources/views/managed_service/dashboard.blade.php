@@ -227,43 +227,43 @@
                     {{-- Metric 1: Klien Kontrak SLA --}}
                     <div class="ipnet-metric-card group block anim-fade-up anim-delay-1">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Kontrak SLA</span>
-                            <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center">
+                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Kontrak SLA</span>
+                            <div class="w-7 h-7 rounded-lg bg-[#F1F5F9] text-[#475569] flex items-center justify-center border border-[#E2E8F0]">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[24px] font-extrabold text-purple-700 tracking-tight">{{ $operateProjects->count() }}</div>
-                        <p class="text-[11px] text-[#75727C] mt-0.5">Klien Maintenance</p>
+                        <div class="text-[24px] font-extrabold text-[#1E293B] tracking-tight">{{ $operateProjects->count() }}</div>
+                        <p class="text-[11px] text-[#64748B] mt-0.5">Klien Maintenance</p>
                     </div>
 
                     {{-- Metric 2: Jadwal PM Bulan Ini --}}
                     <a href="{{ route('ms.maintenance.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-2">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Agenda PM</span>
-                            <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Agenda PM</span>
+                            <div class="w-7 h-7 rounded-lg bg-[#F1F5F9] text-[#475569] flex items-center justify-center border border-[#E2E8F0] group-hover:bg-[#1E293B] group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[24px] font-extrabold text-blue-600 tracking-tight">{{ $totalPmSchedulesCount ?? 0 }}</div>
-                        <p class="text-[11px] text-[#75727C] mt-0.5">Kunjungan bulan ini</p>
+                        <div class="text-[24px] font-extrabold text-[#1E293B] tracking-tight">{{ $totalPmSchedulesCount ?? 0 }}</div>
+                        <p class="text-[11px] text-[#64748B] mt-0.5">Kunjungan bulan ini</p>
                     </a>
 
                     {{-- Metric 3: Total Tiket Aktif --}}
                     <a href="{{ route('ms.tickets.index') }}" class="ipnet-metric-card group block anim-fade-up anim-delay-3">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Tiket Aktif</span>
-                            <div class="w-7 h-7 rounded-lg {{ $openTickets > 0 ? 'bg-rose-500/10 text-rose-600' : 'bg-slate-100 text-slate-500' }} flex items-center justify-center group-hover:bg-[#8F0A0D] group-hover:text-white transition-colors">
+                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Tiket Aktif</span>
+                            <div class="w-7 h-7 rounded-lg {{ $openTickets > 0 ? 'bg-[#FEF2F2] text-[#8F0A0D] border border-red-100' : 'bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]' }} flex items-center justify-center group-hover:bg-[#8F0A0D] group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[24px] font-extrabold text-[#292929] tracking-tight">{{ $openTickets }}</div>
-                        <p class="text-[11px] font-semibold mt-0.5 {{ $criticalTickets > 0 ? 'text-rose-600' : 'text-[#75727C]' }}">
+                        <div class="text-[24px] font-extrabold text-[#1E293B] tracking-tight">{{ $openTickets }}</div>
+                        <p class="text-[11px] mt-0.5 {{ $criticalTickets > 0 ? 'text-[#8F0A0D] font-bold' : 'text-[#64748B]' }}">
                             @if($criticalTickets > 0)
                                 {{ $criticalTickets }} Tiket Kritis (P1)
                             @elseif($openTickets > 0)
@@ -277,15 +277,15 @@
                     {{-- Metric 4: Tiket Selesai --}}
                     <a href="{{ route('ms.tickets.index', ['status' => 'Resolved']) }}" class="ipnet-metric-card group block anim-fade-up anim-delay-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Tiket Selesai</span>
-                            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">Tiket Selesai</span>
+                            <div class="w-7 h-7 rounded-lg bg-[#F1F5F9] text-[#475569] flex items-center justify-center border border-[#E2E8F0] group-hover:bg-[#1E293B] group-hover:text-white transition-colors">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[24px] font-extrabold text-emerald-600 tracking-tight">{{ $resolvedTickets }}</div>
-                        <p class="text-[11px] text-emerald-700 font-semibold mt-0.5">Bulan berjalan</p>
+                        <div class="text-[24px] font-extrabold text-[#1E293B] tracking-tight">{{ $resolvedTickets }}</div>
+                        <p class="text-[11px] text-[#64748B] mt-0.5">Bulan berjalan</p>
                     </a>
 
                 </div>
