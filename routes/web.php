@@ -86,6 +86,7 @@ Route::get('/clean-dummy-data', function () {
         'managed_service_assets',
         'managed_service_reports',
         'managed_service_tickets',
+        'managed_service_pm_cycles',
         'market_intelligences',
         'notifications',
         'partnerships',
