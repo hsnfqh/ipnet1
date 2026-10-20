@@ -258,16 +258,7 @@
                     </span>
                 </button>
 
-                <button type="button" 
-                        @click="activeTab = 'sla'; window.history.replaceState(null, '', '?tab=sla')"
-                        :class="activeTab === 'sla' ? 'border-[#8F0A0D] text-[#8F0A0D]' : 'border-transparent text-[#64748B] hover:text-[#1E293B]'"
-                        class="pb-3 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
-                    <span>Parameter Layanan & SLA</span>
-                    <span :class="activeTab === 'sla' ? 'bg-red-50 text-[#8F0A0D]' : 'bg-gray-100 text-[#64748B]'" class="text-[10.5px] font-bold px-1.5 py-0.5 rounded-full">
-                        {{ $project->sla_target_percentage ?: '99.50' }}%
-                    </span>
-                </button>
+
             </div>
 
             <!-- ========================================================== -->
@@ -882,124 +873,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================== -->
-            <!-- TAB 4: PARAMETER LAYANAN & SLA                             -->
-            <!-- ========================================================== -->
-            <div x-show="activeTab === 'sla'" x-cloak class="ipnet-card p-5 sm:p-6 space-y-5 anim-fade-up">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#E2E8F0] pb-4">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
-                            <h2 class="text-[14px] font-bold text-[#1E293B] uppercase tracking-wider">Parameter Layanan Managed Service & SLA</h2>
-                        </div>
-                        <p class="text-[12px] text-[#64748B] mt-0.5">Spesifikasi komitmen SLA, kuota Corrective Maintenance (CM), dan frekuensi Preventive Maintenance (PM)</p>
-                    </div>
-                    <button type="button" @click="isSlaModalOpen = true" class="btn-ipnet-gradient px-4 py-2 rounded-xl text-white text-xs font-bold shadow-md transition cursor-pointer self-start sm:self-auto flex items-center gap-2">
-                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        <span>Ubah Parameter SLA</span>
-                    </button>
-                </div>
 
-                <!-- 6 Metrics Parameter SLA -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
-                        <span class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider block">Durasi Kontrak</span>
-                        <p class="text-[13px] font-bold text-[#1E293B]">
-                            @if($project->service_start_date && $project->service_end_date)
-                                {{ \Carbon\Carbon::parse($project->service_start_date)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($project->service_end_date)->format('d/m/Y') }}
-                            @else
-                                1 Tahun Kontrak
-                            @endif
-                        </p>
-                        <span class="text-[10px] text-[#94A3B8]">Periode Layanan</span>
-                    </div>
-
-                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
-                        <span class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider block">SLA Commitment</span>
-                        <p class="text-[16px] font-bold text-[#8F0A0D]">{{ $project->sla_target_percentage ?: '99.50' }}%</p>
-                        <span class="text-[10px] text-[#94A3B8]">Target Availability</span>
-                    </div>
-
-                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
-                        <span class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider block">MTTR Target</span>
-                        <p class="text-[16px] font-bold text-[#1E293B]">{{ $project->mttr_hours ?: 4 }} Jam</p>
-                        <span class="text-[10px] text-[#94A3B8]">Mean Time to Repair</span>
-                    </div>
-
-                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
-                        <span class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider block">Coverage Support</span>
-                        <p class="text-[16px] font-bold text-[#1E293B]">{{ $project->sla_coverage_hours ?: '24x7' }}</p>
-                        <span class="text-[10px] text-[#94A3B8]">Standby Support</span>
-                    </div>
-
-                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
-                        <span class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider block">Call Response</span>
-                        <p class="text-[16px] font-bold text-[#1E293B]">{{ $project->call_response_time ?: '15 menit' }}</p>
-                        <span class="text-[10px] text-[#94A3B8]">Respon Panggilan</span>
-                    </div>
-
-                    <div class="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
-                        <span class="text-[10.5px] font-bold text-[#64748B] uppercase tracking-wider block">Target Resolusi</span>
-                        <p class="text-[16px] font-bold text-[#1E293B]">{{ $project->incident_resolution_hours ?: 4 }} Jam</p>
-                        <span class="text-[10px] text-[#94A3B8]">Resolusi Masalah</span>
-                    </div>
-                </div>
-
-                <!-- CM & PM Quota Breakdown -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                    <!-- CM Quota Card -->
-                    <div class="p-4 rounded-xl border border-[#E2E8F0] bg-white space-y-3 shadow-2xs">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Corrective Maintenance</span>
-                                <h3 class="text-[13.5px] font-bold text-[#1E293B] mt-0.5">Kuota Tiket CM (1 Tahun)</h3>
-                            </div>
-                            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-[#8F0A0D] border border-rose-200">
-                                {{ $cmQuota >= 999 ? 'Unlimited Tiket' : $cmQuota . ' Tiket' }}
-                            </span>
-                        </div>
-
-                        <div class="space-y-1.5 pt-1">
-                            <div class="flex items-center justify-between text-xs font-semibold text-[#475569]">
-                                <span>Tiket Terpakai: <strong class="text-[#1E293B]">{{ $cmUsed }} Tiket</strong></span>
-                                <span>Sisa Kuota: <strong class="text-emerald-700">{{ $cmRemaining }} Tiket</strong></span>
-                            </div>
-                            <div class="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full transition-all duration-500" 
-                                     style="background: linear-gradient(90deg, #8F0A0D, #D62E3C); width: {{ $cmQuota >= 999 ? '15%' : min(100, round(($cmUsed / max(1, $cmQuota)) * 100)) }}%;"></div>
-                            </div>
-                        </div>
-
-                        <p class="text-[11.5px] text-[#64748B]">Opsi kuota kontrak: <strong>4, 6, 8, 12, 18 tiket</strong>, atau unlimited per periode.</p>
-                    </div>
-
-                    <!-- PM Frequency Card -->
-                    <div class="p-4 rounded-xl border border-[#E2E8F0] bg-white space-y-3 shadow-2xs">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <span class="text-[10.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">Preventive Maintenance</span>
-                                <h3 class="text-[13.5px] font-bold text-[#1E293B] mt-0.5">Jadwal Siklus PM (1 Tahun)</h3>
-                            </div>
-                            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-[#8F0A0D] border border-rose-200">
-                                {{ $pmTotal }} Kali ({{ str_replace('_', ' ', $project->pm_frequency_type ?: 'per 3 bulan') }})
-                            </span>
-                        </div>
-
-                        <div class="space-y-1.5 pt-1">
-                            <div class="flex items-center justify-between text-xs font-semibold text-[#475569]">
-                                <span>Siklus Selesai: <strong class="text-[#1E293B]">{{ $pmCompleted }} / {{ $pmTotal }} PM</strong></span>
-                                <span>Progres: <strong class="text-[#8F0A0D]">{{ $pmProgress }}%</strong></span>
-                            </div>
-                            <div class="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden">
-                                <div class="h-full rounded-full transition-all duration-500" 
-                                     style="background: linear-gradient(90deg, #8F0A0D, #D62E3C); width: {{ min(100, $pmProgress) }}%;"></div>
-                            </div>
-                        </div>
-
-                        <p class="text-[11.5px] text-[#64748B]">Frekuensi inspeksi berkala: <strong>Per Bulan, Per 2 Bulan, Per 3 Bulan (Quarterly)</strong>.</p>
-                    </div>
-                </div>
-            </div>
 
         </div>
     </div>

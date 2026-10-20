@@ -1282,7 +1282,7 @@ class ManagedServiceController extends Controller
         $pmProgress = $pmTotal > 0 ? round(($pmCompleted / $pmTotal) * 100) : 0;
 
         $activeTab = $request->input('tab', 'documents');
-        if (!in_array($activeTab, ['documents', 'pm', 'cm', 'sla'])) {
+        if (!in_array($activeTab, ['documents', 'pm', 'cm'])) {
             $activeTab = 'documents';
         }
 
