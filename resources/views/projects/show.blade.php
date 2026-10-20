@@ -2443,47 +2443,35 @@
                                     </label>
                                     <select name="pm_frequency_type" id="handover-pm-frequency" onchange="window.handlePmOptionChange(this)"
                                             class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-gray-800 hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
-                                        <optgroup label="Per 3 Bulan / Triwulanan (Standar)">
-                                            <option value="per_3_bulan:1" {{ $selectedPmVal == 'per_3_bulan:1' ? 'selected' : '' }}>Per 3 Bulan - Kontrak 1 Tahun (4 Kali Kunjungan) - Standar</option>
-                                            <option value="per_3_bulan:2" {{ $selectedPmVal == 'per_3_bulan:2' ? 'selected' : '' }}>Per 3 Bulan - Kontrak 2 Tahun (8 Kali Kunjungan)</option>
-                                            <option value="per_3_bulan:3" {{ $selectedPmVal == 'per_3_bulan:3' ? 'selected' : '' }}>Per 3 Bulan - Kontrak 3 Tahun (12 Kali Kunjungan)</option>
-                                            <option value="per_3_bulan:4" {{ $selectedPmVal == 'per_3_bulan:4' ? 'selected' : '' }}>Per 3 Bulan - Kontrak 4 Tahun (16 Kali Kunjungan)</option>
-                                            <option value="per_3_bulan:5" {{ $selectedPmVal == 'per_3_bulan:5' ? 'selected' : '' }}>Per 3 Bulan - Kontrak 5 Tahun (20 Kali Kunjungan)</option>
+                                        <optgroup label="Kontrak 1 Tahun">
+                                            <option value="per_bulan:1" {{ $selectedPmVal == 'per_bulan:1' ? 'selected' : '' }}>1 Tahun - Per Bulan (12x Kunjungan)</option>
+                                            <option value="per_2_bulan:1" {{ $selectedPmVal == 'per_2_bulan:1' ? 'selected' : '' }}>1 Tahun - Per 2 Bulan (6x Kunjungan)</option>
+                                            <option value="per_3_bulan:1" {{ $selectedPmVal == 'per_3_bulan:1' ? 'selected' : '' }}>1 Tahun - Per 3 Bulan (4x Kunjungan)</option>
+                                            <option value="per_4_bulan:1" {{ $selectedPmVal == 'per_4_bulan:1' ? 'selected' : '' }}>1 Tahun - Per 4 Bulan (3x Kunjungan)</option>
                                         </optgroup>
-                                        <optgroup label="Per Bulan / Bulanan">
-                                            <option value="per_bulan:1" {{ $selectedPmVal == 'per_bulan:1' ? 'selected' : '' }}>Per Bulan - Kontrak 1 Tahun (12 Kali Kunjungan)</option>
-                                            <option value="per_bulan:2" {{ $selectedPmVal == 'per_bulan:2' ? 'selected' : '' }}>Per Bulan - Kontrak 2 Tahun (24 Kali Kunjungan)</option>
-                                            <option value="per_bulan:3" {{ $selectedPmVal == 'per_bulan:3' ? 'selected' : '' }}>Per Bulan - Kontrak 3 Tahun (36 Kali Kunjungan)</option>
-                                            <option value="per_bulan:4" {{ $selectedPmVal == 'per_bulan:4' ? 'selected' : '' }}>Per Bulan - Kontrak 4 Tahun (48 Kali Kunjungan)</option>
-                                            <option value="per_bulan:5" {{ $selectedPmVal == 'per_bulan:5' ? 'selected' : '' }}>Per Bulan - Kontrak 5 Tahun (60 Kali Kunjungan)</option>
+                                        <optgroup label="Kontrak 2 Tahun">
+                                            <option value="per_bulan:2" {{ $selectedPmVal == 'per_bulan:2' ? 'selected' : '' }}>2 Tahun - Per Bulan (24x Kunjungan)</option>
+                                            <option value="per_2_bulan:2" {{ $selectedPmVal == 'per_2_bulan:2' ? 'selected' : '' }}>2 Tahun - Per 2 Bulan (12x Kunjungan)</option>
+                                            <option value="per_3_bulan:2" {{ $selectedPmVal == 'per_3_bulan:2' ? 'selected' : '' }}>2 Tahun - Per 3 Bulan (8x Kunjungan)</option>
+                                            <option value="per_4_bulan:2" {{ $selectedPmVal == 'per_4_bulan:2' ? 'selected' : '' }}>2 Tahun - Per 4 Bulan (6x Kunjungan)</option>
                                         </optgroup>
-                                        <optgroup label="Per 2 Bulan">
-                                            <option value="per_2_bulan:1" {{ $selectedPmVal == 'per_2_bulan:1' ? 'selected' : '' }}>Per 2 Bulan - Kontrak 1 Tahun (6 Kali Kunjungan)</option>
-                                            <option value="per_2_bulan:2" {{ $selectedPmVal == 'per_2_bulan:2' ? 'selected' : '' }}>Per 2 Bulan - Kontrak 2 Tahun (12 Kali Kunjungan)</option>
-                                            <option value="per_2_bulan:3" {{ $selectedPmVal == 'per_2_bulan:3' ? 'selected' : '' }}>Per 2 Bulan - Kontrak 3 Tahun (18 Kali Kunjungan)</option>
-                                            <option value="per_2_bulan:4" {{ $selectedPmVal == 'per_2_bulan:4' ? 'selected' : '' }}>Per 2 Bulan - Kontrak 4 Tahun (24 Kali Kunjungan)</option>
-                                            <option value="per_2_bulan:5" {{ $selectedPmVal == 'per_2_bulan:5' ? 'selected' : '' }}>Per 2 Bulan - Kontrak 5 Tahun (30 Kali Kunjungan)</option>
+                                        <optgroup label="Kontrak 3 Tahun">
+                                            <option value="per_bulan:3" {{ $selectedPmVal == 'per_bulan:3' ? 'selected' : '' }}>3 Tahun - Per Bulan (36x Kunjungan)</option>
+                                            <option value="per_2_bulan:3" {{ $selectedPmVal == 'per_2_bulan:3' ? 'selected' : '' }}>3 Tahun - Per 2 Bulan (18x Kunjungan)</option>
+                                            <option value="per_3_bulan:3" {{ $selectedPmVal == 'per_3_bulan:3' ? 'selected' : '' }}>3 Tahun - Per 3 Bulan (12x Kunjungan)</option>
+                                            <option value="per_4_bulan:3" {{ $selectedPmVal == 'per_4_bulan:3' ? 'selected' : '' }}>3 Tahun - Per 4 Bulan (9x Kunjungan)</option>
                                         </optgroup>
-                                        <optgroup label="Per 4 Bulan / Caturwulan">
-                                            <option value="per_4_bulan:1" {{ $selectedPmVal == 'per_4_bulan:1' ? 'selected' : '' }}>Per 4 Bulan - Kontrak 1 Tahun (3 Kali Kunjungan)</option>
-                                            <option value="per_4_bulan:2" {{ $selectedPmVal == 'per_4_bulan:2' ? 'selected' : '' }}>Per 4 Bulan - Kontrak 2 Tahun (6 Kali Kunjungan)</option>
-                                            <option value="per_4_bulan:3" {{ $selectedPmVal == 'per_4_bulan:3' ? 'selected' : '' }}>Per 4 Bulan - Kontrak 3 Tahun (9 Kali Kunjungan)</option>
-                                            <option value="per_4_bulan:4" {{ $selectedPmVal == 'per_4_bulan:4' ? 'selected' : '' }}>Per 4 Bulan - Kontrak 4 Tahun (12 Kali Kunjungan)</option>
-                                            <option value="per_4_bulan:5" {{ $selectedPmVal == 'per_4_bulan:5' ? 'selected' : '' }}>Per 4 Bulan - Kontrak 5 Tahun (15 Kali Kunjungan)</option>
+                                        <optgroup label="Kontrak 4 Tahun">
+                                            <option value="per_bulan:4" {{ $selectedPmVal == 'per_bulan:4' ? 'selected' : '' }}>4 Tahun - Per Bulan (48x Kunjungan)</option>
+                                            <option value="per_2_bulan:4" {{ $selectedPmVal == 'per_2_bulan:4' ? 'selected' : '' }}>4 Tahun - Per 2 Bulan (24x Kunjungan)</option>
+                                            <option value="per_3_bulan:4" {{ $selectedPmVal == 'per_3_bulan:4' ? 'selected' : '' }}>4 Tahun - Per 3 Bulan (16x Kunjungan)</option>
+                                            <option value="per_4_bulan:4" {{ $selectedPmVal == 'per_4_bulan:4' ? 'selected' : '' }}>4 Tahun - Per 4 Bulan (12x Kunjungan)</option>
                                         </optgroup>
-                                        <optgroup label="Per 6 Bulan / Semesteran">
-                                            <option value="per_6_bulan:1" {{ $selectedPmVal == 'per_6_bulan:1' ? 'selected' : '' }}>Per 6 Bulan - Kontrak 1 Tahun (2 Kali Kunjungan)</option>
-                                            <option value="per_6_bulan:2" {{ $selectedPmVal == 'per_6_bulan:2' ? 'selected' : '' }}>Per 6 Bulan - Kontrak 2 Tahun (4 Kali Kunjungan)</option>
-                                            <option value="per_6_bulan:3" {{ $selectedPmVal == 'per_6_bulan:3' ? 'selected' : '' }}>Per 6 Bulan - Kontrak 3 Tahun (6 Kali Kunjungan)</option>
-                                            <option value="per_6_bulan:4" {{ $selectedPmVal == 'per_6_bulan:4' ? 'selected' : '' }}>Per 6 Bulan - Kontrak 4 Tahun (8 Kali Kunjungan)</option>
-                                            <option value="per_6_bulan:5" {{ $selectedPmVal == 'per_6_bulan:5' ? 'selected' : '' }}>Per 6 Bulan - Kontrak 5 Tahun (10 Kali Kunjungan)</option>
-                                        </optgroup>
-                                        <optgroup label="Per 1 Tahun / Tahunan">
-                                            <option value="tahunan:1" {{ $selectedPmVal == 'tahunan:1' ? 'selected' : '' }}>Per 1 Tahun - Kontrak 1 Tahun (1 Kali Kunjungan)</option>
-                                            <option value="tahunan:2" {{ $selectedPmVal == 'tahunan:2' ? 'selected' : '' }}>Per 1 Tahun - Kontrak 2 Tahun (2 Kali Kunjungan)</option>
-                                            <option value="tahunan:3" {{ $selectedPmVal == 'tahunan:3' ? 'selected' : '' }}>Per 1 Tahun - Kontrak 3 Tahun (3 Kali Kunjungan)</option>
-                                            <option value="tahunan:4" {{ $selectedPmVal == 'tahunan:4' ? 'selected' : '' }}>Per 1 Tahun - Kontrak 4 Tahun (4 Kali Kunjungan)</option>
-                                            <option value="tahunan:5" {{ $selectedPmVal == 'tahunan:5' ? 'selected' : '' }}>Per 1 Tahun - Kontrak 5 Tahun (5 Kali Kunjungan)</option>
+                                        <optgroup label="Kontrak 5 Tahun">
+                                            <option value="per_bulan:5" {{ $selectedPmVal == 'per_bulan:5' ? 'selected' : '' }}>5 Tahun - Per Bulan (60x Kunjungan)</option>
+                                            <option value="per_2_bulan:5" {{ $selectedPmVal == 'per_2_bulan:5' ? 'selected' : '' }}>5 Tahun - Per 2 Bulan (30x Kunjungan)</option>
+                                            <option value="per_3_bulan:5" {{ $selectedPmVal == 'per_3_bulan:5' ? 'selected' : '' }}>5 Tahun - Per 3 Bulan (20x Kunjungan)</option>
+                                            <option value="per_4_bulan:5" {{ $selectedPmVal == 'per_4_bulan:5' ? 'selected' : '' }}>5 Tahun - Per 4 Bulan (15x Kunjungan)</option>
                                         </optgroup>
                                     </select>
                                 </div>
@@ -2495,7 +2483,7 @@
                                     </label>
                                     <select name="cm_quota"
                                             class="w-full px-3.5 py-2 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-bold text-gray-800 hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 cursor-pointer transition">
-                                        <option value="18" {{ ($project->cm_quota ?? 18) == 18 ? 'selected' : '' }}>18 Tiket / Tahun (Standar)</option>
+                                        <option value="18" {{ ($project->cm_quota ?? 18) == 18 ? 'selected' : '' }}>18 Tiket / Tahun</option>
                                         <option value="4" {{ ($project->cm_quota ?? 18) == 4 ? 'selected' : '' }}>4 Tiket / Tahun</option>
                                         <option value="6" {{ ($project->cm_quota ?? 18) == 6 ? 'selected' : '' }}>6 Tiket / Tahun</option>
                                         <option value="8" {{ ($project->cm_quota ?? 18) == 8 ? 'selected' : '' }}>8 Tiket / Tahun</option>
