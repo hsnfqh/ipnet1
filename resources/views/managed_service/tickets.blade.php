@@ -147,7 +147,6 @@
                         </thead>
                         <tbody class="divide-y divide-[#F1F5F9] text-[13px]">
                             @forelse($tickets as $t)
-                                @php $tTier = $t->sla_tier_info; @endphp
                                 <tr class="hover:bg-[#F8FAFC] transition-colors">
                                     <td class="py-4 px-5 whitespace-nowrap">
                                         <div class="font-mono font-extrabold text-[#1E293B] text-[13px] flex items-center gap-2">
@@ -161,24 +160,38 @@
                                         </div>
                                         <div class="text-[12px] text-[#64748B] font-semibold flex items-center gap-1.5 mt-0.5">
                                             <span>{{ $t->client_name }}</span>
-                                            @if($tTier)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#8F0A0D] text-white shadow-2xs">
-                                                    <span>{{ $tTier['tier'] }}</span>
+                                            @if($t->category)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                    <span>{{ $t->category }}</span>
                                                 </span>
                                             @endif
                                         </div>
                                     </td>
                                     <td class="py-4 px-5">
+                                        @php
+                                            $sevLabel = 'LOW';
+                                            $sevCls = 'bg-blue-50 text-blue-700 border-blue-200';
+                                            $sevDot = 'bg-blue-500';
+                                            if (stripos($t->priority, 'Critical') !== false || stripos($t->priority, 'P1') !== false) {
+                                                $sevLabel = 'CRITICAL';
+                                                $sevCls = 'bg-red-50 text-[#8F0A0D] border-red-200';
+                                                $sevDot = 'bg-[#8F0A0D]';
+                                            } elseif (stripos($t->priority, 'High') !== false || stripos($t->priority, 'Major') !== false || stripos($t->priority, 'P2') !== false) {
+                                                $sevLabel = 'HIGH';
+                                                $sevCls = 'bg-orange-50 text-orange-700 border-orange-200';
+                                                $sevDot = 'bg-orange-500';
+                                            } elseif (stripos($t->priority, 'Medium') !== false || stripos($t->priority, 'Minor') !== false || stripos($t->priority, 'P3') !== false) {
+                                                $sevLabel = 'MEDIUM';
+                                                $sevCls = 'bg-amber-50 text-amber-700 border-amber-200';
+                                                $sevDot = 'bg-amber-500';
+                                            }
+                                        @endphp
                                         <div class="font-bold text-[#1E293B] text-[13.5px] flex items-center gap-2">
                                             <span>{{ $t->title }}</span>
-                                            @if($t->priority)
-                                                @php
-                                                    $pColor = str_contains($t->priority, 'Critical') || str_contains($t->priority, 'P1') ? 'bg-red-50 text-red-700 border-red-200' :
-                                                              (str_contains($t->priority, 'Major') || str_contains($t->priority, 'High') || str_contains($t->priority, 'P2') ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                                              (str_contains($t->priority, 'Minor') || str_contains($t->priority, 'Medium') || str_contains($t->priority, 'P3') ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200'));
-                                                @endphp
-                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold border {{ $pColor }}">{{ $t->priority }}</span>
-                                            @endif
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold border {{ $sevCls }}">
+                                                <span class="w-1.5 h-1.5 rounded-full {{ $sevDot }}"></span>
+                                                {{ $sevLabel }}
+                                            </span>
                                         </div>
                                         <div class="text-[11.5px] text-[#64748B] line-clamp-1 mt-0.5">{{ $t->description ?: 'Tidak ada deskripsi tambahan.' }}</div>
                                         <div class="text-[11px] text-slate-500 flex flex-wrap items-center gap-2 mt-1">
@@ -309,115 +322,8 @@
         </div>
     </div>
 
-    {{-- MODAL CREATE TICKET --}}
-    <template x-teleport="body">
-        <div x-show="isCreateModalOpen" 
-             x-cloak 
-             class="fixed inset-0 z-50 bg-[#0F172A]/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col overflow-hidden" @click.away="isCreateModalOpen = false">
-                <!-- Fixed Header (Konsisten dengan Catat Log Aktivitas Kerja Baru) -->
-                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
-                    <h3 class="text-[16px] font-bold text-[#1E293B]">Buat Tiket Maintenance (PM / CM)</h3>
-                    <button type="button" @click="isCreateModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
-
-                <!-- Form with Scrollable Body & Fixed Footer -->
-                <form action="{{ route('ms.tickets.store') }}" method="POST" class="flex flex-col flex-1 min-h-0 overflow-hidden">
-                    @csrf
-                    <div class="p-5 sm:p-6 overflow-y-auto space-y-3.5 text-[12.5px] flex-1">
-                        <div>
-                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Nama Instansi / Klien <span class="text-[#8F0A0D]">*</span></label>
-                            <input type="text" name="client_name" required placeholder="Contoh: Bank Mandiri, PT Telkom"
-                                   class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Judul Tiket / Permasalahan <span class="text-[#8F0A0D]">*</span></label>
-                            <input type="text" name="title" required placeholder="Contoh: Flapping Link SFP Port 24 / Jadwal PM Q3"
-                                   class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <div>
-                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Tanggal Tiket <span class="text-[#8F0A0D]">*</span></label>
-                                <input type="date" name="created_at" value="{{ now()->format('Y-m-d') }}" required
-                                       class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                            </div>
-                            <div>
-                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Tier SLA Klien <span class="text-[#8F0A0D]">*</span></label>
-                                <select name="priority" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                                    <option value="Platinum">Platinum</option>
-                                    <option value="Gold" selected>Gold</option>
-                                    <option value="Silver">Silver</option>
-                                    <option value="Bronze">Bronze</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <div>
-                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Tipe Layanan <span class="text-[#8F0A0D]">*</span></label>
-                                <select name="type" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                                    <option value="Preventive Maintenance">Preventive Maintenance (PM)</option>
-                                    <option value="Corrective Maintenance" selected>Corrective Maintenance (CM)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Perangkat CI Terkait (Opsional)</label>
-                                <select name="asset_id" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                                    <option value="">-- Pilih Perangkat (Opsional) --</option>
-                                    @foreach($assets as $a)
-                                        <option value="{{ $a->id }}">{{ $a->device_name }} ({{ $a->client_name }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <div>
-                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Nama Pelapor</label>
-                                <input type="text" name="reported_by" placeholder="Bpk. Hendra (IT Ops)"
-                                       class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
-                            </div>
-                            <div>
-                                <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">No. Kontak / WA</label>
-                                <input type="text" name="contact_phone" placeholder="0812-xxxx-xxxx"
-                                       class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Tugaskan ke Teknisi PIC</label>
-                            <select name="assigned_to" class="w-full px-3.5 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition cursor-pointer">
-                                <option value="">-- Pilih Teknisi (Opsional) --</option>
-                                @foreach($engineers as $eng)
-                                    <option value="{{ $eng->id }}">{{ $eng->name }} ({{ $eng->roles->pluck('name')->first() }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block font-bold text-[#475569] uppercase tracking-wider text-[11px] mb-1.5">Rincian Deskripsi Masalah</label>
-                            <textarea name="description" rows="3" placeholder="Jelaskan kronologi kendala atau permintaan..."
-                                      class="w-full px-3.5 py-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-[12.5px] font-medium text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition resize-none"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Fixed Footer -->
-                    <div class="flex items-center justify-end gap-2.5 p-4 px-6 border-t border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
-                        <button type="button" @click="isCreateModalOpen = false" class="px-4 py-2.5 text-[12.5px] font-bold text-[#475569] hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-xl transition cursor-pointer">
-                            Batal
-                        </button>
-                        <button type="submit" class="btn-ipnet-gradient px-5 py-2.5 text-[12.5px] font-bold rounded-xl shadow-md cursor-pointer">
-                            Terbitkan Tiket
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </template>
+    {{-- MODAL CREATE TICKET (STANDAR HELPDESK & SEVERITY IP-NET SESUAI GAMBAR 2) --}}
+    @include('managed_service.partials.modal_ticket_create')
 
     {{-- MODAL UPDATE STATUS & RESOLUSI TIKET --}}
     <template x-teleport="body">

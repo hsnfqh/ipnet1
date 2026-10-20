@@ -170,7 +170,7 @@ class ManagedServiceController extends Controller
 
         // Ticket Type & Distribution Data for Doughnut Chart
         $ticketTypeData = [
-            ['name' => 'Incident / CM', 'count' => $tickets->whereIn('type', ['Incident', 'Corrective Maintenance', 'Corrective'])->count(), 'color' => '#EF4444'],
+            ['name' => 'Incident / CM', 'count' => $tickets->whereIn('type', ['Incident', 'Corrective Maintenance', 'Corrective'])->count(), 'color' => '#8F0A0D'],
             ['name' => 'Preventive (PM)', 'count' => $tickets->whereIn('type', ['Preventive Maintenance', 'Preventive'])->count() ?: $totalPmSchedulesCount, 'color' => '#3B82F6'],
         ];
 
@@ -214,12 +214,39 @@ class ManagedServiceController extends Controller
                   ->orWhere('title', 'like', '%Managed Service%');
             })->whereMonth('date', now()->month)->count();
 
+            // Hitung Urgensi (Severity) Tiket Tertinggi jika ada gangguan aktif
+            $highestSeverity = 'NORMAL';
+            $severityBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            $severityDot = 'bg-emerald-500';
+
             if ($openTicketsCount > 0) {
+                $hasCritical = $clientTickets->whereIn('status', ['Open', 'In Progress', 'Pending Vendor'])->filter(fn($t) => stripos($t->priority, 'Critical') !== false || stripos($t->priority, 'P1') !== false)->count() > 0;
+                $hasHigh = $clientTickets->whereIn('status', ['Open', 'In Progress', 'Pending Vendor'])->filter(fn($t) => stripos($t->priority, 'High') !== false || stripos($t->priority, 'Major') !== false || stripos($t->priority, 'P2') !== false)->count() > 0;
+                $hasMedium = $clientTickets->whereIn('status', ['Open', 'In Progress', 'Pending Vendor'])->filter(fn($t) => stripos($t->priority, 'Medium') !== false || stripos($t->priority, 'Minor') !== false || stripos($t->priority, 'P3') !== false)->count() > 0;
+
+                if ($hasCritical) {
+                    $highestSeverity = 'CRITICAL';
+                    $severityBadge = 'bg-red-50 text-[#8F0A0D] border-red-200';
+                    $severityDot = 'bg-[#8F0A0D]';
+                } elseif ($hasHigh) {
+                    $highestSeverity = 'HIGH';
+                    $severityBadge = 'bg-orange-50 text-orange-700 border-orange-200';
+                    $severityDot = 'bg-orange-500';
+                } elseif ($hasMedium) {
+                    $highestSeverity = 'MEDIUM';
+                    $severityBadge = 'bg-amber-50 text-amber-700 border-amber-200';
+                    $severityDot = 'bg-amber-500';
+                } else {
+                    $highestSeverity = 'LOW';
+                    $severityBadge = 'bg-blue-50 text-blue-700 border-blue-200';
+                    $severityDot = 'bg-blue-500';
+                }
+
                 $statusKey = 'cm';
                 $statusLabel = 'Corrective (CM)';
                 $statusDesc = $criticalTicketsCount > 0 ? "{$criticalTicketsCount} Tiket Kritis" : "{$openTicketsCount} Gangguan Aktif";
-                $badgeBg = 'bg-rose-50 text-rose-700 border-rose-200';
-                $dotColor = 'bg-rose-500';
+                $badgeBg = 'bg-red-50 text-[#8F0A0D] border-red-200';
+                $dotColor = 'bg-[#8F0A0D]';
             } elseif ($pmCount > 0) {
                 $statusKey = 'pm';
                 $statusLabel = 'Preventive (PM)';
@@ -235,17 +262,20 @@ class ManagedServiceController extends Controller
             }
 
             return [
-                'id'           => $project->id,
-                'name'         => $clientName,
-                'projectName'  => $project->name,
-                'sla_tier'     => $project->sla_tier ?: 'Gold',
-                'status_key'   => $statusKey,
-                'status_label' => $statusLabel,
-                'status_desc'  => $statusDesc,
-                'badge_bg'     => $badgeBg,
-                'dot_color'    => $dotColor,
-                'open_tickets' => $openTicketsCount,
-                'pm_count'     => $pmCount,
+                'id'               => $project->id,
+                'name'             => $clientName,
+                'projectName'      => $project->name,
+                'sla_tier'         => $project->sla_tier ?: 'Gold',
+                'highest_severity' => $highestSeverity,
+                'severity_badge'   => $severityBadge,
+                'severity_dot'     => $severityDot,
+                'status_key'       => $statusKey,
+                'status_label'     => $statusLabel,
+                'status_desc'      => $statusDesc,
+                'badge_bg'         => $badgeBg,
+                'dot_color'        => $dotColor,
+                'open_tickets'     => $openTicketsCount,
+                'pm_count'         => $pmCount,
             ];
         });
 
@@ -264,13 +294,13 @@ class ManagedServiceController extends Controller
         $customerStatusData = [
             ['name' => 'Aman (Normal)', 'value' => $countAman, 'color' => '#10B981'],
             ['name' => 'Preventive (PM)', 'value' => $countPm, 'color' => '#3B82F6'],
-            ['name' => 'Corrective (CM)', 'value' => $countCm, 'color' => '#EF4444'],
+            ['name' => 'Corrective (CM)', 'value' => $countCm, 'color' => '#8F0A0D'],
         ];
 
         $clientHealthChart = [
             'labels'     => ['Aman (Normal)', 'Preventive (PM)', 'Corrective (CM)'],
             'counts'     => [$countAman, $countPm, $countCm],
-            'colors'     => ['#10B981', '#3B82F6', '#EF4444'],
+            'colors'     => ['#10B981', '#3B82F6', '#8F0A0D'],
             'total'      => $totalHealth,
             'count_aman' => $countAman,
             'count_pm'   => $countPm,
@@ -322,7 +352,7 @@ class ManagedServiceController extends Controller
             'customerStatusData',
             'selectedYear',
             'selectedClient'
-        ));
+        ))->with('engineers', $maintenanceEngineers);
     }
 
     /**
@@ -612,52 +642,83 @@ class ManagedServiceController extends Controller
             'client_name'   => 'required|string|max:255',
             'title'         => 'required|string|max:255',
             'description'   => 'nullable|string',
-            'type'          => 'required|string|in:Preventive Maintenance,Corrective Maintenance,Preventive,Corrective,Incident,Service Request,Change Request',
-            'priority'      => 'nullable|string|in:Platinum,Gold,Silver,Bronze,P1 - Critical,P2 - Major,P3 - Minor,P4 - Low',
+            'type'          => 'nullable|string',
+            'category'      => 'nullable|string|max:255',
+            'priority'      => 'required|string',
             'created_at'    => 'nullable|date',
+            'incident_date' => 'nullable',
             'reported_by'   => 'nullable|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
             'contact_phone' => 'nullable|string|max:50',
             'assigned_to'   => 'nullable|exists:users,id',
             'asset_id'      => 'nullable|exists:managed_service_assets,id',
+            'project_id'    => 'nullable|exists:projects,id',
+            'attachment'    => 'nullable|file|max:10240',
         ]);
 
-        if (empty($validated['priority'])) {
-            $validated['priority'] = 'Gold';
+        if (empty($validated['type'])) {
+            $validated['type'] = 'Incident';
         }
 
-        $ticketDate = !empty($validated['created_at']) ? \Carbon\Carbon::parse($validated['created_at']) : now();
+        // Standardisasi Tingkat Urgensi (Severity)
+        $rawPriority = $validated['priority'];
+        $priorityLabel = match(strtolower(trim($rawPriority))) {
+            'critical', 'p1', 'p1 - critical' => 'P1 - Critical',
+            'high', 'p2', 'p2 - major', 'p2 - high' => 'P2 - Major',
+            'medium', 'p3', 'p3 - minor', 'p3 - medium' => 'P3 - Minor',
+            'low', 'p4', 'p4 - low' => 'P4 - Low',
+            'platinum' => 'P1 - Critical',
+            'gold'     => 'P2 - Major',
+            'silver'   => 'P3 - Minor',
+            'bronze'   => 'P4 - Low',
+            default    => 'P3 - Minor',
+        };
+        $validated['priority'] = $priorityLabel;
+
+        // Upload Lampiran jika ada
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $filename = time() . '_' . \Illuminate\Support\Str::random(8) . '.' . $file->getClientOriginalExtension();
+            $validated['attachment_path'] = $file->storeAs('client_tickets', $filename, 'public');
+        }
+
+        $ticketDate = !empty($validated['incident_date']) ? \Carbon\Carbon::parse($validated['incident_date']) : (!empty($validated['created_at']) ? \Carbon\Carbon::parse($validated['created_at']) : now());
+        $validated['incident_date'] = $ticketDate;
         $validated['created_at'] = $ticketDate;
 
-        // Generate Ticket Number
-        $prefix = match($validated['type']) {
-            'Preventive Maintenance', 'Preventive' => 'PM',
-            'Corrective Maintenance', 'Corrective', 'Incident' => 'CM',
-            'Service Request' => 'REQ',
-            'Change Request'  => 'CR',
-            default           => 'TCK',
-        };
-        $count = ManagedServiceTicket::whereYear('created_at', $ticketDate->year)->count() + 1;
-        $validated['ticket_number'] = $prefix . '-' . $ticketDate->year . '-' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        // Generate Ticket Number (Format: TCK-YYYYMM-XXXX atau CM/PM)
+        $yearMonth = date('Ym');
+        $prefix = "TCK-{$yearMonth}-";
+        $latest = ManagedServiceTicket::where('ticket_number', 'like', "{$prefix}%")
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $nextSeq = 1;
+        if ($latest && preg_match('/-(\d+)$/', $latest->ticket_number, $matches)) {
+            $nextSeq = intval($matches[1]) + 1;
+        }
+        $validated['ticket_number'] = $prefix . str_pad($nextSeq, 4, '0', STR_PAD_LEFT);
         $validated['created_by'] = auth()->id();
         $validated['status'] = 'Open';
+        $validated['source'] = 'Internal';
 
         // Set SLA Deadline
-        $slaHours = match($validated['priority']) {
-            'Platinum', 'P1 - Critical' => 1,
-            'Gold', 'P2 - Major'       => 4,
-            'Silver', 'P3 - Minor'     => 8,
-            'Bronze', 'P4 - Low'       => 24,
-            default                    => 4,
+        $slaHours = match($priorityLabel) {
+            'P1 - Critical' => 2,
+            'P2 - Major'    => 4,
+            'P3 - Minor'    => 12,
+            'P4 - Low'      => 24,
+            default         => 12,
         };
         $validated['sla_deadline'] = $ticketDate->copy()->addHours($slaHours);
+        $validated['sla_met'] = true;
 
-        ManagedServiceTicket::create($validated);
-        $createdTicket = ManagedServiceTicket::where('ticket_number', $validated['ticket_number'])->first();
-        if ($createdTicket) {
-            self::syncTicketToTaskAndSchedule($createdTicket);
+        $ticket = ManagedServiceTicket::create($validated);
+        if ($ticket) {
+            self::syncTicketToTaskAndSchedule($ticket);
         }
 
-        return redirect()->route('ms.tickets.index')->with('success', 'Tiket ' . $validated['ticket_number'] . ' berhasil dibuat.');
+        return redirect()->back()->with('success', 'Tiket ' . $validated['ticket_number'] . ' berhasil diterbitkan.');
     }
 
     public function updateTicket(Request $request, $id)

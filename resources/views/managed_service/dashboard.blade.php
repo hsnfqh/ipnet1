@@ -179,15 +179,23 @@
                             Selamat Datang, {{ auth()->user()->name }}
                         </h1>
                         <p class="mt-0.5 text-[12.5px] text-white/80 leading-relaxed line-clamp-1">
-                            Pantau kepatuhan SLA operasional, antrean tiket gangguan, status kesehatan aset CI, dan jadwal preventive maintenance.
+                            Pantau kepatuhan SLA operasional, antrean tiket gangguan, status operasional aset CI, dan jadwal preventive maintenance.
                         </p>
                     </div>
 
                     {{-- Quick Action Buttons --}}
                     <div class="flex items-center gap-2.5 shrink-0">
-                        <a href="{{ route('ms.tickets.index') }}" class="px-3.5 py-2 rounded-xl bg-white text-[#8F0A0D] font-bold text-[12.5px] hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-1.5">
+                        <button type="button" 
+                                @click="isCreateModalOpen = true" 
+                                class="px-3.5 py-2 rounded-xl bg-white text-[#8F0A0D] font-bold text-[12.5px] hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95">
                             <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Buat Tiket Baru</span>
+                        </button>
+                        <a href="{{ route('ms.tickets.index') }}" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 hover:scale-[1.02] border border-white/25 text-white font-bold text-[12.5px] transition-all flex items-center gap-1.5 backdrop-blur-sm">
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                             </svg>
                             <span>Daftar Tiket SLA</span>
                         </a>
@@ -439,7 +447,7 @@
             @endif
 
             {{-- ======================================================== --}}
-            {{-- 3. PORTOFOLIO KLIEN & STATUS KESEHATAN LAYANAN           --}}
+            {{-- 3. PORTOFOLIO KLIEN & STATUS OPERASIONAL LAYANAN         --}}
             {{-- ======================================================== --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 anim-fade-up anim-delay-3">
                 
@@ -451,7 +459,7 @@
                                 <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                                     <span class="ipnet-badge-dot"></span> PORTOFOLIO KLIEN SLA
                                 </p>
-                                <h3 class="text-[16px] font-bold text-[#292929]">Kesehatan Operasional Klien SLA</h3>
+                                <h3 class="text-[16px] font-bold text-[#292929]">Status Operasional Layanan SLA</h3>
                             </div>
                             <a href="{{ route('ms.tickets.index') }}" class="text-xs font-bold text-[#8F0A0D] hover:underline">Lihat Semua &rarr;</a>
                         </div>
@@ -461,7 +469,7 @@
                                 <thead>
                                     <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                                         <th class="pb-2.5">Pelanggan &amp; Proyek</th>
-                                        <th class="pb-2.5">Tier SLA</th>
+                                        <th class="pb-2.5">Urgensi Tiket (Severity)</th>
                                         <th class="pb-2.5">Status Layanan</th>
                                         <th class="pb-2.5">Keterangan</th>
                                         <th class="pb-2.5 text-right">Aksi</th>
@@ -472,20 +480,14 @@
                                     <tr class="hover:bg-slate-50/80 transition">
                                         <td class="py-3 pr-2">
                                             <div class="font-extrabold text-slate-900 text-[12.5px] line-clamp-1">{{ $client['name'] }}</div>
-                                            <div class="text-[11px] text-slate-500 font-medium truncate max-w-[200px]">{{ $client['projectName'] }}</div>
+                                            <div class="text-[11px] text-slate-500 font-medium truncate max-w-[220px]">
+                                                {{ $client['projectName'] }} &bull; <span class="text-slate-600 font-semibold">Kontrak {{ $client['sla_tier'] }}</span>
+                                            </div>
                                         </td>
                                         <td class="py-3 px-2 whitespace-nowrap">
-                                            @php
-                                                $tier = $client['sla_tier'];
-                                                $tierStyle = match($tier) {
-                                                    'Platinum' => 'bg-purple-50 text-purple-700 border-purple-200',
-                                                    'Gold' => 'bg-amber-50 text-amber-700 border-amber-200',
-                                                    'Silver' => 'bg-slate-100 text-slate-700 border-slate-300',
-                                                    default => 'bg-orange-50 text-orange-700 border-orange-200',
-                                                };
-                                            @endphp
-                                            <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold border {{ $tierStyle }}">
-                                                {{ $tier }}
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10.5px] font-extrabold border {{ $client['severity_badge'] }}">
+                                                <span class="w-1.5 h-1.5 rounded-full {{ $client['severity_dot'] }}"></span>
+                                                {{ $client['highest_severity'] }}
                                             </span>
                                         </td>
                                         <td class="py-3 px-2 whitespace-nowrap">
@@ -498,7 +500,7 @@
                                             {{ $client['status_desc'] }}
                                         </td>
                                         <td class="py-3 pl-2 text-right whitespace-nowrap">
-                                            <a href="{{ route('ms.tickets.index') }}" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition inline-block">
+                                            <a href="{{ route('ms.tickets.index', ['search' => $client['name']]) }}" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition inline-block">
                                                 Detail &rarr;
                                             </a>
                                         </td>
@@ -816,6 +818,9 @@
         }
     });
 </script>
+
+{{-- MODAL CREATE TICKET (STANDAR HELPDESK & SEVERITY IP-NET SESUAI GAMBAR 2) --}}
+@include('managed_service.partials.modal_ticket_create')
 @endsection
 
 @push('scripts')
@@ -862,7 +867,9 @@
     });
 
     function msDashboard() {
-        return {};
+        return {
+            isCreateModalOpen: false,
+        };
     }
 </script>
 @endpush
