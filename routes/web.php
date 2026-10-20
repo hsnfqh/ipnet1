@@ -55,8 +55,15 @@ Route::get('/fix-cpanel-deploy', function () {
         $output[] = "=== .cpanel.yml CONTENT ===";
         $output[] = file_get_contents("$path/.cpanel.yml");
     }
-    $output[] = "=== GIT STATUS ===";
-    $output[] = shell_exec("git -C \"$path\" status 2>&1") ?? 'N/A';
+    $output[] = "=== GIT PULL ===";
+    $output[] = shell_exec("git -C \"$path\" pull origin main 2>&1") ?? 'N/A';
+    $output[] = "=== LATEST COMMIT ===";
+    $output[] = shell_exec("git -C \"$path\" log -n 1 --oneline 2>&1") ?? 'N/A';
+    try {
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        $output[] = "=== CACHE CLEARED ===";
+    } catch (\Throwable $e) {}
     return '<pre>' . implode("\n", $output) . '</pre>';
 });
 
