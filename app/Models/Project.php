@@ -138,6 +138,60 @@ class Project extends Model
         return round($value * ($prob / 100), 2);
     }
 
+    public function expenses()
+    {
+        return $this->hasMany(ProjectExpense::class)->orderByDesc('expense_date');
+    }
+
+    public function getExpensesListAttribute()
+    {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_expenses')) {
+                $dbExpenses = $this->expenses()->with('creator')->get();
+                if ($dbExpenses->isNotEmpty()) {
+                    return $dbExpenses->map(function ($e) {
+                        return [
+                            'id'           => $e->id,
+                            'category'     => $e->category,
+                            'amount'       => (float) $e->amount,
+                            'formatted'    => 'Rp ' . number_format((float) $e->amount, 0, ',', '.'),
+                            'description'  => $e->description ?: '-',
+                            'expense_date' => $e->expense_date ? $e->expense_date->format('d M Y') : date('d M Y'),
+                            'creator_name' => $e->creator ? $e->creator->name : 'PM',
+                        ];
+                    });
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // Fallback to JSON array inside handover_data or documents_checklist
+        $jsonExpenses = $this->handover_data['expenses'] ?? ($this->documents_checklist['expenses'] ?? []);
+        return collect($jsonExpenses)->map(function ($e, $idx) {
+            $amt = (float) ($e['amount'] ?? 0);
+            return [
+                'id'           => $e['id'] ?? ($idx + 1),
+                'category'     => $e['category'] ?? 'Others',
+                'amount'       => $amt,
+                'formatted'    => 'Rp ' . number_format($amt, 0, ',', '.'),
+                'description'  => $e['description'] ?? '-',
+                'expense_date' => $e['expense_date'] ?? date('d M Y'),
+                'creator_name' => $e['creator_name'] ?? 'Project Manager',
+            ];
+        });
+    }
+
+    public function getTotalBudgetSpendAttribute(): float
+    {
+        return (float) $this->expenses_list->sum('amount');
+    }
+
+    public function getRemainingBudgetAttribute(): float
+    {
+        $contract = (float) ($this->contract_value ?? $this->quotation_amount ?? 0);
+        return max(0, $contract - $this->total_budget_spend);
+    }
+
+
     public function getParsedLostAnalysisAttribute()
     {
         if (isset($this->attributes['lost_analysis']) && !empty($this->attributes['lost_analysis'])) {

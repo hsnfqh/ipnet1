@@ -382,7 +382,7 @@
                                     {{-- Kolom 1: Proyek & Klien (Dominan & Lega, Bebas Patah Kata) --}}
                                     <td class="py-4 px-4 sm:px-6 align-top">
                                         <div class="space-y-1.5">
-                                            <a :href="'/projects/' + project.id" class="font-extrabold text-slate-900 text-sm hover:text-[#8F0A0D] transition block leading-snug" x-text="project.name"></a>
+                                            <a :href="'/pmo/projects/' + project.id" class="font-extrabold text-slate-900 text-sm hover:text-[#8F0A0D] transition block leading-snug" x-text="project.name"></a>
                                             
                                             <div class="flex items-center gap-2 flex-wrap text-[11px]">
                                                 <span class="inline-flex items-center gap-1 font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
@@ -547,11 +547,17 @@
                                                 </button>
                                             </template>
 
+                                            <a :href="'/pmo/projects/' + project.id" 
+                                               title="Buka Dashboard & Budgeting Proyek"
+                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-2xs">
+                                                <span>Dashboard PM</span>
+                                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                            </a>
+
                                             <a :href="'/projects/' + project.id" 
-                                               title="Buka Lembar Kerja Proyek"
-                                               class="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#8F0A0D] border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold transition shadow-2xs">
+                                               title="Buka Lembar Kerja Proyek Lengkap"
+                                               class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-semibold transition shadow-2xs">
                                                 <span>Detail</span>
-                                                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                                             </a>
                                         </div>
                                     </td>
@@ -610,7 +616,7 @@
 
                                     {{-- Project Title --}}
                                     <div>
-                                        <a :href="'/projects/' + project.id" class="font-extrabold text-slate-900 text-sm hover:text-[#8F0A0D] transition block line-clamp-2" x-text="project.name"></a>
+                                        <a :href="'/pmo/projects/' + project.id" class="font-extrabold text-slate-900 text-sm hover:text-[#8F0A0D] transition block line-clamp-2" x-text="project.name"></a>
                                     </div>
 
                                     {{-- Client & Sales Chips --}}
@@ -685,8 +691,12 @@
                                             </button>
                                         </template>
 
-                                        <a :href="'/projects/' + project.id" class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-800 hover:text-[#8F0A0D] rounded-xl text-xs font-bold transition shadow-2xs">
-                                            Detail &rarr;
+                                        <a :href="'/pmo/projects/' + project.id" class="px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-2xs inline-flex items-center gap-1">
+                                            <span>Dashboard PM</span>
+                                            <span>&rarr;</span>
+                                        </a>
+                                        <a :href="'/projects/' + project.id" class="px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition shadow-2xs">
+                                            Detail
                                         </a>
                                     </div>
                                 </div>

@@ -321,7 +321,7 @@
                                         </div>
                                     </div>
 
-                                    <a href="{{ route('projects.show', $p['id']) }}" 
+                                    <a href="{{ route('pmo.projects.show', $p['id']) }}" 
                                        class="text-xs font-bold text-[#8F0A0D] hover:text-[#B81525] hover:underline inline-flex items-center gap-1 shrink-0">
                                         <span>View Dashboard</span>
                                         <span class="text-sm">&rarr;</span>

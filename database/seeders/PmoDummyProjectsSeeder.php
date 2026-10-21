@@ -82,8 +82,34 @@ class PmoDummyProjectsSeeder extends Seeder
                 'deadline' => Carbon::now()->addDays(40),
                 'handover_status' => 'Approved',
                 'handover_submitted_at' => Carbon::now()->subDays(22),
-                'handover_approved_at' => Carbon::now()->subDays(20),
-                'handover_data' => $standardChecklist,
+                'handover_data' => array_merge($standardChecklist, [
+                    'expenses' => [
+                        [
+                            'id' => 1,
+                            'category' => 'Hardware',
+                            'amount' => 450000000,
+                            'description' => 'Pengadaan 25 unit SD-WAN Edge Routers PO-HW/2026/088',
+                            'expense_date' => Carbon::now()->subDays(15)->format('d M Y'),
+                            'creator_name' => 'Rizki',
+                        ],
+                        [
+                            'id' => 2,
+                            'category' => 'Transport',
+                            'amount' => 35000000,
+                            'description' => 'Tiket pesawat & akomodasi teknisi deploy cabang Surabaya & Medan',
+                            'expense_date' => Carbon::now()->subDays(10)->format('d M Y'),
+                            'creator_name' => 'Rizki',
+                        ],
+                        [
+                            'id' => 3,
+                            'category' => 'Others',
+                            'amount' => 900000,
+                            'description' => 'Perlengkapan labelling kabel & konsumsi kick-off Mandiri',
+                            'expense_date' => Carbon::now()->subDays(3)->format('d M Y'),
+                            'creator_name' => 'Rizki',
+                        ],
+                    ]
+                ]),
                 'special_notes' => 'Proyek prioritas tinggi perbankan nasional. Implementasi cutover harus dilakukan di luar jam kerja (weekend window).',
                 'customer_pic_technical' => 'Bpk. Ahmad Fauzi (Head of Network Infra - 08112233445)',
                 'customer_pic_business' => 'Ibu Ratna Dewi (VP IT Procurement)',

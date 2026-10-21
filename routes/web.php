@@ -660,6 +660,9 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('pmo')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager')->group(function () {
         Route::get('/dashboard', [PmoController::class, 'dashboard'])->name('pmo.dashboard');
         Route::get('/implementations', [PmoController::class, 'implementations'])->name('pmo.implementations.index');
+        Route::get('/projects/{project}', [PmoController::class, 'projectDashboard'])->name('pmo.projects.show');
+        Route::post('/projects/{project}/expenses', [PmoController::class, 'storeExpense'])->name('pmo.projects.expenses.store');
+        Route::delete('/projects/{project}/expenses/{expenseId}', [PmoController::class, 'destroyExpense'])->name('pmo.projects.expenses.destroy');
         Route::post('/projects/{project}/stage', [PmoController::class, 'updateStage'])->name('pmo.stage.update');
         Route::post('/projects/{project}/documents', [PmoController::class, 'updateDocuments'])->name('pmo.documents.update');
         Route::post('/projects/{project}/update-documents', [PmoController::class, 'updateDocuments'])->name('pmo.documents.update_documents');

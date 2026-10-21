@@ -110,6 +110,167 @@ class PmoController extends Controller
     }
 
     /**
+     * Dashboard Khusus Per Proyek (S-Curve, Workload Tasks, & Log Categorized Expense)
+     */
+    public function projectDashboard(Project $project)
+    {
+        $project->load([
+            'pm:id,name,email',
+            'division:id,name',
+            'tasks.engineer:id,name',
+            'creator:id,name',
+        ]);
+
+        $contractValue = (float) ($project->contract_value ?: ($project->quotation_amount ?: 0));
+        $expenses = $project->expenses_list;
+        $totalSpend = (float) $expenses->sum('amount');
+        $remainingBudget = max(0, $contractValue - $totalSpend);
+        $spendPercentage = $contractValue > 0 ? min(100, round(($totalSpend / $contractValue) * 100, 1)) : 0;
+
+        $totalTasks = $project->tasks->count();
+        $completedTasks = $project->tasks->whereIn('status', ['Done', 'Completed'])->count();
+        $actualEV = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+
+        $daysSpan = ($project->start_date && $project->deadline) ? max(0, $project->start_date->diffInDays($project->deadline)) : 0;
+        $daysRemaining = $project->deadline ? \Carbon\Carbon::now()->diffInDays($project->deadline, false) : null;
+
+        $isOverdue = $project->deadline && \Carbon\Carbon::parse($project->deadline)->isPast() && $actualEV < 100;
+        $healthStatus = 'Healthy';
+        $healthStatusText = 'Active S-Curves (Sesuai SLA)';
+        if ($isOverdue) {
+            $healthStatus = 'Delayed';
+            $healthStatusText = 'Melewati Tenggat SLA';
+        } elseif ($daysRemaining !== null && $daysRemaining <= 7 && $actualEV < 70) {
+            $healthStatus = 'At-Risk';
+            $healthStatusText = 'Mendekati Tenggat SLA';
+        }
+
+        // Task Share by Engineer in this project
+        $engineerTaskCounts = [];
+        foreach ($project->tasks as $t) {
+            $engName = $t->engineer ? $t->engineer->name : 'Unassigned';
+            $engineerTaskCounts[$engName] = ($engineerTaskCounts[$engName] ?? 0) + 1;
+        }
+
+        $palette = ['#8F0A0D', '#334155', '#475569', '#64748B', '#B91C1C', '#0F172A', '#94A3B8'];
+        $taskShareList = [];
+        $colorIdx = 0;
+        foreach ($engineerTaskCounts as $engName => $count) {
+            $taskShareList[] = [
+                'name' => $engName,
+                'count' => $count,
+                'percentage' => $totalTasks > 0 ? round(($count / $totalTasks) * 100) : 0,
+                'color' => $palette[$colorIdx % count($palette)],
+            ];
+            $colorIdx++;
+        }
+
+        $taskShareChartData = [
+            'labels' => array_keys($engineerTaskCounts),
+            'counts' => array_values($engineerTaskCounts),
+            'colors' => array_column($taskShareList, 'color'),
+        ];
+
+        return view('pmo.project-dashboard', compact(
+            'project',
+            'contractValue',
+            'expenses',
+            'totalSpend',
+            'remainingBudget',
+            'spendPercentage',
+            'totalTasks',
+            'completedTasks',
+            'actualEV',
+            'daysSpan',
+            'daysRemaining',
+            'healthStatus',
+            'healthStatusText',
+            'taskShareList',
+            'taskShareChartData'
+        ));
+    }
+
+    /**
+     * Simpan Pengeluaran Proyek (Log Categorized Expense)
+     */
+    public function storeExpense(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'category'    => 'required|string|max:100',
+            'amount'      => 'required|numeric|min:1',
+            'description' => 'nullable|string|max:255',
+            'expense_date'=> 'nullable|date',
+        ]);
+
+        $user = auth()->user();
+        $date = !empty($validated['expense_date']) ? $validated['expense_date'] : date('Y-m-d');
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_expenses')) {
+                \App\Models\ProjectExpense::create([
+                    'project_id'   => $project->id,
+                    'category'     => $validated['category'],
+                    'amount'       => $validated['amount'],
+                    'description'  => $validated['description'] ?? null,
+                    'expense_date' => $date,
+                    'created_by'   => $user ? $user->id : null,
+                ]);
+                return redirect()->route('pmo.projects.show', $project->id)
+                    ->with('success', 'Pengeluaran proyek berhasil dicatat!');
+            }
+        } catch (\Throwable $e) {}
+
+        // Fallback JSON in handover_data
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $expenses = $handoverData['expenses'] ?? [];
+        $expenses[] = [
+            'id'           => count($expenses) + 1,
+            'category'     => $validated['category'],
+            'amount'       => (float) $validated['amount'],
+            'description'  => $validated['description'] ?? '-',
+            'expense_date' => date('d M Y', strtotime($date)),
+            'creator_name' => $user ? $user->name : 'PM',
+            'created_at'   => now()->toDateTimeString(),
+        ];
+        $handoverData['expenses'] = $expenses;
+        $project->handover_data = $handoverData;
+        $project->save();
+
+        return redirect()->route('pmo.projects.show', $project->id)
+            ->with('success', 'Pengeluaran proyek berhasil dicatat!');
+    }
+
+    /**
+     * Hapus Pengeluaran Proyek
+     */
+    public function destroyExpense(Request $request, Project $project, $expenseId)
+    {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('project_expenses')) {
+                $expense = \App\Models\ProjectExpense::where('project_id', $project->id)->find($expenseId);
+                if ($expense) {
+                    $expense->delete();
+                    return redirect()->route('pmo.projects.show', $project->id)
+                        ->with('success', 'Catatan pengeluaran berhasil dihapus.');
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // Fallback JSON in handover_data
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $expenses = $handoverData['expenses'] ?? [];
+        $filtered = array_values(array_filter($expenses, function ($item) use ($expenseId) {
+            return ($item['id'] ?? null) != $expenseId;
+        }));
+        $handoverData['expenses'] = $filtered;
+        $project->handover_data = $handoverData;
+        $project->save();
+
+        return redirect()->route('pmo.projects.show', $project->id)
+            ->with('success', 'Catatan pengeluaran berhasil dihapus.');
+    }
+
+    /**
      * Helper: Menghasilkan Data Inti Portofolio PMO
      */
     private function getPmoBaseData(Request $request)
