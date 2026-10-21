@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard - Pusat Kendali & Pengawasan Implementasi')
+@section('title', 'Dashboard - PMO Pusat Pengawasan & Portofolio')
 
 @push('styles')
 <style>
@@ -24,16 +24,19 @@
 @section('content')
 @php
     $formattedProjects = $formattedProjects ?? collect();
-    $recentProjects = $recentProjects ?? $formattedProjects->take(5)->values();
-    $stageCounts = $stageCounts ?? [];
-    $onTrackCount = $onTrackCount ?? 0;
-    $delayedCount = $delayedCount ?? 0;
-    $atRiskCount = $atRiskCount ?? 0;
+    $yourProjects = $yourProjects ?? $formattedProjects;
+    $totalBudgetSpend = $totalBudgetSpend ?? 0;
+    $formattedTotalBudget = $formattedTotalBudget ?? ('Rp ' . number_format($totalBudgetSpend, 0, ',', '.'));
+    $activeProjectsCount = $activeProjectsCount ?? $formattedProjects->whereIn('stage', ['Deliver', 'Operate'])->count();
+    $totalTasksCount = $totalTasksCount ?? $formattedProjects->sum('total_tasks');
+    $portfolioStatus = $portfolioStatus ?? 'Healthy';
+    $portfolioStatusText = $portfolioStatusText ?? 'Active S-Curves';
+    $portfolioStatusClass = $portfolioStatusClass ?? 'text-emerald-600';
+    $portfolioBadgeClass = $portfolioBadgeClass ?? 'bg-emerald-50 text-emerald-700 border-emerald-200';
     $handoverPendingCount = $handoverPendingCount ?? 0;
     $handoverConditionalCount = $handoverConditionalCount ?? 0;
-    $readyToOperateCount = $readyToOperateCount ?? 0;
-    $slaChartData = $slaChartData ?? ['on_track' => $onTrackCount, 'at_risk' => $atRiskCount, 'delayed' => $delayedCount];
-    $divisionChartData = $divisionChartData ?? [];
+    $taskShareList = $taskShareList ?? [];
+    $taskShareChartData = $taskShareChartData ?? ['labels' => [], 'counts' => [], 'colors' => []];
 @endphp
 <div class="flex h-screen overflow-hidden" x-data="{}" x-cloak>
     @include('components.sidebar')
@@ -44,10 +47,10 @@
         <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1680px] mx-auto">
             
             <!-- ========================================================== -->
-            <!-- 1. EXECUTIVE HERO BANNER (IPNET BRAND GEOMETRIC PATTERN)   -->
+            <!-- 1. EXECUTIVE HERO BANNER                                    -->
             <!-- ========================================================== -->
             <div class="ipnet-hero-banner rounded-2xl px-5 py-4 sm:px-6 sm:py-5 text-white shadow-md shadow-red-950/15 relative anim-hero-reveal">
-                {{-- Layered Geometric Faceted Red Planes --}}
+                {{-- Layered Geometric Background --}}
                 <div class="absolute inset-0 pointer-events-none overflow-hidden select-none">
                     <svg class="w-full h-full object-cover" viewBox="0 0 1440 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
@@ -71,23 +74,11 @@
                                 <feDropShadow dx="-8" dy="10" stdDeviation="14" flood-color="#3A0207" flood-opacity="0.4" />
                             </filter>
                         </defs>
-
-                        <!-- Base Background -->
                         <rect width="1440" height="200" fill="url(#pmoRedGrad1)" />
-
-                        <!-- Top-Left Large Diagonal Angled Plane -->
                         <polygon points="0,0 650,0 280,200 0,200" fill="url(#pmoRedGrad1)" />
-
-                        <!-- Intersecting Broad Diagonal Facet Strip -->
                         <polygon points="220,0 850,0 1300,200 600,200" fill="url(#pmoRedGrad2)" filter="url(#pmoFacetDropShadow)" />
-
-                        <!-- Crossing Foreground Diagonal Bright Red Plane -->
                         <polygon points="0,0 520,0 1080,200 480,200" fill="url(#pmoRedGrad1)" opacity="0.9" filter="url(#pmoFacetDropShadow)" />
-
-                        <!-- Right Edge Deeper Contrast Facet -->
                         <polygon points="780,0 1440,0 1440,200 1100,200" fill="url(#pmoRedGrad3)" filter="url(#pmoFacetDropShadow)" />
-
-                        <!-- Soft Angular Ambient Highlight Overlays -->
                         <polygon points="0,0 680,0 1120,200 380,200" fill="url(#pmoRedGradHighlight)" />
                     </svg>
                 </div>
@@ -102,7 +93,7 @@
                             Pusat Kendali Pengawasan Proyek
                         </h1>
                         <p class="mt-0.5 text-[12px] sm:text-[13px] text-white/85 leading-relaxed truncate">
-                            Monitoring terpadu implementasi teknis tahap Deliver, kepatuhan jadwal (SLA), dan verifikasi kelengkapan berkas serah terima.
+                            Monitoring alokasi anggaran, beban task tim lapangan, status kesehatan S-Curve, dan portofolio implementasi aktif.
                         </p>
                     </div>
 
@@ -110,9 +101,9 @@
                         <a href="{{ route('pmo.implementations.index') }}" 
                            class="px-4 py-2.5 rounded-xl bg-white text-[#8F0A0D] font-bold text-xs hover:bg-[#FFF7F6] hover:scale-[1.02] transition-all shadow-sm flex items-center gap-2">
                             <svg class="w-4 h-4 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                             </svg>
-                            <span>Project Delivery</span>
+                            <span>Buka Halaman Projects</span>
                         </a>
                     </div>
                 </div>
@@ -123,95 +114,88 @@
             <!-- ========================================================== -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                 
-                {{-- Card 1: Deliver Aktif --}}
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-red-200 transition-all flex flex-col justify-between group">
+                {{-- Card 1: Total Budget Spend --}}
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-200 transition-all flex flex-col justify-between group">
                     <div class="flex items-start justify-between gap-3 mb-3">
                         <div class="space-y-0.5">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">TAHAP DELIVER</span>
-                            <h3 class="text-xs font-bold text-slate-700">Implementasi Teknis</h3>
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Budget Spend</span>
+                            <h3 class="text-xs font-bold text-slate-700">Anggaran Proyek</h3>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-red-50 border border-red-100 text-[#8F0A0D] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
                             </svg>
                         </div>
                     </div>
                     <div>
                         <div class="flex items-baseline gap-2">
-                            <span class="text-[22px] sm:text-[24px] font-extrabold text-slate-900 tracking-tight">{{ $stageCounts['Deliver'] ?? 0 }}</span>
-                            <span class="text-xs font-semibold text-slate-400">Proyek Aktif</span>
+                            <span class="text-[18px] sm:text-[21px] font-extrabold text-slate-900 tracking-tight">{{ $formattedTotalBudget }}</span>
                         </div>
                         <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                            <span>Siklus Pelaksanaan:</span>
-                            <span class="font-bold text-[#8F0A0D]">Fase Lapangan</span>
+                            <span>Across all projects</span>
+                            <span class="font-bold text-blue-600">Total Portofolio</span>
                         </div>
                     </div>
                 </div>
 
-                {{-- Card 2: Kepatuhan Timeline (SLA) --}}
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-200 transition-all flex flex-col justify-between group">
+                {{-- Card 2: Project Number --}}
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between group">
                     <div class="flex items-start justify-between gap-3 mb-3">
                         <div class="space-y-0.5">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">KEPATUHAN JADWAL</span>
-                            <h3 class="text-xs font-bold text-slate-700">Kepatuhan Timeline (SLA)</h3>
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Project Number</span>
+                            <h3 class="text-xs font-bold text-slate-700">Jumlah Proyek</h3>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                        <div class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                             </svg>
                         </div>
                     </div>
                     <div>
                         <div class="flex items-baseline gap-2">
-                            <span class="text-[22px] sm:text-[24px] font-extrabold text-slate-900 tracking-tight">{{ $onTrackCount }}</span>
-                            <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Sesuai Jadwal</span>
+                            <span class="text-[22px] sm:text-[24px] font-extrabold text-slate-900 tracking-tight">{{ $activeProjectsCount }}</span>
+                            <span class="text-xs font-bold text-purple-600">Active</span>
                         </div>
-                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                            <span class="text-slate-500">Monitoring Risiko:</span>
-                            @if($delayedCount > 0)
-                                <span class="font-bold text-rose-600">{{ $delayedCount }} Melewati Tenggat</span>
-                            @elseif($atRiskCount > 0)
-                                <span class="font-bold text-amber-700">{{ $atRiskCount }} Mendekati Tenggat</span>
-                            @else
-                                <span class="font-semibold text-emerald-700">100% Proyek Tepat Waktu</span>
-                            @endif
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                            <span>Portfolios</span>
+                            <span class="font-bold text-purple-700">{{ $formattedProjects->count() }} Total Proyek</span>
                         </div>
                     </div>
                 </div>
 
-                {{-- Card 3: Gerbang Serah Terima (Handover Gateway) --}}
+                {{-- Card 3: Total Task List --}}
                 <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-amber-200 transition-all flex flex-col justify-between group">
                     <div class="flex items-start justify-between gap-3 mb-3">
                         <div class="space-y-0.5">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">SERAH TERIMA SALES</span>
-                            <h3 class="text-xs font-bold text-slate-700">Verifikasi Dokumen PMO</h3>
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Task List</span>
+                            <h3 class="text-xs font-bold text-slate-700">Daftar Tugas Tim</h3>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 text-amber-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
                         </div>
                     </div>
                     <div>
                         <div class="flex items-baseline gap-2">
-                            <span class="text-[22px] sm:text-[24px] font-extrabold text-slate-900 tracking-tight">{{ $handoverPendingCount }}</span>
-                            <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-800 border border-amber-200">Menunggu Review</span>
+                            <span class="text-[22px] sm:text-[24px] font-extrabold text-slate-900 tracking-tight">{{ $totalTasksCount }}</span>
+                            <span class="text-xs font-bold text-amber-700">Tasks</span>
                         </div>
                         <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                            <span>Status Revisi:</span>
-                            <span class="font-bold text-amber-700">{{ $handoverConditionalCount }} Bersyarat</span>
+                            <span>Workload</span>
+                            <span class="font-bold text-amber-800">Alokasi Tim Lapangan</span>
                         </div>
                     </div>
                 </div>
 
-                {{-- Card 4: Kesiapan Handover Akhir --}}
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-red-200 transition-all flex flex-col justify-between group">
+                {{-- Card 4: Portfolio Status --}}
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-200 transition-all flex flex-col justify-between group">
                     <div class="flex items-start justify-between gap-3 mb-3">
                         <div class="space-y-0.5">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">SERAH TERIMA AKHIR</span>
-                            <h3 class="text-xs font-bold text-slate-700">Kesiapan Handover Proyek</h3>
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Portfolio Status</span>
+                            <h3 class="text-xs font-bold text-slate-700">Kesehatan Portofolio</h3>
                         </div>
-                        <div class="w-10 h-10 rounded-xl bg-red-50 border border-red-100 text-[#8F0A0D] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-2xs">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
@@ -219,12 +203,11 @@
                     </div>
                     <div>
                         <div class="flex items-baseline gap-2">
-                            <span class="text-[22px] sm:text-[24px] font-extrabold text-slate-900 tracking-tight">{{ $readyToOperateCount }}</span>
-                            <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">Siap Handover</span>
+                            <span class="text-[22px] sm:text-[24px] font-extrabold {{ $portfolioStatusClass }} tracking-tight">{{ $portfolioStatus }}</span>
                         </div>
                         <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                            <span>Fase Selesai Lapangan:</span>
-                            <span class="font-bold text-slate-800">{{ $readyToOperateCount }} Proyek</span>
+                            <span>{{ $portfolioStatusText }}</span>
+                            <span class="font-bold text-emerald-700">Sesuai SLA</span>
                         </div>
                     </div>
                 </div>
@@ -252,145 +235,161 @@
                             </p>
                         </div>
                     </div>
-                    <a href="{{ route('pmo.implementations.index') }}" 
+                    <a href="{{ route('pmo.implementations.index', ['tab' => 'incoming']) }}" 
                        class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition shadow-xs whitespace-nowrap self-start sm:self-center flex items-center gap-2">
-                        <span>Tinjau di Project Delivery</span>
+                        <span>Tinjau Antrean Handover</span>
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 </div>
             @endif
 
             <!-- ========================================================== -->
-            <!-- 4. VISUAL ANALYTICS GRID (2 CHARTS: SLA & BEBAN DIVISI)    -->
+            <!-- 4. MAIN WORKSPACE: TASK SHARE (LEFT) & YOUR PROJECTS (RIGHT)-->
             <!-- ========================================================== -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                {{-- Chart 1: Kepatuhan Jadwal & Kesehatan Timeline (SLA) --}}
-                <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-800 tracking-tight">Kepatuhan Jadwal &amp; SLA Proyek</h3>
-                            <p class="text-xs text-slate-400">Monitoring ketepatan waktu deliver lapangan</p>
+                {{-- LEFT COLUMN: Task Share by Project (Donut Chart & Breakdown) --}}
+                <div class="lg:col-span-5 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-5">
+                    <div class="border-b border-slate-100 pb-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-slate-900 tracking-tight">Task Share by Project</h3>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                                {{ $totalTasksCount }} Total Tasks
+                            </span>
                         </div>
-                        <span class="text-xs font-semibold px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md">
-                            {{ $onTrackCount }} / {{ $formattedProjects->count() }} Tepat Waktu
-                        </span>
+                        <p class="text-xs text-slate-400 mt-0.5">Porsi alokasi tugas teknis per proyek</p>
                     </div>
-                    <div style="height: 240px;" class="flex items-center justify-center">
-                        <canvas id="pmoSlaChart"></canvas>
+
+                    {{-- Chart Canvas --}}
+                    <div style="height: 220px;" class="flex items-center justify-center relative">
+                        <canvas id="pmoTaskShareChart"></canvas>
+                    </div>
+
+                    {{-- Task Breakdown List --}}
+                    <div class="space-y-2.5 pt-2 border-t border-slate-100">
+                        @forelse($taskShareList as $item)
+                            <div class="flex items-center justify-between text-xs py-1.5 px-2 rounded-xl hover:bg-slate-50 transition">
+                                <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                                    <span class="w-3 h-3 rounded-full shrink-0" style="background-color: {{ $item['color'] }}"></span>
+                                    <div class="truncate">
+                                        <div class="font-bold text-slate-800 truncate" title="{{ $item['name'] }}">{{ $item['name'] }}</div>
+                                        <div class="text-[10.5px] text-slate-400 truncate">{{ $item['client'] }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span class="font-extrabold text-slate-800">{{ $item['tasks_count'] }} Tasks</span>
+                                    <span class="text-[10.5px] text-slate-400 block font-semibold">({{ $item['percentage'] }}%)</span>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center py-6 text-slate-400 text-xs font-medium">
+                                Belum ada task yang teralokasi pada proyek aktif.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
 
-                {{-- Chart 2: Distribusi Beban Proyek per Divisi Pelaksana --}}
-                <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                {{-- RIGHT COLUMN: Your Projects (List of Project Cards) --}}
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="flex items-center justify-between pb-1">
                         <div>
-                            <h3 class="text-sm font-bold text-slate-800 tracking-tight">Distribusi Proyek per Divisi</h3>
-                            <p class="text-xs text-slate-400">Alokasi pelaksanaan teknis Network vs Security</p>
+                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
+                                Your Projects
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Daftar portofolio implementasi aktif &amp; kontrol progres EV</p>
                         </div>
-                        <span class="text-xs font-semibold px-2.5 py-0.5 bg-slate-50 text-slate-700 border border-slate-200 rounded-md">
-                            {{ $formattedProjects->count() }} Proyek Terdata
-                        </span>
+                        <a href="{{ route('pmo.implementations.index') }}" 
+                           class="text-xs font-bold text-[#8F0A0D] hover:underline inline-flex items-center gap-1 cursor-pointer">
+                            <span>Click to view details</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </a>
                     </div>
-                    <div style="height: 240px;" class="flex items-center justify-center">
-                        <canvas id="pmoDivisionChart"></canvas>
-                    </div>
-                </div>
 
-            </div>
-
-            <!-- ========================================================== -->
-            <!-- 5. PREVIEW 5 PROYEK IMPLEMENTASI TERKINI                   -->
-            <!-- ========================================================== -->
-            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
-                <div class="p-5 sm:px-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white">
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
-                            Proyek Implementasi Terkini
-                        </h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Ringkasan 5 proyek implementasi lapangan terbaru</p>
-                    </div>
-                    <a href="{{ route('pmo.implementations.index') }}" 
-                       class="text-xs font-bold text-[#8F0A0D] hover:underline inline-flex items-center gap-1.5 self-start sm:self-auto">
-                        <span>Lihat di Project Delivery ({{ $formattedProjects->count() }} Proyek)</span>
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                    </a>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-50/80 text-slate-500 uppercase text-[10.5px] font-semibold tracking-wider border-b border-slate-100">
-                            <tr>
-                                <th class="py-3 px-4">Proyek &amp; Klien</th>
-                                <th class="py-3 px-4">Divisi &amp; PIC PM</th>
-                                <th class="py-3 px-4 text-center">Progress Task</th>
-                                <th class="py-3 px-4 text-center">Status Jadwal</th>
-                                <th class="py-3 px-4 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 font-normal text-slate-600">
-                            @forelse($recentProjects as $p)
-                                <tr class="hover:bg-slate-50/80 transition-colors">
-                                    <td class="py-3.5 px-4">
-                                        <div class="font-bold text-slate-800 text-[13px]">{{ $p['name'] }}</div>
-                                        <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
-                                            <span>{{ $p['client'] }}</span>
-                                            <span class="text-slate-300">&bull;</span>
-                                            <span class="font-mono text-slate-500">{{ $p['so_code'] }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3.5 px-4">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[10.5px] font-medium {{ str_contains(strtolower($p['division']), 'net') ? 'bg-red-50 text-[#8F0A0D] border border-red-200' : 'bg-rose-50 text-rose-700 border border-rose-200' }}">
-                                            {{ $p['division'] }}
+                    {{-- List of Projects --}}
+                    <div class="space-y-3.5">
+                        @forelse($yourProjects as $p)
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-red-200 transition-all flex flex-col justify-between group">
+                                
+                                {{-- Card Top Row: Days Span badge & Health status --}}
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                            {{ $p['days_span'] ?? 0 }} Days Span
                                         </span>
-                                        <div class="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-                                            <span class="text-slate-400">PM:</span>
-                                            <span class="font-semibold">{{ $p['pm'] }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3.5 px-4 text-center">
-                                        <div class="inline-flex flex-col items-center">
-                                            <div class="w-24 bg-slate-100 rounded-full h-2 overflow-hidden mb-1">
-                                                <div class="bg-[#8F0A0D] h-2 rounded-full transition-all" style="width: {{ $p['progress'] }}%"></div>
-                                            </div>
-                                            <span class="text-[10.5px] font-bold text-slate-700">{{ $p['progress'] }}% ({{ $p['completed_tasks'] }}/{{ $p['total_tasks'] }})</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                        @if(($p['sla_tier'] ?? '') !== '')
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold bg-slate-100 text-slate-700">
+                                                SLA: {{ $p['sla_tier'] }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <div>
                                         @if($p['health_status'] === 'On-Track')
-                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                Sesuai Jadwal
+                                                On-Track
                                             </span>
                                         @elseif($p['health_status'] === 'At-Risk')
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                                Mendekati Tenggat
+                                                At-Risk
                                             </span>
                                         @else
                                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                                Melewati Tenggat
+                                                Delayed
                                             </span>
                                         @endif
-                                        <div class="text-[10px] text-slate-400 mt-0.5">{{ $p['deadline'] }}</div>
-                                    </td>
-                                    <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                                        <a href="{{ route('projects.show', $p['id']) }}" 
-                                            class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg border border-slate-200 shadow-2xs transition inline-flex items-center gap-1">
-                                            Detail &rarr;
-                                        </a>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="py-8 text-center text-slate-400 text-xs font-medium">Belum ada proyek implementasi tercatat.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                                    </div>
+                                </div>
+
+                                {{-- Card Middle: Project Title & Client & Spend --}}
+                                <div class="mt-2.5">
+                                    <h4 class="text-[15px] font-bold text-slate-900 group-hover:text-[#8F0A0D] transition-colors leading-snug">
+                                        {{ $p['name'] }}
+                                    </h4>
+                                    <div class="text-[12px] text-slate-500 mt-1 flex flex-wrap items-center gap-2">
+                                        <span class="font-semibold text-slate-700">{{ $p['client'] }}</span>
+                                        <span class="text-slate-300">&bull;</span>
+                                        <span>{{ $p['division'] }}</span>
+                                        <span class="text-slate-300">&bull;</span>
+                                        <span>PM: <strong class="text-slate-700 font-semibold">{{ $p['pm'] }}</strong></span>
+                                    </div>
+                                    <div class="mt-2 text-xs font-semibold text-slate-500">
+                                        <span class="text-slate-400 font-normal">Spend:</span>
+                                        <span class="text-slate-900 font-bold">{{ $p['contract_value_formatted'] ?? 'Rp 0' }}</span>
+                                    </div>
+                                </div>
+
+                                {{-- Card Bottom Row: Actual EV (Progress) & Link --}}
+                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3 flex-1 min-w-0 max-w-[260px]">
+                                        <span class="text-[11.5px] font-bold text-slate-700 shrink-0">
+                                            Actual EV: <span class="text-emerald-700 font-extrabold">{{ $p['progress'] }}%</span>
+                                        </span>
+                                        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                            <div class="h-full rounded-full transition-all duration-300" 
+                                                 style="background: linear-gradient(90deg, #8F0A0D, #E11D48); width: {{ $p['progress'] }}%"></div>
+                                        </div>
+                                    </div>
+
+                                    <a href="{{ route('projects.show', $p['id']) }}" 
+                                       class="text-xs font-bold text-[#8F0A0D] hover:text-[#B81525] hover:underline inline-flex items-center gap-1 shrink-0">
+                                        <span>View Dashboard</span>
+                                        <span class="text-sm">&rarr;</span>
+                                    </a>
+                                </div>
+
+                            </div>
+                        @empty
+                            <div class="bg-white p-8 rounded-2xl border border-slate-200/90 text-center text-slate-400 text-xs font-medium">
+                                Belum ada proyek dalam portofolio Anda.
+                            </div>
+                        @endforelse
+                    </div>
                 </div>
+
             </div>
 
         </div>
@@ -402,79 +401,38 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // 1. Chart Kepatuhan SLA (Doughnut)
-        const slaData = @json($slaChartData ?? ['on_track' => 0, 'at_risk' => 0, 'delayed' => 0]);
-        const ctxSla = document.getElementById('pmoSlaChart');
-        if (ctxSla) {
-            new Chart(ctxSla.getContext('2d'), {
+        // Chart: Task Share by Project (Donut Chart)
+        const taskShareData = @json($taskShareChartData ?? ['labels' => [], 'counts' => [], 'colors' => []]);
+        const ctxShare = document.getElementById('pmoTaskShareChart');
+        if (ctxShare && taskShareData.labels && taskShareData.labels.length > 0) {
+            new Chart(ctxShare.getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Sesuai Jadwal (On-Track)', 'Mendekati Tenggat (At-Risk)', 'Melewati Tenggat (Delayed)'],
+                    labels: taskShareData.labels,
                     datasets: [{
-                        data: [slaData.on_track, slaData.at_risk, slaData.delayed],
-                        backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+                        data: taskShareData.counts,
+                        backgroundColor: taskShareData.colors,
                         borderWidth: 2,
                         borderColor: '#FFFFFF',
-                        hoverOffset: 4
+                        hoverOffset: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '68%',
+                    cutout: '66%',
                     plugins: {
                         legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 10,
-                                boxHeight: 10,
-                                font: { size: 10.5, family: "'Inter', sans-serif" },
-                                color: '#4B5563',
-                                padding: 12
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // 2. Chart Distribusi Beban per Divisi (Murni Divisi Network & Divisi Security)
-        const divData = @json($divisionChartData ?? ['Divisi Network' => 0, 'Divisi Security' => 0]);
-        const ctxDiv = document.getElementById('pmoDivisionChart');
-        if (ctxDiv) {
-            new Chart(ctxDiv.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['Divisi Network', 'Divisi Security'],
-                    datasets: [{
-                        label: 'Jumlah Proyek',
-                        data: [
-                            divData['Divisi Network'] ?? 0,
-                            divData['Divisi Security'] ?? 0
-                        ],
-                        backgroundColor: ['#8F0A0D', '#C61828'],
-                        hoverBackgroundColor: ['#73080A', '#9E0E1D'],
-                        borderRadius: 8,
-                        maxBarThickness: 52
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: { font: { size: 11, family: "'Inter', sans-serif" }, color: '#64748B' }
+                            display: false // Displayed in the custom clean list below chart
                         },
-                        y: {
-                            grid: { color: '#F1F5F9' },
-                            ticks: {
-                                stepSize: 1,
-                                font: { size: 10.5, family: "'Inter', sans-serif" },
-                                color: '#94A3B8'
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const val = context.raw || 0;
+                                    const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                                    return ` ${context.label}: ${val} Tasks (${pct}%)`;
+                                }
                             }
                         }
                     }

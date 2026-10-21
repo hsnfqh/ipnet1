@@ -17,30 +17,86 @@ class PmoController extends Controller
     public function dashboard(Request $request)
     {
         $data = $this->getPmoBaseData($request);
-        
-        // 5 Proyek Implementasi Terkini untuk Preview di Dashboard
-        $recentProjects = $data['formattedProjects']->take(5)->values();
+        $formattedProjects = $data['formattedProjects'];
 
-        // Chart Kepatuhan SLA: On-Track, At-Risk, Delayed
-        $slaChartData = [
-            'on_track' => $data['onTrackCount'],
-            'at_risk'  => $data['atRiskCount'],
-            'delayed'  => $data['delayedCount'],
+        // 1. Total Budget Spend (Across all projects)
+        $totalBudgetSpend = $formattedProjects->sum('contract_value');
+        $formattedTotalBudget = 'Rp ' . number_format($totalBudgetSpend, 0, ',', '.');
+
+        // 2. Project Number (Active Portfolios)
+        $activeProjectsCount = $formattedProjects->whereIn('stage', ['Deliver', 'Operate'])->count();
+
+        // 3. Total Task List (Workload)
+        $totalTasksCount = $formattedProjects->sum('total_tasks');
+
+        // 4. Portfolio Status (S-Curve & SLA Health)
+        $delayedCount = $data['delayedCount'] ?? 0;
+        $atRiskCount = $data['atRiskCount'] ?? 0;
+        if ($delayedCount > 0) {
+            $portfolioStatus = 'Critical';
+            $portfolioStatusText = 'Melewati Tenggat SLA';
+            $portfolioStatusClass = 'text-rose-600';
+            $portfolioBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+        } elseif ($atRiskCount > 0) {
+            $portfolioStatus = 'At-Risk';
+            $portfolioStatusText = 'Mendekati Tenggat SLA';
+            $portfolioStatusClass = 'text-amber-600';
+            $portfolioBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+        } else {
+            $portfolioStatus = 'Healthy';
+            $portfolioStatusText = 'Active S-Curves';
+            $portfolioStatusClass = 'text-emerald-600';
+            $portfolioBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        }
+
+        // 5. Task Share by Project Data
+        $palette = ['#8F0A0D', '#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#64748B'];
+        $taskShareList = [];
+        $taskShareLabels = [];
+        $taskShareCounts = [];
+        $taskShareColors = [];
+
+        $colorIdx = 0;
+        foreach ($formattedProjects as $p) {
+            $tCount = $p['total_tasks'] ?? 0;
+            $color = $palette[$colorIdx % count($palette)];
+            $pct = $totalTasksCount > 0 ? round(($tCount / $totalTasksCount) * 100) : 0;
+            
+            $taskShareList[] = [
+                'name' => $p['name'],
+                'client' => $p['client'],
+                'tasks_count' => $tCount,
+                'percentage' => $pct,
+                'color' => $color,
+            ];
+            
+            $taskShareLabels[] = strlen($p['name']) > 24 ? substr($p['name'], 0, 22) . '...' : $p['name'];
+            $taskShareCounts[] = $tCount;
+            $taskShareColors[] = $color;
+            $colorIdx++;
+        }
+
+        $taskShareChartData = [
+            'labels' => $taskShareLabels,
+            'counts' => $taskShareCounts,
+            'colors' => $taskShareColors,
         ];
 
-        // Chart Distribusi Beban per Divisi (Murni Divisi Network & Divisi Security)
-        $networkCount = $data['formattedProjects']->filter(fn($p) => str_contains(strtolower($p['division'] ?? ''), 'network'))->count();
-        $securityCount = $data['formattedProjects']->filter(fn($p) => str_contains(strtolower($p['division'] ?? ''), 'security'))->count();
-        
-        $divisionChartData = [
-            'Divisi Network'  => $networkCount,
-            'Divisi Security' => $securityCount,
-        ];
+        // 6. Your Projects List (Untuk preview list rapi di dashboard)
+        $yourProjects = $formattedProjects;
 
         return view('pmo.dashboard', array_merge($data, compact(
-            'recentProjects',
-            'slaChartData',
-            'divisionChartData'
+            'totalBudgetSpend',
+            'formattedTotalBudget',
+            'activeProjectsCount',
+            'totalTasksCount',
+            'portfolioStatus',
+            'portfolioStatusText',
+            'portfolioStatusClass',
+            'portfolioBadgeClass',
+            'taskShareList',
+            'taskShareChartData',
+            'yourProjects'
         )));
     }
 
@@ -283,6 +339,10 @@ class PmoController extends Controller
                 'customer_pic_technical'        => $p->customer_pic_technical ?: '-',
                 'customer_pic_business'         => $p->customer_pic_business ?: '-',
                 'customer_pic_finance'          => $p->customer_pic_finance ?: '-',
+                'contract_value'                => (float) ($p->contract_value ?: ($p->quotation_amount ?: 0)),
+                'contract_value_formatted'      => 'Rp ' . number_format((float) ($p->contract_value ?: ($p->quotation_amount ?: 0)), 0, ',', '.'),
+                'days_span'                     => ($p->start_date && $p->deadline) ? max(0, $p->start_date->diffInDays($p->deadline)) : 0,
+                'days_remaining'                => $p->deadline ? \Carbon\Carbon::now()->diffInDays($p->deadline, false) : null,
             ];
         });
 
