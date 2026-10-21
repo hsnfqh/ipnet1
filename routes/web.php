@@ -414,6 +414,26 @@ Route::get('/seed-dummy-accounts-2026', function () {
     }
 });
 
+// Route Helper untuk membuat Data Dummy Resmi PMO (Project Delivery & Incoming Handover)
+Route::get('/seed-pmo-dummy-projects', function () {
+    try {
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'PmoDummyProjectsSeeder', '--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data dummy resmi PMO (Projek Aktif Deliver, Incoming Handover Submitted & Conditional, Siap Transisi MS) berhasil di-seed!',
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
 // Route Helper untuk membuat 2 dummy resmi: 1 Laporan Aktivitas Sales (A-G) & 1 Lesson Learned (Lost Deal)
 Route::get('/seed-sales-official-dummies', function () {
     try {

@@ -28,7 +28,7 @@
                     <div class="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] shadow-2xs shrink-0 self-start lg:self-center">
                         {{-- Tab 1: Projek Aktif (Deliver & Selesai) --}}
                         <button type="button" 
-                                @click="activeTab = 'deliver'; currentPage = 1;" 
+                                @click="activeTab = 'all'; currentPage = 1;" 
                                 :class="(activeTab !== 'pending_handover') 
                                     ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' 
                                     : 'text-[#64748B] hover:text-[#1E293B] hover:bg-white/60 font-semibold'"
@@ -1193,7 +1193,7 @@
             selectedPm: 'all',
             selectedStage: 'all',
             handoverFilter: 'all',
-            activeTab: (new URLSearchParams(window.location.search).get('tab') === 'incoming' || new URLSearchParams(window.location.search).get('tab') === 'pending_handover') ? 'pending_handover' : 'deliver',
+            activeTab: (new URLSearchParams(window.location.search).get('tab') === 'incoming' || new URLSearchParams(window.location.search).get('tab') === 'pending_handover') ? 'pending_handover' : 'all',
             viewMode: 'table', // 'table' | 'cards'
             perPage: 10,
             currentPage: 1,
