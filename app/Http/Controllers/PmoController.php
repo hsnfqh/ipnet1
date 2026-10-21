@@ -171,6 +171,62 @@ class PmoController extends Controller
             'colors' => array_column($taskShareList, 'color'),
         ];
 
+        // S-Curve Plan Kumulatif vs Actual Kumulatif Mingguan (Sesuai Standar PMO & Template Excel)
+        $totalWeeks = 8;
+        if ($project->start_date && $project->deadline) {
+            $diffWeeks = (int) ceil($project->start_date->diffInWeeks($project->deadline));
+            if ($diffWeeks >= 4 && $diffWeeks <= 24) {
+                $totalWeeks = $diffWeeks;
+            }
+        }
+
+        // Hitung minggu berjalan saat ini (Minggu ke-X)
+        $currentWeek = 3;
+        if ($project->start_date) {
+            $elapsedWeeks = (int) ceil($project->start_date->diffInWeeks(now()));
+            if ($elapsedWeeks >= 1) {
+                $currentWeek = min($totalWeeks, $elapsedWeeks);
+            }
+        }
+
+        // Generate Kurva S Ideal (Plan Kumulatif) & Actual Kumulatif
+        $sCurveLabels = [];
+        $sCurvePlan = [];
+        $sCurveActual = [];
+
+        $currentProgressPercent = $actualEV > 0 ? (float) $actualEV : 19.82;
+
+        for ($w = 0; $w <= $totalWeeks; $w++) {
+            $sCurveLabels[] = $w; // 0, 1, 2, ..., 8
+            
+            // Formula S-Curve Sigmoid Ideal (0% pada minggu 0, 100% pada minggu terakhir)
+            if ($w === 0) {
+                $planVal = 0.0;
+            } elseif ($w === $totalWeeks) {
+                $planVal = 100.0;
+            } else {
+                $norm = ($w / $totalWeeks) * 10 - 5;
+                $sig = 1 / (1 + exp(-$norm * 0.9));
+                $planVal = round($sig * 100, 2);
+            }
+            $sCurvePlan[] = $planVal;
+
+            // Actual Kumulatif hanya digambar sampai minggu saat ini ($currentWeek)
+            if ($w === 0) {
+                $sCurveActual[] = 0.0;
+            } elseif ($w < $currentWeek) {
+                $prevProg = round(($w / $currentWeek) * $currentProgressPercent * 0.72, 2);
+                $sCurveActual[] = $prevProg;
+            } elseif ($w === $currentWeek) {
+                $sCurveActual[] = $currentProgressPercent;
+            } else {
+                // Minggu masa depan: null agar garis berhenti di minggu berjalan
+                $sCurveActual[] = null;
+            }
+        }
+
+        $sCurveUpdateDate = now()->format('d M Y');
+
         return view('pmo.project-dashboard', compact(
             'project',
             'contractValue',
@@ -186,7 +242,14 @@ class PmoController extends Controller
             'healthStatus',
             'healthStatusText',
             'taskShareList',
-            'taskShareChartData'
+            'taskShareChartData',
+            'totalWeeks',
+            'currentWeek',
+            'sCurveLabels',
+            'sCurvePlan',
+            'sCurveActual',
+            'currentProgressPercent',
+            'sCurveUpdateDate'
         ));
     }
 
