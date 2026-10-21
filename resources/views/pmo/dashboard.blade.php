@@ -478,7 +478,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const shareData = @json($taskShareChartData ?? ['labels' => [], 'counts' => [], 'colors' => []]);
+        const shareData = {!! json_encode($taskShareChartData ?? ['labels' => [], 'counts' => [], 'colors' => []]) !!};
         const ctx = document.getElementById('pmoTaskShareChart');
         if (ctx && shareData.labels && shareData.labels.length > 0) {
             new Chart(ctx.getContext('2d'), {

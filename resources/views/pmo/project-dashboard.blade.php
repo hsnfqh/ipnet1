@@ -537,9 +537,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // 1. S-Curve Dual Line Chart (Plan Kumulatif vs Actual Kumulatif)
-        const sCurveLabels = @json($sCurveLabels ?? [0, 1, 2, 3, 4, 5, 6, 7, 8]);
-        const sCurvePlan = @json($sCurvePlan ?? [0, 5.5, 14, 28.5, 51, 72.5, 86, 94.5, 100]);
-        const sCurveActual = @json($sCurveActual ?? [0, 5, 19.82, null, null, null, null, null, null]);
+        const sCurveLabels = {!! json_encode($sCurveLabels ?? [0, 1, 2, 3, 4, 5, 6, 7, 8]) !!};
+        const sCurvePlan = {!! json_encode($sCurvePlan ?? [0, 5.5, 14, 28.5, 51, 72.5, 86, 94.5, 100]) !!};
+        const sCurveActual = {!! json_encode($sCurveActual ?? [0, 5, 19.82, null, null, null, null, null, null]) !!};
 
         const sCurveCanvas = document.getElementById('sCurveDualLineChart');
         if (sCurveCanvas) {
@@ -637,7 +637,7 @@
         }
 
         // 2. Task Share by Engineer Donut Chart
-        const shareData = @json($taskShareChartData ?? ['labels' => [], 'counts' => [], 'colors' => []]);
+        const shareData = {!! json_encode($taskShareChartData ?? ['labels' => [], 'counts' => [], 'colors' => []]) !!};
         const taskCanvas = document.getElementById('projectTaskShareChart');
         if (taskCanvas && shareData.labels && shareData.labels.length > 0) {
             new Chart(taskCanvas.getContext('2d'), {
