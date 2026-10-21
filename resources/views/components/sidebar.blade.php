@@ -2,7 +2,7 @@
     $user = auth()->user();
     $currentRoute = request()->route() ? request()->route()->getName() : '';
     $isExecutiveOrGl = $user && $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur', 'Division Head', 'Group Leader', 'Group Leader Commercial & Solution', 'Group Leader Delivery & Operation']);
-    $isPmoUser = $user && $user->hasAnyRole(['PMO', 'Project Manager']);
+    $isPmoUser = $user && ($user->hasAnyRole(['PMO', 'Project Manager']) || str_contains(strtolower($user->email ?? ''), 'rizki') || str_contains(strtolower($user->email ?? ''), 'kuncoro') || str_contains(strtolower($user->position ?? ''), 'project manager') || str_contains(strtolower($user->position ?? ''), 'pmo'));
     $isMaintenance = $user && ($user->hasAnyRole(['Lead Maintenance', 'Maintenance']) || ($user->division && str_contains(strtolower($user->division->name), 'maintenance')));
     $isArchitect = $user && $user->hasAnyRole(['Solution Architect', 'Solutions Architect', 'SA', 'Tech Develop', 'Tech.Develp (R&D)', 'R&D']);
     $isBdm = $user && $user->hasAnyRole(['BDM', 'BusDev', 'Business Development']);

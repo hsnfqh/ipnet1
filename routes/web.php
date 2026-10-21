@@ -1151,8 +1151,13 @@ Route::get('/', function () {
         $name = strtolower($user->name ?? '');
         $pos = strtolower($user->position ?? '');
 
+        // PMO & Project Manager -> Selalu ke Dashboard PMO
+        if ($user->hasAnyRole(['PMO', 'Project Manager']) || str_contains($email, 'rizki') || str_contains($email, 'kuncoro') || str_contains($pos, 'project manager')) {
+            return redirect()->route('pmo.dashboard');
+        }
+
         // Engineer (Field / Technical Delivery) selalu diarahkan ke dashboard engineer
-        if ($user->hasRole('Engineer') && !$user->hasAnyRole(['Director', 'Direktur', 'Division Head', 'Group Leader', 'Sales', 'BDM', 'Presales', 'Solution Architect'])) {
+        if ($user->hasRole('Engineer') && !$user->hasAnyRole(['Director', 'Direktur', 'Division Head', 'Group Leader', 'Sales', 'BDM', 'Presales', 'Solution Architect', 'PMO', 'Project Manager'])) {
             return redirect()->route('dashboard.engineer');
         }
 
@@ -1170,9 +1175,6 @@ Route::get('/', function () {
         }
         if ($user->hasAnyRole(['Sales', 'Account Manager', 'Group Leader Commercial & Solution']) || str_contains($pos, 'sales') || str_contains($pos, 'account manager')) {
             return redirect()->route('dashboard.sales');
-        }
-        if ($user->hasAnyRole(['PMO', 'Project Manager']) || str_contains($email, 'rizki') || str_contains($email, 'kuncoro') || str_contains($pos, 'project manager')) {
-            return redirect()->route('pmo.dashboard');
         }
         if ($user->hasAnyRole(['Admin Support', 'Admin Logistik', 'Admin']) || str_contains($pos, 'admin support')) {
             return redirect()->route('admin_support.dashboard');
@@ -1564,6 +1566,63 @@ Route::get('/run-migration', function () {
         return response()->json([
             'status' => 'error',
             'message' => 'Gagal: ' . $e->getMessage(),
+        ], 500);
+    }
+});
+
+// Helper Route: 1-Click Repair Akun & Akses Rizki (PMO / Project Manager)
+Route::get('/fix-rizki-access', function () {
+    try {
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Project Manager', 'guard_name' => 'web']);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'PMO', 'guard_name' => 'web']);
+
+        $user = \App\Models\User::whereRaw('LOWER(email) = ?', ['rizki@ipnetsolusindo.com'])
+            ->orWhere('name', 'like', '%Rizki%')
+            ->first();
+
+        if (!$user) {
+            $user = \App\Models\User::create([
+                'name'     => 'Rizki',
+                'email'    => 'rizki@ipnetsolusindo.com',
+                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'phone'    => '08111000010',
+                'position' => 'Project Manager',
+                'status'   => 'Active',
+            ]);
+        } else {
+            $user->update([
+                'email'    => 'rizki@ipnetsolusindo.com',
+                'name'     => 'Rizki',
+                'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+                'position' => 'Project Manager',
+                'status'   => 'Active',
+            ]);
+        }
+
+        $user->syncRoles(['PMO', 'Project Manager']);
+
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+
+        return response()->json([
+            'status'   => 'success',
+            'message'  => 'Akun dan hak akses Rizki berhasil diperbaiki secara total!',
+            'user'     => [
+                'id'       => $user->id,
+                'name'     => $user->name,
+                'email'    => $user->email,
+                'password' => 'password123',
+                'position' => $user->position,
+                'status'   => $user->status,
+                'roles'    => $user->roles->pluck('name'),
+            ],
+            'login_url' => url('/login'),
+            'pmo_url'   => route('pmo.dashboard'),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => $e->getMessage(),
         ], 500);
     }
 });

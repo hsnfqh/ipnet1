@@ -13,7 +13,29 @@ class PmoDummyProjectsSeeder extends Seeder
 {
     public function run(): void
     {
-        $pmRizki = User::where('name', 'like', '%Rizki%')->first();
+        $pmRizki = User::where('email', 'rizki@ipnetsolusindo.com')
+            ->orWhere('name', 'like', '%Rizki%')
+            ->first();
+        if (!$pmRizki) {
+            $pmRizki = User::create([
+                'name'     => 'Rizki',
+                'email'    => 'rizki@ipnetsolusindo.com',
+                'password' => Hash::make('password123'),
+                'phone'    => '08111000010',
+                'position' => 'Project Manager',
+                'status'   => 'Active',
+            ]);
+        } else {
+            $pmRizki->update([
+                'email'    => 'rizki@ipnetsolusindo.com',
+                'password' => Hash::make('password123'),
+                'position' => 'Project Manager',
+                'status'   => 'Active',
+            ]);
+        }
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Project Manager', 'guard_name' => 'web']);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'PMO', 'guard_name' => 'web']);
+        $pmRizki->syncRoles(['Project Manager', 'PMO']);
         $pmKuncoro = User::where('name', 'like', '%Kuncoro%')->first();
         $salesRaiza = User::where('name', 'like', '%Raiza%')->first();
         $salesNabylla = User::where('name', 'like', '%Nabylla%')->first();

@@ -153,7 +153,13 @@ class ScopeHelper
     public static function isPmo($user): bool
     {
         if (!$user) return false;
-        return $user->hasAnyRole(['PMO', 'Project Manager']);
+        $email = strtolower($user->email ?? '');
+        $pos = strtolower($user->position ?? '');
+        return $user->hasAnyRole(['PMO', 'Project Manager'])
+            || str_contains($email, 'rizki')
+            || str_contains($email, 'kuncoro')
+            || str_contains($pos, 'project manager')
+            || str_contains($pos, 'pmo');
     }
 
     /**

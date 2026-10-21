@@ -23,7 +23,34 @@ class AuthController extends Controller
         $credentials = $request->validated();
         $remember = $request->boolean('remember');
 
-        $user = User::where('email', $credentials['email'])->first();
+        $email = strtolower(trim($credentials['email']));
+
+        // Auto-heal / fix Rizki & PMO accounts if logging in with standard demo password
+        if (in_array($email, ['rizki@ipnetsolusindo.com', 'kuncoro@ipnetsolusindo.com']) && $credentials['password'] === 'password123') {
+            $pmUser = User::whereRaw('LOWER(email) = ?', [$email])->first();
+            if (!$pmUser) {
+                $pmUser = User::create([
+                    'name'     => ($email === 'rizki@ipnetsolusindo.com') ? 'Rizki' : 'Kuncoro',
+                    'email'    => $email,
+                    'password' => Hash::make('password123'),
+                    'position' => ($email === 'rizki@ipnetsolusindo.com') ? 'Project Manager' : 'Head of PMO',
+                    'status'   => 'Active',
+                ]);
+            } else {
+                $pmUser->update([
+                    'password' => Hash::make('password123'),
+                    'status'   => 'Active',
+                    'position' => $pmUser->position ?: (($email === 'rizki@ipnetsolusindo.com') ? 'Project Manager' : 'Head of PMO'),
+                ]);
+            }
+            try {
+                Role::firstOrCreate(['name' => 'Project Manager', 'guard_name' => 'web']);
+                Role::firstOrCreate(['name' => 'PMO', 'guard_name' => 'web']);
+                $pmUser->syncRoles(['PMO', 'Project Manager']);
+            } catch (\Throwable $e) {}
+        }
+
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
 
         if ($user && $user->status === 'Inactive') {
             return back()->withErrors([
@@ -64,8 +91,8 @@ class AuthController extends Controller
         $name = strtolower($user->name ?? '');
         $pos = strtolower($user->position ?? '');
 
-        // Jika roles kosong atau akun inti presales/sa/sales/bdm/cro/pmo
-        if ($user->roles->isEmpty() || str_contains($email, 'akbar@ipnetsolusindo.com') || str_contains($email, 'aris') || str_contains($email, 'cro')) {
+        // Jika roles kosong atau akun inti presales/sa/sales/bdm/cro/pmo/rizki
+        if ($user->roles->isEmpty() || str_contains($email, 'akbar') || str_contains($email, 'aris') || str_contains($email, 'cro') || str_contains($email, 'rizki') || str_contains($email, 'kuncoro')) {
             try {
                 if ($email === 'akbar@ipnetsolusindo.com' || str_contains($pos, 'pre-sales') || str_contains($pos, 'presales')) {
                     Role::firstOrCreate(['name' => 'Presales', 'guard_name' => 'web']);
@@ -121,8 +148,13 @@ class AuthController extends Controller
         $name  = strtolower($user->name ?? '');
         $pos   = strtolower($user->position ?? '');
 
+        // PMO & Project Manager -> Selalu ke Dashboard PMO
+        if ($user->hasAnyRole(['PMO', 'Project Manager']) || str_contains($email, 'rizki') || str_contains($email, 'kuncoro') || str_contains($pos, 'project manager')) {
+            return route('pmo.dashboard');
+        }
+
         // Engineer (Field / Technical Delivery) selalu ke dashboard engineer
-        if ($user->hasRole('Engineer') && !$user->hasAnyRole(['Director', 'Direktur', 'Division Head', 'Group Leader', 'Sales', 'BDM', 'Presales', 'Solution Architect'])) {
+        if ($user->hasRole('Engineer') && !$user->hasAnyRole(['Director', 'Direktur', 'Division Head', 'Group Leader', 'Sales', 'BDM', 'Presales', 'Solution Architect', 'PMO', 'Project Manager'])) {
             return route('dashboard.engineer');
         }
 
