@@ -669,6 +669,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/projects/{project}/handover-approve', [PmoController::class, 'approveHandover'])->name('pmo.handover.approve');
         Route::post('/projects/{project}/handover-conditional', [PmoController::class, 'conditionalHandover'])->name('pmo.handover.conditional');
         Route::post('/projects/{project}/handover-to-ms', [PmoController::class, 'handoverToManagedService'])->name('pmo.handover.to_ms');
+        Route::post('/projects/{project}/weekly-progress', [PmoController::class, 'updateWeeklyProgress'])->name('pmo.projects.weekly_progress.update');
+        Route::post('/projects/{project}/assign-division', [PmoController::class, 'assignDivision'])->name('pmo.projects.assign_division');
     });
 
     // Lead & Executive Dashboard (Dashboard 2)

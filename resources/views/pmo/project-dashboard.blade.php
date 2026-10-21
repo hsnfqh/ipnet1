@@ -65,7 +65,25 @@
 @endpush
 
 @section('content')
-<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" x-data="{}" x-cloak>
+<div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" 
+     x-data="{ 
+         showProgressModal: false, 
+         activeWeek: 1, 
+         activeActual: 0, 
+         activeNotes: '',
+         activePlan: 0,
+         activeRange: '',
+         showDivisionModal: false,
+         openProgressModal(week, actual, plan, notes, range) {
+             this.activeWeek = week;
+             this.activeActual = actual !== null ? actual : 0;
+             this.activePlan = plan;
+             this.activeNotes = notes || '';
+             this.activeRange = range;
+             this.showProgressModal = true;
+         }
+     }" 
+     x-cloak>
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
@@ -86,11 +104,13 @@
             @endif
 
             <!-- ========================================================== -->
-            <!-- 1. PROJECT HEADER CARD (SALES / PM ALIGNED HEADER)         -->
+            <!-- 1. PROJECT HEADER & DETIL LENGKAP DIVISI & PERIODE          -->
             <!-- ========================================================== -->
             <div class="ipnet-card p-5 sm:p-6">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div class="space-y-1.5">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+                    
+                    {{-- Left Title & Badges --}}
+                    <div class="space-y-2 flex-1 min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
                             <a href="{{ route('pmo.implementations.index') }}" 
                                class="text-xs font-bold text-[#8F0A0D] hover:underline inline-flex items-center gap-1 transition-colors">
@@ -100,21 +120,21 @@
                                 <span>Kembali ke Portofolio PMO</span>
                             </a>
                             <span class="text-slate-300">&bull;</span>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/70">
-                                {{ $daysSpan }} Hari Durasi
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                Total {{ $totalProjectDays ?? $daysSpan }} Hari ({{ $totalProjectWeeks ?? 8 }} Minggu)
                             </span>
                             @if($healthStatus === 'Healthy')
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/70">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                     On-Track
                                 </span>
                             @elseif($healthStatus === 'At-Risk')
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200/70">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
                                     <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                     At-Risk
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200/70">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200">
                                     <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                     Delayed
                                 </span>
@@ -125,15 +145,78 @@
                             {{ $project->name }}
                         </h1>
                         
-                        <div class="flex items-center gap-2 sm:gap-3 text-xs text-slate-500 flex-wrap">
-                            <span class="font-bold text-slate-800">{{ $project->client ?: 'Client IPNET' }}</span>
-                            <span class="text-slate-300">&bull;</span>
-                            <span>Divisi: <strong class="text-slate-700 font-semibold">{{ $project->division ? $project->division->name : 'Divisi Belum Didelegasikan' }}</strong></span>
-                            <span class="text-slate-300">&bull;</span>
-                            <span>Project Manager: <strong class="text-slate-800 font-bold">{{ $project->pm ? $project->pm->name : 'Rizki' }}</strong></span>
+                        {{-- Meta Chips: Client, Periode Tanggal, Divisi, PM --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 pt-2 text-xs">
+                            
+                            {{-- Chip 1: Klien & Lokasi --}}
+                            <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-600 flex items-center justify-center shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Klien Proyek</span>
+                                    <span class="font-bold text-slate-800 truncate block">{{ $project->client ?: 'Client IPNET' }}</span>
+                                </div>
+                            </div>
+
+                            {{-- Chip 2: Periode Tanggal Proyek (Dari Berapa s/d Berapa) --}}
+                            <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-blue-600 flex items-center justify-center shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Periode Tanggal Proyek</span>
+                                    <span class="font-bold text-slate-800 truncate block" title="{{ $projectTimelineText }}">
+                                        {{ $projectTimelineText }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {{-- Chip 3: Divisi Pelaksana (Tampilan Rapih & Opsi Penetapan) --}}
+                            <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-purple-600 flex items-center justify-center shrink-0">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Divisi Pelaksana</span>
+                                        @if($project->division)
+                                            <span class="font-bold text-slate-800 truncate block">{{ $project->division->name }}</span>
+                                        @else
+                                            <span class="font-bold text-amber-700 truncate block">Belum Ditetapkan</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <button type="button" 
+                                        @click="showDivisionModal = true" 
+                                        class="px-2 py-1 rounded-lg text-[10.5px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition shrink-0">
+                                    {{ $project->division ? 'Ubah' : '+ Tetapkan' }}
+                                </button>
+                            </div>
+
+                            {{-- Chip 4: Project Manager --}}
+                            <div class="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/80 flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg bg-white border border-slate-200 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Project Manager</span>
+                                    <span class="font-bold text-slate-800 truncate block">{{ $project->pm ? $project->pm->name : 'Rizki' }}</span>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
+                    {{-- Right Action Buttons --}}
                     <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
                         <a href="{{ route('projects.show', $project->id) }}" 
                            class="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-xs flex items-center gap-1.5">
@@ -213,12 +296,12 @@
                         <div class="flex items-baseline gap-2">
                             <span class="text-[20px] font-extrabold text-[#1E293B] tracking-tight">{{ $totalTasks }}</span>
                             <span class="text-xs text-slate-500 font-medium">Tasks</span>
-                            <span class="text-xs font-bold text-slate-800 ml-auto">Actual EV: {{ $actualEV }}%</span>
+                            <span class="text-xs font-bold text-slate-800 ml-auto">Actual: {{ number_format($currentProgressPercent, 1) }}%</span>
                         </div>
                     </div>
                     <div class="mt-2.5 pt-2 border-t border-slate-100">
                         <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                            <div class="h-full bg-blue-600 rounded-full transition-all duration-300" style="width: {{ $actualEV }}%"></div>
+                            <div class="h-full bg-blue-600 rounded-full transition-all duration-300" style="width: {{ $currentProgressPercent }}%"></div>
                         </div>
                     </div>
                 </div>
@@ -259,7 +342,9 @@
                             <span class="ipnet-badge-dot"></span> MONITORING IMPLEMENTASI PMO
                         </p>
                         <h2 class="text-[17px] font-bold text-[#1E293B]">Plan Kumulatif Mingguan VS Actual Kumulatif Mingguan</h2>
-                        <p class="text-xs text-[#64748B] mt-0.5">Kurva S perbandingan target akumulasi mingguan dengan pencapaian aktual lapangan</p>
+                        <p class="text-xs text-[#64748B] mt-0.5">
+                            Rentang Evaluasi: <strong>Minggu ke-0 s/d Minggu ke-{{ $totalWeeks }}</strong> (Periode: {{ $projectTimelineText }})
+                        </p>
                     </div>
 
                     {{-- Legend Pills --}}
@@ -330,10 +415,135 @@
                             <canvas id="sCurveDualLineChart"></canvas>
                         </div>
                         <div class="text-center mt-1 text-[11px] text-slate-400 font-semibold tracking-wider uppercase">
-                            Sumbu Horisontal: Durasi Pelaksanaan (Minggu)
+                            Sumbu Horisontal: Minggu ke-0 s/d Minggu ke-{{ $totalWeeks }} (Rentang Tanggal Proyek: {{ $projectTimelineText }})
                         </div>
                     </div>
 
+                </div>
+            </div>
+
+            <!-- ========================================================== -->
+            <!-- 3.5 TABEL TRACKING & INPUT PROGRES MINGGUAN (OPSI 3 KOMBINASI) -->
+            <!-- ========================================================== -->
+            <div class="ipnet-card p-5 sm:p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
+                    <div>
+                        <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">
+                            <span class="ipnet-badge-dot"></span> TATA KELOLA MINGGUAN PMO
+                        </p>
+                        <h3 class="text-[16px] font-bold text-[#1E293B]">Tabel Progres Mingguan Kurva S (Weekly S-Curve Tracking)</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Rincian target mingguan, rekomendasi penyelesaian tugas teknis, dan input progres aktual resmi oleh PM.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <th class="py-3 px-3">Minggu</th>
+                                <th class="py-3 px-3">Rentang Tanggal</th>
+                                <th class="py-3 px-3">Target Rencana (Plan)</th>
+                                <th class="py-3 px-3">Realisasi Aktual</th>
+                                <th class="py-3 px-3">Deviasi</th>
+                                <th class="py-3 px-3">Task Lapangan</th>
+                                <th class="py-3 px-3">Catatan PM</th>
+                                <th class="py-3 px-3 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($weeklyRecords as $rec)
+                                <tr class="hover:bg-slate-50/80 transition {{ $rec['is_current'] ? 'bg-amber-50/40' : '' }}">
+                                    
+                                    {{-- Kolom Minggu --}}
+                                    <td class="py-3 px-3 whitespace-nowrap">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-extrabold text-slate-900 text-[12.5px]">Minggu {{ $rec['week'] }}</span>
+                                            @if($rec['is_current'])
+                                                <span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-[#8F0A0D] text-white">
+                                                    Berjalan
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </td>
+
+                                    {{-- Kolom Rentang Tanggal --}}
+                                    <td class="py-3 px-3 whitespace-nowrap">
+                                        <span class="font-semibold text-slate-700">{{ $rec['date_range'] }}</span>
+                                    </td>
+
+                                    {{-- Kolom Target Plan --}}
+                                    <td class="py-3 px-3 whitespace-nowrap">
+                                        <span class="font-bold text-blue-700">{{ number_format($rec['plan_percent'], 2) }}%</span>
+                                    </td>
+
+                                    {{-- Kolom Realisasi Aktual --}}
+                                    <td class="py-3 px-3 whitespace-nowrap">
+                                        @if($rec['actual_percent'] !== null)
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="font-extrabold text-[#8F0A0D] text-[12.5px]">
+                                                    {{ number_format($rec['actual_percent'], 2) }}%
+                                                </span>
+                                                @if($rec['is_recorded'])
+                                                    <span class="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200" title="Diinput manual oleh PM">
+                                                        PM Validated
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <span class="text-slate-400 font-medium italic">Belum Berjalan</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Kolom Deviasi (Variance) --}}
+                                    <td class="py-3 px-3 whitespace-nowrap">
+                                        @if($rec['variance'] !== null)
+                                            @if($rec['variance'] >= 0)
+                                                <span class="text-emerald-700 font-bold text-[11px] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                                    +{{ number_format($rec['variance'], 2) }}%
+                                                </span>
+                                            @else
+                                                <span class="text-rose-700 font-bold text-[11px] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                                                    {{ number_format($rec['variance'], 2) }}%
+                                                </span>
+                                            @endif
+                                        @else
+                                            <span class="text-slate-400">-</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Kolom Rekomendasi Task --}}
+                                    <td class="py-3 px-3 whitespace-nowrap">
+                                        @if($rec['tasks_count'] > 0)
+                                            <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                                                {{ $rec['tasks_count'] }} Task Tuntas
+                                            </span>
+                                        @else
+                                            <span class="text-slate-400 text-[11px]">0 Task</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Kolom Catatan PM --}}
+                                    <td class="py-3 px-3 max-w-[220px]">
+                                        <span class="text-slate-600 text-[11.5px] truncate block" title="{{ $rec['notes'] ?? '-' }}">
+                                            {{ $rec['notes'] ?: '-' }}
+                                        </span>
+                                    </td>
+
+                                    {{-- Kolom Aksi --}}
+                                    <td class="py-3 px-3 text-right whitespace-nowrap">
+                                        <button type="button" 
+                                                @click="openProgressModal({{ $rec['week'] }}, {{ $rec['actual_percent'] ?? 0 }}, {{ $rec['plan_percent'] }}, '{{ addslashes($rec['notes'] ?? '') }}', '{{ $rec['date_range'] }}')"
+                                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                            Update Progres
+                                        </button>
+                                    </td>
+
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -529,6 +739,118 @@
 
         </div>
     </div>
+
+    <!-- ========================================================== -->
+    <!-- MODAL 1: UPDATE PROGRES MINGGUAN (PM INPUT)                -->
+    <!-- ========================================================== -->
+    <div x-show="showProgressModal" 
+         x-transition.opacity
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4"
+             @click.away="showProgressModal = false">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900">
+                        Update Progres Minggu ke-<span x-text="activeWeek"></span>
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5" x-text="activeRange"></p>
+                </div>
+                <button type="button" @click="showProgressModal = false" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form action="{{ route('pmo.projects.weekly_progress.update', $project->id) }}" method="POST" class="space-y-3.5">
+                @csrf
+                <input type="hidden" name="week" :value="activeWeek">
+
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-500 font-semibold">Target Rencana (Plan):</span>
+                    <span class="font-extrabold text-blue-700 text-sm" x-text="activePlan + '%'"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Capaian Realisasi Aktual (%)</label>
+                    <div class="relative">
+                        <input type="number" 
+                               name="actual" 
+                               step="0.01" 
+                               min="0" 
+                               max="100" 
+                               x-model="activeActual"
+                               required 
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-slate-900 focus:border-[#8F0A0D] outline-none">
+                        <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Masukkan persentase pencapaian kumulatif pada akhir pekan ini.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Catatan Capaian / Kendala Lapangan</label>
+                    <textarea name="notes" 
+                              rows="2" 
+                              x-model="activeNotes"
+                              placeholder="Contoh: Instalasi rack selesai, konfigurasi router mencapai 80%..." 
+                              class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showProgressModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs">
+                        Simpan Progres
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- MODAL 2: TETAPKAN / UBAH DIVISI PELAKSANA                  -->
+    <!-- ========================================================== -->
+    <div x-show="showDivisionModal" 
+         x-transition.opacity
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4"
+             @click.away="showDivisionModal = false">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900">Tetapkan Divisi Pelaksana</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Pilih divisi teknis yang bertanggung jawab atas implementasi</p>
+                </div>
+                <button type="button" @click="showDivisionModal = false" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form action="{{ route('pmo.projects.assign_division', $project->id) }}" method="POST" class="space-y-3.5">
+                @csrf
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Divisi Teknis</label>
+                    <select name="division_id" required 
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                        <option value="">-- Pilih Divisi Pelaksana --</option>
+                        @foreach($divisions as $div)
+                            <option value="{{ $div->id }}" {{ $project->division_id == $div->id ? 'selected' : '' }}>
+                                {{ $div->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showDivisionModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs">
+                        Tetapkan Divisi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 @endsection
 
@@ -587,7 +909,7 @@
                     },
                     plugins: {
                         legend: {
-                            display: false // We use custom HTML legend on top
+                            display: false
                         },
                         tooltip: {
                             callbacks: {
@@ -603,7 +925,7 @@
                         x: {
                             title: {
                                 display: true,
-                                text: 'Minggu',
+                                text: 'Minggu Pelaksanaan',
                                 color: '#64748B',
                                 font: { size: 11, weight: 'bold' }
                             },

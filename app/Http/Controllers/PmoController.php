@@ -171,61 +171,101 @@ class PmoController extends Controller
             'colors' => array_column($taskShareList, 'color'),
         ];
 
-        // S-Curve Plan Kumulatif vs Actual Kumulatif Mingguan (Sesuai Standar PMO & Template Excel)
+        // 1. Rentang Tanggal & Durasi Lengkap Proyek
+        $startDate = $project->start_date ? \Carbon\Carbon::parse($project->start_date) : ($project->created_at ? \Carbon\Carbon::parse($project->created_at) : now());
+        $deadlineDate = $project->deadline ? \Carbon\Carbon::parse($project->deadline) : $startDate->copy()->addWeeks(8);
+        $totalProjectDays = max(1, $startDate->diffInDays($deadlineDate));
+        $totalProjectWeeks = max(1, (int) ceil($startDate->diffInWeeks($deadlineDate)));
+        
+        $projectTimelineText = $startDate->format('d M Y') . ' s/d ' . $deadlineDate->format('d M Y');
+
+        // S-Curve Weeks: Batas tampilan grafik implementasi utama (default 8 minggu seperti di Excel atau durasi proyek)
         $totalWeeks = 8;
-        if ($project->start_date && $project->deadline) {
-            $diffWeeks = (int) ceil($project->start_date->diffInWeeks($project->deadline));
-            if ($diffWeeks >= 4 && $diffWeeks <= 24) {
-                $totalWeeks = $diffWeeks;
-            }
+        if ($totalProjectWeeks >= 4 && $totalProjectWeeks <= 16) {
+            $totalWeeks = $totalProjectWeeks;
         }
 
         // Hitung minggu berjalan saat ini (Minggu ke-X)
-        $currentWeek = 3;
-        if ($project->start_date) {
-            $elapsedWeeks = (int) ceil($project->start_date->diffInWeeks(now()));
-            if ($elapsedWeeks >= 1) {
-                $currentWeek = min($totalWeeks, $elapsedWeeks);
+        $elapsedWeeks = (int) ceil($startDate->diffInWeeks(now()));
+        $currentWeek = max(1, min($totalWeeks, $elapsedWeeks ?: 3));
+
+        // Data Progres Mingguan yang tersimpan (Opsi 3: Input PM & Rekomendasi Task)
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $savedWeekly = $handoverData['s_curve_weekly'] ?? [];
+
+        // Hitung task selesai per rentang minggu (Rekomendasi otomatis)
+        $weeklyTaskRecommendations = [];
+        foreach ($project->tasks as $t) {
+            if (in_array($t->status, ['Done', 'Completed']) && $t->updated_at) {
+                $completedAt = \Carbon\Carbon::parse($t->updated_at);
+                $wIdx = max(1, min($totalWeeks, (int) ceil($startDate->diffInWeeks($completedAt))));
+                $weeklyTaskRecommendations[$wIdx] = ($weeklyTaskRecommendations[$wIdx] ?? 0) + 1;
             }
         }
 
-        // Generate Kurva S Ideal (Plan Kumulatif) & Actual Kumulatif
+        // Generate Data Mingguan Lengkap (untuk Tabel & Grafik)
+        $weeklyRecords = [];
         $sCurveLabels = [];
         $sCurvePlan = [];
         $sCurveActual = [];
 
-        $currentProgressPercent = $actualEV > 0 ? (float) $actualEV : 19.82;
+        $currentProgressPercent = $project->progress > 0 ? (float) $project->progress : ($actualEV > 0 ? (float) $actualEV : 19.82);
 
-        for ($w = 0; $w <= $totalWeeks; $w++) {
-            $sCurveLabels[] = $w; // 0, 1, 2, ..., 8
-            
-            // Formula S-Curve Sigmoid Ideal (0% pada minggu 0, 100% pada minggu terakhir)
-            if ($w === 0) {
-                $planVal = 0.0;
-            } elseif ($w === $totalWeeks) {
-                $planVal = 100.0;
-            } else {
-                $norm = ($w / $totalWeeks) * 10 - 5;
-                $sig = 1 / (1 + exp(-$norm * 0.9));
-                $planVal = round($sig * 100, 2);
-            }
-            $sCurvePlan[] = $planVal;
+        // Minggu 0 (Baseline Start)
+        $sCurveLabels[] = 0;
+        $sCurvePlan[] = 0.0;
+        $sCurveActual[] = 0.0;
 
-            // Actual Kumulatif hanya digambar sampai minggu saat ini ($currentWeek)
-            if ($w === 0) {
-                $sCurveActual[] = 0.0;
+        for ($w = 1; $w <= $totalWeeks; $w++) {
+            $wStart = $startDate->copy()->addWeeks($w - 1);
+            $wEnd = $w == $totalWeeks ? $deadlineDate : $startDate->copy()->addWeeks($w)->subDay();
+            $dateRange = $wStart->format('d M') . ' - ' . $wEnd->format('d M Y');
+
+            // Formula S-Curve Sigmoid Ideal
+            $norm = ($w / $totalWeeks) * 10 - 5;
+            $sig = 1 / (1 + exp(-$norm * 0.9));
+            $planVal = $w === $totalWeeks ? 100.0 : round($sig * 100, 2);
+
+            // Actual Mingguan: Cek jika ada input manual PM di $savedWeekly
+            $actualVal = null;
+            $isRecorded = false;
+            $notes = null;
+
+            if (isset($savedWeekly[$w])) {
+                $actualVal = (float) $savedWeekly[$w]['actual'];
+                $notes = $savedWeekly[$w]['notes'] ?? null;
+                $isRecorded = true;
             } elseif ($w < $currentWeek) {
-                $prevProg = round(($w / $currentWeek) * $currentProgressPercent * 0.72, 2);
-                $sCurveActual[] = $prevProg;
+                $actualVal = round(($w / $currentWeek) * $currentProgressPercent * 0.72, 2);
             } elseif ($w === $currentWeek) {
-                $sCurveActual[] = $currentProgressPercent;
+                $actualVal = $currentProgressPercent;
             } else {
-                // Minggu masa depan: null agar garis berhenti di minggu berjalan
-                $sCurveActual[] = null;
+                $actualVal = null;
             }
+
+            $tasksCompletedThisWeek = $weeklyTaskRecommendations[$w] ?? 0;
+
+            $weeklyRecords[] = [
+                'week'           => $w,
+                'date_range'     => $dateRange,
+                'plan_percent'   => $planVal,
+                'actual_percent' => $actualVal,
+                'is_current'     => ($w === $currentWeek),
+                'is_passed'      => ($w < $currentWeek),
+                'is_future'      => ($w > $currentWeek),
+                'is_recorded'    => $isRecorded,
+                'notes'          => $notes,
+                'tasks_count'    => $tasksCompletedThisWeek,
+                'variance'       => $actualVal !== null ? round($actualVal - $planVal, 2) : null,
+            ];
+
+            $sCurveLabels[] = $w;
+            $sCurvePlan[] = $planVal;
+            $sCurveActual[] = $actualVal;
         }
 
         $sCurveUpdateDate = now()->format('d M Y');
+        $divisions = \App\Models\Division::all();
 
         return view('pmo.project-dashboard', compact(
             'project',
@@ -245,12 +285,61 @@ class PmoController extends Controller
             'taskShareChartData',
             'totalWeeks',
             'currentWeek',
+            'totalProjectDays',
+            'totalProjectWeeks',
+            'projectTimelineText',
+            'weeklyRecords',
+            'divisions',
             'sCurveLabels',
             'sCurvePlan',
             'sCurveActual',
             'currentProgressPercent',
             'sCurveUpdateDate'
         ));
+    }
+
+    /**
+     * Update Progres Mingguan Kurva S oleh PM (Opsi 3: Kombinasi Input PM & Rekomendasi Task)
+     */
+    public function updateWeeklyProgress(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'week'   => 'required|integer|min:1|max:52',
+            'actual' => 'required|numeric|min:0|max:100',
+            'notes'  => 'nullable|string|max:255',
+        ]);
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $weekly = $handoverData['s_curve_weekly'] ?? [];
+        $weekly[$validated['week']] = [
+            'actual'     => (float) $validated['actual'],
+            'notes'      => $validated['notes'] ?? null,
+            'updated_at' => now()->toDateTimeString(),
+            'updated_by' => auth()->user()?->name ?? 'PM',
+        ];
+        $handoverData['s_curve_weekly'] = $weekly;
+        $project->handover_data = $handoverData;
+
+        // Sinkronkan progres utama proyek
+        $project->progress = (int) round($validated['actual']);
+        $project->save();
+
+        return redirect()->back()->with('success', 'Progres aktual Minggu ke-' . $validated['week'] . ' berhasil diperbarui menjadi ' . $validated['actual'] . '%!');
+    }
+
+    /**
+     * Penetapan / Perubahan Divisi Pelaksana Proyek oleh PM
+     */
+    public function assignDivision(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'division_id' => 'required|exists:divisions,id',
+        ]);
+
+        $project->division_id = $validated['division_id'];
+        $project->save();
+
+        return redirect()->back()->with('success', 'Divisi pelaksana proyek berhasil ditetapkan!');
     }
 
     /**
