@@ -49,8 +49,8 @@ class PmoController extends Controller
             $portfolioBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
         }
 
-        // 5. Task Share by Project Data
-        $palette = ['#8F0A0D', '#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#64748B'];
+        // 5. Task Share by Project Data (Harmonious Executive Palette: Brand Red & Muted Slate)
+        $palette = ['#8F0A0D', '#334155', '#475569', '#64748B', '#B91C1C', '#0F172A', '#94A3B8', '#E11D48'];
         $taskShareList = [];
         $taskShareLabels = [];
         $taskShareCounts = [];
