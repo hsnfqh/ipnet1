@@ -29,6 +29,11 @@ class ProjectController extends Controller
         $isSales      = $user->hasAnyRole(['Sales', 'BusDev', 'Account Manager', 'BDM']);
         $isPmo        = $user->hasAnyRole(['PMO', 'Project Manager']);
 
+        // Redirect PMO / Project Manager ke Pusat Kendali Portofolio & Serah Terima Proyek PMO
+        if ($isPmo) {
+            return redirect()->route('pmo.implementations.index');
+        }
+
         // Proyek dibuat oleh Sales / Commercial, PMO fokus pada serah terima & governance
         $canCreate       = !$isExecutive && !$isPmo && (\App\Helpers\ScopeHelper::canCreateProjects($user) || $isSales);
         $canDelete       = $isExecutive || $isSales;

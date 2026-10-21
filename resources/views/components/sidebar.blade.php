@@ -67,11 +67,10 @@
             $navItems[] = ['key' => 'users', 'label' => 'Users', 'route' => 'users.index'];
         }
     } elseif ($isPmoUser) {
-        // Project Manager & PMO: Kontrol pengiriman proyek (Deliver) & Monitoring Penugasan
+        // Project Manager & PMO: Pusat Kontrol Portofolio & Serah Terima Proyek
         $navItems = [
             ['key' => 'dashboard',          'label' => 'Dashboard',         'route' => 'pmo.dashboard'],
-            ['key' => 'pmo_implementations', 'label' => 'Project Delivery',  'route' => 'pmo.implementations.index'],
-            ['key' => 'projects',            'label' => 'Projects',          'route' => 'projects.index'],
+            ['key' => 'projects',           'label' => 'Projects',          'route' => 'pmo.implementations.index'],
             ['key' => 'tasks',               'label' => 'Team Tasks',        'route' => 'tasks.index'],
             ['key' => 'activities',          'label' => 'Activity Log',      'route' => 'engineer.activity_log.index'],
             ['key' => 'schedules',           'label' => 'Work Schedule',     'route' => 'schedules.index'],
@@ -344,7 +343,7 @@
                     $isActive = ($currentRoute === $item['route']) && (request('status') === $itemParams['status']);
                 } else {
                     $isActive = (($currentRoute === $item['route']) || 
-                                 ($item['key'] === 'projects' && in_array($currentRoute, ['sales.pipeline.index', 'sales.pipeline.show', 'sales.pipeline.create', 'projects.show', 'projects.index', 'sales.projects.show'])) ||
+                                 ($item['key'] === 'projects' && in_array($currentRoute, ['sales.pipeline.index', 'sales.pipeline.show', 'sales.pipeline.create', 'projects.show', 'projects.index', 'sales.projects.show', 'pmo.implementations.index'])) ||
                                  ($item['key'] === 'ms_projects' && in_array($currentRoute, ['ms.projects.index', 'ms.projects.show'])) ||
                                  ($item['key'] === 'ms_assets' && in_array($currentRoute, ['ms.assets.index', 'ms.assets.internal', 'ms.assets.external'])) ||
                                  ($item['key'] === 'ms_monitoring' && (in_array($currentRoute, ['ms.monitoring.index', 'ms.monitoring.pm', 'ms.monitoring.cm']) || $childActive)) ||
