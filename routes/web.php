@@ -657,7 +657,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // PMO & Project Management Office Dashboard (Dashboard 1)
-    Route::prefix('pmo')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager')->group(function () {
+    Route::prefix('pmo')->middleware('role:Director|Direktur|HD / Direktur|Division Head|Group Leader|Group Leader Delivery & Operation|PMO|Project Manager|Lead Divisi|Team Leader Engineering|Team Leader|Lead Maintenance|Lead Engineer|Super Admin|Admin')->group(function () {
         Route::get('/dashboard', [PmoController::class, 'dashboard'])->name('pmo.dashboard');
         Route::get('/implementations', [PmoController::class, 'implementations'])->name('pmo.implementations.index');
         Route::get('/projects/{project}', [PmoController::class, 'projectDashboard'])->name('pmo.projects.show');
@@ -671,6 +671,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/projects/{project}/handover-to-ms', [PmoController::class, 'handoverToManagedService'])->name('pmo.handover.to_ms');
         Route::post('/projects/{project}/weekly-progress', [PmoController::class, 'updateWeeklyProgress'])->name('pmo.projects.weekly_progress.update');
         Route::post('/projects/{project}/assign-division', [PmoController::class, 'assignDivision'])->name('pmo.projects.assign_division');
+        Route::post('/projects/{project}/assign-team', [PmoController::class, 'assignTeam'])->name('pmo.projects.assign_team');
+        Route::post('/projects/{project}/quick-task', [PmoController::class, 'quickStoreTask'])->name('pmo.projects.quick_task');
     });
 
     // Lead & Executive Dashboard (Dashboard 2)

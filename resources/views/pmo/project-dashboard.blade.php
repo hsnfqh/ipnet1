@@ -74,6 +74,8 @@
          activePlan: 0,
          activeRange: '',
          showDivisionModal: false,
+         showAssignTeamModal: false,
+         showQuickTaskModal: false,
          openProgressModal(week, actual, plan, notes, range) {
              this.activeWeek = week;
              this.activeActual = actual !== null ? actual : 0;
@@ -547,49 +549,153 @@
             <!-- ========================================================== -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                {{-- LEFT COLUMN: Task Share by Engineer --}}
+                {{-- LEFT COLUMN: Task Share by Engineer & Team Resource Allocation --}}
                 <div class="lg:col-span-5 ipnet-card p-5 sm:p-6 space-y-4">
-                    <div class="border-b border-[#E2E8F0] pb-3 flex items-center justify-between">
+                    <div class="border-b border-[#E2E8F0] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                         <div>
                             <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">
                                 <span class="ipnet-badge-dot"></span> DISTRIBUSI TIM
                             </p>
                             <h3 class="text-sm font-bold text-[#1E293B]">Beban Tugas Tim Lapangan</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Delegasi personil oleh Lead &amp; alokasi tugas oleh PM</p>
                         </div>
-                        <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                            {{ $totalTasks }} Total Tasks
-                        </span>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                                {{ count($assignedEngineers) }} Personil
+                            </span>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                                {{ $totalTasks }} Tasks
+                            </span>
+                            
+                            {{-- Button Lead Delegasikan Tim --}}
+                            <button type="button" 
+                                    @click="showAssignTeamModal = true" 
+                                    class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white transition flex items-center gap-1 shadow-xs cursor-pointer"
+                                    title="Tugaskan / kelola personil tim teknis proyek">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                                </svg>
+                                <span>Tugaskan Tim (Lead)</span>
+                            </button>
+                        </div>
                     </div>
 
-                    @if($totalTasks > 0)
-                        <div style="height: 190px;" class="flex items-center justify-center relative">
-                            <canvas id="projectTaskShareChart"></canvas>
+                    {{-- Status Banner Penugasan Lead --}}
+                    @if(count($assignedEngineers) > 0)
+                        <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/60 flex items-start justify-between gap-2">
+                            <div class="flex items-start gap-2 min-w-0">
+                                <div class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <p class="text-[11.5px] font-bold text-emerald-900">Tim Resmi Ditetapkan Lead</p>
+                                        <span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-200/60 text-emerald-800 font-semibold">
+                                            {{ $teamDelegatedByName ?? 'Lead' }} &bull; {{ $teamDelegatedAt ?? '-' }}
+                                        </span>
+                                    </div>
+                                    @if(!empty($leadNotes))
+                                        <p class="text-[11px] text-emerald-800/80 mt-0.5 italic line-clamp-1">"{{ $leadNotes }}"</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <button type="button" 
+                                    @click="showAssignTeamModal = true" 
+                                    class="text-[10.5px] font-bold text-emerald-700 hover:text-emerald-900 shrink-0 hover:underline">
+                                Edit
+                            </button>
                         </div>
                     @else
-                        <div class="h-[170px] flex flex-col items-center justify-center text-center p-4 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                            <p class="text-xs font-semibold text-slate-700">Belum Ada Task Terdaftar</p>
-                            <p class="text-[11px] text-slate-400 max-w-[220px] mt-0.5 leading-relaxed">
-                                Beban kerja engineer akan terhitung otomatis saat tugas teknis dibuat.
-                            </p>
+                        <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/70 flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse"></span>
+                                <p class="text-[11.5px] text-amber-900 font-medium truncate">
+                                    <strong class="font-bold">Menunggu Lead:</strong> Belum ada personil lapangan yang ditugaskan.
+                                </p>
+                            </div>
+                            <button type="button" 
+                                    @click="showAssignTeamModal = true" 
+                                    class="text-[10.5px] font-bold text-amber-800 hover:text-amber-950 shrink-0 underline">
+                                Tugaskan
+                            </button>
                         </div>
                     @endif
 
-                    {{-- Breakdown List --}}
+                    {{-- Visualisasi Donut Chart atau Status Penugasan --}}
+                    @if($totalTasks > 0)
+                        <div style="height: 185px;" class="flex items-center justify-center relative">
+                            <canvas id="projectTaskShareChart"></canvas>
+                        </div>
+                    @else
+                        <div class="py-5 px-4 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50 space-y-2">
+                            <div class="w-10 h-10 rounded-full bg-red-50 text-[#8F0A0D] flex items-center justify-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-800">
+                                    {{ count($assignedEngineers) > 0 ? 'Tim Siap Menerima Tugas' : 'Belum Ada Task Terdaftar' }}
+                                </p>
+                                <p class="text-[11px] text-slate-400 max-w-[260px] mx-auto mt-0.5 leading-relaxed">
+                                    {{ count($assignedEngineers) > 0 
+                                        ? 'Lead telah menunjuk ' . count($assignedEngineers) . ' personil. Klik tombol di bawah untuk membagikan rincian tugas teknis (WBS).' 
+                                        : 'Beban kerja engineer akan terhitung otomatis saat tugas teknis dibuat oleh PM.' }}
+                                </p>
+                            </div>
+                            @if(count($assignedEngineers) > 0)
+                                <button type="button" 
+                                        @click="showQuickTaskModal = true" 
+                                        class="mt-1 px-3 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span>Bagi Task ke Tim (PM)</span>
+                                </button>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- Breakdown List of Engineers & Workload Share --}}
                     <div class="space-y-2 pt-2 border-t border-slate-100">
+                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                            <span>Personil Tim</span>
+                            <div class="flex items-center gap-2">
+                                <span>Alokasi Beban</span>
+                                <button type="button" @click="showQuickTaskModal = true" class="text-[#8F0A0D] hover:underline normal-case font-bold">+ Tambah Task</button>
+                            </div>
+                        </div>
+
                         @forelse($taskShareList as $item)
-                            <div class="flex items-center justify-between text-xs py-1.5 px-2 rounded-xl hover:bg-slate-50 transition">
+                            <div class="flex items-center justify-between text-xs py-2 px-2.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/80 transition">
                                 <div class="flex items-center gap-2.5 min-w-0 pr-2">
                                     <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ $item['color'] }}"></span>
-                                    <span class="font-semibold text-slate-800 truncate">{{ $item['name'] }}</span>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-bold text-slate-800 truncate">{{ $item['name'] }}</span>
+                                            @if($item['is_assigned'])
+                                                <span class="text-[9.5px] px-1 py-0.2 rounded bg-red-50 text-[#8F0A0D] font-bold shrink-0">Tim Resmi</span>
+                                            @endif
+                                        </div>
+                                        <span class="text-[10.5px] text-slate-400 block truncate">{{ $item['position'] ?? 'Field Engineer' }}</span>
+                                    </div>
                                 </div>
                                 <div class="text-right shrink-0">
-                                    <span class="font-bold text-slate-700">{{ $item['count'] }} Tasks</span>
-                                    <span class="text-[11px] text-slate-400 block font-medium">({{ $item['percentage'] }}%)</span>
+                                    @if($item['count'] > 0)
+                                        <span class="font-bold text-slate-800">{{ $item['count'] }} Tasks</span>
+                                        <span class="text-[10.5px] text-slate-500 block font-medium">
+                                            ({{ $item['percentage'] }}% &bull; {{ $item['completed'] }} Selesai)
+                                        </span>
+                                    @else
+                                        <span class="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">
+                                            0 Task (Menunggu PM)
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         @empty
-                            <div class="text-center py-4 text-slate-400 text-xs font-medium">
-                                Belum ada pembagian tugas engineer.
+                            <div class="text-center py-4 text-slate-400 text-xs font-medium border border-dashed border-slate-200 rounded-xl">
+                                Belum ada personil tim yang ditugaskan oleh Lead.
                             </div>
                         @endforelse
                     </div>
@@ -840,6 +946,197 @@
                     </button>
                     <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs">
                         Tetapkan Divisi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- MODAL 3: DELEGASIKAN PERSONIL TIM LAPANGAN OLEH LEAD       -->
+    <!-- ========================================================== -->
+    <div x-show="showAssignTeamModal" 
+         x-transition.opacity
+         style="display: none;"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+             @click.away="showAssignTeamModal = false">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Delegasi Tim Lapangan (Lead)</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Tentukan personil engineer yang diterjunkan untuk proyek ini</p>
+                    </div>
+                </div>
+                <button type="button" @click="showAssignTeamModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between">
+                <div>
+                    <span class="text-slate-400 block text-[10.5px]">Proyek Pelaksanaan:</span>
+                    <strong class="text-slate-900 font-bold">{{ $project->name }}</strong>
+                </div>
+                <span class="px-2 py-1 rounded-md bg-white border border-slate-200 text-[#8F0A0D] font-bold text-[11px]">
+                    {{ $project->division->name ?? 'Teknis' }}
+                </span>
+            </div>
+
+            <form action="{{ route('pmo.projects.assign_team', $project->id) }}" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-xs font-bold text-slate-700">Pilih Engineer Lapangan (Multi-select)</label>
+                        <span class="text-[11px] text-slate-400">Centang 1 atau lebih</span>
+                    </div>
+
+                    @php
+                        $assignedIds = collect($assignedEngineers)->pluck('id')->filter()->toArray();
+                    @endphp
+
+                    <div class="space-y-1.5 max-h-56 overflow-y-auto p-1 border border-slate-200 rounded-xl bg-slate-50/50">
+                        @forelse($availableEngineers as $eng)
+                            <label class="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/80 hover:border-[#8F0A0D] transition cursor-pointer">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <input type="checkbox" 
+                                           name="engineer_ids[]" 
+                                           value="{{ $eng->id }}" 
+                                           {{ in_array($eng->id, $assignedIds) ? 'checked' : '' }}
+                                           class="w-4 h-4 rounded text-[#8F0A0D] focus:ring-[#8F0A0D] border-slate-300">
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-bold text-slate-800 truncate">{{ $eng->name }}</p>
+                                        <p class="text-[10.5px] text-slate-400 truncate">{{ $eng->position ?? 'Field Engineer' }}</p>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                                    {{ $eng->division->name ?? 'Teknis' }}
+                                </span>
+                            </label>
+                        @empty
+                            <div class="p-3 text-center text-xs text-slate-400">
+                                Tidak ada data engineer aktif pada divisi ini.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Catatan / Arahan Khusus dari Lead (Opsional)</label>
+                    <textarea name="notes" 
+                              rows="2" 
+                              placeholder="Contoh: Fokus pada instalasi core router dan konfigurasi VLAN minggu pertama..." 
+                              class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none">{{ $leadNotes ?? '' }}</textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showAssignTeamModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer">
+                        Simpan &amp; Tetapkan Tim Proyek
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- MODAL 4: BUAT & DELEGASIKAN TASK TEKNIS (WBS) OLEH PM      -->
+    <!-- ========================================================== -->
+    <div x-show="showQuickTaskModal" 
+         x-transition.opacity
+         style="display: none;"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+             @click.away="showQuickTaskModal = false">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Buat &amp; Alokasikan Tugas Teknis (PM)</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">PM membagi pekerjaan (WBS) ke personil yang ditunjuk Lead</p>
+                    </div>
+                </div>
+                <button type="button" @click="showQuickTaskModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form action="{{ route('pmo.projects.quick_task', $project->id) }}" method="POST" class="space-y-3.5">
+                @csrf
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Judul Tugas / Rincian Pekerjaan (WBS)</label>
+                    <input type="text" 
+                           name="title" 
+                           required 
+                           placeholder="Contoh: Instalasi Rack &amp; Penarikan Kabel UTP / Konfigurasi Router" 
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-900 focus:border-[#8F0A0D] outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tugaskan ke Engineer</label>
+                        <select name="engineer_id" required 
+                                class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                            <option value="">-- Pilih Engineer --</option>
+                            @if(count($assignedEngineers) > 0)
+                                <optgroup label="⭐ Tim Resmi Proyek (Ditugaskan Lead)">
+                                    @foreach($assignedEngineers as $ae)
+                                        <option value="{{ $ae['id'] }}">{{ $ae['name'] }} ({{ $ae['position'] ?? 'Engineer' }})</option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
+                            <optgroup label="Semua Personil Divisi">
+                                @foreach($availableEngineers as $eng)
+                                    <option value="{{ $eng->id }}">{{ $eng->name }} ({{ $eng->position ?? 'Engineer' }})</option>
+                                @endforeach
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Prioritas Tugas</label>
+                        <select name="priority" required 
+                                class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
+                            <option value="High">High (Kritikal / Utama)</option>
+                            <option value="Medium" selected>Medium (Standar)</option>
+                            <option value="Low">Low (Dukungan / Pendukung)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Target Batas Waktu (Deadline Task)</label>
+                    <input type="date" 
+                           name="deadline" 
+                           value="{{ $project->deadline ? $project->deadline->format('Y-m-d') : date('Y-m-d', strtotime('+14 days')) }}"
+                           class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi &amp; Instruksi Teknis PM (Opsional)</label>
+                    <textarea name="description" 
+                              rows="2.5" 
+                              placeholder="Rincian instruksi pelaksanaan, checklist perangkat, atau port mapping yang perlu disiapkan..." 
+                              class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showQuickTaskModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer">
+                        Delegasikan Task ke Engineer
                     </button>
                 </div>
             </form>

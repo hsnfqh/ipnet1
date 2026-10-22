@@ -145,30 +145,99 @@ class PmoController extends Controller
             $healthStatusText = 'Mendekati Tenggat SLA';
         }
 
-        // Task Share by Engineer in this project
-        $engineerTaskCounts = [];
-        foreach ($project->tasks as $t) {
-            $engName = $t->engineer ? $t->engineer->name : 'Unassigned';
-            $engineerTaskCounts[$engName] = ($engineerTaskCounts[$engName] ?? 0) + 1;
+        // Data Penugasan Tim Teknis oleh Lead (Resource Allocation)
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $assignedEngineers = $handoverData['assigned_engineers'] ?? [];
+        $leadNotes = $handoverData['team_delegation_notes'] ?? null;
+        $teamDelegatedAt = $handoverData['team_delegated_at'] ?? null;
+        $teamDelegatedByName = $handoverData['team_delegated_by_name'] ?? null;
+
+        // Daftar kandidat engineer untuk penugasan tim oleh Lead
+        $divId = $project->division_id;
+        $availableEngineers = User::where(function($q) use ($divId) {
+            if ($divId) {
+                $q->where('division_id', $divId);
+            }
+            $q->orWhereHas('roles', function($rq) {
+                $rq->whereIn('name', [
+                    'Network Engineer', 'Security Engineer', 'Field Support', 'Field Support (EOS)',
+                    'Engineer', 'Engineer L1', 'Engineer L2', 'Technical Support', 'Lead Engineer', 'Team Leader', 'Team Leader Engineering'
+                ]);
+            });
+        })
+        ->where('status', 'Active')
+        ->orderBy('name')
+        ->get(['id', 'name', 'position', 'division_id']);
+
+        // Task Share by Engineer in this project (mengkombinasikan tim yang ditunjuk Lead & task yang dibuat PM)
+        $assignedMap = [];
+        foreach ($assignedEngineers as $ae) {
+            $aeName = $ae['name'] ?? 'Engineer';
+            $assignedMap[$aeName] = [
+                'id'          => $ae['id'] ?? null,
+                'name'        => $aeName,
+                'position'    => $ae['position'] ?? 'Engineer Lapangan',
+                'count'       => 0,
+                'completed'   => 0,
+                'pending'     => 0,
+                'is_assigned' => true,
+            ];
         }
 
-        $palette = ['#8F0A0D', '#334155', '#475569', '#64748B', '#B91C1C', '#0F172A', '#94A3B8'];
+        foreach ($project->tasks as $t) {
+            $engName = $t->engineer ? $t->engineer->name : 'Unassigned';
+            if (!isset($assignedMap[$engName])) {
+                $assignedMap[$engName] = [
+                    'id'          => $t->engineer_id,
+                    'name'        => $engName,
+                    'position'    => $t->engineer?->position ?? 'Engineer',
+                    'count'       => 0,
+                    'completed'   => 0,
+                    'pending'     => 0,
+                    'is_assigned' => false,
+                ];
+            }
+            $assignedMap[$engName]['count']++;
+            if (in_array($t->status, ['Done', 'Completed'])) {
+                $assignedMap[$engName]['completed']++;
+            } else {
+                $assignedMap[$engName]['pending']++;
+            }
+        }
+
+        $palette = ['#8F0A0D', '#2563EB', '#059669', '#D97706', '#7C3AED', '#DB2777', '#0284C7', '#475569', '#0F172A'];
         $taskShareList = [];
+        $taskShareLabels = [];
+        $taskShareCounts = [];
+        $taskShareColors = [];
         $colorIdx = 0;
-        foreach ($engineerTaskCounts as $engName => $count) {
+
+        foreach ($assignedMap as $engName => $info) {
+            $color = $palette[$colorIdx % count($palette)];
+            $pct = $totalTasks > 0 ? round(($info['count'] / $totalTasks) * 100) : 0;
             $taskShareList[] = [
-                'name' => $engName,
-                'count' => $count,
-                'percentage' => $totalTasks > 0 ? round(($count / $totalTasks) * 100) : 0,
-                'color' => $palette[$colorIdx % count($palette)],
+                'id'          => $info['id'],
+                'name'        => $engName,
+                'position'    => $info['position'],
+                'count'       => $info['count'],
+                'completed'   => $info['completed'],
+                'pending'     => $info['pending'],
+                'percentage'  => $pct,
+                'color'       => $color,
+                'is_assigned' => $info['is_assigned'],
             ];
+            if ($info['count'] > 0) {
+                $taskShareLabels[] = $engName;
+                $taskShareCounts[] = $info['count'];
+                $taskShareColors[] = $color;
+            }
             $colorIdx++;
         }
 
         $taskShareChartData = [
-            'labels' => array_keys($engineerTaskCounts),
-            'counts' => array_values($engineerTaskCounts),
-            'colors' => array_column($taskShareList, 'color'),
+            'labels' => $taskShareLabels,
+            'counts' => $taskShareCounts,
+            'colors' => $taskShareColors,
         ];
 
         // 1. Rentang Tanggal & Durasi Lengkap Proyek
@@ -294,7 +363,12 @@ class PmoController extends Controller
             'sCurvePlan',
             'sCurveActual',
             'currentProgressPercent',
-            'sCurveUpdateDate'
+            'sCurveUpdateDate',
+            'assignedEngineers',
+            'availableEngineers',
+            'leadNotes',
+            'teamDelegatedAt',
+            'teamDelegatedByName'
         ));
     }
 
@@ -963,6 +1037,126 @@ class PmoController extends Controller
         }
 
         return back()->with('success', 'Proyek ' . $project->name . ' berhasil diserahterimakan ke Tim Managed Service (Tahap Operate)!');
+    }
+
+    /**
+     * Delegasi Personil Tim Lapangan oleh Lead / PMO (Resource Allocation)
+     */
+    public function assignTeam(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'engineer_ids'   => 'required|array|min:1',
+            'engineer_ids.*' => 'exists:users,id',
+            'notes'          => 'nullable|string|max:1000',
+        ]);
+
+        $engineers = User::whereIn('id', $validated['engineer_ids'])->with('division')->get();
+        $assignedList = [];
+        $leadName = auth()->user() ? auth()->user()->name : 'Lead Engineer';
+
+        foreach ($engineers as $eng) {
+            $assignedList[] = [
+                'id'          => $eng->id,
+                'name'        => $eng->name,
+                'email'       => $eng->email,
+                'position'    => $eng->position ?: 'Field Engineer',
+                'division'    => $eng->division ? $eng->division->name : 'Technical Engineering',
+                'assigned_at' => now()->format('d M Y H:i'),
+                'assigned_by' => $leadName,
+            ];
+
+            // Kirim notifikasi ke masing-masing engineer yang ditugaskan
+            try {
+                \App\Models\Notification::create([
+                    'user_id' => $eng->id,
+                    'title'   => 'Penugasan Tim Proyek: ' . $project->name,
+                    'message' => "Anda telah ditugaskan oleh {$leadName} sebagai personil pelaksana lapangan untuk proyek '{$project->name}'.",
+                    'type'    => 'project_assignment',
+                    'url'     => route('tasks.index'),
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {}
+        }
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $handoverData['assigned_engineers'] = $assignedList;
+        $handoverData['team_delegation_notes'] = $validated['notes'] ?? null;
+        $handoverData['team_delegated_at'] = now()->format('d M Y H:i');
+        $handoverData['team_delegated_by_id'] = auth()->id();
+        $handoverData['team_delegated_by_name'] = $leadName;
+
+        $project->handover_data = $handoverData;
+        $project->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tim teknis (' . count($assignedList) . ' personil) berhasil ditetapkan oleh Lead untuk proyek ini!',
+                'assigned_engineers' => $assignedList,
+            ]);
+        }
+
+        return back()->with('success', 'Tim teknis lapangan (' . count($assignedList) . ' personil) berhasil ditetapkan oleh Lead untuk proyek ini!');
+    }
+
+    /**
+     * PM Membuat & Mendelegasikan Task Teknis (WBS) Cepat ke Personil Proyek
+     */
+    public function quickStoreTask(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'title'        => 'required|string|max:255',
+            'engineer_id'  => 'required|exists:users,id',
+            'priority'     => 'required|in:Low,Medium,High',
+            'deadline'     => 'nullable|date',
+            'description'  => 'nullable|string|max:2000',
+        ]);
+
+        $deadlineStr = $validated['deadline'] 
+            ? substr($validated['deadline'], 0, 10) . ' 18:00:00' 
+            : ($project->deadline ? $project->deadline->format('Y-m-d') . ' 18:00:00' : now()->addWeeks(2)->format('Y-m-d') . ' 18:00:00');
+
+        $task = Task::create([
+            'title'       => $validated['title'],
+            'project_id'  => $project->id,
+            'engineer_id' => $validated['engineer_id'],
+            'priority'    => $validated['priority'],
+            'status'      => 'Assigned',
+            'start_date'  => now()->toDateString(),
+            'deadline'    => $deadlineStr,
+            'description' => $validated['description'] ?? null,
+            'progress'    => 0,
+            'attachments' => 0,
+            'created_by'  => auth()->id(),
+        ]);
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('task_user')) {
+            $task->engineers()->sync([$validated['engineer_id']]);
+        }
+
+        $eng = User::find($validated['engineer_id']);
+
+        // Notifikasi ke engineer penerima tugas dari PM
+        try {
+            \App\Models\Notification::create([
+                'user_id' => $validated['engineer_id'],
+                'title'   => 'Tugas Teknis Baru (PM): ' . $task->title,
+                'message' => "Project Manager telah menugaskan tugas '{$task->title}' pada proyek '{$project->name}'.",
+                'type'    => 'task_assigned',
+                'url'     => route('tasks.index'),
+                'is_read' => false,
+            ]);
+        } catch (\Throwable $e) {}
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Task "' . $task->title . '" berhasil dibuat dan didelegasikan ke ' . ($eng ? $eng->name : 'engineer') . '!',
+                'task'    => $task,
+            ]);
+        }
+
+        return back()->with('success', 'Task "' . $task->title . '" berhasil dibuat dan didelegasikan ke ' . ($eng ? $eng->name : 'engineer') . '!');
     }
 }
 
