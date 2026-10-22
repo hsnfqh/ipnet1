@@ -384,7 +384,7 @@
                                         <td class="py-3.5 pl-3 text-right whitespace-nowrap">
                                             <a href="{{ route('pmo.projects.show', $p['id']) }}" 
                                                class="px-3 py-1.5 rounded-xl text-[11.5px] font-bold text-white btn-ipnet-primary transition inline-flex items-center gap-1 shadow-2xs">
-                                                <span>Dashboard &amp; Kurva S</span>
+                                                <span>Detail</span>
                                                 <span class="text-xs">&rarr;</span>
                                             </a>
                                         </td>
