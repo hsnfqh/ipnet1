@@ -966,6 +966,7 @@ class PmoController extends Controller
                 $updateData['handover_data'] = array_merge($existingHandoverData, [
                     'checklist'                => $cl,
                     'checklist_status'         => $request->input('checklist_status', []),
+                    'checklist_na'             => $request->input('checklist_na', []),
                     'checklist_notes'          => $request->input('checklist_notes', []),
                     'handover_status_selected' => $request->input('handover_status_selected', 'approved'),
                     'handover_risks'           => $request->input('handover_risks', ''),
@@ -1052,6 +1053,7 @@ class PmoController extends Controller
             'handover_data'                 => array_merge($existingHandoverData, [
                 'checklist'                => $request->input('checklist', $project->documents_checklist),
                 'checklist_status'         => $request->input('checklist_status', []),
+                'checklist_na'             => $request->input('checklist_na', []),
                 'checklist_notes'          => $request->input('checklist_notes', []),
                 'handover_risks'           => $request->input('handover_risks', ''),
                 'handover_missing_info'    => $request->input('handover_missing_info', $validated['notes']),

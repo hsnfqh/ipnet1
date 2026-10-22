@@ -637,9 +637,11 @@
                                 <thead>
                                     <tr class="bg-[#F8FAFC] text-[#0F172A] text-[11px] font-black uppercase tracking-wider border-b border-[#1E293B]">
                                         <th class="py-2 px-2.5 w-10 text-center border-r border-[#1E293B]">No.</th>
-                                        <th class="py-2 px-3 w-64 sm:w-72 border-r border-[#1E293B]">Butir / Informasi</th>
-                                        <th class="py-2 px-2.5 w-32 text-center border-r border-[#1E293B]">Status / Isian</th>
-                                        <th class="py-2 px-3">Catatan / PIC &bull; Berkas &amp; Verifikasi</th>
+                                        <th class="py-2 px-3 w-60 sm:w-64 border-r border-[#1E293B]">Butir / Informasi</th>
+                                        <th class="py-2 px-2 text-center w-28 border-r border-[#1E293B]">File</th>
+                                        <th class="py-2 px-2 text-center w-24 border-r border-[#1E293B]">Status Isian</th>
+                                        <th class="py-2 px-2 text-center w-14 border-r border-[#1E293B]">N/A</th>
+                                        <th class="py-2 px-3">Catatan</th>
                                     </tr>
                                 </thead>
                                 <tbody id="accept-modal-checklist-tbody" class="bg-white">
@@ -984,29 +986,53 @@
             ];
 
             var docs = p.docs || {};
-            var savedCl = p.checklist || {};
             var savedStatuses = hData.checklist_status || {};
+            var savedNas = hData.checklist_na || {};
             var savedNotes = hData.checklist_notes || {};
+
+            window.toggleAcceptNa = function(key) {
+                var naCheck = document.getElementById('accept-na-' + key);
+                var statusSelect = document.getElementById('accept-status-' + key);
+                var notesInput = document.getElementById('accept-notes-' + key);
+                if (!naCheck || !statusSelect || !notesInput) return;
+
+                if (naCheck.checked) {
+                    statusSelect.value = 'Tidak';
+                    statusSelect.classList.add('bg-slate-100', 'text-slate-400', 'border-slate-200');
+                    statusSelect.classList.remove('bg-white', 'text-slate-800', 'border-slate-300');
+                    notesInput.placeholder = 'Keterangan N/A (alasan tidak berlaku)...';
+                    notesInput.classList.add('border-amber-300', 'bg-amber-50/40', 'text-amber-900');
+                    notesInput.classList.remove('border-slate-200', 'bg-slate-50', 'text-slate-700');
+                    notesInput.focus();
+                } else {
+                    statusSelect.value = 'Ada';
+                    statusSelect.classList.remove('bg-slate-100', 'text-slate-400', 'border-slate-200');
+                    statusSelect.classList.add('bg-white', 'text-slate-800', 'border-slate-300');
+                    notesInput.placeholder = 'Catatan / PIC / bukti...';
+                    notesInput.classList.remove('border-amber-300', 'bg-amber-50/40', 'text-amber-900');
+                    notesInput.classList.add('border-slate-200', 'bg-slate-50', 'text-slate-700');
+                }
+            };
 
             officialItems.forEach(function(item) {
                 var doc = docs[item.doc_key] || {};
                 var hasFile = !!doc.file_path;
                 var fileUrl = doc.file_url || (hasFile ? ('/storage/' + doc.file_path) : '');
-                var isVerified = (savedCl[item.key] !== undefined) ? !!savedCl[item.key] : (!!doc.verified || hasFile);
-                var isChecked = isVerified ? 'checked' : '';
-                var currentStatus = savedStatuses[item.key] || (isVerified ? 'Ada' : 'Ada');
+                var isNa = !!savedNas[item.key];
+                var rawStatus = savedStatuses[item.key];
+                var currentStatus = isNa ? 'Tidak' : ((rawStatus === 'Tidak' || rawStatus === 'Tidak Berlaku') ? 'Tidak' : 'Ada');
                 var noteText = savedNotes[item.key] || (doc.number ? ('No: ' + doc.number) : '');
 
                 var tr = document.createElement('tr');
-                tr.className = 'border-b border-[#1E293B] transition ' + (isVerified ? 'bg-emerald-50/20' : 'hover:bg-slate-50/50');
+                tr.className = 'border-b border-[#1E293B] hover:bg-slate-50/50 transition';
 
                 var fileSection = hasFile ? `
-                    <a href="${fileUrl}" target="_blank" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-[#1E293B] text-[11px] font-bold border border-[#CBD5E1] shadow-2xs flex items-center gap-1.5 transition">
+                    <a href="${fileUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-[#1E293B] text-[11px] font-bold border border-[#CBD5E1] shadow-2xs transition">
                         <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                         <span>Lihat File</span>
                     </a>
                 ` : `
-                    <span class="px-2.5 py-1 rounded-lg bg-slate-50 text-[#94A3B8] text-[10.5px] font-medium border border-slate-200">
+                    <span class="inline-block px-2 py-1 rounded-lg bg-slate-50 text-[#94A3B8] text-[10px] font-medium border border-slate-200">
                         Belum Ada File
                     </span>
                 `;
@@ -1024,25 +1050,34 @@
                         </div>
                     </td>
                     <td class="py-2.5 px-2 text-center align-middle whitespace-nowrap border-r border-[#1E293B]">
-                        <select name="checklist_status[${item.key}]" class="text-[11px] font-bold px-2 py-1 bg-white border border-slate-300 rounded-md outline-none text-slate-800 focus:border-[#8F0A0D]">
+                        ${fileSection}
+                    </td>
+                    <td class="py-2.5 px-2 text-center align-middle whitespace-nowrap border-r border-[#1E293B]">
+                        <select id="accept-status-${item.key}" 
+                                name="checklist_status[${item.key}]" 
+                                class="text-[11px] font-bold px-2 py-1 border rounded-md outline-none focus:border-[#8F0A0D] ${isNa ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-slate-800 border-slate-300'}">
                             <option value="Ada" ${currentStatus === 'Ada' ? 'selected' : ''}>Ada</option>
-                            <option value="Tidak Berlaku" ${currentStatus === 'Tidak Berlaku' ? 'selected' : ''}>Tidak Berlaku</option>
-                            <option value="Menyusul" ${currentStatus === 'Menyusul' ? 'selected' : ''}>Menyusul</option>
+                            <option value="Tidak" ${currentStatus === 'Tidak' ? 'selected' : ''}>Tidak</option>
                         </select>
                     </td>
+                    <td class="py-2.5 px-2 text-center align-middle border-r border-[#1E293B]">
+                        <label class="inline-flex items-center justify-center cursor-pointer select-none" title="Tandai N/A jika butir ini tidak berlaku">
+                            <input type="checkbox" 
+                                   id="accept-na-${item.key}" 
+                                   name="checklist_na[${item.key}]" 
+                                   value="1" 
+                                   ${isNa ? 'checked' : ''} 
+                                   onchange="window.toggleAcceptNa('${item.key}')" 
+                                   class="w-4 h-4 text-[#8F0A0D] rounded border-slate-300 focus:ring-[#8F0A0D] cursor-pointer">
+                        </label>
+                    </td>
                     <td class="py-2.5 px-3 align-middle">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <div class="min-w-0 flex-1">
-                                <input type="text" name="checklist_notes[${item.key}]" value="${noteText}" placeholder="Catatan / PIC / bukti..." class="w-full text-[11px] px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-md text-slate-700 outline-none focus:bg-white focus:border-slate-400">
-                            </div>
-                            <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                                ${fileSection}
-                                <label class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] text-[#1E293B] text-[11px] font-bold cursor-pointer transition select-none">
-                                    <input type="checkbox" name="documents_checklist[${item.key}]" value="1" ${isChecked} class="w-3.5 h-3.5 text-[#8F0A0D] rounded border-gray-300 focus:ring-[#8F0A0D] cursor-pointer">
-                                    <span>Terverifikasi</span>
-                                </label>
-                            </div>
-                        </div>
+                        <input type="text" 
+                               id="accept-notes-${item.key}" 
+                               name="checklist_notes[${item.key}]" 
+                               value="${noteText}" 
+                               placeholder="${isNa ? 'Keterangan N/A (alasan tidak berlaku)...' : 'Catatan / PIC / bukti...'}" 
+                               class="w-full text-[11px] px-2.5 py-1 border rounded-md outline-none focus:bg-white focus:border-slate-400 ${isNa ? 'border-amber-300 bg-amber-50/40 text-amber-900 font-medium' : 'border-slate-200 bg-slate-50 text-slate-700'}">
                     </td>
                 `;
 
