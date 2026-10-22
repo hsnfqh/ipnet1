@@ -548,15 +548,6 @@
 
                 <div class="flex items-center gap-2 no-print">
                     <button type="button" 
-                            onclick="window.print()" 
-                            title="Cetak Formulir Serah Terima"
-                            class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300 transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
-                        <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                        </svg>
-                        <span class="hidden sm:inline">Cetak</span>
-                    </button>
-                    <button type="button" 
                             onclick="window.closeAcceptModal()" 
                             class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-lg font-bold cursor-pointer shadow-2xs">
                         &times;
@@ -883,14 +874,6 @@
             {{-- Footer --}}
             <div class="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 px-6 border-t border-slate-300 bg-slate-50 shrink-0 no-print">
                 <div class="flex items-center gap-2">
-                    <button type="button" 
-                            onclick="window.print()" 
-                            class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1.5 cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                        </svg>
-                        <span>Cetak Formulir (PDF)</span>
-                    </button>
                     <button type="button" 
                             onclick="window.closeAcceptModal()" 
                             class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-300 rounded-xl transition cursor-pointer">
