@@ -286,7 +286,7 @@
                     </div>
                 </div>
 
-                {{-- Metric 2: Sisa Waktu Pelaksanaan (Menggantikan Project Budget) --}}
+                {{-- Metric 2: Sisa Waktu Pelaksanaan (Project Countdown) --}}
                 <div class="ipnet-metric-card border-l-4 border-l-slate-700 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-2">
@@ -299,17 +299,17 @@
                         </div>
                         <div class="text-[20px] font-extrabold text-[#1E293B] tracking-tight">
                             @if(($daysRemaining ?? 0) > 0)
-                                {{ $daysRemaining }} <span class="text-xs font-semibold text-slate-500">Hari Tersisa</span>
+                                {{ number_format($daysRemaining, 0) }} <span class="text-xs font-semibold text-slate-500">Hari Tersisa</span>
                             @elseif(($daysRemaining ?? 0) === 0)
                                 <span class="text-amber-600">Hari Terakhir</span>
                             @else
-                                <span class="text-rose-600">{{ abs($daysRemaining ?? 0) }} Hari Terlewat</span>
+                                <span class="text-rose-600">{{ number_format(abs($daysRemaining ?? 0), 0) }} Hari Terlewat</span>
                             @endif
                         </div>
                     </div>
                     <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
                         <span>Minggu ke-{{ $currentWeek }} dari {{ $totalWeeks }} Minggu</span>
-                        <span class="font-bold text-slate-800">{{ $daysSpan }} Hari Total</span>
+                        <span class="font-bold text-slate-800">{{ number_format($daysSpan, 0) }} Hari Total</span>
                     </div>
                 </div>
 
@@ -337,30 +337,34 @@
                     </div>
                 </div>
 
-                {{-- Metric 4: Deviasi Kurva S (Menggantikan Healthy yang abstrak) --}}
-                <div class="ipnet-metric-card border-l-4 {{ ($currentVariance ?? 0) >= 0 ? 'border-l-emerald-600' : 'border-l-rose-600' }} flex flex-col justify-between">
+                {{-- Metric 4: Status Kinerja Jadwal (Schedule Status Kurva S) --}}
+                @php
+                    $isStatusOnTrack = ($currentVariance ?? 0) >= -2.0;
+                    $isStatusAtRisk = ($currentVariance ?? 0) < -2.0 && ($currentVariance ?? 0) >= -10.0;
+                @endphp
+                <div class="ipnet-metric-card border-l-4 {{ $isStatusOnTrack ? 'border-l-emerald-600' : ($isStatusAtRisk ? 'border-l-amber-500' : 'border-l-rose-600') }} flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Deviasi Kurva S</span>
-                            <div class="w-7 h-7 rounded-lg {{ ($currentVariance ?? 0) >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }} flex items-center justify-center">
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Status Jadwal (Kurva S)</span>
+                            <div class="w-7 h-7 rounded-lg {{ $isStatusOnTrack ? 'bg-emerald-50 text-emerald-600' : ($isStatusAtRisk ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600') }} flex items-center justify-center">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                                 </svg>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full {{ ($currentVariance ?? 0) >= 0 ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
+                            <span class="w-2.5 h-2.5 rounded-full {{ $isStatusOnTrack ? 'bg-emerald-500' : ($isStatusAtRisk ? 'bg-amber-500' : 'bg-rose-500') }}"></span>
                             <span class="text-[20px] font-extrabold text-[#1E293B] tracking-tight">
-                                {{ ($currentVariance ?? 0) >= 0 ? '+' : '' }}{{ number_format($currentVariance ?? 0, 2) }}%
+                                {{ $isStatusOnTrack ? 'On-Track' : ($isStatusAtRisk ? 'At-Risk' : 'Delayed') }}
                             </span>
-                            <span class="text-xs font-bold {{ ($currentVariance ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
-                                {{ ($currentVariance ?? 0) >= 0 ? 'Ahead' : 'Behind' }}
+                            <span class="text-xs font-bold {{ $isStatusOnTrack ? 'text-emerald-700' : ($isStatusAtRisk ? 'text-amber-700' : 'text-rose-700') }}">
+                                ({{ ($currentVariance ?? 0) >= 0 ? '+' : '' }}{{ number_format($currentVariance ?? 0, 1) }}%)
                             </span>
                         </div>
                     </div>
                     <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
                         <span>Target: {{ number_format($planValAtCurrentWeek ?? 0, 1) }}%</span>
-                        <span class="font-bold {{ ($currentVariance ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
+                        <span class="font-bold text-slate-800">
                             Aktual: {{ number_format($currentProgressPercent, 1) }}%
                         </span>
                     </div>

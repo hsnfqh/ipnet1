@@ -131,8 +131,11 @@ class PmoController extends Controller
         $completedTasks = $project->tasks->whereIn('status', ['Done', 'Completed'])->count();
         $actualEV = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
 
-        $daysSpan = ($project->start_date && $project->deadline) ? max(0, $project->start_date->diffInDays($project->deadline)) : 0;
-        $daysRemaining = $project->deadline ? \Carbon\Carbon::now()->diffInDays($project->deadline, false) : null;
+        $startDate = $project->start_date ? \Carbon\Carbon::parse($project->start_date) : ($project->created_at ? \Carbon\Carbon::parse($project->created_at) : now());
+        $deadlineDate = $project->deadline ? \Carbon\Carbon::parse($project->deadline) : $startDate->copy()->addWeeks(8);
+
+        $daysSpan = max(1, (int) round($startDate->diffInDays($deadlineDate)));
+        $daysRemaining = $project->deadline ? (int) round(\Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($project->deadline), false)) : max(0, $daysSpan - (int) round($startDate->diffInDays(now())));
 
         $isOverdue = $project->deadline && \Carbon\Carbon::parse($project->deadline)->isPast() && $actualEV < 100;
         $healthStatus = 'Healthy';
@@ -259,20 +262,17 @@ class PmoController extends Controller
         // 1. Rentang Tanggal & Durasi Lengkap Proyek
         $startDate = $project->start_date ? \Carbon\Carbon::parse($project->start_date) : ($project->created_at ? \Carbon\Carbon::parse($project->created_at) : now());
         $deadlineDate = $project->deadline ? \Carbon\Carbon::parse($project->deadline) : $startDate->copy()->addWeeks(8);
-        $totalProjectDays = max(1, $startDate->diffInDays($deadlineDate));
+        $totalProjectDays = max(1, (int) round($startDate->diffInDays($deadlineDate)));
         $totalProjectWeeks = max(1, (int) ceil($startDate->diffInWeeks($deadlineDate)));
         
         $projectTimelineText = $startDate->format('d M Y') . ' s/d ' . $deadlineDate->format('d M Y');
 
-        // S-Curve Weeks: Batas tampilan grafik implementasi utama (default 8 minggu seperti di Excel atau durasi proyek)
-        $totalWeeks = 8;
-        if ($totalProjectWeeks >= 4 && $totalProjectWeeks <= 16) {
-            $totalWeeks = $totalProjectWeeks;
-        }
+        // S-Curve Weeks: Sesuaikan dinamis dengan durasi riil proyek
+        $totalWeeks = max(1, $totalProjectWeeks);
 
         // Hitung minggu berjalan saat ini (Minggu ke-X)
-        $elapsedWeeks = (int) ceil($startDate->diffInWeeks(now()));
-        $currentWeek = max(1, min($totalWeeks, $elapsedWeeks ?: 3));
+        $elapsedWeeks = max(1, (int) ceil($startDate->diffInWeeks(now())));
+        $currentWeek = min($totalWeeks, $elapsedWeeks);
 
         // Data Progres Mingguan yang tersimpan (Opsi 3: Input PM & Rekomendasi Task)
         $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
@@ -351,8 +351,8 @@ class PmoController extends Controller
 
         // Generate Data Harian Lengkap (Daily S-Curve & Table)
         $savedDaily = $handoverData['s_curve_daily'] ?? [];
-        $totalDays = min(365, max(1, $startDate->diffInDays($deadlineDate)));
-        $currentDay = min($totalDays, max(1, $startDate->diffInDays(now())));
+        $totalDays = min(365, max(1, (int) round($startDate->diffInDays($deadlineDate))));
+        $currentDay = min($totalDays, max(1, (int) round($startDate->diffInDays(now()))));
 
         $dailyTaskRecommendations = [];
         foreach ($project->tasks as $t) {
