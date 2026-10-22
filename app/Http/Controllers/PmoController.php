@@ -693,86 +693,63 @@ class PmoController extends Controller
 
         $allProjects = $query->orderBy('created_at', 'desc')->get();
 
-        // 2. Formulir Check List Serah Terima (Internal Handover) - 4 Kategori Resmi
+        // 2. Formulir Check List Serah Terima (Internal Handover) - 8 Butir Sesuai PDF Resmi IPNET
         $handoverFormStructure = [
             [
-                'number' => 'I',
-                'category_name' => 'Legal & Komersial',
-                'items' => [
-                    [
-                        'key' => 'contract_signed',
-                        'name' => 'Kontrak / SPK / SLA yang sudah di tandatangani',
-                        'default_note' => 'No. Kontrak & Tanggal',
-                    ],
-                    [
-                        'key' => 'bom_proposal',
-                        'name' => 'Dokumen Built of Material (BoW) (Commercial Proposal)',
-                        'default_note' => 'Final version',
-                    ],
-                    [
-                        'key' => 'negotiation_addendum',
-                        'name' => 'Berita Acara Negosiasi / Lampiran Perubahan (Addendum)',
-                        'default_note' => 'Jika ada',
-                    ],
-                ]
+                'number' => 1,
+                'key' => 'ruang_lingkup',
+                'name' => 'Ruang lingkup maintenance dan pengecualian',
+                'doc_key' => 'tor',
+                'default_note' => 'Dokumen TOR / SOW & Klausul Pengecualian',
             ],
             [
-                'number' => 'II',
-                'category_name' => 'Kebutuhan & Lingkup',
-                'items' => [
-                    [
-                        'key' => 'sow_document',
-                        'name' => 'Dokumen Statement of Work (SoW) / Scope of Work',
-                        'default_note' => 'Batasan proyek',
-                    ],
-                    [
-                        'key' => 'urs_requirement',
-                        'name' => 'Dokumen Business Requirement / User Requirement (URS)',
-                        'default_note' => 'Hasil dari customer',
-                    ],
-                    [
-                        'key' => 'mockup_wireframe',
-                        'name' => 'Mockup / Desain Awal / Wireframe (jika ada dari sales)',
-                        'default_note' => 'Referensi UI/UX',
-                    ],
-                    [
-                        'key' => 'maintenance_contract',
-                        'name' => 'Kegiatan Kontrak Maintenance (Maintenance Contract)',
-                        'default_note' => 'Cek dalam kontrak',
-                    ],
-                ]
+                'number' => 2,
+                'key' => 'daftar_aset',
+                'name' => 'Daftar aset / perangkat / lokasi yang dicakup',
+                'doc_key' => 'boq',
+                'default_note' => 'Dokumen BOQ / Inventory Perangkat & Lokasi',
             ],
             [
-                'number' => 'III',
-                'category_name' => 'Administrasi & Finansial',
-                'items' => [
-                    [
-                        'key' => 'dp_payment_proof',
-                        'name' => 'Bukti Pembayaran Termin 1 / Down Payment (DP)',
-                        'default_note' => 'Lampirkan bukti kuitansi',
-                    ],
-                    [
-                        'key' => 'billing_milestone',
-                        'name' => 'Jadwal Penagihan Termin (Billing Milestone)',
-                        'default_note' => 'Sesuai kontrak',
-                    ],
-                ]
+                'number' => 3,
+                'key' => 'jadwal_pm',
+                'name' => 'Jadwal dan kategori preventive maintenance',
+                'doc_key' => 'pm_schedule',
+                'default_note' => 'Jadwal kunjungan pemeliharaan berkala',
             ],
             [
-                'number' => 'IV',
-                'category_name' => 'Kontak & Akses Customer',
-                'items' => [
-                    [
-                        'key' => 'customer_contacts',
-                        'name' => 'Daftar Kontak Utama Customer (PIC Teknis, PIC Bisnis, Finance)',
-                        'default_note' => 'Nama, No. HP, Email',
-                    ],
-                    [
-                        'key' => 'meeting_notes',
-                        'name' => 'Hasil Catatan Pertemuan (Meeting Notes) / Ekspektasi Customer',
-                        'default_note' => 'Catatan khusus align sales',
-                    ],
-                ]
+                'number' => 4,
+                'key' => 'mekanisme_cm',
+                'name' => 'Mekanisme corrective maintenance dan ticketing',
+                'doc_key' => 'cm_ticketing',
+                'default_note' => 'Alur ticketing & eskalasi penanganan kendala',
+            ],
+            [
+                'number' => 5,
+                'key' => 'sla_layanan',
+                'name' => 'SLA / jam layanan dan jalur kontak sesuai kontrak',
+                'doc_key' => 'contract',
+                'default_note' => 'Kontrak / SPK / Matriks SLA & Kontak Darurat',
+            ],
+            [
+                'number' => 6,
+                'key' => 'dokumen_teknis',
+                'name' => 'Dokumen teknis / as-built yang tersedia',
+                'doc_key' => 'project_doc',
+                'default_note' => 'Diagram topologi, IP addressing & konfigurasi teknis',
+            ],
+            [
+                'number' => 7,
+                'key' => 'kondisi_awal',
+                'name' => 'Kondisi awal dan masalah yang sudah diketahui',
+                'doc_key' => 'baseline_doc',
+                'default_note' => 'Laporan baseline perangkat eksisting & kendala awal',
+            ],
+            [
+                'number' => 8,
+                'key' => 'pelaporan_berkala',
+                'name' => 'Ketentuan pelaporan berkala',
+                'doc_key' => 'ba',
+                'default_note' => 'Berita Acara (BAST / BAP) & milestone penagihan',
             ],
         ];
 
@@ -783,15 +760,12 @@ class PmoController extends Controller
             $calculatedProgress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
 
             // Pastikan checklist dokumen ada
-            $checklist = is_array($p->handover_data) ? $p->handover_data : (is_array($p->documents_checklist) ? $p->documents_checklist : []);
+            $checklist = is_array($p->handover_data) ? ($p->handover_data['checklist'] ?? $p->handover_data) : (is_array($p->documents_checklist) ? $p->documents_checklist : []);
             $completedDocsCount = 0;
-            $totalDocsCount = 0;
-            foreach ($handoverFormStructure as $cat) {
-                foreach ($cat['items'] as $item) {
-                    $totalDocsCount++;
-                    if (!empty($checklist[$item['key']]) && $checklist[$item['key']] === true) {
-                        $completedDocsCount++;
-                    }
+            $totalDocsCount = count($handoverFormStructure);
+            foreach ($handoverFormStructure as $item) {
+                if (!empty($checklist[$item['key']]) && $checklist[$item['key']] === true) {
+                    $completedDocsCount++;
                 }
             }
 
@@ -858,8 +832,9 @@ class PmoController extends Controller
                 'customer_pic_finance'          => $p->customer_pic_finance ?: '-',
                 'contract_value'                => (float) ($p->contract_value ?: ($p->quotation_amount ?: 0)),
                 'contract_value_formatted'      => 'Rp ' . number_format((float) ($p->contract_value ?: ($p->quotation_amount ?: 0)), 0, ',', '.'),
-                'days_span'                     => ($p->start_date && $p->deadline) ? max(0, $p->start_date->diffInDays($p->deadline)) : 0,
-                'days_remaining'                => $p->deadline ? \Carbon\Carbon::now()->diffInDays($p->deadline, false) : null,
+                'days_span'                     => ($p->start_date && $p->deadline) ? max(0, (int) round($p->start_date->diffInDays($p->deadline))) : 0,
+                'days_remaining'                => $p->deadline ? (int) round(\Carbon\Carbon::now()->diffInDays($p->deadline, false)) : null,
+                'resolved_documents'            => \App\Http\Controllers\ManagedServiceController::getProjectDocuments($p),
             ];
         });
 
@@ -987,9 +962,24 @@ class PmoController extends Controller
             $cl = $request->input('checklist');
             if (is_string($cl)) $cl = json_decode($cl, true);
             if (is_array($cl)) {
-                $updateData['handover_data'] = $cl;
+                $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : [];
+                $updateData['handover_data'] = array_merge($existingHandoverData, [
+                    'checklist'                => $cl,
+                    'checklist_status'         => $request->input('checklist_status', []),
+                    'checklist_notes'          => $request->input('checklist_notes', []),
+                    'handover_status_selected' => $request->input('handover_status_selected', 'approved'),
+                    'handover_risks'           => $request->input('handover_risks', ''),
+                    'handover_missing_info'    => $request->input('handover_missing_info', ''),
+                    'handover_pic_target'      => $request->input('handover_pic_target', ''),
+                    'handover_work_limitations'=> $request->input('handover_work_limitations', ''),
+                    'special_notes'            => $request->input('special_notes', $project->special_notes),
+                ]);
                 $updateData['documents_checklist'] = $cl;
             }
+        }
+
+        if ($request->filled('special_notes')) {
+            $updateData['special_notes'] = $request->input('special_notes');
         }
 
         $project->update($updateData);
@@ -1047,23 +1037,44 @@ class PmoController extends Controller
     public function conditionalHandover(Request $request, Project $project)
     {
         $validated = $request->validate([
-            'notes' => 'required|string|max:1000',
+            'notes'  => 'required|string|max:1000',
+            'status' => 'nullable|string|in:Conditional,Rejected',
         ]);
+
+        $newStatus = $validated['status'] ?? 'Conditional';
+        $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : [];
 
         $project->update([
-            'handover_status'               => 'Conditional',
+            'handover_status'               => $newStatus,
             'handover_conditional_notes'    => $validated['notes'],
-            'handover_conditional_deadline' => now()->addHours(48), // 2x24 jam per SOP
-            'process_status'                => 'Menunggu Handover',
+            'handover_conditional_deadline' => $newStatus === 'Conditional' ? now()->addHours(48) : null,
+            'process_status'                => $newStatus === 'Rejected' ? 'Handover Ditolak' : 'Menunggu Handover',
+            'handover_data'                 => array_merge($existingHandoverData, [
+                'checklist'                => $request->input('checklist', $project->documents_checklist),
+                'checklist_status'         => $request->input('checklist_status', []),
+                'checklist_notes'          => $request->input('checklist_notes', []),
+                'handover_risks'           => $request->input('handover_risks', ''),
+                'handover_missing_info'    => $request->input('handover_missing_info', $validated['notes']),
+                'handover_pic_target'      => $request->input('handover_pic_target', ''),
+                'handover_work_limitations'=> $request->input('handover_work_limitations', ''),
+                'special_notes'            => $request->input('special_notes', $project->special_notes),
+            ]),
         ]);
 
-        // Notifikasi mendesak ke Sales
+        // Notifikasi ke Sales
         $salesUser = User::where('name', $project->sales_name)->first();
         if ($salesUser) {
+            $notifTitle = $newStatus === 'Rejected' 
+                ? 'Handover Ditolak / Dikembalikan: ' . $project->name 
+                : 'Handover Conditional (Revisi 2x24 Jam): ' . $project->name;
+            $notifMsg = $newStatus === 'Rejected'
+                ? 'PMO menolak dan mengembalikan berkas handover "' . $project->name . '". Alasan: ' . $validated['notes']
+                : 'PMO menandai berkas handover "' . $project->name . '" sebagai bersyarat. Catatan: ' . $validated['notes'] . '. Harap lengkapi dalam 2x24 jam.';
+
             \App\Models\Notification::create([
                 'user_id' => $salesUser->id,
-                'title'   => 'Handover Conditional (Revisi 2x24 Jam): ' . $project->name,
-                'message' => 'PMO menandai berkas handover "' . $project->name . '" sebagai bersyarat. Catatan: ' . $validated['notes'] . '. Harap lengkapi dalam 2x24 jam.',
+                'title'   => $notifTitle,
+                'message' => $notifMsg,
                 'url'     => route('acquire.index'),
                 'is_read' => false,
             ]);
@@ -1072,12 +1083,12 @@ class PmoController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Status Handover Conditional berhasil dicatat (Tenggat 2x24 Jam).',
+                'message' => 'Status Handover ' . $newStatus . ' berhasil dicatat.',
                 'project' => $project->fresh(['pm', 'division']),
             ]);
         }
 
-        return back()->with('success', 'Status Handover Conditional berhasil dicatat.');
+        return back()->with('success', 'Status Handover ' . $newStatus . ' berhasil dicatat.');
     }
 
     /**
