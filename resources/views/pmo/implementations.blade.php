@@ -575,386 +575,376 @@
              class="fixed inset-0 bg-slate-900/60 backdrop-blur-2xs z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
              @click.self="handoverReviewModalOpen = false">
             
-            <div id="printable-handover-modal" class="bg-white rounded-2xl w-[860px] max-w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-300 overflow-hidden my-6">
+            <div id="printable-handover-modal" class="bg-white rounded-2xl max-w-7xl w-full max-h-[94vh] flex flex-col shadow-2xl border border-[#CBD5E1] overflow-hidden my-auto">
                 
-                {{-- Modal Header: Kop Surat Resmi Formulir Internal Handover IPNET --}}
-                <div class="p-4 sm:p-5 bg-white border-b border-slate-300 shrink-0">
-                    <div class="flex items-start justify-between gap-4">
-                        <div class="flex items-center gap-3.5">
-                            <img src="{{ asset('images/ipnet1.png') }}" alt="IP Network Solusindo" class="h-10 sm:h-12 w-auto object-contain shrink-0" onerror="this.src='/images/ipnet.png'">
-                            <div>
-                                <h4 class="text-[11px] sm:text-xs font-black uppercase text-slate-800 tracking-wider">PT. IP Network Solusindo</h4>
-                                <h2 class="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-tight">FORMULIR CHECK LIST SERAH TERIMA</h2>
-                                <p class="text-[10.5px] font-bold text-slate-600 uppercase tracking-wide">(INTERNAL HANDOVER)</p>
+                {{-- Modal Header Persis Gambar 2 --}}
+                <div class="px-6 py-4 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
+                        <div>
+                            <h3 class="text-[16px] font-bold text-[#0F172A]" x-text="'Tinjau Serah Terima: ' + (activeProject?.name || '')"></h3>
+                            <p class="text-[11px] text-[#64748B]">Verifikasi checklist serah terima resmi di bawah ini sesuai acuan template PT IP Network Solusindo.</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="handoverReviewModalOpen = false" class="text-[#64748B] hover:text-[#1E293B] p-1.5 rounded-lg hover:bg-[#E2E8F0] transition cursor-pointer" title="Tutup">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Modal Body Container Abu-Abu Lembut Persis Gambar 2 --}}
+                <div class="flex-1 overflow-y-auto px-4 pt-3.5 pb-6 sm:px-6 sm:pt-4 sm:pb-6 bg-[#F1F5F9]/70">
+                    
+                    {{-- Lembar Putih Border-2 Persis Gambar 2 --}}
+                    <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
+                        
+                        {{-- Kop Dokumen Resmi Persis Gambar 2 (Logo, Judul, Red Line, Badge DOKUMEN RESMI) --}}
+                        <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <img src="{{ asset('images/ipnet1.png') }}" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
+                                <div>
+                                    <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
+                                        FORMULIR CHECK LIST SERAH TERIMA (INTERNAL HANDOVER)
+                                    </h2>
+                                    <p class="text-[11px] text-[#475569] mt-0.5">
+                                        Checklist Serah Terima Sales / Commercial ke PMO &amp; Managed Service &bull; PT IP Network Solusindo
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                    Dokumen Resmi
+                                </span>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2 no-print">
-                            <button type="button" @click="handoverReviewModalOpen = false" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-lg font-bold cursor-pointer shadow-2xs">
-                                &times;
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- Judul Besar & Subtitle Sesuai Dokumen PDF --}}
-                    <div class="text-center py-2 border-y-2 border-slate-900 my-3">
-                        <h1 class="text-xs sm:text-[13px] font-black text-slate-900 uppercase tracking-tight">
-                            CHECKLIST SERAH TERIMA SALES / COMMERCIAL KE MANAGED SERVICE UNTUK KONTRAK MAINTENANCE
-                        </h1>
-                        <p class="text-[10px] text-slate-500 italic mt-0.5 font-medium">Commercial-to-Project Handover Checklist</p>
-                    </div>
-
-                    <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[10.5px] text-slate-600 leading-snug">
-                        <strong class="text-slate-800">Petunjuk:</strong> Isi kolom yang relevan. Jika suatu butir tidak berlaku, tulis "Tidak Berlaku" dan berikan catatan bila diperlukan. Simpan formulir beserta bukti pendukung pada lokasi dokumen yang ditetapkan.
-                    </div>
-                </div>
-
-                {{-- Modal Body: 5 Section Sesuai PDF (A, B, C, D, E) --}}
-                <div class="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4 text-xs bg-white">
-                    
-                    {{-- A. REFERENSI KONTRAK (Format Grid/Tabel Sesuai PDF Halaman 1) --}}
-                    <div class="border border-slate-800 rounded-lg overflow-hidden shadow-2xs">
-                        <div class="bg-slate-800 text-white px-3 py-1.5 font-black text-xs uppercase tracking-wider flex items-center justify-between">
-                            <span>A. REFERENSI KONTRAK</span>
-                            <span class="text-[10.5px] font-mono font-normal text-slate-200" x-text="activeProject?.so_code || ''"></span>
-                        </div>
-                        <table class="w-full text-xs border-collapse">
-                            <tbody class="divide-y divide-slate-200 bg-white">
-                                <tr class="divide-x divide-slate-200">
-                                    <td class="w-48 sm:w-56 bg-slate-50 px-3 py-2 font-bold text-slate-700">Pelanggan</td>
-                                    <td class="px-3 py-2 font-extrabold text-slate-900" x-text="activeProject?.client || '—'"></td>
-                                </tr>
-                                <tr class="divide-x divide-slate-200">
-                                    <td class="bg-slate-50 px-3 py-2 font-bold text-slate-700">Nomor kontrak / PO</td>
-                                    <td class="px-3 py-2 font-mono font-bold text-slate-900">
-                                        <div class="flex items-center justify-between flex-wrap gap-2">
-                                            <span x-text="activeProject?.so_code || activeProject?.po_number || '—'"></span>
-                                            <span class="text-[11px] font-sans font-bold text-[#8F0A0D]" x-text="'Nilai: ' + (activeProject?.contract_value_formatted || '—')"></span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="divide-x divide-slate-200">
-                                    <td class="bg-slate-50 px-3 py-2 font-bold text-slate-700">Tanggal efektif dan masa kontrak</td>
-                                    <td class="px-3 py-2 text-slate-800">
-                                        <span x-text="(activeProject?.start_date || '—') + ' s/d ' + (activeProject?.end_date || '—')"></span>
-                                        <template x-if="activeProject?.days_span">
-                                            <span class="ml-1 text-[11px] font-bold text-slate-500" x-text="'(' + activeProject.days_span + ' Hari)'"></span>
-                                        </template>
-                                    </td>
-                                </tr>
-                                <tr class="divide-x divide-slate-200">
-                                    <td class="bg-slate-50 px-3 py-2 font-bold text-slate-700">Tanggal berakhir</td>
-                                    <td class="px-3 py-2 font-semibold text-slate-800" x-text="activeProject?.end_date || '—'"></td>
-                                </tr>
-                                <tr class="divide-x divide-slate-200">
-                                    <td class="bg-slate-50 px-3 py-2 font-bold text-slate-700">PIC Commercial</td>
-                                    <td class="px-3 py-2 font-bold text-slate-900" x-text="activeProject?.sales_name || '—'"></td>
-                                </tr>
-                                <tr class="divide-x divide-slate-200">
-                                    <td class="bg-slate-50 px-3 py-2 font-bold text-slate-700">PIC Managed Service / Delivery</td>
-                                    <td class="px-3 py-2 font-bold text-blue-900" x-text="activeProject?.pm || 'Tim Delivery PMO'"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- B. CHECKLIST (8 Butir Sesuai PDF, Kolom Rapi Tidak Terlalu Lebar, Samping Ada Tombol File & Ceklis Persis Managed Service) --}}
-                    <div class="border border-slate-800 rounded-lg overflow-hidden shadow-2xs">
-                        <div class="bg-slate-800 text-white px-3 py-1.5 font-black text-xs uppercase tracking-wider flex items-center justify-between">
-                            <span>B. CHECKLIST</span>
-                            <span class="text-[10.5px] font-normal text-slate-200">
-                                Terverifikasi: <strong class="text-emerald-400 font-extrabold" x-text="Object.values(activeDocs).filter(v => v === true).length + ' / 8 Butir'"></strong>
-                            </span>
+                        {{-- Petunjuk Pengisian Singkat --}}
+                        <div class="p-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[11px] text-[#475569] leading-snug">
+                            <strong class="text-[#0F172A]">Petunjuk:</strong> Isi kolom yang relevan. Jika suatu butir tidak berlaku, pilih "Tidak Berlaku" dan berikan catatan bila diperlukan. Simpan formulir beserta bukti pendukung pada lokasi dokumen yang ditetapkan.
                         </div>
 
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-100 text-slate-800 text-[11px] font-black uppercase tracking-wider border-b border-slate-300">
-                                        <th class="py-2 px-2.5 w-10 text-center border-r border-slate-300">No.</th>
-                                        <th class="py-2 px-3 w-56 sm:w-60 border-r border-slate-300">Butir / Informasi</th>
-                                        <th class="py-2 px-2.5 w-28 text-center border-r border-slate-300">Status / Isian</th>
-                                        <th class="py-2 px-3 min-w-[280px]">Catatan / Bukti / PIC &bull; Berkas &amp; Verifikasi</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-200 bg-white">
-                                    @foreach($handoverFormStructure as $item)
-                                        @php
-                                            $docKey = $item['doc_key'] ?? 'project_doc';
-                                        @endphp
-                                        <tr class="divide-x divide-slate-200 transition"
-                                            :class="activeDocs['{{ $item['key'] }}'] ? 'bg-emerald-50/20' : 'hover:bg-slate-50/50'">
-                                            
-                                            {{-- No --}}
-                                            <td class="py-2.5 px-2 text-center font-extrabold text-slate-800 align-middle bg-slate-50/60">
-                                                {{ $item['number'] }}
+                        {{-- A. REFERENSI KONTRAK --}}
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. REFERENSI KONTRAK</h3>
+                                <span class="text-[11px] font-mono font-bold text-[#8F0A0D]" x-text="activeProject?.so_code || ''"></span>
+                            </div>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B]">
+                                    <tbody>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Nama Proyek</td>
+                                            <td class="w-3/10 py-1.5 px-2.5 border-r border-[#1E293B] font-black text-[#8F0A0D]" x-text="activeProject?.name || '—'"></td>
+                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Nomor Kontrak / PO</td>
+                                            <td class="w-3/10 py-1.5 px-2.5 font-mono font-bold" x-text="activeProject?.so_code || activeProject?.po_number || '—'"></td>
+                                        </tr>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Pelanggan</td>
+                                            <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold text-[#0F172A]" x-text="activeProject?.client || '—'"></td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Nilai Kontrak</td>
+                                            <td class="py-1.5 px-2.5 font-bold text-[#8F0A0D]" x-text="activeProject?.contract_value_formatted || '—'"></td>
+                                        </tr>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tgl Efektif &amp; Masa Kontrak</td>
+                                            <td class="py-1.5 px-2.5 border-r border-[#1E293B]">
+                                                <span x-text="(activeProject?.start_date || '—') + ' s/d ' + (activeProject?.end_date || '—')"></span>
+                                                <template x-if="activeProject?.days_span">
+                                                    <span class="ml-1 text-[11px] font-bold text-slate-500" x-text="'(' + activeProject.days_span + ' Hari)'"></span>
+                                                </template>
                                             </td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tanggal Berakhir</td>
+                                            <td class="py-1.5 px-2.5 font-semibold" x-text="activeProject?.end_date || '—'"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">PIC Commercial</td>
+                                            <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold text-[#0F172A]" x-text="activeProject?.sales_name || '—'"></td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">PIC PMO / Delivery</td>
+                                            <td class="py-1.5 px-2.5 font-bold text-blue-900" x-text="activeProject?.pm || 'Tim Delivery PMO'"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                                       {{-- B. CHECKLIST --}}
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. CHECKLIST SERAH TERIMA</h3>
+                                <span class="text-[10.5px] text-[#475569] font-medium">
+                                    Terverifikasi: <strong class="text-emerald-600 font-extrabold" x-text="Object.values(activeDocs).filter(v => v === true).length + ' / 8 Butir'"></strong>
+                                </span>
+                            </div>
 
-                                            {{-- Butir / Informasi --}}
-                                            <td class="py-2.5 px-3 align-middle">
-                                                <div class="font-bold text-slate-900 text-[11.5px] leading-tight">
-                                                    {{ $item['name'] }}
-                                                </div>
-                                                <div class="text-[10px] text-slate-500 mt-0.5 leading-snug">
-                                                    {{ $item['default_note'] }}
-                                                </div>
-                                            </td>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <table class="w-full border-collapse border border-[#1E293B] text-left">
+                                    <thead>
+                                        <tr class="bg-[#F8FAFC] text-[#0F172A] text-[11px] font-black uppercase tracking-wider border-b border-[#1E293B]">
+                                            <th class="py-2 px-2.5 w-10 text-center border-r border-[#1E293B]">No.</th>
+                                            <th class="py-2 px-3 w-64 sm:w-72 border-r border-[#1E293B]">Butir / Informasi</th>
+                                            <th class="py-2 px-2.5 w-32 text-center border-r border-[#1E293B]">Status / Isian</th>
+                                            <th class="py-2 px-3">Catatan / Bukti / PIC &bull; Berkas &amp; Verifikasi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white">
+                                        @foreach($handoverFormStructure as $item)
+                                            @php
+                                                $docKey = $item['doc_key'] ?? 'project_doc';
+                                            @endphp
+                                            <tr class="border-b border-[#1E293B] transition"
+                                                :class="activeDocs['{{ $item['key'] }}'] ? 'bg-emerald-50/20' : 'hover:bg-slate-50/50'">
+                                                
+                                                {{-- No --}}
+                                                <td class="py-2.5 px-2 text-center font-bold text-slate-800 align-middle bg-[#F8FAFC] border-r border-[#1E293B]">
+                                                    {{ $item['number'] }}
+                                                </td>
 
-                                            {{-- Status / Isian --}}
-                                            <td class="py-2.5 px-2 text-center align-middle whitespace-nowrap">
-                                                <select x-model="checklistStatus['{{ $item['key'] }}']" 
-                                                        class="text-[11px] font-bold px-2 py-1 bg-white border border-slate-300 rounded-md outline-none text-slate-800 focus:border-[#8F0A0D]">
-                                                    <option value="Ada">Ada</option>
-                                                    <option value="Tidak Berlaku">Tidak Berlaku</option>
-                                                    <option value="Menyusul">Menyusul</option>
-                                                </select>
-                                            </td>
-
-                                            {{-- Catatan / Bukti / PIC + Tombol Lihat File & Ceklis Terverifikasi (Persis Managed Service!) --}}
-                                            <td class="py-2.5 px-3 align-middle">
-                                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                                    <div class="min-w-0 flex-1">
-                                                        <input type="text" 
-                                                               x-model="checklistNotes['{{ $item['key'] }}']" 
-                                                               placeholder="Catatan / PIC / bukti pendukung..." 
-                                                               class="w-full text-[11px] px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-md text-slate-700 outline-none focus:bg-white focus:border-slate-400">
+                                                {{-- Butir / Informasi --}}
+                                                <td class="py-2.5 px-3 align-middle border-r border-[#1E293B]">
+                                                    <div class="font-bold text-slate-900 text-[11.5px] leading-tight">
+                                                        {{ $item['name'] }}
                                                     </div>
-
-                                                    {{-- Samping ada Filenya & Ceklis (Persis Managed Service) --}}
-                                                    <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                                                        {{-- Cek resolved_documents untuk doc_key ini --}}
-                                                        <template x-if="activeProject?.resolved_documents?.['{{ $docKey }}']?.file_path">
-                                                            <a :href="activeProject.resolved_documents['{{ $docKey }}'].file_url" 
-                                                               target="_blank" 
-                                                               class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-[#1E293B] text-[11px] font-bold border border-[#CBD5E1] shadow-2xs flex items-center gap-1.5 transition">
-                                                                <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                                                <span>Lihat File</span>
-                                                            </a>
-                                                        </template>
-                                                        <template x-if="!activeProject?.resolved_documents?.['{{ $docKey }}']?.file_path">
-                                                            <span class="px-2.5 py-1 rounded-lg bg-slate-50 text-[#94A3B8] text-[10.5px] font-medium border border-slate-200">
-                                                                Belum Ada File
-                                                            </span>
-                                                        </template>
-
-                                                        {{-- Ceklis Terverifikasi --}}
-                                                        <label class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] text-[#1E293B] text-[11px] font-bold cursor-pointer transition select-none"
-                                                               :class="activeDocs['{{ $item['key'] }}'] ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : ''">
-                                                            <input type="checkbox" 
-                                                                   x-model="activeDocs['{{ $item['key'] }}']" 
-                                                                   class="w-3.5 h-3.5 text-[#8F0A0D] rounded border-gray-300 focus:ring-[#8F0A0D] cursor-pointer">
-                                                            <span>Terverifikasi</span>
-                                                        </label>
+                                                    <div class="text-[10px] text-slate-500 mt-0.5 leading-snug">
+                                                        {{ $item['default_note'] }}
                                                     </div>
-                                                </div>
+                                                </td>
+
+                                                {{-- Status / Isian --}}
+                                                <td class="py-2.5 px-2 text-center align-middle whitespace-nowrap border-r border-[#1E293B]">
+                                                    <select x-model="checklistStatus['{{ $item['key'] }}']" 
+                                                            class="text-[11px] font-bold px-2 py-1 bg-white border border-slate-300 rounded-md outline-none text-slate-800 focus:border-[#8F0A0D]">
+                                                        <option value="Ada">Ada</option>
+                                                        <option value="Tidak Berlaku">Tidak Berlaku</option>
+                                                        <option value="Menyusul">Menyusul</option>
+                                                    </select>
+                                                </td>
+
+                                                {{-- Catatan / Bukti / PIC + Tombol Lihat File & Ceklis Terverifikasi --}}
+                                                <td class="py-2.5 px-3 align-middle">
+                                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                        <div class="min-w-0 flex-1">
+                                                            <input type="text" 
+                                                                   x-model="checklistNotes['{{ $item['key'] }}']" 
+                                                                   placeholder="Catatan / PIC / bukti pendukung..." 
+                                                                   class="w-full text-[11px] px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-md text-slate-700 outline-none focus:bg-white focus:border-slate-400">
+                                                        </div>
+
+                                                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                                                            <template x-if="activeProject?.resolved_documents?.['{{ $docKey }}']?.file_path">
+                                                                <a :href="activeProject.resolved_documents['{{ $docKey }}'].file_url" 
+                                                                   target="_blank" 
+                                                                   class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-[#1E293B] text-[11px] font-bold border border-[#CBD5E1] shadow-2xs flex items-center gap-1.5 transition">
+                                                                    <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                                    <span>Lihat File</span>
+                                                                </a>
+                                                            </template>
+                                                            <template x-if="!activeProject?.resolved_documents?.['{{ $docKey }}']?.file_path">
+                                                                <span class="px-2.5 py-1 rounded-lg bg-slate-50 text-[#94A3B8] text-[10.5px] font-medium border border-slate-200">
+                                                                    Belum Ada File
+                                                                </span>
+                                                            </template>
+
+                                                            <label class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-[#FEF2F2] hover:border-[#FCA5A5] text-[#1E293B] text-[11px] font-bold cursor-pointer transition select-none"
+                                                                   :class="activeDocs['{{ $item['key'] }}'] ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : ''">
+                                                                <input type="checkbox" 
+                                                                       x-model="activeDocs['{{ $item['key'] }}']" 
+                                                                       class="w-3.5 h-3.5 text-[#8F0A0D] rounded border-gray-300 focus:ring-[#8F0A0D] cursor-pointer">
+                                                                <span>Terverifikasi</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {{-- C. STATUS HANDOVER --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. STATUS HANDOVER</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
+                                <div class="flex items-center gap-6 flex-wrap bg-[#F8FAFC] p-2.5 border-b border-[#1E293B]">
+                                    <span class="font-black text-[#0F172A] text-xs uppercase tracking-wide">Status Handover:</span>
+                                    <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'approved' ? 'text-emerald-700' : 'text-slate-600'">
+                                        <input type="radio" value="approved" x-model="handoverStatusSelected" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
+                                        <span>Diterima</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'conditional' ? 'text-amber-700' : 'text-slate-600'">
+                                        <input type="radio" value="conditional" x-model="handoverStatusSelected" class="w-4 h-4 text-amber-600 focus:ring-amber-500">
+                                        <span>Diterima bersyarat</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'rejected' ? 'text-rose-700' : 'text-slate-600'">
+                                        <input type="radio" value="rejected" x-model="handoverStatusSelected" class="w-4 h-4 text-rose-600 focus:ring-rose-500">
+                                        <span>Ditolak / dikembalikan</span>
+                                    </label>
+                                </div>
+
+                                <table class="w-full border-collapse border-b border-[#1E293B]">
+                                    <tbody>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="w-1/3 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Kekurangan / risiko yang masih terbuka</td>
+                                            <td class="p-1.5">
+                                                <input type="text" x-model="handoverRisks" placeholder="Catatan risiko atau kekurangan berkas..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
                                             </td>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Informasi yang belum tersedia</td>
+                                            <td class="p-1.5">
+                                                <input type="text" x-model="handoverMissingInfo" placeholder="Informasi / dokumen yang masih ditunggu dari Sales..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-[#1E293B]">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">PIC dan target penyelesaian</td>
+                                            <td class="p-1.5">
+                                                <input type="text" x-model="handoverPicTarget" placeholder="Nama PIC Sales & target tanggal revisi (2x24 jam)..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Batasan pekerjaan yang boleh berjalan</td>
+                                            <td class="p-1.5">
+                                                <input type="text" x-model="handoverWorkLimitations" placeholder="Pekerjaan teknis yang diizinkan berjalan sebelum berkas lengkap..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <div class="p-2.5 bg-[#F8FAFC] text-[10.5px] text-[#475569] leading-snug">
+                                    <strong class="text-[#0F172A] uppercase tracking-wider block mb-0.5">ATURAN STATUS:</strong>
+                                    <p><strong>Diterima:</strong> informasi minimum cukup untuk memulai perencanaan. | <strong>Diterima bersyarat:</strong> kekurangan tercatat, ada PIC dan target penyelesaian, pekerjaan dibatasi eksplisit. | <strong>Ditolak:</strong> scope/kontrak belum jelas; jangan memulai pekerjaan.</p>
+                                </div>
+                            </div>
                         </div>
+
+                        {{-- D. CATATAN KHUSUS --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. CATATAN KHUSUS</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs p-2.5 bg-white">
+                                <textarea x-model="specialNotes" rows="2" placeholder="[Tuliskan jika ada ekspektasi khusus dari customer, janji fitur khusus, atau kendala yang perlu diwaspadai tim delivery / managed service]" class="w-full px-3 py-1.5 bg-[#F8FAFC] border border-slate-300 rounded-lg text-xs text-slate-800 outline-none focus:bg-white focus:border-[#8F0A0D]"></textarea>
+                            </div>
+                        </div>
+
+                        {{-- E. KONFIRMASI DAN PERSETUJUAN --}}
+                        <div class="space-y-1.5">
+                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. KONFIRMASI DAN PERSETUJUAN</h3>
+                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs p-3.5 bg-white space-y-3">
+                                
+                                {{-- Penugasan Tim Teknis & PM Pelaksana --}}
+                                <div class="p-3 bg-blue-50/50 border border-blue-200 rounded-xl space-y-2">
+                                    <div class="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                        <span>Penetapan Tim Teknis Pelaksana &amp; Project Manager (Delivery)</span>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tim Teknis / Divisi <span class="text-red-500">*</span></label>
+                                            <select x-model="handoverAssign.division_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                                <option value="">-- Pilih Tim Teknis --</option>
+                                                @foreach($divisions ?? [] as $div)
+                                                    <option value="{{ $div->id }}">{{ $div->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tugaskan Project Manager (PM) <span class="text-red-500">*</span></label>
+                                            <select x-model="handoverAssign.pm_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                                <option value="">-- Pilih Project Manager --</option>
+                                                @foreach($pmList ?? [] as $pm)
+                                                    <option value="{{ $pm->id }}">{{ $pm->name }} ({{ $pm->email }})</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- 4 Kolom Tanda Tangan Sesuai PDF Halaman 2 --}}
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+                                    {{-- 1. Sales --}}
+                                    <div class="border border-[#CBD5E1] rounded-lg p-2.5 bg-[#F8FAFC] flex flex-col justify-between h-36">
+                                        <div>
+                                            <div class="font-bold text-[10.5px] text-[#0F172A] uppercase">Diserahkan oleh</div>
+                                            <div class="text-[10px] text-[#64748B]">Sales / Commercial</div>
+                                        </div>
+                                        <div class="my-auto py-1">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                <span>Verified Digital</span>
+                                            </span>
+                                        </div>
+                                        <div class="text-left text-[10px] border-t border-[#CBD5E1] pt-1 text-slate-600">
+                                            <p class="truncate"><strong class="text-slate-800">Nama:</strong> <span x-text="activeProject?.sales_name || '—'"></span></p>
+                                            <p><strong class="text-slate-800">Tgl:</strong> <span x-text="activeProject?.handover_submitted_at ? activeProject.handover_submitted_at.substring(0, 10) : '—'"></span></p>
+                                        </div>
+                                    </div>
+
+                                    {{-- 2. Delivery / PM --}}
+                                    <div class="border border-[#CBD5E1] rounded-lg p-2.5 bg-[#F8FAFC] flex flex-col justify-between h-36">
+                                        <div>
+                                            <div class="font-bold text-[10.5px] text-[#0F172A] uppercase">Diperiksa / diterima oleh</div>
+                                            <div class="text-[10px] text-[#64748B]">Managed Service / PM</div>
+                                        </div>
+                                        <div class="my-auto py-1">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                <span>PMO Verified</span>
+                                            </span>
+                                        </div>
+                                        <div class="text-left text-[10px] border-t border-[#CBD5E1] pt-1 text-slate-600">
+                                            <p class="truncate"><strong class="text-slate-800">Nama:</strong> <span x-text="activeProject?.pm || 'PM Delivery'"></span></p>
+                                            <p><strong class="text-slate-800">Tgl:</strong> {{ date('d/m/Y') }}</p>
+                                        </div>
+                                    </div>
+
+                                    {{-- 3. TL / Solution --}}
+                                    <div class="border border-[#CBD5E1] rounded-lg p-2.5 bg-[#F8FAFC] flex flex-col justify-between h-36">
+                                        <div>
+                                            <div class="font-bold text-[10.5px] text-[#0F172A] uppercase">Validasi teknis oleh</div>
+                                            <div class="text-[10px] text-[#64748B]">TL / Solution (bila perlu)</div>
+                                        </div>
+                                        <div class="my-auto py-1">
+                                            <span class="text-[10px] text-slate-400 italic">Paraf / Approval</span>
+                                        </div>
+                                        <div class="text-left text-[10px] border-t border-[#CBD5E1] pt-1 text-slate-600">
+                                            <p class="truncate"><strong class="text-slate-800">Nama:</strong> Lead Engineer</p>
+                                            <p><strong class="text-slate-800">Tgl:</strong> {{ date('d/m/Y') }}</p>
+                                        </div>
+                                    </div>
+
+                                    {{-- 4. Pihak Berwenang --}}
+                                    <div class="border border-[#CBD5E1] rounded-lg p-2.5 bg-[#F8FAFC] flex flex-col justify-between h-36">
+                                        <div>
+                                            <div class="font-bold text-[10.5px] text-[#0F172A] uppercase">Persetujuan / eskalasi</div>
+                                            <div class="text-[10px] text-[#64748B]">Pihak berwenang (bila perlu)</div>
+                                        </div>
+                                        <div class="my-auto py-1">
+                                            <span class="text-[10px] text-slate-400 italic">Otorisasi GM / PMO</span>
+                                        </div>
+                                        <div class="text-left text-[10px] border-t border-[#CBD5E1] pt-1 text-slate-600">
+                                            <p class="truncate"><strong class="text-slate-800">Nama:</strong> PMO Head</p>
+                                            <p><strong class="text-slate-800">Tgl:</strong> {{ date('d/m/Y') }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-2.5 bg-[#F8FAFC] border border-slate-200 rounded-lg text-[10px] text-slate-600 leading-relaxed italic">
+                                    <strong>Catatan pengendalian:</strong> handover tidak mengubah kewenangan formal atau tanggung jawab atas output yang telah dibuat. Perubahan scope/komitmen pelanggan harus melalui mekanisme persetujuan yang berlaku.
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-
-                    {{-- C. STATUS HANDOVER (Persis PDF Halaman 1 & Aturan Status) --}}
-                    <div class="border border-slate-800 rounded-lg overflow-hidden shadow-2xs">
-                        <div class="bg-slate-800 text-white px-3 py-1.5 font-black text-xs uppercase tracking-wider">
-                            C. STATUS HANDOVER
-                        </div>
-                        <div class="p-3.5 space-y-3 bg-white">
-                            {{-- Radio Opsi Status --}}
-                            <div class="flex items-center gap-6 flex-wrap bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                                <span class="font-black text-slate-800 text-xs uppercase tracking-wide">Status Handover:</span>
-                                <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'approved' ? 'text-emerald-700' : 'text-slate-600'">
-                                    <input type="radio" value="approved" x-model="handoverStatusSelected" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
-                                    <span>Diterima</span>
-                                </label>
-                                <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'conditional' ? 'text-amber-700' : 'text-slate-600'">
-                                    <input type="radio" value="conditional" x-model="handoverStatusSelected" class="w-4 h-4 text-amber-600 focus:ring-amber-500">
-                                    <span>Diterima bersyarat</span>
-                                </label>
-                                <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'rejected' ? 'text-rose-700' : 'text-slate-600'">
-                                    <input type="radio" value="rejected" x-model="handoverStatusSelected" class="w-4 h-4 text-rose-600 focus:ring-rose-500">
-                                    <span>Ditolak / dikembalikan</span>
-                                </label>
-                            </div>
-
-                            {{-- Tabel Isian Status Handover --}}
-                            <table class="w-full text-xs border border-slate-200 divide-y divide-slate-200 rounded-lg overflow-hidden">
-                                <tbody class="divide-y divide-slate-200">
-                                    <tr class="divide-x divide-slate-200">
-                                        <td class="w-64 bg-slate-50 px-3 py-2 font-bold text-slate-700">Kekurangan / risiko yang masih terbuka</td>
-                                        <td class="p-1.5">
-                                            <input type="text" x-model="handoverRisks" placeholder="Catatan risiko atau kekurangan berkas..." class="w-full px-2.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                        </td>
-                                    </tr>
-                                    <tr class="divide-x divide-slate-200">
-                                        <td class="bg-slate-50 px-3 py-2 font-bold text-slate-700">Informasi yang belum tersedia</td>
-                                        <td class="p-1.5">
-                                            <input type="text" x-model="handoverMissingInfo" placeholder="Informasi / dokumen yang masih ditunggu dari Sales..." class="w-full px-2.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                        </td>
-                                    </tr>
-                                    <tr class="divide-x divide-slate-200">
-                                        <td class="bg-slate-50 px-3 py-2 font-bold text-slate-700">PIC dan target penyelesaian</td>
-                                        <td class="p-1.5">
-                                            <input type="text" x-model="handoverPicTarget" placeholder="Nama PIC Sales & target tanggal revisi (2x24 jam)..." class="w-full px-2.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                        </td>
-                                    </tr>
-                                    <tr class="divide-x divide-slate-200">
-                                        <td class="bg-slate-50 px-3 py-2 font-bold text-slate-700">Batasan pekerjaan yang boleh berjalan</td>
-                                        <td class="p-1.5">
-                                            <input type="text" x-model="handoverWorkLimitations" placeholder="Pekerjaan teknis yang diizinkan berjalan sebelum berkas lengkap..." class="w-full px-2.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            {{-- Box Aturan Status Sesuai PDF --}}
-                            <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[10.5px] text-slate-600 leading-snug">
-                                <strong class="text-slate-800 uppercase tracking-wider block mb-1">ATURAN STATUS:</strong>
-                                <p class="mb-0.5"><strong>Diterima:</strong> informasi minimum cukup untuk memulai perencanaan.</p>
-                                <p class="mb-0.5"><strong>Diterima bersyarat:</strong> kekurangan tercatat, ada PIC dan target penyelesaian, dan pekerjaan yang boleh berjalan dibatasi secara eksplisit.</p>
-                                <p><strong>Ditolak/dikembalikan:</strong> scope, kontrak, atau persyaratan penting belum jelas; jangan memulai pekerjaan terdampak.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- D. CATATAN KHUSUS (Sesuai PDF Halaman 2) --}}
-                    <div class="border border-slate-800 rounded-lg overflow-hidden shadow-2xs">
-                        <div class="bg-slate-800 text-white px-3 py-1.5 font-black text-xs uppercase tracking-wider">
-                            D. CATATAN KHUSUS
-                        </div>
-                        <div class="p-3 bg-white">
-                            <textarea x-model="specialNotes" rows="2" placeholder="[Tuliskan jika ada ekspektasi khusus dari customer, janji fitur khusus, atau kendala yang perlu diwaspadai tim delivery / managed service]" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 outline-none focus:bg-white focus:border-[#8F0A0D]"></textarea>
-                        </div>
-                    </div>
-
-                    {{-- E. KONFIRMASI DAN PERSETUJUAN (Sesuai PDF Halaman 2 + Penugasan Tim Teknis & PM) --}}
-                    <div class="border border-slate-800 rounded-lg overflow-hidden shadow-2xs">
-                        <div class="bg-slate-800 text-white px-3 py-1.5 font-black text-xs uppercase tracking-wider flex items-center justify-between">
-                            <span>KONFIRMASI DAN PERSETUJUAN</span>
-                            <span class="text-[10px] font-normal text-slate-200">Kepatuhan Tata Kelola Serah Terima Internal</span>
-                        </div>
-                        <div class="p-3.5 space-y-3 bg-white">
-                            
-                            {{-- Penugasan Tim Teknis & PM Pelaksana --}}
-                            <div class="p-3 bg-blue-50/50 border border-blue-200 rounded-xl space-y-2">
-                                <div class="text-xs font-bold text-blue-900 flex items-center gap-1.5">
-                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                    <span>Penetapan Tim Teknis Pelaksana &amp; Project Manager (Delivery)</span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tim Teknis / Divisi <span class="text-red-500">*</span></label>
-                                        <select x-model="handoverAssign.division_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                            <option value="">-- Pilih Tim Teknis --</option>
-                                            @foreach($divisions ?? [] as $div)
-                                                <option value="{{ $div->id }}">{{ $div->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tugaskan Project Manager (PM) <span class="text-red-500">*</span></label>
-                                        <select x-model="handoverAssign.pm_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                            <option value="">-- Pilih Project Manager --</option>
-                                            @foreach($pmList ?? [] as $pm)
-                                                <option value="{{ $pm->id }}">{{ $pm->name }} ({{ $pm->email }})</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- 4 Kolom Tanda Tangan Sesuai PDF Halaman 2 --}}
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
-                                {{-- 1. Sales --}}
-                                <div class="border border-slate-300 rounded-lg p-2.5 bg-slate-50 flex flex-col justify-between h-36">
-                                    <div>
-                                        <div class="font-bold text-[10.5px] text-slate-900 uppercase">Diserahkan oleh</div>
-                                        <div class="text-[10px] text-slate-500">Sales / Commercial</div>
-                                    </div>
-                                    <div class="my-auto py-1">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                            <span>Verified Digital</span>
-                                        </span>
-                                    </div>
-                                    <div class="text-left text-[10px] border-t border-slate-200 pt-1 text-slate-600">
-                                        <p class="truncate"><strong class="text-slate-800">Nama:</strong> <span x-text="activeProject?.sales_name || '—'"></span></p>
-                                        <p><strong class="text-slate-800">Tgl:</strong> <span x-text="activeProject?.handover_submitted_at ? activeProject.handover_submitted_at.substring(0, 10) : '—'"></span></p>
-                                    </div>
-                                </div>
-
-                                {{-- 2. Delivery / PM --}}
-                                <div class="border border-slate-300 rounded-lg p-2.5 bg-slate-50 flex flex-col justify-between h-36">
-                                    <div>
-                                        <div class="font-bold text-[10.5px] text-slate-900 uppercase">Diperiksa / diterima oleh</div>
-                                        <div class="text-[10px] text-slate-500">Managed Service / PM</div>
-                                    </div>
-                                    <div class="my-auto py-1">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                            <span>PMO Verified</span>
-                                        </span>
-                                    </div>
-                                    <div class="text-left text-[10px] border-t border-slate-200 pt-1 text-slate-600">
-                                        <p class="truncate"><strong class="text-slate-800">Nama:</strong> <span x-text="activeProject?.pm || 'PM Delivery'"></span></p>
-                                        <p><strong class="text-slate-800">Tgl:</strong> {{ date('d/m/Y') }}</p>
-                                    </div>
-                                </div>
-
-                                {{-- 3. TL / Solution --}}
-                                <div class="border border-slate-300 rounded-lg p-2.5 bg-slate-50 flex flex-col justify-between h-36">
-                                    <div>
-                                        <div class="font-bold text-[10.5px] text-slate-900 uppercase">Validasi teknis oleh</div>
-                                        <div class="text-[10px] text-slate-500">TL / Solution (bila perlu)</div>
-                                    </div>
-                                    <div class="my-auto py-1">
-                                        <span class="text-[10px] text-slate-400 italic">Paraf / Approval</span>
-                                    </div>
-                                    <div class="text-left text-[10px] border-t border-slate-200 pt-1 text-slate-600">
-                                        <p class="truncate"><strong class="text-slate-800">Nama:</strong> Lead Engineer</p>
-                                        <p><strong class="text-slate-800">Tgl:</strong> {{ date('d/m/Y') }}</p>
-                                    </div>
-                                </div>
-
-                                {{-- 4. Pihak Berwenang --}}
-                                <div class="border border-slate-300 rounded-lg p-2.5 bg-slate-50 flex flex-col justify-between h-36">
-                                    <div>
-                                        <div class="font-bold text-[10.5px] text-slate-900 uppercase">Persetujuan / eskalasi</div>
-                                        <div class="text-[10px] text-slate-500">Pihak berwenang (bila perlu)</div>
-                                    </div>
-                                    <div class="my-auto py-1">
-                                        <span class="text-[10px] text-slate-400 italic">Otorisasi GM / PMO</span>
-                                    </div>
-                                    <div class="text-left text-[10px] border-t border-slate-200 pt-1 text-slate-600">
-                                        <p class="truncate"><strong class="text-slate-800">Nama:</strong> PMO Head</p>
-                                        <p><strong class="text-slate-800">Tgl:</strong> {{ date('d/m/Y') }}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Catatan Pengendalian Sesuai Dokumen PDF Halaman 2 --}}
-                            <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] text-slate-600 leading-relaxed italic">
-                                <strong>Catatan pengendalian:</strong> handover tidak mengubah kewenangan formal atau tanggung jawab atas output yang telah dibuat. Perubahan scope/komitmen pelanggan harus melalui mekanisme persetujuan yang berlaku.
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
 
-                {{-- Modal Footer Actions --}}
-                <div class="p-4 sm:px-6 border-t border-slate-300 bg-slate-50 flex flex-wrap items-center justify-between gap-2.5 shrink-0 no-print">
-                    <div class="flex items-center gap-2">
-                        <button type="button" @click="handoverReviewModalOpen = false" class="px-4 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
-                            Tutup
-                        </button>
-                    </div>
+                {{-- Modal Footer Actions Persis Gambar 2 --}}
+                <div class="px-6 py-4 border-t border-[#E2E8F0] bg-white flex flex-wrap items-center justify-between gap-2.5 shrink-0 no-print">
+                    <button type="button" @click="handoverReviewModalOpen = false" class="px-4 py-2 border border-[#CBD5E1] rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+                        Tutup
+                    </button>
 
                     <div class="flex items-center gap-2">
                         {{-- Tombol sesuai status radio yang dipilih --}}
                         <template x-if="handoverStatusSelected === 'conditional'">
                             <button type="button" 
                                     @click="handleConditionalClick()" 
-                                    class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5">
+                                    class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                 <span>Simpan Status Diterima Bersyarat (2x24 Jam)</span>
                             </button>
@@ -963,7 +953,7 @@
                         <template x-if="handoverStatusSelected === 'rejected'">
                             <button type="button" 
                                     @click="handleRejectClick()" 
-                                    class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5">
+                                    class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                 <span>Kembalikan ke Sales (Ditolak)</span>
                             </button>
@@ -972,14 +962,13 @@
                         <template x-if="handoverStatusSelected === 'approved'">
                             <button type="button" 
                                     @click="approveHandover()" 
-                                    class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                 <span>Sahkan Serah Terima (Handover Approved)</span>
                             </button>
                         </template>
                     </div>
                 </div>
-
             </div>
         </div>
     </template>
