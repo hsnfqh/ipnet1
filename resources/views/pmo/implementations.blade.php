@@ -76,11 +76,12 @@
                     </div>
                     
                     <select x-model="statusFilter" @change="currentPage = 1" 
-                            class="w-full sm:w-48 px-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="Semua">Semua Status Deliver</option>
-                        <option value="Deliver">Tahap Deliver (Aktif)</option>
+                            class="w-full sm:w-56 px-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
+                        <option value="Semua">Semua Status Proyek</option>
+                        <option value="Deliver">Tahap Deliver (Aktif Lapangan)</option>
+                        <option value="ReadyMS">Siap Transisi ke MS (100%)</option>
+                        <option value="Operate">Operasional / Transisi Selesai</option>
                         <option value="Pending">Menunggu Review PMO</option>
-                        <option value="Completed">Selesai Lapangan</option>
                     </select>
 
                     <select x-model="selectedDivision" @change="currentPage = 1" 
@@ -146,67 +147,14 @@
             <!-- ========================================================== -->
             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
                 
-                {{-- A. QUICK FILTER TABS --}}
-                <div class="p-3 sm:px-6 pt-4 border-b border-slate-100 flex items-center justify-between gap-3 overflow-x-auto bg-slate-50/50">
-                    <div class="flex items-center gap-2">
-                        {{-- Subtabs Saat Berada di Mode 'Projek Aktif' --}}
-                        <div x-show="activeTab !== 'pending_handover'" class="flex items-center gap-2">
-                            <button type="button" 
-                                    @click="activeTab = 'deliver'; currentPage = 1;"
-                                    :class="activeTab === 'deliver' ? 'bg-white text-[#8F0A0D] border-red-200 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
-                                    class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
-                                <span>Tahap Deliver (Aktif)</span>
-                                <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-red-50 text-[#8F0A0D] font-bold" x-text="stageCounts.Deliver || 0"></span>
-                            </button>
-
-                            <button type="button" 
-                                    @click="activeTab = 'all'; currentPage = 1;"
-                                    :class="activeTab === 'all' ? 'bg-white text-slate-900 border-slate-300 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
-                                    class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                                <span>Semua Portofolio</span>
-                                <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-slate-100 text-slate-600" x-text="projects.length"></span>
-                            </button>
-
-                            <button type="button" 
-                                    @click="activeTab = 'ready_ms'; currentPage = 1;"
-                                    :class="activeTab === 'ready_ms' ? 'bg-white text-blue-700 border-blue-300 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
-                                    class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                                <span>Siap Transisi MS</span>
-                                <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-blue-100 text-blue-700 font-bold" x-text="readyToOperateCount"></span>
-                            </button>
-                        </div>
-
-                        {{-- Subtabs Saat Berada di Mode 'Incoming Handover' --}}
-                        <div x-show="activeTab === 'pending_handover'" class="flex items-center gap-2">
-                            <button type="button" 
-                                    @click="handoverFilter = 'all'; currentPage = 1;"
-                                    :class="handoverFilter === 'all' ? 'bg-white text-amber-800 border-amber-300 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
-                                    class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                <span>Semua Berkas Masuk</span>
-                                <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-amber-100 text-amber-800 font-bold" x-text="handoverPendingCount + handoverConditionalCount"></span>
-                            </button>
-
-                            <button type="button" 
-                                    @click="handoverFilter = 'pending'; currentPage = 1;"
-                                    :class="handoverFilter === 'pending' ? 'bg-white text-amber-800 border-amber-300 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
-                                    class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                <span>Menunggu Review PMO</span>
-                                <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-amber-100 text-amber-800 font-bold" x-text="handoverPendingCount"></span>
-                            </button>
-
-                            <button type="button" 
-                                    @click="handoverFilter = 'conditional'; currentPage = 1;"
-                                    :class="handoverFilter === 'conditional' ? 'bg-white text-rose-800 border-rose-300 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 border-transparent font-semibold'"
-                                    class="px-3.5 py-1.5 rounded-xl border text-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                                <span>Revisi Bersyarat</span>
-                                <span class="px-1.5 py-0.5 rounded-md text-[10.5px] bg-rose-100 text-rose-800 font-bold" x-text="handoverConditionalCount"></span>
-                            </button>
-                        </div>
+                {{-- A. TABLE HEADER & VIEW TOGGLE --}}
+                <div class="p-3.5 sm:px-6 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/50">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide" 
+                            x-text="activeTab === 'pending_handover' ? 'Daftar Berkas Serah Terima Masuk (Sales)' : 'Daftar Portofolio Proyek Implementasi'"></h3>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-white text-slate-600 border border-slate-200" 
+                              x-text="filteredProjects.length + ' Proyek'"></span>
                     </div>
 
                     {{-- View Mode Toggle (Table vs Cards) --}}
@@ -1133,6 +1081,10 @@
                     let matchStatusFilter = true;
                     if (this.statusFilter === 'Deliver') {
                         matchStatusFilter = (p.stage === 'Deliver');
+                    } else if (this.statusFilter === 'ReadyMS') {
+                        matchStatusFilter = (p.progress >= 100 || (p.stage === 'Deliver' && (p.progress >= 100 || p.docs_completed_count >= 11)));
+                    } else if (this.statusFilter === 'Operate') {
+                        matchStatusFilter = (p.stage === 'Operate');
                     } else if (this.statusFilter === 'Pending') {
                         matchStatusFilter = (p.handover_status === 'Submitted' || p.handover_status === 'Conditional');
                     } else if (this.statusFilter === 'Completed') {
@@ -1140,12 +1092,10 @@
                     }
 
                     let matchTab = true;
-                    if (this.activeTab === 'deliver') {
-                        matchTab = (p.stage === 'Deliver');
-                    } else if (this.activeTab === 'pending_handover') {
+                    if (this.activeTab === 'pending_handover') {
                         matchTab = (p.handover_status === 'Submitted' || p.handover_status === 'Conditional');
-                    } else if (this.activeTab === 'ready_ms') {
-                        matchTab = (p.stage === 'Deliver' && (p.progress >= 100 || p.docs_completed_count >= 11));
+                    } else {
+                        matchTab = (p.handover_status !== 'Submitted');
                     }
 
                     return matchSearch && matchDiv && matchPm && matchStg && matchHandover && matchTab && matchStatusFilter;
