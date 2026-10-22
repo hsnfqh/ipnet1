@@ -623,6 +623,8 @@ class PmoController extends Controller
                 'id'                            => $p->id,
                 'name'                          => $p->name,
                 'so_code'                       => $p->so_number ?: ($p->po_number ?: 'SO-IPNET-' . str_pad($p->id, 4, '0', STR_PAD_LEFT)),
+                'po_number'                     => $p->po_number ?: ($p->so_number ?: '-'),
+                'po_file'                       => $p->po_file ? asset('storage/' . $p->po_file) : null,
                 'client'                        => $p->client,
                 'sales_name'                    => $p->sales_name ?: '-',
                 'location'                      => $p->location ?: '-',
@@ -765,9 +767,10 @@ class PmoController extends Controller
         $validated = $request->validate([
             'pm_id'       => 'required|exists:users,id',
             'division_id' => 'required|exists:divisions,id',
+            'checklist'   => 'nullable',
         ]);
 
-        $project->update([
+        $updateData = [
             'handover_status'      => 'Approved',
             'handover_approved_at' => now(),
             'handover_approved_by' => auth()->id(),
@@ -776,7 +779,18 @@ class PmoController extends Controller
             'process_status'       => 'In Progress',
             'pm_id'                => $validated['pm_id'],
             'division_id'          => $validated['division_id'],
-        ]);
+        ];
+
+        if ($request->has('checklist')) {
+            $cl = $request->input('checklist');
+            if (is_string($cl)) $cl = json_decode($cl, true);
+            if (is_array($cl)) {
+                $updateData['handover_data'] = $cl;
+                $updateData['documents_checklist'] = $cl;
+            }
+        }
+
+        $project->update($updateData);
 
         // Notifikasi & Penugasan Awal ke Lead Engineer divisi terkait (Lead Network / Lead Security)
         $divisionName = $project->division ? $project->division->name : 'Lintas Divisi';

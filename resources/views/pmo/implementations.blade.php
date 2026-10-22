@@ -85,7 +85,7 @@
 
                     <select x-model="selectedDivision" @change="currentPage = 1" 
                             class="w-full sm:w-48 px-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
-                        <option value="all">Semua Divisi Pelaksana</option>
+                        <option value="all">Semua Tim Teknis</option>
                         @foreach($divisions ?? [] as $div)
                             <option value="{{ $div->id }}">{{ $div->name }}</option>
                         @endforeach
@@ -369,7 +369,7 @@
                         <thead>
                             <tr class="border-b border-slate-200/80 bg-slate-50/70 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">
                                 <th class="py-3.5 px-4 sm:px-6 w-[34%]">PROYEK &amp; KLIEN</th>
-                                <th class="py-3.5 px-4 w-[18%]">DIVISI &amp; PIC PM</th>
+                                <th class="py-3.5 px-4 w-[18%]">TIM TEKNIS</th>
                                 <th class="py-3.5 px-4 w-[18%]">STATUS TATA KELOLA</th>
                                 <th class="py-3.5 px-4 w-[18%]">TENGGAT &amp; PROGRES</th>
                                 <th class="py-3.5 px-4 sm:px-6 text-right w-[12%]">TINDAKAN</th>
@@ -402,36 +402,39 @@
                                         </div>
                                     </td>
 
-                                    {{-- Kolom 2: Divisi & PIC PM --}}
+                                    {{-- Kolom 2: Tim Teknis (Ditentukan dari Sales / Divisi Pelaksana) --}}
                                     <td class="py-4 px-4 align-top whitespace-nowrap">
-                                        <div class="space-y-1.5">
+                                        <div class="space-y-1">
                                             <div>
-                                                <span class="px-2.5 py-0.5 rounded-md text-[10.5px] font-bold border inline-block"
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border"
                                                       :class="{
                                                           'bg-indigo-50 text-indigo-700 border-indigo-200': (project.division || '').includes('&') || ((project.division || '').includes('Network') && (project.division || '').includes('Security')),
                                                           'bg-blue-50 text-blue-700 border-blue-200': (project.division || '').includes('Network') && !(project.division || '').includes('Security'),
                                                           'bg-purple-50 text-purple-700 border-purple-200': (project.division || '').includes('Security') && !(project.division || '').includes('Network'),
                                                           'bg-amber-50 text-amber-800 border-amber-200': !(project.division) || (project.division || '').includes('Belum')
-                                                      }"
-                                                      x-text="project.division || 'Belum Didelegasikan'">
+                                                      }">
+                                                    {{-- Icon Tim Teknis --}}
+                                                    <template x-if="(project.division || '').includes('&') || ((project.division || '').includes('Network') && (project.division || '').includes('Security'))">
+                                                        <svg class="w-3.5 h-3.5 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                                    </template>
+                                                    <template x-if="(project.division || '').includes('Network') && !(project.division || '').includes('Security')">
+                                                        <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                                                    </template>
+                                                    <template x-if="(project.division || '').includes('Security') && !(project.division || '').includes('Network')">
+                                                        <svg class="w-3.5 h-3.5 text-purple-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                                    </template>
+                                                    <template x-if="!(project.division) || (project.division || '').includes('Belum')">
+                                                        <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    </template>
+                                                    <span x-text="project.division || 'Belum Ditentukan Sales'"></span>
                                                 </span>
                                             </div>
-                                            <div>
-                                                <template x-if="project.pm && project.pm !== 'Belum Ditentukan'">
-                                                    <div class="flex items-center gap-1.5 text-[11.5px]">
-                                                        <div class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-extrabold text-[9px] flex items-center justify-center shrink-0"
-                                                             x-text="project.pm.substring(0, 2).toUpperCase()">
-                                                        </div>
-                                                        <span class="font-bold text-slate-800" x-text="project.pm"></span>
-                                                    </div>
-                                                </template>
-                                                <template x-if="!project.pm || project.pm === 'Belum Ditentukan'">
-                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80">
-                                                        <svg class="w-3 h-3 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                                        <span>Belum Ada PM</span>
-                                                    </span>
-                                                </template>
-                                            </div>
+                                            <template x-if="project.pm && project.pm !== 'Belum Ditentukan'">
+                                                <div class="text-[11px] text-slate-500 font-medium flex items-center gap-1">
+                                                    <span>PM:</span>
+                                                    <span class="font-bold text-slate-700" x-text="project.pm"></span>
+                                                </div>
+                                            </template>
                                         </div>
                                     </td>
 
@@ -477,18 +480,7 @@
                                                 </template>
                                             </div>
 
-                                            {{-- Dokumen Handover --}}
-                                            <div>
-                                                <button type="button" 
-                                                        @click="openDocumentsModal(project)"
-                                                        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-semibold transition cursor-pointer shadow-2xs group"
-                                                        :class="project.docs_completed_count >= 11 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-slate-50 hover:bg-red-50 text-slate-700 hover:text-[#8F0A0D] border-slate-200 hover:border-red-200'">
-                                                    <svg class="w-3 h-3" :class="project.docs_completed_count >= 11 ? 'text-emerald-600' : 'text-slate-400 group-hover:text-[#8F0A0D]'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                                    <span class="font-extrabold" x-text="project.docs_completed_count + '/11'"></span>
-                                                    <span x-text="project.docs_completed_count >= 11 ? 'Lengkap' : 'Dokumen'"></span>
-                                                </button>
                                             </div>
-                                        </div>
                                     </td>
 
                                     {{-- Kolom 4: Target Tenggat & Progres Fisik --}}
@@ -535,7 +527,7 @@
                                                 <button type="button"
                                                         @click="openHandoverReviewModal(project)"
                                                         class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
-                                                    <span>Verifikasi</span>
+                                                    <span>Verifikasi Dokumen</span>
                                                 </button>
                                             </template>
 
@@ -548,16 +540,10 @@
                                             </template>
 
                                             <a :href="'/pmo/projects/' + project.id" 
-                                               title="Buka Dashboard & Budgeting Proyek"
-                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-2xs">
-                                                <span>Dashboard PM</span>
-                                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                                            </a>
-
-                                            <a :href="'/projects/' + project.id" 
-                                               title="Buka Lembar Kerja Proyek Lengkap"
-                                               class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-semibold transition shadow-2xs">
+                                               title="Buka Dashboard PMO & Perhitungan Proyek"
+                                               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-2xs">
                                                 <span>Detail</span>
+                                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                                             </a>
                                         </div>
                                     </td>
@@ -631,11 +617,11 @@
                                         </span>
                                     </div>
 
-                                    {{-- Divisi & PM Info --}}
+                                    {{-- Tim Teknis & PM Info --}}
                                     <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
                                         <div>
-                                            <span class="text-[10px] text-slate-400 block font-bold uppercase">Divisi:</span>
-                                            <span class="font-bold text-slate-800 text-[11px]" x-text="project.division || 'Belum Didelegasikan'"></span>
+                                            <span class="text-[10px] text-slate-400 block font-bold uppercase">Tim Teknis:</span>
+                                            <span class="font-bold text-slate-800 text-[11px]" x-text="project.division || 'Belum Ditentukan Sales'"></span>
                                         </div>
                                         <div class="text-right">
                                             <span class="text-[10px] text-slate-400 block font-bold uppercase">PIC PM:</span>
@@ -674,29 +660,21 @@
                                 </div>
 
                                 {{-- Card Footer Actions --}}
-                                <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                                    <button type="button" 
-                                            @click="openDocumentsModal(project)"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-red-200 text-[11px] font-semibold text-slate-700 hover:text-[#8F0A0D] transition">
-                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        <span x-text="project.docs_completed_count + '/11 Berkas'"></span>
-                                    </button>
-
+                                <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-end gap-2">
                                     <div class="flex items-center gap-1.5">
                                         <template x-if="project.handover_status === 'Submitted'">
                                             <button type="button"
                                                     @click="openHandoverReviewModal(project)"
-                                                    class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-xs">
-                                                Verifikasi
+                                                    class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
+                                                Verifikasi Dokumen
                                             </button>
                                         </template>
 
-                                        <a :href="'/pmo/projects/' + project.id" class="px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-2xs inline-flex items-center gap-1">
-                                            <span>Dashboard PM</span>
-                                            <span>&rarr;</span>
-                                        </a>
-                                        <a :href="'/projects/' + project.id" class="px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition shadow-2xs">
-                                            Detail
+                                        <a :href="'/pmo/projects/' + project.id" 
+                                           title="Buka Dashboard PMO & Perhitungan Proyek"
+                                           class="px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-2xs inline-flex items-center gap-1">
+                                            <span>Detail</span>
+                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                                         </a>
                                     </div>
                                 </div>
@@ -752,21 +730,29 @@
         </div>
     </div>
 
-    {{-- MODAL REVIEW & PENGESAHAN HANDOVER INTERNAL (PMO GATEKEEPER) --}}
+    {{-- MODAL REVIEW & KESIAPAN DOKUMEN HANDOVER INTERNAL (PMO GATEKEEPER - SEPERTI MANAGED SERVICE) --}}
     <template x-teleport="body">
         <div x-show="handoverReviewModalOpen" 
              x-cloak
              class="fixed inset-0 bg-slate-900/60 backdrop-blur-2xs z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
              @click.self="handoverReviewModalOpen = false">
-            <div class="bg-white rounded-2xl w-[720px] max-w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-6">
+            <div class="bg-white rounded-2xl w-[860px] max-w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-6">
+                
                 {{-- Modal Header --}}
-                <div class="p-5 sm:p-6 bg-slate-50 border-b border-slate-200 flex items-start justify-between">
-                    <div>
-                        <span class="text-[10.5px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                            SOP Gatekeeper Handover Approval
-                        </span>
-                        <h3 class="text-base font-bold text-slate-900 mt-1.5" x-text="'Verifikasi Serah Terima: ' + activeProject?.name"></h3>
-                        <p class="text-xs text-slate-500 mt-0.5" x-text="'Klien: ' + activeProject?.client + ' • PIC Sales: ' + activeProject?.sales_name"></p>
+                <div class="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex items-start justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-[#8F0A0D]/10 text-[#8F0A0D] flex items-center justify-center font-bold shrink-0">
+                            <svg class="w-5 h-5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-[10.5px] font-bold uppercase tracking-wider text-[#8F0A0D] bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200">
+                                SOP Gatekeeper &bull; Kesiapan Dokumen Serah Terima
+                            </span>
+                            <h3 class="text-base font-bold text-slate-900 mt-1" x-text="'Kesiapan Dokumen: ' + (activeProject?.name || '')"></h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Tinjau kelengkapan berkas dari Sales dan ceklis verifikasi dokumen sebelum disahkan ke Tim Teknis</p>
+                        </div>
                     </div>
                     <button type="button" @click="handoverReviewModalOpen = false" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center text-lg font-bold cursor-pointer">
                         &times;
@@ -774,146 +760,122 @@
                 </div>
 
                 {{-- Modal Body --}}
-                <div class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4">
+                <div class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5 text-xs">
                     
-                    {{-- Status Banner --}}
-                    <div class="p-3.5 rounded-xl border flex items-center justify-between text-xs"
-                         :class="{
-                             'bg-blue-50 border-blue-200 text-blue-800': activeProject?.handover_status === 'Submitted',
-                             'bg-amber-50 border-amber-200 text-amber-800': activeProject?.handover_status === 'Conditional',
-                             'bg-emerald-50 border-emerald-200 text-emerald-800': activeProject?.handover_status === 'Approved'
-                         }">
+                    {{-- 1. Info Klien & Nilai Kontrak (Simetris 2 Kolom Persis Managed Service) --}}
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
                         <div>
-                            <span class="font-bold">Status Berkas:</span>
-                            <span x-text="activeProject?.handover_status === 'Submitted' ? 'Diajukan oleh Sales (Menunggu Verifikasi PMO)' : (activeProject?.handover_status === 'Conditional' ? 'Bersyarat (Dalam Masa Perbaikan 2x24 Jam)' : 'Disetujui & Resmi Masuk Tahap Deliver')"></span>
+                            <span class="text-slate-400 block font-bold text-[10.5px] uppercase tracking-wider">Klien / Instansi</span>
+                            <span class="font-extrabold text-slate-900 text-sm block truncate mt-0.5" x-text="activeProject?.client || '—'"></span>
+                            <span class="text-[11px] text-slate-500 font-mono" x-text="activeProject?.so_code || ''"></span>
                         </div>
-                        <template x-if="activeProject?.handover_conditional_deadline">
-                            <span class="text-[11px] font-semibold text-amber-700" x-text="'Tenggat: ' + activeProject?.handover_conditional_deadline"></span>
-                        </template>
-                    </div>
-
-                    {{-- 4 Kategori Checklist Summary --}}
-                    <div class="space-y-3">
-                        <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Hasil Verifikasi 4 Kategori Checklist Serah Terima</h4>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                            {{-- Kategori 1: Legal --}}
-                            <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">
-                                <div class="font-bold text-slate-800 flex items-center justify-between">
-                                    <span>I. Legal &amp; Komersial</span>
-                                    <span class="text-[10px] text-slate-400">Kontrak, BoW &amp; Addendum</span>
-                                </div>
-                                <div class="text-slate-600 space-y-1 text-[11.5px]">
-                                    <div class="flex items-center gap-1.5">
-                                        <span :class="activeProject?.handover_data?.contract_signed ? 'text-emerald-600 font-bold' : 'text-slate-400'">&bull;</span>
-                                        <span>Kontrak / SPK / SLA Signed: <strong x-text="activeProject?.handover_data?.contract_signed ? 'Ada' : 'Tidak'"></strong></span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span :class="activeProject?.handover_data?.bom_proposal ? 'text-emerald-600 font-bold' : 'text-slate-400'">&bull;</span>
-                                        <span>Dokumen BoW (Proposal): <strong x-text="activeProject?.handover_data?.bom_proposal ? 'Ada' : 'Tidak'"></strong></span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span :class="activeProject?.handover_data?.negotiation_addendum ? 'text-emerald-600 font-bold' : 'text-slate-400'">&bull;</span>
-                                        <span>BA Negosiasi / Addendum: <strong x-text="activeProject?.handover_data?.negotiation_addendum ? 'Ada' : 'Tidak'"></strong></span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Kategori 2: Lingkup --}}
-                            <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">
-                                <div class="font-bold text-slate-800 flex items-center justify-between">
-                                    <span>II. Kebutuhan &amp; Lingkup</span>
-                                    <span class="text-[10px] text-slate-400">SoW, URS, Mockup &amp; Maint.</span>
-                                </div>
-                                <div class="text-slate-600 space-y-1 text-[11.5px]">
-                                    <div class="flex items-center gap-1.5">
-                                        <span :class="activeProject?.handover_data?.sow_document ? 'text-emerald-600 font-bold' : 'text-slate-400'">&bull;</span>
-                                        <span>Dokumen SoW / Lingkup: <strong x-text="activeProject?.handover_data?.sow_document ? 'Ada' : 'Tidak'"></strong></span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span :class="activeProject?.handover_data?.urs_requirement ? 'text-emerald-600 font-bold' : 'text-slate-400'">&bull;</span>
-                                        <span>Dokumen URS Klien: <strong x-text="activeProject?.handover_data?.urs_requirement ? 'Ada' : 'Tidak'"></strong></span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span :class="activeProject?.handover_data?.mockup_wireframe ? 'text-emerald-600 font-bold' : 'text-slate-400'">&bull;</span>
-                                        <span>Mockup / Wireframe: <strong x-text="activeProject?.handover_data?.mockup_wireframe ? 'Ada' : 'Tidak'"></strong></span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span :class="activeProject?.handover_data?.maintenance_contract ? 'text-emerald-600 font-bold' : 'text-slate-400'">&bull;</span>
-                                        <span>Kontrak Maintenance: <strong x-text="activeProject?.handover_data?.maintenance_contract ? 'Ada' : 'Tidak'"></strong></span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Kategori 3: Finansial --}}
-                            <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">
-                                <div class="font-bold text-slate-800 flex items-center justify-between">
-                                    <span>III. Administrasi &amp; Finansial</span>
-                                    <span class="text-[10px] text-slate-400">DP &amp; Billing</span>
-                                </div>
-                                <div class="text-slate-600 space-y-1 text-[11.5px]">
-                                    <div class="flex items-center gap-1.5">
-                                        <span :class="activeProject?.handover_data?.dp_payment_proof ? 'text-emerald-600 font-bold' : 'text-slate-400'">&bull;</span>
-                                        <span>Bukti Pembayaran DP: <strong x-text="activeProject?.handover_data?.dp_payment_proof ? 'Ada' : 'Tidak'"></strong></span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span :class="activeProject?.handover_data?.billing_milestone ? 'text-emerald-600 font-bold' : 'text-slate-400'">&bull;</span>
-                                        <span>Jadwal Billing Milestone: <strong x-text="activeProject?.handover_data?.billing_milestone ? 'Ada' : 'Tidak'"></strong></span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Kategori 4: Kontak Customer PIC --}}
-                            <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1.5">
-                                <div class="font-bold text-slate-800 flex items-center justify-between">
-                                    <span>IV. Kontak &amp; Akses Customer</span>
-                                    <span class="text-[10px] text-slate-400">PIC &amp; Meeting Notes</span>
-                                </div>
-                                <div class="text-slate-600 space-y-1 text-[11.5px]">
-                                    <div class="flex items-center gap-1.5">
-                                        <span :class="activeProject?.handover_data?.customer_contacts ? 'text-emerald-600 font-bold' : 'text-slate-400'">&bull;</span>
-                                        <span>Daftar Kontak PIC: <strong x-text="activeProject?.handover_data?.customer_contacts ? 'Ada' : 'Tidak'"></strong></span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span :class="activeProject?.handover_data?.meeting_notes ? 'text-emerald-600 font-bold' : 'text-slate-400'">&bull;</span>
-                                        <span>Catatan Meeting Notes: <strong x-text="activeProject?.handover_data?.meeting_notes ? 'Ada' : 'Tidak'"></strong></span>
-                                    </div>
-                                    <div class="pt-1 text-[11px] text-slate-500 border-t border-slate-200">
-                                        <span>PIC Teknis: <strong x-text="activeProject?.customer_pic_technical || '-'"></strong></span>
-                                    </div>
-                                </div>
-                            </div>
+                        <div>
+                            <span class="text-slate-400 block font-bold text-[10.5px] uppercase tracking-wider">PIC Sales &amp; Tanggal</span>
+                            <span class="font-bold text-slate-800 text-[13px] block mt-0.5" x-text="activeProject?.sales_name || '—'"></span>
+                            <span class="text-[11px] text-slate-500" x-text="'Serah Terima: ' + (activeProject?.handover_submitted_at || '-')"></span>
+                        </div>
+                        <div class="sm:text-right">
+                            <span class="text-slate-400 block font-bold text-[10.5px] uppercase tracking-wider">Nilai Kontrak</span>
+                            <span class="font-extrabold text-[#8F0A0D] font-mono text-[15px] block mt-0.5" x-text="activeProject?.contract_value_formatted || '—'"></span>
+                            <template x-if="activeProject?.po_file">
+                                <a :href="activeProject.po_file" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 mt-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span>Unduh File PO / SPK</span>
+                                </a>
+                            </template>
                         </div>
                     </div>
 
-                    {{-- Catatan Khusus Sales --}}
+                    {{-- 2. Daftar Kesiapan Dokumen Serah Terima (Ceklis Verifikasi Persis Managed Service) --}}
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D]"></span>
+                                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Ceklis Kesiapan Berkas &amp; Dokumen Serah Terima</h4>
+                            </div>
+                            <span class="text-[11px] font-bold text-slate-500">
+                                Terverifikasi: <strong class="text-emerald-700 font-extrabold" x-text="Object.values(activeDocs).filter(v => v === true).length + ' / 11 Dokumen'"></strong>
+                            </span>
+                        </div>
+
+                        {{-- Loop 4 Kategori Dokumen --}}
+                        <div class="space-y-3.5">
+                            @foreach($handoverFormStructure as $category)
+                                <div class="rounded-xl border border-slate-200 overflow-hidden bg-slate-50/40">
+                                    <div class="bg-slate-100/80 px-3.5 py-2 border-b border-slate-200 flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-5 h-5 rounded-md bg-slate-800 text-white font-mono text-[10px] font-extrabold flex items-center justify-center">{{ $category['number'] }}</span>
+                                            <span class="font-bold text-slate-800 text-xs">{{ $category['category_name'] }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-2.5 space-y-2 bg-white">
+                                        @foreach($category['items'] as $item)
+                                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 rounded-xl border border-slate-200 hover:border-slate-300 transition"
+                                                 :class="activeDocs['{{ $item['key'] }}'] ? 'bg-emerald-50/20 border-emerald-200' : 'bg-white'">
+                                                <div class="flex items-start gap-2.5 min-w-0">
+                                                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                                                         :class="activeDocs['{{ $item['key'] }}'] ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200'">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <div class="flex items-center gap-2 flex-wrap">
+                                                            <h5 class="text-xs font-bold text-slate-900">{{ $item['name'] }}</h5>
+                                                            <span class="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold"
+                                                                  :class="activeDocs['{{ $item['key'] }}'] ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'">
+                                                                <span class="w-1.5 h-1.5 rounded-full" :class="activeDocs['{{ $item['key'] }}'] ? 'bg-emerald-600' : 'bg-slate-400'"></span>
+                                                                <span x-text="activeDocs['{{ $item['key'] }}'] ? 'Tersedia' : 'Belum Ada'"></span>
+                                                            </span>
+                                                        </div>
+                                                        <p class="text-[11px] text-slate-500 mt-0.5">{{ $item['default_note'] }}</p>
+                                                    </div>
+                                                </div>
+
+                                                {{-- Toggle / Checkbox Verifikasi --}}
+                                                <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                                                    <label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold cursor-pointer select-none transition"
+                                                           :class="activeDocs['{{ $item['key'] }}'] ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-slate-50 text-slate-600 border-slate-200'">
+                                                        <input type="checkbox" 
+                                                               x-model="activeDocs['{{ $item['key'] }}']"
+                                                               class="w-4 h-4 text-[#8F0A0D] rounded border-slate-300 focus:ring-red-500">
+                                                        <span x-text="activeDocs['{{ $item['key'] }}'] ? 'Terverifikasi' : 'Belum Ada'"></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- 3. Catatan Khusus Sales --}}
                     <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60">
-                        <div class="text-[11.5px] font-bold text-slate-700 mb-1">Catatan Khusus Sales ke Tim Delivery (Komitmen Lisan / Batasan Akses):</div>
+                        <div class="text-[11.5px] font-bold text-slate-700 mb-1">Catatan Khusus Sales ke Tim Delivery:</div>
                         <p class="text-xs text-slate-600 italic" x-text="activeProject?.special_notes || 'Tidak ada catatan khusus.'"></p>
                     </div>
 
-                    {{-- Form Penugasan PM & Divisi untuk Transisi Lapangan --}}
+                    {{-- 4. Form Penugasan Tim Teknis & PM untuk Transisi Deliver --}}
                     <div class="p-4 rounded-xl border border-blue-200 bg-blue-50/40 space-y-3">
                         <div class="text-xs font-bold text-blue-900 flex items-center gap-1.5">
                             <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                            <span>Penetapan PIC Project Manager &amp; Divisi Pelaksana</span>
+                            <span>Penetapan Tim Teknis Pelaksana &amp; Project Manager</span>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tim Teknis / Divisi <span class="text-red-500">*</span></label>
+                                <select x-model="handoverAssign.division_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                    <option value="">-- Pilih Tim Teknis --</option>
+                                    @foreach($divisions ?? [] as $div)
+                                        <option value="{{ $div->id }}">{{ $div->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tugaskan Project Manager (PM) <span class="text-red-500">*</span></label>
                                 <select x-model="handoverAssign.pm_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
                                     <option value="">-- Pilih Project Manager --</option>
                                     @foreach($pmList ?? [] as $pm)
                                         <option value="{{ $pm->id }}">{{ $pm->name }} ({{ $pm->email }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Divisi Pelaksana Proyek <span class="text-red-500">*</span></label>
-                                <select x-model="handoverAssign.division_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                    <option value="">-- Pilih Divisi --</option>
-                                    @foreach($divisions ?? [] as $div)
-                                        <option value="{{ $div->id }}">{{ $div->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -1321,9 +1283,7 @@
             nextPage() { if (this.currentPage < this.totalPages) this.currentPage++; },
 
             openDocumentsModal(project) {
-                this.activeProject = project;
-                this.activeDocs = Object.assign({}, project.documents_checklist || {});
-                this.docsModalOpen = true;
+                this.openHandoverReviewModal(project);
             },
 
             openHandoverReviewModal(project) {
@@ -1332,6 +1292,7 @@
                 this.handoverAssign.division_id = project.division_id || '';
                 this.showConditionalInput = false;
                 this.conditionalNotes = project.handover_conditional_notes || '';
+                this.activeDocs = Object.assign({}, project.documents_checklist || project.handover_data || {});
                 this.handoverReviewModalOpen = true;
             },
 
@@ -1349,7 +1310,11 @@
                             'Accept': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
-                        body: JSON.stringify(this.handoverAssign)
+                        body: JSON.stringify({
+                            pm_id: this.handoverAssign.pm_id,
+                            division_id: this.handoverAssign.division_id,
+                            checklist: this.activeDocs
+                        })
                     });
 
                     const data = await response.json();
