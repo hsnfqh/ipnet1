@@ -194,35 +194,42 @@
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                             <span class="ipnet-badge-dot"></span> RINGKASAN PORTOFOLIO PMO
                         </p>
-                        <h2 class="text-[18px] font-bold text-[#1E293B] tracking-tight">Kesehatan Proyek & Alokasi Anggaran</h2>
+                        <h2 class="text-[18px] font-bold text-[#1E293B] tracking-tight">Status Handover, Proyek Aktif &amp; Beban Tim</h2>
                     </div>
                     <span class="text-xs font-semibold text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
                         Periode Aktif {{ date('Y') }}
                     </span>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     
-                    {{-- 1. Total Anggaran Portofolio --}}
-                    <div class="ipnet-metric-card border-l-4 border-l-[#8F0A0D] flex flex-col justify-between">
+                    {{-- 1 (Asal 2). Antrean Handover Masuk (Incoming Handover dari Sales) --}}
+                    <a href="{{ route('pmo.implementations.index') }}" class="ipnet-metric-card border-l-4 border-l-[#8F0A0D] flex flex-col justify-between group hover:border-[#8F0A0D] transition block cursor-pointer">
                         <div>
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Total Anggaran</span>
-                                <div class="w-7 h-7 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Antrean Handover Masuk</span>
+                                <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] flex items-center justify-center group-hover:scale-105 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
                                     </svg>
                                 </div>
                             </div>
-                            <div class="text-[20px] xl:text-[22px] font-black text-[#1E293B] tracking-tight truncate" title="{{ $formattedTotalBudget }}">
-                                {{ $formattedTotalBudget }}
+                            <div class="flex items-baseline gap-2">
+                                <div class="text-[22px] xl:text-[24px] font-black text-[#1E293B] tracking-tight">
+                                    {{ $handoverPendingCount }}
+                                </div>
+                                <span class="text-xs font-bold text-[#8F0A0D]">Menunggu Approval</span>
                             </div>
                         </div>
                         <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
-                            <span>Seluruh Portofolio</span>
-                            <span class="font-bold text-slate-800">{{ $formattedProjects->count() }} Proyek</span>
+                            <span>Verifikasi Kesiapan Dokumen</span>
+                            @if($handoverConditionalCount > 0)
+                                <span class="font-bold text-amber-600">+{{ $handoverConditionalCount }} Bersyarat</span>
+                            @else
+                                <span class="font-bold text-slate-800">Cek Dokumen &rarr;</span>
+                            @endif
                         </div>
-                    </div>
+                    </a>
 
                     {{-- 2. Proyek Aktif Implementasi --}}
                     <div class="ipnet-metric-card border-l-4 border-l-slate-700 flex flex-col justify-between">
@@ -265,28 +272,6 @@
                         <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
                             <span>Workload</span>
                             <span class="font-bold text-slate-800">Tim Lapangan</span>
-                        </div>
-                    </div>
-
-                    {{-- 4. Status Kesehatan Portofolio --}}
-                    <div class="ipnet-metric-card border-l-4 border-l-emerald-600 flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Kesehatan Portofolio</span>
-                                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full {{ $portfolioStatus === 'Healthy' ? 'bg-emerald-500' : ($portfolioStatus === 'At-Risk' ? 'bg-amber-500' : 'bg-rose-500') }}"></span>
-                                <span class="text-[20px] xl:text-[22px] font-black text-[#1E293B] tracking-tight">{{ $portfolioStatus }}</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
-                            <span>{{ $portfolioStatusText }}</span>
-                            <span class="font-bold {{ $portfolioStatus === 'Healthy' ? 'text-emerald-700' : ($portfolioStatus === 'At-Risk' ? 'text-amber-700' : 'text-rose-700') }}">Sesuai SLA</span>
                         </div>
                     </div>
 
