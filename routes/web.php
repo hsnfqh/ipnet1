@@ -670,6 +670,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/projects/{project}/handover-conditional', [PmoController::class, 'conditionalHandover'])->name('pmo.handover.conditional');
         Route::post('/projects/{project}/handover-to-ms', [PmoController::class, 'handoverToManagedService'])->name('pmo.handover.to_ms');
         Route::post('/projects/{project}/weekly-progress', [PmoController::class, 'updateWeeklyProgress'])->name('pmo.projects.weekly_progress.update');
+        Route::post('/projects/{project}/daily-progress', [PmoController::class, 'updateDailyProgress'])->name('pmo.projects.daily_progress.update');
         Route::post('/projects/{project}/assign-division', [PmoController::class, 'assignDivision'])->name('pmo.projects.assign_division');
         Route::post('/projects/{project}/assign-team', [PmoController::class, 'assignTeam'])->name('pmo.projects.assign_team');
         Route::post('/projects/{project}/quick-task', [PmoController::class, 'quickStoreTask'])->name('pmo.projects.quick_task');

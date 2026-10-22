@@ -67,12 +67,25 @@
 @section('content')
 <div class="flex h-screen overflow-hidden bg-[#F8FAFC] font-sans" 
      x-data="{ 
+         sCurveMode: 'weekly',
+         dailyPage: 1,
+         dailyPerPage: 10,
+         totalDaysCount: {{ $totalDays ?? 30 }},
+         get totalDailyPages() {
+             return Math.max(1, Math.ceil(this.totalDaysCount / this.dailyPerPage));
+         },
          showProgressModal: false, 
          activeWeek: 1, 
          activeActual: 0, 
          activeNotes: '',
          activePlan: 0,
          activeRange: '',
+         showDailyProgressModal: false,
+         activeDay: 1,
+         activeDayActual: 0,
+         activeDayPlan: 0,
+         activeDayNotes: '',
+         activeDayDate: '',
          showDivisionModal: false,
          showAssignTeamModal: false,
          showQuickTaskModal: false,
@@ -84,6 +97,20 @@
              this.activeNotes = notes || '';
              this.activeRange = range;
              this.showProgressModal = true;
+         },
+         openDailyProgressModal(day, actual, plan, notes, date) {
+             this.activeDay = day;
+             this.activeDayActual = actual !== null ? actual : 0;
+             this.activeDayPlan = plan;
+             this.activeDayNotes = notes || '';
+             this.activeDayDate = date;
+             this.showDailyProgressModal = true;
+         },
+         switchSCurveMode(mode) {
+             this.sCurveMode = mode;
+             if (window.renderSCurveChart) {
+                 window.renderSCurveChart(mode);
+             }
          }
      }" 
      x-cloak>
@@ -259,24 +286,30 @@
                     </div>
                 </div>
 
-                {{-- Metric 2: Nilai Kontrak & Sisa Anggaran --}}
+                {{-- Metric 2: Sisa Waktu Pelaksanaan (Menggantikan Project Budget) --}}
                 <div class="ipnet-metric-card border-l-4 border-l-slate-700 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Project Budget</span>
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Sisa Waktu Proyek</span>
                             <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
                         </div>
-                        <div class="text-[20px] font-extrabold text-[#1E293B] tracking-tight truncate" title="Rp {{ number_format($contractValue, 0, ',', '.') }}">
-                            Rp {{ number_format($contractValue, 0, ',', '.') }}
+                        <div class="text-[20px] font-extrabold text-[#1E293B] tracking-tight">
+                            @if(($daysRemaining ?? 0) > 0)
+                                {{ $daysRemaining }} <span class="text-xs font-semibold text-slate-500">Hari Tersisa</span>
+                            @elseif(($daysRemaining ?? 0) === 0)
+                                <span class="text-amber-600">Hari Terakhir</span>
+                            @else
+                                <span class="text-rose-600">{{ abs($daysRemaining ?? 0) }} Hari Terlewat</span>
+                            @endif
                         </div>
                     </div>
                     <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
-                        <span>Sisa Anggaran</span>
-                        <span class="font-bold text-emerald-700">Rp {{ number_format($remainingBudget, 0, ',', '.') }}</span>
+                        <span>Minggu ke-{{ $currentWeek }} dari {{ $totalWeeks }} Minggu</span>
+                        <span class="font-bold text-slate-800">{{ $daysSpan }} Hari Total</span>
                     </div>
                 </div>
 
@@ -304,26 +337,31 @@
                     </div>
                 </div>
 
-                {{-- Metric 4: S-Curve SLA Health --}}
-                <div class="ipnet-metric-card border-l-4 border-l-emerald-600 flex flex-col justify-between">
+                {{-- Metric 4: Deviasi Kurva S (Menggantikan Healthy yang abstrak) --}}
+                <div class="ipnet-metric-card border-l-4 {{ ($currentVariance ?? 0) >= 0 ? 'border-l-emerald-600' : 'border-l-rose-600' }} flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Kesehatan S-Curve</span>
-                            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <span class="text-[11px] font-bold text-[#75727C] uppercase tracking-wider">Deviasi Kurva S</span>
+                            <div class="w-7 h-7 rounded-lg {{ ($currentVariance ?? 0) >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }} flex items-center justify-center">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                                 </svg>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full {{ $healthStatus === 'Healthy' ? 'bg-emerald-500' : ($healthStatus === 'At-Risk' ? 'bg-amber-500' : 'bg-rose-500') }}"></span>
-                            <span class="text-[20px] font-extrabold text-[#1E293B] tracking-tight">{{ $healthStatus }}</span>
+                            <span class="w-2.5 h-2.5 rounded-full {{ ($currentVariance ?? 0) >= 0 ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
+                            <span class="text-[20px] font-extrabold text-[#1E293B] tracking-tight">
+                                {{ ($currentVariance ?? 0) >= 0 ? '+' : '' }}{{ number_format($currentVariance ?? 0, 2) }}%
+                            </span>
+                            <span class="text-xs font-bold {{ ($currentVariance ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
+                                {{ ($currentVariance ?? 0) >= 0 ? 'Ahead' : 'Behind' }}
+                            </span>
                         </div>
                     </div>
                     <div class="flex items-center justify-between text-[11px] text-[#64748B] mt-2.5 pt-2 border-t border-slate-100 font-medium">
-                        <span>Status Proyek</span>
-                        <span class="font-bold {{ $healthStatus === 'Healthy' ? 'text-emerald-700' : ($healthStatus === 'At-Risk' ? 'text-amber-700' : 'text-rose-700') }}">
-                            {{ $healthStatusText }}
+                        <span>Target: {{ number_format($planValAtCurrentWeek ?? 0, 1) }}%</span>
+                        <span class="font-bold {{ ($currentVariance ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
+                            Aktual: {{ number_format($currentProgressPercent, 1) }}%
                         </span>
                     </div>
                 </div>
@@ -331,7 +369,7 @@
             </div>
 
             <!-- ========================================================== -->
-            <!-- 3. KURVA S: PLAN KUMULATIF VS ACTUAL KUMULATIF (SEPERTI EXCEL) -->
+            <!-- 3. KURVA S: PLAN KUMULATIF VS ACTUAL KUMULATIF (MINGGUAN / HARIAN) -->
             <!-- ========================================================== -->
             <div class="ipnet-card p-5 sm:p-6 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
@@ -339,21 +377,45 @@
                         <p class="text-[#8F0A0D] text-[12px] font-bold inline-flex items-center uppercase tracking-wider">
                             <span class="ipnet-badge-dot"></span> MONITORING IMPLEMENTASI PMO
                         </p>
-                        <h2 class="text-[17px] font-bold text-[#1E293B]">Plan Kumulatif Mingguan VS Actual Kumulatif Mingguan</h2>
-                        <p class="text-xs text-[#64748B] mt-0.5">
+                        <h2 class="text-[17px] font-bold text-[#1E293B]">
+                            <span x-text="sCurveMode === 'weekly' ? 'Plan Kumulatif Mingguan VS Actual Kumulatif Mingguan' : 'Plan Kumulatif Harian VS Actual Kumulatif Harian'">Plan Kumulatif Mingguan VS Actual Kumulatif Mingguan</span>
+                        </h2>
+                        <p class="text-xs text-[#64748B] mt-0.5" x-show="sCurveMode === 'weekly'">
                             Rentang Evaluasi: <strong>Minggu ke-0 s/d Minggu ke-{{ $totalWeeks }}</strong> (Periode: {{ $projectTimelineText }})
+                        </p>
+                        <p class="text-xs text-[#64748B] mt-0.5" x-show="sCurveMode === 'daily'" style="display: none;">
+                            Rentang Evaluasi: <strong>Hari ke-1 s/d Hari ke-{{ $totalDays }}</strong> (Periode: {{ $projectTimelineText }})
                         </p>
                     </div>
 
-                    {{-- Legend Pills --}}
-                    <div class="flex items-center gap-3">
-                        <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                            <span class="w-3.5 h-1 rounded-full bg-[#2563EB]"></span>
-                            <span>Plan Kumulatif</span>
+                    {{-- Mode Switcher & Legend --}}
+                    <div class="flex items-center gap-3 flex-wrap">
+                        {{-- Segmented Mode Toggle Pill --}}
+                        <div class="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200">
+                            <button type="button" 
+                                    @click="switchSCurveMode('weekly')" 
+                                    :class="sCurveMode === 'weekly' ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-semibold'"
+                                    class="px-3 py-1 text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                                <span>📅 Mingguan</span>
+                            </button>
+                            <button type="button" 
+                                    @click="switchSCurveMode('daily')" 
+                                    :class="sCurveMode === 'daily' ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-semibold'"
+                                    class="px-3 py-1 text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                                <span>⏱️ Harian</span>
+                            </button>
                         </div>
-                        <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                            <span class="w-3.5 h-1 rounded-full bg-[#8F0A0D]"></span>
-                            <span>Actual Kumulatif</span>
+
+                        {{-- Legend Pills --}}
+                        <div class="flex items-center gap-3 pl-2 border-l border-slate-200">
+                            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                                <span class="w-3.5 h-1 rounded-full bg-[#2563EB]"></span>
+                                <span>Plan Kumulatif</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                                <span class="w-3.5 h-1 rounded-full bg-[#8F0A0D]"></span>
+                                <span>Actual Kumulatif</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -361,7 +423,7 @@
                 {{-- S-Curve Grid: Left Metrics & Right Chart Area --}}
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
                     
-                    {{-- Left Metrics Box (Persis seperti Rekap Kolom Excel User) --}}
+                    {{-- Left Metrics Box --}}
                     <div class="lg:col-span-4 bg-slate-50/80 rounded-xl p-4 sm:p-5 border border-slate-200/90 space-y-3.5">
                         <div class="border-b border-slate-200 pb-2.5">
                             <span class="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider">Ringkasan Status Kurva</span>
@@ -372,8 +434,11 @@
                         <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
                             <div class="flex items-center justify-between text-xs">
                                 <span class="font-bold text-slate-600">Progress Pekerjaan</span>
-                                <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                <span x-show="sCurveMode === 'weekly'" class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                                     Minggu ke-{{ $currentWeek }}
+                                </span>
+                                <span x-show="sCurveMode === 'daily'" style="display: none;" class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    Hari ke-{{ $currentDay }} dari {{ $totalDays }}
                                 </span>
                             </div>
                             <div class="mt-2 flex items-baseline justify-between">
@@ -413,7 +478,8 @@
                             <canvas id="sCurveDualLineChart"></canvas>
                         </div>
                         <div class="text-center mt-1 text-[11px] text-slate-400 font-semibold tracking-wider uppercase">
-                            Sumbu Horisontal: Minggu ke-0 s/d Minggu ke-{{ $totalWeeks }} (Rentang Tanggal Proyek: {{ $projectTimelineText }})
+                            <span x-show="sCurveMode === 'weekly'">Sumbu Horisontal: Minggu ke-0 s/d Minggu ke-{{ $totalWeeks }} (Rentang Tanggal Proyek: {{ $projectTimelineText }})</span>
+                            <span x-show="sCurveMode === 'daily'" style="display: none;">Sumbu Horisontal: Hari ke-1 s/d Hari ke-{{ $totalDays }} (Rentang Tanggal Proyek: {{ $projectTimelineText }})</span>
                         </div>
                     </div>
 
@@ -421,22 +487,42 @@
             </div>
 
             <!-- ========================================================== -->
-            <!-- 3.5 TABEL TRACKING & INPUT PROGRES MINGGUAN (OPSI 3 KOMBINASI) -->
+            <!-- 3.5 TABEL TRACKING & INPUT PROGRES (MINGGUAN & HARIAN)     -->
             <!-- ========================================================== -->
             <div class="ipnet-card p-5 sm:p-6 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
                     <div>
                         <p class="text-[#8F0A0D] text-[11px] font-bold uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> TATA KELOLA MINGGUAN PMO
+                            <span class="ipnet-badge-dot"></span> TATA KELOLA PMO
                         </p>
-                        <h3 class="text-[16px] font-bold text-[#1E293B]">Tabel Progres Mingguan Kurva S (Weekly S-Curve Tracking)</h3>
+                        <h3 class="text-[16px] font-bold text-[#1E293B]">
+                            <span x-text="sCurveMode === 'weekly' ? 'Tabel Progres Mingguan Kurva S (Weekly S-Curve Tracking)' : 'Tabel Progres Harian Kurva S (Daily S-Curve Tracking)'">Tabel Progres Mingguan Kurva S</span>
+                        </h3>
                         <p class="text-xs text-slate-500 mt-0.5">
-                            Rincian target mingguan, rekomendasi penyelesaian tugas teknis, dan input progres aktual resmi oleh PM.
+                            <span x-show="sCurveMode === 'weekly'">Rincian target mingguan, rekomendasi penyelesaian tugas teknis, dan input progres aktual resmi oleh PM.</span>
+                            <span x-show="sCurveMode === 'daily'" style="display: none;">Rincian target harian (Hari 1 s/d {{ $totalDays }}), status lapangan, dan update progres harian oleh PM.</span>
                         </p>
+                    </div>
+
+                    {{-- Mode Toggle Tab --}}
+                    <div class="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 shrink-0">
+                        <button type="button" 
+                                @click="switchSCurveMode('weekly')" 
+                                :class="sCurveMode === 'weekly' ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-semibold'"
+                                class="px-3 py-1 text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                            <span>📅 Mode Mingguan</span>
+                        </button>
+                        <button type="button" 
+                                @click="switchSCurveMode('daily')" 
+                                :class="sCurveMode === 'daily' ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-semibold'"
+                                class="px-3 py-1 text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                            <span>⏱️ Mode Harian</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
+                {{-- TABEL MINGGUAN --}}
+                <div x-show="sCurveMode === 'weekly'" class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead>
                             <tr class="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -543,6 +629,148 @@
                         </tbody>
                     </table>
                 </div>
+
+                {{-- TABEL HARIAN --}}
+                <div x-show="sCurveMode === 'daily'" style="display: none;" class="space-y-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <th class="py-3 px-3">Hari</th>
+                                    <th class="py-3 px-3">Tanggal &amp; Hari</th>
+                                    <th class="py-3 px-3">Target Rencana (Plan)</th>
+                                    <th class="py-3 px-3">Realisasi Aktual</th>
+                                    <th class="py-3 px-3">Deviasi</th>
+                                    <th class="py-3 px-3">Task Lapangan</th>
+                                    <th class="py-3 px-3">Catatan PM</th>
+                                    <th class="py-3 px-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach($dailyRecords as $idx => $drec)
+                                    <tr x-show="Math.ceil(({{ $idx }} + 1) / dailyPerPage) === dailyPage" 
+                                        class="hover:bg-slate-50/80 transition {{ $drec['is_current'] ? 'bg-amber-50/40' : '' }}">
+                                        
+                                        {{-- Kolom Hari --}}
+                                        <td class="py-3 px-3 whitespace-nowrap">
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-extrabold text-slate-900 text-[12.5px]">Hari {{ $drec['day'] }}</span>
+                                                @if($drec['is_current'])
+                                                    <span class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-[#8F0A0D] text-white">
+                                                        Hari Ini
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </td>
+
+                                        {{-- Kolom Tanggal & Hari --}}
+                                        <td class="py-3 px-3 whitespace-nowrap">
+                                            <span class="font-semibold text-slate-700">{{ $drec['date'] }}</span>
+                                            <span class="text-[11px] text-slate-400 block font-normal">{{ $drec['day_name'] }}</span>
+                                        </td>
+
+                                        {{-- Kolom Target Plan --}}
+                                        <td class="py-3 px-3 whitespace-nowrap">
+                                            <span class="font-bold text-blue-700">{{ number_format($drec['plan_percent'], 2) }}%</span>
+                                        </td>
+
+                                        {{-- Kolom Realisasi Aktual --}}
+                                        <td class="py-3 px-3 whitespace-nowrap">
+                                            @if($drec['actual_percent'] !== null)
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="font-extrabold text-[#8F0A0D] text-[12.5px]">
+                                                        {{ number_format($drec['actual_percent'], 2) }}%
+                                                    </span>
+                                                    @if($drec['is_recorded'])
+                                                        <span class="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200" title="Diinput manual oleh PM">
+                                                            PM Validated
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            @else
+                                                <span class="text-slate-400 font-medium italic">Belum Berjalan</span>
+                                            @endif
+                                        </td>
+
+                                        {{-- Kolom Deviasi (Variance) --}}
+                                        <td class="py-3 px-3 whitespace-nowrap">
+                                            @if($drec['variance'] !== null)
+                                                @if($drec['variance'] >= 0)
+                                                    <span class="text-emerald-700 font-bold text-[11px] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                                        +{{ number_format($drec['variance'], 2) }}%
+                                                    </span>
+                                                @else
+                                                    <span class="text-rose-700 font-bold text-[11px] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                                                        {{ number_format($drec['variance'], 2) }}%
+                                                    </span>
+                                                @endif
+                                            @else
+                                                <span class="text-slate-400">-</span>
+                                            @endif
+                                        </td>
+
+                                        {{-- Kolom Rekomendasi Task --}}
+                                        <td class="py-3 px-3 whitespace-nowrap">
+                                            @if($drec['tasks_count'] > 0)
+                                                <span class="px-2 py-0.5 rounded text-[10.5px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                                                    {{ $drec['tasks_count'] }} Task Tuntas
+                                                </span>
+                                            @else
+                                                <span class="text-slate-400 text-[11px]">0 Task</span>
+                                            @endif
+                                        </td>
+
+                                        {{-- Kolom Catatan PM --}}
+                                        <td class="py-3 px-3 max-w-[220px]">
+                                            <span class="text-slate-600 text-[11.5px] truncate block" title="{{ $drec['notes'] ?? '-' }}">
+                                                {{ $drec['notes'] ?: '-' }}
+                                            </span>
+                                        </td>
+
+                                        {{-- Kolom Aksi --}}
+                                        <td class="py-3 px-3 text-right whitespace-nowrap">
+                                            <button type="button" 
+                                                    @click="openDailyProgressModal({{ $drec['day'] }}, {{ $drec['actual_percent'] ?? 0 }}, {{ $drec['plan_percent'] }}, '{{ addslashes($drec['notes'] ?? '') }}', '{{ $drec['date'] }} ({{ $drec['day_name'] }})')"
+                                                    class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#8F0A0D] bg-red-50 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                                                Update Progres
+                                            </button>
+                                        </td>
+
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- Daily Pagination Controls --}}
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+                        <div class="text-slate-500 font-medium">
+                            Menampilkan <span class="font-bold text-slate-800" x-text="((dailyPage - 1) * dailyPerPage) + 1"></span> s/d 
+                            <span class="font-bold text-slate-800" x-text="Math.min(dailyPage * dailyPerPage, {{ count($dailyRecords) }})"></span> 
+                            dari <span class="font-bold text-slate-800">{{ count($dailyRecords) }} Hari</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 self-end sm:self-auto">
+                            <button type="button" 
+                                    @click="dailyPage = Math.max(1, dailyPage - 1)" 
+                                    :disabled="dailyPage === 1"
+                                    :class="dailyPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100 text-slate-700 cursor-pointer'"
+                                    class="px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs transition">
+                                &larr; Sebelumnya
+                            </button>
+                            <span class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-50 rounded-lg border border-slate-200">
+                                Halaman <span x-text="dailyPage"></span> / <span x-text="totalDailyPages"></span>
+                            </span>
+                            <button type="button" 
+                                    @click="dailyPage = Math.min(totalDailyPages, dailyPage + 1)" 
+                                    :disabled="dailyPage >= totalDailyPages"
+                                    :class="dailyPage >= totalDailyPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100 text-slate-700 cursor-pointer'"
+                                    class="px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs transition">
+                                Berikutnya &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- ========================================================== -->
@@ -965,6 +1193,73 @@
     </div>
 
     <!-- ========================================================== -->
+    <!-- MODAL 1B: UPDATE PROGRES HARIAN (PM INPUT)                 -->
+    <!-- ========================================================== -->
+    <div x-show="showDailyProgressModal" 
+         x-transition.opacity
+         style="display: none;"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4"
+             @click.away="showDailyProgressModal = false">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900">
+                        Update Progres Hari ke-<span x-text="activeDay"></span>
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5" x-text="activeDayDate"></p>
+                </div>
+                <button type="button" @click="showDailyProgressModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <form action="{{ route('pmo.projects.daily_progress.update', $project->id) }}" method="POST" class="space-y-3.5">
+                @csrf
+                <input type="hidden" name="day" :value="activeDay">
+
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-500 font-semibold">Target Rencana (Plan):</span>
+                    <span class="font-extrabold text-blue-700 text-sm" x-text="activeDayPlan + '%'"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Capaian Realisasi Aktual (%)</label>
+                    <div class="relative">
+                        <input type="number" 
+                               name="actual" 
+                               step="0.01" 
+                               min="0" 
+                               max="100" 
+                               x-model="activeDayActual"
+                               required 
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-slate-900 focus:border-[#8F0A0D] outline-none">
+                        <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Masukkan persentase kumulatif penyelesaian proyek hingga hari ini.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Catatan Capaian / Pekerjaan Hari Ini</label>
+                    <textarea name="notes" 
+                              rows="2" 
+                              x-model="activeDayNotes"
+                              placeholder="Contoh: Penarikan kabel FO 200m tuntas, crimping RJ45..." 
+                              class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:border-[#8F0A0D] outline-none"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showDailyProgressModal = false" class="px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer">
+                        Simpan Progres Harian
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================== -->
     <!-- MODAL 2: TETAPKAN / UBAH DIVISI PELAKSANA                  -->
     <!-- ========================================================== -->
     <div x-show="showDivisionModal" 
@@ -1228,9 +1523,15 @@
         const sCurvePlan = {!! json_encode($sCurvePlan ?? [0, 5.5, 14, 28.5, 51, 72.5, 86, 94.5, 100]) !!};
         const sCurveActual = {!! json_encode($sCurveActual ?? [0, 5, 19.82, null, null, null, null, null, null]) !!};
 
+        const sCurveDailyLabels = {!! json_encode($sCurveDailyLabels ?? []) !!};
+        const sCurveDailyPlan = {!! json_encode($sCurveDailyPlan ?? []) !!};
+        const sCurveDailyActual = {!! json_encode($sCurveDailyActual ?? []) !!};
+
         const sCurveCanvas = document.getElementById('sCurveDualLineChart');
+        let sCurveChartInstance = null;
+
         if (sCurveCanvas) {
-            new Chart(sCurveCanvas.getContext('2d'), {
+            sCurveChartInstance = new Chart(sCurveCanvas.getContext('2d'), {
                 type: 'line',
                 data: {
                     labels: sCurveLabels,
@@ -1290,7 +1591,7 @@
                         x: {
                             title: {
                                 display: true,
-                                text: 'Minggu Pelaksanaan',
+                                text: 'Minggu Pelaksanaan (Minggu ke-0 s/d {{ $totalWeeks }})',
                                 color: '#64748B',
                                 font: { size: 11, weight: 'bold' }
                             },
@@ -1321,6 +1622,26 @@
                     }
                 }
             });
+
+            window.renderSCurveChart = function(mode) {
+                if (!sCurveChartInstance) return;
+                if (mode === 'daily') {
+                    sCurveChartInstance.data.labels = sCurveDailyLabels;
+                    sCurveChartInstance.data.datasets[0].data = sCurveDailyPlan;
+                    sCurveChartInstance.data.datasets[1].data = sCurveDailyActual;
+                    sCurveChartInstance.data.datasets[0].pointRadius = sCurveDailyLabels.length > 45 ? 1 : 2.5;
+                    sCurveChartInstance.data.datasets[1].pointRadius = sCurveDailyLabels.length > 45 ? 1.5 : 3;
+                    sCurveChartInstance.options.scales.x.title.text = 'Hari Pelaksanaan (Hari ke-1 s/d {{ $totalDays }})';
+                } else {
+                    sCurveChartInstance.data.labels = sCurveLabels;
+                    sCurveChartInstance.data.datasets[0].data = sCurvePlan;
+                    sCurveChartInstance.data.datasets[1].data = sCurveActual;
+                    sCurveChartInstance.data.datasets[0].pointRadius = 3.5;
+                    sCurveChartInstance.data.datasets[1].pointRadius = 4.5;
+                    sCurveChartInstance.options.scales.x.title.text = 'Minggu Pelaksanaan (Minggu ke-0 s/d {{ $totalWeeks }})';
+                }
+                sCurveChartInstance.update();
+            };
         }
 
         // 2. Task Share by Engineer Donut Chart

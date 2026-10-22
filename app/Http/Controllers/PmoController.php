@@ -349,6 +349,82 @@ class PmoController extends Controller
             $sCurveActual[] = $actualVal;
         }
 
+        // Generate Data Harian Lengkap (Daily S-Curve & Table)
+        $savedDaily = $handoverData['s_curve_daily'] ?? [];
+        $totalDays = min(365, max(1, $startDate->diffInDays($deadlineDate)));
+        $currentDay = min($totalDays, max(1, $startDate->diffInDays(now())));
+
+        $dailyTaskRecommendations = [];
+        foreach ($project->tasks as $t) {
+            if (in_array($t->status, ['Done', 'Completed']) && $t->updated_at) {
+                $completedAt = \Carbon\Carbon::parse($t->updated_at);
+                $dIdx = max(1, min($totalDays, (int) ceil($startDate->diffInDays($completedAt))));
+                $dailyTaskRecommendations[$dIdx] = ($dailyTaskRecommendations[$dIdx] ?? 0) + 1;
+            }
+        }
+
+        $dailyRecords = [];
+        $sCurveDailyLabels = [];
+        $sCurveDailyPlan = [];
+        $sCurveDailyActual = [];
+
+        // Hari 0 (Baseline Start)
+        $sCurveDailyLabels[] = 0;
+        $sCurveDailyPlan[] = 0.0;
+        $sCurveDailyActual[] = 0.0;
+
+        for ($d = 1; $d <= $totalDays; $d++) {
+            $curDate = $startDate->copy()->addDays($d - 1);
+            $dateStr = $curDate->format('d M Y');
+            $dayName = $curDate->locale('id')->isoFormat('dddd');
+
+            // Formula S-Curve Sigmoid Ideal Harian
+            $normD = ($d / $totalDays) * 10 - 5;
+            $sigD = 1 / (1 + exp(-$normD * 0.9));
+            $planDVal = $d === $totalDays ? 100.0 : round($sigD * 100, 2);
+
+            $actualDVal = null;
+            $isRecordedD = false;
+            $notesD = null;
+
+            if (isset($savedDaily[$d])) {
+                $actualDVal = (float) $savedDaily[$d]['actual'];
+                $notesD = $savedDaily[$d]['notes'] ?? null;
+                $isRecordedD = true;
+            } elseif ($d < $currentDay) {
+                $actualDVal = round(($d / $currentDay) * $currentProgressPercent * 0.85, 2);
+            } elseif ($d === $currentDay) {
+                $actualDVal = $currentProgressPercent;
+            } else {
+                $actualDVal = null;
+            }
+
+            $tasksThisDay = $dailyTaskRecommendations[$d] ?? 0;
+
+            $dailyRecords[] = [
+                'day'            => $d,
+                'date'           => $dateStr,
+                'day_name'       => $dayName,
+                'plan_percent'   => $planDVal,
+                'actual_percent' => $actualDVal,
+                'is_current'     => ($d === $currentDay),
+                'is_passed'      => ($d < $currentDay),
+                'is_future'      => ($d > $currentDay),
+                'is_recorded'    => $isRecordedD,
+                'notes'          => $notesD,
+                'tasks_count'    => $tasksThisDay,
+                'variance'       => $actualDVal !== null ? round($actualDVal - $planDVal, 2) : null,
+            ];
+
+            $sCurveDailyLabels[] = $d;
+            $sCurveDailyPlan[] = $planDVal;
+            $sCurveDailyActual[] = $actualDVal;
+        }
+
+        // Varians Kurva S saat ini (Deviasi Realisasi vs Target Rencana)
+        $planValAtCurrentWeek = $weeklyRecords[min(count($weeklyRecords) - 1, max(0, $currentWeek - 1))]['plan_percent'] ?? 0;
+        $currentVariance = round($currentProgressPercent - $planValAtCurrentWeek, 2);
+
         $sCurveUpdateDate = now()->format('d M Y');
         $divisions = \App\Models\Division::all();
 
@@ -366,18 +442,26 @@ class PmoController extends Controller
             'daysRemaining',
             'healthStatus',
             'healthStatusText',
+            'currentVariance',
+            'planValAtCurrentWeek',
             'taskShareList',
             'taskShareChartData',
             'totalWeeks',
             'currentWeek',
+            'totalDays',
+            'currentDay',
             'totalProjectDays',
             'totalProjectWeeks',
             'projectTimelineText',
             'weeklyRecords',
+            'dailyRecords',
             'divisions',
             'sCurveLabels',
             'sCurvePlan',
             'sCurveActual',
+            'sCurveDailyLabels',
+            'sCurveDailyPlan',
+            'sCurveDailyActual',
             'currentProgressPercent',
             'sCurveUpdateDate',
             'assignedEngineers',
@@ -415,6 +499,34 @@ class PmoController extends Controller
         $project->save();
 
         return redirect()->back()->with('success', 'Progres aktual Minggu ke-' . $validated['week'] . ' berhasil diperbarui menjadi ' . $validated['actual'] . '%!');
+    }
+
+    /**
+     * Update Progres Harian Kurva S oleh PM
+     */
+    public function updateDailyProgress(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'day'    => 'required|integer|min:1|max:365',
+            'actual' => 'required|numeric|min:0|max:100',
+            'notes'  => 'nullable|string|max:255',
+        ]);
+
+        $handoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $daily = $handoverData['s_curve_daily'] ?? [];
+        $daily[$validated['day']] = [
+            'actual'     => (float) $validated['actual'],
+            'notes'      => $validated['notes'] ?? null,
+            'updated_at' => now()->toDateTimeString(),
+            'updated_by' => auth()->user()?->name ?? 'PM',
+        ];
+        $handoverData['s_curve_daily'] = $daily;
+        $project->handover_data = $handoverData;
+
+        $project->progress = (int) round($validated['actual']);
+        $project->save();
+
+        return redirect()->back()->with('success', 'Progres aktual Hari ke-' . $validated['day'] . ' berhasil diperbarui menjadi ' . $validated['actual'] . '%!');
     }
 
     /**
