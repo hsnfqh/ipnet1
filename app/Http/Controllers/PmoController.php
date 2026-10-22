@@ -177,10 +177,12 @@ class PmoController extends Controller
                 'id'          => $ae['id'] ?? null,
                 'name'        => $aeName,
                 'position'    => $ae['position'] ?? 'Engineer Lapangan',
+                'role'        => $ae['role'] ?? null,
                 'count'       => 0,
                 'completed'   => 0,
                 'pending'     => 0,
                 'is_assigned' => true,
+                'tasks'       => [],
             ];
         }
 
@@ -191,10 +193,12 @@ class PmoController extends Controller
                     'id'          => $t->engineer_id,
                     'name'        => $engName,
                     'position'    => $t->engineer?->position ?? 'Engineer',
+                    'role'        => null,
                     'count'       => 0,
                     'completed'   => 0,
                     'pending'     => 0,
                     'is_assigned' => false,
+                    'tasks'       => [],
                 ];
             }
             $assignedMap[$engName]['count']++;
@@ -203,6 +207,16 @@ class PmoController extends Controller
             } else {
                 $assignedMap[$engName]['pending']++;
             }
+
+            $assignedMap[$engName]['tasks'][] = [
+                'id'          => $t->id,
+                'title'       => $t->title,
+                'status'      => $t->status ?: 'Assigned',
+                'priority'    => $t->priority ?: 'Medium',
+                'progress'    => (int) ($t->progress ?: 0),
+                'deadline'    => $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('d M') : null,
+                'description' => $t->description,
+            ];
         }
 
         $palette = ['#8F0A0D', '#2563EB', '#059669', '#D97706', '#7C3AED', '#DB2777', '#0284C7', '#475569', '#0F172A'];
@@ -219,12 +233,14 @@ class PmoController extends Controller
                 'id'          => $info['id'],
                 'name'        => $engName,
                 'position'    => $info['position'],
+                'role'        => $info['role'],
                 'count'       => $info['count'],
                 'completed'   => $info['completed'],
                 'pending'     => $info['pending'],
                 'percentage'  => $pct,
                 'color'       => $color,
                 'is_assigned' => $info['is_assigned'],
+                'tasks'       => $info['tasks'],
             ];
             if ($info['count'] > 0) {
                 $taskShareLabels[] = $engName;
@@ -1048,18 +1064,22 @@ class PmoController extends Controller
             'engineer_ids'   => 'required|array|min:1',
             'engineer_ids.*' => 'exists:users,id',
             'notes'          => 'nullable|string|max:1000',
+            'roles'          => 'nullable|array',
         ]);
 
         $engineers = User::whereIn('id', $validated['engineer_ids'])->with('division')->get();
         $assignedList = [];
         $leadName = auth()->user() ? auth()->user()->name : 'Lead Engineer';
+        $rolesInput = $request->input('roles', []);
 
         foreach ($engineers as $eng) {
+            $engRole = !empty($rolesInput[$eng->id]) ? trim($rolesInput[$eng->id]) : null;
             $assignedList[] = [
                 'id'          => $eng->id,
                 'name'        => $eng->name,
                 'email'       => $eng->email,
                 'position'    => $eng->position ?: 'Field Engineer',
+                'role'        => $engRole,
                 'division'    => $eng->division ? $eng->division->name : 'Technical Engineering',
                 'assigned_at' => now()->format('d M Y H:i'),
                 'assigned_by' => $leadName,

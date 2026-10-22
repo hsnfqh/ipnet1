@@ -76,6 +76,7 @@
          showDivisionModal: false,
          showAssignTeamModal: false,
          showQuickTaskModal: false,
+         selectedEngineerId: '',
          openProgressModal(week, actual, plan, notes, range) {
              this.activeWeek = week;
              this.activeActual = actual !== null ? actual : 0;
@@ -667,29 +668,85 @@
                         </div>
 
                         @forelse($taskShareList as $item)
-                            <div class="flex items-center justify-between text-xs py-2 px-2.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/80 transition">
-                                <div class="flex items-center gap-2.5 min-w-0 pr-2">
-                                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ $item['color'] }}"></span>
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="font-bold text-slate-800 truncate">{{ $item['name'] }}</span>
-                                            @if($item['is_assigned'])
-                                                <span class="text-[9.5px] px-1 py-0.2 rounded bg-red-50 text-[#8F0A0D] font-bold shrink-0">Tim Resmi</span>
-                                            @endif
+                            <div class="p-3 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 transition space-y-2.5">
+                                {{-- Top Row: Engineer Info & Task Stats --}}
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <span class="w-3 h-3 rounded-full shrink-0" style="background-color: {{ $item['color'] }}"></span>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-1.5 flex-wrap">
+                                                <span class="font-bold text-slate-900 text-xs">{{ $item['name'] }}</span>
+                                                @if($item['is_assigned'])
+                                                    <span class="text-[9.5px] px-1.5 py-0.2 rounded-full bg-red-50 text-[#8F0A0D] font-extrabold border border-red-200/60 shrink-0">Tim Resmi</span>
+                                                @endif
+                                                @if(!empty($item['role']))
+                                                    <span class="text-[10px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 font-bold border border-blue-200/60 truncate">
+                                                        Fokus: {{ $item['role'] }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <span class="text-[10.5px] text-slate-400 block">{{ $item['position'] ?? 'Field Engineer' }}</span>
                                         </div>
-                                        <span class="text-[10.5px] text-slate-400 block truncate">{{ $item['position'] ?? 'Field Engineer' }}</span>
+                                    </div>
+
+                                    <div class="text-right shrink-0">
+                                        @if($item['count'] > 0)
+                                            <span class="font-extrabold text-slate-900 text-xs">{{ $item['count'] }} Tasks</span>
+                                            <span class="text-[10px] text-slate-500 block font-medium">
+                                                ({{ $item['percentage'] }}% &bull; {{ $item['completed'] }}/{{ $item['count'] }} Selesai)
+                                            </span>
+                                        @else
+                                            <span class="text-[10.5px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
+                                                0 Task
+                                            </span>
+                                        @endif
                                     </div>
                                 </div>
-                                <div class="text-right shrink-0">
-                                    @if($item['count'] > 0)
-                                        <span class="font-bold text-slate-800">{{ $item['count'] }} Tasks</span>
-                                        <span class="text-[10.5px] text-slate-500 block font-medium">
-                                            ({{ $item['percentage'] }}% &bull; {{ $item['completed'] }} Selesai)
+
+                                {{-- Task List Assigned by PM to this Engineer (Rincian Pekerjaan) --}}
+                                <div class="pt-2 border-t border-slate-100 space-y-1.5">
+                                    <div class="flex items-center justify-between text-[10.5px] font-bold text-slate-500">
+                                        <span class="flex items-center gap-1 text-slate-600">
+                                            <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2"/></svg>
+                                            Rincian Tugas dari PM (WBS):
                                         </span>
+                                        <button type="button" 
+                                                @click="selectedEngineerId = '{{ $item['id'] }}'; showQuickTaskModal = true;"
+                                                class="text-[10.5px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-0.5 cursor-pointer">
+                                            <span>+ Beri Tugas</span>
+                                        </button>
+                                    </div>
+
+                                    @if(!empty($item['tasks']) && count($item['tasks']) > 0)
+                                        <div class="space-y-1">
+                                            @foreach($item['tasks'] as $tsk)
+                                                <div class="flex items-center justify-between p-1.5 px-2.5 rounded-lg bg-slate-50 border border-slate-200/60 text-xs hover:bg-slate-100/70 transition">
+                                                    <div class="flex items-center gap-2 min-w-0 pr-2">
+                                                        <span class="w-1.5 h-1.5 rounded-full {{ in_array($tsk['status'], ['Done', 'Completed']) ? 'bg-emerald-500' : 'bg-blue-500' }} shrink-0"></span>
+                                                        <span class="font-bold text-slate-800 text-[11.5px] truncate" title="{{ $tsk['title'] }}">
+                                                            {{ $tsk['title'] }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex items-center gap-1.5 shrink-0">
+                                                        @if($tsk['deadline'])
+                                                            <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">{{ $tsk['deadline'] }}</span>
+                                                        @endif
+                                                        <span class="text-[9.5px] font-bold px-1.5 py-0.5 rounded {{ in_array($tsk['status'], ['Done', 'Completed']) ? 'bg-emerald-100 text-emerald-800' : (in_array($tsk['status'], ['In Progress', 'in_progress']) ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700') }}">
+                                                            {{ $tsk['status'] }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     @else
-                                        <span class="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">
-                                            0 Task (Menunggu PM)
-                                        </span>
+                                        <div class="p-2 rounded-lg bg-amber-50/60 border border-amber-200/50 text-[11px] text-amber-800 flex items-center justify-between">
+                                            <span>Belum ada pembagian tugas teknis dari PM untuk personil ini.</span>
+                                            <button type="button" 
+                                                    @click="selectedEngineerId = '{{ $item['id'] }}'; showQuickTaskModal = true;"
+                                                    class="text-[10.5px] font-bold text-[#8F0A0D] underline cursor-pointer">
+                                                Alokasikan Tugas
+                                            </button>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
@@ -997,27 +1054,43 @@
                     </div>
 
                     @php
-                        $assignedIds = collect($assignedEngineers)->pluck('id')->filter()->toArray();
+                        $assignedMapById = collect($assignedEngineers)->keyBy('id');
+                        $assignedIds = $assignedMapById->keys()->toArray();
                     @endphp
 
-                    <div class="space-y-1.5 max-h-56 overflow-y-auto p-1 border border-slate-200 rounded-xl bg-slate-50/50">
+                    <div class="space-y-2 max-h-64 overflow-y-auto p-1.5 border border-slate-200 rounded-xl bg-slate-50/50">
                         @forelse($availableEngineers as $eng)
-                            <label class="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/80 hover:border-[#8F0A0D] transition cursor-pointer">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <input type="checkbox" 
-                                           name="engineer_ids[]" 
-                                           value="{{ $eng->id }}" 
-                                           {{ in_array($eng->id, $assignedIds) ? 'checked' : '' }}
-                                           class="w-4 h-4 rounded text-[#8F0A0D] focus:ring-[#8F0A0D] border-slate-300">
-                                    <div class="min-w-0">
-                                        <p class="text-xs font-bold text-slate-800 truncate">{{ $eng->name }}</p>
-                                        <p class="text-[10.5px] text-slate-400 truncate">{{ $eng->position ?? 'Field Engineer' }}</p>
+                            @php
+                                $isAssigned = in_array($eng->id, $assignedIds);
+                                $existingRole = $assignedMapById[$eng->id]['role'] ?? '';
+                            @endphp
+                            <div class="p-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-[#8F0A0D]/50 transition space-y-1.5">
+                                <label class="flex items-center justify-between cursor-pointer">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <input type="checkbox" 
+                                               name="engineer_ids[]" 
+                                               value="{{ $eng->id }}" 
+                                               {{ $isAssigned ? 'checked' : '' }}
+                                               class="w-4 h-4 rounded text-[#8F0A0D] focus:ring-[#8F0A0D] border-slate-300">
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-bold text-slate-800 truncate">{{ $eng->name }}</p>
+                                            <p class="text-[10.5px] text-slate-400 truncate">{{ $eng->position ?? 'Field Engineer' }}</p>
+                                        </div>
                                     </div>
+                                    <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                                        {{ $eng->division->name ?? 'Teknis' }}
+                                    </span>
+                                </label>
+                                
+                                {{-- Input Peran / Tanggung Jawab Spesifik dari Lead --}}
+                                <div class="pl-6.5">
+                                    <input type="text" 
+                                           name="roles[{{ $eng->id }}]" 
+                                           value="{{ $existingRole }}"
+                                           placeholder="Tugas/peran personil, misal: Staging APS / Penarikan Kabel..." 
+                                           class="w-full px-2.5 py-1 rounded-lg border border-slate-200 text-[11px] text-slate-800 focus:border-[#8F0A0D] outline-none bg-slate-50/50 focus:bg-white transition">
                                 </div>
-                                <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                                    {{ $eng->division->name ?? 'Teknis' }}
-                                </span>
-                            </label>
+                            </div>
                         @empty
                             <div class="p-3 text-center text-xs text-slate-400">
                                 Tidak ada data engineer aktif pada divisi ini.
@@ -1086,13 +1159,13 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Tugaskan ke Engineer</label>
-                        <select name="engineer_id" required 
+                        <select name="engineer_id" x-model="selectedEngineerId" required 
                                 class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
                             <option value="">-- Pilih Engineer --</option>
                             @if(count($assignedEngineers) > 0)
                                 <optgroup label="⭐ Tim Resmi Proyek (Ditugaskan Lead)">
                                     @foreach($assignedEngineers as $ae)
-                                        <option value="{{ $ae['id'] }}">{{ $ae['name'] }} ({{ $ae['position'] ?? 'Engineer' }})</option>
+                                        <option value="{{ $ae['id'] }}">{{ $ae['name'] }} ({{ $ae['position'] ?? 'Engineer' }}){{ !empty($ae['role']) ? ' • Fokus: ' . $ae['role'] : '' }}</option>
                                     @endforeach
                                 </optgroup>
                             @endif
