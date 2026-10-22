@@ -971,6 +971,19 @@ class ManagedServiceController extends Controller
             $updateData['documents_checklist'] = $request->input('documents_checklist');
         }
 
+        $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $updateData['handover_data'] = array_merge($existingHandoverData, [
+            'checklist'                => $request->input('documents_checklist', []),
+            'checklist_status'         => $request->input('checklist_status', []),
+            'checklist_notes'          => $request->input('checklist_notes', []),
+            'handover_status_selected' => $request->input('handover_status_selected', 'approved'),
+            'handover_risks'           => $request->input('handover_risks', ''),
+            'handover_missing_info'    => $request->input('handover_missing_info', ''),
+            'handover_pic_target'      => $request->input('handover_pic_target', ''),
+            'handover_work_limitations'=> $request->input('handover_work_limitations', ''),
+            'special_notes'            => $validated['special_notes'] ?? $project->special_notes,
+        ]);
+
         $project->update($updateData);
 
         // Kirim notifikasi konfirmasi ke Sales PIC
