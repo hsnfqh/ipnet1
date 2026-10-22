@@ -420,7 +420,10 @@
                                         </template>
                                         <template x-if="project.handover_status === 'Approved' && project.progress < 100">
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                                <span>✓ Handover Approved</span>
+                                                <svg class="w-3 h-3 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                                <span>Handover Approved</span>
                                             </span>
                                         </template>
                                         <template x-if="project.stage === 'Deliver' && project.progress >= 100">

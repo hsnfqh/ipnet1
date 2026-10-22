@@ -396,13 +396,19 @@
                                     @click="switchSCurveMode('weekly')" 
                                     :class="sCurveMode === 'weekly' ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-semibold'"
                                     class="px-3 py-1 text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
-                                <span>📅 Mingguan</span>
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span>Mingguan</span>
                             </button>
                             <button type="button" 
                                     @click="switchSCurveMode('daily')" 
                                     :class="sCurveMode === 'daily' ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-semibold'"
                                     class="px-3 py-1 text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
-                                <span>⏱️ Harian</span>
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span>Harian</span>
                             </button>
                         </div>
 
@@ -510,13 +516,19 @@
                                 @click="switchSCurveMode('weekly')" 
                                 :class="sCurveMode === 'weekly' ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-semibold'"
                                 class="px-3 py-1 text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
-                            <span>📅 Mode Mingguan</span>
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Mode Mingguan</span>
                         </button>
                         <button type="button" 
                                 @click="switchSCurveMode('daily')" 
                                 :class="sCurveMode === 'daily' ? 'bg-[#8F0A0D] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-semibold'"
                                 class="px-3 py-1 text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
-                            <span>⏱️ Mode Harian</span>
+                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Mode Harian</span>
                         </button>
                     </div>
                 </div>
