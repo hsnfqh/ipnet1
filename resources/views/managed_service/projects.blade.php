@@ -586,12 +586,10 @@
                     {{-- Judul Utama Dokumen Persis PDF --}}
                     <div class="text-center my-3 sm:my-4">
                         <h1 class="text-sm sm:text-base font-black text-black uppercase tracking-wide leading-snug">
-                            SERAH TERIMA SALES / COMMERCIAL KE MANAGED SERVICE
-                        </h1>
-                        <h2 class="text-xs sm:text-sm font-black text-black uppercase tracking-wide mt-0.5">
+                            SERAH TERIMA SALES / COMMERCIAL KE MANAGED SERVICE<br>
                             UNTUK KONTRAK MAINTENANCE
-                        </h2>
-                        <p class="text-[11px] sm:text-xs italic text-slate-600 mt-1 font-serif">
+                        </h1>
+                        <p class="text-xs italic text-slate-600 mt-1 font-serif">
                             Commercial-to-Project Handover Checklist
                         </p>
                     </div>
