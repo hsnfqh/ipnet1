@@ -639,7 +639,8 @@
                                 <tr class="bg-white text-black text-[11px] font-black uppercase tracking-wider border-b border-black">
                                     <th class="py-2 px-2.5 w-12 text-center border-r border-black">NO.</th>
                                     <th class="py-2 px-3 border-r border-black">INFORMASI</th>
-                                    <th class="py-2 px-3 w-44 sm:w-52 text-center border-r border-black">STATUS / ISIAN</th>
+                                    <th class="py-2 px-2 text-center w-28 sm:w-32 border-r border-black">FILE / BUKTI</th>
+                                    <th class="py-2 px-2 text-center w-36 sm:w-44 border-r border-black">STATUS / ISIAN</th>
                                     <th class="py-2 px-3 w-1/3 sm:w-2/5">CATATAN</th>
                                 </tr>
                             </thead>
@@ -1111,12 +1112,16 @@
                 if (currentStatusVal === 'Tidak') currentStatusVal = 'Tidak Berlaku';
                 var noteText = savedNotes[item.key] || (doc.number ? ('No: ' + doc.number) : '');
 
-                var fileBadge = hasFile ? `
-                    <a href="${fileUrl}" target="_blank" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-50 text-[#8F0A0D] hover:bg-red-100 text-[10.5px] font-bold border border-red-200 transition">
-                        <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                        <span>Lihat Lampiran</span>
+                var fileSection = hasFile ? `
+                    <a href="${fileUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-50 text-[#8F0A0D] hover:bg-red-100 text-[11px] font-bold border border-red-200 shadow-2xs transition active:scale-95">
+                        <svg class="w-3.5 h-3.5 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <span>Lihat File</span>
                     </a>
-                ` : '';
+                ` : `
+                    <span class="inline-block px-2 py-0.5 rounded text-[10.5px] font-medium text-slate-400 bg-slate-50 border border-slate-200">
+                        Belum Ada File
+                    </span>
+                `;
 
                 var tr = document.createElement('tr');
                 tr.className = 'border-b border-black hover:bg-slate-50/50 transition';
@@ -1129,10 +1134,12 @@
                         <div class="font-black text-slate-900 text-xs leading-snug">
                             ${item.name}
                         </div>
-                        <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
-                            <span>${item.default_note}</span>
-                            ${fileBadge}
+                        <div class="text-[10.5px] text-slate-500 mt-0.5 leading-snug">
+                            ${item.default_note}
                         </div>
+                    </td>
+                    <td class="py-2.5 px-2 text-center align-middle whitespace-nowrap border-r border-black">
+                        ${fileSection}
                     </td>
                     <td class="py-2.5 px-2 text-center align-middle whitespace-nowrap border-r border-black">
                         <select id="accept-status-${item.key}" 
