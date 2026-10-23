@@ -593,97 +593,178 @@
                     </button>
                 </div>
 
-                {{-- Modal Body Container Abu-Abu Lembut Persis Gambar 2 --}}
-                <div class="flex-1 overflow-y-auto px-4 pt-3.5 pb-6 sm:px-6 sm:pt-4 sm:pb-6 bg-[#F1F5F9]/70">
+                {{-- Modal Body Container Abu-Abu Lembut Persis Template Lebar Managed Service --}}
+                <div class="flex-1 overflow-y-auto px-4 pt-4 pb-8 sm:px-8 sm:pt-6 sm:pb-8 bg-[#F1F5F9]/80 space-y-4">
                     
-                    {{-- Lembar Putih Border-2 Persis Gambar 2 --}}
-                    <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-5 text-[#0F172A] font-sans">
+                    {{-- Banner Kategori Laporan Konsisten dengan Form Engineer Activity & Serah Terima MS --}}
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-[#CBD5E1] shadow-xs no-print">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xs font-bold text-[#475569] uppercase tracking-wider">KATEGORI LAPORAN:</span>
+                            <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold tracking-wide uppercase shadow-2xs">
+                                Serah Terima Project Manager (PMO)
+                            </span>
+                        </div>
+
+                        <div class="text-xs text-slate-500 font-medium">
+                            Format resmi PT IP Network Solusindo
+                        </div>
+                    </div>
+
+                    {{-- ============================================================== --}}
+                    {{-- DOKUMEN RESMI SERAH TERIMA PROJECT MANAGER SESUAI PDF           --}}
+                    {{-- ============================================================== --}}
+                    <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-6 sm:p-10 shadow-sm space-y-5 text-[#0F172A] font-sans relative">
                         
-                        {{-- Kop Dokumen Resmi Persis Gambar 2 (Logo, Judul, Red Line, Badge DOKUMEN RESMI) --}}
-                        <div class="border-b-2 border-[#8F0A0D] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <img src="{{ asset('images/ipnet1.png') }}" onerror="this.src='/images/ipnet.png'" alt="Logo IPNET" class="h-10 w-auto object-contain shrink-0">
-                                <div>
-                                    <h2 class="text-[15px] sm:text-[17px] font-black text-[#0F172A] uppercase tracking-wide leading-tight">
-                                        FORMULIR CHECK LIST SERAH TERIMA (INTERNAL HANDOVER)
-                                    </h2>
-                                    <p class="text-[11px] text-[#475569] mt-0.5">
-                                        Checklist Serah Terima Sales / Commercial ke PMO &amp; Managed Service &bull; PT IP Network Solusindo
-                                    </p>
-                                </div>
+                        {{-- Kop Dokumen Persis PDF (Proporsional & Rapi) --}}
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="shrink-0">
+                                <img src="{{ asset('images/ipnet1.png') }}" onerror="this.src='/images/ipnet.png'" alt="Logo IP Network Solusindo" class="h-12 sm:h-14 w-auto object-contain">
                             </div>
                             <div class="text-right shrink-0">
-                                <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold uppercase tracking-wider">
-                                    Dokumen Resmi
-                                </span>
+                                <div class="text-[#8F0A0D] font-black text-lg sm:text-xl uppercase tracking-tight leading-none">
+                                    CHECKLIST SERAH TERIMA
+                                </div>
+                                <div class="text-black font-black text-xs sm:text-sm uppercase tracking-normal mt-1">
+                                    IPNET#1
+                                </div>
+                                <div class="text-[10px] text-slate-500 italic font-medium mt-0.5">
+                                    Hal 1
+                                </div>
                             </div>
                         </div>
 
-                        {{-- Petunjuk Pengisian Singkat --}}
-                        <div class="p-2.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-lg text-[11px] text-[#475569] leading-snug">
-                            <strong class="text-[#0F172A]">Petunjuk:</strong> Isi kolom yang relevan. Jika suatu butir tidak berlaku, pilih "Tidak Berlaku" dan berikan catatan bila diperlukan. Simpan formulir beserta bukti pendukung pada lokasi dokumen yang ditetapkan.
+                        {{-- Judul Utama Dokumen Persis PDF --}}
+                        <div class="text-center my-3 sm:my-4">
+                            <h1 class="text-sm sm:text-base font-black text-black uppercase tracking-wide leading-snug">
+                                SERAH TERIMA SALES / COMMERCIAL KE PROJECT MANAGER
+                            </h1>
+                            <p class="text-xs italic text-slate-600 mt-1 font-serif">
+                                Commercial-to-Project Handover Checklist
+                            </p>
                         </div>
 
-                        {{-- A. REFERENSI KONTRAK --}}
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">A. REFERENSI KONTRAK</h3>
-                                <span class="text-[11px] font-mono font-bold text-[#8F0A0D]" x-text="activeProject?.so_code || ''"></span>
+                        {{-- Grid Metadata Form (Kode Form, Versi, Tanggal Efektif, No. Form / Handover) --}}
+                        <div class="border border-black overflow-hidden text-xs">
+                            <table class="w-full border-collapse border border-black">
+                                <tbody>
+                                    <tr class="border-b border-black">
+                                        <td class="w-1/4 py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Kode Form</td>
+                                        <td class="w-1/4 py-1.5 px-3 border-r border-black font-mono font-bold text-slate-900">IPN-FRM-PM-01</td>
+                                        <td class="w-1/4 py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Versi</td>
+                                        <td class="w-1/4 py-1.5 px-3 font-bold text-slate-900">1.0</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Tanggal Efektif</td>
+                                        <td class="py-1.5 px-3 border-r border-black font-semibold text-slate-900" x-text="activeProject?.start_date || '{{ date('d M Y') }}'"></td>
+                                        <td class="py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">No. Form / Handover</td>
+                                        <td class="py-1.5 px-3 font-mono font-bold text-[#8F0A0D]" x-text="activeProject?.so_code || ('HO-PMO-' + (activeProject?.id ? String(activeProject.id).padStart(4, '0') : '0001'))"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {{-- Deskripsi Penggunaan PMO Persis PDF --}}
+                        <div class="text-[11.5px] text-slate-800 leading-relaxed border border-slate-300 bg-slate-50/70 p-3 rounded-lg italic">
+                            Digunakan untuk pekerjaan yang mencakup implementasi/proyek dan memerlukan pengendalian PMO. Sales mengisi dan melampirkan dokumen; PMO memeriksa kesiapan. Item yang belum tersedia tidak otomatis dianggap diterima.
+                        </div>
+
+                        {{-- 1. TUJUAN DAN CARA PAKAI (Banner Hitam & Border Hitam Persis PDF) --}}
+                        <div class="border border-black overflow-hidden">
+                            <div class="bg-black text-white px-3 py-1.5 font-black text-xs uppercase tracking-wider">
+                                TUJUAN DAN CARA PAKAI
                             </div>
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
-                                <table class="w-full border-collapse border border-[#1E293B]">
+                            <div class="p-0 text-xs">
+                                <table class="w-full border-collapse border border-black">
                                     <tbody>
-                                        <tr class="border-b border-[#1E293B]">
-                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Nama Proyek</td>
-                                            <td class="w-3/10 py-1.5 px-2.5 border-r border-[#1E293B] font-black text-[#8F0A0D]" x-text="activeProject?.name || '—'"></td>
-                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Nomor Kontrak / PO</td>
-                                            <td class="w-3/10 py-1.5 px-2.5 font-mono font-bold" x-text="activeProject?.so_code || activeProject?.po_number || '—'"></td>
+                                        <tr class="border-b border-black">
+                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-black">Nama customer</td>
+                                            <td class="w-3/10 py-1.5 px-2.5 border-r border-black font-bold text-[#0F172A]" x-text="activeProject?.client || '—'"></td>
+                                            <td class="w-1/5 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-black">Nama proyek</td>
+                                            <td class="w-3/10 py-1.5 px-2.5 font-black text-[#8F0A0D]" x-text="activeProject?.name || '—'"></td>
                                         </tr>
-                                        <tr class="border-b border-[#1E293B]">
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Pelanggan</td>
-                                            <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold text-[#0F172A]" x-text="activeProject?.client || '—'"></td>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Nilai Kontrak</td>
-                                            <td class="py-1.5 px-2.5 font-bold text-[#8F0A0D]" x-text="activeProject?.contract_value_formatted || '—'"></td>
+                                        <tr class="border-b border-black">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-black">Kode proyek / Sales Order</td>
+                                            <td class="py-1.5 px-2.5 border-r border-black font-mono font-bold" x-text="activeProject?.so_code || '—'"></td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-black">No. kontrak / PO / SPK</td>
+                                            <td class="py-1.5 px-2.5 font-mono font-bold" x-text="activeProject?.po_number || activeProject?.so_code || '—'"></td>
                                         </tr>
-                                        <tr class="border-b border-[#1E293B]">
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tgl Efektif &amp; Masa Kontrak</td>
-                                            <td class="py-1.5 px-2.5 border-r border-[#1E293B]">
-                                                <span x-text="(activeProject?.start_date || '—') + ' s/d ' + (activeProject?.end_date || '—')"></span>
-                                                <template x-if="activeProject?.days_span">
-                                                    <span class="ml-1 text-[11px] font-bold text-slate-500" x-text="'(' + activeProject.days_span + ' Hari)'"></span>
-                                                </template>
-                                            </td>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Tanggal Berakhir</td>
-                                            <td class="py-1.5 px-2.5 font-semibold" x-text="activeProject?.end_date || '—'"></td>
+                                        <tr class="border-b border-black">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-black">Tanggal handover</td>
+                                            <td class="py-1.5 px-2.5 border-r border-black font-semibold" x-text="activeProject?.handover_submitted_at || '{{ date('d M Y') }}'"></td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-black">Target mulai / milestone</td>
+                                            <td class="py-1.5 px-2.5 font-semibold" x-text="activeProject?.start_date || '—'"></td>
+                                        </tr>
+                                        <tr class="border-b border-black">
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-black">Sales / Account Manager</td>
+                                            <td class="py-1.5 px-2.5 border-r border-black font-bold text-[#0F172A]" x-text="activeProject?.sales_name || '—'"></td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-black">PM penerima</td>
+                                            <td class="py-1.5 px-2.5 font-bold text-blue-900" x-text="activeProject?.pm || 'Tim Delivery PMO'"></td>
                                         </tr>
                                         <tr>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">PIC Commercial</td>
-                                            <td class="py-1.5 px-2.5 border-r border-[#1E293B] font-bold text-[#0F172A]" x-text="activeProject?.sales_name || '—'"></td>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">PIC PMO / Delivery</td>
-                                            <td class="py-1.5 px-2.5 font-bold text-blue-900" x-text="activeProject?.pm || 'Tim Delivery PMO'"></td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-black">Folder dokumen / lokasi penyimpanan</td>
+                                            <td class="py-1.5 px-2.5 border-r border-black">
+                                                <input type="text" 
+                                                       x-model="docStorageLocation" 
+                                                       placeholder="Link Google Drive / Folder Server..." 
+                                                       class="w-full text-xs px-2 py-0.5 border border-slate-300 rounded bg-white outline-none focus:border-[#8F0A0D]">
+                                            </td>
+                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-black">Jenis proyek</td>
+                                            <td class="py-1.5 px-2.5">
+                                                <div class="flex items-center gap-3 flex-wrap text-xs">
+                                                    <label class="inline-flex items-center gap-1 cursor-pointer select-none">
+                                                        <input type="radio" value="Implementasi" x-model="projectTypeCategory" class="w-3.5 h-3.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                                                        <span>Implementasi</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center gap-1 cursor-pointer select-none">
+                                                        <input type="radio" value="Upgrade" x-model="projectTypeCategory" class="w-3.5 h-3.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                                                        <span>Upgrade</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center gap-1 cursor-pointer select-none">
+                                                        <input type="radio" value="Relokasi" x-model="projectTypeCategory" class="w-3.5 h-3.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                                                        <span>Relokasi</span>
+                                                    </label>
+                                                    <label class="inline-flex items-center gap-1 cursor-pointer select-none">
+                                                        <input type="radio" value="Lainnya" x-model="projectTypeCategory" class="w-3.5 h-3.5 text-[#8F0A0D] focus:ring-[#8F0A0D]">
+                                                        <span>Lainnya:</span>
+                                                    </label>
+                                                    <template x-if="projectTypeCategory === 'Lainnya'">
+                                                        <input type="text" 
+                                                               x-model="projectTypeOther" 
+                                                               placeholder="Sebutkan..." 
+                                                               class="w-24 text-[11px] px-1.5 py-0.5 border border-slate-300 rounded outline-none focus:border-[#8F0A0D]">
+                                                    </template>
+                                                </div>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
-                                       {{-- B. CHECKLIST --}}
-                        <div class="space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">B. CHECKLIST SERAH TERIMA</h3>
-                                <span class="text-[10.5px] text-[#475569] font-medium">
-                                    Terverifikasi: <strong class="text-emerald-600 font-extrabold" x-text="Object.values(activeDocs).filter(v => v === true).length + ' / 8 Butir'"></strong>
+                        </div>
+
+                        {{-- Petunjuk Pengisian Baris Checklist Bawah Tabel --}}
+                        <div class="text-[11px] text-slate-700 italic">
+                            Tandai status setiap item. Jika tidak relevan, pilih N/A dan tuliskan alasannya pada kolom catatan.
+                        </div>
+
+                        {{-- 2. CHECKLIST KELENGKAPAN (14 Butir Sesuai PDF IPN-FRM-PM-01) --}}
+                        <div class="border border-black overflow-hidden">
+                            <div class="bg-black text-white px-3 py-1.5 font-black text-xs uppercase tracking-wider flex items-center justify-between">
+                                <span>CHECKLIST KELENGKAPAN</span>
+                                <span class="text-[10.5px] font-medium text-slate-200">
+                                    Total 14 Butir Standar PMO
                                 </span>
                             </div>
 
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
-                                <table class="w-full border-collapse border border-[#1E293B] text-left">
+                            <div class="overflow-x-auto text-xs">
+                                <table class="w-full border-collapse border border-black text-left">
                                     <thead>
-                                        <tr class="bg-[#F8FAFC] text-[#0F172A] text-[11px] font-black uppercase tracking-wider border-b border-[#1E293B]">
-                                            <th class="py-2 px-2.5 w-10 text-center border-r border-[#1E293B]">No.</th>
-                                            <th class="py-2 px-3 w-60 sm:w-64 border-r border-[#1E293B]">Butir / Informasi</th>
-                                            <th class="py-2 px-2 text-center w-28 border-r border-[#1E293B]">File</th>
-                                            <th class="py-2 px-2 text-center w-24 border-r border-[#1E293B]">Status Isian</th>
-                                            <th class="py-2 px-2 text-center w-14 border-r border-[#1E293B]">N/A</th>
-                                            <th class="py-2 px-3">Catatan</th>
+                                        <tr class="bg-[#F8FAFC] text-black text-[11px] font-black uppercase tracking-wider border-b border-black">
+                                            <th class="py-2 px-2 w-10 text-center border-r border-black">NO.</th>
+                                            <th class="py-2 px-3 w-64 sm:w-72 border-r border-black">KATEGORI / ITEM PEMERIKSAAN</th>
+                                            <th class="py-2 px-2 text-center w-28 border-r border-black">FILE / BUKTI</th>
+                                            <th class="py-2 px-2 text-center w-24 border-r border-black">ADA / SIAP</th>
+                                            <th class="py-2 px-2 text-center w-12 border-r border-black">N/A</th>
+                                            <th class="py-2 px-3">CATATAN / REFERENSI DOKUMEN</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white">
@@ -691,68 +772,68 @@
                                             @php
                                                 $docKey = $item['doc_key'] ?? 'project_doc';
                                             @endphp
-                                            <tr class="border-b border-[#1E293B] hover:bg-slate-50/50 transition">
+                                            <tr class="border-b border-black hover:bg-slate-50/50 transition">
                                                 
                                                 {{-- No --}}
-                                                <td class="py-2.5 px-2 text-center font-bold text-slate-800 align-middle bg-[#F8FAFC] border-r border-[#1E293B]">
+                                                <td class="py-2.5 px-2 text-center font-bold text-black align-middle bg-[#F8FAFC] border-r border-black">
                                                     {{ $item['number'] }}
                                                 </td>
 
-                                                {{-- Butir / Informasi --}}
-                                                <td class="py-2.5 px-3 align-middle border-r border-[#1E293B]">
-                                                    <div class="font-bold text-slate-900 text-[11.5px] leading-tight">
-                                                        {{ $item['name'] }}
+                                                {{-- Kategori & Item Pemeriksaan --}}
+                                                <td class="py-2 px-3 align-middle border-r border-black">
+                                                    <div class="text-[9.5px] font-bold text-[#8F0A0D] uppercase tracking-wider">
+                                                        {{ $item['category'] }}
                                                     </div>
-                                                    <div class="text-[10px] text-slate-500 mt-0.5 leading-snug">
-                                                        {{ $item['default_note'] }}
+                                                    <div class="font-bold text-black text-[11px] leading-tight mt-0.5">
+                                                        {{ $item['name'] }}
                                                     </div>
                                                 </td>
 
-                                                {{-- File --}}
-                                                <td class="py-2.5 px-2 text-center align-middle whitespace-nowrap border-r border-[#1E293B]">
+                                                {{-- File / Bukti (Lihat File) --}}
+                                                <td class="py-2 px-2 text-center align-middle whitespace-nowrap border-r border-black">
                                                     <template x-if="activeProject?.resolved_documents?.['{{ $docKey }}']?.file_path">
                                                         <a :href="activeProject.resolved_documents['{{ $docKey }}'].file_url" 
                                                            target="_blank" 
-                                                           class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-[#1E293B] text-[11px] font-bold border border-[#CBD5E1] shadow-2xs transition">
-                                                            <svg class="w-3.5 h-3.5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                           class="inline-flex items-center gap-1 px-2 py-1 rounded bg-white hover:bg-slate-50 text-[#1E293B] text-[10.5px] font-bold border border-slate-300 shadow-2xs transition">
+                                                            <svg class="w-3 h-3 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                             <span>Lihat File</span>
                                                         </a>
                                                     </template>
                                                     <template x-if="!activeProject?.resolved_documents?.['{{ $docKey }}']?.file_path">
-                                                        <span class="inline-block px-2 py-1 rounded-lg bg-slate-50 text-[#94A3B8] text-[10px] font-medium border border-slate-200">
+                                                        <span class="inline-block px-1.5 py-0.5 rounded bg-slate-50 text-[#94A3B8] text-[10px] font-medium border border-slate-200">
                                                             Belum Ada File
                                                         </span>
                                                     </template>
                                                 </td>
 
-                                                {{-- Status Isian --}}
-                                                <td class="py-2.5 px-2 text-center align-middle whitespace-nowrap border-r border-[#1E293B]">
+                                                {{-- Ada / Siap --}}
+                                                <td class="py-2 px-2 text-center align-middle whitespace-nowrap border-r border-black">
                                                     <select x-model="checklistStatus['{{ $item['key'] }}']" 
-                                                            :class="checklistNa['{{ $item['key'] }}'] ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-slate-800 border-slate-300'"
-                                                            class="text-[11px] font-bold px-2 py-1 border rounded-md outline-none focus:border-[#8F0A0D]">
-                                                        <option value="Ada">Ada</option>
+                                                            :class="checklistNa['{{ $item['key'] }}'] ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-white text-black font-bold border-slate-400'"
+                                                            class="text-[11px] px-1.5 py-1 border rounded outline-none focus:border-[#8F0A0D]">
+                                                        <option value="Ada">Ya</option>
                                                         <option value="Tidak">Tidak</option>
                                                     </select>
                                                 </td>
 
                                                 {{-- N/A Checkbox --}}
-                                                <td class="py-2.5 px-2 text-center align-middle border-r border-[#1E293B]">
+                                                <td class="py-2 px-2 text-center align-middle border-r border-black">
                                                     <label class="inline-flex items-center justify-center cursor-pointer select-none" title="Tandai N/A jika butir ini tidak berlaku">
                                                         <input type="checkbox" 
                                                                x-model="checklistNa['{{ $item['key'] }}']"
                                                                @change="toggleNa('{{ $item['key'] }}')"
-                                                               class="w-4 h-4 text-[#8F0A0D] rounded border-slate-300 focus:ring-[#8F0A0D] cursor-pointer">
+                                                               class="w-4 h-4 text-[#8F0A0D] rounded border-slate-400 focus:ring-[#8F0A0D] cursor-pointer">
                                                     </label>
                                                 </td>
 
-                                                {{-- Catatan --}}
-                                                <td class="py-2.5 px-3 align-middle">
+                                                {{-- Catatan / Referensi Dokumen --}}
+                                                <td class="py-2 px-2.5 align-middle">
                                                     <input type="text" 
                                                            x-model="checklistNotes['{{ $item['key'] }}']" 
                                                            :id="'pmo-notes-' + '{{ $item['key'] }}'"
-                                                           :placeholder="checklistNa['{{ $item['key'] }}'] ? 'Keterangan N/A (alasan tidak berlaku)...' : 'Catatan / PIC / bukti pendukung...'" 
-                                                           :class="checklistNa['{{ $item['key'] }}'] ? 'border-amber-300 bg-amber-50/40 text-amber-900 font-medium' : 'border-slate-200 bg-slate-50 text-slate-700'"
-                                                           class="w-full text-[11px] px-2.5 py-1 border rounded-md outline-none focus:bg-white focus:border-slate-400">
+                                                           placeholder="{{ $item['default_note'] }}" 
+                                                           :class="checklistNa['{{ $item['key'] }}'] ? 'border-amber-300 bg-amber-50/40 text-amber-900 font-medium' : 'border-slate-300 bg-white text-slate-800'"
+                                                           class="w-full text-[11px] px-2 py-1 border rounded outline-none focus:bg-white focus:border-black">
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -761,175 +842,244 @@
                             </div>
                         </div>
 
-                        {{-- C. STATUS HANDOVER --}}
-                        <div class="space-y-1.5">
-                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">C. STATUS HANDOVER</h3>
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs">
-                                <div class="flex items-center gap-6 flex-wrap bg-[#F8FAFC] p-2.5 border-b border-[#1E293B]">
-                                    <span class="font-black text-[#0F172A] text-xs uppercase tracking-wide">Status Handover:</span>
-                                    <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'approved' ? 'text-emerald-700' : 'text-slate-600'">
-                                        <input type="radio" value="approved" x-model="handoverStatusSelected" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
-                                        <span>Diterima</span>
-                                    </label>
-                                    <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'conditional' ? 'text-amber-700' : 'text-slate-600'">
-                                        <input type="radio" value="conditional" x-model="handoverStatusSelected" class="w-4 h-4 text-amber-600 focus:ring-amber-500">
-                                        <span>Diterima bersyarat</span>
-                                    </label>
-                                    <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'rejected' ? 'text-rose-700' : 'text-slate-600'">
-                                        <input type="radio" value="rejected" x-model="handoverStatusSelected" class="w-4 h-4 text-rose-600 focus:ring-rose-500">
-                                        <span>Ditolak / dikembalikan</span>
-                                    </label>
-                                </div>
+                        {{-- 3. CATATAN KHUSUS --}}
+                        <div class="border border-black overflow-hidden">
+                            <div class="bg-black text-white px-3 py-1.5 font-black text-xs uppercase tracking-wider">
+                                CATATAN KHUSUS
+                            </div>
+                            <div class="p-2.5 bg-white">
+                                <textarea x-model="specialNotes" 
+                                          rows="2.5" 
+                                          placeholder="[Tuliskan jika ada ekspektasi khusus dari customer, janji fitur khusus, atau kendala yang perlu diwaspadai tim delivery]" 
+                                          class="w-full px-3 py-1.5 bg-[#F8FAFC] border border-slate-300 rounded text-xs text-slate-800 outline-none focus:bg-white focus:border-black"></textarea>
+                            </div>
+                        </div>
 
-                                <table class="w-full border-collapse border-b border-[#1E293B]">
+                        {{-- 4. REVIEW HANDOVER (Persis PDF Halaman 2) --}}
+                        <div class="border border-black overflow-hidden">
+                            <div class="bg-black text-white px-3 py-1.5 font-black text-xs uppercase tracking-wider">
+                                REVIEW HANDOVER
+                            </div>
+                            <div class="text-xs">
+                                <table class="w-full border-collapse border border-black">
                                     <tbody>
-                                        <tr class="border-b border-[#1E293B]">
-                                            <td class="w-1/3 py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Kekurangan / risiko yang masih terbuka</td>
+                                        <tr class="border-b border-black">
+                                            <td class="w-2/5 py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Isu scope/komersial yang perlu klarifikasi</td>
                                             <td class="p-1.5">
-                                                <input type="text" x-model="handoverRisks" placeholder="Catatan risiko atau kekurangan berkas..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                                <input type="text" 
+                                                       x-model="handoverClarificationIssues" 
+                                                       placeholder="Catatan klarifikasi isu scope / komersial..." 
+                                                       class="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs outline-none focus:border-[#8F0A0D]">
                                             </td>
                                         </tr>
-                                        <tr class="border-b border-[#1E293B]">
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Informasi yang belum tersedia</td>
+                                        <tr class="border-b border-black">
+                                            <td class="py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Asumsi yang harus dikonfirmasi</td>
                                             <td class="p-1.5">
-                                                <input type="text" x-model="handoverMissingInfo" placeholder="Informasi / dokumen yang masih ditunggu dari Sales..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                                <input type="text" 
+                                                       x-model="handoverAssumptions" 
+                                                       placeholder="Asumsi teknis, jadwal, atau sumber daya..." 
+                                                       class="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs outline-none focus:border-[#8F0A0D]">
                                             </td>
                                         </tr>
-                                        <tr class="border-b border-[#1E293B]">
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">PIC dan target penyelesaian</td>
+                                        <tr class="border-b border-black">
+                                            <td class="py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Kebutuhan validasi Solution/Technical</td>
                                             <td class="p-1.5">
-                                                <input type="text" x-model="handoverPicTarget" placeholder="Nama PIC Sales & target tanggal revisi (2x24 jam)..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                                <input type="text" 
+                                                       x-model="handoverTechValidation" 
+                                                       placeholder="Kebutuhan validasi teknis arsitektur / BoM..." 
+                                                       class="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs outline-none focus:border-[#8F0A0D]">
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td class="py-1.5 px-2.5 font-bold bg-[#F8FAFC] border-r border-[#1E293B]">Batasan pekerjaan yang boleh berjalan</td>
+                                            <td class="py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Keputusan yang masih memerlukan persetujuan</td>
                                             <td class="p-1.5">
-                                                <input type="text" x-model="handoverWorkLimitations" placeholder="Pekerjaan teknis yang diizinkan berjalan sebelum berkas lengkap..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                                <input type="text" 
+                                                       x-model="handoverPendingDecisions" 
+                                                       placeholder="Persetujuan manajemen / customer yang masih pending..." 
+                                                       class="w-full px-2 py-1 bg-white border border-slate-300 rounded text-xs outline-none focus:border-[#8F0A0D]">
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
 
-                                <div class="p-2.5 bg-[#F8FAFC] text-[10.5px] text-[#475569] leading-snug">
-                                    <strong class="text-[#0F172A] uppercase tracking-wider block mb-0.5">ATURAN STATUS:</strong>
-                                    <p><strong>Diterima:</strong> informasi minimum cukup untuk memulai perencanaan. | <strong>Diterima bersyarat:</strong> kekurangan tercatat, ada PIC dan target penyelesaian, pekerjaan dibatasi eksplisit. | <strong>Ditolak:</strong> scope/kontrak belum jelas; jangan memulai pekerjaan.</p>
+                        {{-- 5. HASIL PEMERIKSAAN DAN KEPUTUSAN --}}
+                        <div class="border border-black overflow-hidden text-xs">
+                            <div class="bg-black text-white px-3 py-1.5 font-black text-xs uppercase tracking-wider">
+                                HASIL PEMERIKSAAN DAN KEPUTUSAN
+                            </div>
+                            
+                            {{-- Radio Pilihan Status Handover Persis PDF --}}
+                            <div class="flex items-center gap-6 flex-wrap bg-[#F8FAFC] p-2.5 border-b border-black">
+                                <span class="font-black text-black text-xs uppercase tracking-wide">Status handover:</span>
+                                <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'approved' ? 'text-emerald-700' : 'text-slate-600'">
+                                    <input type="radio" value="approved" x-model="handoverStatusSelected" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
+                                    <span>Diterima</span>
+                                </label>
+                                <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'conditional' ? 'text-amber-700' : 'text-slate-600'">
+                                    <input type="radio" value="conditional" x-model="handoverStatusSelected" class="w-4 h-4 text-amber-600 focus:ring-amber-500">
+                                    <span>Diterima bersyarat</span>
+                                </label>
+                                <label class="inline-flex items-center gap-1.5 font-bold text-xs cursor-pointer select-none" :class="handoverStatusSelected === 'rejected' ? 'text-rose-700' : 'text-slate-600'">
+                                    <input type="radio" value="rejected" x-model="handoverStatusSelected" class="w-4 h-4 text-rose-600 focus:ring-rose-500">
+                                    <span>Ditolak / dikembalikan</span>
+                                </label>
+                            </div>
+
+                            <table class="w-full border-collapse border-b border-black">
+                                <tbody>
+                                    <tr class="border-b border-black">
+                                        <td class="w-2/5 py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Kekurangan / risiko yang masih terbuka</td>
+                                        <td class="p-1.5">
+                                            <input type="text" x-model="handoverRisks" placeholder="Catatan risiko atau kekurangan berkas..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-black">
+                                        <td class="py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">PIC tindak lanjut</td>
+                                        <td class="p-1.5">
+                                            <input type="text" x-model="handoverPicTarget" placeholder="Nama PIC Sales / Delivery tindak lanjut..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-black">
+                                        <td class="py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Target penyelesaian</td>
+                                        <td class="p-1.5">
+                                            <input type="text" x-model="handoverMissingInfo" placeholder="Batas waktu penyelesaian kelengkapan (contoh: 2x24 Jam)..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-black">
+                                        <td class="py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Batasan pekerjaan yang boleh berjalan</td>
+                                        <td class="p-1.5">
+                                            <input type="text" x-model="handoverWorkLimitations" placeholder="Pekerjaan yang diizinkan berjalan sebelum berkas lengkap..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1.5 px-3 font-bold bg-[#F8FAFC] border-r border-black">Nomor tiket / WO / dokumen terkait</td>
+                                        <td class="p-1.5">
+                                            <input type="text" x-model="handoverRelatedDocs" placeholder="Nomor tiket / WO / referensi berkas terkait..." class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            {{-- 6. ATURAN STATUS PERSIS PDF --}}
+                            <div class="p-3 bg-[#F8FAFC] text-[11px] text-slate-800 leading-relaxed border-t border-black">
+                                <strong class="text-black uppercase tracking-wider block mb-0.5">ATURAN STATUS:</strong>
+                                <p>
+                                    <strong>Diterima:</strong> informasi minimum cukup untuk memulai perencanaan. | 
+                                    <strong>Diterima bersyarat:</strong> kekurangan tercatat, ada PIC dan target penyelesaian, dan pekerjaan yang boleh berjalan dibatasi secara eksplisit. | 
+                                    <strong>Ditolak/dikembalikan:</strong> scope, kontrak, atau persyaratan penting belum jelas; jangan memulai pekerjaan terdampak.
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- 7. PENETAPAN INTERNAL TIM TEKNIS & PM PELAKSANA (Wajib PMO) --}}
+                        <div class="p-3.5 bg-blue-50/60 border border-blue-200 rounded-xl space-y-2 text-xs">
+                            <div class="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span>Penetapan Tim Teknis Pelaksana &amp; Project Manager (Delivery)</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tim Teknis / Divisi Pelaksana <span class="text-red-500">*</span></label>
+                                    <select x-model="handoverAssign.division_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                        <option value="">-- Pilih Tim Teknis --</option>
+                                        @foreach($divisions ?? [] as $div)
+                                            <option value="{{ $div->id }}">{{ $div->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tugaskan Project Manager (PM) <span class="text-red-500">*</span></label>
+                                    <select x-model="handoverAssign.pm_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
+                                        <option value="">-- Pilih Project Manager --</option>
+                                        @foreach($pmList ?? [] as $pm)
+                                            <option value="{{ $pm->id }}">{{ $pm->name }} ({{ $pm->email }})</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- D. CATATAN KHUSUS --}}
-                        <div class="space-y-1.5">
-                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">D. CATATAN KHUSUS</h3>
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs p-2.5 bg-white">
-                                <textarea x-model="specialNotes" rows="2" placeholder="[Tuliskan jika ada ekspektasi khusus dari customer, janji fitur khusus, atau kendala yang perlu diwaspadai tim delivery / managed service]" class="w-full px-3 py-1.5 bg-[#F8FAFC] border border-slate-300 rounded-lg text-xs text-slate-800 outline-none focus:bg-white focus:border-[#8F0A0D]"></textarea>
-                            </div>
-                        </div>
-
-                        {{-- E. KONFIRMASI DAN PERSETUJUAN --}}
-                        <div class="space-y-1.5">
-                            <h3 class="text-xs font-black uppercase text-[#0F172A] tracking-wider">E. KONFIRMASI DAN PERSETUJUAN</h3>
-                            <div class="border border-[#1E293B] rounded-sm overflow-hidden text-xs p-3.5 bg-white space-y-3">
+                        {{-- 8. TANDA TANGAN / PENGESAHAN (4 Kolom Sesuai PDF Halaman 2) --}}
+                        <div class="border border-black overflow-hidden text-xs">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-black">
                                 
-                                {{-- Penugasan Tim Teknis & PM Pelaksana --}}
-                                <div class="p-3 bg-blue-50/50 border border-blue-200 rounded-xl space-y-2">
-                                    <div class="text-xs font-bold text-blue-900 flex items-center gap-1.5">
-                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                        <span>Penetapan Tim Teknis Pelaksana &amp; Project Manager (Delivery)</span>
+                                {{-- 1. Sales / Commercial --}}
+                                <div class="p-2.5 bg-white flex flex-col justify-between h-40">
+                                    <div class="text-center">
+                                        <div class="font-bold text-[11px] text-black">Diserahkan oleh</div>
+                                        <div class="text-[10px] text-slate-600 font-medium">Sales / Commercial</div>
                                     </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tim Teknis / Divisi <span class="text-red-500">*</span></label>
-                                            <select x-model="handoverAssign.division_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                                <option value="">-- Pilih Tim Teknis --</option>
-                                                @foreach($divisions ?? [] as $div)
-                                                    <option value="{{ $div->id }}">{{ $div->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tugaskan Project Manager (PM) <span class="text-red-500">*</span></label>
-                                            <select x-model="handoverAssign.pm_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
-                                                <option value="">-- Pilih Project Manager --</option>
-                                                @foreach($pmList ?? [] as $pm)
-                                                    <option value="{{ $pm->id }}">{{ $pm->name }} ({{ $pm->email }})</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                    <div class="my-auto py-1 text-center">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            <span>Verified Digital</span>
+                                        </span>
+                                    </div>
+                                    <div class="text-[10px] border-t border-slate-300 pt-1 text-slate-700 space-y-0.5">
+                                        <p class="truncate">Nama: <strong class="text-black" x-text="activeProject?.sales_name || '—'"></strong></p>
+                                        <p>Tanggal: <span x-text="activeProject?.handover_submitted_at ? activeProject.handover_submitted_at.substring(0, 10) : '{{ date('d/m/Y') }}'"></span></p>
+                                        <p>Tanda tangan: <span class="italic text-slate-500">[Digital Approved]</span></p>
                                     </div>
                                 </div>
 
-                                {{-- 4 Kolom Tanda Tangan Sesuai PDF Halaman 2 --}}
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
-                                    {{-- 1. Sales --}}
-                                    <div class="border border-[#CBD5E1] rounded-lg p-2.5 bg-[#F8FAFC] flex flex-col justify-between h-36">
-                                        <div>
-                                            <div class="font-bold text-[10.5px] text-[#0F172A] uppercase">Diserahkan oleh</div>
-                                            <div class="text-[10px] text-[#64748B]">Sales / Commercial</div>
-                                        </div>
-                                        <div class="my-auto py-1">
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                                <span>Verified Digital</span>
-                                            </span>
-                                        </div>
-                                        <div class="text-left text-[10px] border-t border-[#CBD5E1] pt-1 text-slate-600">
-                                            <p class="truncate"><strong class="text-slate-800">Nama:</strong> <span x-text="activeProject?.sales_name || '—'"></span></p>
-                                            <p><strong class="text-slate-800">Tgl:</strong> <span x-text="activeProject?.handover_submitted_at ? activeProject.handover_submitted_at.substring(0, 10) : '—'"></span></p>
-                                        </div>
+                                {{-- 2. PMO / Project Manager --}}
+                                <div class="p-2.5 bg-white flex flex-col justify-between h-40">
+                                    <div class="text-center">
+                                        <div class="font-bold text-[11px] text-black">Diterima oleh</div>
+                                        <div class="text-[10px] text-slate-600 font-medium">PMO / Project Manager</div>
                                     </div>
-
-                                    {{-- 2. Delivery / PM --}}
-                                    <div class="border border-[#CBD5E1] rounded-lg p-2.5 bg-[#F8FAFC] flex flex-col justify-between h-36">
-                                        <div>
-                                            <div class="font-bold text-[10.5px] text-[#0F172A] uppercase">Diperiksa / diterima oleh</div>
-                                            <div class="text-[10px] text-[#64748B]">Managed Service / PM</div>
-                                        </div>
-                                        <div class="my-auto py-1">
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                                <span>PMO Verified</span>
-                                            </span>
-                                        </div>
-                                        <div class="text-left text-[10px] border-t border-[#CBD5E1] pt-1 text-slate-600">
-                                            <p class="truncate"><strong class="text-slate-800">Nama:</strong> <span x-text="activeProject?.pm || 'PM Delivery'"></span></p>
-                                            <p><strong class="text-slate-800">Tgl:</strong> {{ date('d/m/Y') }}</p>
-                                        </div>
+                                    <div class="my-auto py-1 text-center">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                            <span>PMO Verified</span>
+                                        </span>
                                     </div>
-
-                                    {{-- 3. TL / Solution --}}
-                                    <div class="border border-[#CBD5E1] rounded-lg p-2.5 bg-[#F8FAFC] flex flex-col justify-between h-36">
-                                        <div>
-                                            <div class="font-bold text-[10.5px] text-[#0F172A] uppercase">Validasi teknis oleh</div>
-                                            <div class="text-[10px] text-[#64748B]">TL / Solution (bila perlu)</div>
-                                        </div>
-                                        <div class="my-auto py-1">
-                                            <span class="text-[10px] text-slate-400 italic">Paraf / Approval</span>
-                                        </div>
-                                        <div class="text-left text-[10px] border-t border-[#CBD5E1] pt-1 text-slate-600">
-                                            <p class="truncate"><strong class="text-slate-800">Nama:</strong> Lead Engineer</p>
-                                            <p><strong class="text-slate-800">Tgl:</strong> {{ date('d/m/Y') }}</p>
-                                        </div>
-                                    </div>
-
-                                    {{-- 4. Pihak Berwenang --}}
-                                    <div class="border border-[#CBD5E1] rounded-lg p-2.5 bg-[#F8FAFC] flex flex-col justify-between h-36">
-                                        <div>
-                                            <div class="font-bold text-[10.5px] text-[#0F172A] uppercase">Persetujuan / eskalasi</div>
-                                            <div class="text-[10px] text-[#64748B]">Pihak berwenang (bila perlu)</div>
-                                        </div>
-                                        <div class="my-auto py-1">
-                                            <span class="text-[10px] text-slate-400 italic">Otorisasi GM / PMO</span>
-                                        </div>
-                                        <div class="text-left text-[10px] border-t border-[#CBD5E1] pt-1 text-slate-600">
-                                            <p class="truncate"><strong class="text-slate-800">Nama:</strong> PMO Head</p>
-                                            <p><strong class="text-slate-800">Tgl:</strong> {{ date('d/m/Y') }}</p>
-                                        </div>
+                                    <div class="text-[10px] border-t border-slate-300 pt-1 text-slate-700 space-y-0.5">
+                                        <p class="truncate">Nama: <strong class="text-black" x-text="activeProject?.pm || 'Tim Delivery PMO'"></strong></p>
+                                        <p>Tanggal: {{ date('d/m/Y') }}</p>
+                                        <p>Tanda tangan: <span class="italic text-slate-500">[PMO Approved]</span></p>
                                     </div>
                                 </div>
 
-                                <div class="p-2.5 bg-[#F8FAFC] border border-slate-200 rounded-lg text-[10px] text-slate-600 leading-relaxed italic">
-                                    <strong>Catatan pengendalian:</strong> handover tidak mengubah kewenangan formal atau tanggung jawab atas output yang telah dibuat. Perubahan scope/komitmen pelanggan harus melalui mekanisme persetujuan yang berlaku.
+                                {{-- 3. TL / Solution --}}
+                                <div class="p-2.5 bg-white flex flex-col justify-between h-40">
+                                    <div class="text-center">
+                                        <div class="font-bold text-[11px] text-black">Validasi teknis oleh</div>
+                                        <div class="text-[10px] text-slate-600 font-medium">TL / Solution (bila perlu)</div>
+                                    </div>
+                                    <div class="my-auto py-1 text-center">
+                                        <span class="text-[10px] text-slate-400 italic">Paraf / Approval</span>
+                                    </div>
+                                    <div class="text-[10px] border-t border-slate-300 pt-1 text-slate-700 space-y-0.5">
+                                        <p class="truncate">Nama: <span class="text-black font-semibold">Lead Engineer</span></p>
+                                        <p>Tanggal: {{ date('d/m/Y') }}</p>
+                                        <p>Tanda tangan: <span class="italic text-slate-400">_______________</span></p>
+                                    </div>
                                 </div>
+
+                                {{-- 4. Persetujuan / Eskalasi Pihak Berwenang --}}
+                                <div class="p-2.5 bg-white flex flex-col justify-between h-40">
+                                    <div class="text-center">
+                                        <div class="font-bold text-[11px] text-black">Persetujuan / eskalasi pihak berwenang</div>
+                                        <div class="text-[10px] text-slate-600 font-medium">(bila perlu)</div>
+                                    </div>
+                                    <div class="my-auto py-1 text-center">
+                                        <span class="text-[10px] text-slate-400 italic">Otorisasi GM / PMO</span>
+                                    </div>
+                                    <div class="text-[10px] border-t border-slate-300 pt-1 text-slate-700 space-y-0.5">
+                                        <p class="truncate">Nama: <span class="text-black font-semibold">PMO Head</span></p>
+                                        <p>Tanggal: {{ date('d/m/Y') }}</p>
+                                        <p>Tanda tangan: <span class="italic text-slate-400">_______________</span></p>
+                                    </div>
+                                </div>
+
                             </div>
+                        </div>
+
+                        {{-- Catatan Pengendalian Persis PDF --}}
+                        <div class="p-2.5 bg-[#F8FAFC] border border-slate-300 rounded text-[10px] text-slate-700 leading-relaxed italic">
+                            <strong>Catatan pengendalian:</strong> handover tidak mengubah kewenangan formal atau tanggung jawab atas output yang telah dibuat. Perubahan scope/komitmen pelanggan harus melalui mekanisme persetujuan yang berlaku.
                         </div>
 
                     </div>
@@ -1108,6 +1258,14 @@
             handoverPicTarget: '',
             handoverWorkLimitations: '',
             specialNotes: '',
+            projectTypeCategory: 'Implementasi',
+            projectTypeOther: '',
+            docStorageLocation: '',
+            handoverClarificationIssues: '',
+            handoverAssumptions: '',
+            handoverTechValidation: '',
+            handoverPendingDecisions: '',
+            handoverRelatedDocs: '',
             checklistStatus: {},
             checklistNa: {},
             checklistNotes: {},
@@ -1239,6 +1397,15 @@
                 }
 
                 const hData = (typeof project.handover_data === 'object' && project.handover_data) ? project.handover_data : {};
+                this.projectTypeCategory = hData.project_type_category || 'Implementasi';
+                this.projectTypeOther = hData.project_type_other || '';
+                this.docStorageLocation = hData.doc_storage_location || '';
+                this.handoverClarificationIssues = hData.handover_clarification_issues || '';
+                this.handoverAssumptions = hData.handover_assumptions || '';
+                this.handoverTechValidation = hData.handover_tech_validation || '';
+                this.handoverPendingDecisions = hData.handover_pending_decisions || '';
+                this.handoverRelatedDocs = hData.handover_related_docs || (project.so_code || project.po_number || '');
+
                 this.handoverRisks = hData.handover_risks || '';
                 this.handoverMissingInfo = hData.handover_missing_info || project.handover_conditional_notes || '';
                 this.handoverPicTarget = hData.handover_pic_target || '';
@@ -1246,7 +1413,7 @@
                 this.specialNotes = project.special_notes || hData.special_notes || '';
                 this.conditionalNotes = project.handover_conditional_notes || '';
 
-                // Inisialisasi 8 butir checklist
+                // Inisialisasi 14 butir checklist dari handoverFormStructure
                 const savedDocs = project.documents_checklist || hData.checklist || {};
                 const savedStatus = hData.checklist_status || {};
                 const savedNas = hData.checklist_na || {};
@@ -1257,20 +1424,9 @@
                 this.checklistNa = {};
                 this.checklistNotes = {};
 
-                const items = [
-                    { key: 'ruang_lingkup', doc_key: 'tor' },
-                    { key: 'daftar_aset', doc_key: 'boq' },
-                    { key: 'jadwal_pm', doc_key: 'pm_schedule' },
-                    { key: 'mekanisme_cm', doc_key: 'cm_ticketing' },
-                    { key: 'sla_layanan', doc_key: 'contract' },
-                    { key: 'dokumen_teknis', doc_key: 'project_doc' },
-                    { key: 'kondisi_awal', doc_key: 'baseline_doc' },
-                    { key: 'pelaporan_berkala', doc_key: 'ba' },
-                ];
-
-                items.forEach(item => {
+                (this.handoverFormStructure || []).forEach(item => {
                     const k = item.key;
-                    const dk = item.doc_key;
+                    const dk = item.doc_key || 'project_doc';
                     const docObj = (project.resolved_documents && project.resolved_documents[dk]) ? project.resolved_documents[dk] : null;
                     const hasFile = !!(docObj && docObj.file_path);
                     const isVerified = !!(docObj && docObj.verified);
@@ -1286,7 +1442,7 @@
                     const isNa = !!savedNas[k];
                     this.checklistNa[k] = isNa;
                     const rawStatus = savedStatus[k];
-                    this.checklistStatus[k] = isNa ? 'Tidak' : ((rawStatus === 'Tidak' || rawStatus === 'Tidak Berlaku') ? 'Tidak' : 'Ada');
+                    this.checklistStatus[k] = isNa ? 'Tidak' : ((rawStatus === 'Tidak' || rawStatus === 'Tidak Berlaku') ? 'Tidak' : (rawStatus === 'Ada' || rawStatus === 'Ya' || this.activeDocs[k] ? 'Ada' : 'Ada'));
                     this.checklistNotes[k] = savedNotes[k] || (docObj?.number ? ('No: ' + docObj.number) : '');
                 });
 
@@ -1331,6 +1487,14 @@
                             checklist_na: this.checklistNa,
                             checklist_notes: this.checklistNotes,
                             handover_status_selected: this.handoverStatusSelected,
+                            project_type_category: this.projectTypeCategory,
+                            project_type_other: this.projectTypeOther,
+                            doc_storage_location: this.docStorageLocation,
+                            handover_clarification_issues: this.handoverClarificationIssues,
+                            handover_assumptions: this.handoverAssumptions,
+                            handover_tech_validation: this.handoverTechValidation,
+                            handover_pending_decisions: this.handoverPendingDecisions,
+                            handover_related_docs: this.handoverRelatedDocs,
                             handover_risks: this.handoverRisks,
                             handover_missing_info: this.handoverMissingInfo,
                             handover_pic_target: this.handoverPicTarget,
@@ -1356,7 +1520,7 @@
             async handleConditionalClick() {
                 const notes = this.handoverMissingInfo || this.conditionalNotes || this.handoverRisks;
                 if (!notes || !notes.trim()) {
-                    alert('Harap isi catatan kekurangan berkas atau informasi yang belum tersedia pada Section C.');
+                    alert('Harap isi catatan kekurangan berkas atau informasi yang belum tersedia pada Section Hasil Pemeriksaan.');
                     return;
                 }
 
@@ -1375,6 +1539,14 @@
                             checklist_status: this.checklistStatus,
                             checklist_na: this.checklistNa,
                             checklist_notes: this.checklistNotes,
+                            project_type_category: this.projectTypeCategory,
+                            project_type_other: this.projectTypeOther,
+                            doc_storage_location: this.docStorageLocation,
+                            handover_clarification_issues: this.handoverClarificationIssues,
+                            handover_assumptions: this.handoverAssumptions,
+                            handover_tech_validation: this.handoverTechValidation,
+                            handover_pending_decisions: this.handoverPendingDecisions,
+                            handover_related_docs: this.handoverRelatedDocs,
                             handover_risks: this.handoverRisks,
                             handover_missing_info: this.handoverMissingInfo,
                             handover_pic_target: this.handoverPicTarget,
@@ -1418,6 +1590,14 @@
                             checklist_status: this.checklistStatus,
                             checklist_na: this.checklistNa,
                             checklist_notes: this.checklistNotes,
+                            project_type_category: this.projectTypeCategory,
+                            project_type_other: this.projectTypeOther,
+                            doc_storage_location: this.docStorageLocation,
+                            handover_clarification_issues: this.handoverClarificationIssues,
+                            handover_assumptions: this.handoverAssumptions,
+                            handover_tech_validation: this.handoverTechValidation,
+                            handover_pending_decisions: this.handoverPendingDecisions,
+                            handover_related_docs: this.handoverRelatedDocs,
                             handover_risks: this.handoverRisks,
                             handover_missing_info: this.handoverMissingInfo,
                             handover_pic_target: this.handoverPicTarget,
