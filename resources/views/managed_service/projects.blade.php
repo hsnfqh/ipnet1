@@ -364,14 +364,32 @@
                                         $startDateCarbon = $ho->service_start_date 
                                             ? \Carbon\Carbon::parse($ho->service_start_date) 
                                             : ($ho->start_date ? \Carbon\Carbon::parse($ho->start_date) : now());
-                                        $endDateCarbon = $ho->service_end_date 
+
+                                        // Validasi kontrak maintenance: jika service_end_date kosong atau <= start_date, hitung 1 tahun penuh (12 bulan)
+                                        $hasValidEndDate = $ho->service_end_date && \Carbon\Carbon::parse($ho->service_end_date)->gt($startDateCarbon);
+                                        $hasValidDeadline = $ho->deadline && \Carbon\Carbon::parse($ho->deadline)->gt($startDateCarbon);
+
+                                        $endDateCarbon = $hasValidEndDate 
                                             ? \Carbon\Carbon::parse($ho->service_end_date) 
-                                            : ($ho->deadline ? \Carbon\Carbon::parse($ho->deadline) : (clone $startDateCarbon)->addYear()->subDay());
-                                        
+                                            : ($hasValidDeadline ? \Carbon\Carbon::parse($ho->deadline) : (clone $startDateCarbon)->addYear()->subDay());
+
+                                        $monthsId = [
+                                            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                                            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                                            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+                                        ];
+
                                         $startDateVal = $startDateCarbon->format('Y-m-d');
                                         $endDateVal = $endDateCarbon->format('Y-m-d');
-                                        $startDateDisplay = $startDateCarbon->translatedFormat('d F Y');
-                                        $endDateDisplay = $endDateCarbon->translatedFormat('d F Y');
+                                        $startDateDisplay = $startDateCarbon->format('d') . ' ' . ($monthsId[(int)$startDateCarbon->format('n')] ?? $startDateCarbon->format('F')) . ' ' . $startDateCarbon->format('Y');
+                                        $endDateDisplay = $endDateCarbon->format('d') . ' ' . ($monthsId[(int)$endDateCarbon->format('n')] ?? $endDateCarbon->format('F')) . ' ' . $endDateCarbon->format('Y');
+
+                                        // Resolusi nomor kontrak / PO yang valid dan resmi
+                                        $resolvedContractNum = $ho->po_spk_number 
+                                            ?: ($ho->po_number 
+                                            ?: ($ho->so_code 
+                                            ?: ($ho->quotation_number 
+                                            ?: 'KTR/IPNET/' . ($ho->created_at ? $ho->created_at->format('Y') : date('Y')) . '/' . str_pad($ho->id, 4, '0', STR_PAD_LEFT))));
                                     @endphp
                                     <tr class="hover:bg-[#F8FAFC]/80 transition-colors {{ !$isAccepted ? 'bg-[#FFFDF7]' : '' }}">
                                         {{-- 1. Proyek & Klien --}}
@@ -467,7 +485,7 @@
                                                             data-start-display="{{ $startDateDisplay }}"
                                                             data-end-display="{{ $endDateDisplay }}"
                                                             data-notes="{{ $ho->special_notes ?: '' }}"
-                                                            data-so="{{ $ho->so_code ?: ($ho->po_spk_number ?: ('KTR/' . $ho->id)) }}"
+                                                            data-so="{{ $resolvedContractNum }}"
                                                             data-sales="{{ $ho->sales_name ?: ($ho->creator?->name ?: '-') }}"
                                                             data-pm="{{ is_object($ho->pm) ? ($ho->pm->name ?? 'Tim Managed Service') : ($ho->pm ?: 'Tim Managed Service') }}"
                                                             data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
@@ -494,7 +512,7 @@
                                                             data-start-display="{{ $startDateDisplay }}"
                                                             data-end-display="{{ $endDateDisplay }}"
                                                             data-notes="{{ $ho->special_notes ?: '' }}"
-                                                            data-so="{{ $ho->so_code ?: ($ho->po_spk_number ?: ('KTR/' . $ho->id)) }}"
+                                                            data-so="{{ $resolvedContractNum }}"
                                                             data-sales="{{ $ho->sales_name ?: ($ho->creator?->name ?: '-') }}"
                                                             data-pm="{{ is_object($ho->pm) ? ($ho->pm->name ?? 'Tim Managed Service') : ($ho->pm ?: 'Tim Managed Service') }}"
                                                             data-docs="{{ json_encode($ho->resolved_documents ?? []) }}"
@@ -976,7 +994,7 @@
         var soEl = document.getElementById('accept-modal-so');
         if (soEl) soEl.textContent = p.so || '—';
         var contractNumEl = document.getElementById('accept-modal-contract-num');
-        if (contractNumEl) contractNumEl.textContent = p.so || ('KTR/' + p.id);
+        if (contractNumEl) contractNumEl.textContent = p.so || ('KTR/IPNET/2026/' + String(p.id).padStart(4, '0'));
         var valEl = document.getElementById('accept-modal-contract-value');
         if (valEl) valEl.textContent = 'Nilai: ' + (p.contract_value_formatted || '—');
         var salesEl = document.getElementById('accept-modal-sales');
@@ -984,16 +1002,32 @@
         var pmEl = document.getElementById('accept-modal-pm');
         if (pmEl) pmEl.textContent = p.pm || 'Tim Managed Service';
         
-        // Tanggal Efektif & Masa Kontrak Rapi (Tanpa strip kosong, format resmi Indonesia)
+        // Tanggal Efektif & Masa Kontrak Rapi & Valid (Bahasa Indonesia & durasi 1 tahun penuh)
         var startFormatted = p.start_display || (p.service_start_date ? p.service_start_date.split('T')[0] : '');
         var endFormatted = p.end_display || (p.service_end_date ? p.service_end_date.split('T')[0] : '');
-        
+
+        // Proteksi jika start dan end sama atau tidak valid: otomatis hitung 1 tahun kontrak
+        if (!endFormatted || endFormatted === startFormatted || (p.service_start_date && p.service_end_date && p.service_start_date >= p.service_end_date)) {
+            if (p.service_start_date) {
+                var sDate = new Date(p.service_start_date);
+                if (!isNaN(sDate.getTime())) {
+                    var eDate = new Date(sDate);
+                    eDate.setFullYear(eDate.getFullYear() + 1);
+                    eDate.setDate(eDate.getDate() - 1);
+                    var idMonths = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                    endFormatted = eDate.getDate() + ' ' + idMonths[eDate.getMonth()] + ' ' + eDate.getFullYear();
+                    p.service_end_date = eDate.toISOString().split('T')[0];
+                    p.end_display = endFormatted;
+                }
+            }
+        }
+
         var datesEl = document.getElementById('accept-modal-dates');
         if (datesEl) {
-            if (startFormatted && endFormatted) {
+            if (startFormatted && endFormatted && startFormatted !== endFormatted) {
                 datesEl.textContent = startFormatted + ' s/d ' + endFormatted + ' (1 Tahun Kontrak)';
             } else if (startFormatted) {
-                datesEl.textContent = startFormatted + ' (Masa Kontrak 1 Tahun)';
+                datesEl.textContent = startFormatted + ' (1 Tahun Kontrak)';
             } else {
                 datesEl.textContent = '1 Tahun Masa Kontrak Maintenance';
             }
