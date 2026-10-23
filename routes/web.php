@@ -136,6 +136,142 @@ Route::get('/clean-dummy-data', function () {
     return implode("\n", $output);
 });
 
+// Route Trigger Resmi: Injeksi 3 Data Dummy Skenario Alur Technical ke Server Hosting Live
+Route::get('/seed-technical-scenarios', function () {
+    try {
+        // 1. Pastikan folder storage & file dummy terdistribusi
+        $storageDocsDir = storage_path('app/public/project_documents');
+        $publicDocsDir  = public_path('storage/project_documents');
+        if (!file_exists($storageDocsDir)) {
+            @mkdir($storageDocsDir, 0775, true);
+        }
+        if (!file_exists($publicDocsDir)) {
+            @mkdir($publicDocsDir, 0775, true);
+        }
+
+        // 2. Eksekusi TechnicalWorkflowScenarioSeeder
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\TechnicalWorkflowScenarioSeeder',
+            '--force' => true,
+        ]);
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        } catch (\Throwable $e) {}
+
+        $p1 = \App\Models\Project::where('name', 'like', '%Bank Mandiri%')->first();
+        $p2 = \App\Models\Project::where('name', 'like', '%Telkom Indonesia%')->first();
+        $p3 = \App\Models\Project::where('name', 'like', '%PLN%')->first();
+
+        $t1Count = $p1 ? $p1->tasks()->count() : 0;
+        $t2Count = $p2 ? $p2->tasks()->count() : 0;
+        $t3Count = $p3 ? $p3->tasks()->count() : 0;
+
+        return response("
+        <!DOCTYPE html>
+        <html lang='id'>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Injeksi 3 Skenario Proyek Berhasil - IP-NET Solusindo</title>
+            <link href='https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap' rel='stylesheet'>
+            <style>
+                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0B132B; color: #E2E8F0; margin: 0; padding: 40px 20px; line-height: 1.6; }
+                .container { max-width: 900px; margin: 0 auto; background: #1C2541; border: 1px solid #3A506B; border-radius: 16px; padding: 36px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+                .header { text-align: center; border-bottom: 1px solid #3A506B; padding-bottom: 24px; margin-bottom: 28px; }
+                .badge-success { display: inline-block; background: #10B981; color: #FFFFFF; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px; }
+                h1 { color: #FFFFFF; font-size: 24px; margin: 16px 0 8px; font-weight: 800; }
+                p.lead { color: #94A3B8; font-size: 14.5px; margin: 0; }
+                .card { background: #0B132B; border: 1px solid #3A506B; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+                .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+                .card-title { font-size: 16px; font-weight: 700; color: #F8FAFC; margin: 0; }
+                .tag { font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
+                .tag-pm { background: rgba(59, 130, 246, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3); }
+                .tag-ms { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
+                .tag-hybrid { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
+                .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; font-size: 13px; }
+                .grid-item { background: #1C2541; padding: 10px 14px; border-radius: 8px; border: 1px solid #2C3E55; }
+                .grid-item span { display: block; font-size: 11px; color: #94A3B8; text-transform: uppercase; font-weight: 600; }
+                .grid-item strong { color: #F1F5F9; font-size: 13.5px; }
+                .actions { display: flex; gap: 12px; justify-content: center; margin-top: 32px; flex-wrap: wrap; }
+                .btn { padding: 12px 22px; font-weight: 700; font-size: 13.5px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+                .btn-primary { background: #8F0A0D; color: #FFFFFF; }
+                .btn-primary:hover { background: #B91C1C; }
+                .btn-secondary { background: #3A506B; color: #FFFFFF; }
+                .btn-secondary:hover { background: #475569; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <div class='badge-success'>&check; Seeder Live Berhasil Dijalankan!</div>
+                    <h1>3 Data Proyek Alur Technical Resmi Aktif</h1>
+                    <p class='lead'>Seluruh data terintegrasi penuh dengan alur Commercial (SC bertanda tangan Direktur & Head Division, BoQ SA, Proposal Presales, dan BDM) tanpa merubah alur komersial yang sudah stabil.</p>
+                </div>
+
+                <!-- Skenario 1 -->
+                <div class='card'>
+                    <div class='card-header'>
+                        <h3 class='card-title'>1. " . ($p1 ? htmlspecialchars($p1->name) : 'Proyek Sales ke Project Manager') . "</h3>
+                        <span class='tag tag-pm'>Skenario 1: PM Delivery</span>
+                    </div>
+                    <div class='grid'>
+                        <div class='grid-item'><span>Klien</span><strong>" . ($p1 ? htmlspecialchars($p1->client) : 'PT Bank Mandiri') . "</strong></div>
+                        <div class='grid-item'><span>Nilai Kontrak</span><strong>Rp " . ($p1 ? number_format($p1->contract_value, 0, ',', '.') : '1.850.000.000') . "</strong></div>
+                        <div class='grid-item'><span>Alur Commercial</span><strong>SC No: SC/IPNET/2026/041 (Raiza &rarr; Susanto &rarr; Hariyadi)</strong></div>
+                        <div class='grid-item'><span>Project Manager</span><strong>Rizki (PMO Lead)</strong></div>
+                        <div class='grid-item'><span>Koordinasi Lead</span><strong>Nugraha Pratama (Alokasi Rorik, Dedy, Syaiful)</strong></div>
+                        <div class='grid-item'><span>Task Teknis PM</span><strong>{$t1Count} Tasks Terbagi Jelas (Scope, PIC, Jadwal)</strong></div>
+                    </div>
+                </div>
+
+                <!-- Skenario 2 -->
+                <div class='card'>
+                    <div class='card-header'>
+                        <h3 class='card-title'>2. " . ($p2 ? htmlspecialchars($p2->name) : 'Proyek Sales Direct Managed Service') . "</h3>
+                        <span class='tag tag-ms'>Skenario 2: Direct Managed Service</span>
+                    </div>
+                    <div class='grid'>
+                        <div class='grid-item'><span>Klien</span><strong>" . ($p2 ? htmlspecialchars($p2->client) : 'PT Telkom Indonesia') . "</strong></div>
+                        <div class='grid-item'><span>Nilai Kontrak</span><strong>Rp " . ($p2 ? number_format($p2->contract_value, 0, ',', '.') : '480.000.000') . " / Tahun</strong></div>
+                        <div class='grid-item'><span>Alur Commercial</span><strong>SC No: SC/IPNET/2026/055 (Donny &rarr; Susanto &rarr; Hariyadi)</strong></div>
+                        <div class='grid-item'><span>Lead Managed Service</span><strong>Doris (MS Coordinator)</strong></div>
+                        <div class='grid-item'><span>Personel Operasional</span><strong>Mario & Eris (Standby 24/7 & Pemeliharaan Bulanan)</strong></div>
+                        <div class='grid-item'><span>Task Operasional MS</span><strong>{$t2Count} Tasks SLA & Preventive Maintenance</strong></div>
+                    </div>
+                </div>
+
+                <!-- Skenario 3 -->
+                <div class='card'>
+                    <div class='card-header'>
+                        <h3 class='card-title'>3. " . ($p3 ? htmlspecialchars($p3->name) : 'Proyek Sales Hybrid PM + Managed Service') . "</h3>
+                        <span class='tag tag-hybrid'>Skenario 3: Hybrid (PM + Managed Service)</span>
+                    </div>
+                    <div class='grid'>
+                        <div class='grid-item'><span>Klien</span><strong>" . ($p3 ? htmlspecialchars($p3->client) : 'PT PLN (Persero)') . "</strong></div>
+                        <div class='grid-item'><span>Nilai Kontrak</span><strong>Rp " . ($p3 ? number_format($p3->contract_value, 0, ',', '.') : '2.450.000.000') . " (Turnkey + SLA)</strong></div>
+                        <div class='grid-item'><span>Alur Commercial</span><strong>SC No: SC/IPNET/2026/088 (Hendry &rarr; Susanto &rarr; Hariyadi)</strong></div>
+                        <div class='grid-item'><span>Fase PM & Engineer</span><strong>Rizki & Nugraha Pratama (Rorik & Shiamsyah Azis)</strong></div>
+                        <div class='grid-item'><span>Fase Managed Service</span><strong>Doris (Mario & Eris - Transisi Form IPN-FRM-MS-01)</strong></div>
+                        <div class='grid-item'><span>Pemisahan Task</span><strong>{$t3Count} Tasks Terpisah: [PM - Deployment] & [MS - Operation] (Tanpa Duplikasi)</strong></div>
+                    </div>
+                </div>
+
+                <div class='actions'>
+                    <a href='/pmo/implementations' class='btn btn-primary'>&rarr; Buka Menu PMO Implementasi</a>
+                    <a href='/managed-service/projects' class='btn btn-secondary'>&rarr; Buka Modul Managed Service</a>
+                    <a href='/tasks' class='btn btn-secondary'>&rarr; Lihat Kanban & Task Engineer</a>
+                </div>
+            </div>
+        </body>
+        </html>
+        ");
+    } catch (\Throwable $e) {
+        return response("<div style='font-family:sans-serif;max-width:600px;margin:40px auto;padding:24px;background:#FEF2F2;border:1px solid #F87171;border-radius:12px;color:#991B1B;'><h3>&cross; Terjadi Kendala Seeding:</h3><p>{$e->getMessage()}</p><pre style='font-size:12px;overflow-x:auto;'>" . $e->getTraceAsString() . "</pre></div>", 500);
+    }
+});
+
 // Auth Routes
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 

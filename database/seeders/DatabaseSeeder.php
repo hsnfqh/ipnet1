@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             DummyUserSeeder::class,
             PmoDummyProjectsSeeder::class,
+            TechnicalWorkflowScenarioSeeder::class,
         ]);
     }
 }
