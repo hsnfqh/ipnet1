@@ -565,33 +565,33 @@
                 {{-- ============================================================== --}}
                 <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-6 sm:p-10 shadow-sm space-y-5 text-[#0F172A] font-sans relative">
                     
-                    {{-- Kop Dokumen Persis PDF & Screenshot (Logo Kiri, Checklist Serah Terima + IPNET#1 + Hal 1 Kanan) --}}
+                    {{-- Kop Dokumen Persis PDF (Proporsional & Rapi) --}}
                     <div class="flex items-start justify-between gap-4">
                         <div class="shrink-0">
-                            <img src="{{ asset('images/ipnet1.png') }}" onerror="this.src='/images/ipnet.png'" alt="Logo IP Network Solusindo" class="h-20 sm:h-24 md:h-28 w-auto object-contain">
+                            <img src="{{ asset('images/ipnet1.png') }}" onerror="this.src='/images/ipnet.png'" alt="Logo IP Network Solusindo" class="h-12 sm:h-14 w-auto object-contain">
                         </div>
                         <div class="text-right shrink-0">
-                            <div class="text-[#8F0A0D] font-extrabold text-2xl sm:text-3xl md:text-4xl uppercase tracking-tight leading-none">
+                            <div class="text-[#8F0A0D] font-black text-lg sm:text-xl uppercase tracking-tight leading-none">
                                 CHECKLIST SERAH TERIMA
                             </div>
-                            <div class="text-black font-extrabold text-lg sm:text-xl md:text-2xl uppercase tracking-normal mt-1">
+                            <div class="text-black font-black text-xs sm:text-sm uppercase tracking-normal mt-1">
                                 IPNET#1
                             </div>
-                            <div class="text-xs sm:text-sm text-slate-700 italic font-medium mt-1">
+                            <div class="text-[10px] text-slate-500 italic font-medium mt-0.5 hidden print:block">
                                 Hal 1
                             </div>
                         </div>
                     </div>
 
                     {{-- Judul Utama Dokumen Persis PDF --}}
-                    <div class="text-center my-6 sm:my-8">
-                        <h1 class="text-lg sm:text-xl md:text-2xl font-black text-black uppercase tracking-normal leading-snug">
+                    <div class="text-center my-3 sm:my-4">
+                        <h1 class="text-sm sm:text-base font-black text-black uppercase tracking-wide leading-snug">
                             SERAH TERIMA SALES / COMMERCIAL KE MANAGED SERVICE
                         </h1>
-                        <h2 class="text-base sm:text-lg md:text-xl font-black text-black uppercase tracking-normal mt-1">
+                        <h2 class="text-xs sm:text-sm font-black text-black uppercase tracking-wide mt-0.5">
                             UNTUK KONTRAK MAINTENANCE
                         </h2>
-                        <p class="text-xs sm:text-sm md:text-base italic text-slate-700 mt-2 font-serif">
+                        <p class="text-[11px] sm:text-xs italic text-slate-600 mt-1 font-serif">
                             Commercial-to-Project Handover Checklist
                         </p>
                     </div>
@@ -731,32 +731,22 @@
                         </table>
                     </div>
 
-                    {{-- Nomor Halaman Hal 1 Persis PDF --}}
-                    <div class="flex justify-end pt-2 text-xs font-serif text-slate-700">
-                        Hal 1
-                    </div>
-
-                </div>
-
-                {{-- ============================================================== --}}
-                {{-- HALAMAN 2 (DOKUMEN RESMI SERAH TERIMA SESUAI PDF HAL 2)        --}}
-                {{-- ============================================================== --}}
-                <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-6 sm:p-10 shadow-sm space-y-6 text-[#0F172A] font-sans relative page-break">
-                    
-                    {{-- Kop Dokumen Hal 2 Persis PDF (Logo Kiri, Checklist Serah Terima + IPNET#1 + Hal 2 Kanan) --}}
-                    <div class="flex items-start justify-between gap-4">
-                        <div class="shrink-0">
-                            <img src="{{ asset('images/ipnet1.png') }}" onerror="this.src='/images/ipnet.png'" alt="Logo IP Network Solusindo" class="h-20 sm:h-24 md:h-28 w-auto object-contain">
-                        </div>
-                        <div class="text-right shrink-0">
-                            <div class="text-[#8F0A0D] font-extrabold text-2xl sm:text-3xl md:text-4xl uppercase tracking-tight leading-none">
-                                CHECKLIST SERAH TERIMA
+                    {{-- Pemisah Halaman Khusus Print / Export PDF Saja (Di Tampilan Modal Tidak Kepotong) --}}
+                    <div class="hidden print:block print-page-break pt-4 pb-2">
+                        <div class="flex items-start justify-between gap-4 pb-4 border-b border-black">
+                            <div class="shrink-0">
+                                <img src="{{ asset('images/ipnet1.png') }}" onerror="this.src='/images/ipnet.png'" alt="Logo IP Network Solusindo" class="h-10 w-auto object-contain">
                             </div>
-                            <div class="text-black font-extrabold text-lg sm:text-xl md:text-2xl uppercase tracking-normal mt-1">
-                                IPNET#1
-                            </div>
-                            <div class="text-xs sm:text-sm text-slate-700 italic font-medium mt-1">
-                                Hal 2
+                            <div class="text-right shrink-0">
+                                <div class="text-[#8F0A0D] font-black text-base uppercase tracking-tight leading-none">
+                                    CHECKLIST SERAH TERIMA
+                                </div>
+                                <div class="text-black font-black text-xs uppercase tracking-normal mt-0.5">
+                                    IPNET#1
+                                </div>
+                                <div class="text-[10px] text-slate-700 italic font-medium mt-0.5">
+                                    Hal 2
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -866,10 +856,7 @@
                         <strong class="font-bold text-black">Catatan pengendalian:</strong> handover tidak mengubah kewenangan formal atau tanggung jawab atas output yang telah dibuat. Perubahan scope/komitmen pelanggan harus melalui mekanisme persetujuan yang berlaku.
                     </p>
 
-                    {{-- Nomor Halaman Hal 2 Persis PDF --}}
-                    <div class="flex justify-end pt-2 text-xs font-serif text-slate-700">
-                        Hal 2
-                    </div>
+                    
 
                 </div>
 
@@ -1153,9 +1140,9 @@
         background: white !important;
         overflow: visible !important;
     }
-    .page-break {
-        page-break-before: always;
-        break-before: page;
+    .print-page-break, .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
     }
     .no-print {
         display: none !important;
