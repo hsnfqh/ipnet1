@@ -361,8 +361,17 @@
                                     @php
                                         $isAccepted = ($ho->ms_handover_status === 'Accepted');
                                         $formattedValue = $ho->contract_value ? 'Rp ' . number_format($ho->contract_value, 0, ',', '.') : null;
-                                        $startDateVal = $ho->service_start_date ? \Carbon\Carbon::parse($ho->service_start_date)->format('Y-m-d') : date('Y-m-d');
-                                        $endDateVal = $ho->service_end_date ? \Carbon\Carbon::parse($ho->service_end_date)->format('Y-m-d') : '';
+                                        $startDateCarbon = $ho->service_start_date 
+                                            ? \Carbon\Carbon::parse($ho->service_start_date) 
+                                            : ($ho->start_date ? \Carbon\Carbon::parse($ho->start_date) : now());
+                                        $endDateCarbon = $ho->service_end_date 
+                                            ? \Carbon\Carbon::parse($ho->service_end_date) 
+                                            : ($ho->deadline ? \Carbon\Carbon::parse($ho->deadline) : (clone $startDateCarbon)->addYear()->subDay());
+                                        
+                                        $startDateVal = $startDateCarbon->format('Y-m-d');
+                                        $endDateVal = $endDateCarbon->format('Y-m-d');
+                                        $startDateDisplay = $startDateCarbon->translatedFormat('d F Y');
+                                        $endDateDisplay = $endDateCarbon->translatedFormat('d F Y');
                                     @endphp
                                     <tr class="hover:bg-[#F8FAFC]/80 transition-colors {{ !$isAccepted ? 'bg-[#FFFDF7]' : '' }}">
                                         {{-- 1. Proyek & Klien --}}
@@ -455,6 +464,8 @@
                                                             data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
                                                             data-start="{{ $startDateVal }}"
                                                             data-end="{{ $endDateVal }}"
+                                                            data-start-display="{{ $startDateDisplay }}"
+                                                            data-end-display="{{ $endDateDisplay }}"
                                                             data-notes="{{ $ho->special_notes ?: '' }}"
                                                             data-so="{{ $ho->so_code ?: ($ho->po_spk_number ?: ('KTR/' . $ho->id)) }}"
                                                             data-sales="{{ $ho->sales_name ?: ($ho->creator?->name ?: '-') }}"
@@ -480,6 +491,8 @@
                                                             data-freq="{{ $ho->maintenance_frequency ?: 'Monthly' }}"
                                                             data-start="{{ $startDateVal }}"
                                                             data-end="{{ $endDateVal }}"
+                                                            data-start-display="{{ $startDateDisplay }}"
+                                                            data-end-display="{{ $endDateDisplay }}"
                                                             data-notes="{{ $ho->special_notes ?: '' }}"
                                                             data-so="{{ $ho->so_code ?: ($ho->po_spk_number ?: ('KTR/' . $ho->id)) }}"
                                                             data-sales="{{ $ho->sales_name ?: ($ho->creator?->name ?: '-') }}"
@@ -558,10 +571,24 @@
             @csrf
 
             {{-- Background Container Abu-Abu Lembut Sesuai Template Lebar --}}
-            <div class="flex-1 overflow-y-auto px-4 pt-4 pb-8 sm:px-8 sm:pt-6 sm:pb-8 bg-[#F1F5F9]/80 space-y-6">
+            <div class="flex-1 overflow-y-auto px-4 pt-4 pb-8 sm:px-8 sm:pt-6 sm:pb-8 bg-[#F1F5F9]/80 space-y-4">
                 
+                {{-- Banner Kategori Laporan Konsisten dengan Form Engineer Activity --}}
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-[#CBD5E1] shadow-xs no-print">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-xs font-bold text-[#475569] uppercase tracking-wider">KATEGORI LAPORAN:</span>
+                        <span class="px-3 py-1 bg-red-50 text-[#8F0A0D] border border-red-200 rounded-lg text-xs font-bold tracking-wide uppercase shadow-2xs">
+                            Serah Terima Managed Service
+                        </span>
+                    </div>
+
+                    <div class="text-xs text-slate-500 font-medium">
+                        Format resmi PT IP Network Solusindo
+                    </div>
+                </div>
+
                 {{-- ============================================================== --}}
-                {{-- HALAMAN 1 (DOKUMEN RESMI SERAH TERIMA SESUAI PDF HAL 1)        --}}
+                {{-- DOKUMEN RESMI SERAH TERIMA KONTRAK MAINTENANCE SESUAI PDF       --}}
                 {{-- ============================================================== --}}
                 <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-6 sm:p-10 shadow-sm space-y-5 text-[#0F172A] font-sans relative">
                     
@@ -919,6 +946,8 @@
             maintenance_frequency: btn.getAttribute('data-freq'),
             service_start_date: btn.getAttribute('data-start'),
             service_end_date: btn.getAttribute('data-end'),
+            start_display: btn.getAttribute('data-start-display'),
+            end_display: btn.getAttribute('data-end-display'),
             special_notes: btn.getAttribute('data-notes'),
             docs: docs,
             handover_data: hData,
@@ -955,10 +984,25 @@
         var pmEl = document.getElementById('accept-modal-pm');
         if (pmEl) pmEl.textContent = p.pm || 'Tim Managed Service';
         
+        // Tanggal Efektif & Masa Kontrak Rapi (Tanpa strip kosong, format resmi Indonesia)
+        var startFormatted = p.start_display || (p.service_start_date ? p.service_start_date.split('T')[0] : '');
+        var endFormatted = p.end_display || (p.service_end_date ? p.service_end_date.split('T')[0] : '');
+        
         var datesEl = document.getElementById('accept-modal-dates');
-        if (datesEl) datesEl.textContent = (p.service_start_date ? p.service_start_date.split('T')[0] : '—') + ' s/d ' + (p.service_end_date ? p.service_end_date.split('T')[0] : '—');
+        if (datesEl) {
+            if (startFormatted && endFormatted) {
+                datesEl.textContent = startFormatted + ' s/d ' + endFormatted + ' (1 Tahun Kontrak)';
+            } else if (startFormatted) {
+                datesEl.textContent = startFormatted + ' (Masa Kontrak 1 Tahun)';
+            } else {
+                datesEl.textContent = '1 Tahun Masa Kontrak Maintenance';
+            }
+        }
+
         var endTextEl = document.getElementById('accept-modal-end-text');
-        if (endTextEl) endTextEl.textContent = p.service_end_date ? p.service_end_date.split('T')[0] : '—';
+        if (endTextEl) {
+            endTextEl.textContent = endFormatted || (startFormatted ? '1 Tahun sejak tanggal mulai' : 'Sesuai masa kontrak SPK');
+        }
         
         // Tanda tangan info
         var salesSignEl = document.getElementById('accept-modal-sales-sign');
