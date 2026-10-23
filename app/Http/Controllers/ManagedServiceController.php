@@ -981,6 +981,7 @@ class ManagedServiceController extends Controller
             'handover_risks'           => $request->input('handover_risks', ''),
             'handover_missing_info'    => $request->input('handover_missing_info', ''),
             'handover_pic_target'      => $request->input('handover_pic_target', ''),
+            'handover_confirmation'    => $request->input('handover_confirmation', ''),
             'handover_work_limitations'=> $request->input('handover_work_limitations', ''),
             'special_notes'            => $validated['special_notes'] ?? $project->special_notes,
         ]);
