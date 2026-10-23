@@ -2756,7 +2756,7 @@
         <div class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-[#8F0A0D] border border-rose-200 uppercase tracking-wider">
                         SERAH TERIMA FASE 2
                     </span>
                     <h3 class="text-base font-bold text-slate-900 mt-1">Handover ke Tim Managed Service</h3>
@@ -2770,7 +2770,7 @@
 
                 <div>
                     <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">PILIH LEAD MANAGED SERVICE / MAINTENANCE <span class="text-[#8F0A0D]">*</span></label>
-                    <select name="ms_lead_id" required class="w-full px-3 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-purple-600">
+                    <select name="ms_lead_id" required class="w-full px-3 py-2.5 bg-white border border-[#CBD5E1] rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#8F0A0D]">
                         @php
                             $msLeaders = ($allUsers ?? \App\Models\User::orderBy('name')->get())->filter(function($u) {
                                 return $u->hasAnyRole(['Managed Service', 'Lead Engineer', 'Lead Divisi', 'Team Leader', 'Team Leader Engineering', 'Engineer', 'Super Admin']);
@@ -2787,19 +2787,19 @@
 
                 <div>
                     <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">CATATAN HANDOVER DARI PMO</label>
-                    <textarea name="notes" rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                    <textarea name="notes" rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-1 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]"
                               placeholder="Contoh: Pekerjaan fisik & deployment jaringan selesai dan sudah UAT bersama klien. Diserahkan untuk SLA & pemeliharaan berkala."></textarea>
                 </div>
 
-                <div class="p-3 rounded-xl bg-purple-50/60 border border-purple-200 text-purple-900 text-[11.5px] leading-relaxed">
+                <div class="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-slate-700 text-[11.5px] leading-relaxed">
                     <strong>Catatan Alur:</strong> Status proyek di Sales tetap <em>In Progress</em> dan baru berubah menjadi <em>Completed</em> saat seluruh masa kontrak/SLA benar-benar selesai.
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="window.closeModal('modal-handover-ms')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" onclick="window.closeModal('modal-handover-ms')" class="px-4 py-2 text-xs rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer transition">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 cursor-pointer transition shadow-xs">
+                    <button type="submit" class="px-5 py-2.5 text-xs rounded-xl font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] cursor-pointer transition shadow-xs">
                         Konfirmasi Serah Terima ke MS
                     </button>
                 </div>
@@ -2813,7 +2813,7 @@
         <div class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 m-auto">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
                 <div>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-[#8F0A0D] border border-rose-200 uppercase tracking-wider">
                         PENUGASAN MANAGED SERVICE
                     </span>
                     <h3 class="text-base font-bold text-slate-900 mt-1">Tugaskan Teknisi Managed Service</h3>
@@ -2835,10 +2835,10 @@
                             });
                         @endphp
                         @foreach($allEngs as $e)
-                            <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 hover:border-purple-300 transition cursor-pointer select-none">
+                            <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 hover:border-[#8F0A0D]/40 transition cursor-pointer select-none">
                                 <input type="checkbox" name="engineer_ids[]" value="{{ $e->id }}" 
                                        {{ in_array($e->name, $currentMsEngNames) ? 'checked' : '' }}
-                                       class="w-4 h-4 rounded text-purple-600 accent-purple-600">
+                                       class="w-4 h-4 rounded text-[#8F0A0D] accent-[#8F0A0D]">
                                 <span class="text-slate-900 font-bold text-xs">{{ $e->name }}</span>
                                 <span class="text-[10px] text-slate-400">({{ $e->roles->pluck('name')->first() ?? 'Engineer' }})</span>
                             </label>
@@ -2848,15 +2848,15 @@
 
                 <div>
                     <label class="block text-slate-700 mb-1 uppercase tracking-wider text-[11px]">INSTRUKSI KERJA / JADWAL SLA</label>
-                    <textarea name="notes" rows="2.5" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                    <textarea name="notes" rows="2.5" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:ring-1 focus:ring-[#8F0A0D]/20 focus:border-[#8F0A0D]"
                               placeholder="Contoh: Preventive maintenance berkala setiap 2 minggu sekali dan standby 24/7 untuk insiden kritis."></textarea>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="window.closeModal('modal-assign-ms-engineer')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer">
+                    <button type="button" onclick="window.closeModal('modal-assign-ms-engineer')" class="px-4 py-2 text-xs rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 cursor-pointer transition">
                         Batal
                     </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 cursor-pointer transition shadow-xs">
+                    <button type="submit" class="px-5 py-2.5 text-xs rounded-xl font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] cursor-pointer transition shadow-xs">
                         Simpan Penugasan Teknisi
                     </button>
                 </div>

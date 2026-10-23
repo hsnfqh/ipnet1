@@ -253,58 +253,152 @@
                             </div>
                         </div>
 
-                        <!-- Interactive Nodes Timeline -->
-                        <div class="p-6 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-4">
-                            <div class="relative py-4">
-                                <!-- Background Line -->
-                                <div class="absolute top-1/2 left-8 right-8 h-2 bg-[#E2E8F0] -translate-y-1/2 rounded-full"></div>
-                                <!-- Active Fill Line -->
-                                <div class="absolute top-1/2 left-8 h-2 rounded-full transition-all duration-700"
-                                     style="background: linear-gradient(90deg, #8F0A0D, #D62E3C); width: calc({{ min(100, $pmProgress) }}% * 0.90);"></div>
+                        <!-- Interactive Nodes Timeline (Linear jika <= 6, Snake Uler jika > 6) -->
+                        <div class="p-6 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-4 overflow-x-auto">
+                            @php
+                                $mNodeItems = collect();
+                                $mNodeItems->push([
+                                    'is_milestone' => true,
+                                    'label'        => 'Start',
+                                    'sub'          => $project->service_start_date ? \Carbon\Carbon::parse($project->service_start_date)->format('d/m/Y') : 'Awal',
+                                    'char'         => 'S',
+                                ]);
 
-                                <div class="relative flex items-center justify-between px-4">
-                                    <!-- Start Node -->
-                                    <div class="flex flex-col items-center">
-                                        <div class="w-9 h-9 rounded-full bg-[#1E293B] text-white flex items-center justify-center text-[11px] font-black shadow-md">
-                                            S
-                                        </div>
-                                        <span class="text-[11.5px] font-bold text-[#64748B] mt-2">Start</span>
-                                        <span class="text-[10.5px] text-[#94A3B8]">{{ $project->service_start_date ? \Carbon\Carbon::parse($project->service_start_date)->format('d/m/Y') : 'Awal' }}</span>
-                                    </div>
+                                foreach($pmCycles as $c) {
+                                    $mNodeItems->push([
+                                        'is_milestone' => false,
+                                        'cycle'        => $c,
+                                        'number'       => $c->cycle_number,
+                                        'label'        => 'PM ' . $c->cycle_number,
+                                        'sub'          => $c->scheduled_date ? \Carbon\Carbon::parse($c->scheduled_date)->format('d/m/Y') : '—',
+                                        'status'       => $c->activity_status,
+                                    ]);
+                                }
 
-                                    <!-- PM Cycle Nodes -->
-                                    @foreach($pmCycles as $c)
-                                        @php
-                                            $isDone = ($c->activity_status === 'Completed');
-                                            $isInProg = ($c->activity_status === 'In Progress');
-                                        @endphp
-                                        <div class="flex flex-col items-center cursor-pointer group" @click="openPmModal({{ json_encode($c) }})">
-                                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-[12.5px] font-black transition-all shadow-md {{ $isDone ? 'bg-[#8F0A0D] text-white ring-4 ring-rose-100' : ($isInProg ? 'bg-amber-500 text-white ring-4 ring-amber-100 animate-pulse' : 'bg-white text-[#64748B] border border-[#CBD5E1] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
-                                                @if($isDone)
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                @else
-                                                    {{ $c->cycle_number }}
-                                                @endif
+                                $mNodeItems->push([
+                                    'is_milestone' => true,
+                                    'label'        => 'End',
+                                    'sub'          => $project->service_end_date ? \Carbon\Carbon::parse($project->service_end_date)->format('d/m/Y') : 'Akhir',
+                                    'char'         => 'E',
+                                ]);
+
+                                $isMonitoringSnake = $pmTotal > 6;
+                                $mChunkSize = 5;
+                                $mRows = $isMonitoringSnake ? $mNodeItems->chunk($mChunkSize) : collect([$mNodeItems]);
+                            @endphp
+
+                            @if(!$isMonitoringSnake)
+                                <div class="relative py-4">
+                                    <!-- Background Line -->
+                                    <div class="absolute top-1/2 left-8 right-8 h-2 bg-[#E2E8F0] -translate-y-1/2 rounded-full"></div>
+                                    <!-- Active Fill Line -->
+                                    <div class="absolute top-1/2 left-8 h-2 rounded-full transition-all duration-700"
+                                         style="background: linear-gradient(90deg, #8F0A0D, #D62E3C); width: calc({{ min(100, $pmProgress) }}% * 0.90);"></div>
+
+                                    <div class="relative flex items-center justify-between px-4 min-w-[650px]">
+                                        <!-- Start Node -->
+                                        <div class="flex flex-col items-center">
+                                            <div class="w-9 h-9 rounded-full bg-[#1E293B] text-white flex items-center justify-center text-[11px] font-black shadow-md">
+                                                S
                                             </div>
-                                            <span class="text-[11.5px] font-bold mt-2 {{ $isDone ? 'text-[#1E293B]' : 'text-[#64748B]' }} group-hover:text-[#8F0A0D] transition">
-                                                PM {{ $c->cycle_number }}
-                                            </span>
-                                            <span class="text-[10.5px] text-[#94A3B8]">
-                                                {{ $c->scheduled_date ? \Carbon\Carbon::parse($c->scheduled_date)->format('d/m/Y') : '—' }}
-                                            </span>
+                                            <span class="text-[11.5px] font-bold text-[#64748B] mt-2">Start</span>
+                                            <span class="text-[10.5px] text-[#94A3B8]">{{ $project->service_start_date ? \Carbon\Carbon::parse($project->service_start_date)->format('d/m/Y') : 'Awal' }}</span>
                                         </div>
-                                    @endforeach
 
-                                    <!-- End Node -->
-                                    <div class="flex flex-col items-center">
-                                        <div class="w-9 h-9 rounded-full bg-[#E2E8F0] text-[#64748B] flex items-center justify-center text-[11px] font-black shadow-xs">
-                                            E
+                                        <!-- PM Cycle Nodes -->
+                                        @foreach($pmCycles as $c)
+                                            @php
+                                                $isDone = ($c->activity_status === 'Completed');
+                                                $isInProg = ($c->activity_status === 'In Progress');
+                                            @endphp
+                                            <div class="flex flex-col items-center cursor-pointer group" @click="openPmModal({{ json_encode($c) }})">
+                                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-[12.5px] font-black transition-all shadow-md {{ $isDone ? 'bg-[#8F0A0D] text-white ring-4 ring-rose-100' : ($isInProg ? 'bg-amber-500 text-white ring-4 ring-amber-100 animate-pulse' : 'bg-white text-[#64748B] border border-[#CBD5E1] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
+                                                    @if($isDone)
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                    @else
+                                                        {{ $c->cycle_number }}
+                                                    @endif
+                                                </div>
+                                                <span class="text-[11.5px] font-bold mt-2 {{ $isDone ? 'text-[#1E293B]' : 'text-[#64748B]' }} group-hover:text-[#8F0A0D] transition">
+                                                    PM {{ $c->cycle_number }}
+                                                </span>
+                                                <span class="text-[10.5px] text-[#94A3B8]">
+                                                    {{ $c->scheduled_date ? \Carbon\Carbon::parse($c->scheduled_date)->format('d/m/Y') : '—' }}
+                                                </span>
+                                            </div>
+                                        @endforeach
+
+                                        <!-- End Node -->
+                                        <div class="flex flex-col items-center">
+                                            <div class="w-9 h-9 rounded-full bg-[#E2E8F0] text-[#64748B] flex items-center justify-center text-[11px] font-black shadow-xs">
+                                                E
+                                            </div>
+                                            <span class="text-[11.5px] font-bold text-[#64748B] mt-2">End</span>
+                                            <span class="text-[10.5px] text-[#94A3B8]">{{ $project->service_end_date ? \Carbon\Carbon::parse($project->service_end_date)->format('d/m/Y') : 'Akhir' }}</span>
                                         </div>
-                                        <span class="text-[11.5px] font-bold text-[#64748B] mt-2">End</span>
-                                        <span class="text-[10.5px] text-[#94A3B8]">{{ $project->service_end_date ? \Carbon\Carbon::parse($project->service_end_date)->format('d/m/Y') : 'Akhir' }}</span>
                                     </div>
                                 </div>
-                            </div>
+                            @else
+                                {{-- Serpentine Snake Flow --}}
+                                <div class="min-w-[700px] max-w-5xl mx-auto space-y-7 py-3">
+                                    @foreach($mRows as $rIdx => $rNodes)
+                                        @php
+                                            $isRtl = ($rIdx % 2 === 1);
+                                            $hasNext = ($rIdx < $mRows->count() - 1);
+                                        @endphp
+                                        <div class="relative">
+                                            <div class="absolute top-4 left-6 right-6 h-0.5 bg-[#CBD5E1] -z-0"></div>
+
+                                            @if($hasNext)
+                                                @if(!$isRtl)
+                                                    <div class="absolute -right-1 top-4 w-10 h-[calc(100%+1.75rem)] border-t-2 border-r-2 border-b-2 rounded-r-3xl border-[#CBD5E1] pointer-events-none -z-0"></div>
+                                                @else
+                                                    <div class="absolute -left-1 top-4 w-10 h-[calc(100%+1.75rem)] border-t-2 border-l-2 border-b-2 rounded-l-3xl border-[#CBD5E1] pointer-events-none -z-0"></div>
+                                                @endif
+                                            @endif
+
+                                            <div class="flex items-start justify-between relative z-10 px-2 {{ $isRtl ? 'flex-row-reverse' : '' }}">
+                                                @foreach($rNodes as $nd)
+                                                    <div class="flex-1 flex flex-col items-center text-center">
+                                                        @if($nd['is_milestone'])
+                                                            <div class="w-8 h-8 rounded-full {{ $nd['label'] === 'Start' ? 'bg-[#1E293B] text-white' : 'bg-[#E2E8F0] text-[#64748B]' }} flex items-center justify-center text-[11px] font-black shadow-xs">
+                                                                {{ $nd['char'] }}
+                                                            </div>
+                                                            <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">{{ $nd['label'] }}</span>
+                                                            <span class="text-[10px] text-[#64748B]">{{ $nd['sub'] }}</span>
+                                                        @else
+                                                            @php
+                                                                $isDone = ($nd['status'] === 'Completed');
+                                                                $isInProg = ($nd['status'] === 'In Progress');
+                                                            @endphp
+                                                            <div class="cursor-pointer group flex flex-col items-center" @click="openPmModal({{ json_encode($nd['cycle']) }})">
+                                                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black transition-all group-hover:scale-110 shadow-xs
+                                                                    {{ $isDone ? 'bg-[#8F0A0D] text-white' : ($isInProg ? 'bg-amber-500 text-white animate-pulse' : 'bg-white text-[#64748B] border border-[#CBD5E1] group-hover:border-[#8F0A0D]') }}">
+                                                                    @if($isDone)
+                                                                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                                    @else
+                                                                        {{ $nd['number'] }}
+                                                                    @endif
+                                                                </div>
+                                                                <span class="text-[11px] font-bold mt-1.5 {{ $isDone ? 'text-[#1E293B]' : 'text-[#64748B]' }} group-hover:text-[#8F0A0D] transition">
+                                                                    {{ $nd['label'] }}
+                                                                </span>
+                                                                <span class="text-[10px] text-[#64748B]">{{ $nd['sub'] }}</span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+
+                                                @if($rNodes->count() < $mChunkSize)
+                                                    @for($pad = 0; $pad < ($mChunkSize - $rNodes->count()); $pad++)
+                                                        <div class="flex-1 opacity-0 pointer-events-none"></div>
+                                                    @endfor
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
 
                             <p class="text-[11.5px] text-[#94A3B8] text-center font-medium">Klik pada salah satu node siklus PM di atas untuk membuka modal pembaruan status kunjungan dan upload dokumen Laporan/BA.</p>
                         </div>

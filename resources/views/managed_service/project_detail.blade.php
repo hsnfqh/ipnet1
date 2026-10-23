@@ -582,63 +582,181 @@
                         </div>
                     </div>
 
-                    {{-- Horizontal Visual Stepper --}}
+                    {{-- Visual Stepper: Memanjang jika <= 6, Berkelok seperti Ular (Snake Flow) jika > 6 --}}
                     <div class="py-3 px-2 overflow-x-auto">
-                        <div class="flex items-center justify-between min-w-[650px] relative">
-                            {{-- Connecting Line --}}
-                            <div class="absolute left-6 right-6 top-4 h-0.5 bg-[#E2E8F0] -z-0"></div>
+                        @php
+                            // Siapkan koleksi seluruh node milestone PM
+                            $pmNodeItems = collect();
+                            $pmNodeItems->push([
+                                'is_milestone' => true,
+                                'type'         => 'start',
+                                'label'        => 'Start',
+                                'sub'          => $project->service_start_date ? date('d/m/Y', strtotime($project->service_start_date)) : 'Awal',
+                                'icon'         => 'flag',
+                            ]);
 
-                            {{-- Milestone: Start --}}
-                            <div class="relative z-10 flex flex-col items-center text-center">
-                                <div class="w-8 h-8 rounded-full bg-[#F8FAFC] border-2 border-[#94A3B8] flex items-center justify-center text-[#475569] shadow-2xs">
-                                    <svg class="w-3.5 h-3.5 text-[#475569]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2z"/></svg>
-                                </div>
-                                <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">Start</span>
-                                <span class="text-[10px] text-[#64748B]">{{ $project->service_start_date ? date('d/m/Y', strtotime($project->service_start_date)) : 'Awal' }}</span>
-                            </div>
+                            $cyclesCollection = $pmCycles->count() ? $pmCycles : collect(range(1, $pmTotal))->map(function($n) {
+                                return (object)[
+                                    'cycle_number'    => $n,
+                                    'cycle_label'     => 'PM ' . $n,
+                                    'activity_status' => 'Scheduled',
+                                    'actual_date'     => null,
+                                    'scheduled_date'  => null,
+                                ];
+                            });
 
-                            @forelse($pmCycles as $cycle)
-                                @php
-                                    $isDone = $cycle->activity_status === 'Completed';
-                                    $isInProg = $cycle->activity_status === 'In Progress';
-                                @endphp
-                                <div class="relative z-10 flex flex-col items-center text-center">
-                                    <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all
-                                        {{ $isDone ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' : ($isInProg ? 'bg-amber-500 border-amber-500 text-white animate-pulse' : 'bg-white border-[#CBD5E1] text-[#64748B]') }}">
-                                        @if($isDone)
-                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                        @else
-                                            {{ $cycle->cycle_number }}
-                                        @endif
-                                    </div>
-                                    <span class="text-[11px] font-bold mt-1.5 {{ $isDone ? 'text-emerald-700' : ($isInProg ? 'text-amber-700' : 'text-[#1E293B]') }}">
-                                        {{ $cycle->cycle_label }}
-                                    </span>
-                                    <span class="text-[10px] text-[#64748B]">
-                                        {{ $cycle->actual_date ? date('d/m/Y', strtotime($cycle->actual_date)) : ($cycle->scheduled_date ? date('d/m/Y', strtotime($cycle->scheduled_date)) : 'Terjadwal') }}
-                                    </span>
-                                </div>
-                            @empty
-                                @for($i = 1; $i <= $pmTotal; $i++)
-                                    <div class="relative z-10 flex flex-col items-center text-center">
-                                        <div class="w-8 h-8 rounded-full bg-white border-2 border-[#CBD5E1] flex items-center justify-center font-bold text-[11px] text-[#64748B]">
-                                            {{ $i }}
+                            foreach($cyclesCollection as $cycle) {
+                                $pmNodeItems->push([
+                                    'is_milestone' => false,
+                                    'type'         => 'cycle',
+                                    'cycle'        => $cycle,
+                                    'number'       => $cycle->cycle_number,
+                                    'label'        => 'PM ' . $cycle->cycle_number,
+                                    'full_label'   => $cycle->cycle_label ?? ('PM ' . $cycle->cycle_number),
+                                    'sub'          => $cycle->actual_date ? date('d/m/Y', strtotime($cycle->actual_date)) : ($cycle->scheduled_date ? date('d/m/Y', strtotime($cycle->scheduled_date)) : 'Terjadwal'),
+                                    'status'       => $cycle->activity_status ?? 'Scheduled',
+                                ]);
+                            }
+
+                            $pmNodeItems->push([
+                                'is_milestone' => true,
+                                'type'         => 'end',
+                                'label'        => 'End',
+                                'sub'          => $project->service_end_date ? date('d/m/Y', strtotime($project->service_end_date)) : 'Akhir',
+                                'icon'         => 'check',
+                            ]);
+
+                            $isSnakePm = $pmTotal > 6;
+                            $chunkSize = 5; // 5 node per baris agar lekukan ular simetris dan lega
+                            $pmRows = $isSnakePm ? $pmNodeItems->chunk($chunkSize) : collect([$pmNodeItems]);
+                        @endphp
+
+                        @if(!$isSnakePm)
+                            {{-- ======================================================== --}}
+                            {{-- MODE 1: MEMANJANG HORIZONTAL LURUS (KONDISI VISIT <= 6) --}}
+                            {{-- ======================================================== --}}
+                            <div class="flex items-center justify-between min-w-[650px] relative py-2">
+                                {{-- Connecting Line --}}
+                                <div class="absolute left-6 right-6 top-4 h-0.5 bg-[#E2E8F0] -z-0"></div>
+
+                                @foreach($pmNodeItems as $node)
+                                    @if($node['is_milestone'])
+                                        <div class="relative z-10 flex flex-col items-center text-center">
+                                            <div class="w-8 h-8 rounded-full bg-[#F8FAFC] border-2 border-[#94A3B8] flex items-center justify-center text-[#475569] shadow-2xs">
+                                                @if($node['icon'] === 'flag')
+                                                    <svg class="w-3.5 h-3.5 text-[#475569]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2z"/></svg>
+                                                @else
+                                                    <svg class="w-3.5 h-3.5 text-[#475569]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                @endif
+                                            </div>
+                                            <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">{{ $node['label'] }}</span>
+                                            <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
                                         </div>
-                                        <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">PM {{ $i }}</span>
-                                        <span class="text-[10px] text-[#64748B]">Q{{ $i }} Terjadwal</span>
-                                    </div>
-                                @endfor
-                            @endforelse
-
-                            {{-- Milestone: End --}}
-                            <div class="relative z-10 flex flex-col items-center text-center">
-                                <div class="w-8 h-8 rounded-full bg-[#F8FAFC] border-2 border-[#94A3B8] flex items-center justify-center text-[#475569] shadow-2xs">
-                                    <svg class="w-3.5 h-3.5 text-[#475569]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </div>
-                                <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">End</span>
-                                <span class="text-[10px] text-[#64748B]">{{ $project->service_end_date ? date('d/m/Y', strtotime($project->service_end_date)) : 'Akhir' }}</span>
+                                    @else
+                                        @php
+                                            $isDone = $node['status'] === 'Completed';
+                                            $isInProg = $node['status'] === 'In Progress';
+                                        @endphp
+                                        <div class="relative z-10 flex flex-col items-center text-center cursor-pointer group"
+                                             @if(isset($node['cycle']->id)) @click="activeCycle = {{ json_encode($node['cycle']) }}; isPmModalOpen = true" @endif>
+                                            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all group-hover:scale-110
+                                                {{ $isDone ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' : ($isInProg ? 'bg-amber-500 border-amber-500 text-white animate-pulse' : 'bg-white border-[#CBD5E1] text-[#64748B] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
+                                                @if($isDone)
+                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                @else
+                                                    {{ $node['number'] }}
+                                                @endif
+                                            </div>
+                                            <span class="text-[11px] font-bold mt-1.5 {{ $isDone ? 'text-emerald-700' : ($isInProg ? 'text-amber-700' : 'text-[#1E293B]') }}">
+                                                {{ $node['label'] }}
+                                            </span>
+                                            <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
+                                        </div>
+                                    @endif
+                                @endforeach
                             </div>
-                        </div>
+                        @else
+                            {{-- ======================================================== --}}
+                            {{-- MODE 2: VISUALISASI BERKELOK KEK ULER (VISIT BANYAK > 6)  --}}
+                            {{-- ======================================================== --}}
+                            <div class="min-w-[720px] max-w-5xl mx-auto space-y-7 py-3">
+                                @foreach($pmRows as $rowIndex => $rowNodes)
+                                    @php
+                                        $isRtl = ($rowIndex % 2 === 1);
+                                        $hasNextRow = ($rowIndex < $pmRows->count() - 1);
+                                        $nodeList = $isRtl ? $rowNodes->reverse() : $rowNodes;
+                                    @endphp
+
+                                    <div class="relative">
+                                        {{-- Garis Utama Horizontal Baris Ini --}}
+                                        <div class="absolute top-4 left-6 right-6 h-0.5 bg-[#CBD5E1] -z-0"></div>
+
+                                        {{-- Lekukan U-Turn Berkelok (Loop Belok) Menyambung Baris Bawahnya --}}
+                                        @if($hasNextRow)
+                                            @if(!$isRtl)
+                                                {{-- Belokan Loop Kanan: Mengalir ke bawah kanan --}}
+                                                <div class="absolute -right-1 top-4 w-10 h-[calc(100%+1.75rem)] border-t-2 border-r-2 border-b-2 rounded-r-3xl border-[#CBD5E1] pointer-events-none -z-0"></div>
+                                                <div class="absolute right-7 -bottom-3.5 text-[#94A3B8] text-[10px]">
+                                                    <svg class="w-3.5 h-3.5 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                                </div>
+                                            @else
+                                                {{-- Belokan Loop Kiri: Mengalir ke bawah kiri --}}
+                                                <div class="absolute -left-1 top-4 w-10 h-[calc(100%+1.75rem)] border-t-2 border-l-2 border-b-2 rounded-l-3xl border-[#CBD5E1] pointer-events-none -z-0"></div>
+                                                <div class="absolute left-7 -bottom-3.5 text-[#94A3B8] text-[10px]">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                                </div>
+                                            @endif
+                                        @endif
+
+                                        {{-- Node Stepper Baris Ini --}}
+                                        <div class="flex items-start justify-between relative z-10 px-2 {{ $isRtl ? 'flex-row-reverse' : '' }}">
+                                            @foreach($rowNodes as $node)
+                                                <div class="flex-1 flex flex-col items-center text-center">
+                                                    @if($node['is_milestone'])
+                                                        <div class="w-8 h-8 rounded-full bg-[#F8FAFC] border-2 border-[#94A3B8] flex items-center justify-center text-[#475569] shadow-2xs">
+                                                            @if($node['icon'] === 'flag')
+                                                                <svg class="w-3.5 h-3.5 text-[#475569]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2z"/></svg>
+                                                            @else
+                                                                <svg class="w-3.5 h-3.5 text-[#475569]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                            @endif
+                                                        </div>
+                                                        <span class="text-[11px] font-bold text-[#1E293B] mt-1.5">{{ $node['label'] }}</span>
+                                                        <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
+                                                    @else
+                                                        @php
+                                                            $isDone = $node['status'] === 'Completed';
+                                                            $isInProg = $node['status'] === 'In Progress';
+                                                        @endphp
+                                                        <div class="cursor-pointer group flex flex-col items-center"
+                                                             @if(isset($node['cycle']->id)) @click="activeCycle = {{ json_encode($node['cycle']) }}; isPmModalOpen = true" @endif>
+                                                            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all group-hover:scale-110
+                                                                {{ $isDone ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' : ($isInProg ? 'bg-amber-500 border-amber-500 text-white animate-pulse' : 'bg-white border-[#CBD5E1] text-[#64748B] group-hover:border-[#8F0A0D] group-hover:text-[#8F0A0D]') }}">
+                                                                @if($isDone)
+                                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                                @else
+                                                                    {{ $node['number'] }}
+                                                                @endif
+                                                            </div>
+                                                            <span class="text-[11px] font-bold mt-1.5 {{ $isDone ? 'text-emerald-700' : ($isInProg ? 'text-amber-700' : 'text-[#1E293B]') }}">
+                                                                {{ $node['label'] }}
+                                                            </span>
+                                                            <span class="text-[10px] text-[#64748B]">{{ $node['sub'] }}</span>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+
+                                            {{-- Penyeimbang lebar jika baris terakhir memiliki item lebih sedikit --}}
+                                            @if($rowNodes->count() < $chunkSize)
+                                                @for($fill = 0; $fill < ($chunkSize - $rowNodes->count()); $fill++)
+                                                    <div class="flex-1 opacity-0 pointer-events-none"></div>
+                                                @endfor
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -779,6 +897,136 @@
                             <span>Total Kuota: {{ $cmQuota >= 999 ? 'Unlimited Tiket' : $cmQuota . ' Tiket / Tahun' }}</span>
                             <span>Target MTTR Penanganan: {{ $project->mttr_hours ?: 4 }} Jam</span>
                         </div>
+                    </div>
+
+                    {{-- Visual Kuota Stepper: Memanjang jika <= 6, Berkelok seperti Ular (Snake Flow) jika > 6 --}}
+                    @php
+                        $displayQuota = ($cmQuota >= 999) ? max(6, $cmUsed + 2) : min(24, max(1, (int)$cmQuota));
+                        $isSnakeCm = $displayQuota > 6;
+                        $cmChunkSize = 6; // 6 slot tiket per baris
+
+                        $cmSlots = collect();
+                        $sortedTickets = $project->managedServiceTickets->sortBy('created_at')->values();
+
+                        for ($slotIndex = 1; $slotIndex <= $displayQuota; $slotIndex++) {
+                            $ticket = $sortedTickets->get($slotIndex - 1);
+                            $isUsed = ($ticket !== null) || ($slotIndex <= $cmUsed);
+                            $ticketStatus = $ticket ? $ticket->status : ($isUsed ? 'Resolved' : 'Available');
+
+                            $cmSlots->push([
+                                'slot_number' => $slotIndex,
+                                'is_used'     => $isUsed,
+                                'status'      => $ticketStatus,
+                                'ticket'      => $ticket,
+                                'label'       => $ticket ? ($ticket->ticket_number ?: ('Tiket #' . $slotIndex)) : ('Tiket #' . $slotIndex),
+                                'sub'         => $isUsed ? ($ticket ? $ticket->status : 'Terpakai') : 'Tersedia',
+                            ]);
+                        }
+
+                        $cmRows = $isSnakeCm ? $cmSlots->chunk($cmChunkSize) : collect([$cmSlots]);
+                    @endphp
+
+                    <div class="pt-3 border-t border-[#E2E8F0] overflow-x-auto">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+                                Visualisasi Slot Kuota Tiket ({{ $displayQuota }} Kuota &bull; {{ $cmUsed }} Terpakai &bull; {{ $cmRemaining }} Tersisa)
+                            </span>
+                        </div>
+
+                        @if(!$isSnakeCm)
+                            {{-- MODE 1: MEMANJANG HORIZONTAL LURUS (KUOTA <= 6) --}}
+                            <div class="flex items-center justify-between min-w-[550px] relative py-2 px-3">
+                                <div class="absolute left-6 right-6 top-4 h-0.5 bg-[#CBD5E1] -z-0"></div>
+
+                                @foreach($cmSlots as $slot)
+                                    @php
+                                        $isResolved = in_array($slot['status'], ['Resolved', 'Closed']);
+                                        $isInProg = in_array($slot['status'], ['In Progress', 'Assigned']);
+                                    @endphp
+                                    <div class="relative z-10 flex flex-col items-center text-center">
+                                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all
+                                            {{ $slot['is_used'] ? ($isResolved ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' : ($isInProg ? 'bg-amber-500 border-amber-500 text-white animate-pulse' : 'bg-[#8F0A0D] border-[#8F0A0D] text-white shadow-xs')) : 'bg-white border-[#CBD5E1] text-[#94A3B8]' }}">
+                                            @if($slot['is_used'])
+                                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            @else
+                                                {{ $slot['slot_number'] }}
+                                            @endif
+                                        </div>
+                                        <span class="text-[11px] font-bold mt-1.5 {{ $slot['is_used'] ? 'text-[#1E293B]' : 'text-[#64748B]' }}">
+                                            Tiket #{{ $slot['slot_number'] }}
+                                        </span>
+                                        <span class="text-[10px] {{ $slot['is_used'] ? 'text-emerald-700 font-semibold' : 'text-[#94A3B8]' }}">
+                                            {{ $slot['sub'] }}
+                                        </span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            {{-- MODE 2: BERKELOK KEK ULER (KUOTA BANYAK > 6) --}}
+                            <div class="min-w-[720px] max-w-5xl mx-auto space-y-6 py-2">
+                                @foreach($cmRows as $rowIndex => $rowSlots)
+                                    @php
+                                        $isRtl = ($rowIndex % 2 === 1);
+                                        $hasNextRow = ($rowIndex < $cmRows->count() - 1);
+                                    @endphp
+
+                                    <div class="relative">
+                                        {{-- Garis Utama Horizontal Baris Ini --}}
+                                        <div class="absolute top-4 left-6 right-6 h-0.5 bg-[#CBD5E1] -z-0"></div>
+
+                                        {{-- Lekukan U-Turn Berkelok (Loop Belok Ular) Menyambung Baris Bawahnya --}}
+                                        @if($hasNextRow)
+                                            @if(!$isRtl)
+                                                {{-- Belokan Loop Kanan: Mengalir ke bawah kanan --}}
+                                                <div class="absolute -right-1 top-4 w-10 h-[calc(100%+1.5rem)] border-t-2 border-r-2 border-b-2 rounded-r-3xl border-[#CBD5E1] pointer-events-none -z-0"></div>
+                                                <div class="absolute right-7 -bottom-3 text-[#94A3B8] text-[10px]">
+                                                    <svg class="w-3.5 h-3.5 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                                </div>
+                                            @else
+                                                {{-- Belokan Loop Kiri: Mengalir ke bawah kiri --}}
+                                                <div class="absolute -left-1 top-4 w-10 h-[calc(100%+1.5rem)] border-t-2 border-l-2 border-b-2 rounded-l-3xl border-[#CBD5E1] pointer-events-none -z-0"></div>
+                                                <div class="absolute left-7 -bottom-3 text-[#94A3B8] text-[10px]">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                                </div>
+                                            @endif
+                                        @endif
+
+                                        {{-- Node Slot Tiket Baris Ini --}}
+                                        <div class="flex items-start justify-between relative z-10 px-2 {{ $isRtl ? 'flex-row-reverse' : '' }}">
+                                            @foreach($rowSlots as $slot)
+                                                @php
+                                                    $isResolved = in_array($slot['status'], ['Resolved', 'Closed']);
+                                                    $isInProg = in_array($slot['status'], ['In Progress', 'Assigned']);
+                                                @endphp
+                                                <div class="flex-1 flex flex-col items-center text-center">
+                                                    <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[11px] transition-all hover:scale-110
+                                                        {{ $slot['is_used'] ? ($isResolved ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs' : ($isInProg ? 'bg-amber-500 border-amber-500 text-white animate-pulse' : 'bg-[#8F0A0D] border-[#8F0A0D] text-white shadow-xs')) : 'bg-white border-[#CBD5E1] text-[#94A3B8]' }}">
+                                                        @if($slot['is_used'])
+                                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                        @else
+                                                            {{ $slot['slot_number'] }}
+                                                        @endif
+                                                    </div>
+                                                    <span class="text-[11px] font-bold mt-1.5 {{ $slot['is_used'] ? 'text-[#1E293B]' : 'text-[#64748B]' }}">
+                                                        Tiket #{{ $slot['slot_number'] }}
+                                                    </span>
+                                                    <span class="text-[10px] {{ $slot['is_used'] ? 'text-emerald-700 font-semibold' : 'text-[#94A3B8]' }}">
+                                                        {{ $slot['sub'] }}
+                                                    </span>
+                                                </div>
+                                            @endforeach
+
+                                            {{-- Penyeimbang lebar jika baris terakhir memiliki slot lebih sedikit --}}
+                                            @if($rowSlots->count() < $cmChunkSize)
+                                                @for($fill = 0; $fill < ($cmChunkSize - $rowSlots->count()); $fill++)
+                                                    <div class="flex-1 opacity-0 pointer-events-none"></div>
+                                                @endfor
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </div>
 

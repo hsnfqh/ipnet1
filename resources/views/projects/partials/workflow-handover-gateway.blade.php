@@ -248,13 +248,13 @@
     @elseif($isClosedWon && !$isHandoverApproved)
         @if($isMs)
             {{-- FORM KHUSUS SERAH TERIMA MANAGED SERVICE (BYPASS PMO) --}}
-            <div class="p-5 rounded-xl bg-purple-50/60 border border-purple-200 space-y-4">
-                <div class="flex items-center justify-between flex-wrap gap-2 border-b border-purple-100 pb-2">
-                    <div class="font-bold text-purple-950 text-xs flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-purple-600 animate-ping"></span>
+            <div class="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-2 border-b border-[#E2E8F0] pb-2">
+                    <div class="font-bold text-slate-900 text-xs flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] animate-ping"></span>
                         <span>Kontrak Managed Service Closed Won — Serah Terima Langsung ke Tim Managed Service</span>
                     </div>
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-[#8F0A0D] border border-rose-200">
                         Bypass PMO (Operate &amp; Maintenance)
                     </span>
                 </div>
@@ -279,15 +279,15 @@
                                 CATATAN SERAH TERIMA (OPSIONAL)
                             </label>
                             <input type="text" name="handover_notes" placeholder="Contoh: Pemeliharaan berkala bulanan dimulai sesuai tanggal PO."
-                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white hover:border-slate-400 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600/20 transition">
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white hover:border-slate-400 focus:outline-none focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition">
                         </div>
                     </div>
 
                     <div class="pt-2 flex items-center justify-end">
                         @if($canConfirmHandover)
                             <button type="submit" 
-                                    onclick="return confirm('Apakah Anda yakin ingin mengesahkan serah terima kontrak ini langsung ke Tim Managed Service?')"
-                                    class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 transition cursor-pointer shadow-sm active:scale-95">
+                                     onclick="return confirm('Apakah Anda yakin ingin mengesahkan serah terima kontrak ini langsung ke Tim Managed Service?')"
+                                     class="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] transition cursor-pointer shadow-sm active:scale-95">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 <span>Sahkan Serah Terima ke Managed Service</span>
                             </button>
@@ -301,10 +301,10 @@
             </div>
         @else
             {{-- Proyek Implementasi PMO Biasa --}}
-            <div class="p-5 rounded-xl bg-blue-50/60 border border-blue-200 space-y-4">
-                <div class="flex items-center justify-between flex-wrap gap-2 border-b border-blue-100 pb-2">
-                    <div class="font-bold text-blue-950 text-xs flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
+            <div class="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-2 border-b border-[#E2E8F0] pb-2">
+                    <div class="font-bold text-slate-900 text-xs flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-[#8F0A0D] animate-ping"></span>
                         <span>Proyek Closed Won — Silakan Tetapkan PM &amp; Sahkan Serah Terima</span>
                     </div>
                 </div>

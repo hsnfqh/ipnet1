@@ -121,7 +121,7 @@
             @if(!$isMsHandedOver && $canPmoHandover)
                 <button type="button" 
                         onclick="window.openModal('modal-handover-ms')"
-                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 transition shadow-sm cursor-pointer whitespace-nowrap">
+                        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#73080A] transition shadow-sm cursor-pointer whitespace-nowrap">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     <span>Serah Terima ke Managed Service</span>
                 </button>

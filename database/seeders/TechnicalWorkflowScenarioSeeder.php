@@ -301,8 +301,8 @@ class TechnicalWorkflowScenarioSeeder extends Seeder
                 'call_response_time'            => '15 Menit',
                 'incident_resolution_hours'     => 4,
                 'sla_target_percentage'         => 99.95,
-                'cm_quota'                      => 12,
-                'pm_frequency_type'             => 'Monthly',
+                'cm_quota'                      => 18,
+                'pm_frequency_type'             => 'per_bulan',
                 'pm_total_cycles'               => 12,
                 'location'                      => 'Telkom STO Gambir & STO Merdeka Jakarta',
                 'start_date'                    => Carbon::now()->subMonths(2)->format('Y-m-d'),
@@ -448,6 +448,81 @@ class TechnicalWorkflowScenarioSeeder extends Seeder
                     'created_by'    => $leadDoris ? $leadDoris->id : null,
                 ]
             );
+        }
+
+        // Seeding 12 Siklus PM Bulanan & 3 Tiket CM untuk P2 (Telkom - Kontrak 18 Tiket Kuota)
+        if (Schema::hasTable('managed_service_pm_cycles')) {
+            ManagedServicePmCycle::where('project_id', $p2->id)->delete();
+            for ($i = 1; $i <= 12; $i++) {
+                $schedDate = Carbon::now()->subMonths(2)->addMonths($i);
+                $status = ($i <= 3) ? 'Completed' : (($i === 4) ? 'In Progress' : 'Scheduled');
+                $actualDate = ($i <= 3) ? $schedDate->copy()->subDays(2)->toDateString() : (($i === 4) ? Carbon::now()->toDateString() : null);
+
+                ManagedServicePmCycle::create([
+                    'project_id'           => $p2->id,
+                    'cycle_number'         => $i,
+                    'cycle_label'          => 'PM ' . $i . ' (Bulan ke-' . $i . ')',
+                    'scheduled_date'       => $schedDate->toDateString(),
+                    'actual_date'          => $actualDate,
+                    'activity_status'      => $status,
+                    'assigned_engineer_id' => $engEris ? $engEris->id : null,
+                    'activity_notes'       => ($i <= 3) ? 'Pembersihan rack, inspeksi fan blower, backup config router STO Gambir tuntas.' : (($i === 4) ? 'Sedang berlangsung inspeksi visual & kabel backbone.' : null),
+                    'report_status'        => ($i <= 3) ? 'Approved' : 'Pending',
+                    'billing_ba_status'    => ($i <= 3) ? 'Signed' : 'Pending',
+                ]);
+            }
+        }
+
+        if (Schema::hasTable('managed_service_tickets')) {
+            ManagedServiceTicket::where('project_id', $p2->id)->delete();
+            $cmTicketsP2 = [
+                [
+                    'ticket_number' => 'CM-TLK-2026-001',
+                    'title'         => 'Flapping BGP Peering Interface TenGigE 0/0/1 STO Merdeka',
+                    'priority'      => 'Critical',
+                    'status'        => 'Resolved',
+                    'incident_date' => Carbon::now()->subDays(25),
+                    'resolved_at'   => Carbon::now()->subDays(25)->addHours(2),
+                    'sla_met'       => true,
+                    'description'   => 'Terjadi flapping BGP session ke upstream Telkomsel. Tim melakukan pembersihan konektor optik patch cord.',
+                    'assigned_to'   => $engMario ? $engMario->id : null,
+                ],
+                [
+                    'ticket_number' => 'CM-TLK-2026-002',
+                    'title'         => 'High Optical RX Power Loss pada Transceiver SFP+ Rack TELKOM-01',
+                    'priority'      => 'High',
+                    'status'        => 'Resolved',
+                    'incident_date' => Carbon::now()->subDays(12),
+                    'resolved_at'   => Carbon::now()->subDays(12)->addHours(3),
+                    'sla_met'       => true,
+                    'description'   => 'Alarm RX power loss -18dBm. Dilakukan penggantian modul SFP+ 10G LR sparepart resmi IP-NET.',
+                    'assigned_to'   => $engEris ? $engEris->id : null,
+                ],
+                [
+                    'ticket_number' => 'CM-TLK-2026-003',
+                    'title'         => 'Peningkatan Utilisasi CPU & Latency Spike Core Switch STO Gambir',
+                    'priority'      => 'Medium',
+                    'status'        => 'In Progress',
+                    'incident_date' => Carbon::now()->subHours(5),
+                    'resolved_at'   => null,
+                    'sla_met'       => true,
+                    'description'   => 'Investigasi lonjakan paket broadcast dan analisis NetFlow traffic capture oleh NOC.',
+                    'assigned_to'   => $engMario ? $engMario->id : null,
+                ],
+            ];
+
+            foreach ($cmTicketsP2 as $tData) {
+                ManagedServiceTicket::create(array_merge($tData, [
+                    'project_id'   => $p2->id,
+                    'client_name'  => $p2->client,
+                    'type'         => 'Corrective Maintenance',
+                    'category'     => 'Troubleshooting',
+                    'source'       => 'Portal',
+                    'reported_by'  => 'Bpk. Agus Prasetyo (Telkom)',
+                    'sla_deadline' => Carbon::parse($tData['incident_date'])->addHours(4),
+                    'created_by'   => $leadDoris ? $leadDoris->id : 1,
+                ]));
+            }
         }
 
 
@@ -663,6 +738,52 @@ class TechnicalWorkflowScenarioSeeder extends Seeder
             if (Schema::hasTable('task_user')) {
                 $t->engineers()->sync([$tData['engineer_id']]);
             }
+        }
+
+        // Seeding 4 Siklus PM Kuartalan & 1 Tiket CM untuk P3 (PLN - Kontrak 8 Tiket Kuota)
+        if (Schema::hasTable('managed_service_pm_cycles')) {
+            ManagedServicePmCycle::where('project_id', $p3->id)->delete();
+            for ($i = 1; $i <= 4; $i++) {
+                $schedDate = Carbon::now()->subMonths(1)->addMonths($i * 3);
+                $status = ($i === 1) ? 'Completed' : 'Scheduled';
+                $actualDate = ($i === 1) ? $schedDate->copy()->subDays(3)->toDateString() : null;
+
+                ManagedServicePmCycle::create([
+                    'project_id'           => $p3->id,
+                    'cycle_number'         => $i,
+                    'cycle_label'          => 'PM ' . $i . ' (Bulan ke-' . ($i * 3) . ')',
+                    'scheduled_date'       => $schedDate->toDateString(),
+                    'actual_date'          => $actualDate,
+                    'activity_status'      => $status,
+                    'assigned_engineer_id' => $engEris ? $engEris->id : null,
+                    'activity_notes'       => ($i === 1) ? 'Inspeksi berkala kuartal 1 Data Center PLN Trunojoyo.' : null,
+                    'report_status'        => ($i === 1) ? 'Approved' : 'Pending',
+                    'billing_ba_status'    => ($i === 1) ? 'Signed' : 'Pending',
+                ]);
+            }
+        }
+
+        if (Schema::hasTable('managed_service_tickets')) {
+            ManagedServiceTicket::where('project_id', $p3->id)->delete();
+            ManagedServiceTicket::create([
+                'project_id'    => $p3->id,
+                'client_name'   => $p3->client,
+                'ticket_number' => 'CM-PLN-2026-001',
+                'title'         => 'Peringatan Degradasi RPM Fan Blower Modul 2 Spine Switch Data Center',
+                'priority'      => 'Medium',
+                'status'        => 'Resolved',
+                'incident_date' => Carbon::now()->subDays(7),
+                'resolved_at'   => Carbon::now()->subDays(7)->addHours(2),
+                'sla_met'       => true,
+                'description'   => 'Penggantian hot-swappable fan tray spare part PLN DC.',
+                'type'          => 'Corrective Maintenance',
+                'category'      => 'Hardware',
+                'source'        => 'Helpdesk',
+                'reported_by'   => 'Bpk. Ir. Danang Priyadi (PLN)',
+                'assigned_to'   => $engEris ? $engEris->id : null,
+                'sla_deadline'  => Carbon::now()->subDays(7)->addHours(4),
+                'created_by'    => $leadDoris ? $leadDoris->id : 1,
+            ]);
         }
 
         // =========================================================================

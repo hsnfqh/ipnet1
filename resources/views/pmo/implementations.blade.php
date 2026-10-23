@@ -369,7 +369,7 @@
                                             <template x-if="project.stage === 'Deliver'">
                                                 <button type="button"
                                                         @click="openHandoverToMsModal(project)"
-                                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
+                                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
                                                     <span>Handover MS</span>
                                                 </button>
                                             </template>
@@ -511,7 +511,7 @@
                                         <template x-if="project.stage === 'Deliver'">
                                             <button type="button"
                                                     @click="openHandoverToMsModal(project)"
-                                                    class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
+                                                    class="px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
                                                 Handover MS
                                             </button>
                                         </template>
@@ -1535,7 +1535,7 @@
                         Tutup
                     </button>
                     
-                    <button type="button" @click="submitHandoverToMs()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
+                    <button type="button" @click="submitHandoverToMs()" class="px-5 py-2.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1.5 active:scale-95">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                         <span>Sahkan &amp; Serahkan ke Tim Managed Service</span>
                     </button>
