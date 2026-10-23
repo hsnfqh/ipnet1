@@ -1213,6 +1213,21 @@ class PmoController extends Controller
             'special_notes'         => 'nullable|string',
         ]);
 
+        $existingHandoverData = is_array($project->handover_data) ? $project->handover_data : [];
+        $existingHandoverData['ms_handover'] = [
+            'checklist_status'         => $request->input('checklist_status', []),
+            'checklist_na'             => $request->input('checklist_na', []),
+            'checklist_notes'          => $request->input('checklist_notes', []),
+            'handover_status_selected' => $request->input('handover_status_selected', 'approved'),
+            'service_acceptance'       => $request->input('service_acceptance', ''),
+            'risks_and_pic'            => $request->input('risks_and_pic', ''),
+            'follow_up_date'           => $request->input('follow_up_date', ''),
+            'confirmation_notes'       => $request->input('confirmation_notes', ''),
+            'special_notes'            => $validated['special_notes'] ?? $project->special_notes,
+            'submitted_at'             => now()->toDateTimeString(),
+            'submitted_by'             => auth()->id(),
+        ];
+
         $project->update([
             'stage'                 => 'Operate',
             'status'                => 'Active',
@@ -1223,6 +1238,7 @@ class PmoController extends Controller
             'service_start_date'    => $validated['service_start_date'],
             'service_end_date'      => $validated['service_end_date'],
             'ms_handover_status'    => 'Submitted',
+            'handover_data'         => $existingHandoverData,
             'special_notes'         => $validated['special_notes'] ?? $project->special_notes,
         ]);
 
