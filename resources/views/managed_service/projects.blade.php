@@ -565,26 +565,33 @@
                 {{-- ============================================================== --}}
                 <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-6 sm:p-10 shadow-sm space-y-5 text-[#0F172A] font-sans relative">
                     
-                    {{-- Kop Dokumen Persis PDF (Logo Kiri, Checklist Serah Terima + IPNET#1 Kanan) --}}
-                    <div class="flex items-start justify-between gap-4 pb-2 border-b-2 border-[#8F0A0D]">
-                        <div class="flex items-center gap-3">
-                            <img src="{{ asset('images/ipnet1.png') }}" onerror="this.src='/images/ipnet.png'" alt="Logo IP Network Solusindo" class="h-12 sm:h-14 w-auto object-contain shrink-0">
+                    {{-- Kop Dokumen Persis PDF & Screenshot (Logo Kiri, Checklist Serah Terima + IPNET#1 + Hal 1 Kanan) --}}
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="shrink-0">
+                            <img src="{{ asset('images/ipnet1.png') }}" onerror="this.src='/images/ipnet.png'" alt="Logo IP Network Solusindo" class="h-20 sm:h-24 md:h-28 w-auto object-contain">
                         </div>
                         <div class="text-right shrink-0">
-                            <div class="text-[#8F0A0D] font-black text-sm sm:text-base uppercase tracking-wider">CHECKLIST SERAH TERIMA</div>
-                            <div class="text-black font-black text-xs sm:text-sm uppercase tracking-widest mt-0.5">IPNET#1</div>
+                            <div class="text-[#8F0A0D] font-extrabold text-2xl sm:text-3xl md:text-4xl uppercase tracking-tight leading-none">
+                                CHECKLIST SERAH TERIMA
+                            </div>
+                            <div class="text-black font-extrabold text-lg sm:text-xl md:text-2xl uppercase tracking-normal mt-1">
+                                IPNET#1
+                            </div>
+                            <div class="text-xs sm:text-sm text-slate-700 italic font-medium mt-1">
+                                Hal 1
+                            </div>
                         </div>
                     </div>
 
                     {{-- Judul Utama Dokumen Persis PDF --}}
-                    <div class="text-center my-3">
-                        <h1 class="text-base sm:text-lg md:text-xl font-black text-[#0F172A] uppercase tracking-wide leading-snug">
+                    <div class="text-center my-6 sm:my-8">
+                        <h1 class="text-lg sm:text-xl md:text-2xl font-black text-black uppercase tracking-normal leading-snug">
                             SERAH TERIMA SALES / COMMERCIAL KE MANAGED SERVICE
                         </h1>
-                        <h2 class="text-sm sm:text-base font-black text-[#0F172A] uppercase tracking-wide mt-0.5">
+                        <h2 class="text-base sm:text-lg md:text-xl font-black text-black uppercase tracking-normal mt-1">
                             UNTUK KONTRAK MAINTENANCE
                         </h2>
-                        <p class="text-xs italic text-slate-600 mt-1">
+                        <p class="text-xs sm:text-sm md:text-base italic text-slate-700 mt-2 font-serif">
                             Commercial-to-Project Handover Checklist
                         </p>
                     </div>
@@ -736,14 +743,21 @@
                 {{-- ============================================================== --}}
                 <div class="bg-white border-2 border-[#CBD5E1] rounded-xl p-6 sm:p-10 shadow-sm space-y-6 text-[#0F172A] font-sans relative page-break">
                     
-                    {{-- Kop Dokumen Hal 2 Persis PDF --}}
-                    <div class="flex items-start justify-between gap-4 pb-2 border-b-2 border-[#8F0A0D]">
-                        <div class="flex items-center gap-3">
-                            <img src="{{ asset('images/ipnet1.png') }}" onerror="this.src='/images/ipnet.png'" alt="Logo IP Network Solusindo" class="h-12 sm:h-14 w-auto object-contain shrink-0">
+                    {{-- Kop Dokumen Hal 2 Persis PDF (Logo Kiri, Checklist Serah Terima + IPNET#1 + Hal 2 Kanan) --}}
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="shrink-0">
+                            <img src="{{ asset('images/ipnet1.png') }}" onerror="this.src='/images/ipnet.png'" alt="Logo IP Network Solusindo" class="h-20 sm:h-24 md:h-28 w-auto object-contain">
                         </div>
                         <div class="text-right shrink-0">
-                            <div class="text-[#8F0A0D] font-black text-sm sm:text-base uppercase tracking-wider">CHECKLIST SERAH TERIMA</div>
-                            <div class="text-black font-black text-xs sm:text-sm uppercase tracking-widest mt-0.5">IPNET#1</div>
+                            <div class="text-[#8F0A0D] font-extrabold text-2xl sm:text-3xl md:text-4xl uppercase tracking-tight leading-none">
+                                CHECKLIST SERAH TERIMA
+                            </div>
+                            <div class="text-black font-extrabold text-lg sm:text-xl md:text-2xl uppercase tracking-normal mt-1">
+                                IPNET#1
+                            </div>
+                            <div class="text-xs sm:text-sm text-slate-700 italic font-medium mt-1">
+                                Hal 2
+                            </div>
                         </div>
                     </div>
 
@@ -859,81 +873,15 @@
 
                 </div>
 
-                {{-- ============================================================== --}}
-                {{-- PARAMETER SLA & OPERASIONAL MANAGED SERVICE (AKTIVASI SISTEM) --}}
-                {{-- (Bagian Tambahan Khusus Aktivasi Sistem - Disembunyikan Saat Print) --}}
-                {{-- ============================================================== --}}
-                <div class="no-print bg-white border-2 border-[#CBD5E1] rounded-xl p-5 sm:p-7 shadow-sm space-y-4 text-[#0F172A]">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-200">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#8F0A0D]"></span>
-                            <h4 class="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-900">
-                                PARAMETER OPERASIONAL &amp; KOMITMEN SLA (AKTIVASI SISTEM)
-                            </h4>
-                        </div>
-                        <span class="text-[11px] font-medium text-slate-500">Konfigurasi operasional internal tim Managed Service</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1">
-                                Tier Komitmen SLA <span class="text-red-500">*</span>
-                            </label>
-                            <select id="accept-modal-sla-tier" name="sla_tier" required
-                                    class="w-full px-3 py-2 bg-[#F8FAFC] border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-[#8F0A0D]">
-                                <option value="Platinum">Platinum (Response 15m, MTTR 2h)</option>
-                                <option value="Gold">Gold (Response 30m, MTTR 4h)</option>
-                                <option value="Silver">Silver (Response 1h, MTTR 8h)</option>
-                                <option value="Bronze">Bronze (Best Effort / 24h)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1">
-                                Jam Dukungan (Coverage Hours)
-                            </label>
-                            <select id="accept-modal-sla-coverage" name="sla_coverage_hours"
-                                    class="w-full px-3 py-2 bg-[#F8FAFC] border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-[#8F0A0D]">
-                                <option value="24x7">24x7 (24 Jam Termasuk Libur)</option>
-                                <option value="8x5">8x5 (Jam Kerja Senin-Jumat 08:00 - 17:00)</option>
-                                <option value="12x7">12x7 (08:00 - 20:00 Setiap Hari)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1">
-                                Frekuensi Kunjungan PM
-                            </label>
-                            <select id="accept-modal-maint-freq" name="maintenance_frequency"
-                                    class="w-full px-3 py-2 bg-[#F8FAFC] border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none focus:border-[#8F0A0D]">
-                                <option value="Monthly">Bulanan (Monthly)</option>
-                                <option value="Quarterly">Triwulanan (3 Bulan)</option>
-                                <option value="Bi-Annual">Semesteran (6 Bulan)</option>
-                                <option value="Annual">Tahunan</option>
-                                <option value="On-Demand">On-Demand</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1">
-                                Mulai Tanggal Layanan
-                            </label>
-                            <input type="date" id="accept-modal-start-date" name="service_start_date"
-                                   class="w-full px-3 py-2 bg-[#F8FAFC] border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-[#8F0A0D]">
-                        </div>
-                        <div>
-                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1">
-                                Akhir Kontrak Layanan
-                            </label>
-                            <input type="date" id="accept-modal-end-date" name="service_end_date"
-                                   class="w-full px-3 py-2 bg-[#F8FAFC] border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-[#8F0A0D]">
-                        </div>
-                    </div>
-                </div>
+                {{-- Parameter SLA & Operasional Managed Service disimpan sebagai hidden input agar data submit tetap lengkap sesuai backend --}}
+                <input type="hidden" id="accept-modal-sla-tier" name="sla_tier" value="Gold">
+                <input type="hidden" id="accept-modal-sla-coverage" name="sla_coverage_hours" value="24x7">
+                <input type="hidden" id="accept-modal-maint-freq" name="maintenance_frequency" value="Monthly">
+                <input type="hidden" id="accept-modal-start-date" name="service_start_date" value="">
+                <input type="hidden" id="accept-modal-end-date" name="service_end_date" value="">
 
             </div>
-
-            {{-- Footer Action Bar Sesuai Template Lebar --}}
+{{-- Footer Action Bar Sesuai Template Lebar --}}
             <div class="px-6 py-4 border-t border-[#E2E8F0] bg-white flex items-center justify-between shrink-0 no-print">
                 <button type="button" 
                         onclick="window.closeAcceptModal()" 
