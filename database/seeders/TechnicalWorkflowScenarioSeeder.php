@@ -675,9 +675,7 @@ class TechnicalWorkflowScenarioSeeder extends Seeder
                 ProjectDocument::updateOrCreate(
                     ['project_id' => $proj->id, 'stage_number' => 1, 'document_key' => 'customer_requirement'],
                     [
-                        'name'            => 'Customer Requirement Document - ' . $proj->client,
                         'stage_name'      => 'Commercial',
-                        'document_type'   => 'Requirement',
                         'document_title'  => 'Customer Requirement & TOR',
                         'is_mandatory'    => true,
                         'file_path'       => 'project_documents/sample_sc_contract.pdf',
@@ -696,9 +694,7 @@ class TechnicalWorkflowScenarioSeeder extends Seeder
                 ProjectDocument::updateOrCreate(
                     ['project_id' => $proj->id, 'stage_number' => 1, 'document_key' => 'commercial_proposal'],
                     [
-                        'name'            => 'Commercial Proposal & Quotation - ' . $proj->client,
                         'stage_name'      => 'Commercial',
-                        'document_type'   => 'Proposal',
                         'document_title'  => 'Commercial Proposal & Penawaran Harga',
                         'is_mandatory'    => true,
                         'file_path'       => 'project_documents/sample_sc_contract.pdf',
@@ -717,9 +713,7 @@ class TechnicalWorkflowScenarioSeeder extends Seeder
                 ProjectDocument::updateOrCreate(
                     ['project_id' => $proj->id, 'stage_number' => 1, 'document_key' => 'contract_po_so'],
                     [
-                        'name'            => 'Contract / PO / SPK (Signed) - ' . $proj->client,
                         'stage_name'      => 'Commercial',
-                        'document_type'   => 'Contract',
                         'document_title'  => 'Signed Contract / Purchase Order',
                         'is_mandatory'    => true,
                         'file_path'       => 'project_documents/sample_sc_contract.pdf',
@@ -739,9 +733,7 @@ class TechnicalWorkflowScenarioSeeder extends Seeder
                 ProjectDocument::updateOrCreate(
                     ['project_id' => $proj->id, 'stage_number' => 2, 'document_key' => 'solution_architecture'],
                     [
-                        'name'            => 'Solution Architecture & Topology - ' . $proj->client,
                         'stage_name'      => 'Solution',
-                        'document_type'   => 'Architecture',
                         'document_title'  => 'Diagram Topologi & Solusi Terintegrasi',
                         'is_mandatory'    => true,
                         'file_path'       => 'project_documents/sample_technical_boq.pdf',
@@ -760,9 +752,7 @@ class TechnicalWorkflowScenarioSeeder extends Seeder
                 ProjectDocument::updateOrCreate(
                     ['project_id' => $proj->id, 'stage_number' => 2, 'document_key' => 'boq_bom'],
                     [
-                        'name'            => 'Bill of Quantity (BoQ) & Material - ' . $proj->client,
                         'stage_name'      => 'Solution',
-                        'document_type'   => 'BoQ',
                         'document_title'  => 'Bill of Quantity (BoQ) Final',
                         'is_mandatory'    => true,
                         'file_path'       => 'project_documents/sample_technical_boq.pdf',
@@ -782,9 +772,7 @@ class TechnicalWorkflowScenarioSeeder extends Seeder
                 ProjectDocument::updateOrCreate(
                     ['project_id' => $proj->id, 'stage_number' => 3, 'document_key' => 'work_order'],
                     [
-                        'name'            => 'Work Order Pelaksanaan Teknis - ' . $proj->client,
                         'stage_name'      => 'Project Management',
-                        'document_type'   => 'Work Order',
                         'document_title'  => 'Work Order Penugasan Engineer Lapangan',
                         'is_mandatory'    => true,
                         'file_path'       => 'project_documents/sample_installation_report.pdf',
