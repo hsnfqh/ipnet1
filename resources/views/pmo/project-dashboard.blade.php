@@ -795,6 +795,11 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
                 {{-- LEFT COLUMN: Task Share by Engineer & Team Resource Allocation --}}
+                @php
+                    $authUser = auth()->user();
+                    $isLeadUser = $authUser && \App\Helpers\ScopeHelper::isTeamLeader($authUser);
+                    $isPmoUser = $authUser && (\App\Helpers\ScopeHelper::isPmo($authUser) || $authUser->id == $project->pm_id || \App\Helpers\ScopeHelper::isExecutive($authUser));
+                @endphp
                 <div class="lg:col-span-5 ipnet-card p-5 sm:p-6 space-y-4">
                     <div class="border-b border-[#E2E8F0] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                         <div>
@@ -835,26 +840,42 @@
                                     @endif
                                 </div>
                             </div>
-                            <button type="button" 
-                                    @click="showAssignTeamModal = true" 
-                                    class="text-[10.5px] font-bold text-emerald-700 hover:text-emerald-900 shrink-0 hover:underline">
-                                Edit
-                            </button>
+                            @if($isLeadUser)
+                                <button type="button" 
+                                        @click="showAssignTeamModal = true" 
+                                        class="text-[10.5px] font-bold text-emerald-700 hover:text-emerald-900 shrink-0 hover:underline cursor-pointer">
+                                    Kelola Tim
+                                </button>
+                            @endif
                         </div>
                     @else
-                        <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/70 flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse"></span>
-                                <p class="text-[11.5px] text-amber-900 font-medium truncate">
-                                    <strong class="font-bold">Menunggu Lead:</strong> Belum ada personil lapangan yang ditugaskan.
-                                </p>
+                        @if($isLeadUser)
+                            <div class="p-2.5 rounded-xl bg-red-50/80 border border-red-200/70 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="w-2 h-2 rounded-full bg-[#8F0A0D] shrink-0 animate-pulse"></span>
+                                    <p class="text-[11.5px] text-[#8F0A0D] font-medium truncate">
+                                        <strong class="font-bold">Aksi Lead:</strong> Belum ada personil lapangan yang ditugaskan.
+                                    </p>
+                                </div>
+                                <button type="button" 
+                                        @click="showAssignTeamModal = true" 
+                                        class="text-[10.5px] font-bold text-[#8F0A0D] hover:text-[#73080A] shrink-0 underline cursor-pointer">
+                                    + Tambah Personil
+                                </button>
                             </div>
-                            <button type="button" 
-                                    @click="showAssignTeamModal = true" 
-                                    class="text-[10.5px] font-bold text-amber-800 hover:text-amber-950 shrink-0 underline">
-                                Tugaskan
-                            </button>
-                        </div>
+                        @else
+                            <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/70 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse"></span>
+                                    <p class="text-[11.5px] text-amber-900 font-medium truncate">
+                                        <strong class="font-bold">Menunggu Lead:</strong> Belum ada personil lapangan yang ditugaskan.
+                                    </p>
+                                </div>
+                                <span class="text-[10.5px] font-semibold text-amber-700 shrink-0">
+                                    Menunggu Delegasi
+                                </span>
+                            </div>
+                        @endif
                     @endif
 
                     {{-- Visualisasi Donut Chart atau Status Penugasan --}}
@@ -871,21 +892,40 @@
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-slate-800">
-                                    {{ count($assignedEngineers) > 0 ? 'Tim Siap Menerima Tugas' : 'Belum Ada Task Terdaftar' }}
+                                    @if($isLeadUser)
+                                        {{ count($assignedEngineers) > 0 ? 'Personil Tim Lapangan Terdaftar' : 'Belum Ada Personil Lapangan' }}
+                                    @else
+                                        {{ count($assignedEngineers) > 0 ? 'Tim Siap Menerima Tugas' : 'Belum Ada Task Terdaftar' }}
+                                    @endif
                                 </p>
                                 <p class="text-[11px] text-slate-400 max-w-[260px] mx-auto mt-0.5 leading-relaxed">
-                                    {{ count($assignedEngineers) > 0 
-                                        ? 'Lead telah menunjuk ' . count($assignedEngineers) . ' personil. Klik tombol di bawah untuk membagikan rincian tugas teknis (WBS).' 
-                                        : 'Beban kerja engineer akan terhitung otomatis saat tugas teknis dibuat oleh PM.' }}
+                                    @if($isLeadUser)
+                                        {{ count($assignedEngineers) > 0 
+                                            ? 'Anda telah menugaskan ' . count($assignedEngineers) . ' personil. Klik tombol untuk mengelola personil tim.' 
+                                            : 'Tugaskan personil tim lapangan dari divisi Anda agar PM dapat membagikan rincian tugas teknis (WBS).' }}
+                                    @else
+                                        {{ count($assignedEngineers) > 0 
+                                            ? 'Lead telah menunjuk ' . count($assignedEngineers) . ' personil. Klik tombol di bawah untuk membagikan rincian tugas teknis (WBS).' 
+                                            : 'Beban kerja engineer akan terhitung otomatis saat tugas teknis dibuat oleh PM.' }}
+                                    @endif
                                 </p>
                             </div>
-                            @if(count($assignedEngineers) > 0)
+                            @if($isLeadUser)
                                 <button type="button" 
-                                        @click="showQuickTaskModal = true" 
+                                        @click="showAssignTeamModal = true" 
                                         class="mt-1 px-3 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                    <span>Bagi Task ke Tim (PM)</span>
+                                    <span>{{ count($assignedEngineers) > 0 ? 'Kelola Personil Tim' : '+ Tambah Personil' }}</span>
                                 </button>
+                            @else
+                                @if(count($assignedEngineers) > 0)
+                                    <button type="button" 
+                                            @click="showQuickTaskModal = true" 
+                                            class="mt-1 px-3 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                        <span>Bagi Task ke Tim (PM)</span>
+                                    </button>
+                                @endif
                             @endif
                         </div>
                     @endif
@@ -896,7 +936,13 @@
                             <span>Personil Tim</span>
                             <div class="flex items-center gap-2">
                                 <span>Alokasi Beban</span>
-                                <button type="button" @click="showQuickTaskModal = true" class="text-[#8F0A0D] hover:underline normal-case font-bold">+ Tambah Task</button>
+                                @if($isLeadUser)
+                                    <button type="button" @click="showAssignTeamModal = true" class="text-[#8F0A0D] hover:underline normal-case font-bold cursor-pointer">+ Tambah Personil</button>
+                                @else
+                                    @if(count($assignedEngineers) > 0)
+                                        <button type="button" @click="showQuickTaskModal = true" class="text-[#8F0A0D] hover:underline normal-case font-bold cursor-pointer">+ Tambah Task</button>
+                                    @endif
+                                @endif
                             </div>
                         </div>
 
@@ -943,11 +989,13 @@
                                             <svg class="w-3 h-3 text-[#8F0A0D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2"/></svg>
                                             Rincian Tugas dari PM (WBS):
                                         </span>
-                                        <button type="button" 
-                                                @click="selectedEngineerId = '{{ $item['id'] }}'; showQuickTaskModal = true;"
-                                                class="text-[10.5px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-0.5 cursor-pointer">
-                                            <span>+ Beri Tugas</span>
-                                        </button>
+                                        @if(!$isLeadUser)
+                                            <button type="button" 
+                                                    @click="selectedEngineerId = '{{ $item['id'] }}'; showQuickTaskModal = true;"
+                                                    class="text-[10.5px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-0.5 cursor-pointer">
+                                                <span>+ Beri Tugas</span>
+                                            </button>
+                                        @endif
                                     </div>
 
                                     @if(!empty($item['tasks']) && count($item['tasks']) > 0)
@@ -974,11 +1022,13 @@
                                     @else
                                         <div class="p-2 rounded-lg bg-amber-50/60 border border-amber-200/50 text-[11px] text-amber-800 flex items-center justify-between">
                                             <span>Belum ada pembagian tugas teknis dari PM untuk personil ini.</span>
-                                            <button type="button" 
-                                                    @click="selectedEngineerId = '{{ $item['id'] }}'; showQuickTaskModal = true;"
-                                                    class="text-[10.5px] font-bold text-[#8F0A0D] underline cursor-pointer">
-                                                Alokasikan Tugas
-                                            </button>
+                                            @if(!$isLeadUser)
+                                                <button type="button" 
+                                                        @click="selectedEngineerId = '{{ $item['id'] }}'; showQuickTaskModal = true;"
+                                                        class="text-[10.5px] font-bold text-[#8F0A0D] underline cursor-pointer">
+                                                    Alokasikan Tugas
+                                                </button>
+                                            @endif
                                         </div>
                                     @endif
                                 </div>
@@ -1458,23 +1508,25 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Tugaskan ke Engineer</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tugaskan ke Engineer Pelaksana</label>
                         <select name="engineer_id" x-model="selectedEngineerId" required 
                                 class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
-                            <option value="">-- Pilih Engineer --</option>
+                            <option value="">-- Pilih Engineer Pelaksana --</option>
                             @if(count($assignedEngineers) > 0)
-                                <optgroup label="⭐ Tim Resmi Proyek (Ditugaskan Lead)">
+                                <optgroup label="⭐ Personil Tim Proyek (Didelegasikan oleh Lead)">
                                     @foreach($assignedEngineers as $ae)
                                         <option value="{{ $ae['id'] }}">{{ $ae['name'] }} ({{ $ae['position'] ?? 'Engineer' }}){{ !empty($ae['role']) ? ' • Fokus: ' . $ae['role'] : '' }}</option>
                                     @endforeach
                                 </optgroup>
+                            @else
+                                <option value="" disabled selected>⚠️ Belum ada personil yang ditugaskan Lead</option>
                             @endif
-                            <optgroup label="Semua Personil Divisi">
-                                @foreach($availableEngineers as $eng)
-                                    <option value="{{ $eng->id }}">{{ $eng->name }} ({{ $eng->position ?? 'Engineer' }})</option>
-                                @endforeach
-                            </optgroup>
                         </select>
+                        @if(count($assignedEngineers) == 0)
+                            <p class="text-[10.5px] text-amber-700 font-medium mt-1">
+                                * Harap tunggu Lead Engineer menugaskan personil tim lapangan terlebih dahulu.
+                            </p>
+                        @endif
                     </div>
 
                     <div>
