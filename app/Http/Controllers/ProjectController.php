@@ -1699,6 +1699,10 @@ class ProjectController extends Controller
             if ($project->progress < 10) {
                 $updateData['progress'] = 15;
             }
+            if (empty($project->handover_status) || in_array($project->handover_status, ['Draft', 'Pending'])) {
+                $updateData['handover_status'] = 'Submitted';
+                $updateData['handover_submitted_at'] = now();
+            }
         } elseif ($newStatus === 'Pending') {
             // keep stage
         } elseif ($newStatus === 'Completed') {

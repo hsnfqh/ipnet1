@@ -661,19 +661,16 @@ class PmoController extends Controller
               ->orWhere('sales_stage', 'Closed Won')
               ->orWhere('status', 'In Progress');
         })
-        // PMO Implementasi hanya menangani proyek Delivery / Implementasi fisik (Kecualikan kontrak murni Managed Service & Pemeliharaan)
+        // Pastikan proyek yang masih In Progress / Deliver atau butuh approval serah terima tetap masuk ke PMO portofolio.
         ->where(function($q) {
             $q->where(function($sub) {
                 $sub->whereNull('handover_target')
                     ->orWhere('handover_target', '!=', 'managed_service')
                     ->orWhere('handover_target', 'both');
             })
-            ->where(function($sub) {
-                $sub->whereNull('project_type')
-                    ->orWhere('project_type', '!=', 'Managed Service');
-            })
-            ->where('name', 'not like', '%perpanjangan pemeliharaan%')
-            ->where('name', 'not like', '%maintenance contract%');
+            ->orWhereIn('status', ['In Progress', 'On Progress'])
+            ->orWhere('stage', 'Deliver')
+            ->orWhereIn('handover_status', ['Submitted', 'Conditional']);
         });
 
         // Filter divisi jika dipilih
@@ -851,6 +848,26 @@ class PmoController extends Controller
                 }
             }
 
+            $stLower = strtolower($p->status ?? '');
+            $handoverStatus = $p->handover_status;
+            if (empty($handoverStatus) || in_array($handoverStatus, ['Draft', 'Pending'])) {
+                if (in_array($stLower, ['in progress', 'on progress', 'active']) || $p->sales_stage === 'Closed Won') {
+                    if (empty($p->handover_approved_at)) {
+                        $handoverStatus = 'Submitted';
+                        try {
+                            $p->update([
+                                'handover_status' => 'Submitted',
+                                'handover_submitted_at' => $p->handover_submitted_at ?: now()
+                            ]);
+                        } catch (\Throwable $e) {}
+                    } else {
+                        $handoverStatus = 'Approved';
+                    }
+                } else {
+                    $handoverStatus = $handoverStatus ?: 'Draft';
+                }
+            }
+
             return [
                 'id'                            => $p->id,
                 'name'                          => $p->name,
@@ -877,7 +894,7 @@ class PmoController extends Controller
                 'documents_checklist'           => $checklist,
                 'docs_completed_count'          => $completedDocsCount,
                 'total_docs_count'              => $totalDocsCount,
-                'handover_status'               => $p->handover_status ?: 'Draft',
+                'handover_status'               => $handoverStatus,
                 'handover_data'                 => is_array($p->handover_data) ? $p->handover_data : [],
                 'handover_submitted_at'         => $p->handover_submitted_at ? $p->handover_submitted_at->format('d M Y') : ($p->created_at ? $p->created_at->format('d M Y') : '-'),
                 'special_notes'                 => $p->special_notes ?: '-',
