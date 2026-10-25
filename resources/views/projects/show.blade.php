@@ -1449,64 +1449,7 @@
                                 <div x-data="{ 
                                         isDragging: false, 
                                         selectedFile: null, 
-                                        isUploading: false,
-                                        uploadProgress: 0,
-                                        uploadError: null,
-                                        submitUpload(e) {
-                                            if (!this.selectedFile) {
-                                                alert('Silakan pilih berkas dokumen terlebih dahulu.');
-                                                return;
-                                            }
-                                            this.isUploading = true;
-                                            this.uploadProgress = 0;
-                                            this.uploadError = null;
-
-                                            const form = e.target;
-                                            const formData = new FormData(form);
-
-                                            const xhr = new XMLHttpRequest();
-                                            xhr.open('POST', form.action, true);
-                                            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                                            xhr.setRequestHeader('Accept', 'application/json');
-
-                                            xhr.upload.onprogress = (ev) => {
-                                                if (ev.lengthComputable) {
-                                                    this.uploadProgress = Math.round((ev.loaded / ev.total) * 100);
-                                                }
-                                            };
-
-                                            xhr.onload = () => {
-                                                if (xhr.status >= 200 && xhr.status < 300) {
-                                                    this.uploadProgress = 100;
-                                                    setTimeout(() => {
-                                                        window.location.reload();
-                                                    }, 400);
-                                                } else {
-                                                    this.isUploading = false;
-                                                    let msg = 'Gagal mengunggah berkas (Status: ' + xhr.status + ').';
-                                                    try {
-                                                        const res = JSON.parse(xhr.responseText);
-                                                        if (res.message) {
-                                                            msg = res.message;
-                                                        } else if (res.errors) {
-                                                            const first = Object.values(res.errors)[0];
-                                                            if (Array.isArray(first)) msg = first[0];
-                                                            else msg = first;
-                                                        }
-                                                    } catch(err) {}
-                                                    this.uploadError = msg;
-                                                    alert(msg);
-                                                }
-                                            };
-
-                                            xhr.onerror = () => {
-                                                this.isUploading = false;
-                                                this.uploadError = 'Koneksi ke server terputus saat mengunggah berkas. Silakan coba kembali.';
-                                                alert(this.uploadError);
-                                            };
-
-                                            xhr.send(formData);
-                                        }
+                                        isUploading: false 
                                       }" 
                                      x-show="(filterStatus === 'all' || (filterStatus === 'filled' && {{ $hasFile ? 'true' : 'false' }}) || (filterStatus === 'empty' && !{{ $hasFile ? 'true' : 'false' }})) && (!searchQuery || '{{ strtolower($tpl['code']) }}'.includes(searchQuery.toLowerCase()) || '{{ strtolower($tpl['name']) }}'.includes(searchQuery.toLowerCase()))"
                                      class="border border-slate-200 rounded-xl overflow-hidden bg-white hover:border-slate-300 transition-all shadow-2xs">
@@ -1648,7 +1591,7 @@
                                         <form action="{{ route('projects.documents.upload', $project->id) }}" 
                                               method="POST" 
                                               enctype="multipart/form-data"
-                                              @submit.prevent="submitUpload($event)"
+                                              @submit="isUploading = true"
                                               class="pt-1">
                                             @csrf
                                             <input type="hidden" name="stage_number" value="1">
@@ -1741,33 +1684,13 @@
                                                         Batal
                                                     </button>
                                                     <button type="submit" 
-                                                            :class="isUploading ? 'pointer-events-none opacity-60' : ''"
-                                                            class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#72080a] transition cursor-pointer shadow-2xs">
-                                                        <svg x-show="!isUploading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M5 20h14"/></svg>
+                                                            :disabled="isUploading"
+                                                            class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-[#8F0A0D] hover:bg-[#72080a] transition cursor-pointer shadow-none disabled:opacity-50">
+                                                        <svg x-show="!isUploading" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                         <svg x-show="isUploading" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                                                        <span x-text="isUploading ? ('Mengunggah ' + (uploadProgress > 0 ? uploadProgress + '%' : '...')) : 'Upload Berkas {{ $tpl['code'] }}'"></span>
+                                                        <span x-text="isUploading ? 'Mengunggah...' : 'Upload Berkas {{ $tpl['code'] }}'"></span>
                                                     </button>
                                                 </div>
-                                            </div>
-
-                                            {{-- Progress Bar saat mengunggah --}}
-                                            <div x-show="isUploading" x-cloak class="mt-2.5 space-y-1">
-                                                <div class="flex items-center justify-between text-[11px] font-bold text-slate-600">
-                                                    <span>Sedang mengirim ke server...</span>
-                                                    <span x-text="uploadProgress + '%'"></span>
-                                                </div>
-                                                <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                                                    <div class="bg-[#8F0A0D] h-full transition-all duration-150" :style="'width: ' + uploadProgress + '%'"></div>
-                                                </div>
-                                            </div>
-
-                                            {{-- Alert jika upload gagal --}}
-                                            <div x-show="uploadError" x-cloak class="mt-2.5 p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center justify-between gap-2">
-                                                <div class="flex items-center gap-1.5 min-w-0">
-                                                    <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                    <span x-text="uploadError" class="truncate"></span>
-                                                </div>
-                                                <button type="button" @click="uploadError = null" class="text-rose-500 font-bold px-1.5 hover:text-rose-800">&times;</button>
                                             </div>
                                         </form>
 
