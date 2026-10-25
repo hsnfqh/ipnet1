@@ -332,7 +332,7 @@
                             <thead>
                                 <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                                     <th class="pb-2.5">Proyek &amp; Klien</th>
-                                    <th class="pb-2.5">Divisi &amp; PIC PM</th>
+                                    <th class="pb-2.5">Tim Teknis &amp; PIC PM</th>
                                     <th class="pb-2.5">Tenggat &amp; Progres EV</th>
                                     <th class="pb-2.5">Status SLA</th>
                                     <th class="pb-2.5 text-right">Aksi</th>
@@ -351,7 +351,7 @@
                                         </td>
                                         <td class="py-3.5 px-3 whitespace-nowrap">
                                             <div class="font-bold text-slate-800 text-[12px]">{{ $p['pm'] }}</div>
-                                            <div class="text-[11px] text-slate-500">{{ $p['division'] }}</div>
+                                            <div class="text-[11px] text-slate-500">{{ preg_replace('/^Divisi\s+/i', 'Tim ', $p['division']) }}</div>
                                         </td>
                                         <td class="py-3.5 px-3 min-w-[170px]">
                                             <div class="flex items-center justify-between text-[11px] font-semibold text-slate-700 mb-1">

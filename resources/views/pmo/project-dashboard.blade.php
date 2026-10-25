@@ -215,9 +215,9 @@
                                         </svg>
                                     </div>
                                     <div class="min-w-0">
-                                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Divisi Pelaksana</span>
+                                        <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block">Tim Teknis Pelaksana</span>
                                         @if($project->division)
-                                            <span class="font-bold text-slate-800 truncate block">{{ $project->division->name }}</span>
+                                            <span class="font-bold text-slate-800 truncate block">{{ preg_replace('/^Divisi\s+/i', 'Tim ', $project->division->name) }}</span>
                                         @else
                                             <span class="font-bold text-amber-700 truncate block">Belum Ditetapkan</span>
                                         @endif
@@ -1285,8 +1285,8 @@
              @click.away="showDivisionModal = false">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-900">Tetapkan Divisi Pelaksana</h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Pilih divisi teknis yang bertanggung jawab atas implementasi</p>
+                    <h3 class="text-sm font-bold text-slate-900">Tetapkan Tim Teknis Pelaksana</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Pilih tim teknis yang bertanggung jawab atas implementasi</p>
                 </div>
                 <button type="button" @click="showDivisionModal = false" class="text-slate-400 hover:text-slate-600">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1296,13 +1296,13 @@
             <form action="{{ route('pmo.projects.assign_division', $project->id) }}" method="POST" class="space-y-3.5">
                 @csrf
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Divisi Teknis</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Tim Teknis</label>
                     <select name="division_id" required 
                             class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#8F0A0D] outline-none cursor-pointer">
-                        <option value="">-- Pilih Divisi Pelaksana --</option>
+                        <option value="">-- Pilih Tim Teknis Pelaksana --</option>
                         @foreach($divisions as $div)
                             <option value="{{ $div->id }}" {{ $project->division_id == $div->id ? 'selected' : '' }}>
-                                {{ $div->name }}
+                                {{ preg_replace('/^Divisi\s+/i', 'Tim ', $div->name) }}
                             </option>
                         @endforeach
                     </select>
@@ -1313,7 +1313,7 @@
                         Batal
                     </button>
                     <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs">
-                        Tetapkan Divisi
+                        Tetapkan Tim Teknis
                     </button>
                 </div>
             </form>

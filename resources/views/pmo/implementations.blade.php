@@ -88,7 +88,7 @@
                             class="w-full sm:w-48 px-3 py-2.5 rounded-xl border border-[#CBD5E1] text-[12.5px] font-semibold text-[#1E293B] bg-white outline-none hover:border-[#94A3B8] focus:border-[#8F0A0D] focus:ring-1 focus:ring-[#8F0A0D]/20 transition-all shadow-xs cursor-pointer">
                         <option value="all">Semua Tim Teknis</option>
                         @foreach($divisions ?? [] as $div)
-                            <option value="{{ $div->id }}">{{ $div->name }}</option>
+                            <option value="{{ $div->id }}">{{ preg_replace('/^Divisi\s+/i', 'Tim ', $div->name) }}</option>
                         @endforeach
                     </select>
 
@@ -261,7 +261,7 @@
                                                     <template x-if="!(project.division) || (project.division || '').includes('Belum')">
                                                         <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                                                     </template>
-                                                    <span x-text="project.division || 'Belum Ditentukan Sales'"></span>
+                                                    <span x-text="(project.division || 'Belum Ditentukan Sales').replace(/divisi\s*/gi, 'Tim ')"></span>
                                                 </span>
                                             </div>
                                             <template x-if="project.pm && project.pm !== 'Belum Ditentukan'">
@@ -403,7 +403,7 @@
                                             </svg>
                                         </div>
                                         <p class="font-bold text-slate-800 text-sm">Tidak ada proyek yang sesuai dengan kriteria filter</p>
-                                        <p class="text-xs text-slate-400 mt-1">Silakan sesuaikan kata kunci pencarian, tab kategori, atau filter divisi di atas.</p>
+                                        <p class="text-xs text-slate-400 mt-1">Silakan sesuaikan kata kunci pencarian, tab kategori, atau filter tim teknis di atas.</p>
                                     </td>
                                 </tr>
                             </template>
@@ -468,7 +468,7 @@
                                     <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
                                         <div>
                                             <span class="text-[10px] text-slate-400 block font-bold uppercase">Tim Teknis:</span>
-                                            <span class="font-bold text-slate-800 text-[11px]" x-text="project.division || 'Belum Ditentukan Sales'"></span>
+                                            <span class="font-bold text-slate-800 text-[11px]" x-text="(project.division || 'Belum Ditentukan Sales').replace(/divisi\s*/gi, 'Tim ')"></span>
                                         </div>
                                         <div class="text-right">
                                             <span class="text-[10px] text-slate-400 block font-bold uppercase">PIC PM:</span>
@@ -1007,11 +1007,11 @@
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                                 <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tim Teknis / Divisi Pelaksana <span class="text-red-500">*</span></label>
+                                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">Tim Teknis Pelaksana <span class="text-red-500">*</span></label>
                                     <select x-model="handoverAssign.division_id" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:border-[#8F0A0D]">
                                         <option value="">-- Pilih Tim Teknis --</option>
                                         @foreach($divisions ?? [] as $div)
-                                            <option value="{{ $div->id }}">{{ $div->name }}</option>
+                                            <option value="{{ $div->id }}">{{ preg_replace('/^Divisi\s+/i', 'Tim ', $div->name) }}</option>
                                         @endforeach
                                     </select>
                                 </div>

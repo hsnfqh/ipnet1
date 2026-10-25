@@ -838,13 +838,13 @@ class PmoController extends Controller
             if ($p->division && $p->division_id) {
                 $rawDiv = $p->division->name;
                 if (str_contains(strtolower($rawDiv), 'lintas') || (str_contains(strtolower($rawDiv), 'net') && str_contains(strtolower($rawDiv), 'sec'))) {
-                    $divisionName = 'Network & Security';
+                    $divisionName = 'Tim Network & Security';
                 } elseif (str_contains(strtolower($rawDiv), 'sec')) {
-                    $divisionName = 'Divisi Security';
+                    $divisionName = 'Tim Security';
                 } elseif (str_contains(strtolower($rawDiv), 'net')) {
-                    $divisionName = 'Divisi Network';
+                    $divisionName = 'Tim Network';
                 } else {
-                    $divisionName = $rawDiv;
+                    $divisionName = preg_replace('/^Divisi\s+/i', 'Tim ', $rawDiv);
                 }
             }
 
@@ -934,11 +934,14 @@ class PmoController extends Controller
             'Operate' => $formattedProjects->where('stage', 'Operate')->whereNotIn('handover_status', ['Submitted'])->count(),
         ];
 
-        // 6. Data Master untuk Filter & Form (Hanya Divisi Network & Divisi Security)
+        // 6. Data Master untuk Filter & Form (Hanya Tim Network & Tim Security)
         $divisions = Division::where(function($q) {
             $q->where('name', 'like', '%Network%')
               ->orWhere('name', 'like', '%Security%');
-        })->orderBy('name')->get();
+        })->orderBy('name')->get()->map(function($d) {
+            $d->name = preg_replace('/^Divisi\s+/i', 'Tim ', $d->name);
+            return $d;
+        });
 
         $pmList = User::whereHas('roles', function($q) {
             $q->whereIn('name', ['PMO', 'Project Manager', 'Lead Divisi', 'Group Leader', 'Direktur', 'HD / Direktur']);
