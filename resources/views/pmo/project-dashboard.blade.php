@@ -811,17 +811,6 @@
                             <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                                 {{ $totalTasks }} Tasks
                             </span>
-                            
-                            {{-- Button Lead Delegasikan Tim --}}
-                            <button type="button" 
-                                    @click="showAssignTeamModal = true" 
-                                    class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white transition flex items-center gap-1 shadow-xs cursor-pointer"
-                                    title="Tugaskan / kelola personil tim teknis proyek">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                                </svg>
-                                <span>Tugaskan Tim (Lead)</span>
-                            </button>
                         </div>
                     </div>
 
