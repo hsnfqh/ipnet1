@@ -1700,14 +1700,40 @@
                     const data = await response.json();
                     if (response.ok && data.success) {
                         this.handoverToMsModalOpen = false;
-                        alert(data.message || 'Proyek berhasil diserahkan ke Managed Service!');
+                        if (typeof Swal !== 'undefined') {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil Diserahkan!',
+                                text: data.message || 'Proyek berhasil diserahkan ke Managed Service!',
+                                confirmButtonColor: '#8F0A0D',
+                                confirmButtonText: 'OK, Lanjutkan'
+                            });
+                        }
                         window.location.reload();
                     } else {
-                        alert(data.message || 'Gagal menyerahkan ke Managed Service.');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Menyerahkan',
+                                text: data.message || 'Gagal menyerahkan ke Managed Service.',
+                                confirmButtonColor: '#8F0A0D'
+                            });
+                        } else {
+                            alert(data.message || 'Gagal menyerahkan ke Managed Service.');
+                        }
                     }
                 } catch (e) {
                     console.error(e);
-                    alert('Terjadi kesalahan jaringan.');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Kesalahan Sistem',
+                            text: 'Terjadi kesalahan jaringan atau server saat memproses data.',
+                            confirmButtonColor: '#8F0A0D'
+                        });
+                    } else {
+                        alert('Terjadi kesalahan jaringan.');
+                    }
                 }
             },
 
@@ -1857,7 +1883,16 @@
 
             async approveHandover() {
                 if (!this.handoverAssign.pm_id || !this.handoverAssign.division_id) {
-                    alert('Harap tentukan Project Manager (PM) dan Divisi Pelaksana terlebih dahulu.');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Penetapan Belum Lengkap',
+                            text: 'Harap tentukan Project Manager (PM) dan Tim Teknis Pelaksana terlebih dahulu.',
+                            confirmButtonColor: '#8F0A0D'
+                        });
+                    } else {
+                        alert('Harap tentukan Project Manager (PM) dan Tim Teknis Pelaksana terlebih dahulu.');
+                    }
                     return;
                 }
 
@@ -1896,21 +1931,56 @@
                     const data = await response.json();
                     if (response.ok && data.success) {
                         this.handoverReviewModalOpen = false;
-                        alert(data.message || 'Handover berhasil disahkan!');
+                        if (typeof Swal !== 'undefined') {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Handover Berhasil Disahkan!',
+                                text: data.message || 'Proyek resmi masuk ke tahap Deliver dan siap didelegasikan oleh Lead Engineer.',
+                                confirmButtonColor: '#8F0A0D',
+                                confirmButtonText: 'OK, Lanjutkan'
+                            });
+                        }
                         window.location.reload();
                     } else {
-                        alert(data.message || 'Gagal mengesahkan handover.');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Mengesahkan',
+                                text: data.message || 'Gagal mengesahkan handover.',
+                                confirmButtonColor: '#8F0A0D'
+                            });
+                        } else {
+                            alert(data.message || 'Gagal mengesahkan handover.');
+                        }
                     }
                 } catch (e) {
                     console.error(e);
-                    alert('Terjadi kesalahan jaringan.');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Kesalahan Sistem',
+                            text: 'Terjadi kesalahan jaringan atau server saat memproses data.',
+                            confirmButtonColor: '#8F0A0D'
+                        });
+                    } else {
+                        alert('Terjadi kesalahan jaringan.');
+                    }
                 }
             },
 
             async handleConditionalClick() {
                 const notes = this.handoverMissingInfo || this.conditionalNotes || this.handoverRisks;
                 if (!notes || !notes.trim()) {
-                    alert('Harap isi catatan kekurangan berkas atau informasi yang belum tersedia pada Section Hasil Pemeriksaan.');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Catatan Belum Diisi',
+                            text: 'Harap isi catatan kekurangan berkas atau informasi yang belum tersedia pada Section Hasil Pemeriksaan.',
+                            confirmButtonColor: '#8F0A0D'
+                        });
+                    } else {
+                        alert('Harap isi catatan kekurangan berkas atau informasi yang belum tersedia pada Section Hasil Pemeriksaan.');
+                    }
                     return;
                 }
 
@@ -1948,20 +2018,64 @@
                     const data = await response.json();
                     if (response.ok && data.success) {
                         this.handoverReviewModalOpen = false;
-                        alert(data.message || 'Status handover diterima bersyarat berhasil dicatat.');
+                        if (typeof Swal !== 'undefined') {
+                            await Swal.fire({
+                                icon: 'info',
+                                title: 'Diterima Bersyarat',
+                                text: data.message || 'Status handover diterima bersyarat berhasil dicatat.',
+                                confirmButtonColor: '#8F0A0D',
+                                confirmButtonText: 'OK, Lanjutkan'
+                            });
+                        }
                         window.location.reload();
                     } else {
-                        alert(data.message || 'Gagal menyimpan status bersyarat.');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Menyimpan',
+                                text: data.message || 'Gagal menyimpan status bersyarat.',
+                                confirmButtonColor: '#8F0A0D'
+                            });
+                        } else {
+                            alert(data.message || 'Gagal menyimpan status bersyarat.');
+                        }
                     }
                 } catch (e) {
                     console.error(e);
-                    alert('Terjadi kesalahan jaringan.');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Kesalahan Sistem',
+                            text: 'Terjadi kesalahan jaringan atau server saat memproses data.',
+                            confirmButtonColor: '#8F0A0D'
+                        });
+                    } else {
+                        alert('Terjadi kesalahan jaringan.');
+                    }
                 }
             },
 
             async handleRejectClick() {
                 const reason = this.handoverRisks || this.handoverMissingInfo || 'Persyaratan dan kelengkapan dokumen belum memenuhi standar.';
-                if (!confirm('Apakah Anda yakin ingin menolak berkas serah terima ini dan mengembalikannya ke Sales?')) {
+                
+                let isConfirmed = false;
+                if (typeof Swal !== 'undefined') {
+                    const result = await Swal.fire({
+                        title: 'Tolak & Kembalikan?',
+                        text: 'Apakah Anda yakin ingin menolak berkas serah terima ini dan mengembalikannya ke Sales?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#8F0A0D',
+                        cancelButtonColor: '#64748B',
+                        confirmButtonText: 'Ya, Tolak & Kembalikan',
+                        cancelButtonText: 'Batal'
+                    });
+                    isConfirmed = result.isConfirmed;
+                } else {
+                    isConfirmed = confirm('Apakah Anda yakin ingin menolak berkas serah terima ini dan mengembalikannya ke Sales?');
+                }
+
+                if (!isConfirmed) {
                     return;
                 }
 
@@ -1999,14 +2113,40 @@
                     const data = await response.json();
                     if (response.ok && data.success) {
                         this.handoverReviewModalOpen = false;
-                        alert(data.message || 'Berkas serah terima berhasil dikembalikan ke Sales.');
+                        if (typeof Swal !== 'undefined') {
+                            await Swal.fire({
+                                icon: 'success',
+                                title: 'Berkas Dikembalikan',
+                                text: data.message || 'Berkas serah terima berhasil dikembalikan ke Sales.',
+                                confirmButtonColor: '#8F0A0D',
+                                confirmButtonText: 'OK'
+                            });
+                        }
                         window.location.reload();
                     } else {
-                        alert(data.message || 'Gagal mengembalikan berkas serah terima.');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Mengembalikan',
+                                text: data.message || 'Gagal mengembalikan berkas serah terima.',
+                                confirmButtonColor: '#8F0A0D'
+                            });
+                        } else {
+                            alert(data.message || 'Gagal mengembalikan berkas serah terima.');
+                        }
                     }
                 } catch (e) {
                     console.error(e);
-                    alert('Terjadi kesalahan jaringan.');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Kesalahan Sistem',
+                            text: 'Terjadi kesalahan jaringan atau server saat memproses data.',
+                            confirmButtonColor: '#8F0A0D'
+                        });
+                    } else {
+                        alert('Terjadi kesalahan jaringan.');
+                    }
                 }
             },
 
@@ -2034,11 +2174,29 @@
                         this.handoverReviewModalOpen = false;
                         window.location.reload();
                     } else {
-                        alert(data.message || 'Gagal menyimpan checklist dokumen.');
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal Menyimpan',
+                                text: data.message || 'Gagal menyimpan checklist dokumen.',
+                                confirmButtonColor: '#8F0A0D'
+                            });
+                        } else {
+                            alert(data.message || 'Gagal menyimpan checklist dokumen.');
+                        }
                     }
                 } catch (e) {
                     console.error(e);
-                    alert('Terjadi kesalahan jaringan.');
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Kesalahan Sistem',
+                            text: 'Terjadi kesalahan jaringan atau server saat memproses data.',
+                            confirmButtonColor: '#8F0A0D'
+                        });
+                    } else {
+                        alert('Terjadi kesalahan jaringan.');
+                    }
                 }
             }
         }));

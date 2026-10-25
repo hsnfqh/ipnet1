@@ -84,10 +84,85 @@
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Override native window.alert with SweetAlert2 for consistent, professional branding
+        (function() {
+            const _nativeAlert = window.alert;
+            window.alert = function(message) {
+                if (typeof Swal !== 'undefined') {
+                    const str = String(message || '');
+                    let iconType = 'info';
+                    let titleText = 'Pemberitahuan';
+                    
+                    const lower = str.toLowerCase();
+                    if (lower.includes('berhasil') || lower.includes('sukses')) {
+                        iconType = 'success';
+                        titleText = 'Berhasil';
+                    } else if (lower.includes('gagal') || lower.includes('kesalahan') || lower.includes('error') || lower.includes('ditolak')) {
+                        iconType = 'error';
+                        titleText = 'Perhatian';
+                    } else if (lower.includes('wajib') || lower.includes('peringatan') || lower.includes('harap') || lower.includes('terkunci') || lower.includes('melebihi')) {
+                        iconType = 'warning';
+                        titleText = 'Peringatan';
+                    }
+
+                    Swal.fire({
+                        title: titleText,
+                        text: str,
+                        icon: iconType,
+                        confirmButtonColor: '#8F0A0D',
+                        confirmButtonText: 'OK, Mengerti',
+                        customClass: {
+                            popup: 'rounded-2xl shadow-2xl',
+                            confirmButton: 'px-5 py-2.5 rounded-xl font-bold text-sm shadow-md'
+                        }
+                    });
+                } else {
+                    _nativeAlert(message);
+                }
+            };
+        })();
+    </script>
     
     <style>
         [x-cloak] { display: none !important; }
         *, *::before, *::after { box-sizing: border-box; }
+
+        /* Custom SweetAlert2 Styling */
+        .swal2-popup {
+            font-family: 'Inter', sans-serif !important;
+            border-radius: 1.25rem !important;
+            padding: 1.75rem !important;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25) !important;
+        }
+        .swal2-title {
+            font-size: 1.15rem !important;
+            font-weight: 800 !important;
+            color: #0F172A !important;
+            letter-spacing: -0.02em !important;
+        }
+        .swal2-html-container {
+            font-size: 0.875rem !important;
+            color: #475569 !important;
+            line-height: 1.5 !important;
+        }
+        .swal2-confirm {
+            background-color: #8F0A0D !important;
+            border-radius: 0.75rem !important;
+            font-weight: 700 !important;
+            font-size: 0.8rem !important;
+            padding: 0.65rem 1.5rem !important;
+            box-shadow: 0 4px 12px rgba(143, 10, 13, 0.25) !important;
+        }
+        .swal2-cancel {
+            border-radius: 0.75rem !important;
+            font-weight: 700 !important;
+            font-size: 0.8rem !important;
+            padding: 0.65rem 1.25rem !important;
+        }
         
         html, body { 
             margin: 0 !important; 
