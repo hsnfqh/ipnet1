@@ -23,8 +23,8 @@ class PmoController extends Controller
         $totalBudgetSpend = $formattedProjects->sum('contract_value');
         $formattedTotalBudget = 'Rp ' . number_format($totalBudgetSpend, 0, ',', '.');
 
-        // 2. Project Number (Active Portfolios)
-        $activeProjectsCount = $formattedProjects->whereIn('stage', ['Deliver', 'Operate'])->count();
+        // 2. Project Number (Active Portfolios: yang sudah sah serah terimanya)
+        $activeProjectsCount = $formattedProjects->whereIn('stage', ['Deliver', 'Operate'])->whereNotIn('handover_status', ['Submitted'])->count();
 
         // 3. Total Task List (Workload)
         $totalTasksCount = $formattedProjects->sum('total_tasks');
@@ -82,8 +82,8 @@ class PmoController extends Controller
             'colors' => $taskShareColors,
         ];
 
-        // 6. Your Projects List (Untuk preview list rapi di dashboard)
-        $yourProjects = $formattedProjects;
+        // 6. Your Projects List (Hanya proyek aktif yang serah terimanya telah disahkan)
+        $yourProjects = $formattedProjects->whereNotIn('handover_status', ['Submitted'])->values();
 
         return view('pmo.dashboard', array_merge($data, compact(
             'totalBudgetSpend',
@@ -926,12 +926,12 @@ class PmoController extends Controller
         // 4. Hitung Proyek Siap Transisi ke Operasional / Managed Service
         $readyToOperateCount = $formattedProjects->where('stage', 'Deliver')->where('progress', '>=', 100)->count();
 
-        // 5. Persebaran 4-Tahap Siklus Ver 2.0
+        // 5. Persebaran 4-Tahap Siklus Ver 2.0 (Projek Aktif Deliver/Operate hanya menghitung yang sudah sah serah terimanya)
         $stageCounts = [
             'Acquire' => $allProjects->where('stage', 'Acquire')->count(),
             'Design'  => $allProjects->where('stage', 'Design')->count(),
-            'Deliver' => $allProjects->where('stage', 'Deliver')->count(),
-            'Operate' => $allProjects->where('stage', 'Operate')->count(),
+            'Deliver' => $formattedProjects->where('stage', 'Deliver')->whereNotIn('handover_status', ['Submitted'])->count(),
+            'Operate' => $formattedProjects->where('stage', 'Operate')->whereNotIn('handover_status', ['Submitted'])->count(),
         ];
 
         // 6. Data Master untuk Filter & Form (Hanya Divisi Network & Divisi Security)

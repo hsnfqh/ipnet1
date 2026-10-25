@@ -358,28 +358,37 @@
                                     {{-- Kolom 5: Tindakan / Aksi --}}
                                     <td class="py-4 px-4 sm:px-6 align-middle text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-1.5">
-                                            <template x-if="project.handover_status === 'Submitted'">
+                                            {{-- Khusus Incoming Handover (Menunggu Verifikasi / Belum Sah): HANYA tombol Verifikasi Dokumen warna merah --}}
+                                            <template x-if="activeTab === 'pending_handover' || project.handover_status === 'Submitted' || project.handover_status === 'Conditional'">
                                                 <button type="button"
                                                         @click="openHandoverReviewModal(project)"
-                                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
+                                                        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-95">
+                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
                                                     <span>Verifikasi Dokumen</span>
                                                 </button>
                                             </template>
 
-                                            <template x-if="project.stage === 'Deliver'">
-                                                <button type="button"
-                                                        @click="openHandoverToMsModal(project)"
-                                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
-                                                    <span>Handover MS</span>
-                                                </button>
-                                            </template>
+                                            {{-- Khusus Projek Aktif (Setelah Verifikasi Sah): Tampilkan tombol Handover MS & Detail --}}
+                                            <template x-if="activeTab !== 'pending_handover' && project.handover_status !== 'Submitted' && project.handover_status !== 'Conditional'">
+                                                <div class="flex items-center gap-1.5">
+                                                    <template x-if="project.stage === 'Deliver'">
+                                                        <button type="button"
+                                                                @click="openHandoverToMsModal(project)"
+                                                                class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
+                                                            <span>Handover MS</span>
+                                                        </button>
+                                                    </template>
 
-                                            <a :href="'/pmo/projects/' + project.id" 
-                                               title="Buka Dashboard PMO & Perhitungan Proyek"
-                                               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-2xs">
-                                                <span>Detail</span>
-                                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                                            </a>
+                                                    <a :href="'/pmo/projects/' + project.id" 
+                                                       title="Buka Dashboard PMO & Perhitungan Proyek"
+                                                       class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-2xs">
+                                                        <span>Detail</span>
+                                                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                                    </a>
+                                                </div>
+                                            </template>
                                         </div>
                                     </td>
                                 </tr>
@@ -500,28 +509,37 @@
                                 {{-- Card Footer Actions --}}
                                 <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-end gap-2">
                                     <div class="flex items-center gap-1.5">
-                                        <template x-if="project.handover_status === 'Submitted'">
+                                        {{-- Khusus Incoming Handover: HANYA tombol Verifikasi Dokumen warna merah --}}
+                                        <template x-if="activeTab === 'pending_handover' || project.handover_status === 'Submitted' || project.handover_status === 'Conditional'">
                                             <button type="button"
                                                     @click="openHandoverReviewModal(project)"
-                                                    class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
-                                                Verifikasi Dokumen
+                                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-95">
+                                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                <span>Verifikasi Dokumen</span>
                                             </button>
                                         </template>
 
-                                        <template x-if="project.stage === 'Deliver'">
-                                            <button type="button"
-                                                    @click="openHandoverToMsModal(project)"
-                                                    class="px-3 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
-                                                Handover MS
-                                            </button>
-                                        </template>
+                                        {{-- Khusus Projek Aktif (Setelah Verifikasi Sah): Tampilkan tombol Handover MS & Detail --}}
+                                        <template x-if="activeTab !== 'pending_handover' && project.handover_status !== 'Submitted' && project.handover_status !== 'Conditional'">
+                                            <div class="flex items-center gap-1.5">
+                                                <template x-if="project.stage === 'Deliver'">
+                                                    <button type="button"
+                                                            @click="openHandoverToMsModal(project)"
+                                                            class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
+                                                        <span>Handover MS</span>
+                                                    </button>
+                                                </template>
 
-                                        <a :href="'/pmo/projects/' + project.id" 
-                                           title="Buka Dashboard PMO & Perhitungan Proyek"
-                                           class="px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-2xs inline-flex items-center gap-1">
-                                            <span>Detail</span>
-                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                                        </a>
+                                                <a :href="'/pmo/projects/' + project.id" 
+                                                   title="Buka Dashboard PMO & Perhitungan Proyek"
+                                                   class="px-3.5 py-1.5 bg-[#8F0A0D] hover:bg-[#73080A] text-white rounded-xl text-xs font-bold transition shadow-2xs inline-flex items-center gap-1">
+                                                    <span>Detail</span>
+                                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                                </a>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
