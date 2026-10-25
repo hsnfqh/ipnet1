@@ -209,6 +209,15 @@
                                                 </svg>
                                             </a>
 
+                                            @if($isLead ?? false)
+                                            {{-- Delegasikan Tim Teknis Lapangan (Lead) --}}
+                                            <a :href="'/pmo/projects/' + project.id" title="Delegasikan Tim Lapangan (Lead)" class="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-50 transition cursor-pointer flex items-center justify-center">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                                                </svg>
+                                            </a>
+                                            @endif
+
                                             {{-- Quick Modal View --}}
                                             <button @click="viewProject(project)" title="Lihat Ringkasan Modal" class="p-1.5 rounded-lg text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] transition cursor-pointer">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">

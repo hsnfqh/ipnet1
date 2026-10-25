@@ -377,7 +377,7 @@ class DashboardController extends Controller
         })->values();
 
         // Filter projects sesuai scope role yang login (kecualikan dummy/internal Day Off & Draft yang masih dicoba-coba)
-        $projectsQuery = Project::with(['tasks', 'creator'])
+        $projectsQuery = Project::with(['tasks.engineer', 'creator', 'pm', 'division'])
             ->whereNotIn('name', ['DAY OFF', 'Day Off', 'Day Off / Cuti', 'CUTI', 'Cuti'])
             ->where('client', '!=', 'Internal / Umum')
             ->whereNotIn('status', ['Draft', 'draft'])
@@ -385,19 +385,29 @@ class DashboardController extends Controller
         if ($scopeIds !== null) {
             $projectIds = $tasks->pluck('project_id')->filter()->unique();
             $divisionId = $user->division_id;
-            $projectsQuery->where(function($q) use ($projectIds, $user, $divisionId) {
+            $teamIds    = $scopeIds;
+            $projectsQuery->where(function($q) use ($projectIds, $user, $divisionId, $teamIds) {
                 if ($projectIds->isNotEmpty()) {
                     $q->whereIn('id', $projectIds);
-                } else {
-                    $q->whereRaw('0 = 1');
+                }
+                if ($divisionId) {
+                    $q->orWhere('division_id', $divisionId)
+                      ->orWhereNull('division_id'); // Lintas Divisi
                 }
                 $q->orWhere('created_by', $user->id);
-                if ($divisionId) {
-                    $q->orWhere('division_id', $divisionId);
+                if (!empty($teamIds)) {
+                    $q->orWhereHas('tasks', fn($tq) => $tq->whereIn('engineer_id', $teamIds));
                 }
             });
         }
-        $projects = $projectsQuery->get();
+        $projects = $projectsQuery->latest('updated_at')->get();
+
+        // Proyek yang resmi diserahkan PMO (Deliver/On Progress) untuk didelegasikan oleh Lead Engineer
+        $leadProjects = $projects->filter(function($p) {
+            return in_array($p->handover_status, ['Approved', 'Conditional']) 
+                || in_array(strtolower($p->stage ?? ''), ['deliver', 'execution', 'closing', 'completed'])
+                || in_array(strtolower($p->status ?? ''), ['in progress', 'on progress', 'active']);
+        })->values();
 
         $hasScheduleUser = \Illuminate\Support\Facades\Schema::hasTable('schedule_user');
         $scheduleRelations = ['project', 'engineer', 'creator'];
@@ -625,6 +635,8 @@ class DashboardController extends Controller
             'pendingDraftApprovals'  => $pendingDraftApprovals,
             'allEngineerActivityLogs'=> $allEngineerActivityLogs,
             'projects'               => $projects,
+            'leadProjects'           => $leadProjects,
+            'assignableEngineers'    => $engineers,
         ];
 
         return view('dashboard.lead', $data);

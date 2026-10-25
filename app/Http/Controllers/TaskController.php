@@ -23,11 +23,13 @@ class TaskController extends Controller
         $isExecutive  = $isSusanto || $isHariyadi || ScopeHelper::isExecutive($user) || ScopeHelper::isGroupLeader($user);
 
         $isLead       = ScopeHelper::isManagerial($user);
+        $isTeamLeader = ScopeHelper::isTeamLeader($user);
         $isDirektur   = $user->hasAnyRole(['Director', 'Direktur', 'HD / Direktur']) || $isHariyadi;
         $isSupervisor = ScopeHelper::isGlobal($user) || $isSusanto;
         $isPmo        = ScopeHelper::isPmo($user);
-        // PMO dapat memantau penugasan seluruh divisi, namun delegasi teknis dilakukan oleh Lead Engineer
-        $canManage    = !$isExecutive && !$isPmo && ScopeHelper::canManageTasks($user);
+        // Di halaman Team Tasks, Lead Engineer hanya memantau progres kegiatan teknisi (monitoring only).
+        // Penugasan tim teknis dilakukan Lead pada aksi proyek, dan pembagian tugas (WBS) dilakukan oleh PM.
+        $canManage    = !$isExecutive && !$isPmo && !$isTeamLeader && ScopeHelper::canManageTasks($user);
         $scopeIds     = ScopeHelper::getScopeUserIds($user);
         $hasTaskUser  = Schema::hasTable('task_user');
 

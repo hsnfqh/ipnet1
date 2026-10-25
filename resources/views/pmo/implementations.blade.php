@@ -112,35 +112,6 @@
 
 
 
-            <!-- ========================================================== -->
-            <!-- 3. HANDOVER PENDING ALERT BANNER (IF ANY)                  -->
-            <!-- ========================================================== -->
-            <template x-if="handoverPendingCount > 0 || handoverConditionalCount > 0">
-                <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50/70 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-                    <div class="flex items-start gap-3.5">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h4 class="text-xs font-bold text-amber-950 uppercase tracking-wide">Pemberitahuan Gatekeeper Handover Proyek</h4>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-200/80 text-amber-900" x-text="handoverPendingCount + ' Menunggu'"></span>
-                            </div>
-                            <p class="text-xs text-amber-800 mt-1 leading-relaxed">
-                                Terdapat <strong class="text-amber-950 font-bold" x-text="handoverPendingCount"></strong> berkas serah terima dari Sales yang siap diverifikasi PMO, dan <strong class="text-amber-950 font-bold" x-text="handoverConditionalCount"></strong> berkas revisi bersyarat.
-                            </p>
-                        </div>
-                    </div>
-                    <button type="button" 
-                            @click="activeTab = (activeTab === 'pending_handover' ? 'deliver' : 'pending_handover'); currentPage = 1;"
-                            class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs whitespace-nowrap self-start sm:self-center flex items-center gap-2">
-                        <span x-text="activeTab === 'pending_handover' ? 'Beralih ke Projek Aktif' : 'Tinjau Antrean Serah Terima'"></span>
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-                </div>
-            </template>
 
             <!-- ========================================================== -->
             <!-- 4. DAFTAR PORTOFOLIO PROYEK & KONTROL IMPLEMENTASI        -->
