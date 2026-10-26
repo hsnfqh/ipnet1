@@ -850,18 +850,11 @@
                         </div>
                     @else
                         @if($isLeadUser)
-                            <div class="p-2.5 rounded-xl bg-red-50/80 border border-red-200/70 flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <span class="w-2 h-2 rounded-full bg-[#8F0A0D] shrink-0 animate-pulse"></span>
-                                    <p class="text-[11.5px] text-[#8F0A0D] font-medium truncate">
-                                        <strong class="font-bold">Aksi Lead:</strong> Belum ada personil lapangan yang ditugaskan.
-                                    </p>
-                                </div>
-                                <button type="button" 
-                                        @click="showAssignTeamModal = true" 
-                                        class="text-[10.5px] font-bold text-[#8F0A0D] hover:text-[#73080A] shrink-0 underline cursor-pointer">
-                                    + Tambah Personil
-                                </button>
+                            <div class="p-2.5 rounded-xl bg-red-50/80 border border-red-200/70 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#8F0A0D] shrink-0 animate-pulse"></span>
+                                <p class="text-[11.5px] text-[#8F0A0D] font-medium truncate">
+                                    <strong class="font-bold">Aksi Lead:</strong> Belum ada personil lapangan yang ditugaskan.
+                                </p>
                             </div>
                         @else
                             <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/70 flex items-center justify-between gap-2">
@@ -915,7 +908,7 @@
                                         @click="showAssignTeamModal = true" 
                                         class="mt-1 px-3 py-1.5 rounded-lg bg-[#8F0A0D] hover:bg-[#73080A] text-white text-[11px] font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                    <span>{{ count($assignedEngineers) > 0 ? 'Kelola Personil Tim' : '+ Tambah Personil' }}</span>
+                                    <span>{{ count($assignedEngineers) > 0 ? 'Kelola Personil Tim' : 'Tambah Personil' }}</span>
                                 </button>
                             @else
                                 @if(count($assignedEngineers) > 0)
@@ -930,21 +923,20 @@
                         </div>
                     @endif
 
-                    {{-- Breakdown List of Engineers & Workload Share --}}
-                    <div class="space-y-2 pt-2 border-t border-slate-100">
-                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
-                            <span>Personil Tim</span>
-                            <div class="flex items-center gap-2">
-                                <span>Alokasi Beban</span>
-                                @if($isLeadUser)
-                                    <button type="button" @click="showAssignTeamModal = true" class="text-[#8F0A0D] hover:underline normal-case font-bold cursor-pointer">+ Tambah Personil</button>
-                                @else
-                                    @if(count($assignedEngineers) > 0)
+                    {{-- Breakdown List of Engineers & Workload Share (Hanya tampil jika ada personil yang ditugaskan) --}}
+                    @if(count($assignedEngineers) > 0)
+                        <div class="space-y-2 pt-2 border-t border-slate-100">
+                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                                <span>Personil Tim</span>
+                                <div class="flex items-center gap-2">
+                                    <span>Alokasi Beban</span>
+                                    @if($isLeadUser)
+                                        <button type="button" @click="showAssignTeamModal = true" class="text-[#8F0A0D] hover:underline normal-case font-bold cursor-pointer">Kelola Tim</button>
+                                    @else
                                         <button type="button" @click="showQuickTaskModal = true" class="text-[#8F0A0D] hover:underline normal-case font-bold cursor-pointer">+ Tambah Task</button>
                                     @endif
-                                @endif
+                                </div>
                             </div>
-                        </div>
 
                         @forelse($taskShareList as $item)
                             <div class="p-3 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 transition space-y-2.5">
@@ -1039,6 +1031,7 @@
                             </div>
                         @endforelse
                     </div>
+                    @endif
                 </div>
 
                 {{-- RIGHT COLUMN: Log Categorized Expense & Riwayat --}}
