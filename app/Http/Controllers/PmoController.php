@@ -228,13 +228,19 @@ class PmoController extends Controller
                 $assignedMap[$engName]['pending']++;
             }
 
+            $startStr = $t->start_date ? \Carbon\Carbon::parse($t->start_date)->format('d M') : null;
+            $endStr = $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('d M') : null;
+            $periodStr = ($startStr && $endStr) ? ($startStr === $endStr ? $endStr : "$startStr - $endStr") : ($endStr ?: $startStr);
+
             $assignedMap[$engName]['tasks'][] = [
                 'id'          => $t->id,
                 'title'       => $t->title,
                 'status'      => $t->status ?: 'Assigned',
                 'priority'    => $t->priority ?: 'Medium',
                 'progress'    => (int) ($t->progress ?: 0),
-                'deadline'    => $t->deadline ? \Carbon\Carbon::parse($t->deadline)->format('d M') : null,
+                'start_date'  => $startStr,
+                'deadline'    => $endStr,
+                'period'      => $periodStr,
                 'description' => $t->description,
             ];
         }
@@ -1379,11 +1385,13 @@ class PmoController extends Controller
             'title'        => 'required|string|max:255',
             'engineer_id'  => 'required|exists:users,id',
             'priority'     => 'required|in:Low,Medium,High',
+            'start_date'   => 'nullable|date',
             'deadline'     => 'nullable|date',
             'description'  => 'nullable|string|max:2000',
         ]);
 
-        $deadlineStr = $validated['deadline'] 
+        $startDate = $validated['start_date'] ?? now()->toDateString();
+        $deadlineStr = !empty($validated['deadline']) 
             ? substr($validated['deadline'], 0, 10) . ' 18:00:00' 
             : ($project->deadline ? $project->deadline->format('Y-m-d') . ' 18:00:00' : now()->addWeeks(2)->format('Y-m-d') . ' 18:00:00');
 
@@ -1393,7 +1401,7 @@ class PmoController extends Controller
             'engineer_id' => $validated['engineer_id'],
             'priority'    => $validated['priority'],
             'status'      => 'Assigned',
-            'start_date'  => now()->toDateString(),
+            'start_date'  => $startDate,
             'deadline'    => $deadlineStr,
             'description' => $validated['description'] ?? null,
             'progress'    => 0,

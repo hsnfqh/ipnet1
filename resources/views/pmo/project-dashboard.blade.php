@@ -985,7 +985,7 @@
                                             <button type="button" 
                                                     @click="selectedEngineerId = '{{ $item['id'] }}'; showQuickTaskModal = true;"
                                                     class="text-[10.5px] font-bold text-[#8F0A0D] hover:underline flex items-center gap-0.5 cursor-pointer">
-                                                <span>+ Beri Tugas</span>
+                                                <span>+ Tambah Task</span>
                                             </button>
                                         @endif
                                     </div>
@@ -1001,7 +1001,9 @@
                                                         </span>
                                                     </div>
                                                     <div class="flex items-center gap-1.5 shrink-0">
-                                                        @if($tsk['deadline'])
+                                                        @if(!empty($tsk['period']))
+                                                            <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">{{ $tsk['period'] }}</span>
+                                                        @elseif($tsk['deadline'])
                                                             <span class="text-[10px] text-slate-400 font-medium hidden sm:inline">{{ $tsk['deadline'] }}</span>
                                                         @endif
                                                         <span class="text-[9.5px] font-bold px-1.5 py-0.5 rounded {{ in_array($tsk['status'], ['Done', 'Completed']) ? 'bg-emerald-100 text-emerald-800' : (in_array($tsk['status'], ['In Progress', 'in_progress']) ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700') }}">
@@ -1012,15 +1014,8 @@
                                             @endforeach
                                         </div>
                                     @else
-                                        <div class="p-2 rounded-lg bg-amber-50/60 border border-amber-200/50 text-[11px] text-amber-800 flex items-center justify-between">
-                                            <span>Belum ada pembagian tugas teknis dari PM untuk personil ini.</span>
-                                            @if(!$isLeadUser)
-                                                <button type="button" 
-                                                        @click="selectedEngineerId = '{{ $item['id'] }}'; showQuickTaskModal = true;"
-                                                        class="text-[10.5px] font-bold text-[#8F0A0D] underline cursor-pointer">
-                                                    Alokasikan Tugas
-                                                </button>
-                                            @endif
+                                        <div class="p-2 rounded-lg bg-amber-50/60 border border-amber-200/50 text-[11px] text-amber-800">
+                                            Belum ada pembagian tugas teknis dari PM untuk personil ini.
                                         </div>
                                     @endif
                                 </div>
@@ -1467,8 +1462,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">Buat &amp; Alokasikan Tugas Teknis (PM)</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">PM membagi pekerjaan (WBS) ke personil yang ditunjuk Lead</p>
+                        <h3 class="text-sm font-bold text-slate-900">Tambah Task Teknis (WBS)</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Alokasikan rincian pekerjaan ke personil tim proyek</p>
                     </div>
                 </div>
                 <button type="button" @click="showQuickTaskModal = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">
@@ -1521,12 +1516,23 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Target Batas Waktu (Deadline Task)</label>
-                    <input type="date" 
-                           name="deadline" 
-                           value="{{ $project->deadline ? $project->deadline->format('Y-m-d') : date('Y-m-d', strtotime('+14 days')) }}"
-                           class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Mulai Pengerjaan</label>
+                        <input type="date" 
+                               name="start_date" 
+                               value="{{ date('Y-m-d') }}"
+                               required
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Target Selesai (Deadline)</label>
+                        <input type="date" 
+                               name="deadline" 
+                               value="{{ $project->deadline ? $project->deadline->format('Y-m-d') : date('Y-m-d', strtotime('+14 days')) }}"
+                               required
+                               class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:border-[#8F0A0D] outline-none">
+                    </div>
                 </div>
 
                 <div>
@@ -1542,7 +1548,7 @@
                         Batal
                     </button>
                     <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl btn-ipnet-primary transition shadow-xs cursor-pointer">
-                        Delegasikan Task ke Engineer
+                        + Tambah Task
                     </button>
                 </div>
             </form>
