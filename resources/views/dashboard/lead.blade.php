@@ -720,8 +720,8 @@
                     @else
                         <div class="overflow-x-auto -mx-5 sm:mx-0">
                             <table class="w-full text-left border-collapse text-xs">
-                                <thead>
-                                    <tr class="border-b border-slate-100 bg-slate-50/60 text-slate-500 uppercase tracking-wider text-[11px] font-bold">
+                                <thead class="bg-slate-50/80 border-b border-slate-200/80">
+                                    <tr class="text-slate-500 uppercase tracking-wider text-[11px] font-semibold">
                                         <th class="py-3 px-4 rounded-l-xl">Proyek &amp; Klien</th>
                                         <th class="py-3 px-4">Project Manager (PM)</th>
                                         <th class="py-3 px-4">Personil Tim Lapangan (Lead)</th>
@@ -732,32 +732,32 @@
                                 <tbody class="divide-y divide-slate-100">
                                     @foreach($leadProjects as $p)
                                         @php
-                                            $hd = is_array($p->handover_data) ? $p->handover_data : [];
-                                            $assignedEngs = $hd['assigned_engineers'] ?? [];
-                                            $isAssigned = count($assignedEngs) > 0;
+                                             $hd = is_array($p->handover_data) ? $p->handover_data : [];
+                                             $assignedEngs = $hd['assigned_engineers'] ?? [];
+                                             $isAssigned = count($assignedEngs) > 0;
                                         @endphp
-                                        <tr class="hover:bg-slate-50/80 transition-colors">
+                                        <tr class="hover:bg-slate-50/70 transition-colors">
                                             {{-- Proyek & Klien --}}
-                                            <td class="py-3.5 px-4">
+                                            <td class="py-3 px-4">
                                                 <div class="flex items-start gap-2.5">
-                                                    <div class="w-8 h-8 rounded-lg bg-red-50 text-[#8F0A0D] font-black text-xs flex items-center justify-center shrink-0 mt-0.5 border border-red-100">
+                                                    <div class="w-8 h-8 rounded-lg bg-red-50/90 text-[#8F0A0D] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 border border-red-200/60">
                                                         {{ strtoupper(substr($p->name, 0, 2)) }}
                                                     </div>
                                                     <div class="min-w-0">
-                                                        <div class="flex items-center gap-2 flex-wrap">
-                                                            <a href="{{ route('projects.show', $p->id) }}" class="font-bold text-slate-900 text-[13px] hover:text-[#8F0A0D] transition line-clamp-1">
+                                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                                            <a href="{{ route('projects.show', $p->id) }}" class="font-semibold text-slate-800 text-[13px] hover:text-[#8F0A0D] transition line-clamp-1">
                                                                 {{ $p->name }}
                                                             </a>
                                                             @if(!empty($p->so_code))
-                                                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold border border-slate-200">
+                                                                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-medium border border-slate-200">
                                                                     {{ $p->so_code }}
                                                                 </span>
                                                             @endif
                                                         </div>
-                                                        <p class="text-slate-500 text-[11.5px] mt-0.5 flex items-center gap-1.5">
+                                                        <p class="text-slate-500 text-[11.5px] mt-0.5 flex items-center gap-1.5 font-normal">
                                                             <span>{{ $p->client }}</span>
                                                             <span class="text-slate-300">&bull;</span>
-                                                            <span class="text-[10.5px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200/60">
+                                                            <span class="text-[10.5px] text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
                                                                 Disahkan: {{ $p->handover_approved_at ? \Carbon\Carbon::parse($p->handover_approved_at)->format('d M Y') : 'PMO' }}
                                                             </span>
                                                         </p>
@@ -766,55 +766,55 @@
                                             </td>
 
                                             {{-- Project Manager (PM) --}}
-                                            <td class="py-3.5 px-4 whitespace-nowrap">
+                                            <td class="py-3 px-4 whitespace-nowrap">
                                                 <div class="flex items-center gap-2">
-                                                    <div class="w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold flex items-center justify-center border border-slate-200">
+                                                    <div class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-[10px] font-medium flex items-center justify-center border border-slate-200">
                                                         {{ strtoupper(substr($p->pm ? $p->pm->name : 'PM', 0, 1)) }}
                                                     </div>
                                                     <div>
-                                                        <p class="font-bold text-slate-800 text-xs">{{ $p->pm ? $p->pm->name : 'Belum Ditunjuk' }}</p>
-                                                        <p class="text-[10px] text-slate-400">Project Manager</p>
+                                                        <p class="font-medium text-slate-700 text-xs">{{ $p->pm ? $p->pm->name : 'Belum Ditunjuk' }}</p>
+                                                        <p class="text-[10px] text-slate-400 font-normal">Project Manager</p>
                                                     </div>
                                                 </div>
                                             </td>
 
                                             {{-- Tim Lapangan (Delegasi Lead) --}}
-                                            <td class="py-3.5 px-4">
+                                            <td class="py-3 px-4">
                                                 @if($isAssigned)
                                                     <div>
                                                         <div class="flex items-center gap-1.5 flex-wrap">
-                                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                                                                 <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                                                 {{ count($assignedEngs) }} Personil Ditugaskan
                                                             </span>
                                                         </div>
-                                                        <p class="text-[11px] text-slate-600 mt-1 line-clamp-1">
+                                                        <p class="text-[11px] text-slate-500 font-normal mt-1 line-clamp-1">
                                                             {{ implode(', ', array_column($assignedEngs, 'name')) }}
                                                         </p>
                                                     </div>
                                                 @else
-                                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold">
-                                                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200/70 text-amber-700 text-[11px] font-medium">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                                         <span>Menunggu Delegasi Lead</span>
                                                     </div>
                                                 @endif
                                             </td>
 
                                             {{-- Progres & Target --}}
-                                            <td class="py-3.5 px-4 whitespace-nowrap">
+                                            <td class="py-3 px-4 whitespace-nowrap">
                                                 <div class="w-28 space-y-1">
                                                     <div class="flex items-center justify-between text-[11px]">
-                                                        <span class="font-bold text-slate-800">{{ (int) ($p->progress ?? 0) }}%</span>
-                                                        <span class="text-[10px] text-slate-400">{{ $p->deadline ? \Carbon\Carbon::parse($p->deadline)->format('d M Y') : '-' }}</span>
+                                                        <span class="font-semibold text-slate-700 text-xs">{{ (int) ($p->progress ?? 0) }}%</span>
+                                                        <span class="text-[10.5px] text-slate-400 font-normal">{{ $p->deadline ? \Carbon\Carbon::parse($p->deadline)->format('d M Y') : '-' }}</span>
                                                     </div>
                                                     <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                                        <div class="h-full rounded-full bg-[#8F0A0D]" style="width: {{ (int) ($p->progress ?? 0) }}%"></div>
+                                                        <div class="h-full rounded-full bg-gradient-to-r from-[#8F0A0D] to-[#B91C1C]" style="width: {{ (int) ($p->progress ?? 0) }}%"></div>
                                                     </div>
                                                 </div>
                                             </td>
 
                                             {{-- Aksi --}}
-                                            <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                                            <td class="py-3 px-4 text-right whitespace-nowrap">
                                                 <div class="flex items-center justify-end gap-1.5">
                                                     <button type="button" 
                                                             @click="openAssignModal({{ json_encode([
@@ -825,15 +825,15 @@
                                                                 'pm' => $p->pm ? ['name' => $p->pm->name] : null,
                                                                 'handover_data' => $hd
                                                             ]) }})" 
-                                                            class="px-3 py-1.5 rounded-lg text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer {{ $isAssigned ? 'bg-slate-800 hover:bg-slate-900' : 'bg-[#8F0A0D] hover:bg-[#73080A]' }}"
-                                                            title="{{ $isAssigned ? 'Edit Personil Proyek' : 'Delegasikan Personil Teknis' }}">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                            class="px-2.5 py-1.5 rounded-lg font-medium text-xs transition flex items-center gap-1.5 cursor-pointer border {{ $isAssigned ? 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200' : 'bg-[#8F0A0D] hover:bg-[#73080A] text-white border-transparent shadow-xs' }}"
+                                                            title="{{ $isAssigned ? 'Kelola Tim Proyek' : 'Delegasikan Personil Teknis' }}">
+                                                        <svg class="w-3.5 h-3.5 {{ $isAssigned ? 'text-emerald-600' : 'text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                             <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                                                         </svg>
                                                         <span>{{ $isAssigned ? 'Kelola Tim' : 'Tugaskan Tim' }}</span>
                                                     </button>
                                                     <a href="{{ route('projects.show', $p->id) }}" 
-                                                       class="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 transition cursor-pointer" 
+                                                       class="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition cursor-pointer flex items-center justify-center" 
                                                        title="Lihat Detail Proyek">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                                                     </a>
