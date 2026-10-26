@@ -4,25 +4,99 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\WarehouseItem;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 class WarehouseController extends Controller
 {
     /**
-     * Dashboard & Master Inventaris Gudang
+     * Memastikan database telah termigrasi & terisi data dummy awal
+     */
+    protected function ensureTableReady(): void
+    {
+        if (!Schema::hasTable('warehouse_items')) {
+            try {
+                Artisan::call('migrate', ['--force' => true]);
+                Artisan::call('db:seed', ['--class' => 'WarehouseSeeder', '--force' => true]);
+            } catch (\Throwable $e) {}
+        }
+    }
+
+    /**
+     * Helper untuk menghitung metrik umum inventaris
+     */
+    protected function getMetrics(): array
+    {
+        $this->ensureTableReady();
+
+        return [
+            'total_items'       => WarehouseItem::count(),
+            'ready_stock'       => WarehouseItem::where('status', 'Tersedia')->count(),
+            'backup_spare'      => WarehouseItem::where('category', 'Backup / Spare')->count(),
+            'active_poc'        => WarehouseItem::where('status', 'POC / Pinjaman')->count(),
+            'disti_loan'        => WarehouseItem::where('category', 'Pinjaman')->where('loan_source_type', 'disti')->count(),
+            'internal_loan'     => WarehouseItem::where('category', 'Pinjaman')->where('loan_source_type', 'ipnet')->count(),
+            'customer_deployed' => WarehouseItem::where('location_type', 'Customer')->count(),
+            'warehouse_stock'   => WarehouseItem::where('location_type', 'Warehouse IPNET')->count(),
+            'maintenance'       => WarehouseItem::where('status', 'Maintenance')->count(),
+        ];
+    }
+
+    /**
+     * MENU UTAMA 1: Dashboard Eksekutif & Ringkasan Inventaris
+     */
+    public function dashboard(Request $request)
+    {
+        $this->ensureTableReady();
+
+        $metrics = $this->getMetrics();
+
+        // Statistik breakdown per Jenis Barang
+        $byType = WarehouseItem::select('item_type', DB::raw('count(*) as total'))
+            ->groupBy('item_type')
+            ->orderByDesc('total')
+            ->get();
+
+        // Statistik breakdown per Unit Kerja IPNET 1-5 (dari barang pinjaman/proyek)
+        $byWorkUnit = WarehouseItem::select('ipnet_work_unit', DB::raw('count(*) as total'))
+            ->whereNotNull('ipnet_work_unit')
+            ->groupBy('ipnet_work_unit')
+            ->orderBy('ipnet_work_unit')
+            ->get();
+
+        // 6 Perangkat Terkini
+        $recentItems = WarehouseItem::with('creator')->latest()->take(6)->get();
+
+        // Perangkat Sedang Uji Coba / POC Aktif
+        $pocItems = WarehouseItem::where('status', 'POC / Pinjaman')->latest()->take(5)->get();
+
+        // Perangkat Pinjaman Distributor
+        $distiLoans = WarehouseItem::where('category', 'Pinjaman')
+            ->where('loan_source_type', 'disti')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('warehouse.dashboard', compact(
+            'metrics',
+            'byType',
+            'byWorkUnit',
+            'recentItems',
+            'pocItems',
+            'distiLoans'
+        ));
+    }
+
+    /**
+     * MENU UTAMA 2: Master Data Barang (Katalog Lengkap)
      */
     public function index(Request $request)
     {
-        // Auto-provision table & initial items if table not yet migrated on host
-        if (!\Illuminate\Support\Facades\Schema::hasTable('warehouse_items')) {
-            try {
-                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'WarehouseSeeder', '--force' => true]);
-            } catch (\Throwable $e) {}
-        }
+        $this->ensureTableReady();
 
         $query = WarehouseItem::with('creator');
 
-        // Filter Pencarian Teks
         if ($request->filled('search')) {
             $search = strtolower(trim($request->search));
             $query->where(function ($q) use ($search) {
@@ -38,62 +112,273 @@ class WarehouseController extends Controller
             });
         }
 
-        // Filter Jenis Barang
         if ($request->filled('item_type') && $request->item_type !== 'Semua') {
             $query->where('item_type', $request->item_type);
         }
 
-        // Filter Kategori
         if ($request->filled('category') && $request->category !== 'Semua') {
             $query->where('category', $request->category);
         }
 
-        // Filter Status
         if ($request->filled('status') && $request->status !== 'Semua') {
             $query->where('status', $request->status);
         }
 
-        // Filter Lokasi
         if ($request->filled('location_type') && $request->location_type !== 'Semua') {
             $query->where('location_type', $request->location_type);
         }
 
         $items = $query->latest()->paginate(15)->withQueryString();
+        $metrics = $this->getMetrics();
 
-        // Kartu Metrik Statistik
-        $metrics = [
-            'total_items'      => WarehouseItem::count(),
-            'ready_stock'      => WarehouseItem::where('status', 'Tersedia')->count(),
-            'backup_spare'     => WarehouseItem::where('category', 'Backup / Spare')->count(),
-            'active_poc'       => WarehouseItem::where('status', 'POC / Pinjaman')->count(),
-            'disti_loan'       => WarehouseItem::where('category', 'Pinjaman')->where('loan_source_type', 'disti')->count(),
-            'customer_deployed'=> WarehouseItem::where('location_type', 'Customer')->count(),
-        ];
+        return view('warehouse.index', compact('items', 'metrics'));
+    }
 
-        $itemTypes      = WarehouseItem::getItemTypes();
-        $componentTypes = WarehouseItem::getComponentTypes();
-        $cableTypes     = WarehouseItem::getCableTypes();
-        $workUnits      = WarehouseItem::getWorkUnits();
-        $categories     = WarehouseItem::getCategories();
-        $statuses       = WarehouseItem::getStatuses();
+    /**
+     * MENU UTAMA 3: Kategori dan Satuan / Komponen
+     */
+    public function categories(Request $request)
+    {
+        $this->ensureTableReady();
+        $metrics = $this->getMetrics();
 
-        return view('warehouse.index', compact(
-            'items',
+        // Rekap Jenis Barang
+        $itemTypes = WarehouseItem::select('item_type', DB::raw('count(*) as count'))
+            ->groupBy('item_type')
+            ->pluck('count', 'item_type')
+            ->toArray();
+
+        // Rekap Tipe Komponen
+        $componentTypes = WarehouseItem::select('component_type', DB::raw('count(*) as count'))
+            ->whereNotNull('component_type')
+            ->groupBy('component_type')
+            ->pluck('count', 'component_type')
+            ->toArray();
+
+        // Rekap Tipe Kabel
+        $cableTypes = WarehouseItem::select('cable_type', DB::raw('count(*) as count'))
+            ->whereNotNull('cable_type')
+            ->groupBy('cable_type')
+            ->pluck('count', 'cable_type')
+            ->toArray();
+
+        // Rekap Kategori
+        $categoryTypes = WarehouseItem::select('category', DB::raw('count(*) as count'))
+            ->groupBy('category')
+            ->pluck('count', 'category')
+            ->toArray();
+
+        return view('warehouse.categories', compact(
             'metrics',
             'itemTypes',
             'componentTypes',
             'cableTypes',
-            'workUnits',
-            'categories',
-            'statuses'
+            'categoryTypes'
         ));
     }
 
     /**
-     * Simpan Perangkat / Barang Baru ke Gudang
+     * TRANSAKSI INVENTORI 1: Barang Masuk (Penerimaan PO / Vendor / Return)
+     */
+    public function barangMasuk(Request $request)
+    {
+        $this->ensureTableReady();
+        $metrics = $this->getMetrics();
+
+        $query = WarehouseItem::with('creator');
+
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $query->where(function($q) use ($s) {
+                $q->where('item_code', 'like', "%{$s}%")
+                  ->orWhere('name', 'like', "%{$s}%")
+                  ->orWhere('serial_number', 'like', "%{$s}%")
+                  ->orWhere('po_number', 'like', "%{$s}%")
+                  ->orWhere('disti_name', 'like', "%{$s}%");
+            });
+        }
+
+        // Tampilkan barang yang berlokasi di gudang atau memiliki PO/disti
+        $items = $query->latest()->paginate(15)->withQueryString();
+
+        return view('warehouse.barang_masuk', compact('items', 'metrics'));
+    }
+
+    /**
+     * TRANSAKSI INVENTORI 2: Barang Keluar (Implementasi Proyek / Dispatch Pelanggan)
+     */
+    public function barangKeluar(Request $request)
+    {
+        $this->ensureTableReady();
+        $metrics = $this->getMetrics();
+
+        $query = WarehouseItem::with('creator')
+            ->where(function($q) {
+                $q->where('location_type', 'Customer')
+                  ->orWhere('status', 'POC / Pinjaman')
+                  ->orWhereNotNull('contract_number');
+            });
+
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $query->where(function($q) use ($s) {
+                $q->where('item_code', 'like', "%{$s}%")
+                  ->orWhere('name', 'like', "%{$s}%")
+                  ->orWhere('serial_number', 'like', "%{$s}%")
+                  ->orWhere('contract_number', 'like', "%{$s}%")
+                  ->orWhere('poc_customer_name', 'like', "%{$s}%")
+                  ->orWhere('customer_pic', 'like', "%{$s}%");
+            });
+        }
+
+        $items = $query->latest()->paginate(15)->withQueryString();
+
+        return view('warehouse.barang_keluar', compact('items', 'metrics'));
+    }
+
+    /**
+     * TRANSAKSI INVENTORI 3: Peminjaman & POC (Distributor & Customer)
+     */
+    public function peminjamanPoc(Request $request)
+    {
+        $this->ensureTableReady();
+        $metrics = $this->getMetrics();
+
+        $query = WarehouseItem::with('creator')
+            ->where(function($q) {
+                $q->where('category', 'Pinjaman')
+                  ->orWhere('status', 'POC / Pinjaman');
+            });
+
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $query->where(function($q) use ($s) {
+                $q->where('item_code', 'like', "%{$s}%")
+                  ->orWhere('name', 'like', "%{$s}%")
+                  ->orWhere('serial_number', 'like', "%{$s}%")
+                  ->orWhere('poc_customer_name', 'like', "%{$s}%")
+                  ->orWhere('disti_name', 'like', "%{$s}%")
+                  ->orWhere('ipnet_pic_name', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('type') && $request->type !== 'all') {
+            if ($request->type === 'poc') {
+                $query->where('status', 'POC / Pinjaman');
+            } elseif ($request->type === 'disti') {
+                $query->where('loan_source_type', 'disti');
+            } elseif ($request->type === 'internal') {
+                $query->where('loan_source_type', 'ipnet');
+            }
+        }
+
+        $items = $query->latest()->paginate(15)->withQueryString();
+
+        return view('warehouse.peminjaman_poc', compact('items', 'metrics'));
+    }
+
+    /**
+     * TRANSAKSI INVENTORI 4: Stock Opname & Audit Rak Gudang
+     */
+    public function stockOpname(Request $request)
+    {
+        $this->ensureTableReady();
+        $metrics = $this->getMetrics();
+
+        // Rekapitulasi per Rak Gudang
+        $racks = WarehouseItem::select('warehouse_rack', DB::raw('count(*) as count'))
+            ->whereNotNull('warehouse_rack')
+            ->groupBy('warehouse_rack')
+            ->orderBy('warehouse_rack')
+            ->get();
+
+        $query = WarehouseItem::with('creator')->where('location_type', 'Warehouse IPNET');
+
+        if ($request->filled('rack') && $request->rack !== 'all') {
+            $query->where('warehouse_rack', $request->rack);
+        }
+
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $query->where(function($q) use ($s) {
+                $q->where('item_code', 'like', "%{$s}%")
+                  ->orWhere('name', 'like', "%{$s}%")
+                  ->orWhere('serial_number', 'like', "%{$s}%")
+                  ->orWhere('warehouse_rack', 'like', "%{$s}%");
+            });
+        }
+
+        $items = $query->latest()->paginate(15)->withQueryString();
+
+        return view('warehouse.stock_opname', compact('items', 'racks', 'metrics'));
+    }
+
+    /**
+     * MONITORING & LAPORAN 1: Laporan Inventori
+     */
+    public function reports(Request $request)
+    {
+        $this->ensureTableReady();
+        $metrics = $this->getMetrics();
+
+        // Breakdown per Kategori
+        $byCategory = WarehouseItem::select('category', DB::raw('count(*) as total'))
+            ->groupBy('category')
+            ->get();
+
+        // Breakdown per Status
+        $byStatus = WarehouseItem::select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->get();
+
+        // Breakdown per Jenis
+        $byType = WarehouseItem::select('item_type', DB::raw('count(*) as total'))
+            ->groupBy('item_type')
+            ->orderByDesc('total')
+            ->get();
+
+        // Breakdown per Unit Kerja IPNET 1-5
+        $byUnit = WarehouseItem::select('ipnet_work_unit', DB::raw('count(*) as total'))
+            ->whereNotNull('ipnet_work_unit')
+            ->groupBy('ipnet_work_unit')
+            ->orderBy('ipnet_work_unit')
+            ->get();
+
+        $items = WarehouseItem::with('creator')->latest()->take(50)->get();
+
+        return view('warehouse.reports', compact(
+            'metrics',
+            'byCategory',
+            'byStatus',
+            'byType',
+            'byUnit',
+            'items'
+        ));
+    }
+
+    /**
+     * MONITORING & LAPORAN 2: Riwayat Pergerakan Stok
+     */
+    public function history(Request $request)
+    {
+        $this->ensureTableReady();
+        $metrics = $this->getMetrics();
+
+        // Mengambil seluruh log pembaruan dan pembuatan perangkat
+        $items = WarehouseItem::with('creator')
+            ->latest('updated_at')
+            ->paginate(20);
+
+        return view('warehouse.history', compact('items', 'metrics'));
+    }
+
+    /**
+     * Simpan Data Perangkat Baru
      */
     public function store(Request $request)
     {
+        $this->ensureTableReady();
+
         $validated = $request->validate([
             'name'                => 'required|string|max:255',
             'brand'               => 'nullable|string|max:100',
@@ -130,9 +415,7 @@ class WarehouseController extends Controller
             'notes'               => 'nullable|string',
         ]);
 
-        // Auto-generate Item Code unik: WH-2026-XXXX
-        $countThisYear = WarehouseItem::withTrashed()->whereYear('created_at', date('Y'))->count() + 1;
-        $validated['item_code'] = 'WH-' . date('Y') . '-' . str_pad($countThisYear, 4, '0', STR_PAD_LEFT);
+        $validated['item_code'] = WarehouseItem::generateItemCode();
         $validated['created_by'] = auth()->id();
 
         $item = WarehouseItem::create($validated);
@@ -140,12 +423,12 @@ class WarehouseController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Perangkat inventaris berhasil didaftarkan ke gudang!',
+                'message' => 'Perangkat baru berhasil ditambahkan ke inventaris!',
                 'data'    => $item,
-            ], 201);
+            ]);
         }
 
-        return redirect()->route('warehouse.dashboard')->with('success', "Barang {$item->name} ({$item->item_code}) berhasil didaftarkan ke gudang!");
+        return redirect()->back()->with('success', "Barang {$item->item_code} berhasil didaftarkan ke inventaris!");
     }
 
     /**
@@ -153,6 +436,8 @@ class WarehouseController extends Controller
      */
     public function update(Request $request, WarehouseItem $item)
     {
+        $this->ensureTableReady();
+
         $validated = $request->validate([
             'name'                => 'required|string|max:255',
             'brand'               => 'nullable|string|max:100',
@@ -199,7 +484,7 @@ class WarehouseController extends Controller
             ]);
         }
 
-        return redirect()->route('warehouse.dashboard')->with('success', "Data barang {$item->item_code} berhasil diperbarui!");
+        return redirect()->back()->with('success', "Data barang {$item->item_code} berhasil diperbarui!");
     }
 
     /**
@@ -210,6 +495,6 @@ class WarehouseController extends Controller
         $code = $item->item_code;
         $item->delete();
 
-        return redirect()->route('warehouse.dashboard')->with('success', "Barang {$code} berhasil dihapus dari inventaris.");
+        return redirect()->back()->with('success', "Barang {$code} berhasil dihapus dari inventaris.");
     }
 }

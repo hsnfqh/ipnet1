@@ -39,7 +39,7 @@
     @include('components.sidebar')
     
     <div class="flex-1 min-w-0 overflow-y-auto">
-        @include('components.topbar', ['title' => 'Warehouse & Logistik'])
+        @include('components.topbar', ['title' => 'Master Barang'])
         
         <div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] mx-auto">
             
@@ -50,13 +50,13 @@
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 mb-4 border-b border-[#E2E8F0]">
                     <div>
                         <p class="text-[#8F0A0D] text-[12px] font-semibold inline-flex items-center uppercase tracking-wider">
-                            <span class="ipnet-badge-dot"></span> MANAJEMEN GUDANG &amp; INVENTARIS
+                            <span class="ipnet-badge-dot"></span> MENU UTAMA &bull; MASTER INVENTARIS
                         </p>
                         <h2 class="text-[20px] font-bold text-[#1E293B] tracking-tight mt-0.5">
-                            Pusat Inventaris &amp; Logistik Perangkat
+                            Master Data Barang &amp; Katalog Perangkat
                         </h2>
                         <p class="text-[13px] text-[#64748B] mt-0.5">
-                            Monitoring fisik perangkat jaringan, alokasi unit cadangan (spare), status peminjaman POC klien, dan inventaris distributor.
+                            Katalog lengkap seluruh perangkat jaringan, nomor seri (SN), nomor PO/kontrak, dan alokasi tim kerja IPNET 1 - 5.
                         </p>
                     </div>
 

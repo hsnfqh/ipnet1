@@ -1780,11 +1780,23 @@ Route::get('/fix-rizki-access', function () {
 // WAREHOUSE & INVENTORY MANAGEMENT SYSTEM
 // =========================================================================
 Route::middleware(['auth'])->prefix('warehouse')->name('warehouse.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\WarehouseController::class, 'index'])->name('dashboard');
+    // Menu Utama
+    Route::get('/', [\App\Http\Controllers\WarehouseController::class, 'dashboard'])->name('dashboard');
     Route::get('/items', [\App\Http\Controllers\WarehouseController::class, 'index'])->name('items.index');
     Route::post('/items', [\App\Http\Controllers\WarehouseController::class, 'store'])->name('items.store');
     Route::put('/items/{item}', [\App\Http\Controllers\WarehouseController::class, 'update'])->name('items.update');
     Route::delete('/items/{item}', [\App\Http\Controllers\WarehouseController::class, 'destroy'])->name('items.destroy');
+    Route::get('/categories', [\App\Http\Controllers\WarehouseController::class, 'categories'])->name('categories.index');
+
+    // Transaksi Inventori
+    Route::get('/transactions/in', [\App\Http\Controllers\WarehouseController::class, 'barangMasuk'])->name('transactions.in');
+    Route::get('/transactions/out', [\App\Http\Controllers\WarehouseController::class, 'barangKeluar'])->name('transactions.out');
+    Route::get('/transactions/poc', [\App\Http\Controllers\WarehouseController::class, 'peminjamanPoc'])->name('transactions.poc');
+    Route::get('/stock-opname', [\App\Http\Controllers\WarehouseController::class, 'stockOpname'])->name('stock_opname.index');
+
+    // Monitoring & Laporan
+    Route::get('/reports', [\App\Http\Controllers\WarehouseController::class, 'reports'])->name('reports.index');
+    Route::get('/history', [\App\Http\Controllers\WarehouseController::class, 'history'])->name('history.index');
 });
 
 // Helper 1-Click Init & Seed Warehouse Dummy

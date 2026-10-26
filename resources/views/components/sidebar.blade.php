@@ -16,8 +16,23 @@
 
     if ($isWarehouse) {
         $navItems = [
-            ['key' => 'warehouse',          'label' => 'Warehouse (Gudang)',    'route' => 'warehouse.dashboard'],
-            ['key' => 'digital_signatures', 'label' => 'Digital Signature',     'route' => 'digital_signatures.index'],
+            // Section 1: MENU UTAMA
+            ['is_header' => true, 'label' => 'MENU UTAMA'],
+            ['key' => 'wh_dashboard',     'label' => 'Dashboard',             'route' => 'warehouse.dashboard'],
+            ['key' => 'wh_items',         'label' => 'Master Barang',         'route' => 'warehouse.items.index'],
+            ['key' => 'wh_categories',    'label' => 'Kategori & Satuan',     'route' => 'warehouse.categories.index'],
+
+            // Section 2: TRANSAKSI INVENTORI
+            ['is_header' => true, 'label' => 'TRANSAKSI INVENTORI'],
+            ['key' => 'wh_in',            'label' => 'Barang Masuk',          'route' => 'warehouse.transactions.in'],
+            ['key' => 'wh_out',           'label' => 'Barang Keluar',         'route' => 'warehouse.transactions.out'],
+            ['key' => 'wh_poc',           'label' => 'Peminjaman & POC',      'route' => 'warehouse.transactions.poc'],
+            ['key' => 'wh_stock_opname',  'label' => 'Stock Opname',          'route' => 'warehouse.stock_opname.index'],
+
+            // Section 3: MONITORING & LAPORAN
+            ['is_header' => true, 'label' => 'MONITORING & LAPORAN'],
+            ['key' => 'wh_reports',       'label' => 'Laporan Inventori',     'route' => 'warehouse.reports.index'],
+            ['key' => 'wh_history',       'label' => 'Riwayat Pergerakan Stok', 'route' => 'warehouse.history.index'],
         ];
     } elseif ($isExecutiveOrGl) {
         $navItems = [
@@ -331,9 +346,17 @@
 
     <!-- NAVIGATION -->
     <div style="position:relative; z-index:10; flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:3px; overflow-y:auto;">
-        <div x-show="isExpanded" x-cloak style="font-size:10.5px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.48); padding:0 10px 8px; white-space:nowrap;">MAIN MENU</div>
+        @if(!$isWarehouse)
+            <div x-show="isExpanded" x-cloak style="font-size:10.5px; font-weight:700; letter-spacing:0.8px; color:rgba(255,255,255,0.48); padding:0 10px 8px; white-space:nowrap;">MAIN MENU</div>
+        @endif
 
         @foreach($navItems as $item)
+            @if(!empty($item['is_header']))
+                <div x-show="isExpanded" x-cloak style="font-size:10px; font-weight:800; letter-spacing:0.8px; color:rgba(255,255,255,0.52); padding:14px 10px 6px; text-transform:uppercase;">
+                    {{ $item['label'] }}
+                </div>
+                @continue
+            @endif
             @php
                 $itemParams = $item['params'] ?? [];
                 $itemUrl = !empty($itemParams) ? route($item['route'], $itemParams) : route($item['route']);
@@ -532,6 +555,7 @@
                     @case('pmo_dashboard')
                     @case('admin_dashboard')
                     @case('ms_dashboard')
+                    @case('wh_dashboard')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                     </svg>
@@ -548,8 +572,44 @@
                     @break
                     @case('inventory')
                     @case('warehouse')
+                    @case('wh_items')
                     <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    @break
+                    @case('wh_categories')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                    </svg>
+                    @break
+                    @case('wh_in')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                    </svg>
+                    @break
+                    @case('wh_out')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                    </svg>
+                    @break
+                    @case('wh_poc')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                    @break
+                    @case('wh_stock_opname')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    @break
+                    @case('wh_reports')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    @break
+                    @case('wh_history')
+                    <svg style="width:17px; height:17px; flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     @break
                     @case('vendors')
